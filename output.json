@@ -1,0 +1,377 @@
+{
+    "FullName": "NetworkClient.java",
+    "PackageName": "",
+    "Imports": [],
+    "Members": [],
+    "DataStructures": [
+        {
+            "NodeName": "NetworkClient",
+            "Module": "",
+            "Type": "CLASS",
+            "Package": "",
+            "FilePath": "NetworkClient.java",
+            "Fields": [
+                {
+                    "TypeType": "NetworkService",
+                    "TypeValue": "",
+                    "TypeKey": "networkService",
+                    "Annotations": [],
+                    "Modifiers": [],
+                    "Calls": []
+                }
+            ],
+            "MultipleExtend": [],
+            "Implements": [],
+            "Extend": "",
+            "Functions": [
+                {
+                    "Name": "NetworkClient",
+                    "FilePath": "",
+                    "Package": "",
+                    "ReturnType": "",
+                    "MultipleReturns": [],
+                    "Parameters": [
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "networkService",
+                            "TypeType": "NetworkService",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        }
+                    ],
+                    "FunctionCalls": [],
+                    "Annotations": [],
+                    "Override": false,
+                    "Modifiers": [],
+                    "InnerStructures": [],
+                    "InnerFunctions": [],
+                    "Position": {
+                        "StartLine": 11,
+                        "StartLinePosition": 11,
+                        "StopLine": 14,
+                        "StopLinePosition": 4
+                    },
+                    "Extension": {},
+                    "LocalVariables": [],
+                    "IsConstructor": true,
+                    "IsReturnHtml": false,
+                    "BodyHash": 0,
+                    "Type": "Function",
+                    "Content": "",
+                    "extensionMap": {}
+                },
+                {
+                    "Name": "fetchDataAndPrint",
+                    "FilePath": "",
+                    "Package": "",
+                    "ReturnType": "void",
+                    "MultipleReturns": [],
+                    "Parameters": [
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "url",
+                            "TypeType": "String",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        }
+                    ],
+                    "FunctionCalls": [
+                        {
+                            "Package": "",
+                            "Type": "FUNCTION",
+                            "NodeName": "System.out",
+                            "FunctionName": "println",
+                            "Parameters": [
+                                {
+                                    "Modifiers": [],
+                                    "DefaultValue": "",
+                                    "TypeValue": "\"Fetching data from: \"+url",
+                                    "TypeType": "",
+                                    "Annotations": [],
+                                    "ObjectValue": [],
+                                    "ReturnTypes": [],
+                                    "Parameters": []
+                                }
+                            ],
+                            "Position": {
+                                "StartLine": 19,
+                                "StartLinePosition": 19,
+                                "StopLine": 19,
+                                "StopLinePosition": 55
+                            },
+                            "OriginNodeName": ""
+                        },
+                        {
+                            "Package": "",
+                            "Type": "FUNCTION",
+                            "NodeName": "NetworkService",
+                            "FunctionName": "fetchData",
+                            "Parameters": [
+                                {
+                                    "Modifiers": [],
+                                    "DefaultValue": "",
+                                    "TypeValue": "url",
+                                    "TypeType": "",
+                                    "Annotations": [],
+                                    "ObjectValue": [],
+                                    "ReturnTypes": [],
+                                    "Parameters": []
+                                }
+                            ],
+                            "Position": {
+                                "StartLine": 21,
+                                "StartLinePosition": 39,
+                                "StopLine": 21,
+                                "StopLinePosition": 52
+                            },
+                            "OriginNodeName": ""
+                        },
+                        {
+                            "Package": "",
+                            "Type": "FUNCTION",
+                            "NodeName": "System.out",
+                            "FunctionName": "println",
+                            "Parameters": [
+                                {
+                                    "Modifiers": [],
+                                    "DefaultValue": "",
+                                    "TypeValue": "\"Received: \"+result",
+                                    "TypeType": "",
+                                    "Annotations": [],
+                                    "ObjectValue": [],
+                                    "ReturnTypes": [],
+                                    "Parameters": []
+                                }
+                            ],
+                            "Position": {
+                                "StartLine": 23,
+                                "StartLinePosition": 19,
+                                "StopLine": 23,
+                                "StopLinePosition": 48
+                            },
+                            "OriginNodeName": ""
+                        }
+                    ],
+                    "Annotations": [],
+                    "Override": false,
+                    "Modifiers": [],
+                    "InnerStructures": [],
+                    "InnerFunctions": [],
+                    "Position": {
+                        "StartLine": 17,
+                        "StartLinePosition": 11,
+                        "StopLine": 24,
+                        "StopLinePosition": 4
+                    },
+                    "Extension": {},
+                    "LocalVariables": [
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "networkService",
+                            "TypeType": "NetworkService",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "url",
+                            "TypeType": "String",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "result",
+                            "TypeType": "String",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        }
+                    ],
+                    "IsConstructor": false,
+                    "IsReturnHtml": false,
+                    "BodyHash": 1894490292,
+                    "Type": "Function",
+                    "Content": "",
+                    "extensionMap": {}
+                },
+                {
+                    "Name": "main",
+                    "FilePath": "",
+                    "Package": "",
+                    "ReturnType": "void",
+                    "MultipleReturns": [],
+                    "Parameters": [
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "args",
+                            "TypeType": "String[]",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        }
+                    ],
+                    "FunctionCalls": [
+                        {
+                            "Package": "",
+                            "Type": "SELF",
+                            "NodeName": "NetworkClient",
+                            "FunctionName": "fetchDataAndPrint",
+                            "Parameters": [
+                                {
+                                    "Modifiers": [],
+                                    "DefaultValue": "",
+                                    "TypeValue": "\"http://example.com/api/data\"",
+                                    "TypeType": "",
+                                    "Annotations": [],
+                                    "ObjectValue": [],
+                                    "ReturnTypes": [],
+                                    "Parameters": []
+                                }
+                            ],
+                            "Position": {
+                                "StartLine": 33,
+                                "StartLinePosition": 15,
+                                "StopLine": 33,
+                                "StopLinePosition": 62
+                            },
+                            "OriginNodeName": ""
+                        }
+                    ],
+                    "Annotations": [],
+                    "Override": false,
+                    "Modifiers": [],
+                    "InnerStructures": [],
+                    "InnerFunctions": [],
+                    "Position": {
+                        "StartLine": 27,
+                        "StartLinePosition": 18,
+                        "StopLine": 34,
+                        "StopLinePosition": 4
+                    },
+                    "Extension": {},
+                    "LocalVariables": [
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "networkService",
+                            "TypeType": "NetworkService",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "url",
+                            "TypeType": "String",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "result",
+                            "TypeType": "String",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "args",
+                            "TypeType": "String[]",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "service",
+                            "TypeType": "NetworkService",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "newSimpleNetworkService()",
+                            "TypeType": "SimpleNetworkService",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "client",
+                            "TypeType": "NetworkClient",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        },
+                        {
+                            "Modifiers": [],
+                            "DefaultValue": "",
+                            "TypeValue": "newNetworkClient(service)",
+                            "TypeType": "NetworkClient",
+                            "Annotations": [],
+                            "ObjectValue": [],
+                            "ReturnTypes": [],
+                            "Parameters": []
+                        }
+                    ],
+                    "IsConstructor": false,
+                    "IsReturnHtml": false,
+                    "BodyHash": -1597084065,
+                    "Type": "Function",
+                    "Content": "",
+                    "extensionMap": {}
+                }
+            ],
+            "InnerStructures": [],
+            "Annotations": [],
+            "FunctionCalls": [],
+            "Parameters": [],
+            "Imports": [],
+            "Exports": [],
+            "Extension": {},
+            "Position": {
+                "StartLine": 5,
+                "StartLinePosition": 7,
+                "StopLine": 35,
+                "StopLinePosition": 0
+            },
+            "Content": ""
+        }
+    ],
+    "Fields": [],
+    "Containers": []
+}

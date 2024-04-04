@@ -1,0 +1,63 @@
+
+INFO [2024-04-03T16:59:54.384Z]: Set User: ghiya6548@gmail.com
+INFO [2024-04-03T16:59:54.384Z]: {"Telemetry":true}
+INFO [2024-04-03T17:00:04.937Z]: extension_initialized
+INFO [2024-04-03T17:00:04.938Z]: {"timeToInit":20467,"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:01:35.140Z]: Set User: ghiya6548@gmail.com
+INFO [2024-04-03T17:01:35.140Z]: {"Telemetry":true}
+INFO [2024-04-03T17:01:36.492Z]: extension_initialized
+INFO [2024-04-03T17:01:36.492Z]: {"timeToInit":3351,"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:01:58.529Z]: Set User: ghiya6548@gmail.com
+INFO [2024-04-03T17:01:58.529Z]: {"Telemetry":true}
+INFO [2024-04-03T17:01:59.095Z]: extension_initialized
+INFO [2024-04-03T17:01:59.095Z]: {"timeToInit":3451,"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:04.253Z]: project_languages
+INFO [2024-04-03T17:02:04.253Z]: {"languages":["Java","Markdown"],"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:05.744Z]: project_initialize_failure
+INFO [2024-04-03T17:02:05.744Z]: No files found!
+INFO [2024-04-03T17:02:28.104Z]: project_initialize_start
+INFO [2024-04-03T17:02:28.104Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:28.419Z]: project_initialize_failure
+INFO [2024-04-03T17:02:28.419Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:29.489Z]: project_initialize_start
+INFO [2024-04-03T17:02:29.490Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:29.618Z]: project_initialize_failure
+INFO [2024-04-03T17:02:29.619Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:30.077Z]: project_initialize_start
+INFO [2024-04-03T17:02:30.077Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:30.172Z]: project_initialize_failure
+INFO [2024-04-03T17:02:30.173Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:34.728Z]: project_initialize_failure
+INFO [2024-04-03T17:02:34.728Z]: No files found!
+INFO [2024-04-03T17:02:36.469Z]: project_initialize_start
+INFO [2024-04-03T17:02:36.470Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:36.579Z]: project_initialize_failure
+INFO [2024-04-03T17:02:36.579Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:40.763Z]: project_initialize_start
+INFO [2024-04-03T17:02:40.763Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:40.859Z]: project_initialize_failure
+INFO [2024-04-03T17:02:40.859Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:59.073Z]: project_initialize_start
+INFO [2024-04-03T17:02:59.073Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:02:59.217Z]: project_initialize_failure
+INFO [2024-04-03T17:02:59.217Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:03:00.982Z]: project_initialize_start
+INFO [2024-04-03T17:03:00.982Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:03:01.075Z]: project_initialize_failure
+INFO [2024-04-03T17:03:01.075Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:03:11.141Z]: Set User: ghiya6548@gmail.com
+INFO [2024-04-03T17:03:11.141Z]: {"Telemetry":true}
+INFO [2024-04-03T17:03:11.894Z]: extension_initialized
+INFO [2024-04-03T17:03:11.894Z]: {"timeToInit":3132,"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:03:14.605Z]: project_languages
+INFO [2024-04-03T17:03:14.605Z]: {"languages":["Java"],"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:03:15.813Z]: project_initialize_failure
+INFO [2024-04-03T17:03:15.813Z]: No files found!
+INFO [2024-04-03T17:03:16.898Z]: project_initialize_start
+INFO [2024-04-03T17:03:16.898Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:03:17.146Z]: project_initialize_failure
+INFO [2024-04-03T17:03:17.147Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:04:15.709Z]: project_initialize_start
+INFO [2024-04-03T17:04:15.709Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
+INFO [2024-04-03T17:04:15.790Z]: project_initialize_failure
+INFO [2024-04-03T17:04:15.790Z]: {"agent":"cosine-vscode","version":"1.1.2","package":"@cosine/analytics"}
