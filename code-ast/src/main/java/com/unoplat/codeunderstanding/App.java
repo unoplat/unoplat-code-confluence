@@ -1,29 +1,48 @@
 package com.unoplat.codeunderstanding;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+
+import org.stringtemplate.v4.ST;
 
 import com.google.gson.Gson;
 
 import chapi.ast.javaast.JavaAnalyser;
 import chapi.domain.core.CodeContainer;
 import chapi.domain.core.CodeDataStruct;
+
 /**
  * Hello world!
  *
  */
-public class App 
-{
-    public static void main( String[] args )
-    {
+public class App {
+    public static void main(String[] args) {
         JavaAnalyser javaAnalyser = new JavaAnalyser();
-        CodeContainer codeContainer =  javaAnalyser.identFullInfo("public class NetworkClient {\n    \n    private NetworkService networkService;\n    \n    public NetworkClient(NetworkService networkService) {\n        this.networkService = networkService;\n    }\n\n    public void fetchDataAndPrint(String url) {\n        System.out.println(\"Fetching data from: \" + url);\n        String result = networkService.fetchData(url);\n        System.out.println(\"Received: \" + result);\n    }\n\n    public static void main(String[] args) {\n        NetworkService service = new SimpleNetworkService();\n        NetworkClient client = new NetworkClient(service);\n        client.fetchDataAndPrint(\"http://example.com/api/data\");\n    }\n}\n", "NetworkClient.java",new ArrayList<String>() , new ArrayList<CodeDataStruct>());
+        // Read file called NetworkClient.java and pass as a string to identFullInfo
+        String code = new String();
+        try {
+            code = new String(Files.readAllBytes(Paths.get("NetworkClient.java")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        CodeContainer codeContainer = javaAnalyser.identFullInfo(code, "NetworkClient.java", new ArrayList<String>(),
+                new ArrayList<CodeDataStruct>());
 
-           Gson gson = new Gson();
+        Gson gson = new Gson();
 
         // Convert the CodeContainer object to JSON
         String json = gson.toJson(codeContainer);
 
-        System.out.println(json);
-        
+        try (FileWriter file = new FileWriter("output.json")) {
+            file.write(json);
+            System.out.println("Successfully Copied JSON Object to File...");
+            System.out.println("\nJSON Object: " + json);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
