@@ -3,7 +3,7 @@ info:
   title: "ArchGuard HTTP API"
   version: "1.0.0"
 servers:
-  - url: 'http://127.0.0.1:8765/scanner/{systemId}/reporting'
+  - url: 'http://127.0.0.1:8080/scanner/{systemId}/reporting'
     variables:
       systemId:
         default: 'YOUR_SYSTEM_ID'
