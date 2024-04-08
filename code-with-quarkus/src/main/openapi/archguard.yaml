@@ -1,0 +1,239 @@
+openapi: "3.0.0"
+info:
+  title: "ArchGuard HTTP API"
+  version: "1.0.0"
+servers:
+  - url: 'http://127.0.0.1:8765/scanner/{systemId}/reporting'
+    variables:
+      systemId:
+        default: 'YOUR_SYSTEM_ID'
+paths:
+  /class-items:
+    post:
+      summary: Save Class Items Data Structure
+      parameters:
+        - in: path
+          name: systemId
+          required: true
+          schema:
+            type: string
+            description: The system ID
+        - in: query
+          name: language
+          required: true
+          schema:
+            type: string
+            description: The language
+        - in: query
+          name: path
+          required: true
+          schema:
+            type: string
+            description: The path
+        - in: query
+          name: repoId
+          required: true
+          schema:
+            type: string
+            description: The repoId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeDataStruct'
+      responses:
+        '200':
+          description: Successful Request
+        '400':
+          description: Bad Request
+components:
+  schemas:
+    CodeDataStruct:
+      type: object 
+      properties:
+        NodeName:
+          type: string
+        Module:
+          type: string
+        Type:
+          type: string
+        Package:
+          type: string
+        FilePath:
+          type: string
+        Fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeField'
+        MultipleExtend:
+          type: array
+          items:
+            type: string
+        Implements:
+          type: array
+          items:
+            type: string
+        Extend:
+          type: string
+        Functions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeFunction'
+        InnerStructures:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeDataStruct'
+        Annotations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeAnnotation'
+        FunctionCalls:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeCall'
+        Parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeProperty'
+        Imports:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeImport'
+        Exports:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeExport'
+        Extension:
+          type: string
+          format: json
+        Position:
+          $ref: '#/components/schemas/CodePosition'
+        Content:
+          type: string
+    CodeField:
+      type: object
+      properties:
+        type:
+          type: string
+        Name:
+          type: string
+        Declaration:
+          type: string
+        Description:
+          type: string
+        SyntaxTree:
+          type: string
+        id:
+          type: integer
+        Access:
+          type: string
+        Modifiers:
+          type: array
+          items:
+            type: string
+        Annotation:
+          type: string
+        FrameworkProps:
+          type: string
+    CodeFunction:
+      type: object
+      properties:
+        type:
+          type: string
+        Name:
+          type: string
+        Declaration:
+          type: string
+        Description:
+          type: string
+        SyntaxTree:
+          type: string
+        id:
+          type: integer
+        Access:
+          type: string
+        Modifiers:
+          type: array
+          items:
+            type: string
+        Annotation:
+          type: string
+        FrameworkProps:
+          type: string
+        FrameworkFuncs:
+          type: string
+    CodeAnnotation:
+      type: object
+      properties:
+        Start:
+          type: integer
+        End:
+          type: integer
+        Name:
+          type: string
+    CodeCall:
+      type: object
+      properties:
+        Start:
+          type: integer
+        End:
+          type: integer
+        NameSpace:
+          type: string
+        Name:
+          type: string
+        Type:
+          type: string
+    CodeProperty:
+      type: object
+      properties:
+        TypeType:
+          type: string
+        TypeValue:
+          type: string
+        TypeKey:
+          type: string
+        Modifiers:
+          type: array
+          items:
+            type: string
+        Annotations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeAnnotation'
+        Name:
+          type: string
+        Value:
+          type: string
+    CodeImport:
+      type: object
+      properties:
+        Type:
+          type: string
+        Alias:
+          type: string
+        Name:
+          type: string
+    CodeExport:
+      type: object
+      properties:
+        Type:
+          type: string
+        Alias:
+          type: string
+        Name:
+          type: string
+        Extension:
+          type: string
+        Content:
+          type: string
+    CodePosition:
+      type: object
+      properties:
+        FilePath:
+          type: string
+        Start:
+          type: integer
+        End:
+          type: integer
