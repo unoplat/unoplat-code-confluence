@@ -1,18 +1,23 @@
 package com.unoplat.codeunderstanding;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-
-import org.stringtemplate.v4.ST;
 
 import com.google.gson.Gson;
 
 import chapi.ast.javaast.JavaAnalyser;
 import chapi.domain.core.CodeContainer;
 import chapi.domain.core.CodeDataStruct;
+import chapi.ast.javaast.JavaAnalyser;
+import chapi.domain.core.CodeContainer;
+import java.util.List;
 
 /**
  * Hello world!
@@ -30,6 +35,9 @@ public class App {
         }
         CodeContainer codeContainer = javaAnalyser.identFullInfo(code, "NetworkClient.java", new ArrayList<String>(),
                 new ArrayList<CodeDataStruct>());
+
+
+
 
         Gson gson = new Gson();
 
