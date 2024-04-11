@@ -2,13 +2,8 @@ openapi: "3.0.0"
 info:
   title: "ArchGuard HTTP API"
   version: "1.0.0"
-servers:
-  - url: 'http://127.0.0.1:8080/scanner/{systemId}/reporting'
-    variables:
-      systemId:
-        default: 'YOUR_SYSTEM_ID'
 paths:
-  /class-items:
+  /scanner/{systemId}/reporting/class-items:
     post:
       summary: Save Class Items Data Structure
       parameters:
@@ -18,24 +13,6 @@ paths:
           schema:
             type: string
             description: The system ID
-        - in: query
-          name: language
-          required: true
-          schema:
-            type: string
-            description: The language
-        - in: query
-          name: path
-          required: true
-          schema:
-            type: string
-            description: The path
-        - in: query
-          name: repoId
-          required: true
-          schema:
-            type: string
-            description: The repoId
       requestBody:
         required: true
         content:
