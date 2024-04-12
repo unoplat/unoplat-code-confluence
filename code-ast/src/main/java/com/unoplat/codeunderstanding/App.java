@@ -36,9 +36,6 @@ public class App {
         CodeContainer codeContainer = javaAnalyser.identFullInfo(code, "NetworkClient.java", new ArrayList<String>(),
                 new ArrayList<CodeDataStruct>());
 
-
-
-
         Gson gson = new Gson();
 
         // Convert the CodeContainer object to JSON
