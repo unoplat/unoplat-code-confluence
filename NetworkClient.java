@@ -1,19 +1,28 @@
 /**
- * This class, NetworkClient, is used to fetch data from a specific URL and print it.
- * It uses an instance of NetworkService to fetch the data.
+ * NetworkClient class that handles network operations.
  */
 public class NetworkClient {
-    
-    // Declaring a private instance of NetworkService
+
+    /**
+     * Private instance of NetworkService.
+     */
     private NetworkService networkService;
-    
-    // Constructor for NetworkClient that takes a NetworkService object as an argument
+
+    /**
+     * Constructor for NetworkClient that takes a NetworkService object as an argument.
+     *
+     * @param networkService The network service to be used with this client.
+     */
     public NetworkClient(NetworkService networkService) {
         // Assigning the networkService argument to the instance variable
         this.networkService = networkService;
     }
 
-    // Method that fetches data from a given URL and prints it
+    /**
+     * Fetches data from a specified URL and prints it.
+     *
+     * @param url The URL from which data is fetched.
+     */
     public void fetchDataAndPrint(String url) {
         // Printing the URL from which data is being fetched
         System.out.println("Fetching data from: " + url);
@@ -23,7 +32,11 @@ public class NetworkClient {
         System.out.println("Received: " + result);
     }
 
-    // Main method
+    /**
+     * Main method to run the NetworkClient example.
+     *
+     * @param args Command line arguments (not used).
+     */
     public static void main(String[] args) {
         // Creating a new instance of SimpleNetworkService
         NetworkService service = new SimpleNetworkService();
