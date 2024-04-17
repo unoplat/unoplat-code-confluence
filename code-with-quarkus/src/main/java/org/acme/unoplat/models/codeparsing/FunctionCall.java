@@ -3,17 +3,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List; 
+
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class FunctionCall{
-    @JsonProperty("Package") 
-    public String packageName;
-    @JsonProperty("NodeName") 
-    public String nodeName;
-    @JsonProperty("FunctionName") 
-    public String functionName;
-    @JsonProperty("Parameters") 
-    public ArrayList<Parameter> parameters;
-    @JsonProperty("Position") 
-    public Position position;
-    @JsonProperty("Type") 
-    public String type;
+    @JsonProperty("Package")
+    private String packageName;
+    @JsonProperty("NodeName")
+    private String nodeName;
+    @JsonProperty("FunctionName")
+    private String functionName;
+    @JsonProperty("Parameters")
+    private ArrayList<Parameter> parameters;
+    @JsonProperty("Position")
+    private Position position;
+    @JsonProperty("Type")
+    private String type;
 }
