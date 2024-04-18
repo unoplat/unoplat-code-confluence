@@ -1,61 +1,50 @@
 package org.acme.unoplat.processor.comments.impl;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseResult;
-import com.github.javaparser.Problem;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.comments.Comment;
+
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import jakarta.ws.rs.ApplicationPath;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.acme.unoplat.processor.comments.CommentsExtractor;
 import org.jboss.logging.Logger;
 
 @Named(value = "JavaCommentParser")
-@Singleton
+@ApplicationScoped
 public class JavaCommentsExtractor  implements CommentsExtractor {
 
-    @Inject
-    private JavaParser javaParser;
-
+    
     private static Logger LOG = Logger.getLogger(JavaCommentsExtractor.class);
 
     @Override
     public String getComments(String content) {
 
         //todo: get comments out of java class that is in content
-        LOG.debugf("Content is:%s", content);
-        if(javaParser == null)
-        {
-            LOG.error("java parser is null");
-            System.exit(1);
-        }
-        ParseResult<CompilationUnit> parseResult = javaParser.parse(content);
+        LOG.infof("Content is:%s", content);
+        String regex = "/\\*\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/";
 
-        LOG.infof("ParseResult success %b",parseResult.isSuccessful());
-        if (!parseResult.isSuccessful()) {
-            List<Problem> problems = parseResult.getProblems();
-            for (Problem problem : problems) {
-                System.out.println(problem.getVerboseMessage());
-            }
-        }
+        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(content);
 
-        if (parseResult.isSuccessful()) {
-            CompilationUnit cu = parseResult.getResult().get();
-            Boolean hasRange = cu.hasRange();
-            LOG.infof("hasRange: %",hasRange);
-            StringBuilder comments = new StringBuilder();
-            if (cu.hasRange()) {
-                for (Comment comment : cu.getAllComments()) {
-                    comments.append(comment.getContent()).append("\n");
-                }
-                return comments.toString();
-            }
-        } else {
-            // Handle parsing error
-            return null;
+        StringBuilder comments = new StringBuilder();
+        while (matcher.find()) {
+            comments.append(matcher.group()).append("\n\n");  // Concatenating comments with a newline
         }
-        return null;
+        String cleanedComment = comments.toString().replaceAll("[^a-zA-Z0-9\\s.]", " ").replaceAll("\\.\\s+", ". ");
+        
+        LOG.infof("Comments are:%s", cleanedComment);
+        //write comments to a file and keep appending through a separator in text file
+      
+        return cleanedComment;
     }
+
+
 }
