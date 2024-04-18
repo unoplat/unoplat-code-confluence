@@ -34,9 +34,8 @@ public class ScannerReportingResource {
         LOG.infof("Main class info is %s",codeDataStruct[0].getContent());
         LOG.infof("Function  info is %s",codeDataStruct[0].getFunctions().get(0).getContent());
 
-         inPlaceTransformCodeMeta.modifyMetadata(Arrays.asList(codeDataStruct));
+        List<Root> root = inPlaceTransformCodeMeta.modifyMetadata(Arrays.asList(codeDataStruct));
 
-        // Returning a simple response for demonstration purposes
-        return Response.ok().entity(String.format("Data for system ID %s, Language: %s, Path: %s received and processed.", systemId, language, path)).build();
+        return Response.ok(root).build();  // Automatically converts List<Root> into JSON
     }
 }
