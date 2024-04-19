@@ -34,13 +34,16 @@ CREATE EDGE CallsFunction();
 
 ### MVP Schema insertion example
 ```
-# Insert nodes and functions
+Insert nodes and functions
+
 INSERT VERTEX Node(NodeName,Module,Type,Package,FilePath,Content) VALUES "node1":("ReactiveServiceForMathOperation","root","CLASS","org.acme.impl","path/to/file","<node_content>");INSERT VERTEX Function(Name,ReturnType,Content) VALUES "func1":("processMessage","void","Dummy Processing");
 
-# Insert function calls
+Insert function calls
+
 INSERT VERTEX FunctionCall(FunctionName,Package,PositionStartLine,PositionEndLine) VALUES "call1":("sin","org.acme.impl",19,19);
 
-# Create edges between them
+Create edges between them
+
 INSERT EDGE ContainsFunction() VALUES "node1"->"func1":();
 INSERT EDGE CallsFunction() VALUES "func1"->"call1":();
 
@@ -51,13 +54,6 @@ INSERT EDGE CallsFunction() VALUES "func1"->"call1":();
 
 
 GO FROM "node1" OVER ContainsFunction YIELD ContainsFunction._dst AS functionId, $$.Function.Name AS functionName, $$.Function.Content AS functionContent;
-
-
-# Find all functions in a node
-GO FROM "node1" OVER ContainsFunction YIELD ContainsFunction._dst AS functionId, $$.Function.Name AS functionName;
-
-# Find all calls from a function
-GO FROM "functionId" OVER CallsFunction YIELD CallsFunction._dst AS callId, $$.FunctionCall.FunctionName AS calledFunctionName;
 
 
 ## Graph Schema Visualisation
