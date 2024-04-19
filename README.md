@@ -9,3 +9,74 @@ The goal is to understand the codebase/s to form a knowledge Graph.
 ```
 
 Use https://jsonformatter.org/json-pretty-print for the message
+
+
+
+## Nebula Graph Database Schema for CHAPI Data Struct
+
+### MVP Schema
+```
+
+CREATE SPACE software_analysis (partition_num=10, replica_factor=1, vid_type=fixed_string(64));
+USE software_analysis;
+
+
+# Creating tags
+CREATE TAG Node(NodeName string, Module string, Type string, Package string, FilePath string, Content string);
+CREATE TAG Function(Name string, ReturnType string, Content string);
+CREATE TAG FunctionCall(FunctionName string, Package string, PositionStartLine int, PositionEndLine int);
+
+# Creating edges
+CREATE EDGE ContainsFunction();
+CREATE EDGE CallsFunction();
+
+```
+
+### MVP Schema insertion example
+```
+# Insert nodes and functions
+INSERT VERTEX Node(NodeName, Module, Type, Package, FilePath, Content) VALUES
+    "node1":("ReactiveServiceForMathOperation", "root", "CLASS", "org.acme.impl", "path/to/file", "<node_content>");
+INSERT VERTEX Function(Name, ReturnType, Content) VALUES
+    "func1":("processMessage", "void", "<function_content>");
+
+# Insert function calls
+INSERT VERTEX FunctionCall(FunctionName, Package, PositionStartLine, PositionEndLine) VALUES
+    "call1":("sin", "org.acme.impl", 19, 19);
+
+# Create edges between them
+INSERT EDGE ContainsFunction() VALUES "node1" -> "func1";
+INSERT EDGE CallsFunction() VALUES "func1" -> "call1";
+```
+
+
+### MVP Schema query example
+
+
+# Find all functions in a node
+GO FROM "node1" OVER ContainsFunction YIELD ContainsFunction._dst AS functionId, $$.Function.Name AS functionName;
+
+# Find all calls from a function
+GO FROM "functionId" OVER CallsFunction YIELD CallsFunction._dst AS callId, $$.FunctionCall.FunctionName AS calledFunctionName;
+
+
+
+## C2 Container Diagram
+```plantuml
+@startuml
+!define C4Puml https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!includeurl C4Puml
+
+' Define the system and its components
+Person(user, "User", "Specifies Code Repository")
+Container(cli, "Archguard Scanner CLI", "Utility", "Creates Chapi Data Struct in JSON format")
+Container(unoplat, "Unoplat Microservice", "Microservice", "Processes JSON payload")
+Container(db, "Unoplat Nebula Graph Database", "Database", "Stores processed data")
+
+' Define relationships
+Rel(user, cli, "Creates data with")
+Rel(cli, unoplat, "POST", "Sends JSON payload")
+Rel(unoplat, db, "Ingests data into", "Parses and modifies metadata before storage")
+@enduml
+```
+
