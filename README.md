@@ -80,3 +80,4 @@ Rel(unoplat, db, "Ingests data into", "Parses and modifies metadata before stora
 @enduml
 ```
 
+![C2](unoplat-code-understanding-mvp.png)
