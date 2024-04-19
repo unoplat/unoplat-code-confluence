@@ -35,22 +35,22 @@ CREATE EDGE CallsFunction();
 ### MVP Schema insertion example
 ```
 # Insert nodes and functions
-INSERT VERTEX Node(NodeName, Module, Type, Package, FilePath, Content) VALUES
-    "node1":("ReactiveServiceForMathOperation", "root", "CLASS", "org.acme.impl", "path/to/file", "<node_content>");
-INSERT VERTEX Function(Name, ReturnType, Content) VALUES
-    "func1":("processMessage", "void", "<function_content>");
+INSERT VERTEX Node(NodeName,Module,Type,Package,FilePath,Content) VALUES "node1":("ReactiveServiceForMathOperation","root","CLASS","org.acme.impl","path/to/file","<node_content>");INSERT VERTEX Function(Name,ReturnType,Content) VALUES "func1":("processMessage","void","Dummy Processing");
 
 # Insert function calls
-INSERT VERTEX FunctionCall(FunctionName, Package, PositionStartLine, PositionEndLine) VALUES
-    "call1":("sin", "org.acme.impl", 19, 19);
+INSERT VERTEX FunctionCall(FunctionName,Package,PositionStartLine,PositionEndLine) VALUES "call1":("sin","org.acme.impl",19,19);
 
 # Create edges between them
-INSERT EDGE ContainsFunction() VALUES "node1" -> "func1";
-INSERT EDGE CallsFunction() VALUES "func1" -> "call1";
+INSERT EDGE ContainsFunction() VALUES "node1"->"func1":();
+INSERT EDGE CallsFunction() VALUES "func1"->"call1":();
+
 ```
 
 
 ### MVP Schema query example
+
+
+GO FROM "node1" OVER ContainsFunction YIELD ContainsFunction._dst AS functionId, $$.Function.Name AS functionName, $$.Function.Content AS functionContent;
 
 
 # Find all functions in a node
@@ -59,6 +59,30 @@ GO FROM "node1" OVER ContainsFunction YIELD ContainsFunction._dst AS functionId,
 # Find all calls from a function
 GO FROM "functionId" OVER CallsFunction YIELD CallsFunction._dst AS callId, $$.FunctionCall.FunctionName AS calledFunctionName;
 
+
+## Graph Schema Visualisation
+
+
+Here is the Mermaid representation of the graph diagram illustrating multiple instances of "Function" and "Function Call" entities within the same "Node":
+
+```mermaid
+graph TB
+    Node["Node"]
+    Function1["Function A"]
+    Function2["Function B"]
+    FunctionCall1A["Function Call 1A"]
+    FunctionCall1B["Function Call 1B"]
+    FunctionCall2A["Function Call 2A"]
+    FunctionCall2B["Function Call 2B"]
+    Node -- "Contains Function" --> Function1
+    Node -- "Contains Function" --> Function2
+    Function1 -- "Calls Function" --> FunctionCall1A
+    Function1 -- "Calls Function" --> FunctionCall1B
+    Function2 -- "Calls Function" --> FunctionCall2A
+    Function2 -- "Calls Function" --> FunctionCall2B
+    FunctionCall1A -- "Calls Again" --> Function1
+    FunctionCall2A -- "Calls Again" --> Function2
+```
 
 
 ## C2 Container Diagram
