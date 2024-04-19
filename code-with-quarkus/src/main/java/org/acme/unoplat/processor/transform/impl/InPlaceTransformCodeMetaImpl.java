@@ -38,31 +38,46 @@ public class InPlaceTransformCodeMetaImpl implements InPlaceTransformCodeMeta {
     }
 
     private Root processRoot(Root root) {
-        // Transforming class content
-        String classComment = commentsExtractor.getComments(root.getContent());
-        root.setContent(classComment);
-        List<Function> functions = root.getFunctions();
-        if (functions != null) {
-        
-        // Transforming function content
-        Multi<Function> multiFunctions = Multi.createFrom().iterable(root.getFunctions());
-
-        List<Function> rootFunctions = multiFunctions.onItem().transform(function -> processFunction( function))
-                .collect().asList()
-                .await().indefinitely();
-        root.setFunctions(new ArrayList<>(rootFunctions));
+        if (root.getContent() != null) {
+            String extractedContent = commentsExtractor.getComments(root.getContent());
+            // Check if the extracted content is null or empty after comment extraction
+            if (extractedContent != null && !extractedContent.isEmpty()) {
+                root.setContent(extractedContent);
+            } else {
+                LOG.warn("Extracted content is null or empty after processing. Original content retained.");
+            }
+        } else {
+            LOG.warn("Root content is null, skipping comment extraction.");
         }
-        
-        return root;
 
+        if (root.getFunctions() != null) {
+            root.setFunctions(processFunctions(root.getFunctions()));
+        } else {
+            LOG.warn("Function list is null, skipping processing.");
+        }
+        return root;
     }
 
-    private Function processFunction( Function function) {
-        // Transforming function content
-        String functionComment = commentsExtractor.getComments(function.getContent());
-        // Transforming function content
-        function.setContent(functionComment);
+    private ArrayList<Function> processFunctions(List<Function> functions) {
+        return new ArrayList<>(Multi.createFrom().iterable(functions)
+                    .onItem().transform(this::processFunction)
+                    .collect().asList()
+                    .await().indefinitely());
+    }
 
+    private Function processFunction(Function function) {
+        if (function.getContent() != null) {
+            String extractedContent = commentsExtractor.getComments(function.getContent());
+            // Check if the extracted content is null or empty
+            if (extractedContent != null && !extractedContent.isEmpty()) {
+                function.setContent(extractedContent);
+            } else {
+                LOG.warn("Extracted function content is null or empty after processing. Original content retained.");
+            }
+        } else {
+            LOG.warn("Function content is null, skipping comment extraction.");
+        }
         return function;
     }
+
 }
