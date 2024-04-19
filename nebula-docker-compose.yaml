@@ -1,0 +1,82 @@
+version: '3.6'
+services:
+  metad0:
+    image: vesoft/nebula-metad:latest
+    environment:
+      USER: root
+    volumes:
+      - ./data/meta0:/data/meta
+    ports:
+      - "45500:45500"
+    command: 
+      - --meta_port=45500
+      - --data_path=/data/meta
+      - --log_dir=/logs
+
+  metad1:
+    image: vesoft/nebula-metad:latest
+    environment:
+      USER: root
+    volumes:
+      - ./data/meta1:/data/meta
+    ports:
+      - "45501:45501"
+    command: 
+      - --meta_port=45501
+      - --data_path=/data/meta
+      - --log_dir=/logs
+
+  metad2:
+    image: vesoft/nebula-metad:latest
+    environment:
+      USER: root
+    volumes:
+      - ./data/meta2:/data/meta
+    ports:
+      - "45502:45502"
+    command: 
+      - --meta_port=45502
+      - --data_path=/data/meta
+      - --log_dir=/logs
+
+  graphd:
+    image: vesoft/nebula-graphd:latest
+    environment:
+      USER: root
+    volumes:
+      - ./data/graph:/data/graph
+    ports:
+      - "3699:3699"
+    command: 
+      - --graph_port=3699
+      - --data_path=/data/graph
+      - --meta_server_addrs=127.0.0.1:45500,127.0.0.1:45501,127.0.0.1:45502
+      - --log_dir=/logs
+
+  storaged0:
+    image: vesoft/nebula-storaged:latest
+    environment:
+      USER: root
+    volumes:
+      - ./data/storage0:/data/storage
+    ports:
+      - "9779:9779"
+    command: 
+      - --storage_port=9779
+      - --data_path=/data/storage
+      - --meta_server_addrs=127.0.0.1:45500,127.0.0.1:45501,127.0.0.1:45502
+      - --log_dir=/logs
+
+  storaged1:
+    image: vesoft/nebula-storaged:latest
+    environment:
+      USER: root
+    volumes:
+      - ./data/storage1:/data/storage
+    ports:
+      - "9778:9778"
+    command: 
+      - --storage_port=9778
+      - --data_path=/data/storage
+      - --meta_server_addrs=127.0.0.1:45500,127.0.0.1:45501,127.0.0.1:45502
+      - --log_dir=/logs
