@@ -52,9 +52,9 @@ INSERT EDGE CallsFunction() VALUES "func1"->"call1":();
 
 ### MVP Schema query example
 
-
+```
 GO FROM "node1" OVER ContainsFunction YIELD ContainsFunction._dst AS functionId, $$.Function.Name AS functionName, $$.Function.Content AS functionContent;
-
+```
 
 ## Graph Schema Visualisation
 
