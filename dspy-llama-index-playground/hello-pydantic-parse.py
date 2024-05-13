@@ -10,50 +10,68 @@ from multiprocessing import Pool
 from llama_index.core.tools import BaseTool, FunctionTool
 
 
-class Position:
-    def __init__(self, StartLine=None, StartLinePosition=None, StopLine=None, StopLinePosition=None):
-        self.StartLine = StartLine
-        self.StartLinePosition = StartLinePosition
-        self.StopLine = StopLine
-        self.StopLinePosition = StopLinePosition
+class Position(BaseModel):
+    StartLine: Optional[int] = Field(default=None, repr=False)
+    StartLinePosition: Optional[int] = Field(default=None, repr=False)
+    StopLine: Optional[int] = Field(default=None, repr=False)
+    StopLinePosition: Optional[int] = Field(default=None, repr=False)
 
-class Function:
-    def __init__(self, Name=None, ReturnType=None, Parameters=None, Position=None, Content=None, Summary=None):
-        self.Name = Name
-        self.ReturnType = ReturnType
-        self.Parameters = Parameters if Parameters is not None else []
-        self.Position = Position
-        self.Content = Content
-        self.Summary = Summary
+class Parameter(BaseModel):
+    TypeValue: str = Field(default=None, repr=False)
+    TypeType: Optional[str] = Field(default=None, repr=False)
 
-    
+class FunctionCall(BaseModel):
+    Package: Optional[str] = Field(default=None, repr=False)
+    Type: Optional[str] = Field(default=None, repr=False)
+    NodeName: Optional[str] = Field(default=None, repr=False)
+    FunctionName: str = Field(default=None, repr=False)
+    Parameters: List[Parameter] = Field(default=None, repr=False)
+    Position: Position = Field(default=None, repr=False)
 
-class Import:
-    def __init__(self, Source=None, UsageName=None):
-        self.Source = Source
-        self.UsageName = UsageName if UsageName is not None else []
+class Annotation(BaseModel):
+    Name: str = Field(default=None, repr=False)
+    Position: Position = Field(default=None, repr=False)
 
-class Node:
-    def __init__(self, NodeName=None, Type=None, FilePath=None, Module=None, Package=None, MultipleExtend=None, Imports=None, Functions=None, Position=None, Summary=None, Content=None):
-        self.NodeName = NodeName
-        self.Type = Type
-        self.FilePath = FilePath
-        self.Module = Module
-        self.Package = Package
-        self.MultipleExtend = MultipleExtend if MultipleExtend is not None else []
-        self.Imports = Imports if Imports is not None else []
-        self.Functions = Functions if Functions is not None else []
-        self.Position = Position
-        self.Summary = Summary
-        self.Content = Content
+class FieldModel(BaseModel):
+    TypeType: str = Field(default=None, repr=False)
+    TypeValue: Optional[str] = Field(default=None, repr=False)
+    TypeKey: Optional[str] = Field(default=None, repr=False)
 
+class Function(BaseModel):
+    Name: str = Field(default=None, repr=False)
+    ReturnType: Optional[str] = Field(default=None, repr=False)
+    FunctionCalls: List[FunctionCall] = Field(default=None, repr=False)
+    Annotations: List[Annotation] = Field(default=None, repr=False)
+    Position: Position = Field(default=None, repr=False)
+    LocalVariables: List[Dict[str, str]] = Field(default=None, repr=False)
+    BodyHash: Optional[int] = Field(default=None, repr=False)
+    Content: str = Field(default=None, repr=False)
 
+class Import(BaseModel):
+    Source: str = Field(default=None, repr=False)
+    UsageName: List[str] = Field(default=None, repr=False)
 
+class Node(BaseModel):
+    NodeName: str = Field(default=None, repr=False)
+    Type: str = Field(default=None, repr=False)
+    FilePath: str = Field(default=None, repr=False)
+    Module: Optional[str] = Field(default=None, repr=False)
+    Package: Optional[str] = Field(default=None, repr=False)
+    MultipleExtend: Optional[str] = Field(default=None, repr=False)
+    Fields: List[FieldModel] = Field(default=None, repr=False)
+    Extend: Optional[str] = Field(default=None, repr=False)
+    Imports: Optional[List[Import]] = Field(default=None, repr=False)
+    Functions: Optional[List[Function]] = Field(default=None, repr=False)
+    Position: Optional[Position] = Field(default=None, repr=False)
+    Summary: Optional[str] = Field(default=None, repr=False)
+    Content: str = Field(default=None, repr=False)
+    def __repr__(self):
+        return f"node"
 
-class CodeBase:
-
-    def __init__(self) -> None:
-        self.codebase = List[Node]
+class CodeBase(BaseModel):
+    codebase: List[Node] = Field(default=None, repr=False)
+    def __repr__(self):
+        return f"codebase"
 
     # def load_code(self,json_payload):
     #     try:
@@ -88,7 +106,8 @@ class CodeBase:
         return markdown_output       
 
 
-    def load_json_from_file(self,file_path: str) -> List[Node]:
+    @staticmethod
+    def load_json_from_file(file_path: str) -> codebase:
         """
         Load JSON data from a file and parse it into the Codebase model. Skips nodes that fail validation.
 
@@ -98,21 +117,13 @@ class CodeBase:
         Returns:
         - List[Node]: A list of validated Node instances, excluding those with validation errors.
         """
-        with open(file_path, 'r') as file:
-            code_base = json.load(file)
-
-        validated_code_base = []
-        for node_data in code_base:
-            try:
-                # Attempt to create a Node instance from the dictionary
-                validated_node = Node(**node_data)
-                validated_code_base.append(validated_node)
-            except ValidationError as e:
-                print(f"Skipping node due to validation error: {e}")
-                #print("skip node")
         
-        print(f"validated nodes : {len(validated_code_base)}")
-        return validated_code_base
+        with open(file_path, 'r') as file:
+            file_content = file.read()
+            code_base = CodeBase.model_validate_json(file_content)
+            return code_base
+
+    
 
     def collect_summaries_by_package_parallel(self,codebase: List[Node]) -> str:
         """
@@ -142,46 +153,7 @@ class CodeBase:
         return self.generate_markdown(summaries_by_package)
         
 
-# Define a separate type alias for a list of Node objects
-#codebase = List[Node]
 
-# Example JSON payload
-json_payload = '''
-[
-    {
-        "NodeName": "ExampleClass",
-        "Module": "example_module",
-        "Type": "class",
-        "Package": "example_package",
-        "FilePath": "/path/to/file.py",
-        "Functions": [
-            {
-                "Name": "example_function",
-                "ReturnType": "int",
-                "Parameters": [
-                    {
-                        "TypeValue": "int",
-                        "TypeType": "primitive"
-                    }
-                ],
-                "Position": {
-                    "StartLine": 10,
-                    "StartLinePosition": 1,
-                    "StopLine": 15,
-                    "StopLinePosition": 1
-                },
-                "Content": "def example_function(x): return x * 2"
-            }
-        ],
-        "Imports": [
-            {
-                "Source": "sys"
-            }
-        ],
-        "Summary" : "The ExampleClass is defined in the module example_module within the package example_package and is located at /path/to/file.py. It includes one function named example_function that returns an int and takes a single primitive integer parameter. This function is defined from line 10 to 15 in the file and its code content is def example_function(x): return x * 2. Additionally, the class imports the sys module."
-    }
-]
-'''
 
 #Util methods to be used as APIs
 def find_function_by_name(function_name: str, codebase: List[Node]) -> Optional[Function]:
@@ -290,13 +262,17 @@ def node_summary_collector(node) -> Tuple[str, str]:
 
 
 if __name__ == "__main__":
-    repo_base = CodeBase()
-    #repo_base.load_code(json_payload)
-    validated_nodes = repo_base.load_json_from_file('1_codes.json')
-    md_content_repo = repo_base.collect_summaries_by_package_parallel(validated_nodes) 
+    #
+    
+    loaded_nodes = CodeBase.load_json_from_file(file_path='langchain4jcore.json')
+    repo_base = CodeBase(codebase=loaded_nodes)
+    print(repo_base.codebase[0].Content)
+
+    
+    #md_content_repo = repo_base.collect_summaries_by_package_parallel(validated_nodes) 
     #output summaries to file with json 
-    with open('codebase_overview.md', 'w', encoding='utf-8') as md_file:
-         md_file.write(md_content_repo)
+    # with open('codebase_overview.md', 'w', encoding='utf-8') as md_file:
+    #      md_file.write(md_content_repo)
 
     print("Markdown file created: codebase_overview.md")
     # create agent using llama index of type reAct and intialise tasks
