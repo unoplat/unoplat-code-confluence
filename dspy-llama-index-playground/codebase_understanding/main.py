@@ -1,234 +1,141 @@
-from typing import Tuple
-from typing import List, Optional 
-from pydantic import BaseModel, ValidationError,Field
-import json
-from data_models import Node
-from dataclasses import field
+from os import get_terminal_size
+import os
+from codebaseparser.ArchGuardHandler import ArchGuardHandler
+from pytermgui import Toggle, WindowManager, Window, InputField, Label, Button, boxes, tim
+import re
+from downloader.downloader import Downloader
+from settings.appsettings import AppSettings
 
 
+def main():
 
+    settings = AppSettings()
 
+    manager = WindowManager()
 
-
-
-
-class CodeBase:
-    code_base_name: str = field(default=None, metadata={"alias": "CodeBaseName"})
-    code_base_nodes: list = field(default_factory=list, metadata={"alias": "CodeBaseNodes"})
-
-    # def load_code(self,json_payload):
-    #     try:
-    #         code_base = json.loads(json_payload)  # This returns a list of dictionaries
-    #         validated_code_base = [Node(**node) for node in code_base]  # Validate each dictionary as a Node
-            
-    #         func_=find_function_by_name("example_function",validated_code_base)
-    #         print(f"func is {str(func_)}")
-    #         summary_dict = collect_summaries_by_package_parallel(validated_code_base)
-    #         print(f"Summary : {summary_dict}")
-
-    #     except ValidationError as e:
-    #         print("Validation error:", e)
-    #         pass
-
-
-    # def generate_markdown(self,package_dict: dict) -> str:
-    #     """
-    #     Generates a markdown text representation of the codebase summary.
-
-    #     Args:
-    #     - package_dict (dict): A dictionary where keys are package names and values are lists of summaries.
-
-    #     Returns:
-    #     - str: A markdown text representation of the codebase summary.
-    #     """
-    #     markdown_output = "# Codebase Overview\n\n"
-    #     for package_name, summaries in package_dict.items():
-    #         markdown_output += f"## Class: {package_name}\n\n"  # Add Markdown header for each key
-    #         combined_summary = ' '.join(summaries)  # Combine all summary elements into one string
-    #         markdown_output += f"### Summary:\n\n**{combined_summary}**\n\n"  # Add the combined summary in bold
-    #     return markdown_output       
-
-
+    # Create a window to hold the form
+    window = Window(
+        title="Choose an action:",
+        box=boxes.SINGLE  # Corrected from has_border to box with a border style
+    )
     
-    def load_json_from_file(self,file_path: str) -> List[Node]:
-        """
-        Load JSON data from a file and parse it into the Codebase model. Skips nodes that fail validation.
+    # Add only the option to parse and summarise the codebase
+    window += Label("Parse and summarise Codebase")
 
-        Args:
-        - file_path (str): The path to the JSON file.
+    # Button to submit the action directly without choice
+    submit_button = Button("Submit", onclick=lambda _: parse_codebase(manager,settings))
+    window += submit_button
 
-        Returns:
-        - List[Node]: A list of validated Node instances, excluding those with validation errors.
-        """
+    # Set window position
+    window.center()
+    manager.add(window)
+    manager.run()
+    
+    
+
+def parse_codebase(manager,settings):
+    # Clear previous windows
+    for win in list(manager):
+        manager.remove(win)
+
+    # Create a larger window based on terminal size
+    term_width, term_height = get_terminal_size()
+    window_width = int(term_width * 0.6)  # 60% of terminal width
+    window_height = int(term_height * 0.6)  # 60% of terminal height
+
+    window = Window(
+        title="Parse & Summarise Codebase Setup",
+        box=boxes.SINGLE,
+        width=window_width,
+        height=window_height
+    )
+
+    # Collect necessary inputs from the user to set up the codebase indexing
+    git_url_field = InputField(prompt="Enter the local workspace repository: ")
+    programming_language_toggle = Toggle(
+        states=["java","py"], 
+        on_toggle=lambda value: print(f"Selected language: {value}")
+    )
+    #archguard_cli_path_field = InputField(prompt="Enter the full path to the ArchGuard CLI executable: ")
+    output_path_field = InputField(prompt="Enter the output path for storing scan results: ")
+    codebase_name_field = InputField(prompt="Enter the Repository name: ")
+
+    # Add fields to the window using the += operator
+    window += git_url_field
+    window += programming_language_toggle
+    
+    #window += archguard_cli_path_field
+    window += output_path_field
+    window += codebase_name_field
+
+    # Button to submit the indexing
+    submit_button = Button("Start Parsing", onclick=lambda _: start_parsing(
+        git_url_field.value,
+        programming_language_toggle.value,
+        output_path_field.value,
+        codebase_name_field.value,
+        settings
+    ))
+    window += submit_button
+    # Set window position
+    window.center()
+    manager.add(window)
+    manager.run()
+
+def ensure_jar_downloaded(settings, manager):
+    # Compile the regex pattern for the JAR file
+    jar_pattern = re.compile(r"scanner_cli-.*-all\.jar")
+
+    # Check if any file matching the pattern exists in the download directory
+    existing_jars = [f for f in os.listdir(settings.download_directory) if jar_pattern.match(f)]
+    
+    # Create a window to show the status
+    window = Window(title="JAR Management", box=boxes.DOUBLE)
+    manager.add(window)
+
+    if not existing_jars:
+        # No JAR matches, need to download
+        window += Label("[210 bold]No suitable JAR found, downloading...[/]")
+        manager.run(in_thread=True)
         
-        self.code_base_nodes = []
-        with open(file_path, 'r') as file:
-            data = json.load(file)
-            for item in data:
-                try:
-                    node = Node(**item)
-                    self.code_base_nodes.append(node)
-                except ValidationError as e:
-                    print(f"Error validating node: {e}")
-        return self.code_base_nodes
-    
-
-    # def collect_summaries_by_package_parallel(self,codebase: List[Node]) -> str:
-    #     """
-    #     Collects summaries using parallel processing and groups them by package after collection.
-
-    #     Args:
-    #     - codebase (List[Node]): A list of Node instances representing the codebase.
-
-    #     Returns:
-    #     - str: A markdown text representation of the codebase summary.
-    #     """
-    #     with Pool() as pool:
-    #         results = pool.map(node_summary_collector, codebase)
-    #     # Filter out None results
-    #     results = [result for result in results if result is not None]
+        jar_path = Downloader.download_latest_jar(settings.download_url, settings.download_directory, settings.github_token)
         
-        
-    #     summaries_by_package = {}
-    #     for class_name, summary in results:
-    #         # if package is not none
-    #         if class_name is not None:
-    #             if class_name not in summaries_by_package:
-    #                 summaries_by_package[class_name] = []
-    #                 print(f"package : {class_name}")
-    #             summaries_by_package[class_name].append(summary)
-    #     # output the summary per package in a structured md out
-    #     return self.generate_markdown(summaries_by_package)
-        
-
-
-
-#Util methods to be used as APIs
-def find_function_by_name(function_name: str, codebase: List[Node]) -> Optional[Function]:
-    """
-    Search for a function by name across all nodes in the codebase and return the Pydantic model of the function.
+        # Update window after download
+        window.clear()
+        window += Label("[157 bold]Download complete![/]")
+        window += Label(f"JAR Path: {jar_path}")
+    else:
+        # Use the first matching JAR found
+        jar_path = os.path.join(settings.download_directory, existing_jars[0])
+        window += Label("[157 bold]Using existing JAR:[/]")
+        window += Label(f"JAR Path: {jar_path}")
     
-    Args:
-    - function_name (str): The name of the function to find.
-    - codebase (List[Node]): The list of nodes representing the codebase.
-    
-    Returns:
-    - Optional[Function]: The function model if found, None otherwise.
-    """
-    for node in codebase:
-        for function in node.Functions:
-            if function.Name == function_name:
-                return function
-    return None
+    manager.run(in_thread=False)  # Refresh the window to show final status
+    return jar_path
 
+def start_parsing(git_url, programming_language, output_path, codebase_name, settings):
+    manager = WindowManager()
 
+    # Ensure the JAR is downloaded or use the existing one
+    jar_path = ensure_jar_downloaded(settings, manager)
 
+    print(f"Repository URL: {git_url}")
+    print(f"Programming Language: {programming_language}")
+    print(f"Output Path: {output_path}")
+    print(f"Codebase Name: {codebase_name}")
 
-def get_functions_in_class(class_name: str, codebase: List[Node]) -> List[Function]:
-    """
-    Retrieve all functions defined within a specified class across all nodes in the codebase.
-    
-    Args:
-    - class_name (str): The name of the class whose functions are to be retrieved.
-    - codebase (List[Node]): The list of nodes representing the codebase.
-    
-    Returns:
-    - List[Function]: A list of Function models that are part of the specified class, or an empty list if no functions are found or the class does not exist.
-    """
-    for node in codebase:
-        if node.NodeName == class_name and node.Type.lower() == 'class':
-            return node.Functions
-    return []
-
-
-def find_class_by_name(class_name: str, codebase: List[Node]) -> Optional[Node]:
-    """
-    Search for a class by name across all nodes in the codebase and return the Pydantic model of the class.
-    
-    Args:
-    - class_name (str): The name of the class to find.
-    - codebase (List[Node]): The list of nodes representing the codebase.
-    
-    Returns:
-    - Optional[Node]: The node model if found, None otherwise.
-    """
-    for node in codebase:
-        if node.NodeName == class_name and node.Type.lower() == 'class':
-            return node
-    return None
-
-
-
-def find_classes_in_package(package_name: str, codebase: List[Node]) -> List[Node]:
-    """
-    Search for all classes within a specified package across all nodes in the codebase and return a list of Pydantic models of these classes.
-    
-    Args:
-    - package_name (str): The name of the package to search within.
-    - codebase (List[Node]): The list of nodes representing the codebase.
-    
-    Returns:
-    - List[Node]: A list of node models representing classes within the specified package, or an empty list if no classes are found.
-    """
-    class_nodes = []
-    for node in codebase:
-        if node.Type.lower() == 'class' and node.Package == package_name:
-            class_nodes.append(node)
-    return class_nodes
-
-
-
-def find_classes_in_module(module_name: str, codebase: List[Node]) -> List[Node]:
-    """
-    Search for all classes within a specified module across all nodes in the codebase and return a list of Pydantic models of these classes.
-    
-    Args:
-    - module_name (str): The name of the module to search within.
-    - codebase (List[Node]): The list of nodes representing the codebase.
-    
-    Returns:
-    - List[Node]: A list of node models representing classes within the specified module, or an empty list if no classes are found.
-    """
-    class_nodes = []
-    for node in codebase:
-        if node.Type.lower() == 'class' and node.Module == module_name:
-            class_nodes.append(node)
-    return class_nodes
-
-
-def node_summary_collector(node) -> Tuple[str, str]:
-    """
-    Helper function that processes a single node and returns a tuple of its package and summary.
-    """
-    # todo check if node's type is CLASS then only return the summary else return none
-    # check if node type exists first
-    if node.Type is not None:
-        if node.Type.lower() == 'class':
-            return (node.NodeName, node.Summary)
-        else:
-            return (None, None)
-
+    # Initialize the ArchGuard handler with the collected parameters.
+    archguard_handler = ArchGuardHandler(
+        jar_path=jar_path,
+        language=programming_language,
+        codebase_path=git_url,
+        output_path=output_path
+    )
+    # Display a progress bar to provide visual feedback during the scan.
+    archguard_handler.show_progress()
+    # Execute the scanning process.
+    archguard_handler.run_scan()
 
 if __name__ == "__main__":
-    #
-    codebase = CodeBase()
+    main()
 
-    loaded_nodes = codebase.load_json_from_file(file_path='langchain4jcore.json')
-    print(loaded_nodes[0].content)
-
-    
-    #md_content_repo = repo_base.collect_summaries_by_package_parallel(validated_nodes) 
-    #output summaries to file with json 
-    # with open('codebase_overview.md', 'w', encoding='utf-8') as md_file:
-    #      md_file.write(md_content_repo)
-
-    print("Markdown file created: codebase_overview.md")
-    # create agent using llama index of type reAct and intialise tasks
-    # llm = Ollama(model="llama3:8b-instruct-fp16",request_timeout=30)
-    # summary_tool = FunctionTool.from_defaults(fn=repo_base.collect_summaries_by_package_parallel)
-
-    # tools = [summary_tool]
-    # agent = ReActAgent.from_tools(llm=llm, tools=tools, verbose=True)
-    # agent.chat("Hi")
-
-    
