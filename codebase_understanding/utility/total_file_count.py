@@ -1,14 +1,15 @@
-
 import os
 import glob
+from loguru import logger
 
 class FileCounter:
     def __init__(self, directory, extension):
         self.directory = directory
         self.extension = extension
+        logger.info(f"FileCounter initialized with directory: {directory} and extension: {extension}")
 
     def count_files(self):
-        """Counts files with a given extension in a directory."""
+        logger.info("Counting files...")
         # Ensure the extension starts with a dot
         if not self.extension.startswith('.'):
             self.extension = '.' + self.extension
@@ -18,6 +19,8 @@ class FileCounter:
         
         # Use glob.glob with recursive=True to find all files matching the pattern
         files = glob.glob(pattern, recursive=True)
+        
+        logger.info(f"Total files found: {len(files)}")
         
         # Return the count of files
         return len(files)

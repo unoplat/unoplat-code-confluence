@@ -1,0 +1,12 @@
+{
+    "handlers": [
+        {
+            "sink": "./app.log",
+            "format": "<green>{time:YYYY-MM-DD at HH:mm:ss}</green> | <level>{level}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+            "rotation": "10 MB",
+            "retention": "10 days",
+            "level": "INFO"
+        }
+    ]
+}
+
