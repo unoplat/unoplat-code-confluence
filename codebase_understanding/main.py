@@ -1,5 +1,9 @@
+import json
 from os import get_terminal_size
 import os
+
+from pytermgui import tim
+from loguru import logger
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
 from pytermgui import Toggle, WindowManager, Window, InputField, Label, Button, boxes, tim
 import re
@@ -8,6 +12,15 @@ from settings.appsettings import AppSettings
 
 selected_language=None
 
+# Load logging configuration from loguru.json
+with open("loguru.json", "r") as config_file:
+    config = json.load(config_file)
+logger.configure(handlers=config["handlers"])
+
+
+# Define a style configuration for bold green labels
+
+
 def main():
     global selected_language 
 
@@ -15,11 +28,11 @@ def main():
     settings = AppSettings()
 
     manager = WindowManager()
-
+    
     # Create a window to hold the form
     window = Window(
         title="Choose an action:",
-        box=boxes.SINGLE  # Corrected from has_border to box with a border style
+        box=boxes.SINGLE
     )
     
     # Add only the option to parse and summarise the codebase
@@ -38,7 +51,7 @@ def main():
 def handle_toggle(value):
     global selected_language
     selected_language = value
-    print(f"Selected language: {value}")
+    logger.info(f"Selected language: {value}")
 
 
 def parse_codebase(manager,settings):
@@ -46,11 +59,12 @@ def parse_codebase(manager,settings):
     # Clear previous windows
     for win in list(manager):
         manager.remove(win)
+ 
 
     # Create a larger window based on terminal size
     term_width, term_height = get_terminal_size()
-    window_width = int(term_width * 0.6)  # 60% of terminal width
-    window_height = int(term_height * 0.6)  # 60% of terminal height
+    window_width = int(term_width * 0.4)  # 60% of terminal width
+    window_height = int(term_height * 0.4)  # 60% of terminal height
 
     window = Window(
         title="Parse & Summarise Codebase Setup",
@@ -71,7 +85,8 @@ def parse_codebase(manager,settings):
 
     # Add fields to the window using the += operator
     window += git_url_field
-    window += programming_language_toggle
+    #TODO: renable them
+    #window += programming_language_toggle
     
     #window += archguard_cli_path_field
     window += output_path_field
@@ -80,10 +95,12 @@ def parse_codebase(manager,settings):
     # Button to submit the indexing
     submit_button = Button("Start Parsing", onclick=lambda _: start_parsing(
         git_url_field.value,
-        selected_language,
+        # move this when expanding to new languages
+        "java",
         output_path_field.value,
         codebase_name_field.value,
-        settings
+        settings,
+        manager
     ))
     window += submit_button
     # Set window position
@@ -91,49 +108,50 @@ def parse_codebase(manager,settings):
     manager.add(window)
     manager.run()
 
-def ensure_jar_downloaded(settings, manager):
+def download_and_continue(settings,manager):
+    try:
+        jar_path = Downloader.download_latest_jar(settings.download_url, settings.download_directory, settings.github_token)
+        print(f"Download completed: {jar_path}")
+    except Exception as e:
+        print(f"Error during download: {e}")
+    finally:
+        manager.stop() 
+        return jar_path
+
+def ensure_jar_downloaded(settings):
     # Compile the regex pattern for the JAR file
     jar_pattern = re.compile(r"scanner_cli-.*-all\.jar")
 
     # Check if any file matching the pattern exists in the download directory
     existing_jars = [f for f in os.listdir(settings.download_directory) if jar_pattern.match(f)]
-    
-    # Create a window to show the status
-    window = Window(title="JAR Management", box=boxes.DOUBLE)
-    window.center()
-    manager.add(window)
-    
 
     if not existing_jars:
+        tim.print("[bold lightblue]Downloading utility to parse codebase...[/]")
         # No JAR matches, need to download
-        window += Label("[210 bold]No suitable JAR found, downloading...[/]")
-        manager.run()
-        
         jar_path = Downloader.download_latest_jar(settings.download_url, settings.download_directory, settings.github_token)
-        
-        # Update window after download
-        window.clear()
-        window += Label("[157 bold]Download complete![/]")
-        window += Label(f"JAR Path: {jar_path}")
+        tim.print("[bold lightgreen]Download finished JAR file...[/]")
     else:
         # Use the first matching JAR found
         jar_path = os.path.join(settings.download_directory, existing_jars[0])
-        window += Label("[157 bold]Using existing JAR:[/]")
-        window += Label(f"JAR Path: {jar_path}")
+        tim.print("[bold lightgreen]Using existing JAR:[/]")
+        tim.print(f"JAR Path: {jar_path}")
     
-    manager.run()  # Refresh the window to show final status
     return jar_path
 
-def start_parsing(git_url, programming_language, output_path, codebase_name, settings):
-    manager = WindowManager()
-
+def start_parsing(git_url, programming_language, output_path, codebase_name, settings, manager):
+    # Log the start of the parsing process
+    logger.info("Starting parsing process...")
+    
+    # TIM-based printing to indicate the start of parsing
+    tim.print("[bold lightblue]Starting parsing process...[/]")
+    
     # Ensure the JAR is downloaded or use the existing one
-    jar_path = ensure_jar_downloaded(settings, manager)
+    jar_path = ensure_jar_downloaded(settings)
 
-    print(f"Repository URL: {git_url}")
-    print(f"Programming Language: {programming_language}")
-    print(f"Output Path: {output_path}")
-    print(f"Codebase Name: {codebase_name}")
+    logger.info(f"Repository URL: {git_url}")
+    logger.info(f"Programming Language: {programming_language}")
+    logger.info(f"Output Path: {output_path}")
+    logger.info(f"Codebase Name: {codebase_name}")
 
     # Initialize the ArchGuard handler with the collected parameters.
     archguard_handler = ArchGuardHandler(
@@ -142,12 +160,16 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
         codebase_path=git_url,
         output_path=output_path
     )
-    # Display a progress bar to provide visual feedback during the scan.
-    archguard_handler.show_progress()
+    
+    manager.stop()
     # Execute the scanning process.
     archguard_handler.run_scan()
 
-
+    # Log the completion of the parsing process
+    logger.info("Parsing process completed.")
+    
+    # TIM-based printing to indicate the completion of parsing
+    tim.print("[bold lightgreen]Parsing process completed.[/]")
 
 
 if __name__ == "__main__":
