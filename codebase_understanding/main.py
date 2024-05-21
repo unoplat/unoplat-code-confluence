@@ -5,9 +5,12 @@ import os
 from pytermgui import tim
 from loguru import logger
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
-from pytermgui import Toggle, WindowManager, Window, InputField, Label, Button, boxes, tim
+from pytermgui import Toggle, WindowManager, Window, InputField, Label, Button, boxes
 import re
 from downloader.downloader import Downloader
+from loader import iload_json, iparse_json
+from loader.json_loader import JsonLoader
+from loader.parse_json import JsonParser
 from settings.appsettings import AppSettings
 
 selected_language=None
@@ -17,11 +20,7 @@ with open("loguru.json", "r") as config_file:
     config = json.load(config_file)
 logger.configure(handlers=config["handlers"])
 
-
-# Define a style configuration for bold green labels
-
-
-def main():
+def main(iload_json, iparse_json):
     global selected_language 
 
 
@@ -39,7 +38,7 @@ def main():
     window += Label("Parse and summarise Codebase")
 
     # Button to submit the action directly without choice
-    submit_button = Button("Submit", onclick=lambda _: parse_codebase(manager,settings))
+    submit_button = Button("Submit", onclick=lambda _: get_codebase_metadata(manager,settings,iload_json,iparse_json))
     window += submit_button
 
     # Set window position
@@ -54,7 +53,7 @@ def handle_toggle(value):
     logger.info(f"Selected language: {value}")
 
 
-def parse_codebase(manager,settings):
+def get_codebase_metadata(manager,settings,iload_json,iparse_json):
     global selected_language
     # Clear previous windows
     for win in list(manager):
@@ -100,7 +99,9 @@ def parse_codebase(manager,settings):
         output_path_field.value,
         codebase_name_field.value,
         settings,
-        manager
+        manager,
+        iload_json,
+        iparse_json
     ))
     window += submit_button
     # Set window position
@@ -138,7 +139,7 @@ def ensure_jar_downloaded(settings):
     
     return jar_path
 
-def start_parsing(git_url, programming_language, output_path, codebase_name, settings, manager):
+def start_parsing(git_url, programming_language, output_path, codebase_name, settings, manager, iload_json, iparse_json):
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
     
@@ -158,20 +159,28 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
         jar_path=jar_path,
         language=programming_language,
         codebase_path=git_url,
+        codebase_name=codebase_name,
         output_path=output_path
     )
     
     manager.stop()
     # Execute the scanning process.
-    archguard_handler.run_scan()
+    chapi_metadata_path = archguard_handler.run_scan()
 
-    # Log the completion of the parsing process
-    logger.info("Parsing process completed.")
+    chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
+
+    codebase_metadata = iparse_json.parse_json_to_nodes(chapi_metadata)
+    if codebase_metadata:
+        logger.info(f"Content of the first node: {codebase_metadata[0].content}")
+    
+    
     
     # TIM-based printing to indicate the completion of parsing
     tim.print("[bold lightgreen]Parsing process completed.[/]")
 
 
 if __name__ == "__main__":
-    main()
+    iload_json = JsonLoader()
+    iparse_json = JsonParser()
+    main(iload_json, iparse_json)
 

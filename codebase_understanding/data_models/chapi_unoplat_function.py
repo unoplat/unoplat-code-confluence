@@ -1,9 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from data_models.function_call import FunctionCall
-from data_models.annotation import Annotation
-from data_models.position import Position
-from data_models.field_model import FieldModel
+from .chapi_unoplat_functioncall import FunctionCall
+from .chapi_unoplat_annotation import Annotation
+from .chapi_unoplat_position import Position
+from .chapi_unoplat_fieldmodel import FieldModel
 
 class Function(BaseModel):
     name: Optional[str] = Field(default=None, alias="Name")

@@ -3,8 +3,8 @@
 
 from typing import List, Optional
 
-from data_models import Position
-from data_models.chapi_unoplat_parameter import Parameter
+from .chapi_unoplat_position import Position
+from .chapi_unoplat_parameter import Parameter
 from pydantic import BaseModel, Field
 
 

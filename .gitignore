@@ -1,2 +1,20 @@
 
 .cosine
+scanner_cli-2.1.4-all.jar
+data
+.cosine
+.idea
+.vscode
+.cosine
+.cosine
+code-ast
+codebase_understanding/codebaseparser/__pycache__
+codebase_understanding/downloader/__pycache__
+codebase_understanding/loader/__pycache__
+codebase_understanding/settings/__pycache__
+codebase_understanding/utility/__pycache__
+codebase_understanding/.env
+logs
+.DS_Store
+codebase_understanding/data_models/__pycache__
+codebase_understanding/dependencies/analysers
