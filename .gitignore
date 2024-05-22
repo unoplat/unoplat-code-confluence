@@ -18,3 +18,5 @@ logs
 .DS_Store
 codebase_understanding/data_models/__pycache__
 codebase_understanding/dependencies/analysers
+codebase_understanding/nodeparser/__pycache__
+codebase_understanding/nodeparser/tests/__pycache__
