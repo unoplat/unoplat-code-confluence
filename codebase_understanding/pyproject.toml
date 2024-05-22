@@ -16,6 +16,8 @@ loguru = "^0.7.2"
 pytermgui = "^7.7.1"
 pygithub = "^2.3.0"
 pydantic-settings = "^2.2.1"
+litellm = "^1.37.19"
+pytest = "^8.2.1"
 
 
 [build-system]

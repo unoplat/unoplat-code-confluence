@@ -1,7 +1,6 @@
 import json
 from os import get_terminal_size
 import os
-
 from pytermgui import tim
 from loguru import logger
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
@@ -11,6 +10,8 @@ from downloader.downloader import Downloader
 from loader import iload_json, iparse_json
 from loader.json_loader import JsonLoader
 from loader.parse_json import JsonParser
+from nodeparser.nodesummariser import NodeSummariser
+from nodeparser.isummariser import ISummariser
 from settings.appsettings import AppSettings
 
 selected_language=None
@@ -20,7 +21,7 @@ with open("loguru.json", "r") as config_file:
     config = json.load(config_file)
 logger.configure(handlers=config["handlers"])
 
-def main(iload_json, iparse_json):
+def main(iload_json, iparse_json,isummariser):
     global selected_language 
 
 
@@ -38,7 +39,7 @@ def main(iload_json, iparse_json):
     window += Label("Parse and summarise Codebase")
 
     # Button to submit the action directly without choice
-    submit_button = Button("Submit", onclick=lambda _: get_codebase_metadata(manager,settings,iload_json,iparse_json))
+    submit_button = Button("Submit", onclick=lambda _: get_codebase_metadata(manager,settings,iload_json,iparse_json,isummariser))
     window += submit_button
 
     # Set window position
@@ -53,7 +54,7 @@ def handle_toggle(value):
     logger.info(f"Selected language: {value}")
 
 
-def get_codebase_metadata(manager,settings,iload_json,iparse_json):
+def get_codebase_metadata(manager,settings,iload_json,iparse_json,isummariser):
     global selected_language
     # Clear previous windows
     for win in list(manager):
@@ -101,7 +102,8 @@ def get_codebase_metadata(manager,settings,iload_json,iparse_json):
         settings,
         manager,
         iload_json,
-        iparse_json
+        iparse_json,
+        isummariser
     ))
     window += submit_button
     # Set window position
@@ -139,7 +141,7 @@ def ensure_jar_downloaded(settings):
     
     return jar_path
 
-def start_parsing(git_url, programming_language, output_path, codebase_name, settings, manager, iload_json, iparse_json):
+def start_parsing(git_url, programming_language, output_path, codebase_name, settings, manager, iload_json, iparse_json,isummariser):
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
     
@@ -169,9 +171,10 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
 
     chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
 
-    codebase_metadata = iparse_json.parse_json_to_nodes(chapi_metadata)
+    codebase_metadata = iparse_json.parse_json_to_nodes(chapi_metadata,isummariser)
     if codebase_metadata:
-        logger.info(f"Content of the first node: {codebase_metadata[0].content}")
+        logger.info(f"Content of the first node: {codebase_metadata[0].summary}")
+        logger.info(f"Content of the first node: {codebase_metadata[4].summary}")
     
     
     
@@ -182,5 +185,6 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
 if __name__ == "__main__":
     iload_json = JsonLoader()
     iparse_json = JsonParser()
-    main(iload_json, iparse_json)
+    isummariser = NodeSummariser()
+    main(iload_json, iparse_json, isummariser)
 
