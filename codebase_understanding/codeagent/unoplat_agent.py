@@ -1,4 +1,4 @@
-from crewai import Agent, Task, Crew
+from crewai import Agent, Task, Crew,Process
 from crewai_tools import FileReadTool
 from langchain_openai import ChatOpenAI
 from codeagent.current_item import CurrentItem
@@ -118,7 +118,7 @@ class UnoplatAgent:
         self.unoplat_crew = Crew(
             agents=[self.agent1, self.agent2, self.agent3,self.agent4,self.agent5],
             tasks=[self.task1, self.task2, self.task3, self.task4,self.task5],
-            process='hierarchical', 
+            process=Process.hierarchical,
             manager_agent=self.manager_agent,
             verbose=2
         )
@@ -134,10 +134,7 @@ class UnoplatAgent:
     # Function to kick off the crew tasks iteratively
     def run_crew(self):
         
-        self.unoplat_crew.kickoff
-        (
-            {'unoplat_markdown_spec': self.md_spec_data}
-        )  # Process the current item
+        self.unoplat_crew.kickoff ({'unoplat_markdown_spec': self.md_spec_data})  # Process the current item
 
         print("Crew tasks completed. Check outputs for details.")
 # Example usage
