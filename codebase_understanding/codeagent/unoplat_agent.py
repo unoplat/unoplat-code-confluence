@@ -1,126 +1,147 @@
 from crewai import Agent, Task, Crew
 from crewai_tools import FileReadTool
 from langchain_openai import ChatOpenAI
+from codeagent.current_item import CurrentItem
 import json
 # Define tools (assuming some tools are already created, replace with actual tools if needed)
 # from your_tool_library import SpecificTool1, SpecificTool2, SpecificTool3
 import os
+
+
 os.environ["OPENAI_API_KEY"] = "NA"
 
+class UnoplatAgent:
+    def __init__(self):
+        self.md_spec_data = self.read_md_unoplat_spec('codebase_overview_spec.md')
+        self.json_data = self.read_json_file('codebase_summary.json')
+        self.output_file_reader_tool = FileReadTool(file_path="unoplat_tech_doc.md")
+        self.item_reader_tool = CurrentItem(self.json_data)
+        self.llm = ChatOpenAI(
+            model="phi3:14b-medium-4k-instruct-q8_0",
+            base_url="http://localhost:11434/v1"
+        )
+        self.agent1 = Agent(
+            role='Data Engineer',
+            goal="""Goal is to fetch data item from tool.""",
+            backstory="""An experienced engineer who knows how to fetch data from the tool. 
+            Post successful fetch format the data properly as per markdown syntax.
+            The only reason if data is not returned is that we are done with entire data and there is no more data to process. When that happens it is time to shutdown and exit.""",
+            memory=True,
+            verbose=True,
+            llm=self.llm,
+            allow_delegation=False
+        )
+        # Create agents with memory enabled and specific goals and backstories
+        self.agent2 = Agent(
+            role='Software Engineer',
+            goal="""The first transformation will be done here. First you will understand each and everything in the class metadata and the spec.
+             Second you will convert the shared class metadata into component level information based on package responsibility
+             and will prepare the markdown content based on the {unoplat_markdown_spec}. Pro tip: Keep the component name as package name.""",
+            backstory="""An experienced engineer skilled in synthesizing complex data into actionable insights. You work
+            for Unoplat a platform company which is stringent in following specifications.""",
+            memory=True,
+            verbose=True,
+            llm=self.llm,
+            allow_delegation=False
+        )
 
+        self.agent3 = Agent(
+            role='Senior Software Engineer',
+            goal="""the goal is to understand the refine overall summary based on current summary received.
+            """,
+            backstory="You are a senior software engineer with over 10 years of experience in writing codebase summary",
+            memory=True,
+            verbose=True,
+            llm=self.llm,
+            allow_delegation=False
+        )
 
-output_file_reader_tool = FileReadTool(file_path="unoplat_tech_doc.md")
-llm = ChatOpenAI(
-    model = "phi3:14b-medium-4k-instruct-q8_0",
-    base_url = "http://localhost:11434/v1")
+        self.agent4 = Agent(
+            role='Senior Technical Documentation Specialist',
+            goal="Analyze the evolving summary for accuracy and insights based on all available classes' metadata.",
+            backstory="You work for Unoplat. A detail-oriented tech doc specialist who specializes in tech documentation and focuses on triggers and flow within the codebase.",
+            memory=True,
+            verbose=True,
+            llm=self.llm,
+            allow_delegation=False
+        )
 
-# Create agents with memory enabled and specific goals and backstories
-agent1 = Agent(
-    role='Senior Software Engineer',
-    goal="""User will be sharing one class metadata at a time based on standard markdown spec. Then First you will a specification read a file using a tool.
-     Second you will understand the spec and make sure based on the data shared from user
-     lands into that spec. Third you will convert the shared class metadata into component level information based on package responsibility
-     and to fill in the markdown spec.Keep the component name as package name
-     Now the goal is to output the content into final markdown based file. So use a tool to check
-     if file exists or not. If it exists then read the content and then modify/append at appropriate position.
-     If file does not exist just output a new file. From nexttime onwards the file will exist""",
-    backstory="""An experienced engineer skilled in synthesizing complex data into actionable insights. You work
-    for Unoplat a platform company which is strigent in following specifications.""",
-    memory=True,
-    verbose=True,
-    llm=llm,
-    allow_delegation=False
-)
+        self.agent5 = Agent(
+            role='CommonMark Markdown specification Expert',
+            goal="""Strictly check if it follows the CommonMark specification and make changes happen if it does not follow""",
+            backstory="Been doing markdown validation since ages and have become an expert",
+            memory=True,
+            verbose=True,
+            llm=self.llm,
+            allow_delegation=False
+        )
 
-agent2 = Agent(
-    role='Senior Tech Documentation Specialist',
-    goal="Analyze the evolving summary for accuracy and insights based on all available classes' metadata.",
-    backstory="You work for unoplat. A detail-oriented tech doc specialist who specializes in tech documentation and focuses on triggers and flow within the codebase.",
-    memory=True,
-    verbose=True,
-    llm=llm,
-    allow_delegation=False
-    # tools=[SpecificTool2()]
-)
+        self.manager_agent = Agent(
+            role='Tech Doc Manager',
+            goal="""Goal is to go over each data item from a list of items. Each item is fetched from Data Engineer and then converted into right unoplat markdown spec by
+           Software Engineer and then current item summary is added to overall codebase summary again based on {unoplat_markdown_spec} by Senior Software Engineer.
+             The testing of markdown spec based on commonmark and unoplat are overseen by CommonMark Markdown specification Expert and Senior Technical Documentation Specialist respectively """,
+            backstory="You are a manager who knows how to manage the crew and ensure that the crew is working on the tasks in the right order and that the data is being passed between the agents correctly.",
+            memory=True,
+            verbose=True,
+            llm=self.llm
+        )
 
-agent3 = Agent(
-    role='CommonMark Markdown specification Expert',
-    goal="""Strictly check if it follows the CommonMark specification and make changes happen if it does not follow""",
-    backstory="Been doing markdown validation since ages and have become an expert",
-    memory=True,
-    verbose=True,
-    llm=llm,
-    allow_delegation=False
-    
-    # tools=[SpecificTool3()]
-)
+      
+        # Define tasks
+        self.task1 = Task(
+            description='Fetch data from tool till end of items. Tool would tell if we have reached the end',
+            expected_output='Nicely formatted and spaced markdown'
+        )
+        self.task2 = Task(
+            description="""Now the goal is to output the content into markdown based on specification {unoplat_markdown_spec}.""",
+            expected_output='Current summary of codebase in unoplat markdown spec.'
+        )
 
-# Define tasks
-task1 = Task(
-    description='Process and summarize class metadata {class_metadata} based on {unoplat_markdown_spec} .',
-    agent=agent1,
-    expected_output='Initial summary based on class metadata converted into component based info according to unoplat markdown spec.',
-    output_file = 'unoplat_tech_doc.md'
-)
-task2 = Task(
-    description="""Now the goal is to output the content into final markdown based file based on specification {unoplat_markdown_spec}. So use a tool to check
-     if file exists or not. If it exists then read the content and then modify at the whole content based on current summary received if content already exists.
-       Keep in mind always that The output carries overall summary of entire codebase.If file does not exist just output a new file. """,
-    agent=agent1,
-    expected_output='Overall summary of codebase in unoplat spec.',
-    output_file = 'unoplat_tech_doc.md',
-    context=[task1],
-    tools=[output_file_reader_tool]
-)
+        self.task3 = Task(
+            description='Look at overall summary that we have and current summary for item that we received just now and then review and refine overall summary for accuracy and completeness according to the unoplat markdown spec based on {unoplat_markdown_spec}.',
+            expected_output='Overall codebase Summary in markdown for all components which includes- Refined summary with corrections and keep it concise. Remember it is summary so focus is on components and its internal flows and external flows. Strictly do not include more than that.',
+            
+        )
 
-task3 = Task(
-    description='Review and refine summary for accuracy and completeness according to the unoplat markdown spec based on {unoplat_markdown_spec}.',
-    agent=agent2,
-    expected_output='Refined summary with corrections and keep it concise. Remember it is summary the focus is on components and its internal flows and external flows. Strictly do not include more than that.',
-    context=[task2],
-    output_file = 'unoplat_tech_doc.md',
+        self.task4 = Task(
+            description='Go line by line and check if the markdown file does not follow Unoplat markdown specification{unoplat_markdown_spec} .',
+            expected_output='Unoplat based markdown - Final report incorporating all refinements in markdown following common mark specification.',
+        )
 
-    
-)
+        self.task5 = Task(
+            description='Go line by line and check if the markdown file does not follow Common markdown specification.',
+            expected_output='Commonmark based markdown - Final report incorporating all refinements in markdown following common mark specification.',
+        )
 
-task4 = Task(
-    description='Go line by line and check if the the markdown file does not follow markdown specification.',
-    agent=agent3,
-    expected_output='Final report incorporating all refinements in markdown following common mark specification.',
-    context=[task3],
-    output_file="unoplat_tech_doc.md"
-)
+        # Assemble the crew without a manager
+        self.unoplat_crew = Crew(
+            agents=[self.agent1, self.agent2, self.agent3,self.agent4,self.agent5],
+            tasks=[self.task1, self.task2, self.task3, self.task4,self.task5],
+            process='hierarchical', 
+            manager_agent=self.manager_agent,
+            verbose=2
+        )
 
-# Assemble the crew without a manager
-unoplat_crew = Crew(
-    agents=[agent1, agent2, agent3],
-    tasks=[task1, task2, task3,task4],
-    process='sequential',  # Sequential process to ensure order of task execution
-    verbose=2
-)
-
-def read_json_file(file_path):
+    def read_json_file(self, file_path):
         with open(file_path, 'r') as file:
             return json.load(file)
+
+    def read_md_unoplat_spec(self, file_path):
+        with open(file_path, 'r') as file:
+            return file.read()
+
+    # Function to kick off the crew tasks iteratively
+    def run_crew(self):
         
-def read_md_unoplat_spec(file_path):
-    with open(file_path, 'r') as file:
-        return file.read()
+        self.unoplat_crew.kickoff
+        (
+            {'unoplat_markdown_spec': self.md_spec_data}
+        )  # Process the current item
 
-# Function to kick off the crew tasks iteratively
-def run_crew():
-    
-    json_data = read_json_file('codebase_summary.json')
-    md_spec_data = read_md_unoplat_spec('codebase_overview_spec.md')    
-    # Process each item in the JSON data iteratively and dynamically
-    for item in json_data:
-        print("Processing item:", item['summary'])
-        unoplat_crew.kickoff({'class_metadata': item,'unoplat_markdown_spec':md_spec_data})  # Process the current item
-
-    print("Crew tasks completed. Check outputs for details.")
-
+        print("Crew tasks completed. Check outputs for details.")
 # Example usage
-if __name__ == "__main__":
-    run_crew()
+
+
 
 

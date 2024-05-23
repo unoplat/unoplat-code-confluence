@@ -3,6 +3,7 @@ from os import get_terminal_size
 import os
 from pytermgui import tim
 from loguru import logger
+from codeagent.unoplat_agent import UnoplatAgent
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
 from pytermgui import Toggle, WindowManager, Window, InputField, Label, Button, boxes
 import re
@@ -177,15 +178,17 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
     with open('codebase_summary.json', 'w') as file:
         json.dump(codebase_metadata, file)
     
-    
-    
-    # TIM-based printing to indicate the completion of parsing
     tim.print("[bold lightgreen]Parsing process completed.[/]")
+
+    
+
 
 
 if __name__ == "__main__":
-    iload_json = JsonLoader()
-    iparse_json = JsonParser()
-    isummariser = NodeSummariser()
-    main(iload_json, iparse_json, isummariser)
+    unoplat_agent_setup =UnoplatAgent()
+    unoplat_agent_setup.run_crew()
+    # iload_json = JsonLoader()
+    # iparse_json = JsonParser()
+    # isummariser = NodeSummariser()
+    # main(iload_json, iparse_json, isummariser)
 
