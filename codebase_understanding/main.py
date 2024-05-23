@@ -185,6 +185,8 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
 
 
 if __name__ == "__main__":
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module='pydantic.*')
     unoplat_agent_setup =UnoplatAgent()
     unoplat_agent_setup.run_crew()
     # iload_json = JsonLoader()
