@@ -9,6 +9,7 @@ os.environ["OPENAI_API_KEY"] = "NA"
 
 
 file_reader_tool = FileReadTool(file_path="codebase_overview_spec_copy.md")
+output_file_reader_tool = FileReadTool(file_path="unoplat_tech_doc.md.md")
 llm = ChatOpenAI(
     model = "phi3:14b-medium-4k-instruct-q8_0",
     base_url = "http://localhost:11434/v1")
@@ -16,36 +17,35 @@ llm = ChatOpenAI(
 # Create agents with memory enabled and specific goals and backstories
 agent1 = Agent(
     role='Senior Software Engineer',
-    goal="""User will be sharing one class metadata at a time based on standard markdown spec. Then First you will read a file using a tool.
-    Second if it is a first time the file will just have placeholders. Third you will understand the data shared from user
-     precisely. Fourth job is to convert the information got from user into component level information based on package
-     and to fill in the markdown spec. Then gradually keep improving it.""",
+    goal="""User will be sharing one class metadata at a time based on standard markdown spec. Then First you will a specification read a file using a tool.
+     Second you will understand the spec and make sure based on the data shared from user
+     lands into that spec. Third you will convert the shared class metadata into component level information based on package responsibility
+     and to fill in the markdown spec.Keep the component name as package name
+     Now the goal is to output the content into final markdown based file. So use a tool to check
+     if file exists or not. If it exists then read the content and then modify/append at appropriate position.
+     If file does not exist just output a new file. From nexttime onwards the file will exist""",
     backstory="""An experienced engineer skilled in synthesizing complex data into actionable insights. You work
     for Unoplat a platform company which is strigent in following specifications.""",
     memory=True,
     verbose=True,
     llm=llm,
-    allow_delegation=False,
-    tools=[file_reader_tool]
+    allow_delegation=False
 )
 
 agent2 = Agent(
     role='Senior Tech Documentation Specialist',
-    goal="Analyze the evolving summary for accuracy and insights based on all available classes' metadata use memory for the same.",
+    goal="Analyze the evolving summary for accuracy and insights based on all available classes' metadata use [] for the same.",
     backstory="You work for unoplat. A detail-oriented tech doc specialist who specializes in data interpretation and error correction.",
     memory=True,
     verbose=True,
-    llm=llm,
-    tools=[file_reader_tool]
+    llm=llm
     # tools=[SpecificTool2()]
 )
 
 agent3 = Agent(
-    role='Unoplat Tech Report Generator',
-    goal="""Generate and refine comprehensive report from analyzed data and check if it follows the provided 
-    unoplat markdown spec and it is CommonMark markdown compliant.
-    u.""",
-    backstory="Dedicated to producing detailed and accurate documentation, adapting to new information.",
+    role='CommonMark Markdown specification Expert',
+    goal="""Strictly check if it follows the CommonMark specification and make changes happen if it does not follow""",
+    backstory="Been doing markdown validation since ages and have become an expert",
     memory=True,
     verbose=True,
     llm=llm
@@ -55,21 +55,32 @@ agent3 = Agent(
 
 # Define tasks
 task1 = Task(
-    description='Process and summarize class metadata {class_metadata} and append it to the existing unoplat markdown based summary if available.',
+    description='Process and summarize class metadata {class_metadata} and .',
     agent=agent1,
-    expected_output='Initial summary based on class metadata in unoplat markdown spec. Append/Modify. Never overwrite.',
-    output_file = 'unoplat_tech_doc.md'
+    expected_output='Initial summary based on class metadata converted into component based info according to unoplat markdown spec.',
+    output_file = 'unoplat_tech_doc.md',
+    tools=[file_reader_tool]
 )
-
 task2 = Task(
-    description='Review and refine summary for accuracy and completeness according to the markdown spec based on file.',
-    agent=agent2,
-    expected_output='Refined summary with corrections and additional insights',
-    output_file = 'unoplat_tech_doc.md' 
+    description="""Now the goal is to output the content into final markdown based file. So use a tool to check
+     if file exists or not. If it exists then read the content and then modify/append at appropriate position. Keep in mind
+     always that The output file carries overall summary of entire codebase.If file does not exist just output a new file. From nexttime onwards the file will exist""",
+    agent=agent1,
+    expected_output='Overall summary of codebase in unoplat spec.',
+    output_file = 'unoplat_tech_doc.md',
+    tools=[output_file_reader_tool]
 )
 
 task3 = Task(
-    description='Go line by line and improve final, comprehensive report based on refined summaries',
+    description='Review and refine summary for accuracy and completeness according to the unoplat markdown spec based on file.',
+    agent=agent2,
+    expected_output='Refined summary with corrections and additional insights',
+    output_file = 'unoplat_tech_doc.md',
+    tools=[file_reader_tool]
+)
+
+task4 = Task(
+    description='Go line by line and check if the the markdown file does not follow markdown specification.',
     agent=agent3,
     expected_output='Final report incorporating all refinements in markdown following common mark specification.',
     output_file="unoplat_tech_doc.md"
