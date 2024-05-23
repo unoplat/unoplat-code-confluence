@@ -171,10 +171,11 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
 
     chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
 
-    codebase_metadata = iparse_json.parse_json_to_nodes(chapi_metadata,isummariser)
-    if codebase_metadata:
-        logger.info(f"Content of the first node: {codebase_metadata[0].summary}")
-        logger.info(f"Content of the first node: {codebase_metadata[4].summary}")
+    codebase_metadata = [
+        {"summary": node.summary} for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser) if node.type == "CLASS"
+    ]
+    with open('codebase_summary.json', 'w') as file:
+        json.dump(codebase_metadata, file)
     
     
     
