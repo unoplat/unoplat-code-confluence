@@ -202,7 +202,7 @@ This class represents the primary key for an Order entity, containing UUID field
 5. [CrewAi](https://www.crewai.com/)
 6. [loguru](https://loguru.readthedocs.io/en/stable/api/logger.html)
 7. [PyTest](https://pytest.org/)
-
+8. [Pydantic](https://www.pydantic.dev)
 
 ## Techniques Used
 1. Markdown Spec based Filler prompt for extreme precision
