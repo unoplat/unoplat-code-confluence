@@ -66,7 +66,7 @@ graph TD
 ```
 This diagram outlines the Unoplat process from the initial parsing of the codebase to the generation of an enhanced Code Atlas, highlighting the deterministic and structured approach to managing and understanding codebases.
 
-## Unoplat Solution to this
+## Unoplat Solution to the Current Problem
 ```mermaid
 flowchart TD
     Start(Unoplat GUI/Terminal Experience)
@@ -98,6 +98,94 @@ flowchart TD
     Senior_Software_Engineer_Agent --> Senior_Markdown_Technical_Documentation_Specialist
     Senior_Markdown_Technical_Documentation_Specialist --> MarkdDownOutput
 ```
+
+
+
+## Example:
+
+### Input:
+```
+Local workspace from https://github.com/DataStax-Examples/spring-data-starter.git
+```
+
+### Output:
+```
+# Order Class
+
+- **Package**: `com.datastax.examples.order`
+- **File Path**: `src/main/java/com/datastax/examples/order/Order.java`
+- **Responsibility**: This class represents an order in the system, encapsulating all necessary details such as product quantity, name, price, and added-to-order timestamp.
+
+## Fields
+
+Each field corresponds to a column of our Cassandra database table. The annotations indicate how each Java data type is mapped to its respective datatype in Cassandra.
+
+- **OrderPrimaryKey**: `None`
+  - **Type**: This field represents the unique identifier for an order within the system, serving as the primary key. No dependencies are injected here.
+
+- **Integer**
+  - **type_key**: `productQuantity`
+  - **Type**: Represents the quantity of a product in this particular order. Annotated with `@Column("product_quantity")` and `@CassandraType(type = CassandraType.Name.INT)` to map it properly within our database structure. No dependencies are injected here.
+
+- **String**
+  - **type_key**: `productName`
+  - **Type**: Stores the name of a product in this order. Annotated with `@Column("product_name")` and `@CassandraType(type = CassandraType.Name.TEXT)` to ensure accurate representation in our database schema. No dependencies are injected here.
+
+- **Float**
+  - **type_key**: `productPrice`
+  - **Type**: Contains the price of a product within this order. Annotated with `@CassandraType(type = CassandraType.Name.DECIMAL)` to map it correctly in our database system. No dependencies are injected here.
+
+- **Instant**
+  - **type_key**: `addedToOrderTimestamp`
+  - **Type**: Stores the timestamp of when this order was added to the system. Annotated with `@CassandraType(type = CassandraType.Name.TIMESTAMP)` for accurate mapping in our database schema. No dependencies are injected here.
+
+# OrderController Class Summary
+
+## Package
+com.datastax.examples.order
+
+## File Path
+src/main/java/com.datastax.examples/order/OrderController.java
+
+## Fields
+- **OrderRepository** (private OrderRepository orderRepository)
+   - **Type**: The field is an instance of the OrderRepository class, which contains methods for accessing and manipulating data from a database using JPA or similar technologies. It serves as a dependency injection to enable interaction with the repository layer inside the controller's methods.
+
+## Methods
+- **root()**: `ModelAndView`
+  - **Summary**: Returns a ModelAndView object representing the root page of the order management system, which typically includes links or navigation elements for other pages/actions within the application.
+  
+- **createOrder(Request req, Response res)**: `Order`
+  - **Summary**: Processes an HTTP POST request to create a new Order object with data from the client's input and saves it in the database using the repository layer. It then returns the created order as the response payload.
+  
+- **updateOrder(UUID id, Request req, Response res)**: `Order`
+  - **Summary**: Processes an HTTP PUT or PATCH request to update a specific Order object identified by its UUID with new data from the client's input and saves it in the database using the repository layer. It then returns the updated order as the response payload.
+  
+- **deleteOrder(UUID id)**: `void`
+  - **Summary**: Processes an HTTP DELETE request to remove a specific Order object identified by its UUID from the database and handles any related cleanup or cascading deletions using the repository layer. It does not return any response payload.
+
+# OrderPrimaryKey Class Summary
+
+## Package
+`com.datastax.examples.order`
+
+## File Path
+`src/main/java/com/datastax/examples/order/OrderPrimaryKey.java`
+
+## Responsibility
+This class represents the primary key for an Order entity, containing UUID fields to uniquely identify each order and its associated product within a Cassandra database.
+
+## Fields
+
+- **UUID**: `orderId`
+  - **Type**: Represents the unique identifier of the order itself. It is marked with `@PrimaryKeyColumn(name = "order_id", ordinal = 0, type = PrimaryKeyType.PARTITIONED)` to denote its role as a partition key in Cassandra's primary key structure.
+  
+- **UUID**: `productId`
+  - **Type**: Represents the unique identifier of the product associated with the order. This is also marked with `@PrimaryKeyColumn(name = "product_id", ordinal = 1, type = PrimaryKeyType.CLUSTERED)` indicating that it serves as a clustering key in Cassandra's primary key scheme, which further refines the data retrieval within each partition identified by `orderId`.
+
+(No methods are defined for this class.)
+```
+
 
 ## Tech Stack 
 
