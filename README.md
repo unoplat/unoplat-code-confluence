@@ -185,6 +185,12 @@ This class represents the primary key for an Order entity, containing UUID field
 
 (No methods are defined for this class.)
 ```
+## Current Stage
+
+### Status: Alpha
+### Blockers before user adoption:
+1. Performance issue with per class summary
+2. Multi agent workflow not exiting due to potential enhancements needed in crewai.
 
 
 ## Tech Stack 
@@ -213,6 +219,7 @@ These are the people because of which this work has been possible. Unoplat code 
 3. [Joao Moura from crewai](https://github.com/joaomdmoura)
 4. [Vipin Shreyas Kumar](https://github.com/vipinshreyaskumar)
 5. [Apeksha](https://github.com/apekshamehta)
+
 
 
 
