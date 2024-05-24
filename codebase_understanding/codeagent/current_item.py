@@ -1,21 +1,22 @@
-from typing import List
+from typing import  List
 from crewai_tools import BaseTool
 
 class CurrentItem(BaseTool):
-    name: str = "Current item processed out of total items"
-    description: str = "Use this tool to figure out current item processed out of total items"
+    name: str = "Get Class Metadata"
+    description: str = "Use this tool to fetch latest class summary in string out of total classes. the tool will also throw error when there is no more data to fetch. No Need to pass any arguments to this tool"
     items: List[dict] = []
     total_items: int = 0
-
+    curr_item_index: int = 0
 
     def __init__(self, items: List[dict]):
         super().__init__()
         self.items = items
         self.total_items = len(items)
 
-    def _run(self, args: str) -> str:
-        if self.curr_item >= self.total_items:
+    def _run(self) -> str: 
+        if self.curr_item_index >= self.total_items:
             raise Exception("No more data exists to fetch")
-        result = self.curr_item
-        self.curr_item += 1
+        print(f"current index is {self.curr_item_index}")
+        result = self.curr_item_index
+        self.curr_item_index += 1
         return self.items[result]['summary']

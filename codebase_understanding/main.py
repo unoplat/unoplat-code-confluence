@@ -172,11 +172,12 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
 
     chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
 
-    codebase_metadata = [
-        {"summary": node.summary} for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser) if node.type == "CLASS"
-    ]
-    with open('codebase_summary.json', 'w') as file:
-        json.dump(codebase_metadata, file)
+    with open('codebase_summary.md', 'a') as md_file:
+        for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
+            if node.type == "CLASS":
+                md_file.write(f"{node.summary}\n\n")
+    # with open('codebase_summary.json', 'w') as file:
+    #     json.dump(codebase_metadata, file)
     
     tim.print("[bold lightgreen]Parsing process completed.[/]")
 
@@ -187,10 +188,11 @@ def start_parsing(git_url, programming_language, output_path, codebase_name, set
 if __name__ == "__main__":
     import warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning, module='pydantic.*')
-    unoplat_agent_setup =UnoplatAgent()
-    unoplat_agent_setup.run_crew()
-    # iload_json = JsonLoader()
-    # iparse_json = JsonParser()
-    # isummariser = NodeSummariser()
-    # main(iload_json, iparse_json, isummariser)
+    iload_json = JsonLoader()
+    iparse_json = JsonParser()
+    isummariser = NodeSummariser()
+    main(iload_json, iparse_json, isummariser)
+    # unoplat_agent_setup =UnoplatAgent()
+    # unoplat_agent_setup.run_crew()
+    
 
