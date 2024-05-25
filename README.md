@@ -211,7 +211,7 @@ This class represents the primary key for an Order entity, containing UUID field
 4. Collaboration among crewi agents with long/short term memory with precise roles
 
 
-## Credits/heroes
+## Credits/heroes/supporters
 
 These are the people because of which this work has been possible. Unoplat code confluence would not exist without them.
 1. [Phodal from Chapi and ArcGuard](https://github.com/phodal)
