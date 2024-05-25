@@ -191,7 +191,7 @@ This class represents the primary key for an Order entity, containing UUID field
 ### Blockers before user adoption:
 1. Performance issue with per class summary
 2. Multi agent workflow not exiting due to potential enhancements needed in our crewai implementation.
-
+3. Moving to cli from tui.
 
 ## Tech Stack 
 
