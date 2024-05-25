@@ -1,7 +1,7 @@
 # Unoplat-CodeConfluence - Where Code Meets Clarity
 
 
-## Current Problem with AI Tooling (Codium,Codedium,TabNine etc)
+## Current Problem with doing Repository level Documentation using AI Tooling (Codium,Codedium,TabNine etc)
 
 ### Process Overview:
 
