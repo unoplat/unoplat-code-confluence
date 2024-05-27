@@ -1,6 +1,5 @@
 import os
 import subprocess
-from pytermgui import tim
 from utility.total_file_count import FileCounter
 from loguru import logger
 
@@ -21,7 +20,6 @@ class ArchGuardHandler:
         self.total_files = self.file_counter.count_files()
 
         logger.info("Starting scan...")
-        tim.print("[bold lightblue]Starting scan...[/]")
 
         command = [
             "java", "-jar", self.jar_path,
@@ -37,26 +35,22 @@ class ArchGuardHandler:
 
         while True:
             output = process.stdout.readline()
-            #todo: print output below using logger of loguru
             logger.debug(output)
             if output == '' and process.poll() is not None:
                 break
             if output:
-                tim.print(output.strip())
+                logger.info(output.strip())
                 progress_value = self.parse_progress(output, total_files=self.total_files)
-                tim.print(f"Progress: {progress_value}%")
+                logger.info(f"Progress: {progress_value}%")
 
         stdout, stderr = process.communicate()
         if process.returncode == 0:
             logger.info("Scan completed successfully")
-            tim.print("Scan completed successfully")
             chapi_metadata_path = self.modify_output_filename("0_codes.json", f"{self.codebase_name}_codes.json")
         else:
             logger.error(f"Error in scanning: {stderr}")
-            tim.print(f"Error in scanning: {stderr}")
 
         logger.info(f"Total files scanned: {self.total_files}")
-        print(f"Total files scanned: {self.total_files}")
         return chapi_metadata_path
 
 
