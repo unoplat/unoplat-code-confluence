@@ -19,21 +19,11 @@ class NodeSummariser(ISummariser):
             response = completion(
                 model="ollama/phi3:14b-medium-4k-instruct-q8_0",  # Using Ollama model in LiteLLM
                 messages=[
-                    {"content": """
-                     You are a markdown technical assistant who is robust and precise. 
-                     User will be sharing a semi-structured metadata JSON of a codebase class.
-                     First, you will understand the JSON field by field and remember it.
-                     Second, User will be sharing the markdown specification in which you have to fill in the details.
-                     You will only strictly output in markdown format based the markdown spec filled out by you.
-                     """, 
-                     "role": "system"},
+                    {"content": "You are a markdown technical assistant who is robust and precise. User will be sharing a semi-structured metadata JSON of a codebase class and specification of markdown in which you have to fill stuff based on json.First, you will understand the JSON field by field and remember it.Second, User will be sharing the markdown specification in which you have to fill in the details. You will only strictly output in markdown format based the markdown spec filled out by you. In the end you will also validate the markdown ouput and check if follows the spec shared by user."
+                     ,"role": "system"},
                      {"content": 
-                      f"""
-                      {node.model_dump(mode='json')} + "\n\n" + {self._create_summary_prompt(node)}
-                      """
+                      f"""{node.model_dump(mode='json')} + "\n\n" + {self._create_summary_prompt(node)} """
                       , "role": "user"},
-                     
-                    
                 ]
             )
             node.summary = response.get("choices", [{}])[0].get("message", {}).get("content", "")
