@@ -3,7 +3,6 @@ from os import get_terminal_size
 import os
 from pytermgui import tim
 from loguru import logger
-from codeagent.unoplat_agent import UnoplatAgent
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
 from pytermgui import Toggle, WindowManager, Window, InputField, Label, Button, boxes
 import re
