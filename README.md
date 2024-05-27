@@ -43,8 +43,8 @@ The Unoplat approach offers a significant shift from the conventional AI-powered
 
 1. Language-Agnostic Parsing: Unoplat uses a language-agnostic parser, similar to generic compilers, to analyze and interpret any programming language or framework. This step involves no AI, focusing solely on deterministic parsing methods.
 2. Generating Semi-Structured JSON: From the parsing step, Unoplat generates semi-structured JSON data. This JSON captures essential constructs and elements of the programming languages being analyzed, providing a clear, structured view of the codebase without reliance on AI for code understanding.
-3. Enhancing Metadata: The semi-structured JSON is then used to enhance the metadata around the codebase. This enhanced metadata includes detailed information about code functions, variables, classes, and other relevant details that are crucial for understanding and navigating the codebase efficiently.
-4. Integration with Open Source LLMs: Leveraging open-source large language models (LLMs), Unoplat combines the enriched metadata with multi-agentic workflows. This integration aims to produce a more sophisticated and useful "Code Atlas," which developers can use to navigate and understand large and complex codebases more effectively.
+3. Enhancing Metadata: The semi-structured JSON is then used to enhance the metadata in a single attribute with help of oss instruct model.
+4. Integration with Open Source LLMs: Leveraging open-source large language models (LLMs), Unoplat combines the enriched metadata with multi-agentic  workflows. This integration aims to produce a more sophisticated and useful "Code Atlas," which developers can use to navigate and understand large and complex codebases more effectively.
 5. Output: The output is a highly detailed, easily navigable representation of the codebase, allowing developers to understand and modify code with much higher accuracy and speed than traditional AI-based tools.
 
 #### Benefits:
