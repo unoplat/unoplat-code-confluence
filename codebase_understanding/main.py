@@ -111,7 +111,7 @@ def start_parsing(local_workspace_path, programming_language, output_path, codeb
 
     chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
 
-    with open('codebase_summary.md', 'a') as md_file:
+    with open('codebase_summary.md', 'a+') as md_file:
         for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
             if node.type == "CLASS":
                 md_file.write(f"{node.summary}\n\n")
