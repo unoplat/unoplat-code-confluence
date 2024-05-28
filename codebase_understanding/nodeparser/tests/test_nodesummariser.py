@@ -24,7 +24,7 @@ def test_summarise_node(node_summariser):
     # Call the method under test
     summarized_node = node_summariser.summarise_node(mock_node)
     #todo: output summary to a external file
-    with open('summarised_node.txt', 'w') as file:
+    with open('summarised_node_3.md', 'w') as file:
          file.write(summarized_node.summary)
 
     # Assertions to check if the node summary is updated
