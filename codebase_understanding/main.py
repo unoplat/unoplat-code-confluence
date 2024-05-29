@@ -3,6 +3,7 @@ import json
 from os import get_terminal_size
 import os
 from loguru import logger
+import datetime
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
 import re
 from downloader.downloader import Downloader
@@ -18,7 +19,6 @@ def main(iload_json, iparse_json,isummariser,json_configuration_data):
     settings = AppSettings()
     get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_json,isummariser)
     
-    
 
 def handle_toggle(value):
     global selected_language
@@ -27,8 +27,6 @@ def handle_toggle(value):
 
 
 def get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_json,isummariser):
-    
-    
     # Collect necessary inputs from the user to set up the codebase indexing
     local_workspace_path = json_configuration_data["local_workspace_path"]
     programming_language = json_configuration_data["programming_language"]
@@ -110,8 +108,12 @@ def start_parsing(local_workspace_path, programming_language, output_path, codeb
     chapi_metadata_path = archguard_handler.run_scan()
 
     chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
+   
+    current_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    
+    output_filename = f"{codebase_name}_{current_timestamp}.md"
 
-    with open('codebase_summary.md', 'a+') as md_file:
+    with open(os.path.join(output_path, output_filename), 'a+') as md_file:
         for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
             if node.type == "CLASS":
                 md_file.write(f"{node.summary}\n\n")
@@ -121,9 +123,6 @@ def start_parsing(local_workspace_path, programming_language, output_path, codeb
     logger.info("Parsing process completed.")
 
     
-
-
-
 if __name__ == "__main__":
     import warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning, module='pydantic.*')
