@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "dspyplayground"
+name = "unoplat_code_confluence"
 version = "0.1.0"
-description = ""
+description = "codebase understanding"
 authors = ["JayGhiya <ghiya6548@gmail.com>"]
 readme = "README.md"
 
