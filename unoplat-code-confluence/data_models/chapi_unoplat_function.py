@@ -16,4 +16,3 @@ class Function(BaseModel):
     local_variables: List[FieldModel] = Field(default_factory=list, alias="LocalVariables")
     body_hash: Optional[int] = Field(default=None, alias="BodyHash")
     content: Optional[str] = Field(default=None, alias="Content")
-    summary: Optional[str] = Field(default=None, alias="Summary")

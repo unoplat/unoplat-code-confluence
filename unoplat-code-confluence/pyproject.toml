@@ -18,7 +18,11 @@ pydantic-settings = "^2.2.1"
 litellm = "^1.37.19"
 pytest = "^8.2.1"
 crewai = {extras = ["tools"], version = "^0.30.11"}
+dspy-ai = "^2.4.9"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.4"
 
 [build-system]
 requires = ["poetry-core"]
