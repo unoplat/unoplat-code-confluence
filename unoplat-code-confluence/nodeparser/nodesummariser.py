@@ -58,7 +58,7 @@ class NodeSummariser(ISummariser):
             internal_calls_str = ""
             external_calls_str = ""
             for call in function.function_calls:
-                call_description = f"`{call.function_name}()` to `Fill in description of what the call is for. Focus on call interactions within the class and outside the class using fields`"
+                call_description = f"`{call.function_name}()` to `Fill in description of what the call is for. Focus on call interactions within the class and outside the class using fields. Use function metadata and content of the class`"
                 if call.node_name == node.node_name:  # Internal call
                     internal_calls_str += f"    - {call_description}\n"
                 else:  # External call

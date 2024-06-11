@@ -113,10 +113,10 @@ def start_parsing(local_workspace_path, programming_language, output_path, codeb
     
     output_filename = f"{codebase_name}_{current_timestamp}.md"
 
-    with open(os.path.join(output_path, output_filename), 'a+') as md_file:
-        for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
-            if node.type == "CLASS":
-                md_file.write(f"{node.summary}\n\n")
+    # with open(os.path.join(output_path, output_filename), 'a+') as md_file:
+    #     for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
+    #         if node.type == "CLASS":
+    #             md_file.write(f"{node.summary}\n\n")
     # with open('codebase_summary.json', 'w') as file:
     #     json.dump(codebase_metadata, file)
     

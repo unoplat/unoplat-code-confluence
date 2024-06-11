@@ -1,1 +1,1768 @@
-[{"NodeName":"Order","Module":"root","Type":"CLASS","Package":"com.datastax.examples.order","FilePath":"src/main/java/com/datastax/examples/order/Order.java","Fields":[{"TypeType":"OrderPrimaryKey","TypeKey":"key","Annotations":[{"Name":"PrimaryKey","Position":{"StartLine":13,"StartLinePosition":4,"StopLine":13,"StopLinePosition":5}}]},{"TypeType":"Integer","TypeKey":"productQuantity","Annotations":[{"Name":"Column","KeyValues":[{"Key":"\"product_quantity\"","Value":"\"product_quantity\""}],"Position":{"StartLine":16,"StartLinePosition":4,"StopLine":16,"StopLinePosition":30}},{"Name":"CassandraType","KeyValues":[{"Key":"type","Value":"CassandraType.Name.INT"}],"Position":{"StartLine":17,"StartLinePosition":4,"StopLine":17,"StopLinePosition":48}}]},{"TypeType":"String","TypeKey":"productName","Annotations":[{"Name":"Column","KeyValues":[{"Key":"\"product_name\"","Value":"\"product_name\""}],"Position":{"StartLine":20,"StartLinePosition":4,"StopLine":20,"StopLinePosition":26}},{"Name":"CassandraType","KeyValues":[{"Key":"type","Value":"CassandraType.Name.TEXT"}],"Position":{"StartLine":21,"StartLinePosition":4,"StopLine":21,"StopLinePosition":49}}]},{"TypeType":"Float","TypeKey":"productPrice","Annotations":[{"Name":"CassandraType","KeyValues":[{"Key":"type","Value":"CassandraType.Name.DECIMAL"}],"Position":{"StartLine":24,"StartLinePosition":4,"StopLine":24,"StopLinePosition":52}},{"Name":"Column","KeyValues":[{"Key":"\"product_price\"","Value":"\"product_price\""}],"Position":{"StartLine":25,"StartLinePosition":4,"StopLine":25,"StopLinePosition":27}}]},{"TypeType":"Instant","TypeKey":"addedToOrderTimestamp","Annotations":[{"Name":"CassandraType","KeyValues":[{"Key":"type","Value":"CassandraType.Name.TIMESTAMP"}],"Position":{"StartLine":28,"StartLinePosition":4,"StopLine":28,"StopLinePosition":54}},{"Name":"Column","KeyValues":[{"Key":"\"added_to_order_at\"","Value":"\"added_to_order_at\""}],"Position":{"StartLine":29,"StartLinePosition":4,"StopLine":29,"StopLinePosition":31}}]}],"Implements":["java.io.Serializable"],"Annotations":[{"Name":"Table","KeyValues":[{"Key":"value","Value":"\"starter_orders\""}],"Position":{"StartLine":9,"StopLine":9,"StopLinePosition":31}},{"Name":"Data","Position":{"StartLine":10,"StopLine":10,"StopLinePosition":1}}],"FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"FIELD","NodeName":"OrderPrimaryKey","Position":{"StartLine":14,"StartLinePosition":12,"StopLine":14,"StopLinePosition":31}},{"Package":"java.time","Type":"FIELD","NodeName":"Instant","Position":{"StartLine":30,"StartLinePosition":12,"StopLine":30,"StopLinePosition":41}}],"Imports":[{"Source":"lombok.Data"},{"Source":"org.springframework.data.cassandra.core.mapping"},{"Source":"java.io.Serializable"},{"Source":"java.time.Instant"}],"Position":{"StartLine":11,"StartLinePosition":7,"StopLine":32},"Content":"class Order implements Serializable {    @PrimaryKey    private OrderPrimaryKey key;    @Column(\"product_quantity\")    @CassandraType(type = CassandraType.Name.INT)    private Integer productQuantity;    @Column(\"product_name\")    @CassandraType(type = CassandraType.Name.TEXT)    private String productName;    @CassandraType(type = CassandraType.Name.DECIMAL)    @Column(\"product_price\")    private Float productPrice;    @CassandraType(type = CassandraType.Name.TIMESTAMP)    @Column(\"added_to_order_at\")    private Instant addedToOrderTimestamp;"},{"NodeName":"OrderRepository","Module":"root","Type":"INTERFACE","Package":"com.datastax.examples.order","FilePath":"src/main/java/com/datastax/examples/order/OrderRepository.java","Extend":"CassandraRepository<Order,OrderPrimaryKey>","Functions":[{"Name":"deleteByKeyOrderId","ReturnType":"void","Position":{"StartLine":16,"StartLinePosition":2,"StopLine":16,"StopLinePosition":39},"Content":"void deleteByKeyOrderId(UUID orderId);"},{"Name":"deleteByKeyOrderIdAndKeyProductId","ReturnType":"void","Position":{"StartLine":18,"StartLinePosition":2,"StopLine":18,"StopLinePosition":70},"Content":"void deleteByKeyOrderIdAndKeyProductId(UUID orderId, UUID productId);"},{"Name":"findByKeyOrderIdAndKeyProductId","ReturnType":"ProductNameAndPrice","Position":{"StartLine":22,"StartLinePosition":2,"StopLine":22,"StopLinePosition":83},"Content":"ProductNameAndPrice findByKeyOrderIdAndKeyProductId(UUID orderId, UUID productId);"},{"Name":"findByKeyOrderId","ReturnType":"List<ProductNameAndPrice>","Position":{"StartLine":24,"StartLinePosition":2,"StopLine":24,"StopLinePosition":58},"Content":"List<ProductNameAndPrice> findByKeyOrderId(UUID orderId);"},{"Name":"findAllProjectedBy","ReturnType":"List<ProductNameAndPrice>","Position":{"StartLine":26,"StartLinePosition":2,"StopLine":26,"StopLinePosition":48},"Content":"List<ProductNameAndPrice> findAllProjectedBy();"}],"Annotations":[{"Name":"Repository","Position":{"StartLine":10,"StopLine":10,"StopLinePosition":1}},{"Name":"RestResource","KeyValues":[{"Key":"exported","Value":"false"}],"Position":{"StartLine":11,"StopLine":11,"StopLinePosition":30}}],"Imports":[{"Source":"org.springframework.data.cassandra.repository.CassandraRepository"},{"Source":"org.springframework.data.rest.core.annotation.RestResource"},{"Source":"org.springframework.stereotype.Repository"},{"Source":"java.util.List"},{"Source":"java.util.UUID"}],"Content":"package com.datastax.examples.order;"},{"NodeName":"OrderController","Module":"root","Type":"CLASS","Package":"com.datastax.examples.order","FilePath":"src/main/java/com/datastax/examples/order/OrderController.java","Fields":[{"TypeType":"OrderRepository","TypeKey":"orderRepository","Annotations":[{"Name":"Autowired","Position":{"StartLine":14,"StartLinePosition":4,"StopLine":14,"StopLinePosition":5}}]}],"Functions":[{"Name":"root","ReturnType":"ModelAndView","Annotations":[{"Name":"RequestMapping","KeyValues":[{"Key":"value","Value":"\"/\""},{"Key":"method","Value":"RequestMethod.GET"}],"Position":{"StartLine":17,"StartLinePosition":4,"StopLine":17,"StopLinePosition":59}}],"Position":{"StartLine":18,"StartLinePosition":11,"StopLine":20,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"return","TypeType":"ModelAndView"}],"BodyHash":763749358,"Content":"ModelAndView root() {        return new ModelAndView(\"redirect:/swagger-ui/\");    "},{"Name":"createOrder","ReturnType":"Order","Parameters":[{"TypeValue":"order","TypeType":"Order"}],"FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"OrderRepository","FunctionName":"save","Parameters":[{"TypeValue":"order","TypeType":""}],"Position":{"StartLine":26,"StartLinePosition":31,"StopLine":26,"StopLinePosition":41}}],"Annotations":[{"Name":"PostMapping","KeyValues":[{"Key":"\"orders\"","Value":"\"orders\""}],"Position":{"StartLine":24,"StartLinePosition":4,"StopLine":24,"StopLinePosition":25}}],"Position":{"StartLine":25,"StartLinePosition":11,"StopLine":27,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"return","TypeType":"ModelAndView"},{"TypeValue":"order","TypeType":"Order"}],"BodyHash":-1890715897,"Content":"Order createOrder(@RequestBody Order order) {        return orderRepository.save(order);    "},{"Name":"updateOrder","ReturnType":"Order","Parameters":[{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"},{"TypeValue":"order","TypeType":"Order"}],"FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"Order","FunctionName":"getKey","Position":{"StartLine":33,"StartLinePosition":14,"StopLine":33,"StopLinePosition":21}},{"Package":"com.datastax.examples.order","NodeName":"Order","FunctionName":"setOrderId","Parameters":[{"TypeValue":"oid","TypeType":""}],"Position":{"StartLine":33,"StartLinePosition":23,"StopLine":33,"StopLinePosition":37}},{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"Order","FunctionName":"getKey","Position":{"StartLine":34,"StartLinePosition":14,"StopLine":34,"StopLinePosition":21}},{"Package":"com.datastax.examples.order","NodeName":"Order","FunctionName":"setProductId","Parameters":[{"TypeValue":"pid","TypeType":""}],"Position":{"StartLine":34,"StartLinePosition":23,"StopLine":34,"StopLinePosition":39}},{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"OrderRepository","FunctionName":"save","Parameters":[{"TypeValue":"order","TypeType":""}],"Position":{"StartLine":35,"StartLinePosition":31,"StopLine":35,"StopLinePosition":41}}],"Annotations":[{"Name":"PutMapping","KeyValues":[{"Key":"\"orders/{oid}/{pid}\"","Value":"\"orders/{oid}/{pid}\""}],"Position":{"StartLine":31,"StartLinePosition":4,"StopLine":31,"StopLinePosition":36}}],"Position":{"StartLine":32,"StartLinePosition":11,"StopLine":36,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"return","TypeType":"ModelAndView"},{"TypeValue":"order","TypeType":"Order"},{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"}],"BodyHash":-1214406587,"Content":"Order updateOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid, @RequestBody Order order) {        order.getKey().setOrderId(oid);        order.getKey().setProductId(pid);        return orderRepository.save(order);    "},{"Name":"deleteOrder","ReturnType":"void","Parameters":[{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"}],"FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"OrderRepository","FunctionName":"deleteByKeyOrderIdAndKeyProductId","Parameters":[{"TypeValue":"oid","TypeType":""},{"TypeValue":"pid","TypeType":""}],"Position":{"StartLine":42,"StartLinePosition":24,"StopLine":42,"StopLinePosition":66}}],"Annotations":[{"Name":"DeleteMapping","KeyValues":[{"Key":"\"orders/{oid}/{pid}\"","Value":"\"orders/{oid}/{pid}\""}],"Position":{"StartLine":40,"StartLinePosition":4,"StopLine":40,"StopLinePosition":39}}],"Position":{"StartLine":41,"StartLinePosition":11,"StopLine":43,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"return","TypeType":"ModelAndView"},{"TypeValue":"order","TypeType":"Order"},{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"}],"BodyHash":1723205541,"Content":"void deleteOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid) {        orderRepository.deleteByKeyOrderIdAndKeyProductId(oid, pid);    "},{"Name":"deleteOrders","ReturnType":"void","Parameters":[{"TypeValue":"oid","TypeType":"UUID"}],"FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"OrderRepository","FunctionName":"deleteByKeyOrderId","Parameters":[{"TypeValue":"oid","TypeType":""}],"Position":{"StartLine":47,"StartLinePosition":24,"StopLine":47,"StopLinePosition":46}}],"Annotations":[{"Name":"DeleteMapping","KeyValues":[{"Key":"\"orders/{oid}\"","Value":"\"orders/{oid}\""}],"Position":{"StartLine":45,"StartLinePosition":4,"StopLine":45,"StopLinePosition":33}}],"Position":{"StartLine":46,"StartLinePosition":11,"StopLine":48,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"return","TypeType":"ModelAndView"},{"TypeValue":"order","TypeType":"Order"},{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"}],"BodyHash":-1577650644,"Content":"void deleteOrders(@PathVariable(\"oid\") UUID oid) {        orderRepository.deleteByKeyOrderId(oid);    "},{"Name":"findOrder","ReturnType":"ProductNameAndPrice","Parameters":[{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"}],"FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"OrderRepository","FunctionName":"findByKeyOrderIdAndKeyProductId","Parameters":[{"TypeValue":"oid","TypeType":""},{"TypeValue":"pid","TypeType":""}],"Position":{"StartLine":54,"StartLinePosition":31,"StopLine":54,"StopLinePosition":71}}],"Annotations":[{"Name":"GetMapping","KeyValues":[{"Key":"\"orders/{oid}/{pid}\"","Value":"\"orders/{oid}/{pid}\""}],"Position":{"StartLine":52,"StartLinePosition":4,"StopLine":52,"StopLinePosition":36}}],"Position":{"StartLine":53,"StartLinePosition":11,"StopLine":55,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"return","TypeType":"ModelAndView"},{"TypeValue":"order","TypeType":"Order"},{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"}],"BodyHash":-484463005,"Content":"ProductNameAndPrice findOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid) {        return orderRepository.findByKeyOrderIdAndKeyProductId(oid, pid);    "},{"Name":"findOrders","ReturnType":"List<ProductNameAndPrice>","Parameters":[{"TypeValue":"oid","TypeType":"UUID"}],"FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"OrderRepository","FunctionName":"findByKeyOrderId","Parameters":[{"TypeValue":"oid","TypeType":""}],"Position":{"StartLine":59,"StartLinePosition":31,"StopLine":59,"StopLinePosition":51}}],"Annotations":[{"Name":"GetMapping","KeyValues":[{"Key":"\"orders/{oid}\"","Value":"\"orders/{oid}\""}],"Position":{"StartLine":57,"StartLinePosition":4,"StopLine":57,"StopLinePosition":30}}],"Position":{"StartLine":58,"StartLinePosition":11,"StopLine":60,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"return","TypeType":"ModelAndView"},{"TypeValue":"order","TypeType":"Order"},{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"}],"BodyHash":-1301332946,"Content":"List<ProductNameAndPrice> findOrders(@PathVariable(\"oid\") UUID oid) {        return orderRepository.findByKeyOrderId(oid);    "},{"Name":"findAll","ReturnType":"List<ProductNameAndPrice>","FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"SAME_PACKAGE","NodeName":"OrderRepository","FunctionName":"findAllProjectedBy","Position":{"StartLine":64,"StartLinePosition":31,"StopLine":64,"StopLinePosition":50}}],"Annotations":[{"Name":"GetMapping","KeyValues":[{"Key":"\"orders\"","Value":"\"orders\""}],"Position":{"StartLine":62,"StartLinePosition":4,"StopLine":62,"StopLinePosition":24}}],"Position":{"StartLine":63,"StartLinePosition":11,"StopLine":65,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"return","TypeType":"ModelAndView"},{"TypeValue":"order","TypeType":"Order"},{"TypeValue":"oid","TypeType":"UUID"},{"TypeValue":"pid","TypeType":"UUID"}],"BodyHash":-478609109,"Content":"List<ProductNameAndPrice> findAll() {        return orderRepository.findAllProjectedBy();    "}],"Annotations":[{"Name":"RestController","Position":{"StartLine":11,"StopLine":11,"StopLinePosition":1}}],"FunctionCalls":[{"Package":"com.datastax.examples.order","Type":"FIELD","NodeName":"OrderRepository","Position":{"StartLine":15,"StartLinePosition":12,"StopLine":15,"StopLinePosition":43}}],"Imports":[{"Source":"org.springframework.beans.factory.annotation.Autowired"},{"Source":"org.springframework.data.rest.webmvc.BasePathAwareController"},{"Source":"org.springframework.web.bind.annotation"},{"Source":"org.springframework.web.servlet.ModelAndView"},{"Source":"java.util.List"},{"Source":"java.util.UUID"}],"Position":{"StartLine":12,"StartLinePosition":7,"StopLine":67},"Content":"class OrderController {    @Autowired    private OrderRepository orderRepository;    @RequestMapping(value = \"/\", method = RequestMethod.GET)    public ModelAndView root() {        return new ModelAndView(\"redirect:/swagger-ui/\");    }    // CREATE    @PostMapping(\"orders\")    public Order createOrder(@RequestBody Order order) {        return orderRepository.save(order);    }    // UPDATE    @PutMapping(\"orders/{oid}/{pid}\")    public Order updateOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid, @RequestBody Order order) {        order.getKey().setOrderId(oid);        order.getKey().setProductId(pid);        return orderRepository.save(order);    }    // DELETE    @DeleteMapping(\"orders/{oid}/{pid}\")    public void deleteOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid) {        orderRepository.deleteByKeyOrderIdAndKeyProductId(oid, pid);    }    @DeleteMapping(\"orders/{oid}\")    public void deleteOrders(@PathVariable(\"oid\") UUID oid) {        orderRepository.deleteByKeyOrderId(oid);    }    // FIND    @GetMapping(\"orders/{oid}/{pid}\")    public ProductNameAndPrice findOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid) {        return orderRepository.findByKeyOrderIdAndKeyProductId(oid, pid);    }    @GetMapping(\"orders/{oid}\")    public List<ProductNameAndPrice> findOrders(@PathVariable(\"oid\") UUID oid) {        return orderRepository.findByKeyOrderId(oid);    }    @GetMapping(\"orders\")    public List<ProductNameAndPrice> findAll() {        return orderRepository.findAllProjectedBy();    }"},{"NodeName":"OrderPrimaryKey","Module":"root","Type":"CLASS","Package":"com.datastax.examples.order","FilePath":"src/main/java/com/datastax/examples/order/OrderPrimaryKey.java","Fields":[{"TypeType":"UUID","TypeKey":"orderId","Annotations":[{"Name":"PrimaryKeyColumn","KeyValues":[{"Key":"name","Value":"\"order_id\""},{"Key":"ordinal","Value":"0"},{"Key":"type","Value":"PrimaryKeyType.PARTITIONED"}],"Position":{"StartLine":15,"StartLinePosition":4,"StopLine":15,"StopLinePosition":87}}]},{"TypeType":"UUID","TypeKey":"productId","Annotations":[{"Name":"PrimaryKeyColumn","KeyValues":[{"Key":"name","Value":"\"product_id\""},{"Key":"ordinal","Value":"1"},{"Key":"type","Value":"PrimaryKeyType.CLUSTERED"}],"Position":{"StartLine":18,"StartLinePosition":4,"StopLine":18,"StopLinePosition":87}}]}],"Implements":["java.io.Serializable"],"Annotations":[{"Name":"PrimaryKeyClass","Position":{"StartLine":11,"StopLine":11,"StopLinePosition":1}},{"Name":"Data","Position":{"StartLine":12,"StopLine":12,"StopLinePosition":1}}],"FunctionCalls":[{"Package":"java.util","Type":"FIELD","NodeName":"UUID","Position":{"StartLine":16,"StartLinePosition":12,"StopLine":16,"StopLinePosition":24}},{"Package":"java.util","Type":"FIELD","NodeName":"UUID","Position":{"StartLine":19,"StartLinePosition":12,"StopLine":19,"StopLinePosition":26}}],"Imports":[{"Source":"lombok.Data"},{"Source":"org.springframework.data.cassandra.core.cql.PrimaryKeyType"},{"Source":"org.springframework.data.cassandra.core.mapping.PrimaryKeyClass"},{"Source":"org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn"},{"Source":"java.io.Serializable"},{"Source":"java.util.UUID"}],"Position":{"StartLine":13,"StartLinePosition":7,"StopLine":20},"Content":"class OrderPrimaryKey implements Serializable {    @PrimaryKeyColumn(name = \"order_id\", ordinal = 0, type = PrimaryKeyType.PARTITIONED)    private UUID orderId;    @PrimaryKeyColumn(name = \"product_id\", ordinal = 1, type = PrimaryKeyType.CLUSTERED)    private UUID productId;"},{"NodeName":"ProductNameAndPrice","Module":"root","Type":"INTERFACE","Package":"com.datastax.examples.order","FilePath":"src/main/java/com/datastax/examples/order/ProductNameAndPrice.java","Functions":[{"Name":"getProductName","ReturnType":"String","Position":{"StartLine":7,"StartLinePosition":4,"StopLine":7,"StopLinePosition":27},"Content":"String getProductName();"},{"Name":"getProductPrice","ReturnType":"Float","Position":{"StartLine":8,"StartLinePosition":4,"StopLine":8,"StopLinePosition":27},"Content":"Float getProductPrice();"}],"Annotations":[{"Name":"Projection","KeyValues":[{"Key":"name","Value":"\"product-name-and-price\""},{"Key":"types","Value":"{Order.class}"}],"Position":{"StartLine":5,"StopLine":5,"StopLinePosition":68}}],"Imports":[{"Source":"org.springframework.data.rest.core.config.Projection"}],"Content":"package com.datastax.examples.order;"},{"NodeName":"SwaggerConfig","Module":"root","Type":"CLASS","Package":"com.datastax.examples.swagger","FilePath":"src/main/java/com/datastax/examples/swagger/SwaggerConfig.java","Functions":[{"Name":"api","ReturnType":"Docket","FunctionCalls":[{"Package":"springfox.documentation.spring.web.plugins","Type":"CHAIN","NodeName":"Docket","FunctionName":"groupName","Parameters":[{"TypeValue":"\"orders\"","TypeType":""}],"Position":{"StartLine":22,"StartLinePosition":17,"StopLine":22,"StopLinePosition":35}},{"Package":"com.datastax.examples.swagger","NodeName":"newDocket","FunctionName":"select","Position":{"StartLine":23,"StartLinePosition":17,"StopLine":23,"StopLinePosition":24}},{"Package":"com.datastax.examples.swagger","NodeName":"newDocket","FunctionName":"apis","Parameters":[{"TypeValue":"RequestHandlerSelectors.any()","TypeType":""}],"Position":{"StartLine":24,"StartLinePosition":17,"StopLine":24,"StopLinePosition":51}},{"Package":"springfox.documentation.builders","Type":"CHAIN","NodeName":"RequestHandlerSelectors","FunctionName":"any","Position":{"StartLine":24,"StartLinePosition":46,"StopLine":24,"StopLinePosition":50}},{"Package":"com.datastax.examples.swagger","NodeName":"newDocket","FunctionName":"paths","Parameters":[{"TypeValue":"PathSelectors.ant(\"/orders/**\")","TypeType":""}],"Position":{"StartLine":25,"StartLinePosition":17,"StopLine":25,"StopLinePosition":54}},{"Package":"springfox.documentation.builders","Type":"CHAIN","NodeName":"PathSelectors","FunctionName":"ant","Parameters":[{"TypeValue":"\"/orders/**\"","TypeType":""}],"Position":{"StartLine":25,"StartLinePosition":37,"StopLine":25,"StopLinePosition":53}},{"Package":"com.datastax.examples.swagger","NodeName":"newDocket","FunctionName":"build","Position":{"StartLine":26,"StartLinePosition":17,"StopLine":26,"StopLinePosition":23}},{"Package":"com.datastax.examples.swagger","NodeName":"newDocket","FunctionName":"apiInfo","Parameters":[{"TypeValue":"apiInfo()","TypeType":""}],"Position":{"StartLine":27,"StartLinePosition":17,"StopLine":27,"StopLinePosition":34}},{"Package":"com.datastax.examples.swagger","NodeName":"SwaggerConfig","FunctionName":"apiInfo","Position":{"StartLine":27,"StartLinePosition":25,"StopLine":27,"StopLinePosition":33}}],"Annotations":[{"Name":"Bean","Position":{"StartLine":19,"StartLinePosition":4,"StopLine":19,"StopLinePosition":5}}],"Position":{"StartLine":20,"StartLinePosition":11,"StopLine":28,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"newDocket(DocumentationType.SWAGGER_2)","TypeType":"Docket"}],"BodyHash":-1202693242,"Content":"Docket api() {        return new Docket(DocumentationType.SWAGGER_2)                .groupName(\"orders\")                .select()                .apis(RequestHandlerSelectors.any())                .paths(PathSelectors.ant(\"/orders/**\"))                .build()                .apiInfo(apiInfo());    "},{"Name":"apiInfo","ReturnType":"ApiInfo","FunctionCalls":[{"Package":"java.util","Type":"CHAIN","NodeName":"Collections","FunctionName":"emptyList","Position":{"StartLine":37,"StartLinePosition":89,"StopLine":37,"StopLinePosition":99}}],"Position":{"StartLine":30,"StartLinePosition":12,"StopLine":38,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"newDocket(DocumentationType.SWAGGER_2)","TypeType":"Docket"},{"TypeValue":"return","TypeType":"ApiInfo"},{"TypeValue":"\"Spring Data Cassandra REST API\"","TypeType":"Contact"}],"BodyHash":1845857136,"Content":"ApiInfo apiInfo() {        return new ApiInfo(                \"Spring Data Cassandra REST API\",                \"Sample REST API for Orders: powered by DataStax Astra\",                \"1.0.0\",                \"Terms of service\",                new Contact(\"DataStax Examples\", \"https://www.datastax.com/examples\", \"examples@datastax.com\"),                \"Apache v2.0\", \"http://www.apache.org/licenses/LICENSE-2.0\", Collections.emptyList());    "}],"Annotations":[{"Name":"Configuration","Position":{"StartLine":16,"StopLine":16,"StopLinePosition":1}},{"Name":"EnableSwagger2","Position":{"StartLine":17,"StopLine":17,"StopLinePosition":1}}],"Imports":[{"Source":"org.springframework.context.annotation.Bean"},{"Source":"org.springframework.context.annotation.Configuration"},{"Source":"springfox.documentation.builders.PathSelectors"},{"Source":"springfox.documentation.builders.RequestHandlerSelectors"},{"Source":"springfox.documentation.service.ApiInfo"},{"Source":"springfox.documentation.service.Contact"},{"Source":"springfox.documentation.spi.DocumentationType"},{"Source":"springfox.documentation.spring.web.plugins.Docket"},{"Source":"springfox.documentation.swagger2.annotations.EnableSwagger2"},{"Source":"java.util.Collections"}],"Position":{"StartLine":18,"StartLinePosition":7,"StopLine":40},"Content":"class SwaggerConfig {    @Bean    public Docket api() {        return new Docket(DocumentationType.SWAGGER_2)                .groupName(\"orders\")                .select()                .apis(RequestHandlerSelectors.any())                .paths(PathSelectors.ant(\"/orders/**\"))                .build()                .apiInfo(apiInfo());    }    private ApiInfo apiInfo() {        return new ApiInfo(                \"Spring Data Cassandra REST API\",                \"Sample REST API for Orders: powered by DataStax Astra\",                \"1.0.0\",                \"Terms of service\",                new Contact(\"DataStax Examples\", \"https://www.datastax.com/examples\", \"examples@datastax.com\"),                \"Apache v2.0\", \"http://www.apache.org/licenses/LICENSE-2.0\", Collections.emptyList());    }"},{"NodeName":"SpringDataCassandraApplication","Module":"root","Type":"CLASS","Package":"com.datastax.examples","FilePath":"src/main/java/com/datastax/examples/SpringDataCassandraApplication.java","Functions":[{"Name":"main","ReturnType":"void","Parameters":[{"TypeValue":"args","TypeType":"String[]"}],"FunctionCalls":[{"Package":"org.springframework.boot","Type":"CHAIN","NodeName":"SpringApplication","FunctionName":"run","Parameters":[{"TypeValue":"SpringDataCassandraApplication.class","TypeType":""},{"TypeValue":"args","TypeType":""}],"Position":{"StartLine":15,"StartLinePosition":26,"StopLine":15,"StopLinePosition":72}}],"Position":{"StartLine":14,"StartLinePosition":18,"StopLine":16,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"args","TypeType":"String[]"}],"BodyHash":-813954290,"Content":"void main(String[] args) {        SpringApplication.run(SpringDataCassandraApplication.class, args);    "},{"Name":"sessionBuilderCustomizer","ReturnType":"CqlSessionBuilderCustomizer","Parameters":[{"TypeValue":"astraProperties","TypeType":"DataStaxAstraProperties"}],"FunctionCalls":[{"Package":"com.datastax.examples","Type":"SAME_PACKAGE","NodeName":"DataStaxAstraProperties","FunctionName":"getSecureConnectBundle","Position":{"StartLine":20,"StartLinePosition":38,"StopLine":20,"StopLinePosition":61}},{"Package":"com.datastax.examples","NodeName":"DataStaxAstraProperties","FunctionName":"toPath","Position":{"StartLine":20,"StartLinePosition":63,"StopLine":20,"StopLinePosition":70}},{"Package":"com.datastax.examples","NodeName":"builder","FunctionName":"withCloudSecureConnectBundle","Parameters":[{"TypeValue":"bundle","TypeType":""}],"Position":{"StartLine":21,"StartLinePosition":34,"StopLine":21,"StopLinePosition":69}}],"Annotations":[{"Name":"Bean","Position":{"StartLine":18,"StartLinePosition":4,"StopLine":18,"StopLinePosition":5}}],"Position":{"StartLine":19,"StartLinePosition":11,"StopLine":22,"StopLinePosition":4},"LocalVariables":[{"TypeValue":"args","TypeType":"String[]"},{"TypeValue":"astraProperties","TypeType":"DataStaxAstraProperties"},{"TypeValue":"bundle","TypeType":"Path"}],"BodyHash":-133287515,"Content":"CqlSessionBuilderCustomizer sessionBuilderCustomizer(DataStaxAstraProperties astraProperties) {        Path bundle = astraProperties.getSecureConnectBundle().toPath();        return builder -> builder.withCloudSecureConnectBundle(bundle);    "}],"Annotations":[{"Name":"SpringBootApplication","Position":{"StartLine":10,"StopLine":10,"StopLinePosition":1}},{"Name":"EnableConfigurationProperties","KeyValues":[{"Key":"DataStaxAstraProperties.class","Value":"DataStaxAstraProperties.class"}],"Position":{"StartLine":11,"StopLine":11,"StopLinePosition":60}}],"Imports":[{"Source":"java.nio.file.Path"},{"Source":"org.springframework.boot.SpringApplication"},{"Source":"org.springframework.boot.autoconfigure.SpringBootApplication"},{"Source":"org.springframework.boot.autoconfigure.cassandra.CqlSessionBuilderCustomizer"},{"Source":"org.springframework.boot.context.properties.EnableConfigurationProperties"},{"Source":"org.springframework.context.annotation.Bean"}],"Position":{"StartLine":12,"StartLinePosition":7,"StopLine":23},"Content":"class SpringDataCassandraApplication {    public static void main(String[] args) {        SpringApplication.run(SpringDataCassandraApplication.class, args);    }    @Bean    public CqlSessionBuilderCustomizer sessionBuilderCustomizer(DataStaxAstraProperties astraProperties) {        Path bundle = astraProperties.getSecureConnectBundle().toPath();        return builder -> builder.withCloudSecureConnectBundle(bundle);    }"},{"NodeName":"DataStaxAstraProperties","Module":"root","Type":"CLASS","Package":"com.datastax.examples","FilePath":"src/main/java/com/datastax/examples/DataStaxAstraProperties.java","Fields":[{"TypeType":"File","TypeKey":"secureConnectBundle"}],"Annotations":[{"Name":"ConfigurationProperties","KeyValues":[{"Key":"prefix","Value":"\"datastax.astra\""}],"Position":{"StartLine":8,"StopLine":8,"StopLinePosition":50}},{"Name":"Getter","Position":{"StartLine":9,"StopLine":9,"StopLinePosition":1}},{"Name":"Setter","Position":{"StartLine":10,"StopLine":10,"StopLinePosition":1}}],"FunctionCalls":[{"Package":"java.io","Type":"FIELD","NodeName":"File","Position":{"StartLine":13,"StartLinePosition":12,"StopLine":13,"StopLinePosition":36}}],"Imports":[{"Source":"java.io.File"},{"Source":"lombok.Getter"},{"Source":"lombok.Setter"},{"Source":"org.springframework.boot.context.properties.ConfigurationProperties"}],"Position":{"StartLine":11,"StartLinePosition":7,"StopLine":14},"Content":"class DataStaxAstraProperties {    private File secureConnectBundle;"}]
+[
+    {
+        "NodeName": "Order",
+        "Module": "root",
+        "Type": "CLASS",
+        "Package": "com.datastax.examples.order",
+        "FilePath": "src/main/java/com/datastax/examples/order/Order.java",
+        "Fields": [
+            {
+                "TypeType": "OrderPrimaryKey",
+                "TypeKey": "key",
+                "Annotations": [
+                    {
+                        "Name": "PrimaryKey",
+                        "Position": {
+                            "StartLine": 13,
+                            "StartLinePosition": 4,
+                            "StopLine": 13,
+                            "StopLinePosition": 5
+                        }
+                    }
+                ]
+            },
+            {
+                "TypeType": "Integer",
+                "TypeKey": "productQuantity",
+                "Annotations": [
+                    {
+                        "Name": "Column",
+                        "KeyValues": [
+                            {
+                                "Key": "\"product_quantity\"",
+                                "Value": "\"product_quantity\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 16,
+                            "StartLinePosition": 4,
+                            "StopLine": 16,
+                            "StopLinePosition": 30
+                        }
+                    },
+                    {
+                        "Name": "CassandraType",
+                        "KeyValues": [
+                            {
+                                "Key": "type",
+                                "Value": "CassandraType.Name.INT"
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 17,
+                            "StartLinePosition": 4,
+                            "StopLine": 17,
+                            "StopLinePosition": 48
+                        }
+                    }
+                ]
+            },
+            {
+                "TypeType": "String",
+                "TypeKey": "productName",
+                "Annotations": [
+                    {
+                        "Name": "Column",
+                        "KeyValues": [
+                            {
+                                "Key": "\"product_name\"",
+                                "Value": "\"product_name\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 20,
+                            "StartLinePosition": 4,
+                            "StopLine": 20,
+                            "StopLinePosition": 26
+                        }
+                    },
+                    {
+                        "Name": "CassandraType",
+                        "KeyValues": [
+                            {
+                                "Key": "type",
+                                "Value": "CassandraType.Name.TEXT"
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 21,
+                            "StartLinePosition": 4,
+                            "StopLine": 21,
+                            "StopLinePosition": 49
+                        }
+                    }
+                ]
+            },
+            {
+                "TypeType": "Float",
+                "TypeKey": "productPrice",
+                "Annotations": [
+                    {
+                        "Name": "CassandraType",
+                        "KeyValues": [
+                            {
+                                "Key": "type",
+                                "Value": "CassandraType.Name.DECIMAL"
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 24,
+                            "StartLinePosition": 4,
+                            "StopLine": 24,
+                            "StopLinePosition": 52
+                        }
+                    },
+                    {
+                        "Name": "Column",
+                        "KeyValues": [
+                            {
+                                "Key": "\"product_price\"",
+                                "Value": "\"product_price\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 25,
+                            "StartLinePosition": 4,
+                            "StopLine": 25,
+                            "StopLinePosition": 27
+                        }
+                    }
+                ]
+            },
+            {
+                "TypeType": "Instant",
+                "TypeKey": "addedToOrderTimestamp",
+                "Annotations": [
+                    {
+                        "Name": "CassandraType",
+                        "KeyValues": [
+                            {
+                                "Key": "type",
+                                "Value": "CassandraType.Name.TIMESTAMP"
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 28,
+                            "StartLinePosition": 4,
+                            "StopLine": 28,
+                            "StopLinePosition": 54
+                        }
+                    },
+                    {
+                        "Name": "Column",
+                        "KeyValues": [
+                            {
+                                "Key": "\"added_to_order_at\"",
+                                "Value": "\"added_to_order_at\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 29,
+                            "StartLinePosition": 4,
+                            "StopLine": 29,
+                            "StopLinePosition": 31
+                        }
+                    }
+                ]
+            }
+        ],
+        "Implements": [
+            "java.io.Serializable"
+        ],
+        "Annotations": [
+            {
+                "Name": "Table",
+                "KeyValues": [
+                    {
+                        "Key": "value",
+                        "Value": "\"starter_orders\""
+                    }
+                ],
+                "Position": {
+                    "StartLine": 9,
+                    "StopLine": 9,
+                    "StopLinePosition": 31
+                }
+            },
+            {
+                "Name": "Data",
+                "Position": {
+                    "StartLine": 10,
+                    "StopLine": 10,
+                    "StopLinePosition": 1
+                }
+            }
+        ],
+        "FunctionCalls": [
+            {
+                "Package": "com.datastax.examples.order",
+                "Type": "FIELD",
+                "NodeName": "OrderPrimaryKey",
+                "Position": {
+                    "StartLine": 14,
+                    "StartLinePosition": 12,
+                    "StopLine": 14,
+                    "StopLinePosition": 31
+                }
+            },
+            {
+                "Package": "java.time",
+                "Type": "FIELD",
+                "NodeName": "Instant",
+                "Position": {
+                    "StartLine": 30,
+                    "StartLinePosition": 12,
+                    "StopLine": 30,
+                    "StopLinePosition": 41
+                }
+            }
+        ],
+        "Imports": [
+            {
+                "Source": "lombok.Data"
+            },
+            {
+                "Source": "org.springframework.data.cassandra.core.mapping"
+            },
+            {
+                "Source": "java.io.Serializable"
+            },
+            {
+                "Source": "java.time.Instant"
+            }
+        ],
+        "Position": {
+            "StartLine": 11,
+            "StartLinePosition": 7,
+            "StopLine": 32
+        },
+        "Content": "class Order implements Serializable {    @PrimaryKey    private OrderPrimaryKey key;    @Column(\"product_quantity\")    @CassandraType(type = CassandraType.Name.INT)    private Integer productQuantity;    @Column(\"product_name\")    @CassandraType(type = CassandraType.Name.TEXT)    private String productName;    @CassandraType(type = CassandraType.Name.DECIMAL)    @Column(\"product_price\")    private Float productPrice;    @CassandraType(type = CassandraType.Name.TIMESTAMP)    @Column(\"added_to_order_at\")    private Instant addedToOrderTimestamp;"
+    },
+    {
+        "NodeName": "OrderRepository",
+        "Module": "root",
+        "Type": "INTERFACE",
+        "Package": "com.datastax.examples.order",
+        "FilePath": "src/main/java/com/datastax/examples/order/OrderRepository.java",
+        "Extend": "CassandraRepository<Order,OrderPrimaryKey>",
+        "Functions": [
+            {
+                "Name": "deleteByKeyOrderId",
+                "ReturnType": "void",
+                "Position": {
+                    "StartLine": 16,
+                    "StartLinePosition": 2,
+                    "StopLine": 16,
+                    "StopLinePosition": 39
+                },
+                "Content": "void deleteByKeyOrderId(UUID orderId);"
+            },
+            {
+                "Name": "deleteByKeyOrderIdAndKeyProductId",
+                "ReturnType": "void",
+                "Position": {
+                    "StartLine": 18,
+                    "StartLinePosition": 2,
+                    "StopLine": 18,
+                    "StopLinePosition": 70
+                },
+                "Content": "void deleteByKeyOrderIdAndKeyProductId(UUID orderId, UUID productId);"
+            },
+            {
+                "Name": "findByKeyOrderIdAndKeyProductId",
+                "ReturnType": "ProductNameAndPrice",
+                "Position": {
+                    "StartLine": 22,
+                    "StartLinePosition": 2,
+                    "StopLine": 22,
+                    "StopLinePosition": 83
+                },
+                "Content": "ProductNameAndPrice findByKeyOrderIdAndKeyProductId(UUID orderId, UUID productId);"
+            },
+            {
+                "Name": "findByKeyOrderId",
+                "ReturnType": "List<ProductNameAndPrice>",
+                "Position": {
+                    "StartLine": 24,
+                    "StartLinePosition": 2,
+                    "StopLine": 24,
+                    "StopLinePosition": 58
+                },
+                "Content": "List<ProductNameAndPrice> findByKeyOrderId(UUID orderId);"
+            },
+            {
+                "Name": "findAllProjectedBy",
+                "ReturnType": "List<ProductNameAndPrice>",
+                "Position": {
+                    "StartLine": 26,
+                    "StartLinePosition": 2,
+                    "StopLine": 26,
+                    "StopLinePosition": 48
+                },
+                "Content": "List<ProductNameAndPrice> findAllProjectedBy();"
+            }
+        ],
+        "Annotations": [
+            {
+                "Name": "Repository",
+                "Position": {
+                    "StartLine": 10,
+                    "StopLine": 10,
+                    "StopLinePosition": 1
+                }
+            },
+            {
+                "Name": "RestResource",
+                "KeyValues": [
+                    {
+                        "Key": "exported",
+                        "Value": "false"
+                    }
+                ],
+                "Position": {
+                    "StartLine": 11,
+                    "StopLine": 11,
+                    "StopLinePosition": 30
+                }
+            }
+        ],
+        "Imports": [
+            {
+                "Source": "org.springframework.data.cassandra.repository.CassandraRepository"
+            },
+            {
+                "Source": "org.springframework.data.rest.core.annotation.RestResource"
+            },
+            {
+                "Source": "org.springframework.stereotype.Repository"
+            },
+            {
+                "Source": "java.util.List"
+            },
+            {
+                "Source": "java.util.UUID"
+            }
+        ],
+        "Content": "package com.datastax.examples.order;"
+    },
+    {
+        "NodeName": "OrderController",
+        "Module": "root",
+        "Type": "CLASS",
+        "Package": "com.datastax.examples.order",
+        "FilePath": "src/main/java/com/datastax/examples/order/OrderController.java",
+        "Fields": [
+            {
+                "TypeType": "OrderRepository",
+                "TypeKey": "orderRepository",
+                "Annotations": [
+                    {
+                        "Name": "Autowired",
+                        "Position": {
+                            "StartLine": 14,
+                            "StartLinePosition": 4,
+                            "StopLine": 14,
+                            "StopLinePosition": 5
+                        }
+                    }
+                ]
+            }
+        ],
+        "Functions": [
+            {
+                "Name": "root",
+                "ReturnType": "ModelAndView",
+                "Annotations": [
+                    {
+                        "Name": "RequestMapping",
+                        "KeyValues": [
+                            {
+                                "Key": "value",
+                                "Value": "\"/\""
+                            },
+                            {
+                                "Key": "method",
+                                "Value": "RequestMethod.GET"
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 17,
+                            "StartLinePosition": 4,
+                            "StopLine": 17,
+                            "StopLinePosition": 59
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 18,
+                    "StartLinePosition": 11,
+                    "StopLine": 20,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ModelAndView"
+                    }
+                ],
+                "BodyHash": 763749358,
+                "Content": "ModelAndView root() {        return new ModelAndView(\"redirect:/swagger-ui/\");    "
+            },
+            {
+                "Name": "createOrder",
+                "ReturnType": "Order",
+                "Parameters": [
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    }
+                ],
+                "FunctionCalls": [
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "OrderRepository",
+                        "FunctionName": "save",
+                        "Parameters": [
+                            {
+                                "TypeValue": "order",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 26,
+                            "StartLinePosition": 31,
+                            "StopLine": 26,
+                            "StopLinePosition": 41
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "PostMapping",
+                        "KeyValues": [
+                            {
+                                "Key": "\"orders\"",
+                                "Value": "\"orders\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 24,
+                            "StartLinePosition": 4,
+                            "StopLine": 24,
+                            "StopLinePosition": 25
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 25,
+                    "StartLinePosition": 11,
+                    "StopLine": 27,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ModelAndView"
+                    },
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    }
+                ],
+                "BodyHash": -1890715897,
+                "Content": "Order createOrder(@RequestBody Order order) {        return orderRepository.save(order);    "
+            },
+            {
+                "Name": "updateOrder",
+                "ReturnType": "Order",
+                "Parameters": [
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    }
+                ],
+                "FunctionCalls": [
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "Order",
+                        "FunctionName": "getKey",
+                        "Position": {
+                            "StartLine": 33,
+                            "StartLinePosition": 14,
+                            "StopLine": 33,
+                            "StopLinePosition": 21
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "NodeName": "Order",
+                        "FunctionName": "setOrderId",
+                        "Parameters": [
+                            {
+                                "TypeValue": "oid",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 33,
+                            "StartLinePosition": 23,
+                            "StopLine": 33,
+                            "StopLinePosition": 37
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "Order",
+                        "FunctionName": "getKey",
+                        "Position": {
+                            "StartLine": 34,
+                            "StartLinePosition": 14,
+                            "StopLine": 34,
+                            "StopLinePosition": 21
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "NodeName": "Order",
+                        "FunctionName": "setProductId",
+                        "Parameters": [
+                            {
+                                "TypeValue": "pid",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 34,
+                            "StartLinePosition": 23,
+                            "StopLine": 34,
+                            "StopLinePosition": 39
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "OrderRepository",
+                        "FunctionName": "save",
+                        "Parameters": [
+                            {
+                                "TypeValue": "order",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 35,
+                            "StartLinePosition": 31,
+                            "StopLine": 35,
+                            "StopLinePosition": 41
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "PutMapping",
+                        "KeyValues": [
+                            {
+                                "Key": "\"orders/{oid}/{pid}\"",
+                                "Value": "\"orders/{oid}/{pid}\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 31,
+                            "StartLinePosition": 4,
+                            "StopLine": 31,
+                            "StopLinePosition": 36
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 32,
+                    "StartLinePosition": 11,
+                    "StopLine": 36,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ModelAndView"
+                    },
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    },
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "BodyHash": -1214406587,
+                "Content": "Order updateOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid, @RequestBody Order order) {        order.getKey().setOrderId(oid);        order.getKey().setProductId(pid);        return orderRepository.save(order);    "
+            },
+            {
+                "Name": "deleteOrder",
+                "ReturnType": "void",
+                "Parameters": [
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "FunctionCalls": [
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "OrderRepository",
+                        "FunctionName": "deleteByKeyOrderIdAndKeyProductId",
+                        "Parameters": [
+                            {
+                                "TypeValue": "oid",
+                                "TypeType": ""
+                            },
+                            {
+                                "TypeValue": "pid",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 42,
+                            "StartLinePosition": 24,
+                            "StopLine": 42,
+                            "StopLinePosition": 66
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "DeleteMapping",
+                        "KeyValues": [
+                            {
+                                "Key": "\"orders/{oid}/{pid}\"",
+                                "Value": "\"orders/{oid}/{pid}\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 40,
+                            "StartLinePosition": 4,
+                            "StopLine": 40,
+                            "StopLinePosition": 39
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 41,
+                    "StartLinePosition": 11,
+                    "StopLine": 43,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ModelAndView"
+                    },
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    },
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "BodyHash": 1723205541,
+                "Content": "void deleteOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid) {        orderRepository.deleteByKeyOrderIdAndKeyProductId(oid, pid);    "
+            },
+            {
+                "Name": "deleteOrders",
+                "ReturnType": "void",
+                "Parameters": [
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "FunctionCalls": [
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "OrderRepository",
+                        "FunctionName": "deleteByKeyOrderId",
+                        "Parameters": [
+                            {
+                                "TypeValue": "oid",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 47,
+                            "StartLinePosition": 24,
+                            "StopLine": 47,
+                            "StopLinePosition": 46
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "DeleteMapping",
+                        "KeyValues": [
+                            {
+                                "Key": "\"orders/{oid}\"",
+                                "Value": "\"orders/{oid}\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 45,
+                            "StartLinePosition": 4,
+                            "StopLine": 45,
+                            "StopLinePosition": 33
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 46,
+                    "StartLinePosition": 11,
+                    "StopLine": 48,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ModelAndView"
+                    },
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    },
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "BodyHash": -1577650644,
+                "Content": "void deleteOrders(@PathVariable(\"oid\") UUID oid) {        orderRepository.deleteByKeyOrderId(oid);    "
+            },
+            {
+                "Name": "findOrder",
+                "ReturnType": "ProductNameAndPrice",
+                "Parameters": [
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "FunctionCalls": [
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "OrderRepository",
+                        "FunctionName": "findByKeyOrderIdAndKeyProductId",
+                        "Parameters": [
+                            {
+                                "TypeValue": "oid",
+                                "TypeType": ""
+                            },
+                            {
+                                "TypeValue": "pid",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 54,
+                            "StartLinePosition": 31,
+                            "StopLine": 54,
+                            "StopLinePosition": 71
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "GetMapping",
+                        "KeyValues": [
+                            {
+                                "Key": "\"orders/{oid}/{pid}\"",
+                                "Value": "\"orders/{oid}/{pid}\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 52,
+                            "StartLinePosition": 4,
+                            "StopLine": 52,
+                            "StopLinePosition": 36
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 53,
+                    "StartLinePosition": 11,
+                    "StopLine": 55,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ModelAndView"
+                    },
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    },
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "BodyHash": -484463005,
+                "Content": "ProductNameAndPrice findOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid) {        return orderRepository.findByKeyOrderIdAndKeyProductId(oid, pid);    "
+            },
+            {
+                "Name": "findOrders",
+                "ReturnType": "List<ProductNameAndPrice>",
+                "Parameters": [
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "FunctionCalls": [
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "OrderRepository",
+                        "FunctionName": "findByKeyOrderId",
+                        "Parameters": [
+                            {
+                                "TypeValue": "oid",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 59,
+                            "StartLinePosition": 31,
+                            "StopLine": 59,
+                            "StopLinePosition": 51
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "GetMapping",
+                        "KeyValues": [
+                            {
+                                "Key": "\"orders/{oid}\"",
+                                "Value": "\"orders/{oid}\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 57,
+                            "StartLinePosition": 4,
+                            "StopLine": 57,
+                            "StopLinePosition": 30
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 58,
+                    "StartLinePosition": 11,
+                    "StopLine": 60,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ModelAndView"
+                    },
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    },
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "BodyHash": -1301332946,
+                "Content": "List<ProductNameAndPrice> findOrders(@PathVariable(\"oid\") UUID oid) {        return orderRepository.findByKeyOrderId(oid);    "
+            },
+            {
+                "Name": "findAll",
+                "ReturnType": "List<ProductNameAndPrice>",
+                "FunctionCalls": [
+                    {
+                        "Package": "com.datastax.examples.order",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "OrderRepository",
+                        "FunctionName": "findAllProjectedBy",
+                        "Position": {
+                            "StartLine": 64,
+                            "StartLinePosition": 31,
+                            "StopLine": 64,
+                            "StopLinePosition": 50
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "GetMapping",
+                        "KeyValues": [
+                            {
+                                "Key": "\"orders\"",
+                                "Value": "\"orders\""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 62,
+                            "StartLinePosition": 4,
+                            "StopLine": 62,
+                            "StopLinePosition": 24
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 63,
+                    "StartLinePosition": 11,
+                    "StopLine": 65,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ModelAndView"
+                    },
+                    {
+                        "TypeValue": "order",
+                        "TypeType": "Order"
+                    },
+                    {
+                        "TypeValue": "oid",
+                        "TypeType": "UUID"
+                    },
+                    {
+                        "TypeValue": "pid",
+                        "TypeType": "UUID"
+                    }
+                ],
+                "BodyHash": -478609109,
+                "Content": "List<ProductNameAndPrice> findAll() {        return orderRepository.findAllProjectedBy();    "
+            }
+        ],
+        "Annotations": [
+            {
+                "Name": "RestController",
+                "Position": {
+                    "StartLine": 11,
+                    "StopLine": 11,
+                    "StopLinePosition": 1
+                }
+            }
+        ],
+        "FunctionCalls": [
+            {
+                "Package": "com.datastax.examples.order",
+                "Type": "FIELD",
+                "NodeName": "OrderRepository",
+                "Position": {
+                    "StartLine": 15,
+                    "StartLinePosition": 12,
+                    "StopLine": 15,
+                    "StopLinePosition": 43
+                }
+            }
+        ],
+        "Imports": [
+            {
+                "Source": "org.springframework.beans.factory.annotation.Autowired"
+            },
+            {
+                "Source": "org.springframework.data.rest.webmvc.BasePathAwareController"
+            },
+            {
+                "Source": "org.springframework.web.bind.annotation"
+            },
+            {
+                "Source": "org.springframework.web.servlet.ModelAndView"
+            },
+            {
+                "Source": "java.util.List"
+            },
+            {
+                "Source": "java.util.UUID"
+            }
+        ],
+        "Position": {
+            "StartLine": 12,
+            "StartLinePosition": 7,
+            "StopLine": 67
+        },
+        "Content": "class OrderController {    @Autowired    private OrderRepository orderRepository;    @RequestMapping(value = \"/\", method = RequestMethod.GET)    public ModelAndView root() {        return new ModelAndView(\"redirect:/swagger-ui/\");    }    // CREATE    @PostMapping(\"orders\")    public Order createOrder(@RequestBody Order order) {        return orderRepository.save(order);    }    // UPDATE    @PutMapping(\"orders/{oid}/{pid}\")    public Order updateOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid, @RequestBody Order order) {        order.getKey().setOrderId(oid);        order.getKey().setProductId(pid);        return orderRepository.save(order);    }    // DELETE    @DeleteMapping(\"orders/{oid}/{pid}\")    public void deleteOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid) {        orderRepository.deleteByKeyOrderIdAndKeyProductId(oid, pid);    }    @DeleteMapping(\"orders/{oid}\")    public void deleteOrders(@PathVariable(\"oid\") UUID oid) {        orderRepository.deleteByKeyOrderId(oid);    }    // FIND    @GetMapping(\"orders/{oid}/{pid}\")    public ProductNameAndPrice findOrder(@PathVariable(\"oid\") UUID oid, @PathVariable(\"pid\") UUID pid) {        return orderRepository.findByKeyOrderIdAndKeyProductId(oid, pid);    }    @GetMapping(\"orders/{oid}\")    public List<ProductNameAndPrice> findOrders(@PathVariable(\"oid\") UUID oid) {        return orderRepository.findByKeyOrderId(oid);    }    @GetMapping(\"orders\")    public List<ProductNameAndPrice> findAll() {        return orderRepository.findAllProjectedBy();    }"
+    },
+    {
+        "NodeName": "OrderPrimaryKey",
+        "Module": "root",
+        "Type": "CLASS",
+        "Package": "com.datastax.examples.order",
+        "FilePath": "src/main/java/com/datastax/examples/order/OrderPrimaryKey.java",
+        "Fields": [
+            {
+                "TypeType": "UUID",
+                "TypeKey": "orderId",
+                "Annotations": [
+                    {
+                        "Name": "PrimaryKeyColumn",
+                        "KeyValues": [
+                            {
+                                "Key": "name",
+                                "Value": "\"order_id\""
+                            },
+                            {
+                                "Key": "ordinal",
+                                "Value": "0"
+                            },
+                            {
+                                "Key": "type",
+                                "Value": "PrimaryKeyType.PARTITIONED"
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 15,
+                            "StartLinePosition": 4,
+                            "StopLine": 15,
+                            "StopLinePosition": 87
+                        }
+                    }
+                ]
+            },
+            {
+                "TypeType": "UUID",
+                "TypeKey": "productId",
+                "Annotations": [
+                    {
+                        "Name": "PrimaryKeyColumn",
+                        "KeyValues": [
+                            {
+                                "Key": "name",
+                                "Value": "\"product_id\""
+                            },
+                            {
+                                "Key": "ordinal",
+                                "Value": "1"
+                            },
+                            {
+                                "Key": "type",
+                                "Value": "PrimaryKeyType.CLUSTERED"
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 18,
+                            "StartLinePosition": 4,
+                            "StopLine": 18,
+                            "StopLinePosition": 87
+                        }
+                    }
+                ]
+            }
+        ],
+        "Implements": [
+            "java.io.Serializable"
+        ],
+        "Annotations": [
+            {
+                "Name": "PrimaryKeyClass",
+                "Position": {
+                    "StartLine": 11,
+                    "StopLine": 11,
+                    "StopLinePosition": 1
+                }
+            },
+            {
+                "Name": "Data",
+                "Position": {
+                    "StartLine": 12,
+                    "StopLine": 12,
+                    "StopLinePosition": 1
+                }
+            }
+        ],
+        "FunctionCalls": [
+            {
+                "Package": "java.util",
+                "Type": "FIELD",
+                "NodeName": "UUID",
+                "Position": {
+                    "StartLine": 16,
+                    "StartLinePosition": 12,
+                    "StopLine": 16,
+                    "StopLinePosition": 24
+                }
+            },
+            {
+                "Package": "java.util",
+                "Type": "FIELD",
+                "NodeName": "UUID",
+                "Position": {
+                    "StartLine": 19,
+                    "StartLinePosition": 12,
+                    "StopLine": 19,
+                    "StopLinePosition": 26
+                }
+            }
+        ],
+        "Imports": [
+            {
+                "Source": "lombok.Data"
+            },
+            {
+                "Source": "org.springframework.data.cassandra.core.cql.PrimaryKeyType"
+            },
+            {
+                "Source": "org.springframework.data.cassandra.core.mapping.PrimaryKeyClass"
+            },
+            {
+                "Source": "org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn"
+            },
+            {
+                "Source": "java.io.Serializable"
+            },
+            {
+                "Source": "java.util.UUID"
+            }
+        ],
+        "Position": {
+            "StartLine": 13,
+            "StartLinePosition": 7,
+            "StopLine": 20
+        },
+        "Content": "class OrderPrimaryKey implements Serializable {    @PrimaryKeyColumn(name = \"order_id\", ordinal = 0, type = PrimaryKeyType.PARTITIONED)    private UUID orderId;    @PrimaryKeyColumn(name = \"product_id\", ordinal = 1, type = PrimaryKeyType.CLUSTERED)    private UUID productId;"
+    },
+    {
+        "NodeName": "ProductNameAndPrice",
+        "Module": "root",
+        "Type": "INTERFACE",
+        "Package": "com.datastax.examples.order",
+        "FilePath": "src/main/java/com/datastax/examples/order/ProductNameAndPrice.java",
+        "Functions": [
+            {
+                "Name": "getProductName",
+                "ReturnType": "String",
+                "Position": {
+                    "StartLine": 7,
+                    "StartLinePosition": 4,
+                    "StopLine": 7,
+                    "StopLinePosition": 27
+                },
+                "Content": "String getProductName();"
+            },
+            {
+                "Name": "getProductPrice",
+                "ReturnType": "Float",
+                "Position": {
+                    "StartLine": 8,
+                    "StartLinePosition": 4,
+                    "StopLine": 8,
+                    "StopLinePosition": 27
+                },
+                "Content": "Float getProductPrice();"
+            }
+        ],
+        "Annotations": [
+            {
+                "Name": "Projection",
+                "KeyValues": [
+                    {
+                        "Key": "name",
+                        "Value": "\"product-name-and-price\""
+                    },
+                    {
+                        "Key": "types",
+                        "Value": "{Order.class}"
+                    }
+                ],
+                "Position": {
+                    "StartLine": 5,
+                    "StopLine": 5,
+                    "StopLinePosition": 68
+                }
+            }
+        ],
+        "Imports": [
+            {
+                "Source": "org.springframework.data.rest.core.config.Projection"
+            }
+        ],
+        "Content": "package com.datastax.examples.order;"
+    },
+    {
+        "NodeName": "SwaggerConfig",
+        "Module": "root",
+        "Type": "CLASS",
+        "Package": "com.datastax.examples.swagger",
+        "FilePath": "src/main/java/com/datastax/examples/swagger/SwaggerConfig.java",
+        "Functions": [
+            {
+                "Name": "api",
+                "ReturnType": "Docket",
+                "FunctionCalls": [
+                    {
+                        "Package": "springfox.documentation.spring.web.plugins",
+                        "Type": "CHAIN",
+                        "NodeName": "Docket",
+                        "FunctionName": "groupName",
+                        "Parameters": [
+                            {
+                                "TypeValue": "\"orders\"",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 22,
+                            "StartLinePosition": 17,
+                            "StopLine": 22,
+                            "StopLinePosition": 35
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.swagger",
+                        "NodeName": "newDocket",
+                        "FunctionName": "select",
+                        "Position": {
+                            "StartLine": 23,
+                            "StartLinePosition": 17,
+                            "StopLine": 23,
+                            "StopLinePosition": 24
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.swagger",
+                        "NodeName": "newDocket",
+                        "FunctionName": "apis",
+                        "Parameters": [
+                            {
+                                "TypeValue": "RequestHandlerSelectors.any()",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 24,
+                            "StartLinePosition": 17,
+                            "StopLine": 24,
+                            "StopLinePosition": 51
+                        }
+                    },
+                    {
+                        "Package": "springfox.documentation.builders",
+                        "Type": "CHAIN",
+                        "NodeName": "RequestHandlerSelectors",
+                        "FunctionName": "any",
+                        "Position": {
+                            "StartLine": 24,
+                            "StartLinePosition": 46,
+                            "StopLine": 24,
+                            "StopLinePosition": 50
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.swagger",
+                        "NodeName": "newDocket",
+                        "FunctionName": "paths",
+                        "Parameters": [
+                            {
+                                "TypeValue": "PathSelectors.ant(\"/orders/**\")",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 25,
+                            "StartLinePosition": 17,
+                            "StopLine": 25,
+                            "StopLinePosition": 54
+                        }
+                    },
+                    {
+                        "Package": "springfox.documentation.builders",
+                        "Type": "CHAIN",
+                        "NodeName": "PathSelectors",
+                        "FunctionName": "ant",
+                        "Parameters": [
+                            {
+                                "TypeValue": "\"/orders/**\"",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 25,
+                            "StartLinePosition": 37,
+                            "StopLine": 25,
+                            "StopLinePosition": 53
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.swagger",
+                        "NodeName": "newDocket",
+                        "FunctionName": "build",
+                        "Position": {
+                            "StartLine": 26,
+                            "StartLinePosition": 17,
+                            "StopLine": 26,
+                            "StopLinePosition": 23
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.swagger",
+                        "NodeName": "newDocket",
+                        "FunctionName": "apiInfo",
+                        "Parameters": [
+                            {
+                                "TypeValue": "apiInfo()",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 27,
+                            "StartLinePosition": 17,
+                            "StopLine": 27,
+                            "StopLinePosition": 34
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples.swagger",
+                        "NodeName": "SwaggerConfig",
+                        "FunctionName": "apiInfo",
+                        "Position": {
+                            "StartLine": 27,
+                            "StartLinePosition": 25,
+                            "StopLine": 27,
+                            "StopLinePosition": 33
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "Bean",
+                        "Position": {
+                            "StartLine": 19,
+                            "StartLinePosition": 4,
+                            "StopLine": 19,
+                            "StopLinePosition": 5
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 20,
+                    "StartLinePosition": 11,
+                    "StopLine": 28,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "newDocket(DocumentationType.SWAGGER_2)",
+                        "TypeType": "Docket"
+                    }
+                ],
+                "BodyHash": -1202693242,
+                "Content": "Docket api() {        return new Docket(DocumentationType.SWAGGER_2)                .groupName(\"orders\")                .select()                .apis(RequestHandlerSelectors.any())                .paths(PathSelectors.ant(\"/orders/**\"))                .build()                .apiInfo(apiInfo());    "
+            },
+            {
+                "Name": "apiInfo",
+                "ReturnType": "ApiInfo",
+                "FunctionCalls": [
+                    {
+                        "Package": "java.util",
+                        "Type": "CHAIN",
+                        "NodeName": "Collections",
+                        "FunctionName": "emptyList",
+                        "Position": {
+                            "StartLine": 37,
+                            "StartLinePosition": 89,
+                            "StopLine": 37,
+                            "StopLinePosition": 99
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 30,
+                    "StartLinePosition": 12,
+                    "StopLine": 38,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "newDocket(DocumentationType.SWAGGER_2)",
+                        "TypeType": "Docket"
+                    },
+                    {
+                        "TypeValue": "return",
+                        "TypeType": "ApiInfo"
+                    },
+                    {
+                        "TypeValue": "\"Spring Data Cassandra REST API\"",
+                        "TypeType": "Contact"
+                    }
+                ],
+                "BodyHash": 1845857136,
+                "Content": "ApiInfo apiInfo() {        return new ApiInfo(                \"Spring Data Cassandra REST API\",                \"Sample REST API for Orders: powered by DataStax Astra\",                \"1.0.0\",                \"Terms of service\",                new Contact(\"DataStax Examples\", \"https://www.datastax.com/examples\", \"examples@datastax.com\"),                \"Apache v2.0\", \"http://www.apache.org/licenses/LICENSE-2.0\", Collections.emptyList());    "
+            }
+        ],
+        "Annotations": [
+            {
+                "Name": "Configuration",
+                "Position": {
+                    "StartLine": 16,
+                    "StopLine": 16,
+                    "StopLinePosition": 1
+                }
+            },
+            {
+                "Name": "EnableSwagger2",
+                "Position": {
+                    "StartLine": 17,
+                    "StopLine": 17,
+                    "StopLinePosition": 1
+                }
+            }
+        ],
+        "Imports": [
+            {
+                "Source": "org.springframework.context.annotation.Bean"
+            },
+            {
+                "Source": "org.springframework.context.annotation.Configuration"
+            },
+            {
+                "Source": "springfox.documentation.builders.PathSelectors"
+            },
+            {
+                "Source": "springfox.documentation.builders.RequestHandlerSelectors"
+            },
+            {
+                "Source": "springfox.documentation.service.ApiInfo"
+            },
+            {
+                "Source": "springfox.documentation.service.Contact"
+            },
+            {
+                "Source": "springfox.documentation.spi.DocumentationType"
+            },
+            {
+                "Source": "springfox.documentation.spring.web.plugins.Docket"
+            },
+            {
+                "Source": "springfox.documentation.swagger2.annotations.EnableSwagger2"
+            },
+            {
+                "Source": "java.util.Collections"
+            }
+        ],
+        "Position": {
+            "StartLine": 18,
+            "StartLinePosition": 7,
+            "StopLine": 40
+        },
+        "Content": "class SwaggerConfig {    @Bean    public Docket api() {        return new Docket(DocumentationType.SWAGGER_2)                .groupName(\"orders\")                .select()                .apis(RequestHandlerSelectors.any())                .paths(PathSelectors.ant(\"/orders/**\"))                .build()                .apiInfo(apiInfo());    }    private ApiInfo apiInfo() {        return new ApiInfo(                \"Spring Data Cassandra REST API\",                \"Sample REST API for Orders: powered by DataStax Astra\",                \"1.0.0\",                \"Terms of service\",                new Contact(\"DataStax Examples\", \"https://www.datastax.com/examples\", \"examples@datastax.com\"),                \"Apache v2.0\", \"http://www.apache.org/licenses/LICENSE-2.0\", Collections.emptyList());    }"
+    },
+    {
+        "NodeName": "SpringDataCassandraApplication",
+        "Module": "root",
+        "Type": "CLASS",
+        "Package": "com.datastax.examples",
+        "FilePath": "src/main/java/com/datastax/examples/SpringDataCassandraApplication.java",
+        "Functions": [
+            {
+                "Name": "main",
+                "ReturnType": "void",
+                "Parameters": [
+                    {
+                        "TypeValue": "args",
+                        "TypeType": "String[]"
+                    }
+                ],
+                "FunctionCalls": [
+                    {
+                        "Package": "org.springframework.boot",
+                        "Type": "CHAIN",
+                        "NodeName": "SpringApplication",
+                        "FunctionName": "run",
+                        "Parameters": [
+                            {
+                                "TypeValue": "SpringDataCassandraApplication.class",
+                                "TypeType": ""
+                            },
+                            {
+                                "TypeValue": "args",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 15,
+                            "StartLinePosition": 26,
+                            "StopLine": 15,
+                            "StopLinePosition": 72
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 14,
+                    "StartLinePosition": 18,
+                    "StopLine": 16,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "args",
+                        "TypeType": "String[]"
+                    }
+                ],
+                "BodyHash": -813954290,
+                "Content": "void main(String[] args) {        SpringApplication.run(SpringDataCassandraApplication.class, args);    "
+            },
+            {
+                "Name": "sessionBuilderCustomizer",
+                "ReturnType": "CqlSessionBuilderCustomizer",
+                "Parameters": [
+                    {
+                        "TypeValue": "astraProperties",
+                        "TypeType": "DataStaxAstraProperties"
+                    }
+                ],
+                "FunctionCalls": [
+                    {
+                        "Package": "com.datastax.examples",
+                        "Type": "SAME_PACKAGE",
+                        "NodeName": "DataStaxAstraProperties",
+                        "FunctionName": "getSecureConnectBundle",
+                        "Position": {
+                            "StartLine": 20,
+                            "StartLinePosition": 38,
+                            "StopLine": 20,
+                            "StopLinePosition": 61
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples",
+                        "NodeName": "DataStaxAstraProperties",
+                        "FunctionName": "toPath",
+                        "Position": {
+                            "StartLine": 20,
+                            "StartLinePosition": 63,
+                            "StopLine": 20,
+                            "StopLinePosition": 70
+                        }
+                    },
+                    {
+                        "Package": "com.datastax.examples",
+                        "NodeName": "builder",
+                        "FunctionName": "withCloudSecureConnectBundle",
+                        "Parameters": [
+                            {
+                                "TypeValue": "bundle",
+                                "TypeType": ""
+                            }
+                        ],
+                        "Position": {
+                            "StartLine": 21,
+                            "StartLinePosition": 34,
+                            "StopLine": 21,
+                            "StopLinePosition": 69
+                        }
+                    }
+                ],
+                "Annotations": [
+                    {
+                        "Name": "Bean",
+                        "Position": {
+                            "StartLine": 18,
+                            "StartLinePosition": 4,
+                            "StopLine": 18,
+                            "StopLinePosition": 5
+                        }
+                    }
+                ],
+                "Position": {
+                    "StartLine": 19,
+                    "StartLinePosition": 11,
+                    "StopLine": 22,
+                    "StopLinePosition": 4
+                },
+                "LocalVariables": [
+                    {
+                        "TypeValue": "args",
+                        "TypeType": "String[]"
+                    },
+                    {
+                        "TypeValue": "astraProperties",
+                        "TypeType": "DataStaxAstraProperties"
+                    },
+                    {
+                        "TypeValue": "bundle",
+                        "TypeType": "Path"
+                    }
+                ],
+                "BodyHash": -133287515,
+                "Content": "CqlSessionBuilderCustomizer sessionBuilderCustomizer(DataStaxAstraProperties astraProperties) {        Path bundle = astraProperties.getSecureConnectBundle().toPath();        return builder -> builder.withCloudSecureConnectBundle(bundle);    "
+            }
+        ],
+        "Annotations": [
+            {
+                "Name": "SpringBootApplication",
+                "Position": {
+                    "StartLine": 10,
+                    "StopLine": 10,
+                    "StopLinePosition": 1
+                }
+            },
+            {
+                "Name": "EnableConfigurationProperties",
+                "KeyValues": [
+                    {
+                        "Key": "DataStaxAstraProperties.class",
+                        "Value": "DataStaxAstraProperties.class"
+                    }
+                ],
+                "Position": {
+                    "StartLine": 11,
+                    "StopLine": 11,
+                    "StopLinePosition": 60
+                }
+            }
+        ],
+        "Imports": [
+            {
+                "Source": "java.nio.file.Path"
+            },
+            {
+                "Source": "org.springframework.boot.SpringApplication"
+            },
+            {
+                "Source": "org.springframework.boot.autoconfigure.SpringBootApplication"
+            },
+            {
+                "Source": "org.springframework.boot.autoconfigure.cassandra.CqlSessionBuilderCustomizer"
+            },
+            {
+                "Source": "org.springframework.boot.context.properties.EnableConfigurationProperties"
+            },
+            {
+                "Source": "org.springframework.context.annotation.Bean"
+            }
+        ],
+        "Position": {
+            "StartLine": 12,
+            "StartLinePosition": 7,
+            "StopLine": 23
+        },
+        "Content": "class SpringDataCassandraApplication {    public static void main(String[] args) {        SpringApplication.run(SpringDataCassandraApplication.class, args);    }    @Bean    public CqlSessionBuilderCustomizer sessionBuilderCustomizer(DataStaxAstraProperties astraProperties) {        Path bundle = astraProperties.getSecureConnectBundle().toPath();        return builder -> builder.withCloudSecureConnectBundle(bundle);    }"
+    },
+    {
+        "NodeName": "DataStaxAstraProperties",
+        "Module": "root",
+        "Type": "CLASS",
+        "Package": "com.datastax.examples",
+        "FilePath": "src/main/java/com/datastax/examples/DataStaxAstraProperties.java",
+        "Fields": [
+            {
+                "TypeType": "File",
+                "TypeKey": "secureConnectBundle"
+            }
+        ],
+        "Annotations": [
+            {
+                "Name": "ConfigurationProperties",
+                "KeyValues": [
+                    {
+                        "Key": "prefix",
+                        "Value": "\"datastax.astra\""
+                    }
+                ],
+                "Position": {
+                    "StartLine": 8,
+                    "StopLine": 8,
+                    "StopLinePosition": 50
+                }
+            },
+            {
+                "Name": "Getter",
+                "Position": {
+                    "StartLine": 9,
+                    "StopLine": 9,
+                    "StopLinePosition": 1
+                }
+            },
+            {
+                "Name": "Setter",
+                "Position": {
+                    "StartLine": 10,
+                    "StopLine": 10,
+                    "StopLinePosition": 1
+                }
+            }
+        ],
+        "FunctionCalls": [
+            {
+                "Package": "java.io",
+                "Type": "FIELD",
+                "NodeName": "File",
+                "Position": {
+                    "StartLine": 13,
+                    "StartLinePosition": 12,
+                    "StopLine": 13,
+                    "StopLinePosition": 36
+                }
+            }
+        ],
+        "Imports": [
+            {
+                "Source": "java.io.File"
+            },
+            {
+                "Source": "lombok.Getter"
+            },
+            {
+                "Source": "lombok.Setter"
+            },
+            {
+                "Source": "org.springframework.boot.context.properties.ConfigurationProperties"
+            }
+        ],
+        "Position": {
+            "StartLine": 11,
+            "StartLinePosition": 7,
+            "StopLine": 14
+        },
+        "Content": "class DataStaxAstraProperties {    private File secureConnectBundle;"
+    }
+]
