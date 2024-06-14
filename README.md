@@ -189,9 +189,9 @@ This class represents the primary key for an Order entity, containing UUID field
 
 ### Status: Alpha
 ### Blockers before user adoption:
-1. Performance issue with per class summary
+1. Performance issue with per class summary [Dspy based pipelines in progress with finetuned data]
 2. Multi agent workflow not exiting due to potential enhancements needed in our crewai implementation.
-3. Moving to cli from tui.
+3. Moving to cli from tui. [DONE]
 
 ## Tech Stack 
 
@@ -203,12 +203,7 @@ This class represents the primary key for an Order entity, containing UUID field
 6. [loguru](https://loguru.readthedocs.io/en/stable/api/logger.html)
 7. [PyTest](https://pytest.org/)
 8. [Pydantic](https://www.pydantic.dev)
-
-## Techniques Used
-1. Markdown Spec based Filler prompt for extreme precision
-2. Chain of Thought
-3. Self Reflection for Autocorrection
-4. Collaboration among crewi agents with long/short term memory with precise roles
+9. DSPY
 
 
 ## Credits/heroes/supporters
