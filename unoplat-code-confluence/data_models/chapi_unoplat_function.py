@@ -5,7 +5,6 @@ from data_models.chapi_unoplat_functioncall import FunctionCall
 from data_models.unoplat_function_field_model import UnoplatFunctionFieldModel
 from .chapi_unoplat_annotation import Annotation
 from .chapi_unoplat_position import Position
-from .chapi_unoplat_class_fieldmodel import FieldModel
 
 class Function(BaseModel):
     name: Optional[str] = Field(default=None, alias="Name")
