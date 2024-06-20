@@ -1,11 +1,8 @@
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-from data_models.chapi_unoplat_annotation import Annotation
-from data_models.chapi_unoplat_class_fieldmodel import ClassFieldModel, FieldModel
-from data_models.chapi_unoplat_function import Function
+from data_models.chapi_unoplat_class_fieldmodel import ClassFieldModel
 from data_models.chapi_unoplat_import import Import
-from data_models.chapi_unoplat_node import Node
 from data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnotationSubset
 
 

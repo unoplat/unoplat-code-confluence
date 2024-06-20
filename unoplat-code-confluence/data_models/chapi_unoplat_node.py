@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 from typing import Optional, List
 from data_models.chapi_unoplat_annotation import Annotation
 from data_models.chapi_unoplat_class_summary import ClassSummary
