@@ -1,5 +1,5 @@
 from .chapi_unoplat_node import Node
-from .chapi_unoplat_fieldmodel import FieldModel
+from .chapi_unoplat_class_fieldmodel import FieldModel
 from .chapi_unoplat_import import Import
 from .chapi_unoplat_function import Function
 from .chapi_unoplat_position import Position
