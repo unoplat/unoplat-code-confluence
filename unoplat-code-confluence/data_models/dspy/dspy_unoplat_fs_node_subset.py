@@ -7,9 +7,9 @@ from data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnota
 
 
 class DspyUnoplatNodeSubset(BaseModel):
-    node_name: Optional[str] = Field(default=None, alias="NodeName",description="This is name of the class.")
-    multiple_extend: Optional[bool] = Field(default=None, alias="MultipleExtend",description="this includes if class is inheriting multiple classes")
-    fields: List[ClassFieldModel] = Field(default_factory=list, alias="Fields",description="This includes class fields")
-    extend: Optional[str] = Field(default=None, alias="Extend",description="This includes class inheritance")
-    imports: List[Import] = Field(default_factory=list, alias="Imports",description="This includes class imports which can be used to infer types of fields")
-    annotations: List[DspyUnoplatAnnotationSubset] = Field(default_factory=list, alias="Annotations")
+    node_name: Optional[str] = Field(default=None, alias="NodeName", description="This is name of the class.")
+    multiple_extend: Optional[bool] = Field(default=None, alias="MultipleExtend", description="this includes if class is inheriting multiple classes")
+    fields: Optional[List[ClassFieldModel]] = Field(default_factory=List, alias="Fields", description="This includes class fields")
+    extend: Optional[str] = Field(default=None, alias="Extend", description="This includes class inheritance")
+    imports: Optional[List[Import]] = Field(default_factory=List, alias="Imports", description="This includes class imports which can be used to infer types of fields")
+    annotations: Optional[List[DspyUnoplatAnnotationSubset]] = Field(default_factory=list, alias="Annotations")
