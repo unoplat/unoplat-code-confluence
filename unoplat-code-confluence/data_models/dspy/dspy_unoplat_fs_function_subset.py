@@ -9,9 +9,9 @@ from data_models.unoplat_function_field_model import UnoplatFunctionFieldModel
 class DspyUnoplatFunctionSubset(BaseModel):
     name: Optional[str] = Field(default=None, alias="Name")
     return_type: Optional[str] = Field(default=None, alias="ReturnType")
-    function_calls: List[DspyUnoplatFunctionCallSubset] = Field(default_factory=list, alias="FunctionCalls")
-    annotations: List[DspyUnoplatAnnotationSubset] = Field(default_factory=list, alias="Annotations")
-    local_variables: List[UnoplatFunctionFieldModel] = Field(default_factory=list, alias="LocalVariables")
+    function_calls: Optional[List[DspyUnoplatFunctionCallSubset]] = Field(default_factory=list, alias="FunctionCalls")
+    annotations: Optional[List[DspyUnoplatAnnotationSubset]] = Field(default_factory=list, alias="Annotations")
+    local_variables: Optional[List[UnoplatFunctionFieldModel]] = Field(default_factory=list, alias="LocalVariables")
     content: Optional[str] = Field(default=None, alias="Content")
         
     

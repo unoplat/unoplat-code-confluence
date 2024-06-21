@@ -1,9 +1,11 @@
+from data_models.chapi_unoplat_annotation_key_val import ChapiUnoplatAnnotationKeyVal
 from data_models.chapi_unoplat_position import Position
-from pydantic import  Field
+from pydantic import  BaseModel, Field
 from typing import Optional
 
-from data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnotationSubset
 
 
-class Annotation(DspyUnoplatAnnotationSubset):
+class Annotation(BaseModel):
+    name: Optional[str] = Field(default=None, alias="Name")
+    key_values: Optional[list[ChapiUnoplatAnnotationKeyVal]] = Field(default_factory=list, alias="KeyValues")
     position: Optional[Position] = Field(default=None, alias="Position")

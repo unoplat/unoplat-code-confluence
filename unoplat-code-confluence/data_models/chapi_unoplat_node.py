@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from data_models.chapi_unoplat_annotation import Annotation
 from data_models.chapi_unoplat_class_summary import ClassSummary
@@ -6,10 +6,10 @@ from data_models.chapi_unoplat_class_fieldmodel import ClassFieldModel
 from data_models.chapi_unoplat_import import Import
 from data_models.chapi_unoplat_function import Function
 from data_models.chapi_unoplat_position import Position
-from data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 
 
-class Node(DspyUnoplatNodeSubset):
+
+class Node(BaseModel):
     node_name: Optional[str] = Field(default=None, alias="NodeName")
     type: Optional[str] = Field(default=None, alias="Type")
     file_path: Optional[str] = Field(default=None, alias="FilePath")
