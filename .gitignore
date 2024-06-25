@@ -21,3 +21,13 @@ codebase_understanding/dependencies/analysers
 codebase_understanding/nodeparser/__pycache__
 codebase_understanding/nodeparser/tests/__pycache__
 codebase_understanding/codeagent/__pycache__
+unoplat-code-confluence/codeagent/__pycache__
+unoplat-code-confluence/codebaseparser/__pycache__
+unoplat-code-confluence/data_models/__pycache__
+unoplat-code-confluence/downloader/__pycache__
+unoplat-code-confluence/loader/__pycache__
+unoplat-code-confluence/nodeparser/__pycache__
+unoplat-code-confluence/nodeparser/tests/__pycache__
+unoplat-code-confluence/settings/__pycache__
+unoplat-code-confluence/utility/__pycache__
+unoplat-code-confluence/data_models/dspy/__pycache__
