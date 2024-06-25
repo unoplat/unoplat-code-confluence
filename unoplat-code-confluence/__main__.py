@@ -8,6 +8,7 @@ from codebaseparser.ArchGuardHandler import ArchGuardHandler
 import re
 from data_models.chapi_unoplat_codebase import UnoplatCodebase
 from downloader.downloader import Downloader
+from dspy_class_summary import CodeConfluenceClassModule
 from dspy_function_summary import CodeConfluenceFunctionModule
 from loader import iload_json, iparse_json
 from loader.json_loader import JsonLoader
@@ -120,7 +121,9 @@ def start_parsing(local_workspace_path, programming_language, output_path, codeb
     
     dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
     
-    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary)
+    dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
+    
+    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary)
 
     codebase_summary.parse_codebase()
     
