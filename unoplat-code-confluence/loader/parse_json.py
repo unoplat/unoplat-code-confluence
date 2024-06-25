@@ -35,7 +35,7 @@ class JsonParser(IParseJson):
                 
                 # Creating list function subset
                 
-                for func in node_subset.functions:
+                for func in node.functions:
                     function_subset = DspyUnoplatFunctionSubset(
                     Name=func.name,
                     ReturnType=func.return_type,
@@ -49,14 +49,13 @@ class JsonParser(IParseJson):
                 
                 if node.package in unoplat_package_dict:
                     print("added package",node.package)
-                    unoplat_package_dict[node.package] = unoplat_package_dict[node.package].append(node_subset)
+                    unoplat_package_dict[node.package].append(node_subset)
                 else:
                     list_node_subset: List[DspyUnoplatNodeSubset] = [] 
                     list_node_subset.append(node_subset)
                     unoplat_package_dict[node.package] = list_node_subset
             except Exception as e:
                 logger.error(f"Error processing node: {e}")
-        
         unoplat_package.package_dict = unoplat_package_dict
         unoplat_codebase.packages =  unoplat_package
         

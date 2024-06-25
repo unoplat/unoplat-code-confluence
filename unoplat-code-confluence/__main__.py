@@ -17,8 +17,8 @@ from settings.appsettings import AppSettings
 
 
 def main(iload_json, iparse_json,isummariser,json_configuration_data):
-    settings = AppSettings()
-    get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_json,isummariser)
+    #settings = AppSettings()
+    get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser)
     
 
 def handle_toggle(value):
@@ -27,7 +27,7 @@ def handle_toggle(value):
     logger.info(f"Selected language: {value}")
 
 
-def get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_json,isummariser):
+def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
     local_workspace_path = json_configuration_data["local_workspace_path"]
     programming_language = json_configuration_data["programming_language"]
@@ -45,7 +45,6 @@ def get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_jso
         programming_language,
         output_path_field,
         codebase_name_field,
-        settings,
         github_token,
         arcguard_cli_repo,
         local_download_directory,
@@ -84,7 +83,7 @@ def ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_director
     
     return jar_path
 
-def start_parsing(local_workspace_path, programming_language, output_path, codebase_name, settings, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
+def start_parsing(local_workspace_path, programming_language, output_path, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
 
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
@@ -141,6 +140,7 @@ if __name__ == "__main__":
     isummariser = NodeSummariser()
     #loading the config
     json_configuration_data = iload_json.load_json_from_file(args.config)
+    print(json_configuration_data)
 
     #loading and setting the logging config
     logging_config = iload_json.load_json_from_file("loguru.json")
