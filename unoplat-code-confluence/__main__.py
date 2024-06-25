@@ -6,6 +6,7 @@ from loguru import logger
 import datetime
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
 import re
+from data_models.chapi_unoplat_codebase import UnoplatCodebase
 from downloader.downloader import Downloader
 from loader import iload_json, iparse_json
 from loader.json_loader import JsonLoader
@@ -16,8 +17,8 @@ from settings.appsettings import AppSettings
 
 
 def main(iload_json, iparse_json,isummariser,json_configuration_data):
-    settings = AppSettings()
-    get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_json,isummariser)
+    #settings = AppSettings()
+    get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser)
     
 
 def handle_toggle(value):
@@ -26,7 +27,7 @@ def handle_toggle(value):
     logger.info(f"Selected language: {value}")
 
 
-def get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_json,isummariser):
+def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
     local_workspace_path = json_configuration_data["local_workspace_path"]
     programming_language = json_configuration_data["programming_language"]
@@ -44,7 +45,6 @@ def get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_jso
         programming_language,
         output_path_field,
         codebase_name_field,
-        settings,
         github_token,
         arcguard_cli_repo,
         local_download_directory,
@@ -83,7 +83,7 @@ def ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_director
     
     return jar_path
 
-def start_parsing(local_workspace_path, programming_language, output_path, codebase_name, settings, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
+def start_parsing(local_workspace_path, programming_language, output_path, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
 
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
@@ -108,15 +108,20 @@ def start_parsing(local_workspace_path, programming_language, output_path, codeb
     chapi_metadata_path = archguard_handler.run_scan()
 
     chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
+    
    
     current_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     
     output_filename = f"{codebase_name}_{current_timestamp}.md"
 
-    with open(os.path.join(output_path, output_filename), 'a+') as md_file:
-        for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
-            if node.type == "CLASS":
-                md_file.write(f"{node.summary}\n\n")
+    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata, isummariser)
+    
+    print(unoplat_codebase.model_dump())
+    
+    # with open(os.path.join(output_path, output_filename), 'a+') as md_file:
+    #     for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
+    #         if node.type == "CLASS":
+    #             md_file.write(f"{node.summary}\n\n")
     # with open('codebase_summary.json', 'w') as file:
     #     json.dump(codebase_metadata, file)
     
@@ -135,6 +140,7 @@ if __name__ == "__main__":
     isummariser = NodeSummariser()
     #loading the config
     json_configuration_data = iload_json.load_json_from_file(args.config)
+    print(json_configuration_data)
 
     #loading and setting the logging config
     logging_config = iload_json.load_json_from_file("loguru.json")
