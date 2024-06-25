@@ -6,6 +6,7 @@ from loguru import logger
 import datetime
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
 import re
+from data_models.chapi_unoplat_codebase import UnoplatCodebase
 from downloader.downloader import Downloader
 from loader import iload_json, iparse_json
 from loader.json_loader import JsonLoader
@@ -108,11 +109,16 @@ def start_parsing(local_workspace_path, programming_language, output_path, codeb
     chapi_metadata_path = archguard_handler.run_scan()
 
     chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
+    
    
     current_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     
     output_filename = f"{codebase_name}_{current_timestamp}.md"
 
+    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata, isummariser)
+    
+    print(unoplat_codebase.model_dump())
+    
     # with open(os.path.join(output_path, output_filename), 'a+') as md_file:
     #     for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
     #         if node.type == "CLASS":
