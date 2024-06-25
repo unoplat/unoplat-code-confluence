@@ -1,0 +1,11 @@
+{
+    "local_workspace_path": "/Users/jayghiya/Documents/opensource/spring-data-starter",
+    "output_path": "/Users/jayghiya/Documents/unoplat",
+    "codebase_name": "springstarterjava1",
+    "programming_language": "java",
+    "repo": {
+      "download_url": "archguard/archguard",
+      "download_directory": "/Users/jayghiya/Documents/unoplat",
+      "github_token": "put your token heregi"
+    }
+}
