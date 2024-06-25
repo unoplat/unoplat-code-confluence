@@ -15,3 +15,9 @@ Both internal/external (External includes calls to databases/message brokers/ext
   - **Component 2**: [Fill in: Description of Component 2]
     - **Responsibilities**: [Fill in: What does this component do? if it is a internal one then include all interactions in terms of what is the trigger (rest/grpc etc) and how they are processed with the flow including precise class names based on nodenames shared from context. If it is an external one then include all interactions in terms of what is the trigger (rest/grpc etc) and how they are processed.]
     - **Interactions**: [Fill in: How does this component interact with other components?]
+
+## Mermaid class diagram
+
+```mermaid
+
+```
