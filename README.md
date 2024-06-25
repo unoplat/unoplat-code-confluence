@@ -215,13 +215,3 @@ These are the people because of which this work has been possible. Unoplat code 
 3. [Joao Moura from crewai](https://github.com/joaomdmoura)
 4. [Vipin Shreyas Kumar](https://github.com/vipinshreyaskumar)
 5. [Apeksha](https://github.com/apekshamehta)
-
-
-
-
-
-
-
-
-
->>>>>>> main
