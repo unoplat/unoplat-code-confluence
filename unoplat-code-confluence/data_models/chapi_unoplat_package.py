@@ -1,11 +1,8 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
-from data_models.chapi_unoplat_node import Node
+from data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 
 
 class UnoplatPackage(BaseModel):
-    package: Optional[str] = Field(default=None, alias="Package")
-    summary: Optional[str] = Field(default=None, alias="Summary")
-    nodes: List[Node] = Field(default_factory=list)
-    
+    package_dict: Optional[Dict[str,List[DspyUnoplatNodeSubset]]] = Field(default_factory=dict,alias="package_dict")

@@ -21,6 +21,5 @@ class Node(BaseModel):
     imports: List[Import] = Field(default_factory=list, alias="Imports")
     functions: List[Function] = Field(default_factory=list, alias="Functions")
     position: Optional[Position] = Field(default=None, alias="Position")
-    summary: Optional[ClassSummary] = Field(default=None, alias="Summary")
     content: Optional[str] = Field(default=None, alias="Content")
     annotations: List[Annotation] = Field(default_factory=list, alias="Annotations")
