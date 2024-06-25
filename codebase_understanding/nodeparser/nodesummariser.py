@@ -15,26 +15,18 @@ class NodeSummariser(ISummariser):
         Returns:
             Node: The node with updated summary.
         """
+        logger.debug(self._create_summary_prompt(node))
         try:
             response = completion(
-                model="ollama/phi3:14b-medium-4k-instruct-q8_0",  # Using Ollama model in LiteLLM
+                model="ollama_chat/mistral:7b-instruct-fp16",
                 messages=[
-                    {"content": """
-                     You are a markdown technical assistant who is robust and precise. 
-                     User will be sharing a semi-structured metadata JSON of a codebase class.
-                     First, you will understand the JSON field by field and remember it.
-                     Second, User will be sharing the markdown specification in which you have to fill in the details.
-                     You will only strictly output in markdown format based the markdown spec filled out by you.
-                     """, 
-                     "role": "system"},
+                    {"content": "User will be sharing class metadata in json. Understand the json first. Then understand the placeholder markdown specification shared by user. Fill the placeholders in the markdown spec based on the json. Strictly respond in markdown only."
+                     ,"role": "system"},
                      {"content": 
-                      f"""
-                      {node.model_dump(mode='json')} + "\n\n" + {self._create_summary_prompt(node)}
-                      """
+                      f"""{node.model_dump(mode='json')} + "\n\n" + {self._create_summary_prompt(node)} """
                       , "role": "user"},
-                     
-                    
-                ]
+                ],
+                temperature=0
             )
             node.summary = response.get("choices", [{}])[0].get("message", {}).get("content", "")
         except Exception as e:
@@ -66,7 +58,7 @@ class NodeSummariser(ISummariser):
             internal_calls_str = ""
             external_calls_str = ""
             for call in function.function_calls:
-                call_description = f"`{call.function_name}()` to `Fill in description of what the call is for`"
+                call_description = f"`{call.function_name}()` to `Fill in description of what the call is for. Focus on call interactions within the class and outside the class using fields`"
                 if call.node_name == node.node_name:  # Internal call
                     internal_calls_str += f"    - {call_description}\n"
                 else:  # External call
@@ -77,5 +69,6 @@ class NodeSummariser(ISummariser):
                 prompt += "  - **Internal Calls**:\n" + internal_calls_str
             if external_calls_str:
                 prompt += "  - **External Calls**:\n" + external_calls_str
+            prompt += "Please use the placeholders provided to structure the response accurately. Strictly Do not deviate from the markdown format else no tip will be offered."        
         return prompt
 
