@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 =======
 # Unoplat-CodeConfluence - Where Code Meets Clarity
 
@@ -101,7 +100,7 @@ flowchart TD
     Senior_Markdown_Technical_Documentation_Specialist --> MarkdDownOutput
 ```
 
-
+This whole portion is going to be replaced by dspy which underneath uses litellm (in future release of dspy) to deterministically optimise local open source llms to have same performance as gpt4. CrewAi is going to get deprecated as of now and will be brought in for advance usecases of code confluence later
 
 ## Example:
 
