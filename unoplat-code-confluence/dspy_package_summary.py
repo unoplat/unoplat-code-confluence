@@ -1,0 +1,58 @@
+from typing import List
+import dspy
+from data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
+from data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
+from data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
+from data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
+from data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
+
+# ollama_codestral = dspy.OllamaLocal(model='codestral:22b-v0.1-f16')
+# dspy.configure(lm=ollama_codestral)
+
+# ollama_codestral = dspy.OllamaLocal(model='phi3:14b-medium-4k-instruct-f16')
+# dspy.configure(lm=ollama_codestral)
+
+
+ollama_qwen2 = dspy.OllamaLocal(model='qwen2:7b-text-q8_0',model_type='text',max_tokens=1000)
+dspy.configure(lm=ollama_qwen2)
+
+# ollama_qwen2 = dspy.OllamaLocal(model='qwen2:7b-instruct-q8_0',model_type='text',max_tokens=1000)
+# dspy.configure(lm=ollama_qwen2)
+# ollama_llama_70b = dspy.OllamaLocal(model='llama3:70b-instruct')
+# dspy.configure(lm=ollama_llama_70b)
+
+
+class CodeConfluencePackageSignature(dspy.Signature):
+    """This signature takes in existing summary of a class and function summary of a class one at a time and returns final enhanced summary"""
+    package_existing_summary: str = dspy.InputField(default="package existing summary:",desc="This will contain existing package summary")
+    class_objective: str = dspy.InputField(desc="This will contain current class objective based on which existing package summary has to be improved")
+    final_package_summary: str = dspy.OutputField(desc="This will contain improved concise package summary")
+    
+
+class CodeConfluencePackageObjectiveSignature(dspy.Signature):
+    """This signature takes in package summary and returns concise objective of the package"""
+    final_package_summary: str = dspy.InputField(desc="This will contain concise detailed implementation summary of the package")
+    package_objective: str = dspy.OutputField(desc="This will contain concise objective of the package based on package summary")
+
+class CodeConfluencePackageModule(dspy.Module):
+    def __init__(self):
+        super().__init__()
+        self.generate_package_summary = dspy.ChainOfThought(CodeConfluencePackageSignature)
+        self.generate_package_objective = dspy.ChainOfThought(CodeConfluencePackageObjectiveSignature)
+        
+
+    def forward(self, class_objective_list: List[DspyUnoplatNodeSummary]):
+        package_summary = ""
+        for class_objective in class_objective_list:
+            signature_package_summary: CodeConfluencePackageSignature = self.generate_package_summary(package_existing_summary=package_summary, class_objective=class_objective.node_objective)
+            package_summary = signature_package_summary.final_package_summary
+            
+        class_objective_signature: CodeConfluencePackageObjectiveSignature = self.generate_package_objective(final_package_summary=package_summary)
+        dspy_package_summary = DspyUnoplatPackageNodeSummary(package_objective=class_objective_signature.package_objective,package_summary=package_summary,class_summary=class_objective_list)
+        return dspy.Prediction(answer=dspy_package_summary)
+ 
+        
+        
+        
+
+    
