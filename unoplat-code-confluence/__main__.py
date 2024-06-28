@@ -9,6 +9,7 @@ import re
 from data_models.chapi_unoplat_codebase import UnoplatCodebase
 from downloader.downloader import Downloader
 from dspy_class_summary import CodeConfluenceClassModule
+from dspy_codebase_summary import CodeConfluenceCodebaseModule
 from dspy_function_summary import CodeConfluenceFunctionModule
 from dspy_package_summary import CodeConfluencePackageModule
 from loader import iload_json, iparse_json
@@ -21,23 +22,17 @@ from summary_parser.codebase_summary import CodebaseSummaryParser
 
 
 def main(iload_json, iparse_json,isummariser,json_configuration_data):
-    #settings = AppSettings()
-    get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser)
+    settings = AppSettings()
+    get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_json,isummariser)
     
 
-def handle_toggle(value):
-    global selected_language
-    selected_language = value
-    logger.info(f"Selected language: {value}")
-
-
-def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
+def get_codebase_metadata(json_configuration_data,settings: AppSettings,iload_json,iparse_json,isummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
     local_workspace_path = json_configuration_data["local_workspace_path"]
     programming_language = json_configuration_data["programming_language"]
     output_path_field = json_configuration_data["output_path"]
     codebase_name_field = json_configuration_data["codebase_name"]
-    github_token = json_configuration_data["repo"]["github_token"]
+    github_token = settings.github_token
     arcguard_cli_repo = json_configuration_data["repo"]["download_url"]
     local_download_directory = json_configuration_data["repo"]["download_directory"]
 
@@ -45,6 +40,7 @@ def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummar
     # Button to submit the indexing
     start_parsing(
         local_workspace_path,
+        settings,
         # move this when expanding to new languages
         programming_language,
         output_path_field,
@@ -87,7 +83,7 @@ def ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_director
     
     return jar_path
 
-def start_parsing(local_workspace_path, programming_language, output_path, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
+def start_parsing(local_workspace_path, settings, programming_language, output_path, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
 
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
@@ -125,8 +121,10 @@ def start_parsing(local_workspace_path, programming_language, output_path, codeb
     dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
     
     dspy_package_pipeline_summary : CodeConfluencePackageModule = CodeConfluencePackageModule()
+
+    dspy_codebase_pipeline_summary: CodeConfluenceCodebaseModule = CodeConfluenceCodebaseModule()
     
-    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary)
+    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,settings)
 
     codebase_summary.parse_codebase()
     

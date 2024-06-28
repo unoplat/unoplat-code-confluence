@@ -32,7 +32,9 @@ class JsonParser(IParseJson):
                     Extend=node.extend,
                     MultipleExtend=node.multiple_extend,
                     Fields=node.fields,
-                    Annotations=[DspyUnoplatAnnotationSubset(Name=annotation.name,KeyValues=annotation.key_values) for annotation in node.annotations])
+                    Annotations=[DspyUnoplatAnnotationSubset(Name=annotation.name,KeyValues=annotation.key_values) for annotation in node.annotations],
+                    Content=node.content
+                    )
                     function_subset_list = []
                     
                     # Creating list function subset

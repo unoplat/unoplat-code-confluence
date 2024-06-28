@@ -3,20 +3,6 @@ from data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
 from data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
 from data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 
-# ollama_codestral = dspy.OllamaLocal(model='codestral:22b-v0.1-f16')
-# dspy.configure(lm=ollama_codestral)
-
-# ollama_codestral = dspy.OllamaLocal(model='phi3:14b-medium-4k-instruct-f16')
-# dspy.configure(lm=ollama_codestral)
-
-ollama_qwen2 = dspy.OllamaLocal(model='qwen2:7b-text-q8_0',model_type='text',max_tokens=1000)
-dspy.configure(lm=ollama_qwen2)
-
-
-# ollama_qwen2 = dspy.OllamaLocal(model='qwen2:7b-instruct-q8_0',model_type='text',max_tokens=1000)
-# dspy.configure(lm=ollama_qwen2)
-# ollama_llama_70b = dspy.OllamaLocal(model='llama3:70b-instruct')
-# dspy.configure(lm=ollama_llama_70b)
 
 
 class CodeConfluenceFunctionSummarySignature(dspy.Signature):
@@ -29,7 +15,7 @@ class CodeConfluenceFunctionSummarySignature(dspy.Signature):
 class CodeConfluenceFunctionObjectiveSignature(dspy.Signature):
     """This signature takes in function implementation description and returns objective of the function in a concise and accurate manner."""
     function_implementation: str = dspy.InputField(desc="This will contain concise detailed implementation description of the function")
-    function_objective: str = dspy.OutputField(desc="This will contain concise objective of the function based on implementation summary")
+    function_objective: str = dspy.OutputField(desc="This will contain concise objective of the function based on implementation summary within 3 lines without missing on any details.")
 
 class CodeConfluenceFunctionModule(dspy.Module):
     def __init__(self):
@@ -42,7 +28,9 @@ class CodeConfluenceFunctionModule(dspy.Module):
         class_subset = str(class_metadata.model_dump_json())
         function_subset = str(function_metadata.model_dump_json())
         code_confluence_function_summary = self.generate_function_summary( dspy_class_subset = class_subset, dspy_function_subset= function_subset)
+        print("function implementation:",code_confluence_function_summary.function_implementation)
         code_confluence_function_objective = self.generate_function_objective(function_implementation=code_confluence_function_summary.function_implementation)
+        print("function objective:",code_confluence_function_objective.function_objective)
         dspy_function_summary = DspyFunctionSummary(Objective=code_confluence_function_objective.function_objective, ImplementationSummary=code_confluence_function_summary.function_implementation)
         return dspy.Prediction(answer=dspy_function_summary)
 

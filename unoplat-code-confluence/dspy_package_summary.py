@@ -1,25 +1,8 @@
 from typing import List
 import dspy
-from data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
-from data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
-from data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 from data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 from data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
 
-# ollama_codestral = dspy.OllamaLocal(model='codestral:22b-v0.1-f16')
-# dspy.configure(lm=ollama_codestral)
-
-# ollama_codestral = dspy.OllamaLocal(model='phi3:14b-medium-4k-instruct-f16')
-# dspy.configure(lm=ollama_codestral)
-
-
-ollama_qwen2 = dspy.OllamaLocal(model='qwen2:7b-text-q8_0',model_type='text',max_tokens=1000)
-dspy.configure(lm=ollama_qwen2)
-
-# ollama_qwen2 = dspy.OllamaLocal(model='qwen2:7b-instruct-q8_0',model_type='text',max_tokens=1000)
-# dspy.configure(lm=ollama_qwen2)
-# ollama_llama_70b = dspy.OllamaLocal(model='llama3:70b-instruct')
-# dspy.configure(lm=ollama_llama_70b)
 
 
 class CodeConfluencePackageSignature(dspy.Signature):
@@ -46,6 +29,9 @@ class CodeConfluencePackageModule(dspy.Module):
         for class_objective in class_objective_list:
             signature_package_summary: CodeConfluencePackageSignature = self.generate_package_summary(package_existing_summary=package_summary, class_objective=class_objective.node_objective)
             package_summary = signature_package_summary.final_package_summary
+            print("current package summary:",package_summary)
+
+        print("final package summary:",package_summary)    
             
         class_objective_signature: CodeConfluencePackageObjectiveSignature = self.generate_package_objective(final_package_summary=package_summary)
         dspy_package_summary = DspyUnoplatPackageNodeSummary(package_objective=class_objective_signature.package_objective,package_summary=package_summary,class_summary=class_objective_list)
