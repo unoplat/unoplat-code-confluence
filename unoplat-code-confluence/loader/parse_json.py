@@ -23,37 +23,41 @@ class JsonParser(IParseJson):
         for item in json_data:
             try:
                 node = Node(**item)
-                # Creating node subset
-                node_subset = DspyUnoplatNodeSubset(
-                NodeName=node.node_name,
-                Imports=node.imports,
-                Extend=node.extend,
-                MultipleExtend=node.multiple_extend,
-                Fields=node.fields,
-                Annotations=[DspyUnoplatAnnotationSubset(Name=annotation.name,KeyValues=annotation.key_values) for annotation in node.annotations])
-                function_subset_list = []
+                if node.type == 'CLASS':
                 
-                # Creating list function subset
-                
-                for func in node.functions:
-                    function_subset = DspyUnoplatFunctionSubset(
-                    Name=func.name,
-                    ReturnType=func.return_type,
+                    # Creating node subset
+                    node_subset = DspyUnoplatNodeSubset(
+                    NodeName=node.node_name,
+                    Imports=node.imports,
+                    Extend=node.extend,
+                    MultipleExtend=node.multiple_extend,
+                    Fields=node.fields,
                     Annotations=[DspyUnoplatAnnotationSubset(Name=annotation.name,KeyValues=annotation.key_values) for annotation in node.annotations],
-                    LocalVariables=func.local_variables,
-                    Content=func.content,
-                    FunctionCalls=[DspyUnoplatFunctionCallSubset(NodeName=call.node_name, FunctionName=call.function_name, Parameters=call.parameters) for call in func.function_calls])
-                    function_subset_list.append(function_subset)
-                
-                node_subset.functions = function_subset_list
-                
-                if node.package in unoplat_package_dict:
-                    print("added package",node.package)
-                    unoplat_package_dict[node.package].append(node_subset)
-                else:
-                    list_node_subset: List[DspyUnoplatNodeSubset] = [] 
-                    list_node_subset.append(node_subset)
-                    unoplat_package_dict[node.package] = list_node_subset
+                    Content=node.content
+                    )
+                    function_subset_list = []
+                    
+                    # Creating list function subset
+                    
+                    for func in node.functions:
+                        function_subset = DspyUnoplatFunctionSubset(
+                        Name=func.name,
+                        ReturnType=func.return_type,
+                        Annotations=[DspyUnoplatAnnotationSubset(Name=annotation.name,KeyValues=annotation.key_values) for annotation in node.annotations],
+                        LocalVariables=func.local_variables,
+                        Content=func.content,
+                        FunctionCalls=[DspyUnoplatFunctionCallSubset(NodeName=call.node_name, FunctionName=call.function_name, Parameters=call.parameters) for call in func.function_calls])
+                        function_subset_list.append(function_subset)
+                    
+                    node_subset.functions = function_subset_list
+                    
+                    if node.package in unoplat_package_dict:
+                        print("added package",node.package)
+                        unoplat_package_dict[node.package].append(node_subset)
+                    else:
+                        list_node_subset: List[DspyUnoplatNodeSubset] = [] 
+                        list_node_subset.append(node_subset)
+                        unoplat_package_dict[node.package] = list_node_subset
             except Exception as e:
                 logger.error(f"Error processing node: {e}")
         unoplat_package.package_dict = unoplat_package_dict
