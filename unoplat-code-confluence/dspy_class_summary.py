@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 import dspy
 from data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
 from data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
@@ -27,7 +27,7 @@ class CodeConfluenceClassModule(dspy.Module):
         self.generate_class_summary = dspy.ChainOfThought(CodeConfluenceClassSummarySignature)
         self.generate_class_objective = dspy.ChainOfThought(CodeConfluenceClassObjectiveSignature)
 
-    def forward(self, class_metadata: DspyUnoplatNodeSubset, function_objective_summary: List[DspyUnoplatFunctionSummary]):
+    def forward(self, class_metadata: DspyUnoplatNodeSubset, function_objective_summary: List[DspyUnoplatFunctionSummary],llm_config: Dict):
         class_summary = ""
         
         for function_objective in function_objective_summary:

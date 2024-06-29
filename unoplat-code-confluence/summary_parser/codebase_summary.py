@@ -22,12 +22,17 @@ class CodebaseSummaryParser:
         self.dspy_pipeline_package = dspy_pipeline_package
         self.dspy_pipeline_codebase = dspy_pipeline_codebase
         self.settings: AppSettings = settings
+        self.config = {
+            "llm_to_func_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
+            "llm_to_class_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
+            "llm_to_package_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
+            "llm_to_codebase_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
+            "llm_to_codebase_summary": dspy.OpenAI(model='gpt-3.5-turbo-16k',api_key=self.settings.openai_api_key)
+        }
         self.init_dspy_lm()
     
     def init_dspy_lm(self):
-        #TODO: remove all hardcoded things
-        together_model = dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024)
-        dspy.configure(lm=together_model)
+        dspy.configure(lm=self.config["llm_to_codebase_summary"])
 
 
     def parse_codebase(self):
@@ -41,21 +46,19 @@ class CodebaseSummaryParser:
                 function_summaries :List[DspyUnoplatFunctionSummary] = []
                 
                 for function in node.functions:
-                    function_summary = self.dspy_pipeline_function(function_metadata=function,class_metadata=node).answer
+                    function_summary = self.dspy_pipeline_function(function_metadata=function,class_metadata=node,llm_config=self.config).answer
                     dspyUnoplatFunctionSummary: DspyUnoplatFunctionSummary  = DspyUnoplatFunctionSummary(FunctionName=function.name,FunctionSummary=function_summary)
                     function_summaries.append(dspyUnoplatFunctionSummary)
                 
-                class_summary: DspyUnoplatNodeSummary = self.dspy_pipeline_class(class_metadata=node, function_objective_summary=function_summaries).answer
+                class_summary: DspyUnoplatNodeSummary = self.dspy_pipeline_class(class_metadata=node, function_objective_summary=function_summaries,llm_config=self.config).answer
                 class_summaries.append(class_summary)
         
-            dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries).answer
+            dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries,llm_config=self.config).answer
             unoplat_package_summary.package_summary_dict[package_name] = dspy_pipeline_package_node_summary
         
         # Extract list of DspyUnoplatPackageNodeSummary from unoplat_package_summary
-        package_node_summaries = list(unoplat_package_summary.package_summary_dict.values())
-        
         # Pass the list of DspyUnoplatPackageNodeSummary to dspy_pipeline_codebase
-        codebase_summary = self.dspy_pipeline_codebase(package_objective_list=package_node_summaries).answer
+        codebase_summary = self.dspy_pipeline_codebase(package_objective_dict=unoplat_package_summary.package_summary_dict,llm_config=self.config).answer
         
         # Get the DspyUnoplatCodebaseObjectiveSignature from the dspy_pipeline_codebase
         unoplat_codebase_summary.codebase_summary = codebase_summary

@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 import dspy
 from data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 from data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
@@ -24,14 +24,12 @@ class CodeConfluencePackageModule(dspy.Module):
         self.generate_package_objective = dspy.ChainOfThought(CodeConfluencePackageObjectiveSignature)
         
 
-    def forward(self, class_objective_list: List[DspyUnoplatNodeSummary]):
+    def forward(self, class_objective_list: List[DspyUnoplatNodeSummary],llm_config: Dict):
         package_summary = ""
         for class_objective in class_objective_list:
             signature_package_summary: CodeConfluencePackageSignature = self.generate_package_summary(package_existing_summary=package_summary, class_objective=class_objective.node_objective)
             package_summary = signature_package_summary.final_package_summary
-            print("current package summary:",package_summary)
-
-        print("final package summary:",package_summary)    
+        
             
         class_objective_signature: CodeConfluencePackageObjectiveSignature = self.generate_package_objective(final_package_summary=package_summary)
         dspy_package_summary = DspyUnoplatPackageNodeSummary(package_objective=class_objective_signature.package_objective,package_summary=package_summary,class_summary=class_objective_list)

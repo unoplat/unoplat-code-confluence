@@ -1,3 +1,4 @@
+from typing import Dict
 import dspy
 from data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
 from data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
@@ -24,7 +25,7 @@ class CodeConfluenceFunctionModule(dspy.Module):
         self.generate_function_summary = dspy.ChainOfThought(CodeConfluenceFunctionSummarySignature)
         self.generate_function_objective = dspy.ChainOfThought(CodeConfluenceFunctionObjectiveSignature)
 
-    def forward(self, function_metadata: DspyUnoplatFunctionSubset, class_metadata: DspyUnoplatNodeSubset):
+    def forward(self, function_metadata: DspyUnoplatFunctionSubset, class_metadata: DspyUnoplatNodeSubset,llm_config: Dict):
         class_subset = str(class_metadata.model_dump_json())
         function_subset = str(function_metadata.model_dump_json())
         code_confluence_function_summary = self.generate_function_summary( dspy_class_subset = class_subset, dspy_function_subset= function_subset)
