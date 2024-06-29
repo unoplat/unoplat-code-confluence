@@ -14,4 +14,5 @@ class DspyUnoplatNodeSubset(BaseModel):
     extend: Optional[str] = Field(default=None, alias="Extend", description="This includes class inheritance")
     imports: Optional[List[Import]] = Field(default_factory=List, alias="Imports", description="This includes class imports which can be used to infer types of fields")
     annotations: Optional[List[DspyUnoplatAnnotationSubset]] = Field(default_factory=list, alias="Annotations")
-    functions: List[DspyUnoplatFunctionSubset] = Field(default_factory=list, alias="Functions")
+    functions: List[DspyUnoplatFunctionSubset] = Field(default_factory=list, alias="Functions",exclude=True)
+    content: Optional[str] = Field(default=None, alias="Content",exclude=True)
