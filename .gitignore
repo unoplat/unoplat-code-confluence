@@ -33,3 +33,5 @@ unoplat-code-confluence/utility/__pycache__
 unoplat-code-confluence/data_models/dspy/__pycache__
 unoplat-code-confluence/__pycache__
 unoplat-code-confluence/summary_parser/__pycache__
+unoplat-code-confluence/dependencies/analysers
+unoplat-code-confluence/.env
