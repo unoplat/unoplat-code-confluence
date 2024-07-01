@@ -1,17 +1,18 @@
 from abc import ABC, abstractmethod
 from data_models.chapi_unoplat_node import Node
+from data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
 
 class ISummariser(ABC):
     
     @abstractmethod
-    def summarise_node(self, node: Node) -> Node:
+    def summarise_to_markdown(self, unoplat_codebase_summary: DspyUnoplatCodebaseSummary) -> str:
         """
-        Summarises the provided Node object by modifying its summary attribute.
+        Summarises the provided unoplat codebase summary to markdown.
         
         Args:
-            node (Node): The node to summarise.
+            unoplat_codebase_summary (DspyUnoplatCodebaseSummary): The unoplat codebase summary to summarise.
         
         Returns:
-            Node: The node with updated summary.
+            str: The markdown string.
         """
         pass

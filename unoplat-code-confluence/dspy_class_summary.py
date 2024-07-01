@@ -7,6 +7,8 @@ from data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSu
 from data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 
 
+#TODO: optimise using gpt4 judge and miprov2
+
 class CodeConfluenceClassSummarySignature(dspy.Signature):
     """This signature takes in existing summary of a class and function summary of a class one at a time and returns enhanced final summary."""
     class_existing_summary: str = dspy.InputField(default="Summary:",desc="This will contain existing class summary")
@@ -34,13 +36,12 @@ class CodeConfluenceClassModule(dspy.Module):
             signature_class_summary = self.generate_class_summary(class_existing_summary=class_summary, function_summary=function_objective.function_summary.objective, class_metadata=str(class_metadata.model_dump_json()))
             class_summary = signature_class_summary.final_class_summary
         
-        print("class summary",class_summary)
         
         if len(function_objective_summary) > 0:
             class_objective_signature = self.generate_class_objective(final_class_summary = class_summary)
         else:
             class_objective_signature = self.generate_class_objective(final_class_summary = class_metadata.content)
-        print("class objective",class_objective_signature.class_objective) 
+
         dspy_class_summary = DspyUnoplatNodeSummary(NodeName=class_metadata.node_name,NodeObjective=class_objective_signature.class_objective, NodeSummary=class_summary,FunctionsSummary=function_objective_summary)
         
         return dspy.Prediction(answer=dspy_class_summary)

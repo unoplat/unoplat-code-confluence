@@ -12,7 +12,7 @@ from loguru import logger
 from nodeparser.isummariser import ISummariser
 
 class JsonParser(IParseJson):
-    def parse_json_to_nodes(self, json_data: dict, isummariser: ISummariser = None) -> UnoplatCodebase:
+    def parse_json_to_nodes(self, json_data: dict) -> UnoplatCodebase:
         """Concrete implementation of the parse_json_to_nodes method."""
         unoplat_codebase = UnoplatCodebase()
         

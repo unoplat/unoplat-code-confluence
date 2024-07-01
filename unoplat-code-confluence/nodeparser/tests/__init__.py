@@ -1,4 +1,4 @@
 from nodeparser.isummariser import ISummariser
-from nodeparser.nodesummariser import NodeSummariser
+from nodeparser.markdownsummariser import NodeSummariser
 
 __all__=['ISummariser','NodeSummariser']
