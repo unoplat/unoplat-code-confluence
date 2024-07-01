@@ -85,6 +85,7 @@ def ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_director
     
     return jar_path
 
+
 def start_parsing(local_workspace_path, settings, programming_language, output_path,output_file_name, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
 
     # Log the start of the parsing process
@@ -122,9 +123,20 @@ def start_parsing(local_workspace_path, settings, programming_language, output_p
     
     dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
     
+
     dspy_package_pipeline_summary : CodeConfluencePackageModule = CodeConfluencePackageModule()
 
     dspy_codebase_pipeline_summary: CodeConfluenceCodebaseModule = CodeConfluenceCodebaseModule()
+
+    dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
+    
+    dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
+    
+    
+    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,settings)
+
+    codebase_summary.parse_codebase()
+
     
     codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,settings)
 

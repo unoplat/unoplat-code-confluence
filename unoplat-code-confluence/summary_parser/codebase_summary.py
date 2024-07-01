@@ -22,6 +22,7 @@ class CodebaseSummaryParser:
         self.dspy_pipeline_package = dspy_pipeline_package
         self.dspy_pipeline_codebase = dspy_pipeline_codebase
         self.settings: AppSettings = settings
+
         #TODO: we will be externalise the different llms that can be used at all dspy pipelines and within dspy pipelines once dspy switches to litellm
         self.config = {
             "llm_to_func_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
@@ -36,7 +37,9 @@ class CodebaseSummaryParser:
         dspy.configure(lm=self.config["llm_to_codebase_summary"])
 
 
+
     def parse_codebase(self) -> DspyUnoplatCodebaseSummary:
+
         unoplat_codebase_summary: DspyUnoplatCodebaseSummary = DspyUnoplatCodebaseSummary()
         unoplat_packages :UnoplatPackage = self.codebase.packages
         unoplat_package_summary: DspyUnoplatPackageSummary = DspyUnoplatPackageSummary()
@@ -59,6 +62,7 @@ class CodebaseSummaryParser:
         
         # Extract list of DspyUnoplatPackageNodeSummary from unoplat_package_summary
         # Pass the list of DspyUnoplatPackageNodeSummary to dspy_pipeline_codebase
+
         dspy_codebase_summary = self.dspy_pipeline_codebase(package_objective_dict=unoplat_package_summary.package_summary_dict,llm_config=self.config)
 
         unoplat_codebase_summary.codebase_summary = dspy_codebase_summary.summary
@@ -67,3 +71,4 @@ class CodebaseSummaryParser:
 
         #todo: pydantic out to a file of unoplat codebase summary
         return unoplat_codebase_summary
+
