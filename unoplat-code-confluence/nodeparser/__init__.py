@@ -1,6 +1,7 @@
 from .isummariser import ISummariser
-from .nodesummariser import NodeSummariser
+from .markdownsummariser import MarkdownSummariser
 
 
-__all__ = ['ISummariser','NodeSummariser']
+
+__all__ = ['ISummariser','MarkdownSummariser']
 

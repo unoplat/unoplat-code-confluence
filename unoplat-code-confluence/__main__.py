@@ -1,12 +1,12 @@
 import argparse
 import json
-from os import get_terminal_size
 import os
 from loguru import logger
 import datetime
 from codebaseparser.ArchGuardHandler import ArchGuardHandler
 import re
 from data_models.chapi_unoplat_codebase import UnoplatCodebase
+from data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
 from downloader.downloader import Downloader
 from dspy_class_summary import CodeConfluenceClassModule
 from dspy_codebase_summary import CodeConfluenceCodebaseModule
@@ -15,7 +15,7 @@ from dspy_package_summary import CodeConfluencePackageModule
 from loader import iload_json, iparse_json
 from loader.json_loader import JsonLoader
 from loader.parse_json import JsonParser
-from nodeparser.nodesummariser import NodeSummariser
+from nodeparser.markdownsummariser import MarkdownSummariser
 from nodeparser.isummariser import ISummariser
 from settings.appsettings import AppSettings
 from summary_parser.codebase_summary import CodebaseSummaryParser
@@ -31,6 +31,7 @@ def get_codebase_metadata(json_configuration_data,settings: AppSettings,iload_js
     local_workspace_path = json_configuration_data["local_workspace_path"]
     programming_language = json_configuration_data["programming_language"]
     output_path_field = json_configuration_data["output_path"]
+    output_file_name = json_configuration_data["output_file_name"]
     codebase_name_field = json_configuration_data["codebase_name"]
     github_token = settings.github_token
     arcguard_cli_repo = json_configuration_data["repo"]["download_url"]
@@ -44,6 +45,7 @@ def get_codebase_metadata(json_configuration_data,settings: AppSettings,iload_js
         # move this when expanding to new languages
         programming_language,
         output_path_field,
+        output_file_name,
         codebase_name_field,
         github_token,
         arcguard_cli_repo,
@@ -56,9 +58,9 @@ def get_codebase_metadata(json_configuration_data,settings: AppSettings,iload_js
 def download_and_continue(settings,manager):
     try:
         jar_path = Downloader.download_latest_jar(settings.download_url, settings.download_directory, settings.github_token)
-        print(f"Download completed: {jar_path}")
+        logger.info(f"Download completed: {jar_path}")
     except Exception as e:
-        print(f"Error during download: {e}")
+        logger.error(f"Error during download: {e}")
     finally:
         manager.stop() 
         return jar_path
@@ -83,7 +85,8 @@ def ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_director
     
     return jar_path
 
-def start_parsing(local_workspace_path, settings, programming_language, output_path, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
+
+def start_parsing(local_workspace_path, settings, programming_language, output_path,output_file_name, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
 
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
@@ -114,27 +117,38 @@ def start_parsing(local_workspace_path, settings, programming_language, output_p
     
     output_filename = f"{codebase_name}_{current_timestamp}.md"
 
-    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata, isummariser)
+    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata)
     
     dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
     
     dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
     
+
     dspy_package_pipeline_summary : CodeConfluencePackageModule = CodeConfluencePackageModule()
 
     dspy_codebase_pipeline_summary: CodeConfluenceCodebaseModule = CodeConfluenceCodebaseModule()
+
+    dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
+    
+    dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
+    
     
     codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,settings)
 
     codebase_summary.parse_codebase()
+
     
-    # with open(os.path.join(output_path, output_filename), 'a+') as md_file:
-    #     for node in iparse_json.parse_json_to_nodes(chapi_metadata, isummariser):
-    #         if node.type == "CLASS":
-    #             md_file.write(f"{node.summary}\n\n")
-    # with open('codebase_summary.json', 'w') as file:
-    #     json.dump(codebase_metadata, file)
+    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,settings)
+
+    unoplat_codebase_summary: DspyUnoplatCodebaseSummary = codebase_summary.parse_codebase()
+
+    # now write to a markdown dspy unoplat codebase summary
     
+    markdown_output = isummariser.summarise_to_markdown(unoplat_codebase_summary)
+    # write the markdown output to a file
+    with open(os.path.join(output_path, output_filename), 'w') as md_file:
+        md_file.write(markdown_output)
+        
     logger.info("Parsing process completed.")
 
     
@@ -147,11 +161,9 @@ if __name__ == "__main__":
 
     iload_json = JsonLoader()
     iparse_json = JsonParser()
-    isummariser = NodeSummariser()
+    isummariser = MarkdownSummariser()
     #loading the config
     json_configuration_data = iload_json.load_json_from_file(args.config)
-    print(json_configuration_data)
-
     #loading and setting the logging config
     logging_config = iload_json.load_json_from_file("loguru.json")
     logger.configure(handlers=logging_config["handlers"])
