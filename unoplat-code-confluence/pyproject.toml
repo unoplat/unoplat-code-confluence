@@ -7,7 +7,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10, <=3.13"
-llama-index-llms-ollama = "^0.1.3"
 marko = "^2.0.3"
 pydantic = "^2.7.1"
 ruff = "^0.4.4"
@@ -17,7 +16,6 @@ pypdf = ">=3.11.0,<4.0.0"
 pydantic-settings = "^2.2.1"
 litellm = "^1.37.19"
 pytest = "^8.2.1"
-crewai = {extras = ["tools"], version = "^0.30.11"}
 dspy-ai = "^2.4.9"
 
 
