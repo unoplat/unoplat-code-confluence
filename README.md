@@ -79,7 +79,13 @@ Local workspace from https://github.com/DataStax-Examples/spring-data-starter.gi
 ```
 springstarterjava1_20240701111627.md
 ```
+
+
+
+
 ## Current Stage
+
+### Usage Instructions
 
 ### Status: Alpha
 ### Roadmap:
