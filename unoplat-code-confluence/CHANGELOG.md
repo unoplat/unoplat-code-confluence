@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.0...v0.2.1) (2024-07-02)
+
+
+### Bug Fixes
+
+* added poetry tool script to work with pipx ([77a9d7f](https://github.com/unoplat/unoplat-code-confluence/commit/77a9d7f6fc99db55d3a029077c4663f761b8da7a))
+* markdown headers ([c9b1ee4](https://github.com/unoplat/unoplat-code-confluence/commit/c9b1ee4c0b1e1db21b664b3675781becb2374861))
+* python structure ([9f17650](https://github.com/unoplat/unoplat-code-confluence/commit/9f17650798689ef5d612cd7965713265ba43ce64))
+
 ## [0.2.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.1.0...v0.2.0) (2024-07-02)
 
 
