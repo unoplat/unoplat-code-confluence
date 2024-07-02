@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "unoplat_code_confluence"
+name = "unoplat-code-confluence"
 version = "0.2.0"
 description = "codebase understanding"
 authors = ["JayGhiya <ghiya6548@gmail.com>"]
