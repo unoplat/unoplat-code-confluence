@@ -1,0 +1,8 @@
+{
+    "packages": {
+        "unoplat-code-confluence": {
+            "release-type": "python",
+            "changelog-path": "CHANGELOG.md"
+        }
+    }
+}
