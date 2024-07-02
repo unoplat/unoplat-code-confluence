@@ -17,7 +17,7 @@ from loader.parse_json import JsonParser
 from nodeparser.markdownsummariser import MarkdownSummariser
 from settings.appsettings import AppSettings
 from summary_parser.codebase_summary import CodebaseSummaryParser
-
+import warnings
 
 def main(iload_json, iparse_json,isummariser,json_configuration_data):
     settings = AppSettings()
@@ -151,7 +151,7 @@ def start_parsing(local_workspace_path, settings, programming_language, output_p
 
     
 if __name__ == "__main__":
-    import warnings
+    
     warnings.filterwarnings("ignore", category=DeprecationWarning, module='pydantic.*')
     parser = argparse.ArgumentParser(description="Codebase Parser CLI")
     parser.add_argument("--config", help="Path to configuration file for unoplat utility", default=os.getcwd() + '/default_config.json', type=str)
@@ -167,5 +167,4 @@ if __name__ == "__main__":
     logger.configure(handlers=logging_config["handlers"])
 
     main(iload_json, iparse_json, isummariser,json_configuration_data)
-    # unoplat_agent_setup =UnoplatAgent()
-    # unoplat_agent_setup.run_crew()
+    
