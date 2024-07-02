@@ -3,8 +3,8 @@
 
 ## Goal
 
-Goal of the project is to be the most deterministic and precise code context provider for projects like OpenDevin, Devon, Danswer
-Continue Dev etc irrespective of framework and programming language.
+Goal of the project is to be the most deterministic and precise code context provider for any code repository and across multiple such code repositories tied through domain and then eventually become the unified code context provider which then can be integrated with projects like OpenDevin, Devon, Danswer,
+Continue Dev and other oss , thereby complimenting the precision of these frameworks with minimal opex.
 
 
 ## Current Problem with doing Repository level Documentation using AI Tooling 
@@ -20,10 +20,9 @@ Continue Dev etc irrespective of framework and programming language.
 
 1. Limited Context Windows: Most AI tools suffer from limited context windows of large language models, which can hinder their ability to process large blocks of code or extended documentation effectively.
 2. Lack of Long-term Memory: These tools generally do not incorporate long-term memory, which affects their ability to remember past interactions or understand extensive codebases deeply.
-
 3. Inefficiency: This process can be computationally expensive and slow, particularly for large codebases, due to the extensive indexing and complex querying mechanisms.
 4. Cost: The operational costs can be significant because of the resources required for maintaining up-to-date embeddings and processing queries with advanced AI models.
-5. Compliance and Security Issues: Storing and processing entire codebases can lead to compliance issues, especially with code that contains sensitive or proprietary information.
+5. Compliance and Security Issues: Storing and processing entire codebases through cloud based commercial vendors can lead to lot of time lost in compliance issues/processes, especially with code that contains sensitive or proprietary information. 
 6. First Principles Concern: The approach may not align with first principles of software engineering, which emphasize simplicity and minimizing complexity across programming languages constructs and frameworks.
 
 ### Mermaid Diagram of the Process:
@@ -50,14 +49,10 @@ The Unoplat approach offers a significant shift from the conventional AI-powered
 1. Language-Agnostic Parsing: Unoplat uses a language-agnostic parser, similar to generic compilers, to analyze and interpret any programming language or framework. This step involves no AI, focusing solely on deterministic parsing methods.
 2. Generating Semi-Structured JSON: From the parsing step, Unoplat generates semi-structured JSON data. This JSON captures essential constructs and elements of the programming languages being analyzed, providing a clear, structured view of the codebase without reliance on AI for code understanding.
 3. Enhancing Metadata: The semi-structured JSON is transformed to optimised data model to represent codebase in most optimal fashion.
-4. LLM Pipelines: There are tailored dspy pipelines (uncompiled) for function, class, package and codebase summary capture. 
+4. LLM Pipelines: There are tailored dspy pipelines (uncompiled as of now) for function, class, package and codebase summary capture. The goal is to externalise the config of preferred llms(oss/commercial) across dspy pipelines.
 5. Output: The output is a highly detailed, easily navigable representation of the codebase, allowing developers to understand and modify code with much higher accuracy and speed than traditional AI-based tools.
 
-#### Benefits:
-1. Deterministic and Transparent: The deterministic nature of the process ensures transparency and reliability in how code is analyzed and understood.
-2. Cost-Effective: Reduces the dependency on expensive AI models and the associated computational and maintenance costs.
-3. Compliance and Security: By not relying on AI models trained on external data, Unoplat minimizes potential compliance and security issues.
-4. Scalability: The approach is highly scalable, as it can handle any programming language or framework without needing specific model training.
+
 ##### Mermaid Diagram of the Process:
 Here’s a visual representation using a Mermaid diagram to illustrate the Unoplat process:
 
@@ -93,13 +88,12 @@ springstarterjava1_20240701111627.md
 3. Enable Graph based ingestion as well as retrieval 
 using multi hop ingestion/dspy pipelines. (basically baleen)
 4. Encapsulate the offering in a rest fashion through fastapi
+5. Integrate with Unoplat core to make it possible to self host with all cross cutting concerns for both unoplat code confluence and any embeddable graph db. (https://github.com/unoplat/unoplat)
 5. Launch custom context provider with help of continue dev.
-6. Launch custom context provider with llama index as
-llama code parser as a lib.
+6. Launch custom context provider with llama index as llama code parser as a lib.
 7. Make the context pluggable to danswer.
 8. Make the context pluggable to opendevin and devon.
-9. Now the most important Get all heroes/inspirations
-on board.
+9. Now the most important Get all heroes/inspirations on board.
 
 
 ## Tech Stack 
@@ -126,3 +120,12 @@ These are the people because of which this work has been possible. Unoplat code 
 7. [OpenDevin](https://github.com/OpenDevin/OpenDevin)
 8. [Devon](https://github.com/entropy-research/Devon)
 7. [Apeksha](https://github.com/apekshamehta)
+8. [Argilla](https://argilla.io/)
+
+
+## Maintainers
+
+1. [Jay Ghiya](https://github.com/JayGhiya)
+    - Contact: jayghiya@unoplat.co.in  
+2. [Vipin Shreyas Kumar](https://github.com/vipinshreyaskumar)
+    - Contact: vipinshreyaskumar@unoplat.co.in    
