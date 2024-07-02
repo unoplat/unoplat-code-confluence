@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "unoplat_code_confluence"
+name = "unoplat-code-confluence"
 version = "0.2.0"
 description = "codebase understanding"
 authors = ["JayGhiya <ghiya6548@gmail.com>"]
@@ -18,6 +18,8 @@ litellm = "^1.37.19"
 pytest = "^8.2.1"
 dspy-ai = "^2.4.9"
 
+[tool.poetry.scripts]
+unoplat-code-confluence = "unoplat_code_confluence.main:main"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"

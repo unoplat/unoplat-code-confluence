@@ -68,14 +68,20 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-
+# todo: the below three steps are not required use github artifact to transfer the build between workflows :) but doing it as of now for alpha releases
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "1.8.3"
+      - name: Build poetry
+        working-directory: unoplat-code-confluence
+        run: poetry build -f wheel
+    
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: unoplat-code-confluence/dist
-
-      - name: Publish package
-        working-directory: ${{ matrix.path }}
-        run: |
-          poetry publish  --build-wheel
 
