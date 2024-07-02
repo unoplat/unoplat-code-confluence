@@ -16,6 +16,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ GITHUB.HEAD_REF }}
+
       - name: Install python
         uses: actions/setup-python@v5
         with:
@@ -31,8 +32,5 @@ jobs:
       - name: Build poetry
         working-directory: unoplat-code-confluence
         run: poetry build -f wheel
-      # TODO: enable test when test are added  
-      # - name: Run tests
-      #   working-directory: unoplat-code-confluence
-      #   run: poetry run pytest
+
           

@@ -68,7 +68,14 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: unoplat-code-confluence/dist
+
+      - name: Publish package
+        working-directory: ${{ matrix.path }}
+        run: |
+          poetry publish  --build-wheel
+
