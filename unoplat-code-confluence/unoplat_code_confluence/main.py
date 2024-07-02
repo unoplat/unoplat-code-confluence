@@ -162,8 +162,8 @@ if __name__ == "__main__":
     isummariser = MarkdownSummariser()
     #loading the config
     json_configuration_data = iload_json.load_json_from_file(args.config)
-    #loading and setting the logging config
-    logging_config = iload_json.load_json_from_file("loguru.json")
+    
+    logging_config = iload_json.load_json_from_file(os.path.join(os.path.dirname(__file__), "../loguru.json"))
     logger.configure(handlers=logging_config["handlers"])
 
     main(iload_json, iparse_json, isummariser,json_configuration_data)
