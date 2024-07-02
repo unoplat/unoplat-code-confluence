@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 from loguru import logger
 import datetime
@@ -16,7 +15,6 @@ from loader import iload_json, iparse_json
 from loader.json_loader import JsonLoader
 from loader.parse_json import JsonParser
 from nodeparser.markdownsummariser import MarkdownSummariser
-from nodeparser.isummariser import ISummariser
 from settings.appsettings import AppSettings
 from summary_parser.codebase_summary import CodebaseSummaryParser
 
