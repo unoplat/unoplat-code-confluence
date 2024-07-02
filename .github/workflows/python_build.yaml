@@ -1,0 +1,38 @@
+name: Develop Branch Action
+on:
+  pull_request_target:
+    types: 
+      - opened
+    branches:
+      - main
+    paths:
+      - 'unoplat-code-confluence/**'
+jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # c   
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "1.8.3"
+      - name: Check poetry version
+        run: poetry --version
+      - name: Install dependencies
+        working-directory: unoplat-code-confluence
+        run: poetry install --no-root
+      - name: Build poetry
+        working-directory: unoplat-code-confluence
+        run: poetry build
+      # TODO: enable test when test are added  
+      # - name: Run tests
+      #   working-directory: unoplat-code-confluence
+      #   run: poetry run pytest
+          
