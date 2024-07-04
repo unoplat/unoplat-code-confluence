@@ -72,12 +72,12 @@ This diagram outlines the Unoplat process from the initial parsing of the codeba
 
 ### Input:
 ```
-Local workspace from https://github.com/DataStax-Examples/spring-data-starter.git
+Local workspace on your computer from https://github.com/DataStax-Examples/spring-data-starter.git
 ```
 
 ### Output:
 ```
-springstarterjava1_20240701111627.md
+springstarterjava1_20240701111627.md (the file is present in unoplat-code-confluence folder - it has formatting issues which will get resolved soon but the results are good)
 ```
 
 
