@@ -2,7 +2,7 @@ import argparse
 import os
 from loguru import logger
 import datetime
-from codebaseparser.ArchGuardHandler import ArchGuardHandler
+from unoplat_code_confluence.codebaseparser.arc_guard_handler import ArchGuardHandler
 import re
 from data_models.chapi_unoplat_codebase import UnoplatCodebase
 from data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
@@ -15,7 +15,7 @@ from loader import iload_json, iparse_json
 from loader.json_loader import JsonLoader
 from loader.parse_json import JsonParser
 from nodeparser.markdownsummariser import MarkdownSummariser
-from settings.appsettings import AppSettings
+
 from summary_parser.codebase_summary import CodebaseSummaryParser
 import warnings
 
