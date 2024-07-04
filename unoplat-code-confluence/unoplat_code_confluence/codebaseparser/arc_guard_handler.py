@@ -1,6 +1,6 @@
 import os
 import subprocess
-from utility.total_file_count import FileCounter
+from utility.total_file_count import TotalFileCount
 from loguru import logger
 
 class ArchGuardHandler:
@@ -13,7 +13,7 @@ class ArchGuardHandler:
         self.current_file_count = 0
         self.codebase_name = codebase_name
         # Initialize FileCounter in the constructor
-        self.file_counter = FileCounter(self.codebase_path, f'.{self.language}')
+        self.file_counter = TotalFileCount(self.codebase_path, f'.{self.language}')
 
     def run_scan(self) -> str:
         # Get total number of files in run_scan
