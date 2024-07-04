@@ -120,6 +120,16 @@ unoplat-code-confluence --config example_config.json
 
 
 ### Status: Alpha
+
+### Programming Language Support
+
+1. Java  - Supported
+2. Python - In Progress
+3. Go - Planned
+4. Ts/Js - Planned
+
+Note: support is based on https://chapi.phodal.com/ and contributions are required on chapi upstream to improve parsing metadata. 
+
 ### Roadmap:
 1. Generate training data for optimisation of summary generated at function ,class , package and codebase (use argilla for that)
 2. Enable oss llms and induce llm routing for cost and effective optimisation for oss and commercial llms
