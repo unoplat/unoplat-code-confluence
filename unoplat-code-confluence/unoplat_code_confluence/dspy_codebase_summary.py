@@ -1,6 +1,6 @@
 from typing import Dict
 import dspy
-from data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
 
 
 

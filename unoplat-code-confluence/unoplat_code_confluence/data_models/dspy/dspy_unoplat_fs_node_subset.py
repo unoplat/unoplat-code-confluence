@@ -1,10 +1,10 @@
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-from data_models.chapi_unoplat_class_fieldmodel import ClassFieldModel
-from data_models.chapi_unoplat_import import Import
-from data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnotationSubset
-from data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
+from unoplat_code_confluence.data_models.chapi_unoplat_class_fieldmodel import ClassFieldModel
+from unoplat_code_confluence.data_models.chapi_unoplat_import import Import
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnotationSubset
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
 
 
 class DspyUnoplatNodeSubset(BaseModel):

@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from data_models.chapi_unoplat_package import UnoplatPackage
+from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
 
 
 class UnoplatCodebase(BaseModel):

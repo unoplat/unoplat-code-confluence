@@ -1,6 +1,6 @@
 import os
 import subprocess
-from utility.total_file_count import TotalFileCount
+from unoplat_code_confluence.utility.total_file_count import TotalFileCount
 from loguru import logger
 
 class ArchGuardHandler:

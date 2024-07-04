@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
-from data_models.chapi_unoplat_functioncall import FunctionCall
-from data_models.unoplat_function_field_model import UnoplatFunctionFieldModel
-from .chapi_unoplat_annotation import Annotation
-from .chapi_unoplat_position import Position
+from unoplat_code_confluence.data_models.chapi_unoplat_functioncall import FunctionCall
+from unoplat_code_confluence.data_models.unoplat_function_field_model import UnoplatFunctionFieldModel
+from unoplat_code_confluence.data_models.chapi_unoplat_annotation import Annotation
+from unoplat_code_confluence.data_models.chapi_unoplat_position import Position
 
 class Function(BaseModel):
     name: Optional[str] = Field(default=None, alias="Name")

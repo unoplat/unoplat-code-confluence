@@ -1,15 +1,15 @@
 from typing import Dict, List
 from pydantic import ValidationError
-from data_models.chapi_unoplat_codebase import UnoplatCodebase
-from data_models.chapi_unoplat_package import UnoplatPackage
-from data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnotationSubset
-from data_models.dspy.dspy_unoplat_fs_function_call_subset import DspyUnoplatFunctionCallSubset
-from data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
-from data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
-from loader.iparse_json import IParseJson
-from data_models.chapi_unoplat_node import Node
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
+from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnotationSubset
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_function_call_subset import DspyUnoplatFunctionCallSubset
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
+from unoplat_code_confluence.loader.iparse_json import IParseJson
+from unoplat_code_confluence.data_models.chapi_unoplat_node import Node
 from loguru import logger
-from nodeparser.isummariser import ISummariser
+from unoplat_code_confluence.nodeparser.isummariser import ISummariser
 
 class JsonParser(IParseJson):
     def parse_json_to_nodes(self, json_data: dict) -> UnoplatCodebase:

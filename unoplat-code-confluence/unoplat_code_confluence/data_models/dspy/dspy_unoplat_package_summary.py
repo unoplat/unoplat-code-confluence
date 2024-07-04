@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 from pydantic import BaseModel,Field
 
-from data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 
 
 

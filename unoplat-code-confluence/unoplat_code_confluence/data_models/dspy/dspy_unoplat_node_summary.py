@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel,Field
 
-from data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
 
 class DspyUnoplatNodeSummary(BaseModel):
     node_name: Optional[str] = Field(default=None, alias="NodeName",description="The name of the class")
