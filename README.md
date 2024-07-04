@@ -112,6 +112,7 @@ springstarterjava1_20240701111627.md (the file is present in unoplat-code-conflu
 }
 ```
 Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding. Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled. 
+
 4. Run code confluence and check your output path. you will have a file name based on output file name
 ```
 unoplat-code-confluence --config example_config.json
