@@ -91,18 +91,19 @@ springstarterjava1_20240701111627.md (the file is present in unoplat-code-conflu
 ```
    pipx install git+https://github.com/unoplat/unoplat-code-confluence.git@v0.2.3#subdirectory=unoplat-code-confluence
 ```
-3. Prepare Config for unoplat code confluence based on:
+3. Before you can run the unoplat code confluence tool on your local machine, you need to set up the necessary configuration file. This file tells tool where your codebase is located, where to output the analysis results, and other essential information. Below is a step-by-step guide to setting up your configuration.
+
 
 ```
 {
-    "local_workspace_path": "/Users/jayghiya/Documents/opensource/spring-data-starter",
-    "output_path": "/Users/jayghiya/Documents/unoplat",
-    "output_file_name": "springstarterjava1.md",
-    "codebase_name": "springstarterjava1",
-    "programming_language": "java",
+    "local_workspace_path": "your path to codebase",
+    "output_path": "directory path for markdown output",
+    "output_file_name": "name of markdown output (example - xyz.md)",
+    "codebase_name": "name of your codebase",
+    "programming_language": "programming language type(example- java(right now only java is supported)",
     "repo": {
       "download_url": "archguard/archguard",
-      "download_directory": "/Users/jayghiya/Documents/unoplat"
+      "download_directory": "download directory for arcguard tool"
     },
     "api_tokens": {
       "github_token": "your github pat for downloading arcguard"
@@ -112,6 +113,8 @@ springstarterjava1_20240701111627.md (the file is present in unoplat-code-conflu
     }
 }
 ```
+Configuration Note: Do not change the download_url and keep the programming_language to java (as right now only java is supported)
+
 Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding. Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
 
 4. Run code confluence and check your output path. you will have a file name based on output file name. That file will carry precise summary of codebase at all levels - codebase,packages,classes and functions.
