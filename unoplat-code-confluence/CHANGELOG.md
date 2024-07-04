@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.3](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.2...v0.2.3) (2024-07-04)
+
+
+### Bug Fixes
+
+* more structure changes ([3e0ea93](https://github.com/unoplat/unoplat-code-confluence/commit/3e0ea93ce05912c1f1bc26896769d61c223216f2))
+* project structure and commented loguru config as of now ([2f7b50d](https://github.com/unoplat/unoplat-code-confluence/commit/2f7b50df6cb6d610ba843e6461815de63b21568a))
+* structure ([9205550](https://github.com/unoplat/unoplat-code-confluence/commit/9205550ff374ff7a7f197a183eabef14391bf31e))
+* structure ([1999343](https://github.com/unoplat/unoplat-code-confluence/commit/1999343dd7f1faf642727c18fde449944f1af26e))
+* structure ([a6878ff](https://github.com/unoplat/unoplat-code-confluence/commit/a6878ff62e7dd292c9a4d9ddd800875b1d9134b7))
+* structure and names ([d44709c](https://github.com/unoplat/unoplat-code-confluence/commit/d44709c75f10b171ea26f0e660c4eeeae93f2de9))
+
 ## [0.2.2](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.1...v0.2.2) (2024-07-04)
 
 
