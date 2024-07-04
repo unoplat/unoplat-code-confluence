@@ -1,6 +1,6 @@
 from pydantic import BaseModel,Field
 
-from data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
+from unoplat_code_confluence.data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
 
 class DspyUnoplatFunctionSummary(BaseModel):
     function_name: str = Field( alias="FunctionName", description="The name of the function")

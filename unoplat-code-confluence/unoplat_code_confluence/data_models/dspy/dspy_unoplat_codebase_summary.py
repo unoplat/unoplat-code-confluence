@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel,Field
 
-from data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
 
 class DspyUnoplatCodebaseSummary(BaseModel):
     codebase_summary: Optional[str] = Field(default=None, description="A summary of the codebase")

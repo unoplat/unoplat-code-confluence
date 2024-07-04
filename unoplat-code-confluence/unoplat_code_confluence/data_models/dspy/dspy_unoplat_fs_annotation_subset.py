@@ -5,7 +5,7 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
-from data_models.chapi_unoplat_annotation_key_val import ChapiUnoplatAnnotationKeyVal
+from unoplat_code_confluence.data_models.chapi_unoplat_annotation_key_val import ChapiUnoplatAnnotationKeyVal
 
 
 class DspyUnoplatAnnotationSubset(BaseModel):

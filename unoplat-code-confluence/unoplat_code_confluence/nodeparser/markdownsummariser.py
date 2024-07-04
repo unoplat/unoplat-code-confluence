@@ -1,7 +1,7 @@
 from abc import ABC
-from data_models.chapi_unoplat_node import Node
-from data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
-from nodeparser.isummariser import ISummariser
+from unoplat_code_confluence.data_models.chapi_unoplat_node import Node
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
+from unoplat_code_confluence.nodeparser.isummariser import ISummariser
 from litellm import completion
 from loguru import logger
 

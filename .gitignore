@@ -50,3 +50,4 @@ unoplat-code-confluence/unoplat_code_confluence/summary_parser/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/utility/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/example_config.json
 unoplat-code-confluence/poetry.lock
+app.log

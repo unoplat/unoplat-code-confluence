@@ -1,11 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from data_models.chapi_unoplat_annotation import Annotation
-from data_models.chapi_unoplat_class_summary import ClassSummary
-from data_models.chapi_unoplat_class_fieldmodel import ClassFieldModel
-from data_models.chapi_unoplat_import import Import
-from data_models.chapi_unoplat_function import Function
-from data_models.chapi_unoplat_position import Position
+from unoplat_code_confluence.data_models.chapi_unoplat_annotation import Annotation
+from unoplat_code_confluence.data_models.chapi_unoplat_class_fieldmodel import ClassFieldModel
+from unoplat_code_confluence.data_models.chapi_unoplat_import import Import
+from unoplat_code_confluence.data_models.chapi_unoplat_function import Function
+from unoplat_code_confluence.data_models.chapi_unoplat_position import Position
 
 
 
