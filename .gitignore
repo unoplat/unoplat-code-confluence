@@ -37,3 +37,6 @@ unoplat-code-confluence/dependencies/analysers
 unoplat-code-confluence/.env
 
 unoplat-code-confluence/unoplat_code_confluence/dependencies/analysers
+unoplat-code-confluence/dist
+unoplat-code-confluence/unoplat_code_confluence/__pycache__
+unoplat-code-confluence/example_config.json
