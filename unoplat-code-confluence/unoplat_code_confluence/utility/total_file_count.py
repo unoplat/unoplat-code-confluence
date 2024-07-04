@@ -2,7 +2,7 @@ import os
 import glob
 from loguru import logger
 
-class FileCounter:
+class TotalFileCount:
     def __init__(self, directory, extension):
         self.directory = directory
         self.extension = extension
