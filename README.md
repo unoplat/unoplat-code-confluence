@@ -170,7 +170,7 @@ These are the people because of which this work has been possible. Unoplat code 
 8. [Devon](https://github.com/entropy-research/Devon)
 7. [Apeksha](https://github.com/apekshamehta)
 8. [Argilla](https://argilla.io/)
-
+9. [Jeremy Howard](https://www.linkedin.com/in/howardjeremy)
 
 ## Maintainers
 
