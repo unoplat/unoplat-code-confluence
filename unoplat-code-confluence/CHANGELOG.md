@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.1...v0.2.2) (2024-07-04)
+
+
+### Bug Fixes
+
+* pipx installable structure and fix loading api tokens (right now only openai) from json ([f903b52](https://github.com/unoplat/unoplat-code-confluence/commit/f903b5201f38e17b5f6ecc7d6923b8460f13abd4))
+
 ## [0.2.1](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.0...v0.2.1) (2024-07-02)
 
 
