@@ -7,6 +7,7 @@ Goal of the project is to be the most deterministic and precise code context pro
 Continue Dev and other oss , thereby complimenting the precision of these frameworks with minimal opex.
 
 
+
 ## Current Problem with doing Repository level Documentation using AI Tooling 
 
 ### Process Overview:
@@ -113,7 +114,7 @@ springstarterjava1_20240701111627.md (the file is present in unoplat-code-conflu
 ```
 Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding. Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled. 
 
-4. Run code confluence and check your output path. you will have a file name based on output file name
+4. Run code confluence and check your output path. you will have a file name based on output file name. That file will carry precise summary of codebase at all levels - codebase,packages,classes and functions.
 ```
 unoplat-code-confluence --config example_config.json
 ```
