@@ -9,7 +9,6 @@ from dspy_class_summary import CodeConfluenceClassModule
 from dspy_codebase_summary import CodeConfluenceCodebaseModule, CodeConfluenceCodebaseObjectiveSignature
 from dspy_function_summary import CodeConfluenceFunctionModule
 from dspy_package_summary import CodeConfluencePackageModule
-from settings.appsettings import AppSettings
 import dspy
 
 
