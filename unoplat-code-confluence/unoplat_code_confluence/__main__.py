@@ -2,21 +2,21 @@ import argparse
 import os
 from loguru import logger
 import datetime
-from codebaseparser.arc_guard_handler import ArchGuardHandler
+from unoplat_code_confluence.codebaseparser.arc_guard_handler import ArchGuardHandler
 import re
-from data_models.chapi_unoplat_codebase import UnoplatCodebase
-from data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
-from downloader.downloader import Downloader
-from dspy_class_summary import CodeConfluenceClassModule
-from dspy_codebase_summary import CodeConfluenceCodebaseModule
-from dspy_function_summary import CodeConfluenceFunctionModule
-from dspy_package_summary import CodeConfluencePackageModule
-from loader import iload_json, iparse_json
-from loader.json_loader import JsonLoader
-from loader.parse_json import JsonParser
-from nodeparser.markdownsummariser import MarkdownSummariser
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
+from unoplat_code_confluence.downloader.downloader import Downloader
+from unoplat_code_confluence.dspy_class_summary import CodeConfluenceClassModule
+from unoplat_code_confluence.dspy_codebase_summary import CodeConfluenceCodebaseModule
+from unoplat_code_confluence.dspy_function_summary import CodeConfluenceFunctionModule
+from unoplat_code_confluence.dspy_package_summary import CodeConfluencePackageModule
+from unoplat_code_confluence.loader import iload_json, iparse_json
+from unoplat_code_confluence.loader.json_loader import JsonLoader
+from unoplat_code_confluence.loader.parse_json import JsonParser
+from unoplat_code_confluence.nodeparser.markdownsummariser import MarkdownSummariser
 
-from summary_parser.codebase_summary import CodebaseSummaryParser
+from unoplat_code_confluence.summary_parser.codebase_summary import CodebaseSummaryParser
 import warnings
 
 def start_pipeline():
@@ -30,8 +30,9 @@ def start_pipeline():
     #loading the config
     json_configuration_data = iload_json.load_json_from_file(args.config)
     
-    logging_config = iload_json.load_json_from_file(os.path.join(os.path.dirname(__file__), "../loguru.json"))
-    logger.configure(handlers=logging_config["handlers"])
+    #TODO: fix logging config
+    # logging_config = iload_json.load_json_from_file("loguru.json")
+    # logger.configure(handlers=logging_config["handlers"])
 
 
     get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser)

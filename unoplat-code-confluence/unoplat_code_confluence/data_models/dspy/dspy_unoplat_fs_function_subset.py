@@ -1,9 +1,9 @@
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-from data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnotationSubset
-from data_models.dspy.dspy_unoplat_fs_function_call_subset import DspyUnoplatFunctionCallSubset
-from data_models.unoplat_function_field_model import UnoplatFunctionFieldModel
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_annotation_subset import DspyUnoplatAnnotationSubset
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_function_call_subset import DspyUnoplatFunctionCallSubset
+from unoplat_code_confluence.data_models.unoplat_function_field_model import UnoplatFunctionFieldModel
 
     
 class DspyUnoplatFunctionSubset(BaseModel):
