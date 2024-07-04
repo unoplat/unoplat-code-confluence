@@ -111,6 +111,7 @@ springstarterjava1_20240701111627.md
     }
 }
 ```
+Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding. Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled. 
 4. Run code confluence and check your output path. you will have a file name based on output file name
 ```
 unoplat-code-confluence --config example_config.json
@@ -122,7 +123,7 @@ unoplat-code-confluence --config example_config.json
 1. Generate training data for optimisation of summary generated at function ,class , package and codebase (use argilla for that)
 2. Enable oss llms and induce llm routing for cost and effective optimisation for oss and commercial llms
 3. Enable Python Language Support (extend current pydantic data models based on chapi for python)
-4. Enable Graph based ingestion as well as retrieval 
+4. Enable Graph based ingestion as well as retrieval - baleen/tree-summary
 using multi hop ingestion/dspy pipelines. (basically baleen)
 5. Encapsulate the offering in a rest fashion through fastapi
 6. Integrate with Unoplat core to make it possible to self host with all cross cutting concerns for both unoplat code confluence and any embeddable graph db. (https://github.com/unoplat/unoplat)
