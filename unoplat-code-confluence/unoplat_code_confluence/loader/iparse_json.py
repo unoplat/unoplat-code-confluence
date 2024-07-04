@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from data_models.chapi_unoplat_node import Node
+from unoplat_code_confluence.data_models.chapi_unoplat_node import Node
 
 class IParseJson(ABC):
     @abstractmethod

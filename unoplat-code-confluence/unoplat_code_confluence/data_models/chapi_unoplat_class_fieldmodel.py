@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-from data_models.chapi_unoplat_annotation import Annotation
+from unoplat_code_confluence.data_models.chapi_unoplat_annotation import Annotation
 
 
 

@@ -1,8 +1,8 @@
 from typing import List, Optional
 
 from pydantic import Field,BaseModel
-from data_models.chapi_unoplat_functioncall import FunctionCall
-from data_models.chapi_unoplat_parameter import Parameter
+from unoplat_code_confluence.data_models.chapi_unoplat_functioncall import FunctionCall
+from unoplat_code_confluence.data_models.chapi_unoplat_parameter import Parameter
 
 
 class DspyUnoplatFunctionCallSubset(BaseModel):

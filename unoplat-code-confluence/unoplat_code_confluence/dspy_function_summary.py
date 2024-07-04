@@ -1,8 +1,8 @@
 from typing import Dict
 import dspy
-from data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
-from data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
-from data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
+from unoplat_code_confluence.data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 
 
 #TODO: optimise using gpt4 judge and miprov2

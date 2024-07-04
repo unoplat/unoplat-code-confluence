@@ -1,8 +1,7 @@
 from typing import Dict, List
 import dspy
-from data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
-from data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
-
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
 
 
 #TODO: optimise using gpt4 judge and miprov2s
