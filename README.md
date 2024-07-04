@@ -181,4 +181,8 @@ These are the people because of which this work has been possible. Unoplat code 
 1. [Jay Ghiya](https://github.com/JayGhiya)
     - Contact: jayghiya@unoplat.co.in  
 2. [Vipin Shreyas Kumar](https://github.com/vipinshreyaskumar)
-    - Contact: vipinshreyaskumar@unoplat.co.in    
+    - Contact: vipinshreyaskumar@unoplat.co.in
+  
+## Community Channel
+[UnoplatCodeConfluence Discord Channel](https://discord.com/channels/1131597983058755675/1169968780953260106) 
+  
