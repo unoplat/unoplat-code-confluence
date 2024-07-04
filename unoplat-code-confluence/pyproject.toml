@@ -19,7 +19,7 @@ pytest = "^8.2.1"
 dspy-ai = "^2.4.9"
 
 [tool.poetry.scripts]
-unoplat-code-confluence = "unoplat_code_confluence.main:main"
+unoplat-code-confluence = "unoplat_code_confluence.__main__:start_pipeline"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"

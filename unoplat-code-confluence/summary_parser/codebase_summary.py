@@ -15,21 +15,17 @@ import dspy
 
 class CodebaseSummaryParser:
     
-    def __init__(self, codebase: UnoplatCodebase, dspy_pipeline_function: CodeConfluenceFunctionModule, dspy_pipeline_class: CodeConfluenceClassModule,dspy_pipeline_package: CodeConfluencePackageModule,dspy_pipeline_codebase: CodeConfluenceCodebaseModule,settings: AppSettings):
+    def __init__(self, codebase: UnoplatCodebase, dspy_pipeline_function: CodeConfluenceFunctionModule, dspy_pipeline_class: CodeConfluenceClassModule,dspy_pipeline_package: CodeConfluencePackageModule,dspy_pipeline_codebase: CodeConfluenceCodebaseModule,ai_tokens: dict):
         self.codebase = codebase
         self.dspy_pipeline_function = dspy_pipeline_function
         self.dspy_pipeline_class = dspy_pipeline_class
         self.dspy_pipeline_package = dspy_pipeline_package
         self.dspy_pipeline_codebase = dspy_pipeline_codebase
-        self.settings: AppSettings = settings
+        self.ai_tokens = ai_tokens
 
         #TODO: we will be externalise the different llms that can be used at all dspy pipelines and within dspy pipelines once dspy switches to litellm
         self.config = {
-            "llm_to_func_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
-            "llm_to_class_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
-            "llm_to_package_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
-            "llm_to_codebase_questions": dspy.Together(api_key=self.settings.togetherai_api_key,model="zero-one-ai/Yi-34B-Chat",max_tokens=1024),
-            "llm_to_codebase_summary": dspy.OpenAI(model='gpt-3.5-turbo-16k',api_key=self.settings.openai_api_key)
+            "llm_to_codebase_summary": dspy.OpenAI(model='gpt-3.5-turbo-16k',api_key=self.ai_tokens["openai_api_key"])
         }
         self.init_dspy_lm()
     

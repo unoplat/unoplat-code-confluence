@@ -19,27 +19,41 @@ from settings.appsettings import AppSettings
 from summary_parser.codebase_summary import CodebaseSummaryParser
 import warnings
 
-def main(iload_json, iparse_json,isummariser,json_configuration_data):
-    settings = AppSettings()
-    get_codebase_metadata(json_configuration_data,settings,iload_json,iparse_json,isummariser)
+def start_pipeline():
+    parser = argparse.ArgumentParser(description="Codebase Parser CLI")
+    parser.add_argument("--config", help="Path to configuration file for unoplat utility", default=os.getcwd() + '/default_config.json', type=str)
+    args = parser.parse_args()
+
+    iload_json = JsonLoader()
+    iparse_json = JsonParser()
+    isummariser = MarkdownSummariser()
+    #loading the config
+    json_configuration_data = iload_json.load_json_from_file(args.config)
+    
+    logging_config = iload_json.load_json_from_file(os.path.join(os.path.dirname(__file__), "../loguru.json"))
+    logger.configure(handlers=logging_config["handlers"])
+
+
+    get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser)
     
 
-def get_codebase_metadata(json_configuration_data,settings: AppSettings,iload_json,iparse_json,isummariser):
+def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
     local_workspace_path = json_configuration_data["local_workspace_path"]
     programming_language = json_configuration_data["programming_language"]
     output_path_field = json_configuration_data["output_path"]
     output_file_name = json_configuration_data["output_file_name"]
     codebase_name_field = json_configuration_data["codebase_name"]
-    github_token = settings.github_token
+    github_token = json_configuration_data["api_tokens"]["github_token"]
     arcguard_cli_repo = json_configuration_data["repo"]["download_url"]
     local_download_directory = json_configuration_data["repo"]["download_directory"]
+    ai_tokens = json_configuration_data["ai_tokens"]
 
 
     # Button to submit the indexing
     start_parsing(
         local_workspace_path,
-        settings,
+        ai_tokens,
         # move this when expanding to new languages
         programming_language,
         output_path_field,
@@ -84,7 +98,7 @@ def ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_director
     return jar_path
 
 
-def start_parsing(local_workspace_path, settings, programming_language, output_path,output_file_name, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
+def start_parsing(local_workspace_path, ai_tokens, programming_language, output_path,output_file_name, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
 
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
@@ -129,14 +143,9 @@ def start_parsing(local_workspace_path, settings, programming_language, output_p
     dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
     
     dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
-    
-    
-    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,settings)
-
-    codebase_summary.parse_codebase()
 
     
-    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,settings)
+    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,ai_tokens)
 
     unoplat_codebase_summary: DspyUnoplatCodebaseSummary = codebase_summary.parse_codebase()
 
@@ -153,18 +162,6 @@ def start_parsing(local_workspace_path, settings, programming_language, output_p
 if __name__ == "__main__":
     
     warnings.filterwarnings("ignore", category=DeprecationWarning, module='pydantic.*')
-    parser = argparse.ArgumentParser(description="Codebase Parser CLI")
-    parser.add_argument("--config", help="Path to configuration file for unoplat utility", default=os.getcwd() + '/default_config.json', type=str)
-    args = parser.parse_args()
-
-    iload_json = JsonLoader()
-    iparse_json = JsonParser()
-    isummariser = MarkdownSummariser()
-    #loading the config
-    json_configuration_data = iload_json.load_json_from_file(args.config)
-    
-    logging_config = iload_json.load_json_from_file(os.path.join(os.path.dirname(__file__), "../loguru.json"))
-    logger.configure(handlers=logging_config["handlers"])
-
-    main(iload_json, iparse_json, isummariser,json_configuration_data)
+   
+    start_pipeline()
     
