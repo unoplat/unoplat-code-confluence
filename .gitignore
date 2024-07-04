@@ -40,3 +40,13 @@ unoplat-code-confluence/unoplat_code_confluence/dependencies/analysers
 unoplat-code-confluence/dist
 unoplat-code-confluence/unoplat_code_confluence/__pycache__
 unoplat-code-confluence/example_config.json
+unoplat-code-confluence/unoplat_code_confluence/codebaseparser/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/data_models/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/data_models/dspy/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/downloader/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/loader/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/nodeparser/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/summary_parser/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/utility/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/example_config.json
+unoplat-code-confluence/poetry.lock
