@@ -2,7 +2,7 @@ import argparse
 import os
 from loguru import logger
 import datetime
-from unoplat_code_confluence.codebaseparser.arc_guard_handler import ArchGuardHandler
+from codebaseparser.arc_guard_handler import ArchGuardHandler
 import re
 from data_models.chapi_unoplat_codebase import UnoplatCodebase
 from data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
