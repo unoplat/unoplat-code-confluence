@@ -16,6 +16,7 @@ Continue Dev and other oss , thereby complimenting the precision of these framew
 | Launch Graph based ingestion and query                     | Planned    |
 | Solve cross cutting concerns and make it possible to self host | Planned    |
 | Plug it in.                                                | Planned    |
+
 note: for detailed issues please refer roadmap mentioned below.
 
 ## Current Problem with doing Repository level Documentation using AI Tooling 
