@@ -1,12 +1,22 @@
 # Unoplat-CodeConfluence - Where Code Meets Clarity
 
 
-## Goal
+## The Ultimate Goal
 
 Goal of the project is to be the most deterministic and precise code context provider for any code repository and across multiple such code repositories tied through domain and then eventually become the unified code context provider which then can be integrated with projects like OpenDevin, Devon, Danswer,
 Continue Dev and other oss , thereby complimenting the precision of these frameworks with minimal opex.
 
+### Short term goals 
 
+| Task                                                      | Status     |
+|-----------------------------------------------------------|------------|
+| Launch autodoc for Java                                    | Done       |
+| Launch autodoc for Python                                  | In Progress|
+| Launch autodoc for all programming languages               | Planned    |
+| Launch Graph based ingestion and query                     | Planned    |
+| Solve cross cutting concerns and make it possible to self host | Planned    |
+| Plug it in.                                                | Planned    |
+note: for detailed issues please refer roadmap mentioned below.
 
 ## Current Problem with doing Repository level Documentation using AI Tooling 
 
