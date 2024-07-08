@@ -11,26 +11,31 @@ class MarkdownSummariser(ISummariser):
 
         # Codebase Summary
         markdown_output.append("# Codebase Summary\n")
-        markdown_output.append(f"**Summary:** {unoplat_codebase_summary.codebase_summary}\n")
-        markdown_output.append(f"**Objective:** {unoplat_codebase_summary.codebase_objective}\n")
+        markdown_output.append(f"**Objective:** <p>{unoplat_codebase_summary.codebase_objective}</p>\n")
+        markdown_output.append(f"**Summary:** <p>{unoplat_codebase_summary.codebase_summary}</p>\n")
         markdown_output.append(f"**Name:** {unoplat_codebase_summary.codebase_name or 'N/A'}\n")
 
         # Package Summaries
         markdown_output.append("## Package Summaries\n")
-        for package_name,DspyUnoplatPackageNodeSummary in unoplat_codebase_summary.codebase_package.package_summary_dict.items():
-            markdown_output.append(f"### {package_name}\n")
-            markdown_output.append(f"**Objective:** {DspyUnoplatPackageNodeSummary.package_objective}\n")
-            markdown_output.append(f"**Summary:** {DspyUnoplatPackageNodeSummary.package_summary}\n")
+        for package_name, DspyUnoplatPackageNodeSummary in unoplat_codebase_summary.codebase_package.package_summary_dict.items():
+            markdown_output.append(f"- **Package:** {package_name}\n")
+            markdown_output.append(f"  - **Objective:** <p>{DspyUnoplatPackageNodeSummary.package_objective}</p>\n")
+            markdown_output.append(f"  - **Summary:** <p>{DspyUnoplatPackageNodeSummary.package_summary}</p>\n")
 
-            markdown_output.append("##### Class Summaries\n")
+            markdown_output.append("### Class Summaries\n")
+            
             for class_detail in DspyUnoplatPackageNodeSummary.class_summary:
-                markdown_output.append(f"###### {class_detail.node_name}\n")
-                markdown_output.append(f"**Objective:** {class_detail.node_objective}\n")
-                markdown_output.append(f"**Summary:** {class_detail.node_summary}\n")
+                
+                markdown_output.append(f"- **{class_detail.node_name}**\n")
+                markdown_output.append(f"  - **Objective:** <p>{class_detail.node_objective}</p>\n")
 
-                markdown_output.append("####### Function Summaries\n")
-                for function in class_detail.functions_summary:
-                    markdown_output.append(f"######## {function.function_name}\n")
-                    markdown_output.append(f"**Objective:** {function.function_summary.objective}\n")
-                    markdown_output.append(f"**Implementation:** {function.function_summary.implementation_summary}\n")
+                if class_detail.node_summary:
+                    markdown_output.append(f"  - **Summary:** <p>{class_detail.node_summary}</p>\n")
+ 
+                if len(class_detail.functions_summary) > 0:
+                    markdown_output.append("### Function Summaries\n")
+                    for function in class_detail.functions_summary:
+                        markdown_output.append(f"- **{function.function_name}**\n")
+                        markdown_output.append(f"  - **Objective:** <p>{function.function_summary.objective}</p>\n")
+                        markdown_output.append(f"  - **Implementation:** <p>{function.function_summary.implementation_summary.strip().replace('\n', ' ')}</p>\n")
         return "\n".join(markdown_output)
