@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.4](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.3...v0.2.4) (2024-07-08)
+
+
+### Bug Fixes
+
+* added markdown summary ([fbbc9f8](https://github.com/unoplat/unoplat-code-confluence/commit/fbbc9f8dfcc1f39bca44c5332ea283911e69a726))
+* codebase objective first and summary second and removing unwanted files ([f8664a0](https://github.com/unoplat/unoplat-code-confluence/commit/f8664a01e66bfdf340d962ca87ee10d2f920311e))
+* markdown formatting issues ([6cd1cf0](https://github.com/unoplat/unoplat-code-confluence/commit/6cd1cf0a49907b6fd3c60b3fdb077b68ab36fbcd))
+* markdown summary ([2108771](https://github.com/unoplat/unoplat-code-confluence/commit/2108771ea011cf0ee661b8a3f324d44083f2cae5))
+
 ## [0.2.3](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.2...v0.2.3) (2024-07-04)
 
 
