@@ -11,8 +11,8 @@ class MarkdownSummariser(ISummariser):
 
         # Codebase Summary
         markdown_output.append("# Codebase Summary\n")
-        markdown_output.append(f"**Summary:** {unoplat_codebase_summary.codebase_summary}\n")
         markdown_output.append(f"**Objective:** {unoplat_codebase_summary.codebase_objective}\n")
+        markdown_output.append(f"**Summary:** {unoplat_codebase_summary.codebase_summary}\n")
         markdown_output.append(f"**Name:** {unoplat_codebase_summary.codebase_name or 'N/A'}\n")
 
         # Package Summaries
