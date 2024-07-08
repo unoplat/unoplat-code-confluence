@@ -88,9 +88,9 @@ Local workspace on your computer from https://github.com/DataStax-Examples/sprin
 ```
 
 ### Output:
-```
-springstarterjava1_20240701111627.md (the file is present in unoplat-code-confluence folder - it has formatting issues which will get resolved soon but the results are good)
-```
+
+[LinkToResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/springstarterjava1_20240708115959.md)
+
 
 
 ## Current Stage
