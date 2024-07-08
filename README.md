@@ -89,7 +89,7 @@ Local workspace on your computer from https://github.com/DataStax-Examples/sprin
 
 ### Output:
 
-[LinkToResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/springstarterjava1_20240708115959.md)
+[ToResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/springstarterjava1_20240708115959.md)
 
 
 
