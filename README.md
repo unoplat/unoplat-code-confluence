@@ -11,6 +11,7 @@ Continue Dev and other oss , thereby complimenting the precision of these framew
 | Task                                                      | Status     |
 |-----------------------------------------------------------|------------|
 | Launch autodoc for Java                                    | Done       |
+| Launch autodoc for Kotlin                                  | Planned    |
 | Launch autodoc for Python                                  | In Progress|
 | Launch autodoc for all programming languages               | Planned    |
 | Launch Graph based ingestion and query                     | Planned    |
