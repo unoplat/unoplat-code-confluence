@@ -18,7 +18,7 @@ Continue Dev and other oss , thereby complimenting the precision of these framew
 | Solve cross cutting concerns and make it possible to self host | Planned    |
 | Plug it in.                                                | Planned    |
 
-note: for detailed issues please refer roadmap mentioned below.
+Note: support is based on https://chapi.phodal.com/ and contributions are required on chapi upstream to improve parsing metadata. . for detailed issues please refer roadmap mentioned below.
 
 ## Current Problem with doing Repository level Documentation using AI Tooling 
 
@@ -137,14 +137,8 @@ unoplat-code-confluence --config example_config.json
 
 ### Status: Alpha
 
-### Programming Language Support
 
-1. Java  - Supported
-2. Python - In Progress
-3. Go - Planned
-4. Ts/Js - Planned
 
-Note: support is based on https://chapi.phodal.com/ and contributions are required on chapi upstream to improve parsing metadata. 
 
 ### Roadmap:
 1. Generate training data for optimisation of summary generated at function ,class , package and codebase (use argilla for that)
