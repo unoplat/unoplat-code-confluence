@@ -30,7 +30,7 @@ class CodebaseSummaryParser:
         self.init_dspy_lm()
     
     def init_dspy_lm(self):
-        dspy.configure(lm=self.config["llm_to_codebase_summary"])
+        dspy.configure(lm=self.config["llm_to_codebase_summary"],experimental=True)
 
 
 
