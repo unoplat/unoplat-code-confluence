@@ -2,7 +2,7 @@ from typing import Dict, List
 import dspy
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
-
+from loguru import logger
 
 #TODO: optimise using gpt4 judge and miprov2s
 class CodeConfluencePackageSignature(dspy.Signature):
@@ -25,6 +25,7 @@ class CodeConfluencePackageModule(dspy.Module):
         
 
     def forward(self, class_objective_list: List[DspyUnoplatNodeSummary],llm_config: Dict):
+        
         package_summary = ""
         for class_objective in class_objective_list:
             signature_package_summary: CodeConfluencePackageSignature = self.generate_package_summary(package_existing_summary=package_summary, class_objective=class_objective.node_objective)

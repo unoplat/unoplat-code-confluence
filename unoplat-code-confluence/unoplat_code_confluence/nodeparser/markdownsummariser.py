@@ -33,7 +33,7 @@ class MarkdownSummariser(ISummariser):
                     markdown_output.append(f"  - **Summary:** <p>{class_detail.node_summary}</p>\n")
  
                 if len(class_detail.functions_summary) > 0:
-                    markdown_output.append("### Function Summaries\n")
+                    markdown_output.append("#### Function Summaries\n")
                     for function in class_detail.functions_summary:
                         markdown_output.append(f"- **{function.function_name}**\n")
                         markdown_output.append(f"  - **Objective:** <p>{function.function_summary.objective}</p>\n")
