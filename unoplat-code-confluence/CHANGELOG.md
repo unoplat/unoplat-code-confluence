@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.4...v0.3.0) (2024-07-10)
+
+
+### Features
+
+* add better logging at function,class,package level ([43c2189](https://github.com/unoplat/unoplat-code-confluence/commit/43c2189e77aa9122a5846428dea3be920de8d28d))
+
+
+### Bug Fixes
+
+* bug where huge classes used to fail as comprehension will not happen. improved function dspy pipeline. switched to experimental true for better performance of chat models. ([6b84f2e](https://github.com/unoplat/unoplat-code-confluence/commit/6b84f2e180a964fd9b9bc64c3e1bb13f09e3dfbb))
+
 ## [0.2.4](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.3...v0.2.4) (2024-07-08)
 
 
