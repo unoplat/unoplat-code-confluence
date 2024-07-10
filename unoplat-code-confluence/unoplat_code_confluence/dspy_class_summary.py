@@ -4,7 +4,7 @@ import dspy
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
-
+from loguru import logger
 
 #TODO: optimise using gpt4 judge and miprov2
 
@@ -29,6 +29,7 @@ class CodeConfluenceClassModule(dspy.Module):
         self.generate_class_objective = dspy.ChainOfThought(CodeConfluenceClassObjectiveSignature)
 
     def forward(self, class_metadata: DspyUnoplatNodeSubset, function_objective_summary: List[DspyUnoplatFunctionSummary],llm_config: Dict):
+        logger.info(f"Generating class summary for {class_metadata.node_name}")
         class_summary = ""
         
         for function_objective in function_objective_summary:
