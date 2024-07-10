@@ -9,7 +9,7 @@ from unoplat_code_confluence.data_models.unoplat_function_field_model import Uno
 class DspyUnoplatFunctionSubset(BaseModel):
     name: Optional[str] = Field(default=None, alias="Name")
     return_type: Optional[str] = Field(default=None, alias="ReturnType")
-    function_calls: Optional[List[DspyUnoplatFunctionCallSubset]] = Field(default_factory=list, alias="FunctionCalls")
+    function_calls: Optional[List[DspyUnoplatFunctionCallSubset]] = Field(default_factory=list, alias="FunctionCalls",exclude=True)
     annotations: Optional[List[DspyUnoplatAnnotationSubset]] = Field(default_factory=list, alias="Annotations")
     local_variables: Optional[List[UnoplatFunctionFieldModel]] = Field(default_factory=list, alias="LocalVariables")
     content: Optional[str] = Field(default=None, alias="Content")
