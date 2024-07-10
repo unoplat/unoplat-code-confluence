@@ -136,7 +136,6 @@ def start_parsing(local_workspace_path, ai_tokens, programming_language, output_
     
     dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
     
-
     dspy_package_pipeline_summary : CodeConfluencePackageModule = CodeConfluencePackageModule()
 
     dspy_codebase_pipeline_summary: CodeConfluenceCodebaseModule = CodeConfluenceCodebaseModule()
@@ -145,7 +144,6 @@ def start_parsing(local_workspace_path, ai_tokens, programming_language, output_
     
     dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
 
-    
     codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,ai_tokens)
 
     unoplat_codebase_summary: DspyUnoplatCodebaseSummary = codebase_summary.parse_codebase()

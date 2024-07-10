@@ -10,6 +10,7 @@ from unoplat_code_confluence.dspy_codebase_summary import CodeConfluenceCodebase
 from unoplat_code_confluence.dspy_function_summary import CodeConfluenceFunctionModule
 from unoplat_code_confluence.dspy_package_summary import CodeConfluencePackageModule
 import dspy
+from loguru import logger
 
 
 class CodebaseSummaryParser:
@@ -53,6 +54,7 @@ class CodebaseSummaryParser:
                 class_summaries.append(class_summary)
         
             dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries,llm_config=self.config).answer
+            logger.info(f"Generating package summary for {package_name}")
             unoplat_package_summary.package_summary_dict[package_name] = dspy_pipeline_package_node_summary
         
         # Extract list of DspyUnoplatPackageNodeSummary from unoplat_package_summary
