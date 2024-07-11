@@ -15,23 +15,28 @@ from loguru import logger
 
 class CodebaseSummaryParser:
     
-    def __init__(self, codebase: UnoplatCodebase, dspy_pipeline_function: CodeConfluenceFunctionModule, dspy_pipeline_class: CodeConfluenceClassModule,dspy_pipeline_package: CodeConfluencePackageModule,dspy_pipeline_codebase: CodeConfluenceCodebaseModule,ai_tokens: dict):
+    def __init__(self, codebase: UnoplatCodebase, dspy_pipeline_function: CodeConfluenceFunctionModule, dspy_pipeline_class: CodeConfluenceClassModule,dspy_pipeline_package: CodeConfluencePackageModule,dspy_pipeline_codebase: CodeConfluenceCodebaseModule,llm_config: dict):
         self.codebase = codebase
         self.dspy_pipeline_function = dspy_pipeline_function
         self.dspy_pipeline_class = dspy_pipeline_class
         self.dspy_pipeline_package = dspy_pipeline_package
         self.dspy_pipeline_codebase = dspy_pipeline_codebase
-        self.ai_tokens = ai_tokens
-
         #TODO: we will be externalise the different llms that can be used at all dspy pipelines and within dspy pipelines once dspy switches to litellm
-        self.config = {
-            "llm_to_codebase_summary": dspy.OpenAI(model='gpt-3.5-turbo-16k',api_key=self.ai_tokens["openai_api_key"])
-        }
-        self.init_dspy_lm()
+        self.init_dspy_lm(llm_config)
     
-    def init_dspy_lm(self):
-        dspy.configure(lm=self.config["llm_to_codebase_summary"],experimental=True)
-
+    def init_dspy_lm(self,llm_config: dict):
+        #todo define a switch case
+        llm_provider = next(iter(llm_config.keys()))
+        match llm_provider:
+            case "openai":
+                dspy.configure(lm=dspy.OpenAI(**llm_config["openai"]),experimental=True)
+            case "together":
+                dspy.configure(lm=dspy.Together(**llm_config["together"]),experimental=True)
+            case "anyscale":
+                dspy.configure(lm=dspy.Anyscale(**llm_config["anyscale"]),experimental=True)
+            case "anthropic":
+                dspy.configure(lm=dspy.Anthropic(**llm_config["anthropic"]),experimental=True)
+            
 
 
     def parse_codebase(self) -> DspyUnoplatCodebaseSummary:
@@ -46,21 +51,21 @@ class CodebaseSummaryParser:
                 function_summaries :List[DspyUnoplatFunctionSummary] = []
                 
                 for function in node.functions:
-                    function_summary = self.dspy_pipeline_function(function_metadata=function,class_metadata=node,llm_config=self.config).answer
+                    function_summary = self.dspy_pipeline_function(function_metadata=function,class_metadata=node).answer
                     dspyUnoplatFunctionSummary: DspyUnoplatFunctionSummary  = DspyUnoplatFunctionSummary(FunctionName=function.name,FunctionSummary=function_summary)
                     function_summaries.append(dspyUnoplatFunctionSummary)
                 
-                class_summary: DspyUnoplatNodeSummary = self.dspy_pipeline_class(class_metadata=node, function_objective_summary=function_summaries,llm_config=self.config).answer
+                class_summary: DspyUnoplatNodeSummary = self.dspy_pipeline_class(class_metadata=node, function_objective_summary=function_summaries).answer
                 class_summaries.append(class_summary)
         
-            dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries,llm_config=self.config).answer
+            dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries).answer
             logger.info(f"Generating package summary for {package_name}")
             unoplat_package_summary.package_summary_dict[package_name] = dspy_pipeline_package_node_summary
         
         # Extract list of DspyUnoplatPackageNodeSummary from unoplat_package_summary
         # Pass the list of DspyUnoplatPackageNodeSummary to dspy_pipeline_codebase
 
-        dspy_codebase_summary = self.dspy_pipeline_codebase(package_objective_dict=unoplat_package_summary.package_summary_dict,llm_config=self.config)
+        dspy_codebase_summary = self.dspy_pipeline_codebase(package_objective_dict=unoplat_package_summary.package_summary_dict)
 
         unoplat_codebase_summary.codebase_summary = dspy_codebase_summary.summary
         unoplat_codebase_summary.codebase_objective = dspy_codebase_summary.answer

@@ -120,12 +120,19 @@ Local workspace on your computer from https://github.com/DataStax-Examples/sprin
     "api_tokens": {
       "github_token": "your github pat for downloading arcguard"
     },
-    "ai_tokens": {
-      "openai_api_key": "your openai api key"
+    "llm_provider_config": {
+      "openai": {
+        "api_key": "YourApiKey",
+        "model": "gpt-3.5-turbo-16k",
+        "model_type" : "chat",
+        "max_tokens": 1024,
+        "temperature": 0.0
     }
 }
 ```
 Configuration Note: Do not change the download_url and keep the programming_language to java (as right now only java is supported)
+llm Provider Config: 
+- Model Providers Supported: ["openai","together","anyscale","anthropic"] For config inside llm_provider_config refer - [Dspy Model Provider Doc](https://dspy-docs.vercel.app/docs/category/remote-language-model-clients)
 
 Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding. Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
 
