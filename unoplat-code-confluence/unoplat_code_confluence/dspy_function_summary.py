@@ -36,7 +36,7 @@ class CodeConfluenceFunctionModule(dspy.Module):
         self.generate_function_summary_with_class_metadata = dspy.ChainOfThought(CodeConfluenceFunctionSummaryWithClassSignature)
         self.generate_function_objective = dspy.ChainOfThought(CodeConfluenceFunctionObjectiveSignature)
 
-    def forward(self, function_metadata: DspyUnoplatFunctionSubset, class_metadata: DspyUnoplatNodeSubset,llm_config: Dict):
+    def forward(self, function_metadata: DspyUnoplatFunctionSubset, class_metadata: DspyUnoplatNodeSubset):
         logger.info(f"Generating function summary for {function_metadata.name}")
         function_summary = ""
         class_subset = str(class_metadata.model_dump_json())

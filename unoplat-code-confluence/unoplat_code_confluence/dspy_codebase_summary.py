@@ -24,7 +24,7 @@ class CodeConfluenceCodebaseModule(dspy.Module):
         self.generate_codebase_objective = dspy.Predict(CodeConfluenceCodebaseObjectiveSignature)
         
 
-    def forward(self, package_objective_dict: Dict[str, DspyUnoplatPackageNodeSummary],llm_config: Dict):
+    def forward(self, package_objective_dict: Dict[str, DspyUnoplatPackageNodeSummary]):
 
         codebase_summary = ""
 
