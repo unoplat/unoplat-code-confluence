@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.3.0...v0.4.0) (2024-07-11)
+
+
+### Features
+
+* externalised llm provider config and enabled support for anthropic, anyscale, together and openai ([30aa226](https://github.com/unoplat/unoplat-code-confluence/commit/30aa22674fb1992f4d667f1438f1f3c9ee2137f0))
+
 ## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.2.4...v0.3.0) (2024-07-10)
 
 
