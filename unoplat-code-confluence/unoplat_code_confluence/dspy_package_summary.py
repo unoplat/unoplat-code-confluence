@@ -24,7 +24,7 @@ class CodeConfluencePackageModule(dspy.Module):
         self.generate_package_objective = dspy.ChainOfThought(CodeConfluencePackageObjectiveSignature)
         
 
-    def forward(self, class_objective_list: List[DspyUnoplatNodeSummary],llm_config: Dict):
+    def forward(self, class_objective_list: List[DspyUnoplatNodeSummary]):
         
         package_summary = ""
         for class_objective in class_objective_list:
