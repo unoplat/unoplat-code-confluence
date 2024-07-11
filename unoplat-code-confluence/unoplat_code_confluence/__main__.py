@@ -4,6 +4,7 @@ from loguru import logger
 import datetime
 from unoplat_code_confluence.codebaseparser.arc_guard_handler import ArchGuardHandler
 import re
+from unoplat_code_confluence.configuration.external_config import AppConfig
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
 from unoplat_code_confluence.downloader.downloader import Downloader
@@ -40,29 +41,12 @@ def start_pipeline():
 
 def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
-    local_workspace_path = json_configuration_data["local_workspace_path"]
-    programming_language = json_configuration_data["programming_language"]
-    output_path_field = json_configuration_data["output_path"]
-    output_file_name = json_configuration_data["output_file_name"]
-    codebase_name_field = json_configuration_data["codebase_name"]
-    github_token = json_configuration_data["api_tokens"]["github_token"]
-    arcguard_cli_repo = json_configuration_data["repo"]["download_url"]
-    local_download_directory = json_configuration_data["repo"]["download_directory"]
-    ai_tokens = json_configuration_data["ai_tokens"]
-
+    app_config = AppConfig(**json_configuration_data)
+    
 
     # Button to submit the indexing
     start_parsing(
-        local_workspace_path,
-        ai_tokens,
-        # move this when expanding to new languages
-        programming_language,
-        output_path_field,
-        output_file_name,
-        codebase_name_field,
-        github_token,
-        arcguard_cli_repo,
-        local_download_directory,
+        app_config,
         iload_json,
         iparse_json,
         isummariser
@@ -99,26 +83,26 @@ def ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_director
     return jar_path
 
 
-def start_parsing(local_workspace_path, ai_tokens, programming_language, output_path,output_file_name, codebase_name, github_token, arcguard_cli_repo, local_download_directory, iload_json, iparse_json, isummariser):
+def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: JsonParser, isummariser: MarkdownSummariser):
 
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
     
     # Ensure the JAR is downloaded or use the existing one
-    jar_path = ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_directory)
+    jar_path = ensure_jar_downloaded(app_config.api_tokens["github_token"],app_config.repo.download_url,app_config.repo.download_directory)
 
-    logger.info(f"Local Workspace URL: {local_workspace_path}")
-    logger.info(f"Programming Language: {programming_language}")
-    logger.info(f"Output Path: {output_path}")
-    logger.info(f"Codebase Name: {codebase_name}")
+    logger.info(f"Local Workspace URL: {app_config.local_workspace_path}")
+    logger.info(f"Programming Language: {app_config.programming_language}")
+    logger.info(f"Output Path: {app_config.output_path}")
+    logger.info(f"Codebase Name: {app_config.codebase_name}")
 
     # Initialize the ArchGuard handler with the collected parameters.
     archguard_handler = ArchGuardHandler(
         jar_path=jar_path,
-        language=programming_language,
-        codebase_path=local_workspace_path,
-        codebase_name=codebase_name,
-        output_path=output_path
+        language=app_config.programming_language,
+        codebase_path=app_config.local_workspace_path,
+        codebase_name=app_config.codebase_name,
+        output_path=app_config.output_path
     )
     
     chapi_metadata_path = archguard_handler.run_scan()
@@ -128,7 +112,7 @@ def start_parsing(local_workspace_path, ai_tokens, programming_language, output_
    
     current_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     
-    output_filename = f"{codebase_name}_{current_timestamp}.md"
+    output_filename = f"{app_config.codebase_name}_{current_timestamp}.md"
 
     unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata)
     
@@ -144,7 +128,7 @@ def start_parsing(local_workspace_path, ai_tokens, programming_language, output_
     
     dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
 
-    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,ai_tokens)
+    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,app_config.llm_provider_config)
 
     unoplat_codebase_summary: DspyUnoplatCodebaseSummary = codebase_summary.parse_codebase()
 
@@ -152,7 +136,7 @@ def start_parsing(local_workspace_path, ai_tokens, programming_language, output_
     
     markdown_output = isummariser.summarise_to_markdown(unoplat_codebase_summary)
     # write the markdown output to a file
-    with open(os.path.join(output_path, output_filename), 'w') as md_file:
+    with open(os.path.join(app_config.output_path, output_filename), 'w') as md_file:
         md_file.write(markdown_output)
         
     logger.info("Parsing process completed.")
