@@ -93,6 +93,8 @@ Local workspace on your computer from https://github.com/DataStax-Examples/sprin
 [ToResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/springstarterjava1_20240708115959.md)
 
 
+## Python Example
+
 
 ## Current Stage
 
@@ -160,7 +162,7 @@ Ollama Example:
 
 ```
 
-Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding.
+Note: we have only tried gpt3.5 turbo and it works well on codebases older than 2021 (newer frameworks will not work well post 2021 - like dspy/textgrad) as data is precise for code understanding.
 
 Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
 
