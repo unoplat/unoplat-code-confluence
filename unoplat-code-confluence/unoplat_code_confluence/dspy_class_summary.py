@@ -9,7 +9,7 @@ from loguru import logger
 #TODO: optimise using gpt4 judge and miprov2
 
 class CodeConfluenceClassSummarySignature(dspy.Signature):
-    """This signature takes in existing summary of a class and function summary of a class one at a time and returns enhanced final summary."""
+    """This signature takes in existing summary of a class and function summary of a class one at a time and returns enhanced final_class_summary."""
     class_existing_summary: str = dspy.InputField(default="Summary:",desc="This will contain existing class summary")
     function_summary: str = dspy.InputField(desc="This will contain current function summary based on which existing class summary has to be improved")
     class_metadata: str = dspy.InputField(desc="This will contain current class metadata")
@@ -17,7 +17,7 @@ class CodeConfluenceClassSummarySignature(dspy.Signature):
     
 
 class CodeConfluenceClassObjectiveSignature(dspy.Signature):
-    """This signature takes in class summary and returns concise objective of the class"""
+    """This signature takes in class summary and returns concise class_objective of the class. Do not include your reasoning in class_objective."""
     final_class_summary: str = dspy.InputField(desc="This should contain concise detailed implementation summary of the class or in some cases direct content of the class if it is just a data model object")
     class_objective: str = dspy.OutputField(desc="This should contain concise objective of the class based on implementation summary in under 2 lines without loosing on any details")
 
@@ -25,8 +25,8 @@ class CodeConfluenceClassObjectiveSignature(dspy.Signature):
 class CodeConfluenceClassModule(dspy.Module):
     def __init__(self):
         super().__init__()
-        self.generate_class_summary = dspy.ChainOfThought(CodeConfluenceClassSummarySignature)
-        self.generate_class_objective = dspy.ChainOfThought(CodeConfluenceClassObjectiveSignature)
+        self.generate_class_summary = dspy.TypedPredictor(CodeConfluenceClassSummarySignature)
+        self.generate_class_objective = dspy.TypedPredictor(CodeConfluenceClassObjectiveSignature)
 
     def forward(self, class_metadata: DspyUnoplatNodeSubset, function_objective_summary: List[DspyUnoplatFunctionSummary]):
         logger.info(f"Generating class summary for {class_metadata.node_name}")

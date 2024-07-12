@@ -14,7 +14,7 @@ class Node(BaseModel):
     file_path: Optional[str] = Field(default=None, alias="FilePath")
     module: Optional[str] = Field(default=None, alias="Module")
     package: Optional[str] = Field(default=None, alias="Package")
-    multiple_extend: Optional[bool] = Field(default=None, alias="MultipleExtend")
+    multiple_extend: Optional[list[str]] = Field(default_factory=list, alias="MultipleExtend")
     fields: List[ClassFieldModel] = Field(default_factory=list, alias="Fields")
     extend: Optional[str] = Field(default=None, alias="Extend")
     imports: List[Import] = Field(default_factory=list, alias="Imports")

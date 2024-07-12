@@ -4,7 +4,7 @@ from unoplat_code_confluence.utility.total_file_count import TotalFileCount
 from loguru import logger
 
 class ArchGuardHandler:
-    def __init__(self, jar_path, language, codebase_path,codebase_name, output_path):
+    def __init__(self, jar_path, language, codebase_path,codebase_name, output_path,extension:str):
         self.jar_path = jar_path
         self.language = language
         self.codebase_path = codebase_path
@@ -12,8 +12,9 @@ class ArchGuardHandler:
         self.total_files = 0
         self.current_file_count = 0
         self.codebase_name = codebase_name
+        self.extension  = extension
         # Initialize FileCounter in the constructor
-        self.file_counter = TotalFileCount(self.codebase_path, f'.{self.language}')
+        self.file_counter = TotalFileCount(self.codebase_path, f'.{self.extension}')
 
     def run_scan(self) -> str:
         # Get total number of files in run_scan

@@ -19,6 +19,7 @@ from unoplat_code_confluence.nodeparser.markdownsummariser import MarkdownSummar
 
 from unoplat_code_confluence.summary_parser.codebase_summary import CodebaseSummaryParser
 import warnings
+from packaging import version
 
 def start_pipeline():
     parser = argparse.ArgumentParser(description="Codebase Parser CLI")
@@ -52,36 +53,20 @@ def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummar
         isummariser
     )
 
-def download_and_continue(settings,manager):
-    try:
-        jar_path = Downloader.download_latest_jar(settings.download_url, settings.download_directory, settings.github_token)
-        logger.info(f"Download completed: {jar_path}")
-    except Exception as e:
-        logger.error(f"Error during download: {e}")
-    finally:
-        manager.stop() 
-        return jar_path
 
-def ensure_jar_downloaded(github_token,arcguard_cli_repo,local_download_directory):
-    # Compile the regex pattern for the JAR file
-    jar_pattern = re.compile(r"scanner_cli-.*-all\.jar")
-
-    # Check if any file matching the pattern exists in the download directory
-    existing_jars = [f for f in os.listdir(local_download_directory) if jar_pattern.match(f)]
-
-    if not existing_jars:
-        logger.info("Downloading utility to parse codebase...")
-        # No JAR matches, need to download
-        jar_path = Downloader.download_latest_jar(arcguard_cli_repo, local_download_directory, github_token)
-        logger.info("Download finished JAR file...")
-    else:
-        # Use the first matching JAR found
-        jar_path = os.path.join(local_download_directory, existing_jars[0])
-        logger.info("Using existing JAR:")
-        logger.info(f"JAR Path: {jar_path}")
+def ensure_jar_downloaded(github_token, arcguard_cli_repo, local_download_directory):
+    
+    jar_path = Downloader.download_latest_jar(arcguard_cli_repo, local_download_directory, github_token)
     
     return jar_path
 
+def get_extension(programming_language: str):
+    if programming_language == "java":
+        return "java"
+    elif programming_language == "python":
+        return "py"
+    else:
+        raise ValueError(f"Unsupported programming language: {programming_language}")
 
 def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: JsonParser, isummariser: MarkdownSummariser):
 
@@ -95,6 +80,9 @@ def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: Js
     logger.info(f"Programming Language: {app_config.programming_language}")
     logger.info(f"Output Path: {app_config.output_path}")
     logger.info(f"Codebase Name: {app_config.codebase_name}")
+    
+    # based on programming_language convert to extension
+    extension = get_extension(app_config.programming_language)
 
     # Initialize the ArchGuard handler with the collected parameters.
     archguard_handler = ArchGuardHandler(
@@ -102,13 +90,13 @@ def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: Js
         language=app_config.programming_language,
         codebase_path=app_config.local_workspace_path,
         codebase_name=app_config.codebase_name,
-        output_path=app_config.output_path
+        output_path=app_config.output_path,
+        extension=extension
     )
     
     chapi_metadata_path = archguard_handler.run_scan()
 
-    chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)
-    
+    chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)   
    
     current_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     
