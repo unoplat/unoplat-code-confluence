@@ -162,7 +162,7 @@ Ollama Example:
 
 Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding.
 
-Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
+Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
 
 4. Run code confluence and check your output path. you will have a file name based on output file name. That file will carry precise summary of codebase at all levels - codebase,packages,classes and functions.
 ```
