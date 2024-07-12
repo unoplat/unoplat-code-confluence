@@ -6,7 +6,7 @@ from loguru import logger
 
 #TODO: optimise using gpt4 judge and miprov2/textgrad
 class CodeConfluenceFunctionSummary(dspy.Signature):
-    """This signature takes in metadata about function in a class and returns summary with all important details."""
+    """This signature takes in metadata about function in a class and returns unoplat_function_summary with all important details."""
     chapi_function_metadata: str = dspy.InputField(desc="This will contain function metadata regarding the function")
     unoplat_function_summary: str = dspy.OutputField(desc="This will contain function summary based on function metadata.")
 
@@ -17,13 +17,13 @@ class CodeConfluenceFunctionCallSummary(dspy.Signature):
     unoplat_function_final_summary: str = dspy.OutputField(desc="Refined and restructured final summary enhanced based on existing function summary, function metadata and function call metadata.")
 
 class CodeConfluenceFunctionSummaryWithClassSignature(dspy.Signature):
-    """This signature takes in chapi_class_metadata and unoplat_function_existing_summary and returns unoplat_function_final_summary."""
+    """This signature takes in chapi_class_metadata and unoplat_function_existing_summary and returns enhanced final summary unoplat_function_final_summary."""
     chapi_class_metadata: str = dspy.InputField(desc="This will contain class metadata in json")
     unoplat_function_existing_summary: str = dspy.InputField(desc="This will contain existing function summary without class metadata")
     unoplat_function_final_summary: str = dspy.OutputField(desc="This will contain final function summary enhanced using class metadata covering all important details")
 
 class CodeConfluenceFunctionObjectiveSignature(dspy.Signature):
-    """This signature takes in function_implementation description and returns objective of the function in a concise and accurate manner."""
+    """This signature takes in function_implementation description and returns function_objective of the function in a concise and accurate manner."""
     function_implementation: str = dspy.InputField(desc="This will contain concise detailed implementation description of the function")
     function_objective: str = dspy.OutputField(desc="This will contain concise objective of the function based on implementation summary within 3 lines without missing on any details.")
 
@@ -31,10 +31,10 @@ class CodeConfluenceFunctionModule(dspy.Module):
     def __init__(self):
         super().__init__()
         # TODO: change to typed chain of thought post dspy signature optimisers
-        self.generate_function_summary = dspy.ChainOfThought(CodeConfluenceFunctionSummary)
-        self.generate_function_call_summary = dspy.ChainOfThought(CodeConfluenceFunctionCallSummary)
-        self.generate_function_summary_with_class_metadata = dspy.ChainOfThought(CodeConfluenceFunctionSummaryWithClassSignature)
-        self.generate_function_objective = dspy.ChainOfThought(CodeConfluenceFunctionObjectiveSignature)
+        self.generate_function_summary = dspy.TypedChainOfThought(CodeConfluenceFunctionSummary)
+        self.generate_function_call_summary = dspy.TypedChainOfThought(CodeConfluenceFunctionCallSummary)
+        self.generate_function_summary_with_class_metadata = dspy.TypedPredictor(CodeConfluenceFunctionSummaryWithClassSignature)
+        self.generate_function_objective = dspy.TypedPredictor(CodeConfluenceFunctionObjectiveSignature)
 
     def forward(self, function_metadata: DspyUnoplatFunctionSubset, class_metadata: DspyUnoplatNodeSubset):
         logger.info(f"Generating function summary for {function_metadata.name}")
