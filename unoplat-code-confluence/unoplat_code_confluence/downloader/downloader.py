@@ -59,15 +59,3 @@ class Downloader:
         # If no local JAR is higher version, download the latest
         logger.info(f"JAR found: {highest_version_asset_name}, starting download...")
         return Downloader.download_file(highest_version_asset_url, download_dir, highest_version_asset_name)
-
-        
-        
-
-        
-        
-        
-        
-        
-        highest_version_asset = max(jar_asset, key=lambda asset: version.parse(jar_pattern.match(asset.name).group(1)))
-        logger.info(f"JAR found: {jar_asset.name}, starting download...")
-        return Downloader.download_file(jar_asset.browser_download_url, download_dir, highest_version_asset.name)
