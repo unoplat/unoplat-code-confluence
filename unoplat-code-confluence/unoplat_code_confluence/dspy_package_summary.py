@@ -6,22 +6,22 @@ from loguru import logger
 
 #TODO: optimise using gpt4 judge and miprov2s
 class CodeConfluencePackageSignature(dspy.Signature):
-    """This signature takes in existing summary of a class and function summary of a class one at a time and returns final enhanced summary"""
+    """This signature takes in existing summary of a class and function summary of a class one at a time and returns final final_package_summary. """
     package_existing_summary: str = dspy.InputField(default="package existing summary:",desc="This will contain existing package summary")
     class_objective: str = dspy.InputField(desc="This will contain current class objective based on which existing package summary has to be improved")
     final_package_summary: str = dspy.OutputField(desc="This will contain improved concise package summary")
     
 
 class CodeConfluencePackageObjectiveSignature(dspy.Signature):
-    """This signature takes in package summary and returns concise objective of the package"""
+    """This signature takes in package summary and returns concise package_objective of the package."""
     final_package_summary: str = dspy.InputField(desc="This will contain concise detailed implementation summary of the package")
     package_objective: str = dspy.OutputField(desc="This will contain concise objective of the package based on package summary")
 
 class CodeConfluencePackageModule(dspy.Module):
     def __init__(self):
         super().__init__()
-        self.generate_package_summary = dspy.ChainOfThought(CodeConfluencePackageSignature)
-        self.generate_package_objective = dspy.ChainOfThought(CodeConfluencePackageObjectiveSignature)
+        self.generate_package_summary = dspy.TypedPredictor(CodeConfluencePackageSignature)
+        self.generate_package_objective = dspy.TypedPredictor(CodeConfluencePackageObjectiveSignature)
         
 
     def forward(self, class_objective_list: List[DspyUnoplatNodeSummary]):
