@@ -131,10 +131,38 @@ Local workspace on your computer from https://github.com/DataStax-Examples/sprin
 }
 ```
 Configuration Note: Do not change the download_url and keep the programming_language to java (as right now only java is supported)
-llm Provider Config: 
-- Model Providers Supported: ["openai","together","anyscale","anthropic"] For config inside llm_provider_config refer - [Dspy Model Provider Doc](https://dspy-docs.vercel.app/docs/category/remote-language-model-clients)
 
-Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding. Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
+llm Provider Config: 
+- Model Providers Supported: ["openai","together","anyscale","awsanthropic","cohere","ollama"]
+
+- For config inside llm_provider_config refer - [Dspy Model Provider Doc](https://dspy-docs.vercel.app/docs/category/remote-language-model-clients)
+
+- Use Chat models. We have not tested instruct models as of now.
+
+If you are looking for some credits sign up on Together AI and get 25$ to run code confluence on repository of your choice. You can even use Ollama
+
+Together Example:
+```
+"llm_provider_config": {
+      "together": {
+        "api_key": "YourApiKey",
+        "model": "zero-one-ai/Yi-34B-Chat"
+    }
+
+```
+
+Ollama Example:
+```
+"llm_provider_config": {
+      "ollama": {
+        "model": "llama3"
+    }
+
+```
+
+Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding.
+
+Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
 
 4. Run code confluence and check your output path. you will have a file name based on output file name. That file will carry precise summary of codebase at all levels - codebase,packages,classes and functions.
 ```
