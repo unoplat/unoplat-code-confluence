@@ -91,7 +91,7 @@ Local workspace on your computer from:
 
 ### Output:
 
-[JavaResult]([https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/springstarterjava1_20240708115959.md](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/java/springstarterjava1_20240708115959.md))
+[JavaResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/java/springstarterjava1_20240708115959.md)
 
 
 ## Python Example 
