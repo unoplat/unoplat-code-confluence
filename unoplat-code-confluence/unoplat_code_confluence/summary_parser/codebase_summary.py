@@ -29,16 +29,24 @@ class CodebaseSummaryParser:
         llm_provider = next(iter(llm_config.keys()))
         match llm_provider:
             case "openai":
-                dspy.configure(lm=dspy.OpenAI(**llm_config["openai"]),experimental=True)
+                openai_provider = dspy.OpenAI(**llm_config["openai"])
+                dspy.configure(lm=openai_provider,experimental=True)
             case "together":
-                dspy.configure(lm=dspy.Together(**llm_config["together"]),experimental=True)
+                together_provider = dspy.Together(**llm_config["together"])
+                dspy.configure(lm=together_provider,experimental=True)
             case "anyscale":
-                dspy.configure(lm=dspy.Anyscale(**llm_config["anyscale"]),experimental=True)
+                anyscale_provider = dspy.Anyscale(**llm_config["anyscale"])
+                dspy.configure(lm=anyscale_provider,experimental=True)
             case "awsanthropic":
-                dspy.configure(lm=dspy.AWSAnthropic(**llm_config["awsanthropic"]),experimental=True)
+                awsanthropic_provider = dspy.AWSAnthropic(**llm_config["awsanthropic"])
+                dspy.configure(lm=awsanthropic_provider,experimental=True)
             case "ollama":
-                dspy.configure(lm=dspy.OllamaLocal(**llm_config["ollama"]),experimental=True)    
-            
+                ollama_provider = dspy.OllamaLocal(**llm_config["ollama"])
+                dspy.configure(lm=ollama_provider,experimental=True) 
+            case "cohere":
+                cohere_provider = dspy.Cohere(**llm_config["cohere"])
+                dspy.configure(lm=cohere_provider,experimental=True)       
+                
 
 
     def parse_codebase(self) -> DspyUnoplatCodebaseSummary:
@@ -53,9 +61,10 @@ class CodebaseSummaryParser:
                 function_summaries :List[DspyUnoplatFunctionSummary] = []
                 
                 for function in node.functions:
-                    function_summary = self.dspy_pipeline_function(function_metadata=function,class_metadata=node).answer
-                    dspyUnoplatFunctionSummary: DspyUnoplatFunctionSummary  = DspyUnoplatFunctionSummary(FunctionName=function.name,FunctionSummary=function_summary)
-                    function_summaries.append(dspyUnoplatFunctionSummary)
+                    if function.name is not None:
+                        function_summary = self.dspy_pipeline_function(function_metadata=function,class_metadata=node).answer
+                        dspyUnoplatFunctionSummary: DspyUnoplatFunctionSummary  = DspyUnoplatFunctionSummary(FunctionName=function.name,FunctionSummary=function_summary)
+                        function_summaries.append(dspyUnoplatFunctionSummary)
                 
                 class_summary: DspyUnoplatNodeSummary = self.dspy_pipeline_class(class_metadata=node, function_objective_summary=function_summaries).answer
                 class_summaries.append(class_summary)
