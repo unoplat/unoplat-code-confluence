@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.5.0...v0.6.0) (2024-07-12)
+
+
+### Features
+
+* enable ollama cohere support and fix the naming convention for aws anthropic provider for anthropic models ([d341dbd](https://github.com/unoplat/unoplat-code-confluence/commit/d341dbd376b387ab55bd03aa01b5d520fd55e1d9))
+
 ## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.4.0...v0.5.0) (2024-07-12)
 
 
