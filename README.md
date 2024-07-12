@@ -84,17 +84,29 @@ This diagram outlines the Unoplat process from the initial parsing of the codeba
 ## Java Example:
 
 ### Input:
+Local workspace on your computer from:
 ```
-Local workspace on your computer from https://github.com/DataStax-Examples/spring-data-starter.git
+ https://github.com/DataStax-Examples/spring-data-starter.git
 ```
 
 ### Output:
 
-[ToResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/springstarterjava1_20240708115959.md)
+[JavaResult]([https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/springstarterjava1_20240708115959.md](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/java/springstarterjava1_20240708115959.md))
 
 
-## Python Example
+## Python Example (Note: Python support is in Alpha right now - check issue- [Python-Improvements](https://github.com/unoplat/unoplat-code-confluence/issues/77)
 
+### Input:
+Local workspace on your computer from:
+```
+https://github.com/zou-group/textgrad
+```
+
+### Output:
+
+[PythonResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/python/textgrad_20240712164358.md)
+
+#### Note: Gpt3.5 turbo 16k is currently used for all examples.
 
 ## Current Stage
 
