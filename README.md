@@ -10,9 +10,9 @@ Continue Dev and other oss , thereby complimenting the precision of these framew
 
 | Task                                                      | Status     |
 |-----------------------------------------------------------|------------|
-| Launch autodoc for Java                                    | Done       |
+| Launch autodoc for Java                                    | Ready: Stable       |
 | Launch autodoc for Kotlin                                  | Planned    |
-| Launch autodoc for Python                                  | In Progress|
+| Launch autodoc for Python                                  | Ready: Alpha|
 | Launch autodoc for all programming languages               | Planned    |
 | Launch Graph based ingestion and query                     | Planned    |
 | Solve cross cutting concerns and make it possible to self host | Planned    |
@@ -81,7 +81,7 @@ graph TD
 This diagram outlines the Unoplat process from the initial parsing of the codebase to the generation of an enhanced Code Atlas, highlighting the deterministic and structured approach to managing and understanding codebases.
 
 
-## Example:
+## Java Example:
 
 ### Input:
 ```
@@ -162,18 +162,23 @@ Ollama Example:
 
 Note: we have tried gpt3.5 turbo and it works well as data is precise for code understanding.
 
-Our experience with https://huggingface.co/01-ai/Yi-1.5-34B-Chat also has been great apart from hiccups with last level when codebase understand is being formed. Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
+Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
 
 4. Run code confluence and check your output path. you will have a file name based on output file name. That file will carry precise summary of codebase at all levels - codebase,packages,classes and functions.
 ```
 unoplat-code-confluence --config example_config.json
 ```
 
+### Limitations
+
+1. Slow Performance - https://github.com/unoplat/unoplat-code-confluence/issues/69 .
+2. Observability/Tracing - https://github.com/unoplat/unoplat-code-confluence/issues/54
+3. Externalise logs - https://github.com/unoplat/unoplat-code-confluence/issues/61
+4. Progress Bar for AutoDoc - https://github.com/unoplat/unoplat-code-confluence/issues/50
+
+Please let us know if there are issues other than limitations that are hindering your adoption. we will prioritise accordingly. Also please go through issues first before raising any issue.
 
 ### Status: Alpha
-
-
-
 
 ### Roadmap:
 1. Generate training data for optimisation of summary generated at function ,class , package and codebase (use argilla for that)
