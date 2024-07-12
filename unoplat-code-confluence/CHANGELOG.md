@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.6.0...v0.7.0) (2024-07-12)
+
+
+### Features
+
+* added examples for java and python. Python is in beta support ([5e2d100](https://github.com/unoplat/unoplat-code-confluence/commit/5e2d100ff27cf93f0168033f090822e8b6644a42))
+* added support for cohere but it is not tested ([e67b11e](https://github.com/unoplat/unoplat-code-confluence/commit/e67b11eb9e226b0402ad7f4b300b7c26197dd6c6))
+* improved reliability by moving towards typed chain of thought and typed predictors ([bd73c3c](https://github.com/unoplat/unoplat-code-confluence/commit/bd73c3c00a0d5910756322ece96611b6c3eb6542))
+
+
+### Bug Fixes
+
+* arcguard always download latest fix ([612c095](https://github.com/unoplat/unoplat-code-confluence/commit/612c0951acbeb168386c1d131198781ff938c262))
+* arcguard latest download jar fix when already downloaded jar on user machine exists ([353092d](https://github.com/unoplat/unoplat-code-confluence/commit/353092d6bc430f52fa9d8691cf239d3e53b4d161))
+* extension fix ([75a75e3](https://github.com/unoplat/unoplat-code-confluence/commit/75a75e37f39c624cf53a3d0fe0b84a9da443ed96))
+* extension for different programming languages such as python ([37068fa](https://github.com/unoplat/unoplat-code-confluence/commit/37068fa9cd28889b74ac92ab0e91a2f7dd1ef20b))
+* pydantic data model for python for supporting multiple inheritance in python ([72dff98](https://github.com/unoplat/unoplat-code-confluence/commit/72dff98f7cb2d81f31a97fc363a5484ccc126f36))
+* support for python multiple inheritance ([6572ee9](https://github.com/unoplat/unoplat-code-confluence/commit/6572ee92f0570e730a1a295db961055e6ef3e88f))
+
 ## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.5.0...v0.6.0) (2024-07-12)
 
 
