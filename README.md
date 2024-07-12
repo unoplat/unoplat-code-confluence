@@ -94,7 +94,9 @@ Local workspace on your computer from:
 [JavaResult]([https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/springstarterjava1_20240708115959.md](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/java/springstarterjava1_20240708115959.md))
 
 
-## Python Example (Note: Python support is in Alpha right now - check issue- [Python-Improvements](https://github.com/unoplat/unoplat-code-confluence/issues/77)
+## Python Example 
+
+Note: Python support is in Alpha right now - check issue- [Python-Improvements](https://github.com/unoplat/unoplat-code-confluence/issues/77)
 
 ### Input:
 Local workspace on your computer from:
@@ -105,6 +107,8 @@ https://github.com/zou-group/textgrad
 ### Output:
 
 [PythonResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/python/textgrad_20240712164358.md)
+
+Refer - class and function level summaries for python as it is in alpha right now. Package and code are not up to the mark.
 
 #### Note: Gpt3.5 turbo 16k is currently used for all examples.
 
