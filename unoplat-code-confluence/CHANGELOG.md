@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.4.0...v0.5.0) (2024-07-12)
+
+
+### Features
+
+* enhanced dspy pipeline for function summary reducing token usage and latency ([bd094c2](https://github.com/unoplat/unoplat-code-confluence/commit/bd094c25809bf31e8ee79f39dbfdf581d0fc3995))
+
 ## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.3.0...v0.4.0) (2024-07-11)
 
 
