@@ -8,6 +8,8 @@ class LLMProvider(Enum):
     COHERE = 'cohere'
     ANYSCALE = 'anyscale'
     TOGETHER = 'together'
+    OLLAMA = 'ollama'
+    AWSANTHROPIC = 'awsanthropic'
 
 
     

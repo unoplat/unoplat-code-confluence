@@ -34,8 +34,10 @@ class CodebaseSummaryParser:
                 dspy.configure(lm=dspy.Together(**llm_config["together"]),experimental=True)
             case "anyscale":
                 dspy.configure(lm=dspy.Anyscale(**llm_config["anyscale"]),experimental=True)
-            case "anthropic":
-                dspy.configure(lm=dspy.Anthropic(**llm_config["anthropic"]),experimental=True)
+            case "awsanthropic":
+                dspy.configure(lm=dspy.AWSAnthropic(**llm_config["awsanthropic"]),experimental=True)
+            case "ollama":
+                dspy.configure(lm=dspy.OllamaLocal(**llm_config["ollama"]),experimental=True)    
             
 
 
