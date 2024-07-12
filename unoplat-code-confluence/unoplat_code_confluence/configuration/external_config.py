@@ -15,7 +15,7 @@ class LLMProvider(Enum):
     
 
 class ProgrammingLanguage(Enum):
-    # PYTHON = 'Python'
+    PYTHON = 'python'
     JAVA = 'java'
     # JAVASCRIPT = 'JavaScript'
     # CSHARP = 'C#'
