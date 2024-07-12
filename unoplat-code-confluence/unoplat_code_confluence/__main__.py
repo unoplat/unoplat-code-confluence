@@ -60,6 +60,13 @@ def ensure_jar_downloaded(github_token, arcguard_cli_repo, local_download_direct
     
     return jar_path
 
+def get_extension(programming_language: str):
+    if programming_language == "java":
+        return "java"
+    elif programming_language == "python":
+        return "py"
+    else:
+        raise ValueError(f"Unsupported programming language: {programming_language}")
 
 def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: JsonParser, isummariser: MarkdownSummariser):
 
@@ -73,6 +80,9 @@ def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: Js
     logger.info(f"Programming Language: {app_config.programming_language}")
     logger.info(f"Output Path: {app_config.output_path}")
     logger.info(f"Codebase Name: {app_config.codebase_name}")
+    
+    # based on programming_language convert to extension
+    extension = get_extension(app_config.programming_language)
 
     # Initialize the ArchGuard handler with the collected parameters.
     archguard_handler = ArchGuardHandler(
@@ -80,7 +90,8 @@ def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: Js
         language=app_config.programming_language,
         codebase_path=app_config.local_workspace_path,
         codebase_name=app_config.codebase_name,
-        output_path=app_config.output_path
+        output_path=app_config.output_path,
+        extension=extension
     )
     
     chapi_metadata_path = archguard_handler.run_scan()
