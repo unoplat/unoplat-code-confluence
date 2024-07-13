@@ -178,7 +178,7 @@ Ollama Example:
 
 ```
 
-Note: we have only tried gpt3.5 turbo and it works well on codebases older than 2021 (newer frameworks will not work well post 2021 - like dspy/textgrad) as data is precise for code understanding.
+Note: we have only tried gpt3.5 turbo and it works well on codebases.
 
 Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
 
