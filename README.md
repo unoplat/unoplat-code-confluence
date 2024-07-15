@@ -120,7 +120,7 @@ https://github.com/zou-group/textgrad
 
 ### Usage Instructions
 
-1. Install Pipx.
+1. Install (Pipx)[https://pipx.pypa.io/stable/].
 2. Install unoplat-code-confluence through :
 ```
    pipx install git+https://github.com/unoplat/unoplat-code-confluence.git@v0.8.0#subdirectory=unoplat-code-confluence
