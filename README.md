@@ -134,7 +134,7 @@ https://github.com/zou-group/textgrad
     "output_path": "directory path for markdown output",
     "output_file_name": "name of markdown output (example - xyz.md)",
     "codebase_name": "name of your codebase",
-    "programming_language": "programming language type(example- java(right now only java is supported)",
+    "programming_language": "programming language type(example- java or python)",
     "repo": {
       "download_url": "archguard/archguard",
       "download_directory": "download directory for arcguard tool"
