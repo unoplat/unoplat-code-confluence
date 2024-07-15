@@ -205,16 +205,11 @@ Please let us know if there are issues other than limitations that are hindering
 ### Roadmap:
 1. Generate training data for optimisation of summary generated at function ,class , package and codebase (use argilla for that)
 2. Enable oss llms and induce llm routing for cost and effective optimisation for oss and commercial llms
-3. Enable Python Language Support (extend current pydantic data models based on chapi for python)
+3. ~~Enable Python Language Support (extend current pydantic data models based on chapi for python)~~
 4. Enable Graph based ingestion as well as retrieval - baleen/tree-summary
-using multi hop ingestion/dspy pipelines. (basically baleen)
-5. Encapsulate the offering in a rest fashion through fastapi
+5. Encapsulate the ingestion in a python native pipeline framework to make deployment easier.
 6. Integrate with Unoplat core to make it possible to self host with all cross cutting concerns for both unoplat code confluence and any embeddable graph db. (https://github.com/unoplat/unoplat)
-5. Launch custom context provider with help of continue dev.
-6. Launch custom context provider with llama index as llama code parser as a lib.
-7. Make the context pluggable to danswer.
-8. Make the context pluggable to opendevin and devon.
-9. Now the most important Get all heroes/inspirations on board.
+7. Now the most important Get all heroes/inspirations on board.
 
 
 ## Tech Stack 
