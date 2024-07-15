@@ -256,3 +256,5 @@ Book a call with us - [Cal Link](https://cal.com/jay-ghiya/15min)
 ## Community Channel
 [UnoplatCodeConfluence Discord Channel](https://discord.com/channels/1131597983058755675/1169968780953260106) 
   
+## X handle
+[x](https://x.com/unoplatio)
