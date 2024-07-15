@@ -14,11 +14,12 @@ Continue Dev and other oss , thereby complimenting the precision of these framew
 | Launch autodoc for Kotlin                                  | Planned    |
 | Launch autodoc for Python                                  | Ready: Stable|
 | Launch autodoc for all programming languages               | Planned    |
-| Launch Graph based ingestion and query                     | Planned    |
+| Launch Graph based ingestion and query through Dspy                    | Planned    |
+| Launch Tree sitters for respective programming languages to induce changes in Codebases to adjust knowledgeGraph based on commit and git diff| Planned |
 | Solve cross cutting concerns and make it possible to self host | Planned    |
 | Plug it in.                                                | Planned    |
 
-Note: support is based on https://chapi.phodal.com/ and contributions are required on chapi upstream to improve parsing metadata. . for detailed issues please refer roadmap mentioned below.
+Note: Full codebase parsing is based on https://chapi.phodal.com/ and contributions are required on chapi upstream to improve parsing metadata. . for detailed issues please refer roadmap mentioned below.
 
 ## Current Problem with doing Repository level Documentation using AI Tooling 
 
