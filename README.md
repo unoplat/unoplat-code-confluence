@@ -152,7 +152,7 @@ https://github.com/zou-group/textgrad
     }
 }
 ```
-Configuration Note: Do not change the download_url and keep the programming_language to java (as right now only java is supported)
+Configuration Note: Do not change the download_url and keep the programming_language to java or python (as right now only java & python are supported)
 
 llm Provider Config: 
 - Model Providers Supported: ["openai","together","anyscale","awsanthropic","cohere","ollama"]
