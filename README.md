@@ -17,7 +17,7 @@ Continue Dev and other oss , thereby complimenting the precision of these framew
 | Launch Graph based ingestion and query through Dspy                    | Planned    |
 | Launch Tree sitters for respective programming languages to induce changes in Codebases to adjust knowledgeGraph based on commit and git diff| Planned |
 | Solve cross cutting concerns and make it possible to self host | Planned    |
-| Plug it in.                                                | Planned    |
+| Plug it in to oss partners/heros mentioned below.                                                | Planned    |
 
 Note: Full codebase parsing is based on https://chapi.phodal.com/ and contributions are required on chapi upstream to improve parsing metadata. . for detailed issues please refer roadmap mentioned below.
 
