@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.7.0...v0.8.0) (2024-07-15)
+
+
+### Features
+
+* drastically improved summarisation with chainofthoughtwithhints ([b328688](https://github.com/unoplat/unoplat-code-confluence/commit/b3286880a92a278e9091c97cdbd1ead6411f07d6))
+
 ## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.6.0...v0.7.0) (2024-07-12)
 
 
