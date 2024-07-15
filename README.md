@@ -82,8 +82,9 @@ graph TD
 This diagram outlines the Unoplat process from the initial parsing of the codebase to the generation of an enhanced Code Atlas, highlighting the deterministic and structured approach to managing and understanding codebases.
 
 
-## Java Example:
+## Java Examples:
 
+1. Spring Java Cassandra Starter
 ### Input:
 Local workspace on your computer from:
 ```
@@ -101,7 +102,7 @@ Local workspace on your computer from:
 
 Python is stable and we tested on the most latest groundbreaking optimiser for prompts - textgrad through a model that has not seen beyond 2021. We have got amazing results. please check output below.
 
-
+1. TextGrad
 ### Input:
 Local workspace on your computer from:
 ```
@@ -110,9 +111,18 @@ https://github.com/zou-group/textgrad
 
 ### Output:
 
-[PythonResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/python/textgrad)
+[TextGradPythonResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/python/textgrad)
 
 ~~Refer - class and function level summaries for python as it is in alpha right now. Package and code are not up to the mark.~~
+
+2. DSPY
+### Input: 
+Local workspace on your computer from:
+```
+https://github.com/stanfordnlp/dspy/tree/main/dspy
+```
+### Output:
+[DspyPythonresult](https://github.com/unoplat/unoplat-code-confluence/tree/main/unoplat-code-confluence/examples/python/dspy)
 
 #### Note: Gpt3.5 turbo 16k is currently used for all examples.
 
