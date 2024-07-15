@@ -12,7 +12,7 @@ Continue Dev and other oss , thereby complimenting the precision of these framew
 |-----------------------------------------------------------|------------|
 | Launch autodoc for Java                                    | Ready: Stable       |
 | Launch autodoc for Kotlin                                  | Planned    |
-| Launch autodoc for Python                                  | Ready: Alpha|
+| Launch autodoc for Python                                  | Ready: Stable|
 | Launch autodoc for all programming languages               | Planned    |
 | Launch Graph based ingestion and query                     | Planned    |
 | Solve cross cutting concerns and make it possible to self host | Planned    |
@@ -96,7 +96,10 @@ Local workspace on your computer from:
 
 ## Python Example 
 
-Note: Python support is in Alpha right now - check issue- [Python-Improvements](https://github.com/unoplat/unoplat-code-confluence/issues/77)
+~~Note: Python support is alpha right now - check issue- [Python-Improvements](https://github.com/unoplat/unoplat-code-confluence/issues/77)~~ 
+
+Python is stable and we tested on the most latest groundbreaking optimiser for prompts - textgrad through a model that has not seen beyond 2021. We have got amazing results. please check output below.
+
 
 ### Input:
 Local workspace on your computer from:
@@ -106,7 +109,7 @@ https://github.com/zou-group/textgrad
 
 ### Output:
 
-[PythonResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/python/textgrad_20240712164358.md)
+[PythonResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/python/textgrad)
 
 Refer - class and function level summaries for python as it is in alpha right now. Package and code are not up to the mark.
 
@@ -119,7 +122,7 @@ Refer - class and function level summaries for python as it is in alpha right no
 1. Install Pipx.
 2. Install unoplat-code-confluence through :
 ```
-   pipx install git+https://github.com/unoplat/unoplat-code-confluence.git@v0.7.0#subdirectory=unoplat-code-confluence
+   pipx install git+https://github.com/unoplat/unoplat-code-confluence.git@v0.8.0#subdirectory=unoplat-code-confluence
 ```
 3. Before you can run the unoplat code confluence tool on your local machine, you need to set up the necessary configuration file. This file tells tool where your codebase is located, where to output the analysis results, and other essential information. Below is a step-by-step guide to setting up your configuration.
 
