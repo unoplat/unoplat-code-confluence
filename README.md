@@ -111,7 +111,7 @@ https://github.com/zou-group/textgrad
 
 [PythonResult](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence/examples/python/textgrad)
 
-Refer - class and function level summaries for python as it is in alpha right now. Package and code are not up to the mark.
+~~Refer - class and function level summaries for python as it is in alpha right now. Package and code are not up to the mark.~~
 
 #### Note: Gpt3.5 turbo 16k is currently used for all examples.
 
