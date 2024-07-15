@@ -1,4 +1,5 @@
 from typing import List
+from unoplat_code_confluence.configuration.external_config import AppConfig
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
@@ -15,14 +16,15 @@ from loguru import logger
 
 class CodebaseSummaryParser:
     
-    def __init__(self, codebase: UnoplatCodebase, dspy_pipeline_function: CodeConfluenceFunctionModule, dspy_pipeline_class: CodeConfluenceClassModule,dspy_pipeline_package: CodeConfluencePackageModule,dspy_pipeline_codebase: CodeConfluenceCodebaseModule,llm_config: dict):
+    def __init__(self, codebase: UnoplatCodebase, dspy_pipeline_function: CodeConfluenceFunctionModule, dspy_pipeline_class: CodeConfluenceClassModule,dspy_pipeline_package: CodeConfluencePackageModule,dspy_pipeline_codebase: CodeConfluenceCodebaseModule,app_config: AppConfig):
         self.codebase = codebase
         self.dspy_pipeline_function = dspy_pipeline_function
         self.dspy_pipeline_class = dspy_pipeline_class
         self.dspy_pipeline_package = dspy_pipeline_package
         self.dspy_pipeline_codebase = dspy_pipeline_codebase
         #TODO: we will be externalise the different llms that can be used at all dspy pipelines and within dspy pipelines once dspy switches to litellm
-        self.init_dspy_lm(llm_config)
+        self.init_dspy_lm(app_config.llm_provider_config)
+        
     
     def init_dspy_lm(self,llm_config: dict):
         #todo define a switch case
@@ -45,7 +47,8 @@ class CodebaseSummaryParser:
                 dspy.configure(lm=ollama_provider,experimental=True) 
             case "cohere":
                 cohere_provider = dspy.Cohere(**llm_config["cohere"])
-                dspy.configure(lm=cohere_provider,experimental=True)       
+                dspy.configure(lm=cohere_provider,experimental=True)
+                       
                 
 
 
@@ -69,7 +72,7 @@ class CodebaseSummaryParser:
                 class_summary: DspyUnoplatNodeSummary = self.dspy_pipeline_class(class_metadata=node, function_objective_summary=function_summaries).answer
                 class_summaries.append(class_summary)
         
-            dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries).answer
+            dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries,package_name).answer
             logger.info(f"Generating package summary for {package_name}")
             unoplat_package_summary.package_summary_dict[package_name] = dspy_pipeline_package_node_summary
         

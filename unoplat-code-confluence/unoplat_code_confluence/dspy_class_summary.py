@@ -25,22 +25,22 @@ class CodeConfluenceClassObjectiveSignature(dspy.Signature):
 class CodeConfluenceClassModule(dspy.Module):
     def __init__(self):
         super().__init__()
-        self.generate_class_summary = dspy.TypedPredictor(CodeConfluenceClassSummarySignature)
-        self.generate_class_objective = dspy.TypedPredictor(CodeConfluenceClassObjectiveSignature)
+        self.generate_class_summary = dspy.ChainOfThoughtWithHint(CodeConfluenceClassSummarySignature)
+        self.generate_class_objective = dspy.ChainOfThoughtWithHint(CodeConfluenceClassObjectiveSignature)
 
     def forward(self, class_metadata: DspyUnoplatNodeSubset, function_objective_summary: List[DspyUnoplatFunctionSummary]):
         logger.info(f"Generating class summary for {class_metadata.node_name}")
         class_summary = ""
         
         for function_objective in function_objective_summary:
-            signature_class_summary = self.generate_class_summary(class_existing_summary=class_summary, function_summary=function_objective.function_summary.objective, class_metadata=str(class_metadata.model_dump_json()))
+            signature_class_summary = self.generate_class_summary(class_existing_summary=class_summary, function_summary=function_objective.function_summary.objective, class_metadata=str(class_metadata.model_dump_json()),hint="Generate the class detailed summary for the class by being concise , factual and grounded.:"+class_metadata.node_name)
             class_summary = signature_class_summary.final_class_summary
         
         
         if len(function_objective_summary) > 0:
-            class_objective_signature = self.generate_class_objective(final_class_summary = class_summary)
+            class_objective_signature = self.generate_class_objective(final_class_summary = class_summary,hint="Generate the class objective for the class by being concise and dnt miss on any details.:"+class_metadata.node_name)
         else:
-            class_objective_signature = self.generate_class_objective(final_class_summary = class_metadata.content)
+            class_objective_signature = self.generate_class_objective(final_class_summary = class_metadata.content,hint="Generate the class objective for the class by being concise and dnt miss on any details.:"+class_metadata.node_name)
 
         dspy_class_summary = DspyUnoplatNodeSummary(NodeName=class_metadata.node_name,NodeObjective=class_objective_signature.class_objective, NodeSummary=class_summary,FunctionsSummary=function_objective_summary)
         
