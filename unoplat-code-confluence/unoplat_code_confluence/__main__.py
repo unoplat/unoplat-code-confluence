@@ -16,10 +16,10 @@ from unoplat_code_confluence.loader import iload_json, iparse_json
 from unoplat_code_confluence.loader.json_loader import JsonLoader
 from unoplat_code_confluence.loader.parse_json import JsonParser
 from unoplat_code_confluence.nodeparser.markdownsummariser import MarkdownSummariser
-
 from unoplat_code_confluence.summary_parser.codebase_summary import CodebaseSummaryParser
 import warnings
 from packaging import version
+
 
 def start_pipeline():
     parser = argparse.ArgumentParser(description="Codebase Parser CLI")
@@ -102,7 +102,7 @@ def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: Js
     
     output_filename = f"{app_config.codebase_name}_{current_timestamp}.md"
 
-    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata)
+    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata,app_config.local_workspace_path,app_config.programming_language)
     
     dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
     
@@ -116,7 +116,7 @@ def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: Js
     
     dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
 
-    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,app_config.llm_provider_config)
+    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,app_config)
 
     unoplat_codebase_summary: DspyUnoplatCodebaseSummary = codebase_summary.parse_codebase()
 
