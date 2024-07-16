@@ -43,7 +43,8 @@ def start_pipeline():
 def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
     app_config = AppConfig(**json_configuration_data)
-    
+    logger.configure(handlers=app_config.handlers)
+
 
     # Button to submit the indexing
     start_parsing(
