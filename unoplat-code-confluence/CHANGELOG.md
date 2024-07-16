@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/unoplat/unoplat-code-confluence/compare/v0.9.0...v0.9.1) (2024-07-16)
+
+
+### Bug Fixes
+
+* loguru config externalised. Fixed verbose info logging to debug ([7e2e881](https://github.com/unoplat/unoplat-code-confluence/commit/7e2e8811db2bd9714d71b40f689c2420719e212f))
+
 ## [0.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.8.0...v0.9.0) (2024-07-15)
 
 
