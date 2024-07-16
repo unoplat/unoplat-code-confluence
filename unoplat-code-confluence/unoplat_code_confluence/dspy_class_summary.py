@@ -29,7 +29,7 @@ class CodeConfluenceClassModule(dspy.Module):
         self.generate_class_objective = dspy.ChainOfThoughtWithHint(CodeConfluenceClassObjectiveSignature)
 
     def forward(self, class_metadata: DspyUnoplatNodeSubset, function_objective_summary: List[DspyUnoplatFunctionSummary]):
-        logger.info(f"Generating class summary for {class_metadata.node_name}")
+        logger.debug(f"Generating class summary for {class_metadata.node_name}")
         class_summary = ""
         
         for function_objective in function_objective_summary:

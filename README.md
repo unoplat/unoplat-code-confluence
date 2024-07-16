@@ -159,14 +159,24 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
         "model_type" : "chat",
         "max_tokens": 1024,
         "temperature": 0.0
-    }
+    },
+    "logging_handlers": [
+      {
+          "sink": "~/Documents/unoplat/app.log",
+          "format": "<green>{time:YYYY-MM-DD at HH:mm:ss}</green> | <level>{level}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+          "rotation": "10 MB",
+          "retention": "10 days",
+          "level": "INFO"
+      }
+    ]
 }
 ```
 Configuration Note: Do not change the download_url and keep the programming_language to java or python (as right now only java & python are supported)
 
 llm Provider Config: 
-- Model Providers Supported: ["openai","together","anyscale","awsanthropic","cohere","ollama"]
-
+- Model Providers Supported: ["openai","together","anyscale","awsanthropic","cohere","ollama"] (cohere does not work right now. there is a issue already created. 
+we will be addressing it soon)
+ 
 - For config inside llm_provider_config refer - [Dspy Model Provider Doc](https://dspy-docs.vercel.app/docs/category/remote-language-model-clients)
 
 - Use Chat models. We have not tested instruct models as of now.
@@ -205,7 +215,7 @@ unoplat-code-confluence --config example_config.json
 
 1. Slow Performance - https://github.com/unoplat/unoplat-code-confluence/issues/69 .
 2. Observability/Tracing - https://github.com/unoplat/unoplat-code-confluence/issues/54
-3. Externalise logs - https://github.com/unoplat/unoplat-code-confluence/issues/61
+3. ~~Externalise logs - https://github.com/unoplat/unoplat-code-confluence/issues/61~~ 
 4. Progress Bar for AutoDoc - https://github.com/unoplat/unoplat-code-confluence/issues/50
 
 Please let us know if there are issues other than limitations that are hindering your adoption. we will prioritise accordingly. Also please go through issues first before raising any issue.
