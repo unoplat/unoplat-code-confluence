@@ -215,7 +215,7 @@ unoplat-code-confluence --config example_config.json
 
 1. Slow Performance - https://github.com/unoplat/unoplat-code-confluence/issues/69 .
 2. Observability/Tracing - https://github.com/unoplat/unoplat-code-confluence/issues/54
-3. Externalise logs - https://github.com/unoplat/unoplat-code-confluence/issues/61
+3. ~~Externalise logs - https://github.com/unoplat/unoplat-code-confluence/issues/61~~ 
 4. Progress Bar for AutoDoc - https://github.com/unoplat/unoplat-code-confluence/issues/50
 
 Please let us know if there are issues other than limitations that are hindering your adoption. we will prioritise accordingly. Also please go through issues first before raising any issue.
