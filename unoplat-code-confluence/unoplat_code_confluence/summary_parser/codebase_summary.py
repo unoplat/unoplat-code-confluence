@@ -73,7 +73,7 @@ class CodebaseSummaryParser:
                 class_summaries.append(class_summary)
         
             dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries,package_name).answer
-            logger.info(f"Generating package summary for {package_name}")
+            logger.debug(f"Generating package summary for {package_name}")
             unoplat_package_summary.package_summary_dict[package_name] = dspy_pipeline_package_node_summary
         
         # Extract list of DspyUnoplatPackageNodeSummary from unoplat_package_summary

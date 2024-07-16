@@ -1,6 +1,6 @@
 from enum import Enum
-from typing import Any, Dict
-from pydantic import BaseModel, ValidationInfo, field_validator
+from typing import Any, Dict, List
+from pydantic import BaseModel, ValidationInfo, field_validator, Field
 
 
 class LLMProvider(Enum):
@@ -38,6 +38,7 @@ class AppConfig(BaseModel):
     repo: RepoConfig
     api_tokens: Dict[str, str]
     llm_provider_config: Dict[str, Any]
+    handlers: List[Dict[str, Any]] = Field(default_factory=list,alias="logging_handlers")
  
     @field_validator('programming_language')
     def check_programming_language(cls, value, info:ValidationInfo):
