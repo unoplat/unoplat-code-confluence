@@ -6,6 +6,14 @@
 Goal of the project is to be the most deterministic and precise code context provider for any code repository and across multiple such code repositories tied through domain and then eventually become the unified code context provider which then can be integrated with projects like OpenDevin, Devon, Danswer,
 Continue Dev and other oss , thereby complimenting the precision of these frameworks with minimal opex.
 
+
+## Unoplat OSS Atlas
+
+The objective of the repo below is to curate comprehensive understanding of oss repos. We are starting with oss repos that inspired us to do this work and giving them back first. Please go through readme of the below repo to get started. 
+
+[UnoplatOssAtlas](https://github.com/unoplat/unoplat-oss-atlas/tree/main)
+
+
 ### Short term goals 
 
 | Task                                                      | Status     |
@@ -267,6 +275,7 @@ These are the people because of which this work has been possible. Unoplat code 
     - Contact: vipinshreyaskumar@unoplat.co.in
   
 Book a call with us - [Cal Link](https://cal.com/jay-ghiya/15min)
+
   
 ## Community Channel
 [UnoplatCodeConfluence Discord Channel](https://discord.com/channels/1131597983058755675/1169968780953260106) 
