@@ -167,7 +167,8 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
         "model_type" : "chat",
         "max_tokens": 1024,
         "temperature": 0.0
-    },
+    }
+},
     "logging_handlers": [
       {
           "sink": "~/Documents/unoplat/app.log",
