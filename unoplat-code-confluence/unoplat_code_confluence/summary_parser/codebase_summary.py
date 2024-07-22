@@ -65,21 +65,34 @@ class CodebaseSummaryParser:
                 
                 for function in node.functions:
                     if function.name is not None:
-                        function_summary = self.dspy_pipeline_function(function_metadata=function,class_metadata=node).answer
-                        dspyUnoplatFunctionSummary: DspyUnoplatFunctionSummary  = DspyUnoplatFunctionSummary(FunctionName=function.name,FunctionSummary=function_summary)
-                        function_summaries.append(dspyUnoplatFunctionSummary)
-                
-                class_summary: DspyUnoplatNodeSummary = self.dspy_pipeline_class(class_metadata=node, function_objective_summary=function_summaries).answer
-                class_summaries.append(class_summary)
-        
-            dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries,package_name).answer
+                        try:
+                            function_summary = self.dspy_pipeline_function(function_metadata=function,class_metadata=node).answer
+                            dspyUnoplatFunctionSummary: DspyUnoplatFunctionSummary  = DspyUnoplatFunctionSummary(FunctionName=function.name,FunctionSummary=function_summary)
+                            function_summaries.append(dspyUnoplatFunctionSummary)
+                        except Exception as e:
+                            logger.error(f"Error generating function summary for {function.name}: {e}")
+                            logger.exception("Traceback:")                            
+                try:
+                    class_summary: DspyUnoplatNodeSummary = self.dspy_pipeline_class(class_metadata=node, function_objective_summary=function_summaries).answer
+                    class_summaries.append(class_summary)
+                except Exception as e:
+                    logger.error(f"Error generating class summary for {node.name}: {e}")
+                    logger.exception("Traceback:")
+            try:
+                dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries,package_name).answer
+            except Exception as e:
+                logger.error(f"Error generating package summary for {package_name}: {e}")
+                logger.exception("Traceback:")
             logger.debug(f"Generating package summary for {package_name}")
             unoplat_package_summary.package_summary_dict[package_name] = dspy_pipeline_package_node_summary
         
         # Extract list of DspyUnoplatPackageNodeSummary from unoplat_package_summary
         # Pass the list of DspyUnoplatPackageNodeSummary to dspy_pipeline_codebase
-
-        dspy_codebase_summary = self.dspy_pipeline_codebase(package_objective_dict=unoplat_package_summary.package_summary_dict)
+        try:
+            dspy_codebase_summary = self.dspy_pipeline_codebase(package_objective_dict=unoplat_package_summary.package_summary_dict)
+        except Exception as e:
+            logger.error(f"Error generating codebase summary: {e}")
+            logger.exception("Traceback:")
 
         unoplat_codebase_summary.codebase_summary = dspy_codebase_summary.summary
         unoplat_codebase_summary.codebase_objective = dspy_codebase_summary.answer
