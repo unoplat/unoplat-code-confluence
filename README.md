@@ -132,7 +132,7 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
 ### Output:
 [DspyPythonresult](https://github.com/unoplat/unoplat-code-confluence/tree/main/unoplat-code-confluence/examples/python/dspy)
 
-#### Note: Gpt3.5 turbo 16k is currently used for all examples.
+#### Note: ~~Gpt3.5 turbo 16k is currently used for all examples.~~ You can use gpt-4o-mini as it is better and cheaper and the the utlity has been optimised for it.
 
 ## Current Stage
 

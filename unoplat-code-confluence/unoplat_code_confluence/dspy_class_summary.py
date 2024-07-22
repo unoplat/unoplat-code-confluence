@@ -36,11 +36,12 @@ class CodeConfluenceClassModule(dspy.Module):
             signature_class_summary = self.generate_class_summary(class_existing_summary=class_summary, function_summary=function_objective.function_summary.objective, class_metadata=str(class_metadata.model_dump_json()),hint="Generate the class detailed summary for the class by being concise , factual and grounded.:"+class_metadata.node_name)
             class_summary = signature_class_summary.final_class_summary
         
+        hint="Generate the class objective for the class by being concise and dnt miss on any details.:"+class_metadata.node_name
         
         if len(function_objective_summary) > 0:
-            class_objective_signature = self.generate_class_objective(final_class_summary = class_summary,hint="Generate the class objective for the class by being concise and dnt miss on any details.:"+class_metadata.node_name)
+            class_objective_signature = self.generate_class_objective(final_class_summary = class_summary,hint=hint)
         else:
-            class_objective_signature = self.generate_class_objective(final_class_summary = class_metadata.content,hint="Generate the class objective for the class by being concise and dnt miss on any details.:"+class_metadata.node_name)
+            class_objective_signature = self.generate_class_objective(final_class_summary = class_metadata.content,hint=hint)
 
         dspy_class_summary = DspyUnoplatNodeSummary(NodeName=class_metadata.node_name,NodeObjective=class_objective_signature.class_objective, NodeSummary=class_summary,FunctionsSummary=function_objective_summary)
         
