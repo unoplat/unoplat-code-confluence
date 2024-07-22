@@ -62,6 +62,7 @@ def ensure_jar_downloaded(github_token, arcguard_cli_repo, local_download_direct
     return jar_path
 
 def get_extension(programming_language: str):
+    #TODO: convert this to enum based check
     if programming_language == "java":
         return "java"
     elif programming_language == "python":
