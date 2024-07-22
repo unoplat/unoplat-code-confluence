@@ -29,7 +29,7 @@ The objective of the repo below is to curate comprehensive understanding of oss 
 
 Note: Full codebase parsing is based on https://chapi.phodal.com/ and contributions are required on chapi upstream to improve parsing metadata. . for detailed issues please refer roadmap mentioned below.
 
-## Current Problem with doing Repository level Documentation using AI Tooling 
+## Current Problem with doing Repository level Understanding using AI Tooling 
 
 ### Process Overview:
 
