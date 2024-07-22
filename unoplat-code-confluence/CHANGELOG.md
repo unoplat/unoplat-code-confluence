@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.9.1...v0.10.0) (2024-07-22)
+
+
+### Features
+
+* improved comprehension at class, package and codebase level ([47b2e9b](https://github.com/unoplat/unoplat-code-confluence/commit/47b2e9b35784f0e0516238aacf0e3562c7b3583a))
+
+
+### Bug Fixes
+
+* better exception handling at function,class,package and codebase ([0edb975](https://github.com/unoplat/unoplat-code-confluence/commit/0edb975b191d29775d6ab7e55dfdda5e00ff23a7))
+
 ## [0.9.1](https://github.com/unoplat/unoplat-code-confluence/compare/v0.9.0...v0.9.1) (2024-07-16)
 
 
