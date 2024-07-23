@@ -222,6 +222,7 @@ unoplat-code-confluence --config example_config.json
 3. ~~Externalise logs - https://github.com/unoplat/unoplat-code-confluence/issues/61~~ 
 4. Progress Bar for AutoDoc - https://github.com/unoplat/unoplat-code-confluence/issues/50
 5. Linking n-depth sub packages to root package - https://github.com/unoplat/unoplat-code-confluence/issues/102
+
 Please let us know if there are issues other than limitations that are hindering your adoption. we will prioritise accordingly. Also please go through issues first before raising any issue.
 
 ### Status: Alpha
