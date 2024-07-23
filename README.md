@@ -188,7 +188,6 @@ we will be addressing it soon)
  
 - For config inside llm_provider_config refer - [Dspy Model Provider Doc](https://dspy-docs.vercel.app/docs/category/remote-language-model-clients)
 
-- Use Chat models. We have not tested instruct models as of now.
 
 If you are looking for some credits sign up on Together AI and get 25$ to run code confluence on repository of your choice. You can even use Ollama
 
