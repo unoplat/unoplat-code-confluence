@@ -244,12 +244,11 @@ Please let us know if there are issues other than limitations that are hindering
 ## Tech Stack 
 
 1. [Chapi](https://chapi.phodal.com/)
-2. [Litellm](https://docs.litellm.ai/docs/)
-3. [ArchGuard](https://github.com/archguard/archguard)
-4. [DSPY](https://dspy-docs.vercel.app/)
-5. [loguru](https://loguru.readthedocs.io/en/stable/api/logger.html)
-6. [PyTest](https://pytest.org/)
-7. [Pydantic](https://www.pydantic.dev)
+2. [ArchGuard](https://github.com/archguard/archguard)
+3. [DSPY](https://dspy-docs.vercel.app/)
+4. [loguru](https://loguru.readthedocs.io/en/stable/api/logger.html)
+5. [PyTest](https://pytest.org/)
+6. [Pydantic](https://www.pydantic.dev)
 
 
 ## Credits/heroes/supporters/Inspirations
