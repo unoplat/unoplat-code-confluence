@@ -210,10 +210,6 @@ Ollama Example:
 
 ```
 
-Note: we have only tried gpt3.5 turbo and it works well on codebases.
-
-Also this will get much better as currently all the dspy modules are uncompiled.We will be rolling out evaluated models and results post optimisation soon. Until then users can use 3.5turbo for decent results.
-
 4. Run code confluence and check your output path. you will have a file name based on output file name. That file will carry precise summary of codebase at all levels - codebase,packages,classes and functions.
 ```
 unoplat-code-confluence --config example_config.json
@@ -239,6 +235,7 @@ Please let us know if there are issues other than limitations that are hindering
 6. Integrate with Unoplat core to make it possible to self host with all cross cutting concerns for both unoplat code confluence and any embeddable graph db. (https://github.com/unoplat/unoplat)
 7. Now the most important Get all heroes/inspirations on board.
 
+[GithubProjectBoard](https://github.com/orgs/unoplat/projects/6/views/2)
 
 ## Tech Stack 
 
