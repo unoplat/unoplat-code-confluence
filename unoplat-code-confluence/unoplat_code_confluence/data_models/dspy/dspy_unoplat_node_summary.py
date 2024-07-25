@@ -8,3 +8,4 @@ class DspyUnoplatNodeSummary(BaseModel):
     node_summary: Optional[str] = Field(default=None, alias="NodeSummary",description="A summary of the class")
     node_objective: Optional[str] = Field(default=None, alias="NodeObjective",description="The objective of the class")
     functions_summary: Optional[List[DspyUnoplatFunctionSummary]] = Field(default=None, alias="FunctionsSummary",description="A list of functions in the class")
+    metadata: Optional[dict] = Field(default=None, description="Additional metadata for the node")

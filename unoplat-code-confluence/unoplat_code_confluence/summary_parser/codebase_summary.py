@@ -5,7 +5,7 @@ from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPac
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary, DspyUnoplatPackageSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
 from unoplat_code_confluence.dspy_class_summary import CodeConfluenceClassModule
 from unoplat_code_confluence.dspy_codebase_summary import CodeConfluenceCodebaseModule, CodeConfluenceCodebaseObjectiveSignature
 from unoplat_code_confluence.dspy_function_summary import CodeConfluenceFunctionModule
@@ -79,7 +79,7 @@ class CodebaseSummaryParser:
                     logger.error(f"Error generating class summary for {node.name}: {e}")
                     logger.exception("Traceback:")
             try:
-                dspy_pipeline_package_node_summary: DspyUnoplatPackageNodeSummary = self.dspy_pipeline_package(class_summaries,package_name).answer
+                dspy_pipeline_package_node_summary: DspyUnoplatPackageSummary = self.dspy_pipeline_package(class_summaries,package_name).answer
             except Exception as e:
                 logger.error(f"Error generating package summary for {package_name}: {e}")
                 logger.exception("Traceback:")
