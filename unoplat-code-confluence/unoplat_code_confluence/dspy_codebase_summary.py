@@ -1,6 +1,6 @@
 from typing import Dict
 import dspy
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
 
 
 
@@ -24,7 +24,7 @@ class CodeConfluenceCodebaseModule(dspy.Module):
         self.generate_codebase_objective = dspy.ChainOfThoughtWithHint(CodeConfluenceCodebaseObjectiveSignature)
         
 
-    def forward(self, package_objective_dict: Dict[str, DspyUnoplatPackageNodeSummary]):
+    def forward(self, package_objective_dict: Dict[str, DspyUnoplatPackageSummary]):
 
         codebase_summary = ""
         summary_hint="Enhance the existing codebase summary based on current package objective without loosing important details from existing codebase summary. So be cautious while being concise. "

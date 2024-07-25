@@ -1,7 +1,7 @@
 from typing import Dict, List
 import dspy
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageNodeSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
 from loguru import logger
 
 #TODO: optimise using gpt4 judge and miprov2s
@@ -36,7 +36,7 @@ class CodeConfluencePackageModule(dspy.Module):
         
         package_objective_hint = "First capture all highlights from summary and based on highlights generate the package objective for the package by being concise and dnt miss on any details for:"+package_name+". Do not extrapolate or make up anything. Strictly be factual and grounded."
         class_objective_signature: CodeConfluencePackageObjectiveSignature = self.generate_package_objective(final_package_summary=package_summary,package_name=package_name,hint=package_objective_hint)
-        dspy_package_summary = DspyUnoplatPackageNodeSummary(package_objective=class_objective_signature.package_objective,package_summary=package_summary,class_summary=class_objective_list)
+        dspy_package_summary = DspyUnoplatPackageSummary(package_objective=class_objective_signature.package_objective,package_summary=package_summary,class_summary=class_objective_list)
         return dspy.Prediction(answer=dspy_package_summary)
  
         
