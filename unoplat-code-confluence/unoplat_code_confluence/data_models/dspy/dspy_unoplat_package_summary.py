@@ -11,7 +11,7 @@ class DspyUnoplatPackageSummary(BaseModel):
     package_summary: str = Field( description="The detailed summary of the package")
     class_summary: List[DspyUnoplatNodeSummary] = Field( default_factory=list,description="List of the class summaries for the package")
     metadata: Optional[dict] = Field(default=None, description="Additional metadata for the package")
-    sub_packages: List['DspyUnoplatPackageSummary'] = Field( default_factory=list,description="List of the sub-packages for the package")
-
+    sub_package_summaries: Dict[str, 'DspyUnoplatPackageSummary'] = Field(default_factory=dict, description="Dictionary of sub-package summaries, keyed by package name")
+    
 DspyUnoplatPackageSummary.model_rebuild()
     
