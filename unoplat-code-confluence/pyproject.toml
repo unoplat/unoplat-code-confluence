@@ -18,6 +18,7 @@ litellm = "^1.37.19"
 pytest = "^8.2.1"
 dspy-ai = "^2.4.9"
 packaging = "^24.1"
+progiter = "^2.0.0"
 
 [tool.poetry.scripts]
 unoplat-code-confluence = "unoplat_code_confluence.__main__:start_pipeline"
