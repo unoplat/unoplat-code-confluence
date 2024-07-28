@@ -15,7 +15,7 @@ from unoplat_code_confluence.dspy_package_summary import CodeConfluencePackageMo
 from unoplat_code_confluence.loader import iload_json, iparse_json
 from unoplat_code_confluence.loader.json_loader import JsonLoader
 from unoplat_code_confluence.loader.parse_json import JsonParser
-from unoplat_code_confluence.nodeparser.markdownsummariser import MarkdownSummariser
+from unoplat_code_confluence.markdownparser.markdownsummariser import MarkdownSummariser
 from unoplat_code_confluence.summary_parser.codebase_summary import CodebaseSummaryParser
 import warnings
 from packaging import version

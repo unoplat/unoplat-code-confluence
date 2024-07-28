@@ -41,6 +41,7 @@ class CodeConfluenceFunctionModule(dspy.Module):
         
         class_subset = str(class_metadata.model_dump_json())
         function_subset = str(function_metadata.model_dump_json()) 
+        
         function_summary = self.generate_function_summary(chapi_function_metadata=function_subset).unoplat_function_summary
        
         for function_call in function_metadata.function_calls:
