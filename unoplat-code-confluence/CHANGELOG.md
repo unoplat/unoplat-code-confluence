@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.1](https://github.com/unoplat/unoplat-code-confluence/compare/v0.10.0...v0.10.1) (2024-07-28)
+
+
+### Bug Fixes
+
+* added nested progress bars, support for efficient graph traversal and support for files that are not object oriented ([a0f9f8d](https://github.com/unoplat/unoplat-code-confluence/commit/a0f9f8d7830ec71942a06e95ea465c29a828da21))
+* graph data structure for construction of codebase ([99cbe3c](https://github.com/unoplat/unoplat-code-confluence/commit/99cbe3c27978bd7db6385e37beed27948ea920a7))
+
 ## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.9.1...v0.10.0) (2024-07-22)
 
 
