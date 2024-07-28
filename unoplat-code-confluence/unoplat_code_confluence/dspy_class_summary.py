@@ -18,7 +18,7 @@ class CodeConfluenceClassSummarySignature(dspy.Signature):
 
 class CodeConfluenceClassObjectiveSignature(dspy.Signature):
     """This signature takes in class summary and returns concise class_objective of the class. Do not include your reasoning in class_objective."""
-    final_class_summary: str = dspy.InputField(desc="This should contain concise detailed implementation summary of the class or in some cases direct content of the class if it is just a data model object")
+    final_class_summary: str = dspy.InputField(desc="This should contain concise detailed implementation summary of the class or in some cases direct content of the class if it is just a data model object.")
     class_objective: str = dspy.OutputField(desc="This should contain concise objective of the class based on implementation summary in under 2 lines without loosing on any details")
 
    
@@ -36,7 +36,10 @@ class CodeConfluenceClassModule(dspy.Module):
             signature_class_summary = self.generate_class_summary(class_existing_summary=class_summary, function_summary=function_objective.function_summary.objective, class_metadata=str(class_metadata.model_dump_json()),hint="Generate the class detailed summary for the class by being concise , factual and grounded.:"+class_metadata.node_name)
             class_summary = signature_class_summary.final_class_summary
         
-        hint="Generate the class objective for the class by being concise and dnt miss on any details.:"+class_metadata.node_name
+        if class_metadata.node_name is not None:
+            hint="Generate the class objective for the class by being concise and dnt miss on any details.:"+class_metadata.node_name
+        else:
+            hint="Generate the class objective for the class by being concise and dnt miss on any details."
         
         if len(function_objective_summary) > 0:
             class_objective_signature = self.generate_class_objective(final_class_summary = class_summary,hint=hint)
