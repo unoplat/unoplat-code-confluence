@@ -31,11 +31,12 @@ class CodeConfluenceClassModule(dspy.Module):
     def forward(self, class_metadata: DspyUnoplatNodeSubset, function_objective_summary: List[DspyUnoplatFunctionSummary]):
         logger.debug(f"Generating class summary for {class_metadata.node_name}")
         class_summary = ""
-        
+    
+    
         for function_objective in function_objective_summary:
             signature_class_summary = self.generate_class_summary(class_existing_summary=class_summary, function_summary=function_objective.function_summary.objective, class_metadata=str(class_metadata.model_dump_json()),hint="Generate the class detailed summary for the class by being concise , factual and grounded.:"+class_metadata.node_name)
             class_summary = signature_class_summary.final_class_summary
-        
+    
         if class_metadata.node_name is not None:
             hint="Generate the class objective for the class by being concise and dnt miss on any details.:"+class_metadata.node_name
         else:

@@ -39,6 +39,7 @@ class AppConfig(BaseModel):
     api_tokens: Dict[str, str]
     llm_provider_config: Dict[str, Any]
     handlers: List[Dict[str, Any]] = Field(default_factory=list,alias="logging_handlers")
+    parallisation: int = 1
  
     @field_validator('programming_language')
     def check_programming_language(cls, value, info:ValidationInfo):
