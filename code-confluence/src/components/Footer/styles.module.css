@@ -1,0 +1,17 @@
+.footerColor {
+    background-color: #d3d3d3;
+    display: flex
+}
+
+.CenterFooter{
+    color: #000
+}
+
+@media screen and (min-width: 997px) {
+    .CenterFooter {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #000
+    }
+}
