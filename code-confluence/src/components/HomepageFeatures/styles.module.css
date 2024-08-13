@@ -1,0 +1,26 @@
+.features {
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+  width: 100%;
+}
+
+
+.featureSvg {
+  height: 200px;
+  width: 200px;
+}
+
+.advertise {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 0 2rem 0;
+  width: 100%;
+  flex-direction: column;
+}
+
+.lessWidth {
+  width: 96%;
+  background-color: white;
+}
