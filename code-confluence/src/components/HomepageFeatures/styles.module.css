@@ -24,3 +24,8 @@
   width: 96%;
   background-color: white;
 }
+
+.paddingLeftRight {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}

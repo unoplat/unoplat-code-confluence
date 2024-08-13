@@ -53,8 +53,8 @@ export default function HomepageFeatures() {
   return (
     <div className={styles.lessWidth}>
     <section className={styles.advertise}>
-        <Heading as="h3"> Transforming Code into Plain Language.</Heading>
-        <p>
+        <Heading as="h3" className={styles.paddingLeftRight}> Transforming Code into Plain Language.</Heading>
+        <p className={styles.paddingLeftRight}>
         Centralize your knowledge base, empowering employees to find answers quickly and become more efficient.
         </p>
     </section>
