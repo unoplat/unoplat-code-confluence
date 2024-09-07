@@ -141,7 +141,7 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
 1. Install [Pipx](https://pipx.pypa.io/stable/)
 2. Install unoplat-code-confluence through :
 ```
-   pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.10.0#subdirectory=unoplat-code-confluence'
+   pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.11.1#subdirectory=unoplat-code-confluence'
 ```
 3. Before you can run the unoplat code confluence tool on your local machine, you need to set up the necessary configuration file. This file tells tool where your codebase is located, where to output the analysis results, and other essential information. Below is a step-by-step guide to setting up your configuration.
 
