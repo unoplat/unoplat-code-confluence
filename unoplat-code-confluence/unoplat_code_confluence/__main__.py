@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import os
 from loguru import logger
 import datetime
@@ -21,7 +22,7 @@ import warnings
 from packaging import version
 
 
-def start_pipeline():
+async def start_pipeline():
     parser = argparse.ArgumentParser(description="Codebase Parser CLI")
     parser.add_argument("--config", help="Path to configuration file for unoplat utility", default=os.getcwd() + '/default_config.json', type=str)
     args = parser.parse_args()
@@ -37,17 +38,17 @@ def start_pipeline():
     # logger.configure(handlers=logging_config["handlers"])
 
 
-    get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser)
+    await get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser)
     
 
-def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
+async def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
     app_config = AppConfig(**json_configuration_data)
     logger.configure(handlers=app_config.handlers)
 
 
     # Button to submit the indexing
-    start_parsing(
+    await start_parsing(
         app_config,
         iload_json,
         iparse_json,
@@ -55,13 +56,13 @@ def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummar
     )
 
 
-def ensure_jar_downloaded(github_token, arcguard_cli_repo, local_download_directory):
+async def ensure_jar_downloaded(github_token, arcguard_cli_repo, local_download_directory):
     
     jar_path = Downloader.download_latest_jar(arcguard_cli_repo, local_download_directory, github_token)
     
     return jar_path
 
-def get_extension(programming_language: str):
+async def get_extension(programming_language: str):
     #TODO: convert this to enum based check
     if programming_language == "java":
         return "java"
@@ -70,13 +71,13 @@ def get_extension(programming_language: str):
     else:
         raise ValueError(f"Unsupported programming language: {programming_language}")
 
-def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: JsonParser, isummariser: MarkdownSummariser):
+async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: JsonParser, isummariser: MarkdownSummariser):
 
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
     
     # Ensure the JAR is downloaded or use the existing one
-    jar_path = ensure_jar_downloaded(app_config.api_tokens["github_token"],app_config.repo.download_url,app_config.repo.download_directory)
+    jar_path = await ensure_jar_downloaded(app_config.api_tokens["github_token"],app_config.repo.download_url,app_config.repo.download_directory)
 
     logger.info(f"Local Workspace URL: {app_config.local_workspace_path}")
     logger.info(f"Programming Language: {app_config.programming_language}")
@@ -84,7 +85,7 @@ def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: Js
     logger.info(f"Codebase Name: {app_config.codebase_name}")
     
     # based on programming_language convert to extension
-    extension = get_extension(app_config.programming_language)
+    extension = await get_extension(app_config.programming_language)
 
     # Initialize the ArchGuard handler with the collected parameters.
     archguard_handler = ArchGuardHandler(
@@ -120,7 +121,7 @@ def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: Js
 
     codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,app_config)
 
-    unoplat_codebase_summary: DspyUnoplatCodebaseSummary = codebase_summary.parse_codebase()
+    unoplat_codebase_summary: DspyUnoplatCodebaseSummary = await codebase_summary.parse_codebase()
 
     # now write to a markdown dspy unoplat codebase summary
     
@@ -136,5 +137,5 @@ if __name__ == "__main__":
     
     warnings.filterwarnings("ignore", category=DeprecationWarning, module='pydantic.*')
    
-    start_pipeline()
+    asyncio.run(start_pipeline())
     
