@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "unoplat-code-confluence"
-version = "0.10.1"
+version = "0.11.0"
 description = "codebase understanding"
 authors = ["JayGhiya <ghiya6548@gmail.com>"]
 readme = "README.md"

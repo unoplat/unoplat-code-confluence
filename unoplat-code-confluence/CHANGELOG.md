@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.10.1...v0.11.0) (2024-09-07)
+
+
+### Features
+
+* perf improvement through parallelisation of classes ([9be18e4](https://github.com/unoplat/unoplat-code-confluence/commit/9be18e407468f48e8cc03c59e417f63020a9c377))
+
 ## [0.10.1](https://github.com/unoplat/unoplat-code-confluence/compare/v0.10.0...v0.10.1) (2024-07-28)
 
 
