@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/unoplat/unoplat-code-confluence/compare/v0.11.0...v0.11.1) (2024-09-07)
+
+
+### Bug Fixes
+
+* externalised json output as bool to represent unoplat pydantic schema in json ([602667f](https://github.com/unoplat/unoplat-code-confluence/commit/602667f8b0a4b725039e6ff48e2f775e1beb9570))
+
 ## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.10.1...v0.11.0) (2024-09-07)
 
 
