@@ -1,5 +1,6 @@
 import asyncio
 from collections import deque
+import datetime
 from itertools import cycle
 import sys
 from typing import Dict, List
@@ -33,8 +34,9 @@ class CodebaseSummaryParser:
         self.dspy_pipeline_codebase: CodeConfluenceCodebaseModule = dspy_pipeline_codebase
         #TODO: we will be externalise the different llms that can be used at all dspy pipelines and within dspy pipelines once dspy switches to litellm
         self.provider_list =self.init_dspy_lm(app_config.llm_provider_config,app_config.parallisation)
-        
-    
+        self.json_output = app_config.json_output
+        self.codebase_name = app_config.codebase_name
+
     def init_dspy_lm(self,llm_config: dict,parallisation: int):
         #todo define a switch case
         llm_provider = next(iter(llm_config.keys()))
@@ -103,10 +105,14 @@ class CodebaseSummaryParser:
         unoplat_codebase_summary.codebase_summary = dspy_codebase_summary.summary
         unoplat_codebase_summary.codebase_objective = dspy_codebase_summary.answer
         unoplat_codebase_summary.codebase_package = root_package_summaries
-        json_unoplat_codebase_summary = unoplat_codebase_summary.model_dump_json()
-        # write to file
-        with open("unoplat_codebase_summary_dspy_2.json", "w") as f:
-            f.write(json_unoplat_codebase_summary)
+
+        # if json_output is true, then write to a json file
+        if self.json_output:
+            json_unoplat_codebase_summary = unoplat_codebase_summary.model_dump_json()
+            # write to file
+            current_timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            with open(f"{self.codebase_name}_{current_timestamp}.json", "w") as f:
+                f.write(json_unoplat_codebase_summary)
 
         # write to md file
         #todo: pydantic out to a file of unoplat codebase summary
