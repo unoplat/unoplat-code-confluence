@@ -177,7 +177,8 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
           "retention": "10 days",
           "level": "INFO"
       }
-    ]
+    ],
+   "parallisation": 3
 }
 ```
 Configuration Note: Do not change the download_url and keep the programming_language to java or python (as right now only java & python are supported)
@@ -187,7 +188,7 @@ llm Provider Config:
 we will be addressing it soon)
  
 - For config inside llm_provider_config refer - [Dspy Model Provider Doc](https://dspy-docs.vercel.app/docs/category/remote-language-model-clients)
-
+- Parallisation creates multiple instances of model using your selected llm provider. Max parallelisation is limited by amount of max tokens per day/per sec from llm provider so experimentation is needed to arrive at optimimum parallelisation.
 
 If you are looking for some credits sign up on Together AI and get 25$ to run code confluence on repository of your choice. You can even use Ollama
 
@@ -217,7 +218,7 @@ unoplat-code-confluence --config example_config.json
 
 ### Limitations
 
-1. Slow Performance - https://github.com/unoplat/unoplat-code-confluence/issues/69 .
+1. ~~Slow Performance - https://github.com/unoplat/unoplat-code-confluence/issues/69~~.
 2. Observability/Tracing - https://github.com/unoplat/unoplat-code-confluence/issues/54
 3. ~~Externalise logs - https://github.com/unoplat/unoplat-code-confluence/issues/61~~ 
 4. ~~Progress Bar for AutoDoc - https://github.com/unoplat/unoplat-code-confluence/issues/50~~
