@@ -43,7 +43,13 @@ class UnoplatGraphIngestion:
             query = f"CREATE VECTOR INDEX {label}_{property}_vector_index FOR (n:{label}) ON (n.{property})"
             if dimension is not None:
                 query += f" OPTIONS {{indexConfig: {{`vector.dimensions`: {dimension}, `vector.similarity_function`: '{similarity_function}'}}}}"
-            session.run(query)
+            try:
+                session.run(query)
+            except Exception as e:
+                if "equivalent index already exists" in str(e):
+                    print(f"Vector index for {label}.{property} already exists. Skipping creation.")
+                else:
+                    raise  # Re-raise the exception if it's not about existing index
 
     def create_text_index(self, label: str, property: str) -> None:
         with self.driver.session() as session:
