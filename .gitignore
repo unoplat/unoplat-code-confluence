@@ -54,3 +54,8 @@ app.log
 unoplat-code-confluence/unoplat_code_confluence/configuration/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/markdownparser/__pycache__
 unoplat-code-confluence/~/Documents/unoplat
+unoplat-code-confluence/unoplat_code_confluence/database/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/database/graph/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/embedding/__pycache__
+.dspy_cache
+dependencies/analysers
