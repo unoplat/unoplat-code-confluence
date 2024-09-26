@@ -51,7 +51,7 @@ class UnoplatGraphProcessing:
         self.graph_ingestion.merge_node(
             label="Package",
             properties={
-                "qualified_name": package_name,
+                "qualified_name": f"{parent_name}.{package_name}",
                 "objective": package_summary.package_objective,
                 "objective_embedding": package_objective_embedding,
                 "implementation_summary": package_summary.package_summary,
@@ -64,17 +64,17 @@ class UnoplatGraphProcessing:
             start_node_label=parent_label,
             start_node_property=parent_name,
             end_node_label="Package",
-            end_node_property=package_name,
+            end_node_property=f"{parent_name}.{package_name}",
             relationship_type="CONTAINS"
         )
 
         # Process each class in the package
         for class_summary in package_summary.class_summary:
-            self._process_class(package_name, class_summary.node_name, class_summary)
+            self._process_class(f"{parent_name}.{package_name}", class_summary.node_name, class_summary)
 
         # Add subpackages to the stack for DFS
         for subpackage_name, subpackage_summary in package_summary.sub_package_summaries.items():
-            stack.append(("Package", package_name, subpackage_name, subpackage_summary))
+            stack.append(("Package", f"{parent_name}.{package_name}", subpackage_name, subpackage_summary))
 
     def _process_class(self, package_name: str, class_name: str, class_summary: DspyUnoplatNodeSummary):
         # Generate embeddings for class objective and implementation summary
@@ -134,7 +134,7 @@ class UnoplatGraphProcessing:
 
     def _create_vector_index_on_all_nodes(self):
         # Create vector indexes for all node types
-        node_types = ["Package","Class","Method"]
+        node_types = ["Codebase","Package","Class","Method"]
         embedding_types = ["objective_embedding", "implementation_embedding"]
         
         for node_type in node_types:
