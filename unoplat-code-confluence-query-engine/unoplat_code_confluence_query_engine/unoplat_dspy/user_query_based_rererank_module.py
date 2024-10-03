@@ -3,10 +3,10 @@ from typing import Dict
 from textual import log
 
 class CodeConfluenceUserQueryReRankSignature(dspy.Signature):
-    """Based on user query and possible answers, return the most relevant function names as a dict with score as value and key as function name based on the function description matching with user query"""
+    """Based on user query and possible answers, return the most relevant names as a dict with score as value and key as name based on the description matching with user query"""
     user_query: str = dspy.InputField(desc="This will contain user query")
-    possible_answers: Dict[str,str] = dspy.InputField(desc="this will contain list of possibly relevant answers with function name and their description ")
-    relevant_answers: Dict[str,int] = dspy.OutputField(default_factory=dict,desc="return  the most relevant function names from the list based on the functions descriptions matching with user query with score from 1 to 10 with 10 being the highest match ")
+    possible_answers: Dict[str,str] = dspy.InputField(desc="this will contain list of possibly relevant answers with name and their description ")
+    relevant_answers: Dict[str,int] = dspy.OutputField(default_factory=dict,desc="return  the most relevant names from the list based on the descriptions matching with user query with score from 1 to 10 with 10 being the highest match ")
    
 class CodeConfluenceUserQueryReRankModule(dspy.Module):
     def __init__(self):

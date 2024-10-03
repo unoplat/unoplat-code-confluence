@@ -36,8 +36,26 @@ class Neo4jHelper:
         
         return records
         
-
-       
+    def get_package_details(self,package_name):
+        query = """
+        MATCH (p:Package {qualified_name: $package_name})
+        RETURN 
+            p.qualified_name AS package_name,
+            p.objective AS package_objective,
+            p.implementation_summary AS package_summary
+        """
+        return self.run_query(query, package_name=package_name)
+    
+    
+    def get_codebase_details(self,codebase_name):   
+        query = """
+        MATCH (cb:Codebase {qualified_name: $codebase_name})
+        RETURN 
+            cb.qualified_name AS codebase_name,
+            cb.objective AS codebase_objective,
+            cb.implementation_summary AS codebase_summary
+        """
+        return self.run_query(query, codebase_name=codebase_name)
 
     def get_function_hierarchy_and_details(self, function_name):
         query = """
