@@ -19,7 +19,7 @@ class CodeConfluenceUserQueryResponseModule(dspy.Module):
         final_response = ""
         for function_name in code_hierarchy_dict.keys():
             if final_response is None:
-                final_response = self.response_module(user_query=user_query, code_hierarchy=code_hierarchy_dict[function_name],existing_respone="No existing response yet")
+                final_response = self.response_module(user_query=user_query, code_hierarchy=code_hierarchy_dict[function_name],existing_respone="No existing response yet").final_response
             else:
-                final_response = self.response_module(user_query=user_query, code_hierarchy=code_hierarchy_dict[function_name], existing_respone=final_response)
+                final_response = self.response_module(user_query=user_query, code_hierarchy=code_hierarchy_dict[function_name], existing_respone=final_response).final_response
         return dspy.Prediction(answer=final_response)

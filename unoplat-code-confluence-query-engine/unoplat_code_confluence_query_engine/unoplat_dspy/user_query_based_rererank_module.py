@@ -7,8 +7,6 @@ class CodeConfluenceUserQueryReRankSignature(dspy.Signature):
     user_query: str = dspy.InputField(desc="This will contain user query")
     possible_answers: Dict[str,str] = dspy.InputField(desc="this will contain list of possibly relevant answers with function name and their description ")
     relevant_answers: Dict[str,int] = dspy.OutputField(default_factory=dict,desc="return  the most relevant function names from the list based on the functions descriptions matching with user query with score from 1 to 10 with 10 being the highest match ")
-
-    
    
 class CodeConfluenceUserQueryReRankModule(dspy.Module):
     def __init__(self):

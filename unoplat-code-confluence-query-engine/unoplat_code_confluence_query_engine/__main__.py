@@ -3,9 +3,6 @@ import os
 from typing import Dict, List
 import warnings
 import click
-from textual.logging import TextualHandler
-import logging
-
 from textual.app import App
 from configuration.external_config import AppConfig
 from processing.query_engine_process import QueryEngineProcess
@@ -60,13 +57,6 @@ def main(config):
     if not os.path.isfile(config):
         click.echo(f"Error: The code confluence query engine configuration file '{config}' does not exist.", err=True)
         return
-
-    # Configure logging
-    logging.basicConfig(
-        level=logging.INFO,
-        handlers=[TextualHandler()],
-        format="%(message)s",
-    )
 
     app = ChatApp(config)
     app.run()
