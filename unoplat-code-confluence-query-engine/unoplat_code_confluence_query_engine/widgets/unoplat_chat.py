@@ -37,4 +37,4 @@ class UnoplatChat(Vertical):
         # Placeholder for API call
         # Replace this with actual API interaction code
         final_response: str = await self.query_engine_process.process_query(message)
-        return {final_response}
+        return final_response
