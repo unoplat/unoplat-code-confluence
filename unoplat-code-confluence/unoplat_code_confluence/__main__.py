@@ -124,15 +124,12 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_js
 
     unoplat_codebase_summary: DspyUnoplatCodebaseSummary = await codebase_summary.parse_codebase()
 
-    # 
     unoplat_graph_processing = UnoplatGraphProcessing(app_config)
 
     unoplat_codebase_summary.codebase_name = app_config.codebase_name
     
     unoplat_graph_processing.process_codebase_summary(unoplat_codebase_summary)
 
-    # now write to a markdown dspy unoplat codebase summary
-    
     markdown_output = isummariser.summarise_to_markdown(unoplat_codebase_summary)
     # write the markdown output to a file
     with open(os.path.join(app_config.output_path, output_filename), 'w') as md_file:

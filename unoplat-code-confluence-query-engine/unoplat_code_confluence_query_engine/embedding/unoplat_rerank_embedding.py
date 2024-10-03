@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 from typing import List
 from loguru import logger as log
 
-
+#todo: change to oss with permissive license rerankers based on hugging face mteb 
 class UnoplatRerankEmbedding:
     def __init__(self, sentence_transformer_model: str):
         self.sentence_rerank_model = SentenceTransformer(sentence_transformer_model, trust_remote_code=True).cuda()
