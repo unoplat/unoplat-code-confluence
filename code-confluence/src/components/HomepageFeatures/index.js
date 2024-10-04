@@ -4,32 +4,37 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Seamless Collaboration',
+    title: 'Deterministic and language-agnostic code parsing',
     Svg: require('@site/static/img/collab.svg').default,
     description: (
       <>
-        Experience seamless collaboration with our cutting-edge platform, 
-        where generating summaries of any team member's code is just a click away. 
+        Experience deterministic code parsing like never before. Unoplat Code Confluence extends CHAPI with ANTLR grammar 
+        to parse codebases across any architecture and programming language. Gain a consistent and precise understanding of complex codebases, 
+        enabling your team to navigate and comprehend projects with unparalleled clarity.
+      </>
+    ),
+  },
+  {
+    title: 'Automated Code Summarization with State of the art Dspy Pipelines',
+    Svg: require('@site/static/img/documentation.svg').default,
+    description: (
+      <>
+        Accelerate onboarding and enhance collaboration. Our platform utilizes state-of-the-art LLM pipelines 
+        to generate detailed objectives and summaries for every function, class, package, and the entire codebase in a depth-first search
+        fashion. This comprehensive documentation is created automatically, reducing onboarding time to almost zero and empowering
+        cross-team synergy.
       </>
     ),
   },
   {
     title: 'Focus on What Matters',
-    Svg: require('@site/static/img/documentation.svg').default,
-    description: (
-      <>
-        Empower your team with the ability to quickly comprehend 
-        and integrate each other's work, boosting productivity and innovation.
-      </>
-    ),
-  },
-  {
-    title: 'Improve Developer Experience',
     Svg: require('@site/static/img/happy_remote.svg').default,
     description: (
       <>
-        Say goodbye to misunderstandings and hello to streamlined workflows, 
-        ensuring everyone stays on the same page effortlessly.
+        Engage with your codebase/s through grounded and context-aware chat. By ingesting code information into a graph database, 
+        Unoplat Code Confluence provides an optimal representation of code relationships. Interact with your codebase using intuitive TUI
+        and chat with your codebase using advanced LLM pipelines and Graph Retrieval Augmented Generation (GraphRAG), 
+        allowing for intuitive querying to retrieve context-specific information swiftly.
       </>
     ),
   },
