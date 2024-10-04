@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/v0.11.1...v0.12.0) (2024-10-04)
+
+
+### Features
+
+* enabled textual based chat ([f765b30](https://github.com/unoplat/unoplat-code-confluence/commit/f765b303353effdd2427b30e0c91a31d5de69831))
+* support ingestion into neo4j with vector embeddings ([07bd949](https://github.com/unoplat/unoplat-code-confluence/commit/07bd949c3834903000ccc52f4148714b231345cc))
+
+
+### Bug Fixes
+
+* bugs during ingestion of codebase-&gt;package->class ([a18c3b6](https://github.com/unoplat/unoplat-code-confluence/commit/a18c3b678a33d3b11f6cae41f290e845e77f6ec1))
+
 ## [0.11.1](https://github.com/unoplat/unoplat-code-confluence/compare/v0.11.0...v0.11.1) (2024-09-07)
 
 
