@@ -3,6 +3,10 @@
         "unoplat-code-confluence": {
             "release-type": "python",
             "changelog-path": "CHANGELOG.md"
+        },
+        "unoplat-code-confluence-query-engine": {
+            "release-type": "python",
+            "changelog-path": "CHANGELOG.md"
         }
     }
 }

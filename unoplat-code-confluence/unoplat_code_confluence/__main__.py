@@ -8,6 +8,7 @@ import re
 from unoplat_code_confluence.configuration.external_config import AppConfig
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
+from unoplat_code_confluence.database.graph.unoplat_graph_processing import UnoplatGraphProcessing
 from unoplat_code_confluence.downloader.downloader import Downloader
 from unoplat_code_confluence.dspy_class_summary import CodeConfluenceClassModule
 from unoplat_code_confluence.dspy_codebase_summary import CodeConfluenceCodebaseModule
@@ -123,8 +124,12 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_js
 
     unoplat_codebase_summary: DspyUnoplatCodebaseSummary = await codebase_summary.parse_codebase()
 
-    # now write to a markdown dspy unoplat codebase summary
+    unoplat_graph_processing = UnoplatGraphProcessing(app_config)
+
+    unoplat_codebase_summary.codebase_name = app_config.codebase_name
     
+    unoplat_graph_processing.process_codebase_summary(unoplat_codebase_summary)
+
     markdown_output = isummariser.summarise_to_markdown(unoplat_codebase_summary)
     # write the markdown output to a file
     with open(os.path.join(app_config.output_path, output_filename), 'w') as md_file:
