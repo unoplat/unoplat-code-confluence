@@ -54,3 +54,16 @@ app.log
 unoplat-code-confluence/unoplat_code_confluence/configuration/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/markdownparser/__pycache__
 unoplat-code-confluence/~/Documents/unoplat
+unoplat-code-confluence/unoplat_code_confluence/database/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/database/graph/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/embedding/__pycache__
+unoplat-code-confluence-query-engine/.dspy_cache
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/configuration/__pycache__
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/embedding/__pycache__
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/graph/__pycache__
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/helper/__pycache__
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/models/__pycache__
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/processing/__pycache__
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/screens/__pycache__
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/unoplat_dspy/__pycache__
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/widgets/__pycache__
