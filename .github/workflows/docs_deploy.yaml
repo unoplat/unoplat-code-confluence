@@ -10,6 +10,8 @@ on:
     types: [closed]
     branches:
       - main
+    paths:
+      - 'code-confluence/**'
 
 jobs:
   deploy:
