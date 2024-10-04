@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "unoplat-code-confluence"
-version = "0.10.1"
+version = "0.13.0"
 description = "codebase understanding"
 authors = ["JayGhiya <ghiya6548@gmail.com>"]
 readme = "README.md"
@@ -19,6 +19,9 @@ pytest = "^8.2.1"
 dspy-ai = "^2.4.9"
 packaging = "^24.1"
 progiter = "^2.0.0"
+neo4j = "^5.24.0"
+sentence-transformers = "^3.1.1"
+einops = "^0.8.0"
 
 [tool.poetry.scripts]
 unoplat-code-confluence = "unoplat_code_confluence.__main__:start_pipeline"
