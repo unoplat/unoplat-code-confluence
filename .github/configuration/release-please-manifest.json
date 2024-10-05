@@ -1,3 +1,4 @@
 {
-  "unoplat-code-confluence": "0.10.1"
+  "unoplat-code-confluence": "0.13.0",
+  "unoplat-code-confluence-query-engine": "0.3.0"
 }

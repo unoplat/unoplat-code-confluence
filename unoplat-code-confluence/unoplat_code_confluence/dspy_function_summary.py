@@ -37,7 +37,7 @@ class CodeConfluenceFunctionModule(dspy.Module):
         self.generate_function_objective = dspy.TypedPredictor(CodeConfluenceFunctionObjectiveSignature)
 
     def forward(self, function_metadata: DspyUnoplatFunctionSubset, class_metadata: DspyUnoplatNodeSubset):
-        logger.debug(f"Generating function summary for {function_metadata.name}")
+        logger.debug(f"Generating function summary for {function_metadata.name} present in class {class_metadata.node_name}")
         
         class_subset = str(class_metadata.model_dump_json())
         function_subset = str(function_metadata.model_dump_json()) 
