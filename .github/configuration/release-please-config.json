@@ -2,7 +2,15 @@
     "packages": {
         "unoplat-code-confluence": {
             "release-type": "python",
-            "changelog-path": "CHANGELOG.md"
+            "changelog-path": "CHANGELOG.md",
+            "include-component-in-tag": true,
+            "component": "unoplat-code-confluence"
+        },
+        "unoplat-code-confluence-query-engine": {
+            "release-type": "python",
+            "changelog-path": "CHANGELOG.md",
+            "include-component-in-tag": true,
+            "component": "unoplat-code-confluence-query-engine"
         }
     }
 }
