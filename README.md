@@ -141,7 +141,7 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
 1. Install [Pipx](https://pipx.pypa.io/stable/)
 2. Install unoplat-code-confluence through :
 ```
-   pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.10.0#subdirectory=unoplat-code-confluence'
+   pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.11.1#subdirectory=unoplat-code-confluence'
 ```
 3. Before you can run the unoplat code confluence tool on your local machine, you need to set up the necessary configuration file. This file tells tool where your codebase is located, where to output the analysis results, and other essential information. Below is a step-by-step guide to setting up your configuration.
 
@@ -177,7 +177,9 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
           "retention": "10 days",
           "level": "INFO"
       }
-    ]
+    ],
+   "parallisation": 3,
+   "json_output": true
 }
 ```
 Configuration Note: Do not change the download_url and keep the programming_language to java or python (as right now only java & python are supported)
@@ -188,6 +190,9 @@ we will be addressing it soon)
  
 - For config inside llm_provider_config refer - [Dspy Model Provider Doc](https://dspy-docs.vercel.app/docs/category/remote-language-model-clients)
 
+- Parallisation creates multiple instances of model using your selected llm provider. Max parallelisation is limited by amount of max tokens per day/per sec from llm provider so experimentation is needed to arrive at optimimum parallelisation.
+
+- Json Output of our pydantic schema is false by default. If you want to turn it on set it to true.
 
 If you are looking for some credits sign up on Together AI and get 25$ to run code confluence on repository of your choice. You can even use Ollama
 
@@ -217,7 +222,7 @@ unoplat-code-confluence --config example_config.json
 
 ### Limitations
 
-1. Slow Performance - https://github.com/unoplat/unoplat-code-confluence/issues/69 .
+1. ~~Slow Performance - https://github.com/unoplat/unoplat-code-confluence/issues/69~~.
 2. Observability/Tracing - https://github.com/unoplat/unoplat-code-confluence/issues/54
 3. ~~Externalise logs - https://github.com/unoplat/unoplat-code-confluence/issues/61~~ 
 4. ~~Progress Bar for AutoDoc - https://github.com/unoplat/unoplat-code-confluence/issues/50~~
@@ -273,6 +278,9 @@ These are the people because of which this work has been possible. Unoplat code 
   
 Book a call with us - [Cal Link](https://cal.com/jay-ghiya/15min)
 
+## Github Roadmap
+
+[Github RoadMap](https://github.com/orgs/unoplat/projects/6/views/4)
   
 ## Community Channel
 [UnoplatCodeConfluence Discord Channel](https://discord.com/channels/1131597983058755675/1169968780953260106) 

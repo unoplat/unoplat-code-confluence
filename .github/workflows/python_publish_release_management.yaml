@@ -27,7 +27,7 @@ jobs:
 
     - name: Release Please
       id: release_action_plan
-      uses: google-github-actions/release-please-action@v4
+      uses: googleapis/release-please-action@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         config-file: .github/configuration/release-please-config.json

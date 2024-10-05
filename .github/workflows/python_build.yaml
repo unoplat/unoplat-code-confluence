@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'unoplat-code-confluence/**'
+      - 'unoplat-code-confluence-query-engine/**'
 jobs:
   prepare-matrix:
     runs-on: ubuntu-latest
@@ -30,7 +31,7 @@ jobs:
         working-directory: unoplat-code-confluence
         run: poetry install --no-root
       - name: Build poetry
-        working-directory: unoplat-code-confluence
+        working-directory: unoplat-code-confluence-query-engine
         run: poetry build -f wheel
 
           
