@@ -7,14 +7,13 @@ from textual.containers import Horizontal
 from widgets.chat_history import ChatHistory
 from widgets.unoplat_chat import UnoplatChat
 from processing.query_engine_process import QueryEngineProcess
-
+from screens.codebase_options import CodebaseOptionsModal
 class ChatScreen(Screen):
     AUTO_FOCUS = "#message-input"
 
     BINDINGS = [
-        Binding("q", "request_quit", "Quit",show=True),
-        Binding("ctrl+c", "request_quit", "Quit"),
-    ]
+        Binding("ctrl+q", "request_quit", "Quit"),
+            ]
     
     def __init__(self, query_engine_process: QueryEngineProcess):
         super().__init__()

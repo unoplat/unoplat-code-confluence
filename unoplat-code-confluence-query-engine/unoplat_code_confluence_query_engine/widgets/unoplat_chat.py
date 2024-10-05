@@ -4,10 +4,31 @@ from textual.widgets import  RichLog, Input, Static
 from textual.app import ComposeResult
 from processing.query_engine_process import QueryEngineProcess
 from textual.containers import Vertical
+from textual.binding import Binding
+from screens.codebase_options import CodebaseOptionsModal
+from screens.existing_codebase_list import ExistingCodebaseList
 
 class UnoplatChat(Vertical):
     
-    def __init__(self, query_engine_process: QueryEngineProcess,name: str | None = None, id: str | None = None, classes: str | None = None):
+    BINDINGS = [
+        Binding("ctrl+o", "open_options_modal", "Import New Codebase", show=True),
+        Binding("ctrl+q", "request_quit", "Quit",show=True),
+        Binding("ctrl+e","open_existing_codebases","Show Available Codebases",show=True,priority=True)
+    ]   
+
+    def action_open_options_modal(self) -> None:
+        self.app.push_screen(
+            CodebaseOptionsModal(self.query_engine_process)
+        )
+    def action_request_quit(self) -> None:
+        self.app.exit()
+
+    def action_open_existing_codebases(self) -> None:
+        self.app.push_screen(
+            ExistingCodebaseList(self.query_engine_process)
+        )
+        
+    def __init__(self,query_engine_process: QueryEngineProcess,name: str | None = None, id: str | None = None, classes: str | None = None):
         super().__init__(name=name, id=id, classes=classes)
         self.query_engine_process = query_engine_process
         self.logger = logging.getLogger(__name__)
