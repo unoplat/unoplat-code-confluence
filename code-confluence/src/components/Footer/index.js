@@ -8,7 +8,7 @@ export default function Footer() {
                     <h4 class="footer__title">Docs</h4>
                     <ul class="footer__items clean-list">
                     <li class="footer__item">
-                        <a class="footer__link-item" href="#url">Introduction</a>
+                        <a class="footer__link-item" href="http://localhost:3000/unoplat-code-confluence/docs/category/quickstart">Introduction</a>
                     </li>
                     
                     </ul>
@@ -26,7 +26,7 @@ export default function Footer() {
                     <h4 class="footer__title">Social</h4>
                     <ul class="footer__items clean-list">
                     <li class="footer__item">
-                        <a class="footer__link-item" href="#url">GitHub</a>
+                        <a class="footer__link-item" href="https://github.com/unoplat/unoplat-code-confluence">GitHub</a>
                     </li>
                     <li class="footer__item">
                         <a class="footer__link-item" href="#url">Twitter</a>
