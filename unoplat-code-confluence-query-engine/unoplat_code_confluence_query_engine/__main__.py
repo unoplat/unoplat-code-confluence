@@ -12,33 +12,9 @@ from screens.chat_screen import ChatScreen
 
 
 class ChatApp(App):
-    CSS = """
     
-    #chat-history {
-        border: solid green;
-        height: 100%;
-        width: 20%;
-    }
-    #chat {
-        border: solid blue;
-        height: 100%;
-        width: 80%;
-    }
-    #message-log {
-        height: 1fr;  /* Allow message log to take up available vertical space */
-    }
-    #message-input {
-        dock: bottom;
-        height: 3;  /* Fix height of input field */
-    }
-    #history-title {
-        content-align: center middle;
-        height: 3;
-    }
-    #history-placeholder {
-        height: 1fr;  /* Make sure the placeholder fills remaining space */
-    }
-    """
+    CSS_PATH = "query_engine_style.tcss"
+    
     def __init__(self, config: AppConfig):
         super().__init__()
         self.query_engine_process = QueryEngineProcess(config)
