@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.3.0...unoplat-code-confluence-query-engine-v0.4.0) (2024-10-06)
+
+
+### Features
+
+* added ability to load graph databases from oss atlas and instantly chat with them. ([f28c07a](https://github.com/unoplat/unoplat-code-confluence/commit/f28c07a81a0a8d69c8342327d7eb78fc5d92391e))
+* updated existing codebase design ([9207b65](https://github.com/unoplat/unoplat-code-confluence/commit/9207b65683402d3d5caa90185d4d33760a7b9a16))
+
 ## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.2.0...unoplat-code-confluence-query-engine-v0.3.0) (2024-10-04)
 
 
