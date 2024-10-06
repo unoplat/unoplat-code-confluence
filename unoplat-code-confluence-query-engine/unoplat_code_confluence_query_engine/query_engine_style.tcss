@@ -100,3 +100,41 @@ Checkbox {
 #history-placeholder {
     height: 1fr;
 }
+
+ExistingCodebaseList {
+    align: center middle;
+}
+
+ExistingCodebaseList > Container {
+    width: 40%;
+    height: 40%;
+    border: thick $primary;
+    background: $surface;
+    padding: 1 2;
+}
+
+#existing-codebases-title {
+    background: $primary;
+    color: $text;
+    padding: 1;
+    text-align: center;
+    margin-bottom: 1;
+    content-align: center middle;
+    align: center middle;
+    width: 100%;
+}
+
+#list-container {
+    height: 100%;
+    border: solid $primary;
+    padding: 1;
+}
+
+ListView {
+    height: 100%;
+    border: none;
+}
+
+#async-list {
+    height: 1fr;
+}
