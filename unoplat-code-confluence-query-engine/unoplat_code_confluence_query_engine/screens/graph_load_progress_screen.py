@@ -4,7 +4,7 @@ from textual.screen import ModalScreen
 from textual.app import ComposeResult
 from textual import on, work
 import asyncio
-from processing.query_engine_process import QueryEngineProcess
+from unoplat_code_confluence_query_engine.processing.query_engine_process import QueryEngineProcess
 from textual.binding import Binding
 
 class LoadCodebaseGraphScreen(ModalScreen):
