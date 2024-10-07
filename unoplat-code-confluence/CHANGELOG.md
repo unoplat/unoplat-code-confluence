@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.2...unoplat-code-confluence-v0.13.3) (2024-10-07)
+
+
+### Bug Fixes
+
+* fix max lines when response is received ([a3145b7](https://github.com/unoplat/unoplat-code-confluence/commit/a3145b7df88ed5c95afe2c20061007e1ef331f62))
+
 ## [0.13.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.1...unoplat-code-confluence-v0.13.2) (2024-10-07)
 
 
