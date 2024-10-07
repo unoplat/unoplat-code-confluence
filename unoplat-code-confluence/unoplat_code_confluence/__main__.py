@@ -123,7 +123,7 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_js
     codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,app_config)
 
     unoplat_codebase_summary: DspyUnoplatCodebaseSummary = await codebase_summary.parse_codebase()
-
+    
     unoplat_graph_processing = UnoplatGraphProcessing(app_config)
 
     unoplat_codebase_summary.codebase_name = app_config.codebase_name
