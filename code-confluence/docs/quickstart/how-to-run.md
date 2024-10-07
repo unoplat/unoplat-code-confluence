@@ -112,6 +112,18 @@ pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@main#su
 unoplat-code-confluence --config /path/to/your/config.json
 ```
 
+
+3. **Example Run**
+
+
+<img src={require('../../static/img/code-confluence-parsing-ingestion.png').default} alt="Unoplat Code Confluence Output" className="zoomable" />
+
+After running the ingestion utility, you'll find the generated markdown file in the specified output directory. The file will contain a comprehensive summary of your codebase. Also the summary and other relevant metadata would be stored in the graph database.
+
+Also check out the Neo4j Browser to visualize the graph database. Go to [http://localhost:7474/browser/](http://localhost:7474/browser/)
+
+<img src={require('../../static/img/code-confluence-neo4j-browser.png').default} alt="Unoplat Code Confluence Graph Database" className="zoomable" />
+
 ## 3. Setup Chat Interface
 
 ### Query Engine Configuration
@@ -147,6 +159,14 @@ pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@main#su
 unoplat-code-confluence-query-engine --config /path/to/your/config.json
 ```
 
+3. **Example Run**
+
+
+<img src={require('../../static/img/code-confluence-query-engine.png').default} alt="Unoplat Code Confluence Query Engine" className="zoomable" />
+
+We had added [textgrad](https://github.com/zou-group/textgrad) to our graph database in the configuration of ingestion utility. You can now chat with the codebase. To view existing codebases press ctrl + e.
+
+<img src={require('../../static/img/code-confluence-existing-codebases.png').default} alt="Unoplat Code Confluence Existing Codebases" className="zoomable" />
 
 ## Troubleshooting
 
