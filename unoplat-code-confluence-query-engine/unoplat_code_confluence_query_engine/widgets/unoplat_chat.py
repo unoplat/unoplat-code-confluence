@@ -2,11 +2,11 @@ import logging
 from textual import work
 from textual.widgets import  RichLog, Input, Static
 from textual.app import ComposeResult
-from processing.query_engine_process import QueryEngineProcess
+from unoplat_code_confluence_query_engine.processing.query_engine_process import QueryEngineProcess
 from textual.containers import Vertical
 from textual.binding import Binding
-from screens.codebase_options import CodebaseOptionsModal
-from screens.existing_codebase_list import ExistingCodebaseList
+from unoplat_code_confluence_query_engine.screens.codebase_options import CodebaseOptionsModal
+from unoplat_code_confluence_query_engine.screens.existing_codebase_list import ExistingCodebaseList
 
 class UnoplatChat(Vertical):
     
