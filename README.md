@@ -85,7 +85,8 @@ graph TD
     C --> D[Enhance Metadata]
     D --> E[Integrate with Dspy Pipelines]
     E --> F[Generate Enhanced Code Atlas]
-    F --> G[End]
+    F --> G[Insert data into Graph Schema]
+    G --> H[End]
 ```
 This diagram outlines the Unoplat process from the initial parsing of the codebase to the generation of an enhanced Code Atlas, highlighting the deterministic and structured approach to managing and understanding codebases.
 
@@ -141,7 +142,7 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
 1. Install [Pipx](https://pipx.pypa.io/stable/)
 2. Install unoplat-code-confluence through :
 ```
-   pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.11.1#subdirectory=unoplat-code-confluence'
+   pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@main#subdirectory=unoplat-code-confluence'
 ```
 3. Before you can run the unoplat code confluence tool on your local machine, you need to set up the necessary configuration file. This file tells tool where your codebase is located, where to output the analysis results, and other essential information. Below is a step-by-step guide to setting up your configuration.
 
@@ -179,7 +180,10 @@ https://github.com/stanfordnlp/dspy/tree/main/dspy
       }
     ],
    "parallisation": 3,
-   "json_output": true
+   "json_output": false,
+   "neo4j_uri": "bolt://localhost:7687",
+   "neo4j_username": "neo4j",
+   "neo4j_password": "Your neo4j password"
 }
 ```
 Configuration Note: Do not change the download_url and keep the programming_language to java or python (as right now only java & python are supported)
