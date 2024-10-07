@@ -4,10 +4,10 @@ from textual.widgets import Header, Footer, Input, RichLog
 from textual.binding import Binding
 from textual.app import ComposeResult
 from textual.containers import Horizontal
-from widgets.chat_history import ChatHistory
-from widgets.unoplat_chat import UnoplatChat
-from processing.query_engine_process import QueryEngineProcess
-from screens.codebase_options import CodebaseOptionsModal
+from unoplat_code_confluence_query_engine.widgets.chat_history import ChatHistory
+from unoplat_code_confluence_query_engine.widgets.unoplat_chat import UnoplatChat
+from unoplat_code_confluence_query_engine.processing.query_engine_process import QueryEngineProcess
+from unoplat_code_confluence_query_engine.screens.codebase_options import CodebaseOptionsModal
 class ChatScreen(Screen):
     AUTO_FOCUS = "#message-input"
 

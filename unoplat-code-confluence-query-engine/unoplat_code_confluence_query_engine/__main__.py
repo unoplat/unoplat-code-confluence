@@ -4,10 +4,9 @@ from typing import Dict, List
 import warnings
 import click
 from textual.app import App
-from configuration.external_config import AppConfig
-from processing.query_engine_process import QueryEngineProcess
-
-from screens.chat_screen import ChatScreen
+from unoplat_code_confluence_query_engine.configuration.external_config import AppConfig
+from unoplat_code_confluence_query_engine.processing.query_engine_process import QueryEngineProcess
+from unoplat_code_confluence_query_engine.screens.chat_screen import ChatScreen
 
 
 
