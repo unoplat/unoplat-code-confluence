@@ -138,9 +138,10 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_js
     logger.info("Parsing process completed.")
 
     
-if __name__ == "__main__":
-    
+def main():
     warnings.filterwarnings("ignore", category=DeprecationWarning, module='pydantic.*')
-   
     asyncio.run(start_pipeline())
+
+if __name__ == "__main__":
+    main()
     
