@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.4.0...unoplat-code-confluence-query-engine-v0.4.1) (2024-10-07)
+
+
+### Bug Fixes
+
+* added poetry lock for query engine for reproducibility ([41233c1](https://github.com/unoplat/unoplat-code-confluence/commit/41233c15225bd835d7847c66c38b61d98427aeba))
+* added tool poetry script for entry point to pipx ([5e294ec](https://github.com/unoplat/unoplat-code-confluence/commit/5e294ec37e0516be1678c23f19fcdc78d8ce0f38))
+* fix imports for pipx with parent folder ([779b472](https://github.com/unoplat/unoplat-code-confluence/commit/779b472a2a206806e9dbbc31a144e4c83858a663))
+* helper import path ([700e7d3](https://github.com/unoplat/unoplat-code-confluence/commit/700e7d37b4fa442ed394a4b1c227db1c8a1b133e))
+* import path for pipx ([336f42c](https://github.com/unoplat/unoplat-code-confluence/commit/336f42c5f528c52c25972e671216bb49a5047ad8))
+* imports for pipx ([07c4deb](https://github.com/unoplat/unoplat-code-confluence/commit/07c4deb0d150cf35b61f722c98f8f79dc9afb694))
+
 ## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.3.0...unoplat-code-confluence-query-engine-v0.4.0) (2024-10-06)
 
 
