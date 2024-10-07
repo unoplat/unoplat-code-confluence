@@ -12,7 +12,7 @@ from screens.chat_screen import ChatScreen
 
 
 class ChatApp(App):
-    
+    TITLE = "Unoplat Code Confluence - Where Code Meets Clarity"
     CSS_PATH = "query_engine_style.tcss"
     
     def __init__(self, config: AppConfig):
