@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.0...unoplat-code-confluence-v0.13.1) (2024-10-07)
+
+
+### Bug Fixes
+
+* bug fix for poetry script ([56ba319](https://github.com/unoplat/unoplat-code-confluence/commit/56ba319b8c714db7b4867538c0ea26052d4e23c3))
+
 ## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.12.0...unoplat-code-confluence-v0.13.0) (2024-10-04)
 
 
