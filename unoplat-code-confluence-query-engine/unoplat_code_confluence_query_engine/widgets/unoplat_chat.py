@@ -34,7 +34,7 @@ class UnoplatChat(Vertical):
         self.logger = logging.getLogger(__name__)
 
     def compose(self) -> ComposeResult:
-        yield RichLog(id="message-log", wrap=True, markup=True)
+        yield RichLog(id="message-log", wrap=True, markup=True,max_lines=100)
         yield Input(id="message-input", placeholder="Type a message...")
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
@@ -51,7 +51,7 @@ class UnoplatChat(Vertical):
     async def send_message_to_api(self, message: str, message_log: RichLog) -> None:
         response = await self.get_api_response(message)
         self.app.call_from_thread(
-            message_log.write, f"[bold green]Bot:[/bold green] {response}"
+            message_log.write, f"[bold green]Bot:[/bold green] {response}",shrink=False
         )
 
     async def get_api_response(self, message: str) -> str:
