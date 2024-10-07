@@ -19,11 +19,11 @@ class ChatScreen(Screen):
         super().__init__()
         self.query_engine_process = query_engine_process
         
-
+ #TODO: Add citations and history to the chat screen 
     def compose(self) -> ComposeResult:
         yield Header()
         with Horizontal():
-           yield ChatHistory(id="chat-history")
+           #yield ChatHistory(id="chat-history")
            yield UnoplatChat(id="chat", query_engine_process=self.query_engine_process)
         yield Footer()
 
