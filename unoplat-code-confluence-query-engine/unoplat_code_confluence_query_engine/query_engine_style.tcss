@@ -28,8 +28,6 @@ ProgressScreen ProgressBar {
     height: 2;
 }
 
-
-
 CodebaseOptionsModal {
     align: center middle;
 }
@@ -80,7 +78,7 @@ Checkbox {
 #chat {
     border: solid blue;
     height: 100%;
-    width: 80%;
+    width: 100%;
 }
 
 #message-log {
