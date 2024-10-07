@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# # Quick Start Guide
+# Quick Start Guide
 
 Welcome to **Unoplat Code Confluence**! This guide will help you quickly set up and start using our platform to enhance your codebase management and collaboration.
 
