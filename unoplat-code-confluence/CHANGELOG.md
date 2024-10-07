@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.1...unoplat-code-confluence-v0.13.2) (2024-10-07)
+
+
+### Bug Fixes
+
+* added poetry lock for reproducible environments ([a3f0a2b](https://github.com/unoplat/unoplat-code-confluence/commit/a3f0a2b6f6eb863b701485857e5a52f8ebdbbfcc))
+* added rich for beatutiful formatting in terminal ([3986c5a](https://github.com/unoplat/unoplat-code-confluence/commit/3986c5a7afe2b57cc0f11347621f99f3ca013088))
+
 ## [0.13.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.0...unoplat-code-confluence-v0.13.1) (2024-10-07)
 
 
