@@ -1,0 +1,8 @@
+# Code Confluence Documentation
+
+
+## HOW TO RUN LOCALLY?
+
+1. Install dependencies: `yarn install`
+2. Build the project: `yarn build`
+3. Run the project: `yarn start`
