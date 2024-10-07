@@ -8,7 +8,7 @@ from unoplat_code_confluence_query_engine.configuration.external_config import A
 import dspy
 import time
 from typing import List
-from helper.json_loader import JsonLoader
+from unoplat_code_confluence_query_engine.helper.json_loader import JsonLoader
 from textual import log
 from unoplat_code_confluence_query_engine.models.confluence_user_intent import ConfluenceUserIntent
 from unoplat_code_confluence_query_engine.models.confluence_codebase import CodeConfluenceCodebase
