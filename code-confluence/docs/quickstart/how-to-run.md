@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# # Quick Start Guide
+# Quick Start Guide
 
 Welcome to **Unoplat Code Confluence**! This guide will help you quickly set up and start using our platform to enhance your codebase management and collaboration.
 
@@ -14,15 +14,11 @@ Welcome to **Unoplat Code Confluence**! This guide will help you quickly set up 
    - [Installation](#installation)
 4. [2. Generate Summary and Ingest Codebase](#2-generate-summary-and-ingest-codebase)
    - [Ingestion Configuration](#ingestion-configuration)
-   - [Running the Unoplat Code Confluence Ingestion Utility](#running-the-unoplat-code-confluence-ingestion-utility)
+   - [Run the Unoplat Code Confluence Ingestion Utility](#run-the-unoplat-code-confluence-ingestion-utility)
 5. [3. Setup Chat Interface](#3-setup-chat-interface)
    - [Query Engine Configuration](#query-engine-configuration)
    - [Launch Query Engine](#launch-query-engine)
 6. [Troubleshooting](#troubleshooting)
-
-
-
----
 
 ## Introduction
 
@@ -46,18 +42,17 @@ pipx install poetry
 
 1. **Run the Neo4j Container**
 
-  ```bash
-   docker run \
-   --name neo4j-container \
-   --restart always \
-   --publish 7474:7474 \
-   --publish 7687:7687 \
-   --env NEO4J_AUTH=neo4j/Ke7Rk7jB:Jn2Uz: \
-   --volume /Users/jayghiya/Documents/unoplat/neo4j-data:/data \
-   --volume /Users/jayghiya/Documents/unoplat/neo4j-plugins/:/plugins \
-   neo4j:5.23.0
+```bash
+docker run \
+  --name neo4j-container \
+  --restart always \
+  --publish 7474:7474 \
+  --publish 7687:7687 \
+  --env NEO4J_AUTH=neo4j/Ke7Rk7jB:Jn2Uz: \
+  --volume /Users/jayghiya/Documents/unoplat/neo4j-data:/data \
+  --volume /Users/jayghiya/Documents/unoplat/neo4j-plugins/:/plugins \
+  neo4j:5.23.0
 ```
-
 
 ## 2. Generate Summary and Ingest Codebase
 
@@ -100,23 +95,22 @@ pipx install poetry
   "neo4j_uri": "bolt://localhost:7687",
   "neo4j_username": "neo4j",
   "neo4j_password": "Ke7Rk7jB:Jn2Uz:"
+}
+```
 
-}```
+### Run the Unoplat Code Confluence Ingestion Utility
 
-### Running the Unoplat Code Confluence Ingestion Utility
-
-1.**Installation**
+1. **Installation**
 
 ```bash
 pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@main#subdirectory=unoplat-code-confluence'
 ```
 
-2.**Run the Ingestion Utility**
+2. **Run the Ingestion Utility**
 
 ```bash
 unoplat-code-confluence --config /path/to/your/config.json
 ```
-
 
 ## 3. Setup Chat Interface
 
@@ -124,18 +118,18 @@ unoplat-code-confluence --config /path/to/your/config.json
 
 ```json
 {
-    "sentence_transformer_model": "jinaai/jina-embeddings-v3",
-    "neo4j_uri": "bolt://localhost:7687",
-    "neo4j_username": "neo4j",
-    "neo4j_password": "your neo4j password",
-    "provider_model_dict": {
-        "model_provider" : "openai/gpt-4o-mini",
-        "model_provider_args": {
-            "api_key": "your openai api key",
-            "max_tokens": 500,
-            "temperature": 0.0
-        }
+  "sentence_transformer_model": "jinaai/jina-embeddings-v3",
+  "neo4j_uri": "bolt://localhost:7687",
+  "neo4j_username": "neo4j",
+  "neo4j_password": "your neo4j password",
+  "provider_model_dict": {
+    "model_provider": "openai/gpt-4o-mini",
+    "model_provider_args": {
+      "api_key": "your openai api key",
+      "max_tokens": 500,
+      "temperature": 0.0
     }
+  }
 }
 ```
 
@@ -152,3 +146,7 @@ pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@main#su
 ```bash
 unoplat-code-confluence-query-engine --config /path/to/your/config.json
 ```
+
+
+## Troubleshooting
+
