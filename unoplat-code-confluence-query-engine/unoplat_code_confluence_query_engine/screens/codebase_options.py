@@ -5,9 +5,9 @@ from textual.containers import Container
 from textual import on
 import asyncio
 import os
-from widgets.json_directory_tree import JSONDirectoryTree
-from screens.graph_load_progress_screen import LoadCodebaseGraphScreen
-from processing.query_engine_process import QueryEngineProcess
+from unoplat_code_confluence_query_engine.widgets.json_directory_tree import JSONDirectoryTree
+from unoplat_code_confluence_query_engine.screens.graph_load_progress_screen import LoadCodebaseGraphScreen
+from unoplat_code_confluence_query_engine.processing.query_engine_process import QueryEngineProcess
 
 
 class CodebaseOptionsModal(ModalScreen):

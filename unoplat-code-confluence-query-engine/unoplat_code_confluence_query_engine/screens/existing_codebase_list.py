@@ -2,7 +2,7 @@ from textual.screen import ModalScreen
 from textual.app import ComposeResult
 from textual.widgets import Button, Label, ListView, ListItem, Header, Footer
 from textual.containers import Container
-from processing.query_engine_process import QueryEngineProcess
+from unoplat_code_confluence_query_engine.processing.query_engine_process import QueryEngineProcess
 from textual.binding import Binding
 
 class ExistingCodebaseList(ModalScreen):
