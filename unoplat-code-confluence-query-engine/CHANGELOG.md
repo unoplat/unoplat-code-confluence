@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.4.1...unoplat-code-confluence-query-engine-v0.4.2) (2024-10-07)
+
+
+### Bug Fixes
+
+* fix max lines when response is received ([a3145b7](https://github.com/unoplat/unoplat-code-confluence/commit/a3145b7df88ed5c95afe2c20061007e1ef331f62))
+
 ## [0.4.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.4.0...unoplat-code-confluence-query-engine-v0.4.1) (2024-10-07)
 
 
