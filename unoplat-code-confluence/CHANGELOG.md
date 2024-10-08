@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.3...unoplat-code-confluence-v0.13.4) (2024-10-08)
+
+
+### Bug Fixes
+
+* merge conflicts ([868649e](https://github.com/unoplat/unoplat-code-confluence/commit/868649ea8f825b15af6923c72bf2be1f96704fce))
+
 ## [0.13.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.2...unoplat-code-confluence-v0.13.3) (2024-10-07)
 
 
