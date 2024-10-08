@@ -25,7 +25,11 @@ jobs:
       run:
         working-directory: code-confluence
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ GITHUB.HEAD_REF }}
 
       - name: Setup Node
         uses: actions/setup-node@v4

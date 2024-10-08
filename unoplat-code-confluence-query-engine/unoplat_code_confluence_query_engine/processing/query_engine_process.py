@@ -1,19 +1,18 @@
-from graph.neo4j_helper import Neo4jHelper
-from embedding.unoplat_embedding_generator import UnoplatEmbeddingGenerator
-
-from unoplat_dspy.intent_detection_module import CodeConfluenceIntentDetectionModule
-from unoplat_dspy.user_query_final_response import CodeConfluenceUserQueryResponseModule
-from unoplat_dspy.user_query_based_rererank_module import CodeConfluenceUserQueryReRankModule
-from models.confluence_func_hiearchy import CodeConfluenceFunctionHiearchySub
-from configuration.external_config import AppConfig
+from unoplat_code_confluence_query_engine.graph.neo4j_helper import Neo4jHelper
+from unoplat_code_confluence_query_engine.embedding.unoplat_embedding_generator import UnoplatEmbeddingGenerator
+from unoplat_code_confluence_query_engine.unoplat_dspy.intent_detection_module import CodeConfluenceIntentDetectionModule
+from unoplat_code_confluence_query_engine.unoplat_dspy.user_query_final_response import CodeConfluenceUserQueryResponseModule
+from unoplat_code_confluence_query_engine.unoplat_dspy.user_query_based_rererank_module import CodeConfluenceUserQueryReRankModule
+from unoplat_code_confluence_query_engine.models.confluence_func_hiearchy import CodeConfluenceFunctionHiearchySub
+from unoplat_code_confluence_query_engine.configuration.external_config import AppConfig
 import dspy
 import time
 from typing import List
-from helper.json_loader import JsonLoader
+from unoplat_code_confluence_query_engine.helper.json_loader import JsonLoader
 from textual import log
-from models.confluence_user_intent import ConfluenceUserIntent
-from models.confluence_codebase import CodeConfluenceCodebase
-from models.confluence_package import CodeConfluencePackage
+from unoplat_code_confluence_query_engine.models.confluence_user_intent import ConfluenceUserIntent
+from unoplat_code_confluence_query_engine.models.confluence_codebase import CodeConfluenceCodebase
+from unoplat_code_confluence_query_engine.models.confluence_package import CodeConfluencePackage
 
 class QueryEngineProcess:
     def __init__(self, appConfigPath:str):
@@ -115,3 +114,26 @@ class QueryEngineProcess:
         else:
             return "Could not understand your intent. please be more specific in terms of whether you want to understand at codebase level or feature level or implementation level."
         return final_response    
+
+ # TODO: proper exception handling at all levels
+    async def load_codebase_graph(self, file_path: str) -> None:
+         result = self.graph_helper.import_json_file(file_path=file_path)
+         await self._create_vector_index_on_all_nodes()
+         return result
+    
+    async def _create_vector_index_on_all_nodes(self):
+        # Create vector indexes for all node types
+        
+        node_types = ["Codebase","Package","Class","Method"]
+        embedding_types = ["objective_embedding", "implementation_embedding"]
+        
+        for node_type in node_types:
+            for embedding_type in embedding_types:
+                await self._create_vector_index(node_type, embedding_type)
+
+    async def _create_vector_index(self, node_label: str, embedding_property: str):
+        self.graph_helper.create_vector_index(node_label, embedding_property)
+
+    async def load_existing_codebases(self):
+        return self.graph_helper.get_existing_codebases()
+        

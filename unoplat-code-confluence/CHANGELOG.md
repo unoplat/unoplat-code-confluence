@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.13.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.2...unoplat-code-confluence-v0.13.3) (2024-10-07)
+
+
+### Bug Fixes
+
+* fix max lines when response is received ([a3145b7](https://github.com/unoplat/unoplat-code-confluence/commit/a3145b7df88ed5c95afe2c20061007e1ef331f62))
+
+## [0.13.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.1...unoplat-code-confluence-v0.13.2) (2024-10-07)
+
+
+### Bug Fixes
+
+* added poetry lock for reproducible environments ([a3f0a2b](https://github.com/unoplat/unoplat-code-confluence/commit/a3f0a2b6f6eb863b701485857e5a52f8ebdbbfcc))
+* added rich for beatutiful formatting in terminal ([3986c5a](https://github.com/unoplat/unoplat-code-confluence/commit/3986c5a7afe2b57cc0f11347621f99f3ca013088))
+
+## [0.13.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.0...unoplat-code-confluence-v0.13.1) (2024-10-07)
+
+
+### Bug Fixes
+
+* bug fix for poetry script ([56ba319](https://github.com/unoplat/unoplat-code-confluence/commit/56ba319b8c714db7b4867538c0ea26052d4e23c3))
+
 ## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.12.0...unoplat-code-confluence-v0.13.0) (2024-10-04)
 
 

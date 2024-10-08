@@ -4,41 +4,16 @@ from typing import Dict, List
 import warnings
 import click
 from textual.app import App
-from configuration.external_config import AppConfig
-from processing.query_engine_process import QueryEngineProcess
-
-from screens.chat_screen import ChatScreen
+from unoplat_code_confluence_query_engine.configuration.external_config import AppConfig
+from unoplat_code_confluence_query_engine.processing.query_engine_process import QueryEngineProcess
+from unoplat_code_confluence_query_engine.screens.chat_screen import ChatScreen
 
 
 
 class ChatApp(App):
-    CSS = """
+    TITLE = "Unoplat Code Confluence - Where Code Meets Clarity"
+    CSS_PATH = "query_engine_style.tcss"
     
-    #chat-history {
-        border: solid green;
-        height: 100%;
-        width: 20%;
-    }
-    #chat {
-        border: solid blue;
-        height: 100%;
-        width: 80%;
-    }
-    #message-log {
-        height: 1fr;  /* Allow message log to take up available vertical space */
-    }
-    #message-input {
-        dock: bottom;
-        height: 3;  /* Fix height of input field */
-    }
-    #history-title {
-        content-align: center middle;
-        height: 3;
-    }
-    #history-placeholder {
-        height: 1fr;  /* Make sure the placeholder fills remaining space */
-    }
-    """
     def __init__(self, config: AppConfig):
         super().__init__()
         self.query_engine_process = QueryEngineProcess(config)

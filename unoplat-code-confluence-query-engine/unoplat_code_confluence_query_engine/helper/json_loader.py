@@ -1,5 +1,5 @@
 import json
-from helper.ijson_loader import ILoadJson
+from unoplat_code_confluence_query_engine.helper.ijson_loader import ILoadJson
 from loguru import logger
 
 class JsonLoader(ILoadJson):

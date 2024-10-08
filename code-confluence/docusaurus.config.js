@@ -150,8 +150,23 @@ const config = {
         defaultMode: 'light',
         disableSwitch: true,
       },
-      
+      zoom: {
+        selector: '.zoomable',
+        background: {
+          light: 'rgb(255, 255, 255)',
+          dark: 'rgb(50, 50, 50)'
+        },
+        config: {
+          // options you can specify via https://github.com/francoischalifour/medium-zoom#usage
+        }
+      },
     }),
+  stylesheets: [
+    '/src/css/custom.css',
+  ],
+  plugins: [
+    'docusaurus-plugin-image-zoom'
+  ]
 };
 
 export default config;
