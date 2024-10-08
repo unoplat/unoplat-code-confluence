@@ -49,7 +49,6 @@ unoplat-code-confluence/unoplat_code_confluence/nodeparser/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/summary_parser/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/utility/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/example_config.json
-unoplat-code-confluence/poetry.lock
 app.log
 unoplat-code-confluence/unoplat_code_confluence/configuration/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/markdownparser/__pycache__
@@ -69,3 +68,5 @@ unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/proces
 unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/screens/__pycache__
 unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/unoplat_dspy/__pycache__
 unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/widgets/__pycache__
+unoplat-code-confluence-query-engine/dist
+unoplat-code-confluence-query-engine/unoplat_code_confluence_query_engine/__pycache__

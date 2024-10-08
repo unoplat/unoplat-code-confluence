@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "unoplat-code-confluence-query-engine"
-version = "0.3.0"
+version = "0.4.2"
 description = ""
 authors = ["JayGhiya <ghiya6548@gmail.com>"]
 readme = "README.md"
@@ -18,6 +18,8 @@ loguru = "^0.7.2"
 textual = {extras = ["syntax"], version = "^0.81.0"}
 click = "^8.1.7"
 
+[tool.poetry.scripts]
+unoplat-code-confluence-query-engine = "unoplat_code_confluence_query_engine.__main__:main"
 
 [build-system]
 requires = ["poetry-core"]
