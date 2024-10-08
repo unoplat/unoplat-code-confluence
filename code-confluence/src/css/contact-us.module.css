@@ -1,0 +1,97 @@
+  .socialLinksContainer {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .socialLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #F47E5F;  /* Adjust this color to match your theme */
+    color: #ffffff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .socialLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .icon {
+    font-size: 1.25rem;
+  }
+  
+  .discordLink:hover {
+    background-color: #7289da;
+  }
+  
+  .twitterLink:hover {
+    background-color: #1DA1F2;
+  }
+  
+  /* ... previous styles ... */
+
+
+  
+  .bookCallLink {
+    display: inline-flex;
+    align-items: center;
+    padding: 1rem;    
+    color: #000000;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 400;
+    transition: all 0.3s ease;  
+  }
+  
+  .bookCallLink:hover {
+    text-decoration: none;
+  }
+  
+  .callIcon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+  }
+
+  .detailsContainer {    
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .locationContainer {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.5rem;    
+    max-width: 400px;
+    margin: 0.5rem 0;
+  }
+  
+  .locationIcon {
+    font-size: 1.5rem;
+    color: #000000;
+    margin-right: 1rem;
+    margin-top: 0.2rem;
+  }
+  
+  .locationInfo {
+    flex: 1;
+  }
+  
+  .locationTitle {
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: #333;
+  }
+  
+  .locationAddress {
+    margin: 0;
+    line-height: 1.6;
+    color: #555;
+  }
