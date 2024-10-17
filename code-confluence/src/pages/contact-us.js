@@ -150,7 +150,7 @@ export default function Contact() {
         </div>
         <div style={{ flex: 1 }}>
 
-          <div className={styles.locationContainer}>
+          {/* <div className={styles.locationContainer}>
             <FontAwesomeIcon icon={faMapMarkerAlt} className={styles.locationIcon} />
             <div className={styles.locationInfo}>
               <h3 className={styles.locationTitle}>Location</h3>
@@ -168,22 +168,25 @@ export default function Contact() {
               </a>
             </div>
 
-          </div>
-          <div className={styles.bookCallContainer}>
-            <a href="https://cal.com/jay-ghiya/15min" className={styles.bookCallLink}>
-              <FontAwesomeIcon icon={faPhone} className={styles.callIcon} />
+          </div> */}
+          {/* <div style={{ width:'fit-content',height:'fit-content',padding:'1rem',border:'1px solid #e0e0e0',boxSizing:'border-box',borderRadius:'12px',backgroundColor:'#f8f8f8',boxShadow:'0 2px 4px rgba(0, 0, 0, 0.05);',display:'flex',flexDirection:'column',gap:'1rem' }}> */}
+          <h2 style={{marginTop:'1rem'}}>Contact Details</h2>
+            <div>
+              <a href="https://cal.com/jay-ghiya/15min" className={styles.bookCallLink}>
+                <FontAwesomeIcon icon={faPhone} className={styles.callIcon} />
               <span>Book a Call</span>
-            </a>
-          </div>
+              </a>
+            </div>
 
-          <div className={styles.socialLinksContainer}>
-            <a href="https://discord.com/channels/1131597983058755675/1169968780953260106" className={`${styles.socialLink} ${styles.discordLink}`}>
-              <FontAwesomeIcon icon={faDiscord} className={styles.icon} />
-            </a>
-            <a href="https://x.com/unoplatio" className={`${styles.socialLink} ${styles.twitterLink}`}>
-              <FontAwesomeIcon icon={faTwitter} className={styles.icon} />
-            </a>
-          </div>
+            <div className={styles.socialLinksContainer}>
+              <a href="https://discord.com/channels/1131597983058755675/1169968780953260106" className={`${styles.socialLink} ${styles.discordLink}`}>
+                <FontAwesomeIcon icon={faDiscord} className={styles.icon} />
+              </a>
+              <a href="https://x.com/unoplatio" className={`${styles.socialLink} ${styles.twitterLink}`}>
+                <FontAwesomeIcon icon={faTwitter} className={styles.icon} />
+              </a>
+            </div>
+          {/* </div> */}
         </div>
       </div>
     </Layout>
