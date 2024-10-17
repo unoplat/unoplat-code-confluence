@@ -41,6 +41,7 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
+          routeBasePath: 'docs',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
@@ -71,13 +72,7 @@ const config = {
             position: 'left',
             label: 'Documentation',
           },
-          {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Features',
-            href: '/features',
-          },
+          
           {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
@@ -89,10 +84,10 @@ const config = {
         ],
       },
       algolia: {
-        apiKey: 'a7c446231d40f2d929d9fdcbe759c8f7',
-        indexName: 'code_confluence_idx',
+        apiKey: '21acb3ae035a0a588a5377e5e9e06c3b',
+        indexName: 'unoplatio',
         // Optional: see doc section below
-        appId: 'HTSE2LDZYS', // Optional, if using App ID
+        appId: '0PYM5MWDAT', // Optional, if using App ID
         contextualSearch: true,
         // Optional: Algolia search parameters
         searchParameters: {},

@@ -2,7 +2,7 @@
     display: flex;
     gap: 1rem;
     margin-top: 0.5rem;
-    padding: 0.5rem;
+    padding: 1rem;
   }
   
   .socialLink {
@@ -42,7 +42,8 @@
   .bookCallLink {
     display: inline-flex;
     align-items: center;
-    padding: 1rem;    
+    padding:1rem 1rem 0rem 1rem;    
+    
     color: #000000;
     text-decoration: none;
     border-radius: 50px;
@@ -68,9 +69,9 @@
   .locationContainer {
     display: flex;
     align-items: flex-start;
-    padding: 0.5rem;    
+    padding: 1rem;    
     max-width: 400px;
-    margin: 0.5rem 0;
+    margin: 1rem 0;
   }
   
   .locationIcon {
