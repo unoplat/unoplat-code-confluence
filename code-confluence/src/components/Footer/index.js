@@ -8,7 +8,7 @@ export default function Footer() {
                     <h4 class="footer__title">Docs</h4>
                     <ul class="footer__items clean-list">
                     <li class="footer__item">
-                        <a class="footer__link-item" href="#url">Introduction</a>
+                        <a class="footer__link-item" href="/unoplat-code-confluence/docs/">Introduction</a>
                     </li>
                     
                     </ul>
@@ -17,7 +17,7 @@ export default function Footer() {
                     <h4 class="footer__title">Community</h4>
                     <ul class="footer__items clean-list">
                     <li class="footer__item">
-                        <a class="footer__link-item" href="#url">Discord</a>
+                        <a class="footer__link-item" href="https://discord.com/channels/1131597983058755675/1169968780953260106">Discord</a>
                     </li>
                     
                     </ul>
@@ -26,14 +26,14 @@ export default function Footer() {
                     <h4 class="footer__title">Social</h4>
                     <ul class="footer__items clean-list">
                     <li class="footer__item">
-                        <a class="footer__link-item" href="#url">GitHub</a>
+                        <a class="footer__link-item" href="https://github.com/unoplat/unoplat-code-confluence">GitHub</a>
                     </li>
                     <li class="footer__item">
-                        <a class="footer__link-item" href="#url">Twitter</a>
+                        <a class="footer__link-item" href="https://x.com/unoplatio">Twitter</a>
                     </li>
                     </ul>
                 </div>
-                <div class="col footer__col">
+                {/* <div class="col footer__col">
                     <h4 class="footer__title">Legal</h4>
                     <ul class="footer__items clean-list">
                     <li class="footer__item">
@@ -43,7 +43,7 @@ export default function Footer() {
                         <a class="footer__link-item" href="#url">Terms</a>
                     </li>
                     </ul>
-                </div>
+                </div> */}
                 </div>
                 <div class="text--center">
                 
