@@ -7,8 +7,7 @@
         "email": "jayghiya@unoplat.co.in",
         "description": "Unoplat is a bootstrapped open-source organization based in India, driven by a dedicated team of five professionals. Our mission is to empower individual developers to build enterprise-grade backend systems single-handedly. By focusing on cutting-edge solutions in code context provisioning and cloud-native platforms, we aim to revolutionize backend development, making it more accessible, scalable, and efficient for developers worldwide.",
         "webpageUrl": {
-            "url": "https://github.com/unoplat",
-            "wellKnown": "https://github.com/unoplat/.well-known/funding-manifest-urls"
+            "url": "https://github.com/unoplat"
         }
     },
     "projects": [
@@ -18,7 +17,7 @@
             "description": "Unoplat CodeConfluence is on a mission to become the definitive code context provider for any repository, seamlessly integrating across multiple domains. With deterministic, language-agnostic code parsing powered by CHAPI and ANTLR, it delivers precise insights that transcend traditional documentation. Engage effortlessly with your code through smart, context-aware interactions, empowering you to navigate and understand complex codebases with unmatched clarity and efficiency. In addition it will become the gen-ai interface for unoplat core in near future.",
             "webpageUrl": {
                 "url": "https://unoplat.github.io/unoplat-code-confluence/",
-                "wellknown": "http://unoplat.github.io/unoplat-code-confluence/.well-known/funding-manifest-urls"
+                "wellknown": "https://unoplat.github.io/unoplat-code-confluence/.well-known/funding-manifest-urls"
             },
             "repositoryUrl": {
                 "url": "https://github.com/unoplat/unoplat-code-confluence"
@@ -33,7 +32,7 @@
             "description": "Unoplat Core empowers individual developers to build enterprise-grade, cloud-native backends with ease. By integrating High Availability, Fault Tolerance, Observability, Infrastructure as Code, and seamless CI/CD pipelines, it enables one person to achieve what usually requires a full team. Accelerate development with Template Driven Application Development (TDAD), offering ready-to-deploy templates for streaming, batch processing, BPMN workflows, and microservices.",
             "webpageUrl": {
                 "url": "https://github.com/unoplat/unoplat",
-                "wellKnown": "https://github.com/unoplat/unoplat/.well-known/funding-manifest-urls"
+                "wellKnown": "https://github.com/unoplat/unoplat-code-confluence/blob/main/.well-known/funding-manifest-urls"
             },
             "repositoryUrl": {
                 "url": "https://github.com/unoplat/unoplat"
