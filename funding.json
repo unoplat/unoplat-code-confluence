@@ -1,0 +1,83 @@
+{
+    "version": "v1.0.0",
+    "entity": {
+        "type": "organisation",
+        "role": "maintainer",
+        "name": "Unoplat Technologies PVT. LTD.",
+        "email": "jayghiya@unoplat.co.in",
+        "description": "Unoplat is a bootstrapped open-source organization based in India, consisting of 5 dedicated team members. We focus on developing cutting-edge solutions in the fields of code context provisioning and cloud-native platforms.",
+        "webpageUrl": {
+            "url": "https://github.com/unoplat"
+        }
+    },
+    "projects": [
+        {
+            "guid": "code-confluence",
+            "name": "Unoplat CodeConfluence",
+            "description": "Where Code Meets Clarity.\n\nCodeConfluence aims to be the most deterministic and precise code context provider for any code repository and across multiple such repositories tied through domain. It seeks to become the unified code context provider, which can be integrated with projects like OpenDevin, Devon, Danswer, Continue Dev, and other open-source software, thereby complementing the precision of these frameworks with minimal operational expenditure. This product is live and consumable.",
+            "webpageUrl": {
+                "url": "https://unoplat.github.io/unoplat-code-confluence/"
+            },
+            "repositoryUrl": {
+                "url": "https://github.com/unoplat/unoplat-code-confluence"
+            },
+            "licenses": ["spdx:AGPL-3.0"],
+            "tags": ["code-context", "developer-tools", "integration", "open-source","graph-rag","dspy","gen-ai","llm"]
+        },
+        {
+            "guid": "unoplat-core",
+            "name": "Unoplat Core",
+            "description": "An open-source platform enabling individuals to build a cloud-native, Kubernetes-native, self-hosted enterprise-grade backend. Unoplat Core includes built-in cross-cutting concerns such as infrastructure, security, scalability, and observability. It offers ready-to-deploy templates for streaming applications, batch processing, microservices, BPMN workflows, and generative AI applications. The product is in alpha and non consumable.",
+            "webpageUrl": {
+                "url": "https://github.com/unoplat/unoplat"
+            },
+            "repositoryUrl": {
+                "url": "https://github.com/unoplat/unoplat"
+            },
+            "licenses": ["spdx:AGPL-3.0"],
+            "tags": ["cloud-native", "kubernetes", "self-hosted", "infrastructure", "open-source","gen-ai","llm","devops","databases","templates","iac"]
+        }
+    ],
+    "funding": {
+        "channels": [
+            {
+                "guid": "unoplat-company-bank",
+                "type": "bank",
+                "address": "company account registration is in progress. Will be availabe soon.", 
+                "description": "Donations can be made via direct bank transfer to our company account. Please contact us at jayghiya@unoplat.co.in for banking details."
+            }
+        ],
+        "plans": [
+            {
+                "guid": "home-lab-fund",
+                "status": "active",
+                "name": "Home Lab Server Funding",
+                "description": "One-time funding needed for our home lab server setup, including 6x NVIDIA RTX 4090 GPUs and AMD Threadripper Pro etc., to support our open-source projects and make our cutting edge llm based experiments sustainable.",
+                "amount": 2000000,
+                "currency": "INR",
+                "frequency": "one-time",
+                "channels": ["company-bank"]
+            },
+            {
+                "guid": "maintainer-support",
+                "status": "active",
+                "name": "Maintainer Support",
+                "description": "Monthly support for 1 year our maintainers working on Unoplat projects.",
+                "amount": 40000,
+                "currency": "INR",
+                "frequency": "monthly",
+                "channels": ["company-bank"]
+            },
+            {
+                "guid": "oss-bounties",
+                "status": "active",
+                "name": "Open Source Bounties for our github issues",
+                "description": "Monthly funds for 1 year to support open-source bounties and rewards for contributors.",
+                "amount": 40000,
+                "currency": "INR",
+                "frequency": "monthly",
+                "channels": ["company-bank"]
+            }
+        ]
+    }
+}
