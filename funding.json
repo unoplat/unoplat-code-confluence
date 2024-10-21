@@ -16,7 +16,8 @@
             "name": "Unoplat CodeConfluence",
             "description": "Unoplat CodeConfluence is on a mission to become the definitive code context provider for any repository, seamlessly integrating across multiple domains. With deterministic, language-agnostic code parsing powered by CHAPI and ANTLR, it delivers precise insights that transcend traditional documentation. Engage effortlessly with your code through smart, context-aware interactions, empowering you to navigate and understand complex codebases with unmatched clarity and efficiency. In addition it will become the gen-ai interface for unoplat core in near future.",
             "webpageUrl": {
-                "url": "https://unoplat.github.io/unoplat-code-confluence/"
+                "url": "https://unoplat.github.io/unoplat-code-confluence/",
+                "wellknown": "https://github.com/unoplat/unoplat-code-confluence/blob/main/.well-known/funding-manifest-urls"
             },
             "repositoryUrl": {
                 "url": "https://github.com/unoplat/unoplat-code-confluence"
@@ -52,7 +53,7 @@
                 "guid": "home-lab-fund",
                 "status": "active",
                 "name": "Home Lab Server Funding",
-                "description": "One-time funding needed for our home lab server setup, including 6x NVIDIA RTX 4090 GPUs and AMD Threadripper Pro etc., to support our open-source projects and make our cutting edge llm based experiments sustainable.",
+                "description": "One-time funding needed for our home lab server setup, including 6x NVIDIA RTX 4090 GPUs and AMD Threadripper Pro etc., to support our open-source projects and make our cutting edge cloud native and llm based experiments sustainable.",
                 "amount": 2000000,
                 "currency": "INR",
                 "frequency": "one-time",
