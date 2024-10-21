@@ -14,7 +14,7 @@
         {
             "guid": "code-confluence",
             "name": "Unoplat CodeConfluence",
-            "description": "Where Code Meets Clarity.\n\nCodeConfluence aims to be the most deterministic and precise code context provider for any code repository and across multiple such repositories tied through domain. It seeks to become the unified code context provider, which can be integrated with projects like OpenDevin, Devon, Danswer, Continue Dev, and other open-source software, thereby complementing the precision of these frameworks with minimal operational expenditure. This product is live and consumable.",
+            "description": "Unoplat CodeConfluence is on a mission to become the definitive code context provider for any repository, seamlessly integrating across multiple domains. With deterministic, language-agnostic code parsing powered by CHAPI and ANTLR, it delivers precise insights that transcend traditional documentation. Engage effortlessly with your code through smart, context-aware interactions, empowering you to navigate and understand complex codebases with unmatched clarity and efficiency. In addition it will become the gen-ai interface for unoplat core in near future.",
             "webpageUrl": {
                 "url": "https://unoplat.github.io/unoplat-code-confluence/"
             },
@@ -27,7 +27,7 @@
         {
             "guid": "unoplat-core",
             "name": "Unoplat Core",
-            "description": "An open-source platform enabling individuals to build a cloud-native, Kubernetes-native, self-hosted enterprise-grade backend. Unoplat Core includes built-in cross-cutting concerns such as infrastructure, security, scalability, and observability. It offers ready-to-deploy templates for streaming applications, batch processing, microservices, BPMN workflows, and generative AI applications. The product is in alpha and non consumable.",
+            "description": "Unoplat Core empowers individual developers to build enterprise-grade, cloud-native backends with ease. By integrating High Availability, Fault Tolerance, Observability, Infrastructure as Code, and seamless CI/CD pipelines, it enables one person to achieve what usually requires a full team. Accelerate development with Template Driven Application Development (TDAD), offering ready-to-deploy templates for streaming, batch processing, BPMN workflows, and microservices.",
             "webpageUrl": {
                 "url": "https://github.com/unoplat/unoplat"
             },
