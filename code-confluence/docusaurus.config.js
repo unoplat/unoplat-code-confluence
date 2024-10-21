@@ -33,7 +33,7 @@ const config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
-
+  staticDirectories: ['static'],
   presets: [
     [
       'classic',
