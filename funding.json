@@ -7,7 +7,8 @@
         "email": "jayghiya@unoplat.co.in",
         "description": "Unoplat is a bootstrapped open-source organization based in India, driven by a dedicated team of five professionals. Our mission is to empower individual developers to build enterprise-grade backend systems single-handedly. By focusing on cutting-edge solutions in code context provisioning and cloud-native platforms, we aim to revolutionize backend development, making it more accessible, scalable, and efficient for developers worldwide.",
         "webpageUrl": {
-            "url": "https://github.com/unoplat"
+            "url": "https://github.com/unoplat",
+            "wellKnown": "https://github.com/unoplat/.well-known/funding-manifest-urls"
         }
     },
     "projects": [
@@ -30,7 +31,8 @@
             "name": "Unoplat Core",
             "description": "Unoplat Core empowers individual developers to build enterprise-grade, cloud-native backends with ease. By integrating High Availability, Fault Tolerance, Observability, Infrastructure as Code, and seamless CI/CD pipelines, it enables one person to achieve what usually requires a full team. Accelerate development with Template Driven Application Development (TDAD), offering ready-to-deploy templates for streaming, batch processing, BPMN workflows, and microservices.",
             "webpageUrl": {
-                "url": "https://github.com/unoplat/unoplat"
+                "url": "https://github.com/unoplat/unoplat",
+                "wellKnown": "https://github.com/unoplat/unoplat/.well-known/funding-manifest-urls"
             },
             "repositoryUrl": {
                 "url": "https://github.com/unoplat/unoplat"
