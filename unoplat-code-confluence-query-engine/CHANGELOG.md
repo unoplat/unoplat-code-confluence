@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.4.3...unoplat-code-confluence-query-engine-v0.4.4) (2024-10-22)
+
+
+### Bug Fixes
+
+* include class user intent. improve dspy user intent to return enum values to drastically reduce output llm tokens making the overall response faster ([07ec57a](https://github.com/unoplat/unoplat-code-confluence/commit/07ec57aa107d8954cd9daf05bb42ec890a956a76))
+
 ## [0.4.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.4.2...unoplat-code-confluence-query-engine-v0.4.3) (2024-10-08)
 
 
