@@ -49,7 +49,7 @@ class QueryEngineProcess:
         if ConfluenceUserIntent.FUNCTIONAL_IMPLEMENTATION.name in user_intent_list:
             # Search similar functions
             
-            results = self.graph_helper.search_similar_nodes(vector_index="Method_objective_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="Method_implementation_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
             context = {result["name"]: result["summary"] for result in results}
             
             if len(context) > 1:
@@ -70,7 +70,7 @@ class QueryEngineProcess:
             
         elif ConfluenceUserIntent.CODE_SUMMARIZATION.name in user_intent_list:
             
-            results = self.graph_helper.search_similar_nodes(vector_index="Codebase_objective_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="Codebase_implementation_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
             context = {result["name"]: result["summary"] for result in results}
             
             if len(context) > 1:
@@ -91,7 +91,7 @@ class QueryEngineProcess:
             final_response = final_response + self.user_query_response_module(user_query=user_query, code_metadata=context).answer
         
         elif ConfluenceUserIntent.CODE_FEATURE.name in user_intent_list:
-            results = self.graph_helper.search_similar_nodes(vector_index="Package_objective_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="Package_implementation_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
             context = {result["name"]: result["summary"] for result in results}
             
             if len(context) > 1:
