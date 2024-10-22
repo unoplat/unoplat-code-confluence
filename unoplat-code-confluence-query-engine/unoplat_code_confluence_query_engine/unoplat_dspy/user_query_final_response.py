@@ -1,14 +1,12 @@
 from typing import Dict
 import dspy
 
-
-
 class CodeConfluenceUserQueryResponseSignature(dspy.Signature):
-    """Generate a comprehensive response to the user query using the code metadata."""
+    """Generate a comprehensive response with multiple citations to the user query based on the relevant multiple code metadata.Use relevant distinct data points."""
     user_query: str = dspy.InputField(desc="The user's original query.")
     code_metadata: str = dspy.InputField(desc="The code metadata relevant to the user query.")
     existing_respone : str = dspy.InputField(default="No existing response yet",desc="The existing response to the user query based on multiple code metadata. It will be empty in the first instance or if there is just one relevant code metadata for user query")
-    final_response: str = dspy.OutputField(desc="final response based on user_query , code metadata and existing_response if it exists")
+    final_response: str = dspy.OutputField(desc="Comprehensive response based on user_query , code metadata and existing_response if it exists")
 
 class CodeConfluenceUserQueryResponseModule(dspy.Module):
     def __init__(self):
