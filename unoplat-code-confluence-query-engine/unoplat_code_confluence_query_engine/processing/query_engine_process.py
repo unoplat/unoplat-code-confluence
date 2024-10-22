@@ -1,5 +1,6 @@
 from unoplat_code_confluence_query_engine.graph.neo4j_helper import Neo4jHelper
 from unoplat_code_confluence_query_engine.embedding.unoplat_embedding_generator import UnoplatEmbeddingGenerator
+from unoplat_code_confluence_query_engine.models.confluence_class import CodeConfluenceClass
 from unoplat_code_confluence_query_engine.unoplat_dspy.intent_detection_module import CodeConfluenceIntentDetectionModule
 from unoplat_code_confluence_query_engine.unoplat_dspy.user_query_final_response import CodeConfluenceUserQueryResponseModule
 from unoplat_code_confluence_query_engine.unoplat_dspy.user_query_based_rererank_module import CodeConfluenceUserQueryReRankModule
@@ -10,9 +11,9 @@ import time
 from typing import List
 from unoplat_code_confluence_query_engine.helper.json_loader import JsonLoader
 from textual import log
-from unoplat_code_confluence_query_engine.models.confluence_user_intent import ConfluenceUserIntent
 from unoplat_code_confluence_query_engine.models.confluence_codebase import CodeConfluenceCodebase
 from unoplat_code_confluence_query_engine.models.confluence_package import CodeConfluencePackage
+from unoplat_code_confluence_query_engine.models.confluence_user_intent import ConfluenceUserIntent
 
 class QueryEngineProcess:
     def __init__(self, appConfigPath:str):
@@ -42,13 +43,11 @@ class QueryEngineProcess:
     async def process_query(self, user_query: str) -> str:
         
         user_query_embedding = self.embedding_generator.generate_embeddings_for_single_text(user_query)
-        
-        
-        user_intent_list: List[str] = self.intent_module(user_query=user_query).answer
+        user_intent_list: List[int] = self.intent_module(user_query=user_query).answer
         final_response = ""
-        if ConfluenceUserIntent.FUNCTIONAL_IMPLEMENTATION.name in user_intent_list:
+
+        if int(ConfluenceUserIntent.FUNCTIONAL_IMPLEMENTATION.value) in user_intent_list:
             # Search similar functions
-            
             results = self.graph_helper.search_similar_nodes(vector_index="Method_implementation_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
             context = {result["name"]: result["summary"] for result in results}
             
@@ -68,7 +67,7 @@ class QueryEngineProcess:
             
             final_response = self.user_query_response_module(user_query=user_query, code_metadata=context).answer
             
-        elif ConfluenceUserIntent.CODE_SUMMARIZATION.name in user_intent_list:
+        elif int(ConfluenceUserIntent.CODE_SUMMARIZATION.value) in user_intent_list:
             
             results = self.graph_helper.search_similar_nodes(vector_index="Codebase_implementation_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
             context = {result["name"]: result["summary"] for result in results}
@@ -90,7 +89,7 @@ class QueryEngineProcess:
             # Generate final response
             final_response = final_response + self.user_query_response_module(user_query=user_query, code_metadata=context).answer
         
-        elif ConfluenceUserIntent.CODE_FEATURE.name in user_intent_list:
+        elif int(ConfluenceUserIntent.PACKAGE_OVERVIEW.value) in user_intent_list:
             results = self.graph_helper.search_similar_nodes(vector_index="Package_implementation_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
             context = {result["name"]: result["summary"] for result in results}
             
@@ -111,8 +110,32 @@ class QueryEngineProcess:
             # Generate final response
             final_response = final_response + self.user_query_response_module(user_query=user_query, code_metadata=context).answer
         
+        elif int(ConfluenceUserIntent.CLASS_DETAILS.value) in user_intent_list:
+            results = self.graph_helper.search_similar_nodes(vector_index="Class_implementation_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
+            context = {result["name"]: result["summary"] for result in results}
+            
+            if len(context) > 1:
+                rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
+                filtered_rerank_results = {k: v for k, v in rerank_results.items() if v > 7}
+                context = {k: v for k, v in context.items() if k in filtered_rerank_results.keys()}
+            else:
+                # If there's only one or no context, we don't need to rerank
+                filtered_rerank_results = {list(context.keys())[0]: 10} if context else {}
+
+            # Get details for all class names
+            for class_name in context.keys():
+                class_details = self.graph_helper.get_class_details(class_name=class_name)[0]
+                class_details_object = CodeConfluenceClass(**class_details)
+                class_details_object.relevance_score = filtered_rerank_results.get(class_name, 10)  # Default to 10 if not ranked
+                context[class_name] = class_details_object.model_dump_json()
+            
+            # Generate final response
+            final_response = final_response + self.user_query_response_module(user_query=user_query, code_metadata=context).answer
+
         else:
-            return "Could not understand your intent. please be more specific in terms of whether you want to understand at codebase level or feature level or implementation level."
+            return "Could not understand your intent. Please be more specific in terms of whether you want to understand at codebase level, feature level, or implementation level."
+        
+        
         return final_response    
 
  # TODO: proper exception handling at all levels
@@ -137,3 +160,4 @@ class QueryEngineProcess:
     async def load_existing_codebases(self):
         return self.graph_helper.get_existing_codebases()
         
+

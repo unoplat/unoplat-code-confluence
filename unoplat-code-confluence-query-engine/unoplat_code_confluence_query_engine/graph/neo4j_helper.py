@@ -60,6 +60,15 @@ class Neo4jHelper:
         """
         return self.run_query(query, package_name=package_name)
     
+    def get_class_details(self,class_name):
+        query = """
+        MATCH (c:Class {qualified_name: $class_name})
+        RETURN 
+            c.qualified_name AS class_name,
+            c.objective AS class_objective,
+            c.implementation_summary AS class_summary
+        """
+        return self.run_query(query, class_name=class_name)
     
     def get_codebase_details(self,codebase_name):   
         query = """

@@ -32,7 +32,6 @@ def main(config):
     if not os.path.isfile(config):
         click.echo(f"Error: The code confluence query engine configuration file '{config}' does not exist.", err=True)
         return
-
     app = ChatApp(config)
     app.run()
 
