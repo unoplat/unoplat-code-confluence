@@ -1,19 +1,22 @@
 from typing import List, Dict
 import dspy
 from textual import log
+from unoplat_code_confluence_query_engine.models.confluence_user_intent import ConfluenceUserIntent
+
 
 class IntentDescriptions:
-    DESCRIPTIONS: Dict[str, str] = {
-        "CODE_SUMMARIZATION": "User wants an overview or summary of the codebase.",
-        "CODE_FEATURE": "User is looking for specific features that can be answered by going through the package summaries.",
-        "FUNCTIONAL_IMPLEMENTATION": "User wants detailed understanding at the function level."
+    DESCRIPTIONS: Dict[ConfluenceUserIntent, str] = {
+        ConfluenceUserIntent.CODE_SUMMARIZATION: "The user query wants a high-level overview or summary of the entire codebase, including its main objectives and overall implementation.",
+        ConfluenceUserIntent.PACKAGE_OVERVIEW: "The user query is interested in understanding the objectives or summaries of specific packages within the codebase.",
+        ConfluenceUserIntent.CLASS_DETAILS: "The user query seeks detailed information about specific classes, including their purposes and how they fit within the packages.",
+        ConfluenceUserIntent.FUNCTIONAL_IMPLEMENTATION: "The user query wants detailed understanding at the function level."
     }
 
 class CodeConfluenceUserQuerySignature(dspy.Signature):
     """Based on user query and context of intents, return the user_intent_result."""
     user_query: str = dspy.InputField(desc="This will contain user query", default=None, alias="UserQuery")
-    intent_descriptions: Dict[str, str] = dspy.InputField(desc="This will contain intents and their respective descriptions", default=None, alias="IntentDescriptions")
-    user_intent_result: List[str] = dspy.OutputField(desc="This will strictly return list of items from intents", alias="UserIntentResult")
+    intent_descriptions: Dict[ConfluenceUserIntent, str] = dspy.InputField(desc="This will contain intents and their respective descriptions", default=None, alias="IntentDescriptions")
+    user_intent_result: List[int] = dspy.OutputField(desc="This will strictly return list of confluent user intent enum values", alias="UserIntentResult")
 
 class CodeConfluenceIntentDetectionModule(dspy.Module):
     def __init__(self):
