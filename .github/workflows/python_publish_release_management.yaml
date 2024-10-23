@@ -51,7 +51,7 @@ jobs:
           });
 
           core.setOutput('matrix', JSON.stringify({ include: includeArray }));
-
+#TODO: fix the path and add publish. The only release that needs to be skipped is website
   release-matrix:
     runs-on: ubuntu-latest
     needs: main-pr-merge
@@ -76,9 +76,10 @@ jobs:
       - uses: Gr1N/setup-poetry@v8
         with:
           poetry-version: "1.8.3"
-      - name: Build poetry
-        working-directory: ${{ matrix.path }}
-        run: poetry build -f wheel
+
+      # - name: Build poetry
+      #   working-directory: ${{ matrix.path }}
+      #   run: poetry build -f wheel
     
       # - name: Publish package distributions to PyPI
       #   uses: pypa/gh-action-pypi-publish@release/v1
