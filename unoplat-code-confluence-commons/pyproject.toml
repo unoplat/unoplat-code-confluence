@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "unoplat-code-confluence-commons"
+version = "0.1.0"
+description = "this will hold common operations/models required across code confluence ingestion and query utilities"
+authors = ["JayGhiya <ghiya6548@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+neomodel = "^5.3.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
