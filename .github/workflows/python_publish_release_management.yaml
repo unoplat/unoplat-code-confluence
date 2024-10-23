@@ -77,11 +77,11 @@ jobs:
         with:
           poetry-version: "1.8.3"
       - name: Build poetry
-        working-directory: unoplat-code-confluence
+        working-directory: ${{ matrix.path }}
         run: poetry build -f wheel
     
       # - name: Publish package distributions to PyPI
       #   uses: pypa/gh-action-pypi-publish@release/v1
       #   with:
-      #     packages-dir: unoplat-code-confluence/dist
+      #     packages-dir: ${{ matrix.path }}/dist
 
