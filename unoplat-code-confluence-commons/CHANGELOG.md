@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.1.0...unoplat-code-confluence-commons-v0.2.0) (2024-10-23)
+
+
+### Features
+
+* added vector indexes and moved vector properties to sub classes to maintain distinction ([899f103](https://github.com/unoplat/unoplat-code-confluence/commit/899f103d9c0e44bf29a7f2aca05c0a0e268f4a84))
+
+
+### Bug Fixes
+
+* added poetry related files ([60a32dd](https://github.com/unoplat/unoplat-code-confluence/commit/60a32dd45b03a41c1e1fc633a1472f92437ef67e))
+* added README for poetry ([8f215ba](https://github.com/unoplat/unoplat-code-confluence/commit/8f215babc07e3e4049935635a108e350809f65cd))
+* poetry lock file ([0117d54](https://github.com/unoplat/unoplat-code-confluence/commit/0117d54e54c45bee6ad7cd89d04b59b73943c164))
+
 ## 0.1.0 (2024-10-23)
 
 
