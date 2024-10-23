@@ -12,6 +12,9 @@ on:
 jobs:
   prepare-matrix:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path: ['unoplat-code-confluence', 'unoplat-code-confluence-query-engine', 'unoplat-code-confluence-commons']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,10 +32,11 @@ jobs:
       - name: Check poetry version
         run: poetry --version
       - name: Install dependencies
-        working-directory: unoplat-code-confluence
+        working-directory: ${{ matrix.path }}
         run: poetry install --no-root
       - name: Build poetry
-        working-directory: unoplat-code-confluence-query-engine
+        working-directory: ${{ matrix.path }}
         run: poetry build -f wheel
+        
 
           
