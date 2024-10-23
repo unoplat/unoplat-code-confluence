@@ -8,6 +8,7 @@ on:
     paths:
       - 'unoplat-code-confluence/**'
       - 'unoplat-code-confluence-query-engine/**'
+      - 'unoplat-code-confluence-commons/**'
 jobs:
   prepare-matrix:
     runs-on: ubuntu-latest
