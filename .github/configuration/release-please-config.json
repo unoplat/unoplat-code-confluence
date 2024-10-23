@@ -11,6 +11,12 @@
             "changelog-path": "CHANGELOG.md",
             "include-component-in-tag": true,
             "component": "unoplat-code-confluence-query-engine"
+        },
+        "unoplat-code-confluence-commons": {
+            "release-type": "python",
+            "changelog-path": "CHANGELOG.md",
+            "include-component-in-tag": true,
+            "component": "unoplat-code-confluence-commons"
         }
     }
 }
