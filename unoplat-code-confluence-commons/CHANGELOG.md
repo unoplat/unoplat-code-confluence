@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.0...unoplat-code-confluence-commons-v0.2.1) (2024-10-24)
+
+
+### Bug Fixes
+
+* add float type to array property to hold vector indexes properly ([27d6d1b](https://github.com/unoplat/unoplat-code-confluence/commit/27d6d1b5d9af9926060c2769505b447542ac114d))
+
 ## [0.2.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.1.0...unoplat-code-confluence-commons-v0.2.0) (2024-10-23)
 
 
