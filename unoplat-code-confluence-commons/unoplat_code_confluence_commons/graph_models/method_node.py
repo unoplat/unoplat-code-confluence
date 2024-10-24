@@ -1,5 +1,5 @@
 from .base_models import BaseNode, ContainsRelationship
-from neomodel import RelationshipFrom, StringProperty,One,ArrayProperty,VectorIndex
+from neomodel import RelationshipFrom, StringProperty,One,ArrayProperty,VectorIndex,FloatProperty
 
 class Method(BaseNode):
     """Represents a method in a class"""
@@ -7,11 +7,11 @@ class Method(BaseNode):
     function_implementation_summary = StringProperty(default="")
     function_objective = StringProperty(default="")
     function_objective_embedding = ArrayProperty(
-        default=[],
+        FloatProperty(),
         vector_index=VectorIndex(dimensions=4096, similarity_function='cosine')
     )
     function_summary_embedding = ArrayProperty(
-        default=[],
+        FloatProperty(),
         vector_index=VectorIndex(dimensions=4096, similarity_function='cosine')
     )
     # Method relationships
