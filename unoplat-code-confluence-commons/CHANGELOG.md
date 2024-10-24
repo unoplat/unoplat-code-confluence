@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.1...unoplat-code-confluence-commons-v0.2.2) (2024-10-24)
+
+
+### Bug Fixes
+
+* removed vector indexes and renamed properly to ensure right dimensions at the time of creation ([393331a](https://github.com/unoplat/unoplat-code-confluence/commit/393331a1f9f0ea73caed93d2663f2768bec081b5))
+
 ## [0.2.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.0...unoplat-code-confluence-commons-v0.2.1) (2024-10-24)
 
 
