@@ -5,7 +5,8 @@ from neomodel import (
     ZeroOrMore,
     One,
     ArrayProperty,
-    VectorIndex
+    VectorIndex,
+    FloatProperty
 )
 from .base_models import BaseNode, ContainsRelationship
 
@@ -14,11 +15,11 @@ class Codebase(BaseNode):
     codebase_summary = StringProperty(default="")
     codebase_objective = StringProperty(default="")
     codebase_objective_embedding = ArrayProperty(
-        default=[],
+        FloatProperty(),
         vector_index=VectorIndex(dimensions=4096, similarity_function='cosine')
     )
     codebase_implementation_embedding = ArrayProperty(
-        default=[],
+        FloatProperty(),
         vector_index=VectorIndex(dimensions=4096, similarity_function='cosine')
     )
     # One codebase can contain multiple packages

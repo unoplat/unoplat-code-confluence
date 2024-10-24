@@ -1,5 +1,5 @@
 from .base_models import BaseNode, ContainsRelationship
-from neomodel import RelationshipFrom, RelationshipTo, StringProperty,ZeroOrMore,One,ArrayProperty,VectorIndex
+from neomodel import RelationshipFrom, RelationshipTo, StringProperty,ZeroOrMore,One,ArrayProperty,VectorIndex,FloatProperty
 
 class Class(BaseNode):
     """Represents a class in a package"""
@@ -7,11 +7,11 @@ class Class(BaseNode):
     class_implementation_summary = StringProperty(default="")
     class_objective = StringProperty(default="")
     class_objective_embedding = ArrayProperty(
-        default=[],
+        FloatProperty(),
         vector_index=VectorIndex(dimensions=4096, similarity_function='cosine')
     )
     class_implementation_summary_embedding = ArrayProperty(
-        default=[],
+        FloatProperty(),
         vector_index=VectorIndex(dimensions=4096, similarity_function='cosine')
     )
     # Class relationships
