@@ -9,5 +9,5 @@ class ConfluenceClass(BaseNode):
     class_objective_embedding = ArrayProperty(FloatProperty())
     class_implementation_summary_embedding = ArrayProperty(FloatProperty())
     # Class relationships
-    package = RelationshipFrom('ConfluencePackage', 'CONTAINS', model=ContainsRelationship, cardinality=One)
-    methods = RelationshipTo('ConfluenceMethod', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
+    package = RelationshipFrom('.confluence_package.ConfluencePackage', 'CONTAINS', model=ContainsRelationship, cardinality=One)
+    methods = RelationshipTo('.confluence_method.ConfluenceMethod', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)

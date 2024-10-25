@@ -17,7 +17,7 @@ class ConfluenceCodebase(BaseNode):
     codebase_objective_embedding = ArrayProperty(FloatProperty())
     codebase_implementation_embedding = ArrayProperty(FloatProperty())
     # One codebase can contain multiple packages
-    packages = RelationshipTo('ConfluencePackage', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
+    packages = RelationshipTo('.confluence_package.ConfluencePackage', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
 
 
 
