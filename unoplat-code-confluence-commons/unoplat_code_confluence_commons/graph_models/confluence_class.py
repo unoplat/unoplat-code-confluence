@@ -1,5 +1,5 @@
 from .base_models import BaseNode, ContainsRelationship
-from neomodel import RelationshipFrom, RelationshipTo, StringProperty,ZeroOrMore,One,ArrayProperty,VectorIndex,FloatProperty,Relationship
+from neomodel import RelationshipFrom, RelationshipTo, StringProperty,ZeroOrMore,One,ArrayProperty,VectorIndex,FloatProperty
 
 class ConfluenceClass(BaseNode):
     """Represents a class in a package"""
@@ -9,4 +9,5 @@ class ConfluenceClass(BaseNode):
     class_objective_embedding = ArrayProperty(FloatProperty())
     class_implementation_summary_embedding = ArrayProperty(FloatProperty())
     # Class relationships
-    methods = Relationship('.confluence_method.ConfluenceMethod', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
+    package = RelationshipTo('.confluence_package.ConfluencePackage', 'BELONGS_TO', model=ContainsRelationship, cardinality=One)
+    methods = RelationshipTo('.confluence_method.ConfluenceMethod', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
