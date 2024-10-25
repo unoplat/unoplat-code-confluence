@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.3...unoplat-code-confluence-commons-v0.2.4) (2024-10-25)
+
+
+### Bug Fixes
+
+* circular imports in models ([2b046d7](https://github.com/unoplat/unoplat-code-confluence/commit/2b046d7ad8e6cf7bf82577aff1d3a16516f76963))
+
 ## [0.2.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.2...unoplat-code-confluence-commons-v0.2.3) (2024-10-25)
 
 
