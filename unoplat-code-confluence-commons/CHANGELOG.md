@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.2...unoplat-code-confluence-commons-v0.2.3) (2024-10-25)
+
+
+### Bug Fixes
+
+* removed default as required is true ([c835a3d](https://github.com/unoplat/unoplat-code-confluence/commit/c835a3d1af4fb230f4c02c96d970b11241e4d8b6))
+
 ## [0.2.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.1...unoplat-code-confluence-commons-v0.2.2) (2024-10-24)
 
 
