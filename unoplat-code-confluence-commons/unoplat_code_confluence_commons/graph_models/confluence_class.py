@@ -4,8 +4,8 @@ from neomodel import RelationshipFrom, RelationshipTo, StringProperty,ZeroOrMore
 class ConfluenceClass(BaseNode):
     """Represents a class in a package"""
     class_name = StringProperty(required=True)
-    class_implementation_summary = StringProperty(default="")
-    class_objective = StringProperty(default="")
+    implementation_summary = StringProperty(default="")
+    objective = StringProperty(default="")
     class_objective_embedding = ArrayProperty(FloatProperty())
     class_implementation_summary_embedding = ArrayProperty(FloatProperty())
     # Class relationships
