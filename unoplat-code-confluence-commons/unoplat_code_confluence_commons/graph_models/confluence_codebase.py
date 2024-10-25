@@ -13,8 +13,8 @@ from .base_models import BaseNode, ContainsRelationship
 
 class ConfluenceCodebase(BaseNode):
     """Represents a codebase in the system"""
-    codebase_implementation_summary = StringProperty(default="")
-    codebase_objective = StringProperty(default="")
+    implementation_summary = StringProperty(default="")
+    objective = StringProperty(default="")
     codebase_objective_embedding = ArrayProperty(FloatProperty())
     codebase_implementation_summary_embedding = ArrayProperty(FloatProperty())
     # One codebase can contain multiple packages
