@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.6...unoplat-code-confluence-commons-v0.2.7) (2024-10-25)
+
+
+### Bug Fixes
+
+* simplifying the names ([ea47cb6](https://github.com/unoplat/unoplat-code-confluence/commit/ea47cb6b548e338d78ee9607eb533d850b20b5ee))
+
 ## [0.2.6](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.5...unoplat-code-confluence-commons-v0.2.6) (2024-10-25)
 
 
