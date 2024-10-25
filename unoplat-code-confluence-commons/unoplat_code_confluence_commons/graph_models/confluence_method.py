@@ -9,4 +9,4 @@ class ConfluenceMethod(BaseNode):
     function_objective_embedding = ArrayProperty(FloatProperty())
     function_summary_embedding = ArrayProperty(FloatProperty())
     # Method relationships
-    confluence_class = RelationshipFrom('ConfluenceClass', 'CONTAINS', model=ContainsRelationship, cardinality=One)
+    confluence_class = RelationshipFrom('.confluence_class.ConfluenceClass', 'CONTAINS', model=ContainsRelationship, cardinality=One)
