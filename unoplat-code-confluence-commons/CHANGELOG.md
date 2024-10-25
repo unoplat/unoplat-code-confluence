@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.5...unoplat-code-confluence-commons-v0.2.6) (2024-10-25)
+
+
+### Bug Fixes
+
+* relationships from and to codebase, packages, classes and method with right cardinality ([739c190](https://github.com/unoplat/unoplat-code-confluence/commit/739c190bafc6947306b65f41030ddab8de4c1098))
+
 ## [0.2.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.4...unoplat-code-confluence-commons-v0.2.5) (2024-10-25)
 
 
