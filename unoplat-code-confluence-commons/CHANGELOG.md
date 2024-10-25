@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.2.7](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.6...unoplat-code-confluence-commons-v0.2.7) (2024-10-25)
+
+
+### Bug Fixes
+
+* simplifying the names ([ea47cb6](https://github.com/unoplat/unoplat-code-confluence/commit/ea47cb6b548e338d78ee9607eb533d850b20b5ee))
+
+## [0.2.6](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.5...unoplat-code-confluence-commons-v0.2.6) (2024-10-25)
+
+
+### Bug Fixes
+
+* relationships from and to codebase, packages, classes and method with right cardinality ([739c190](https://github.com/unoplat/unoplat-code-confluence/commit/739c190bafc6947306b65f41030ddab8de4c1098))
+
+## [0.2.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.4...unoplat-code-confluence-commons-v0.2.5) (2024-10-25)
+
+
+### Bug Fixes
+
+* enable bidirectional cardinality ([4415bb0](https://github.com/unoplat/unoplat-code-confluence/commit/4415bb0ba60fd7eced738b217e2d6c565f646d92))
+
+## [0.2.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.3...unoplat-code-confluence-commons-v0.2.4) (2024-10-25)
+
+
+### Bug Fixes
+
+* circular imports in models ([2b046d7](https://github.com/unoplat/unoplat-code-confluence/commit/2b046d7ad8e6cf7bf82577aff1d3a16516f76963))
+
+## [0.2.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.2...unoplat-code-confluence-commons-v0.2.3) (2024-10-25)
+
+
+### Bug Fixes
+
+* removed default as required is true ([c835a3d](https://github.com/unoplat/unoplat-code-confluence/commit/c835a3d1af4fb230f4c02c96d970b11241e4d8b6))
+
 ## [0.2.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.1...unoplat-code-confluence-commons-v0.2.2) (2024-10-24)
 
 
