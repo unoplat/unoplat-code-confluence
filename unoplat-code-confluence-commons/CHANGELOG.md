@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.4...unoplat-code-confluence-commons-v0.2.5) (2024-10-25)
+
+
+### Bug Fixes
+
+* enable bidirectional cardinality ([4415bb0](https://github.com/unoplat/unoplat-code-confluence/commit/4415bb0ba60fd7eced738b217e2d6c565f646d92))
+
 ## [0.2.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.3...unoplat-code-confluence-commons-v0.2.4) (2024-10-25)
 
 
