@@ -4,8 +4,8 @@ from neomodel import RelationshipTo, StringProperty,One,ArrayProperty,FloatPrope
 class ConfluenceMethod(BaseNode):
     """Represents a method in a class"""
     function_name = StringProperty(required=True)
-    function_implementation_summary = StringProperty(default="")
-    function_objective = StringProperty(default="")
+    implementation_summary = StringProperty(default="")
+    objective = StringProperty(default="")
     function_objective_embedding = ArrayProperty(FloatProperty())
     function_implementation_summary_embedding = ArrayProperty(FloatProperty())
     # Method relationships

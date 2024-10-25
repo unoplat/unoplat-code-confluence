@@ -3,8 +3,8 @@ from neomodel import RelationshipFrom, RelationshipTo, StringProperty,ZeroOrMore
 
 class ConfluencePackage(BaseNode):
     """Represents a package in the codebase"""
-    package_objective = StringProperty(required=True)
-    package_implementation_summary = StringProperty(required=True)
+    objective = StringProperty(required=True)
+    implementation_summary = StringProperty(required=True)
     package_objective_embedding = ArrayProperty(FloatProperty())
     package_implementation_summary_embedding = ArrayProperty(FloatProperty())
     confluence_codebase = RelationshipTo('.confluence_codebase.ConfluenceCodebase', 'BELONGS_TO', model=ContainsRelationship,cardinality=One)
