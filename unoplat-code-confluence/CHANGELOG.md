@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.4...unoplat-code-confluence-v0.14.0) (2024-10-29)
+
+
+### Features
+
+* enabled neomodel in ingestion. Enabled dimensions of vector index based on embedding model selected from hugging face ([218d863](https://github.com/unoplat/unoplat-code-confluence/commit/218d8633875ddfc27063c7f4117e76a1236068cf))
+* moved from native cypher to neomodel and it feels at home ([1abc7f4](https://github.com/unoplat/unoplat-code-confluence/commit/1abc7f44a6d73c99a665522f6f5d1fbeb615d88e))
+
 ## [0.13.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.3...unoplat-code-confluence-v0.13.4) (2024-10-08)
 
 
