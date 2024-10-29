@@ -148,15 +148,19 @@ class QueryEngineProcess:
     async def _create_vector_index_on_all_nodes(self):
         # Create vector indexes for all node types
         
-        node_types = ["Codebase","Package","Class","Method"]
-        embedding_types = ["objective_embedding", "implementation_embedding"]
-        
-        for node_type in node_types:
-            for embedding_type in embedding_types:
-                await self._create_vector_index(node_type, embedding_type)
+        node_embedding_properties = {
+                "ConfluenceCodebase": ["codebase_objective_embedding", "codebase_implementation_summary_embedding"],
+                "ConfluencePackage": ["package_objective_embedding", "package_implementation_summary_embedding"],
+                "ConfluenceClass": ["class_objective_embedding", "class_implementation_summary_embedding"],
+                "ConfluenceMethod": ["function_objective_embedding", "function_implementation_summary_embedding"]
+            }
+            
+        for node_type, embedding_properties in node_embedding_properties.items():
+            for embedding_property in embedding_properties:
+                await self._create_vector_index(node_label=node_type, embedding_property=embedding_property, dimensions=self.embedding_generator.get_dimensions())
 
-    async def _create_vector_index(self, node_label: str, embedding_property: str):
-        self.graph_helper.create_vector_index(node_label, embedding_property)
+    async def _create_vector_index(self, node_label: str, embedding_property: str, dimensions: int):
+        self.graph_helper.create_vector_index(node_label, embedding_property, dimensions)
 
     async def load_existing_codebases(self):
         return self.graph_helper.get_existing_codebases()

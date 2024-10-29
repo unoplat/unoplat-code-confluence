@@ -143,19 +143,19 @@ class Neo4jHelper:
   
     def create_vector_index(self, label: str, property: str, dimension: int = None, similarity_function: str = 'cosine') -> None:
         with self.driver.session() as session:
-            query = f"CREATE VECTOR INDEX {label}_{property}_vector_index FOR (n:{label}) ON (n.{property})"
+            query = f"CREATE VECTOR INDEX {property}_vector_index FOR (n:{label}) ON (n.{property})"
             if dimension is not None:
                 query += f" OPTIONS {{indexConfig: {{`vector.dimensions`: {dimension}, `vector.similarity_function`: '{similarity_function}'}}}}"
             try:
                 session.run(query)
             except Exception as e:
                 if "equivalent index already exists" in str(e):
-                    print(f"Vector index for {label}.{property} already exists. Skipping creation.")
+                    print(f"Vector index for {property} already exists. Skipping creation.")
                 else:
                     raise  # Re-raise the exception if it's not about existing index
 
     def create_text_index(self, label: str, property: str) -> None:
         with self.driver.session() as session:
-            index_name = f"{label.lower()}_{property.lower()}_text_index"
+            index_name = f"{property.lower()}_text_index"
             query = f"CREATE TEXT INDEX {index_name} FOR (n:{label}) ON (n.{property})"
             session.run(query)
