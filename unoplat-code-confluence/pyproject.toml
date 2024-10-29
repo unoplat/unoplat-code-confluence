@@ -24,6 +24,7 @@ einops = "^0.8.0"
 rich = "^13.9.2"
 neo4j = "5.19.0"
 neomodel = "^5.3.3"
+unoplat-code-confluence-commons = {git = "https://github.com/unoplat/unoplat-code-confluence.git", rev = "main", subdirectory = "unoplat-code-confluence-commons"}
 
 [tool.poetry.scripts]
 unoplat-code-confluence = "unoplat_code_confluence.__main__:main"
