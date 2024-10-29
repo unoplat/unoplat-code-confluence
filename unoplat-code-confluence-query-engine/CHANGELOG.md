@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.4.4...unoplat-code-confluence-query-engine-v0.5.0) (2024-10-29)
+
+
+### Features
+
+* enabled neomodel in ingestion. Enabled dimensions of vector index based on embedding model selected from hugging face ([218d863](https://github.com/unoplat/unoplat-code-confluence/commit/218d8633875ddfc27063c7f4117e76a1236068cf))
+
+
+### Bug Fixes
+
+* fix models according to new schema ([5e69eb1](https://github.com/unoplat/unoplat-code-confluence/commit/5e69eb1fe5cf7eaeb2c800b3c9a9a2a67c8d0332))
+
 ## [0.4.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.4.3...unoplat-code-confluence-query-engine-v0.4.4) (2024-10-22)
 
 
