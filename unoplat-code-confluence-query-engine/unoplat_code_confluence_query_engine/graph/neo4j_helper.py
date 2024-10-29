@@ -41,7 +41,7 @@ class Neo4jHelper:
 
     def get_existing_codebases(self):
         query = """
-        MATCH (cb:Codebase)
+        MATCH (cb:ConfluenceCodebase)
         RETURN cb.qualified_name AS codebase_name
         """
         result =  self.run_query(query)
@@ -52,7 +52,7 @@ class Neo4jHelper:
 
     def get_package_details(self,package_name):
         query = """
-        MATCH (p:Package {qualified_name: $package_name})
+        MATCH (p:ConfluencePackage {qualified_name: $package_name})
         RETURN 
             p.qualified_name AS package_name,
             p.objective AS package_objective,
@@ -62,7 +62,7 @@ class Neo4jHelper:
     
     def get_class_details(self,class_name):
         query = """
-        MATCH (c:Class {qualified_name: $class_name})
+        MATCH (c:ConfluenceClass {qualified_name: $class_name})
         RETURN 
             c.qualified_name AS class_name,
             c.objective AS class_objective,
@@ -72,7 +72,7 @@ class Neo4jHelper:
     
     def get_codebase_details(self,codebase_name):   
         query = """
-        MATCH (cb:Codebase {qualified_name: $codebase_name})
+        MATCH (cb:ConfluenceCodebase {qualified_name: $codebase_name})
         RETURN 
             cb.qualified_name AS codebase_name,
             cb.objective AS codebase_objective,
@@ -82,8 +82,8 @@ class Neo4jHelper:
 
     def get_function_hierarchy_and_details(self, function_name):
         query = """
-        MATCH (f:Method {qualified_name: $function_name})
-        OPTIONAL MATCH (f)<-[:CONTAINS]-(c:Class)<-[:CONTAINS]-(p:Package)<-[:CONTAINS]-(cb:Codebase)
+        MATCH (f:ConfluenceMethod {qualified_name: $function_name})
+        OPTIONAL MATCH (f)<-[:CONTAINS]-(c:ConfluenceClass)<-[:CONTAINS]-(p:ConfluencePackage)<-[:CONTAINS]-(cb:ConfluenceCodebase)
         RETURN 
             cb.qualified_name AS codebase_name,
             cb.objective AS codebase_objective,
@@ -143,19 +143,19 @@ class Neo4jHelper:
   
     def create_vector_index(self, label: str, property: str, dimension: int = None, similarity_function: str = 'cosine') -> None:
         with self.driver.session() as session:
-            query = f"CREATE VECTOR INDEX {label}_{property}_vector_index FOR (n:{label}) ON (n.{property})"
+            query = f"CREATE VECTOR INDEX {property}_vector_index FOR (n:{label}) ON (n.{property})"
             if dimension is not None:
                 query += f" OPTIONS {{indexConfig: {{`vector.dimensions`: {dimension}, `vector.similarity_function`: '{similarity_function}'}}}}"
             try:
                 session.run(query)
             except Exception as e:
                 if "equivalent index already exists" in str(e):
-                    print(f"Vector index for {label}.{property} already exists. Skipping creation.")
+                    print(f"Vector index for {property} already exists. Skipping creation.")
                 else:
                     raise  # Re-raise the exception if it's not about existing index
 
     def create_text_index(self, label: str, property: str) -> None:
         with self.driver.session() as session:
-            index_name = f"{label.lower()}_{property.lower()}_text_index"
+            index_name = f"{property.lower()}_text_index"
             query = f"CREATE TEXT INDEX {index_name} FOR (n:{label}) ON (n.{property})"
             session.run(query)

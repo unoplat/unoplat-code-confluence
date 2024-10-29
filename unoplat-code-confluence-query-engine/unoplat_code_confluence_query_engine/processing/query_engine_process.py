@@ -48,8 +48,9 @@ class QueryEngineProcess:
 
         if int(ConfluenceUserIntent.FUNCTIONAL_IMPLEMENTATION.value) in user_intent_list:
             # Search similar functions
-            results = self.graph_helper.search_similar_nodes(vector_index="Method_implementation_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="function_implementation_summary_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
             context = {result["name"]: result["summary"] for result in results}
+            log.debug(f"context for function: {context}")
             
             if len(context) > 1:
                 rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
@@ -69,9 +70,9 @@ class QueryEngineProcess:
             
         elif int(ConfluenceUserIntent.CODE_SUMMARIZATION.value) in user_intent_list:
             
-            results = self.graph_helper.search_similar_nodes(vector_index="Codebase_implementation_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="codebase_implementation_summary_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
             context = {result["name"]: result["summary"] for result in results}
-            
+            log.debug(f"context for codebase: {context}")
             if len(context) > 1:
                 rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
                 filtered_rerank_results = {k: v for k, v in rerank_results.items() if v > 7}
@@ -90,9 +91,9 @@ class QueryEngineProcess:
             final_response = final_response + self.user_query_response_module(user_query=user_query, code_metadata=context).answer
         
         elif int(ConfluenceUserIntent.PACKAGE_OVERVIEW.value) in user_intent_list:
-            results = self.graph_helper.search_similar_nodes(vector_index="Package_implementation_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="package_implementation_summary_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
             context = {result["name"]: result["summary"] for result in results}
-            
+            log.debug(f"context for package: {context}")
             if len(context) > 1:
                 rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
                 filtered_rerank_results = {k: v for k, v in rerank_results.items() if v > 7}
@@ -111,9 +112,9 @@ class QueryEngineProcess:
             final_response = final_response + self.user_query_response_module(user_query=user_query, code_metadata=context).answer
         
         elif int(ConfluenceUserIntent.CLASS_DETAILS.value) in user_intent_list:
-            results = self.graph_helper.search_similar_nodes(vector_index="Class_implementation_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="class_implementation_summary_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
             context = {result["name"]: result["summary"] for result in results}
-            
+            log.debug(f"context for class: {context}")
             if len(context) > 1:
                 rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
                 filtered_rerank_results = {k: v for k, v in rerank_results.items() if v > 7}
@@ -147,15 +148,19 @@ class QueryEngineProcess:
     async def _create_vector_index_on_all_nodes(self):
         # Create vector indexes for all node types
         
-        node_types = ["Codebase","Package","Class","Method"]
-        embedding_types = ["objective_embedding", "implementation_embedding"]
-        
-        for node_type in node_types:
-            for embedding_type in embedding_types:
-                await self._create_vector_index(node_type, embedding_type)
+        node_embedding_properties = {
+                "ConfluenceCodebase": ["codebase_objective_embedding", "codebase_implementation_summary_embedding"],
+                "ConfluencePackage": ["package_objective_embedding", "package_implementation_summary_embedding"],
+                "ConfluenceClass": ["class_objective_embedding", "class_implementation_summary_embedding"],
+                "ConfluenceMethod": ["function_objective_embedding", "function_implementation_summary_embedding"]
+            }
+            
+        for node_type, embedding_properties in node_embedding_properties.items():
+            for embedding_property in embedding_properties:
+                await self._create_vector_index(node_label=node_type, embedding_property=embedding_property, dimensions=self.embedding_generator.get_dimensions())
 
-    async def _create_vector_index(self, node_label: str, embedding_property: str):
-        self.graph_helper.create_vector_index(node_label, embedding_property)
+    async def _create_vector_index(self, node_label: str, embedding_property: str, dimensions: int):
+        self.graph_helper.create_vector_index(node_label, embedding_property, dimensions)
 
     async def load_existing_codebases(self):
         return self.graph_helper.get_existing_codebases()

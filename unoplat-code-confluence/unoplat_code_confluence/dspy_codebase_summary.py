@@ -3,7 +3,6 @@ import dspy
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
 
 
-
 #TODO: optimise using gpt4 judge and miprov2
 class CodeConfluenceCodebaseSignature(dspy.Signature):
     """This signature takes in existing summary of a codebase and package objective of a package one at a time and refines codebase_existing_summary with factual and grounded insights based on package_objective and returns final_codebase_summary as enhanced final summary of codebase."""
@@ -34,7 +33,7 @@ class CodeConfluenceCodebaseModule(dspy.Module):
             
         codebase_objective_hint="Capture all important highlights from summary and then generate the codebase objective in structured manner for the codebase by being concise but cautious to not miss any important details."    
         codebase_objective_signature: CodeConfluenceCodebaseObjectiveSignature = self.generate_codebase_objective(final_codebase_summary=codebase_summary,hint=codebase_objective_hint)
-        return dspy.Prediction(answer=codebase_objective_signature.codebase_objective,summary=signature_package_summary.final_codebase_summary)
+        return dspy.Prediction(answer=codebase_objective_signature.codebase_objective,summary=codebase_summary)
 
         
         
