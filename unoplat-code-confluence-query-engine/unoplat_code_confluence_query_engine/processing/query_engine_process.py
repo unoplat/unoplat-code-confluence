@@ -48,8 +48,9 @@ class QueryEngineProcess:
 
         if int(ConfluenceUserIntent.FUNCTIONAL_IMPLEMENTATION.value) in user_intent_list:
             # Search similar functions
-            results = self.graph_helper.search_similar_nodes(vector_index="Method_implementation_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="function_implementation_summary_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
             context = {result["name"]: result["summary"] for result in results}
+            log.debug(f"context for function: {context}")
             
             if len(context) > 1:
                 rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
@@ -69,9 +70,9 @@ class QueryEngineProcess:
             
         elif int(ConfluenceUserIntent.CODE_SUMMARIZATION.value) in user_intent_list:
             
-            results = self.graph_helper.search_similar_nodes(vector_index="Codebase_implementation_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="codebase_implementation_summary_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
             context = {result["name"]: result["summary"] for result in results}
-            
+            log.debug(f"context for codebase: {context}")
             if len(context) > 1:
                 rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
                 filtered_rerank_results = {k: v for k, v in rerank_results.items() if v > 7}
@@ -90,9 +91,9 @@ class QueryEngineProcess:
             final_response = final_response + self.user_query_response_module(user_query=user_query, code_metadata=context).answer
         
         elif int(ConfluenceUserIntent.PACKAGE_OVERVIEW.value) in user_intent_list:
-            results = self.graph_helper.search_similar_nodes(vector_index="Package_implementation_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="package_implementation_summary_embedding_vector_index", query_embedding=user_query_embedding,top_k=5)
             context = {result["name"]: result["summary"] for result in results}
-            
+            log.debug(f"context for package: {context}")
             if len(context) > 1:
                 rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
                 filtered_rerank_results = {k: v for k, v in rerank_results.items() if v > 7}
@@ -111,9 +112,9 @@ class QueryEngineProcess:
             final_response = final_response + self.user_query_response_module(user_query=user_query, code_metadata=context).answer
         
         elif int(ConfluenceUserIntent.CLASS_DETAILS.value) in user_intent_list:
-            results = self.graph_helper.search_similar_nodes(vector_index="Class_implementation_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
+            results = self.graph_helper.search_similar_nodes(vector_index="class_implementation_summary_embedding_vector_index", query_embedding=user_query_embedding, top_k=5)
             context = {result["name"]: result["summary"] for result in results}
-            
+            log.debug(f"context for class: {context}")
             if len(context) > 1:
                 rerank_results = self.rerank_module(user_query=user_query, possible_answers=context).answer.relevant_answers
                 filtered_rerank_results = {k: v for k, v in rerank_results.items() if v > 7}

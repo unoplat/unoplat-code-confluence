@@ -35,10 +35,10 @@ class UnoplatGraphProcessing:
             codebase_node_dict =  [ 
             {
                     "qualified_name": codebase_summary.codebase_name,
-                    "codebase_objective": codebase_summary.codebase_objective,
+                    "objective": codebase_summary.codebase_objective,
                     "codebase_objective_embedding": objective_embedding,
-                    "codebase_summary": codebase_summary.codebase_summary,
-                    "codebase_implementation_embedding": implementation_embedding
+                    "implementation_summary": codebase_summary.codebase_summary,
+                    "codebase_implementation_summary_embedding": implementation_embedding
             }
             ]
             
@@ -58,7 +58,7 @@ class UnoplatGraphProcessing:
                 for subpackage_name, subpackage_summary in package_summary.sub_package_summaries.items():
                     stack.append((processed_package, subpackage_name, subpackage_summary))
             
-            
+            self._create_vector_index_on_all_nodes(self.embedding_generator.get_dimensions())
 
         except Exception as e:
             logging.error(f"Error processing codebase: {str(e)}")
@@ -77,9 +77,9 @@ class UnoplatGraphProcessing:
             # Create package node
             package_node_dict = [{
                 "qualified_name": f"{parent_node.qualified_name}.{package_name}",
-                "package_objective": package_summary.package_objective,
+                "objective": package_summary.package_objective,
                 "package_objective_embedding": package_objective_embedding,
-                "package_implementation_summary": package_summary.package_summary,
+                "implementation_summary": package_summary.package_summary,
                 "package_implementation_summary_embedding": package_implementation_embedding
             }]
             
@@ -128,10 +128,10 @@ class UnoplatGraphProcessing:
             class_node_dict = [{
                 "qualified_name": f"{package_node.qualified_name}.{class_summary.node_name}",
                 "class_name": class_summary.node_name,
-                "class_objective": class_summary.node_objective,
+                "objective": class_summary.node_objective,
                 "class_objective_embedding": class_objective_embedding,
-                "class_implementation_summary": class_summary.node_summary,
-                "class_implementation_embedding": class_implementation_embedding
+                "implementation_summary": class_summary.node_summary,
+                "class_implementation_summary_embedding": class_implementation_embedding
             }]
             
             ConfluenceClass.create_or_update(*class_node_dict)
@@ -166,10 +166,10 @@ class UnoplatGraphProcessing:
             method_node_dict = [{
                 "qualified_name": f"{class_node.qualified_name}.{method_summary.function_name}",
                 "function_name": method_summary.function_name,
-                "function_objective": method_summary.function_summary.objective,
+                "objective": method_summary.function_summary.objective,
                 "function_objective_embedding": method_objective_embedding,
-                "function_implementation_summary": method_summary.function_summary.implementation_summary,
-                "function_summary_embedding": method_implementation_embedding
+                "implementation_summary": method_summary.function_summary.implementation_summary,
+                "function_implementation_summary_embedding": method_implementation_embedding
             }]
             
             ConfluenceMethod.create_or_update(*method_node_dict)
@@ -188,18 +188,18 @@ class UnoplatGraphProcessing:
             logging.error(f"Error processing method {method_summary.function_name}: {str(e)}")
             raise
 
-    def _create_vector_index_on_all_nodes(self):
+    def _create_vector_index_on_all_nodes(self, dimensions: int):
             # Create vector indexes for all node types
             node_embedding_properties = {
-                "ConfluenceCodebase": ["codebase_objective_embedding", "codebase_implementation_embedding"],
+                "ConfluenceCodebase": ["codebase_objective_embedding", "codebase_implementation_summary_embedding"],
                 "ConfluencePackage": ["package_objective_embedding", "package_implementation_summary_embedding"],
                 "ConfluenceClass": ["class_objective_embedding", "class_implementation_summary_embedding"],
-                "ConfluenceMethod": ["function_objective_embedding", "function_summary_embedding"]
+                "ConfluenceMethod": ["function_objective_embedding", "function_implementation_summary_embedding"]
             }
             
             for node_type, embedding_properties in node_embedding_properties.items():
                 for embedding_property in embedding_properties:
-                    self._create_vector_index(node_type, embedding_property)
+                    self._create_vector_index(node_label=node_type, embedding_property=embedding_property, dimensions=dimensions)
 
-    def _create_vector_index(self, node_label: str, embedding_property: str):
-        self.unoplat_graph_ingestion.create_vector_index(node_label, embedding_property)
+    def _create_vector_index(self, node_label: str, embedding_property: str, dimensions: int):
+        self.unoplat_graph_ingestion.create_vector_index(label=node_label, dimension=dimensions,property=embedding_property)
