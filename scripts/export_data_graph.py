@@ -19,7 +19,7 @@ def export_graph_to_json():
 
         # Query for all relationships and their properties
         relationships_query = """
-        MATCH (start)-[r:CONTAINS]->(end)
+        MATCH (start)-[r]->(end)
         RETURN id(r) as id, type(r) as type, properties(r) as properties, 
                elementId(start) as startNode, elementId(end) as endNode
         """
