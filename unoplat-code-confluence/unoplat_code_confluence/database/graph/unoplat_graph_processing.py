@@ -166,9 +166,9 @@ class UnoplatGraphProcessing:
             method_node_dict = [{
                 "qualified_name": f"{class_node.qualified_name}.{method_summary.function_name}",
                 "function_name": method_summary.function_name,
-                "objective": method_summary.function_summary.objective,
+                "objective": method_summary.objective,
                 "function_objective_embedding": method_objective_embedding,
-                "implementation_summary": method_summary.function_summary.implementation_summary,
+                "implementation_summary": method_summary.implementation_summary,
                 "function_implementation_summary_embedding": method_implementation_embedding
             }]
             
