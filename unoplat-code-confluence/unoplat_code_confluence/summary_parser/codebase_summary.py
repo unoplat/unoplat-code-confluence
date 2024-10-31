@@ -267,8 +267,9 @@ class CodebaseSummaryParser:
         for function in functions:
             if function.name:
                 try:
-                    function_summary =  self.dspy_pipeline_function(function_metadata=function, class_metadata=node).answer
-                    function_summaries.append(DspyUnoplatFunctionSummary(FunctionName=function.name, FunctionSummary=function_summary))
+                    function_objective =  self.dspy_pipeline_function(function_metadata=function, class_metadata=node).objective
+                    function_summary =  self.dspy_pipeline_function(function_metadata=function, class_metadata=node).implementation_summary
+                    function_summaries.append(DspyUnoplatFunctionSummary(function_name=function.name, objective=function_objective, implementation_summary=function_summary))
                 except Exception as e:
                     logger.error(f"Error generating function summary for {function.name}: {e}")
                     logger.exception("Traceback:")

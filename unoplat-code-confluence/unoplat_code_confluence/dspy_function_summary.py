@@ -1,5 +1,4 @@
 import dspy
-from unoplat_code_confluence.data_models.dspy.dspy_o_function_summary import DspyFunctionSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 from loguru import logger
@@ -30,7 +29,7 @@ class CodeConfluenceFunctionObjectiveSignature(dspy.Signature):
 class CodeConfluenceFunctionModule(dspy.Module):
     def __init__(self):
         super().__init__()
-        # TODO: change to typed chain of thought post dspy signature optimisers
+        # TODO: change to typed chain of thought post dspy signature optimisers and also improve the summarisation part
         self.generate_function_summary = dspy.TypedChainOfThought(CodeConfluenceFunctionSummary)
         self.generate_function_call_summary = dspy.TypedChainOfThought(CodeConfluenceFunctionCallSummary)
         self.generate_function_summary_with_class_metadata = dspy.TypedPredictor(CodeConfluenceFunctionSummaryWithClassSignature)
@@ -54,9 +53,7 @@ class CodeConfluenceFunctionModule(dspy.Module):
 
         code_confluence_function_summary = self.generate_function_summary_with_class_metadata( chapi_class_metadata=class_subset, unoplat_function_existing_summary=function_summary).unoplat_function_final_summary
 
-        code_confluence_function_objective = self.generate_function_objective(function_implementation=code_confluence_function_summary)        
-
-        dspy_function_summary = DspyFunctionSummary(Objective=code_confluence_function_objective.function_objective, ImplementationSummary=code_confluence_function_summary)
-
-        return dspy.Prediction(answer=dspy_function_summary)
+        code_confluence_function_objective = self.generate_function_objective(function_implementation=code_confluence_function_summary).function_objective       
+     
+        return dspy.Prediction(objective=code_confluence_function_objective, implementation_summary=code_confluence_function_summary)
     
