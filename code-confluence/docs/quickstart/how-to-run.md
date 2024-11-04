@@ -98,12 +98,14 @@ docker run \
 }
 ```
 
+> **Note**: As of now for `sentence_transformer_model`, only Hugging Face sentence embedding models with dimensions up to 4096 are supported. Dimensions' upper limit is due to Neo4j vector index limitations. Make sure your chosen model meets these requirements.
+
 ### Run the Unoplat Code Confluence Ingestion Utility
 
 1. **Installation**
 
 ```bash
-pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@main#subdirectory=unoplat-code-confluence'
+pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.14.0#subdirectory=unoplat-code-confluence'
 ```
 
 2. **Run the Ingestion Utility**
@@ -145,12 +147,14 @@ Also check out the Neo4j Browser to visualize the graph database. Go to [http://
 }
 ```
 
+> **Note**: As of now for `sentence_transformer_model`, only Hugging Face sentence embedding models with dimensions up to 4096 are supported. Dimensions' upper limit is due to Neo4j vector index limitations. Make sure your chosen model meets these requirements.
+
 ### Launch Query Engine
 
 1. **Installation**
 
 ```bash
-pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@main#subdirectory=unoplat-code-confluence-query-engine'
+pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.5.0#subdirectory=unoplat-code-confluence-query-engine'
 ```
 
 2. **Run the Query Engine**
