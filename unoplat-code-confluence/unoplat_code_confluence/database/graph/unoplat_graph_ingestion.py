@@ -8,7 +8,6 @@ class UnoplatGraphIngestion:
         uri = app_config.neo4j_uri
         username = app_config.neo4j_username
         password = app_config.neo4j_password
-        #self.driver = GraphDatabase.driver(uri, auth=(username, password))
         config.DATABASE_URL = f'bolt://{username}:{password}@{uri.split("://")[-1]}'
         db.set_connection(config.DATABASE_URL)
         
