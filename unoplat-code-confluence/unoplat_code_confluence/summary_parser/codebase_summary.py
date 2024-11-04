@@ -8,8 +8,6 @@ from unoplat_code_confluence.configuration.external_config import AppConfig
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
@@ -21,6 +19,9 @@ import dspy
 from loguru import logger
 from progiter import ProgIter
 from progiter.manager import ProgressManager
+from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
+from unoplat_code_confluence.data_models.chapi_unoplat_function import ChapiUnoplatFunction
+
 
 
 
@@ -170,7 +171,7 @@ class CodebaseSummaryParser:
                 if package_name in memo:
                     package_summary = memo[package_name]
                 else:
-                    class_summaries = await self.process_classes_async(package.node_subsets,package_name,pman=pman,provider_list=self.provider_list)
+                    class_summaries = await self.process_classes_async(package.nodes,package_name,pman=pman,provider_list=self.provider_list)
                     for sub_name in package.sub_packages:
                         if sub_name in memo:
                             logger.debug("Sub package {} already processed, adding to sub_package_summaries",sub_name)
@@ -206,7 +207,7 @@ class CodebaseSummaryParser:
             return package_summaries
         
     
-    async def process_batch(self, batch: List[DspyUnoplatNodeSubset], package_name: str, pman: ProgressManager, lm_cycle: cycle) -> List[DspyUnoplatNodeSummary]:
+    async def process_batch(self, batch: List[ChapiUnoplatNode], package_name: str, pman: ProgressManager, lm_cycle: cycle) -> List[DspyUnoplatNodeSummary]:
         tasks = []
         async with asyncio.TaskGroup() as tg:
             for node in batch:
@@ -234,7 +235,7 @@ class CodebaseSummaryParser:
 
     
 
-    async def process_classes_async(self, classes: List[DspyUnoplatNodeSubset],package_name: str,pman: ProgressManager,provider_list: List[dspy.LM]) -> List[DspyUnoplatNodeSummary]:
+    async def process_classes_async(self, classes: List[ChapiUnoplatNode],package_name: str,pman: ProgressManager,provider_list: List[dspy.LM]) -> List[DspyUnoplatNodeSummary]:
         class_summaries = []
         concurrency = len(provider_list)
         lm_cycle = cycle(provider_list)
@@ -246,11 +247,11 @@ class CodebaseSummaryParser:
 
         return class_summaries
     
-    async def process_single_class_wrapper(self, node: DspyUnoplatNodeSubset, package_name: str, pman: ProgressManager, lm: dspy.LM) -> DspyUnoplatNodeSummary:
+    async def process_single_class_wrapper(self, node: ChapiUnoplatNode, package_name: str, pman: ProgressManager, lm: dspy.LM) -> DspyUnoplatNodeSummary:
         return await asyncio.to_thread(self.process_single_class, node, package_name, pman, lm)
 
     
-    def process_single_class(self, node: DspyUnoplatNodeSubset, package_name: str, pman: ProgressManager,  lm: dspy.LM) -> DspyUnoplatNodeSummary:
+    def process_single_class(self, node: ChapiUnoplatNode, package_name: str, pman: ProgressManager,  lm: dspy.LM) -> DspyUnoplatNodeSummary:
         try:
             with dspy.context(lm=lm):
                 function_summaries =  self.process_functions(node.functions, node, pman)
@@ -262,13 +263,14 @@ class CodebaseSummaryParser:
             return None
 
 
-    def process_functions(self, functions: List[DspyUnoplatFunctionSubset], node: DspyUnoplatNodeSubset, pman: ProgressManager) -> List[DspyUnoplatFunctionSummary]:
+    def process_functions(self, functions: List[ChapiUnoplatFunction], node: ChapiUnoplatNode, pman: ProgressManager) -> List[DspyUnoplatFunctionSummary]:
         function_summaries = []
         for function in functions:
             if function.name:
                 try:
-                    function_objective =  self.dspy_pipeline_function(function_metadata=function, class_metadata=node).objective
-                    function_summary =  self.dspy_pipeline_function(function_metadata=function, class_metadata=node).implementation_summary
+                    dspy_function_result =  self.dspy_pipeline_function(function_metadata=function, class_metadata=node)
+                    function_objective = dspy_function_result.objective
+                    function_summary = dspy_function_result.implementation_summary
                     function_summaries.append(DspyUnoplatFunctionSummary(function_name=function.name, objective=function_objective, implementation_summary=function_summary))
                 except Exception as e:
                     logger.error(f"Error generating function summary for {function.name}: {e}")
