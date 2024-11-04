@@ -38,54 +38,28 @@ class CodebaseSummaryParser:
         self.json_output = app_config.json_output
         self.codebase_name = app_config.codebase_name
 
-    def init_dspy_lm(self,llm_config: dict,parallisation: int):
-        #todo define a switch case
-        llm_provider = next(iter(llm_config.keys()))
-        self.provider_list: dspy.LM = []
-        match llm_provider:
-            case "openai":
-                openai_provider = dspy.OpenAI(**llm_config["openai"])
-                dspy.configure(lm=openai_provider, experimental=True)
-                self.provider_list = [openai_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.OpenAI(**llm_config["openai"]) for _ in range(parallisation - 1)])
-                
-            case "together":
-                together_provider = dspy.Together(**llm_config["together"])
-                dspy.configure(lm=together_provider, experimental=True)
-                self.provider_list = [together_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.Together(**llm_config["together"]) for _ in range(parallisation - 1)])
-            
-            case "anyscale":
-                anyscale_provider = dspy.Anyscale(**llm_config["anyscale"])
-                dspy.configure(lm=anyscale_provider, experimental=True)
-                self.provider_list = [anyscale_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.Anyscale(**llm_config["anyscale"]) for _ in range(parallisation - 1)])
-            
-            case "awsanthropic":
-                awsanthropic_provider = dspy.AWSAnthropic(**llm_config["awsanthropic"])
-                dspy.configure(lm=awsanthropic_provider, experimental=True)
-                self.provider_list = [awsanthropic_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.AWSAnthropic(**llm_config["awsanthropic"]) for _ in range(parallisation - 1)])
-            
-            case "ollama":
-                ollama_provider = dspy.OllamaLocal(**llm_config["ollama"])
-                dspy.configure(lm=ollama_provider, experimental=True) 
-                self.provider_list = [ollama_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.OllamaLocal(**llm_config["ollama"]) for _ in range(parallisation - 1)])
-            
-            case "cohere":
-                cohere_provider = dspy.Cohere(**llm_config["cohere"])
-                dspy.configure(lm=cohere_provider, experimental=True)
-                self.provider_list = [cohere_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.Cohere(**llm_config["cohere"]) for _ in range(parallisation - 1)])
-            case _:
-                raise ValueError(f"Invalid LLM provider: {llm_provider}")
+    def init_dspy_lm(self, llm_config: dict, parallisation: int):
+        # Create the primary LLM provider using litellm configuration
+        primary_provider = dspy.LM(
+            model=llm_config["model_provider"],
+            **llm_config["model_provider_args"]
+        )
+        
+        # Configure DSPy with the primary provider
+        dspy.configure(lm=primary_provider)
+        
+        # Initialize the provider list with the primary provider
+        self.provider_list = [primary_provider]
+        
+        # Add additional providers for parallelization if needed
+        if parallisation and parallisation > 1:
+            self.provider_list.extend([
+                dspy.LM(
+                    model=llm_config["model_provider"],
+                    **llm_config["model_provider_args"]
+                ) for _ in range(parallisation - 1)
+            ])
+        
         return self.provider_list
                 
     async def parse_codebase(self) -> DspyUnoplatCodebaseSummary:
