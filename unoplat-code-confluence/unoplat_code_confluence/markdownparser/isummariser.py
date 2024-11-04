@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from unoplat_code_confluence.data_models.chapi_unoplat_node import Node
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
 
 class ISummariser(ABC):
