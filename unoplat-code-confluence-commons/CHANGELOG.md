@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.7...unoplat-code-confluence-commons-v0.3.0) (2024-11-04)
+
+
+### Features
+
+* enhanced data models from python ([6288f3d](https://github.com/unoplat/unoplat-code-confluence/commit/6288f3d1b0ca68f8ee38f685102b8e22fd366aad))
+
 ## [0.2.7](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.6...unoplat-code-confluence-commons-v0.2.7) (2024-10-25)
 
 
