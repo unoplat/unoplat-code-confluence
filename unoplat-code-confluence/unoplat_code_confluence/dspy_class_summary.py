@@ -1,18 +1,19 @@
 from typing import Dict, List
 import dspy
 
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
+
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 from loguru import logger
-
+from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
 #TODO: optimise using gpt4 judge and miprov2
 
 class CodeConfluenceClassSummarySignature(dspy.Signature):
     """This signature takes in existing summary of a class and function summary of a class one at a time and returns enhanced final_class_summary."""
     class_existing_summary: str = dspy.InputField(default="Summary:",desc="This will contain existing class summary")
     function_summary: str = dspy.InputField(desc="This will contain current function summary based on which existing class summary has to be improved")
-    class_metadata: str = dspy.InputField(desc="This will contain current class metadata")
+    class_json_schema: str = dspy.InputField(desc="This will contain json schema of the class metadata")
+    class_metadata: str = dspy.InputField(desc="This will contain relevant current class metadata")
     final_class_summary: str = dspy.OutputField(desc="This will contain improved concise class summary")
     
 
@@ -28,12 +29,12 @@ class CodeConfluenceClassModule(dspy.Module):
         self.generate_class_summary = dspy.ChainOfThoughtWithHint(CodeConfluenceClassSummarySignature)
         self.generate_class_objective = dspy.ChainOfThoughtWithHint(CodeConfluenceClassObjectiveSignature)
 
-    def forward(self, class_metadata: DspyUnoplatNodeSubset, function_objective_summary: List[DspyUnoplatFunctionSummary]):
+    def forward(self, class_metadata: ChapiUnoplatNode, function_objective_summary: List[DspyUnoplatFunctionSummary]):
         logger.debug(f"Generating class summary for {class_metadata.node_name}")
         class_summary = ""
     
         for function_objective in function_objective_summary:
-            signature_class_summary = self.generate_class_summary(class_existing_summary=class_summary, function_summary=function_objective.function_summary.objective, class_metadata=str(class_metadata.model_dump_json()),hint="Generate the class detailed summary for the class by being concise , factual and grounded.:"+class_metadata.node_name)
+            signature_class_summary = self.generate_class_summary(class_existing_summary=class_summary, function_summary=function_objective.objective, class_json_schema=class_metadata.model_json_schema(), class_metadata=str(class_metadata.model_dump_json()),hint="Generate the class detailed summary for the class by being concise , factual and grounded.:"+class_metadata.node_name)
             class_summary = signature_class_summary.final_class_summary
     
         if class_metadata.node_name is not None:

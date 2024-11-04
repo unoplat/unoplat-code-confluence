@@ -8,8 +8,6 @@ from unoplat_code_confluence.configuration.external_config import AppConfig
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_function_subset import DspyUnoplatFunctionSubset
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_fs_node_subset import DspyUnoplatNodeSubset
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
@@ -21,6 +19,9 @@ import dspy
 from loguru import logger
 from progiter import ProgIter
 from progiter.manager import ProgressManager
+from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
+from unoplat_code_confluence.data_models.chapi_unoplat_function import ChapiUnoplatFunction
+
 
 
 
@@ -37,54 +38,28 @@ class CodebaseSummaryParser:
         self.json_output = app_config.json_output
         self.codebase_name = app_config.codebase_name
 
-    def init_dspy_lm(self,llm_config: dict,parallisation: int):
-        #todo define a switch case
-        llm_provider = next(iter(llm_config.keys()))
-        self.provider_list: dspy.LM = []
-        match llm_provider:
-            case "openai":
-                openai_provider = dspy.OpenAI(**llm_config["openai"])
-                dspy.configure(lm=openai_provider, experimental=True)
-                self.provider_list = [openai_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.OpenAI(**llm_config["openai"]) for _ in range(parallisation - 1)])
-                
-            case "together":
-                together_provider = dspy.Together(**llm_config["together"])
-                dspy.configure(lm=together_provider, experimental=True)
-                self.provider_list = [together_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.Together(**llm_config["together"]) for _ in range(parallisation - 1)])
-            
-            case "anyscale":
-                anyscale_provider = dspy.Anyscale(**llm_config["anyscale"])
-                dspy.configure(lm=anyscale_provider, experimental=True)
-                self.provider_list = [anyscale_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.Anyscale(**llm_config["anyscale"]) for _ in range(parallisation - 1)])
-            
-            case "awsanthropic":
-                awsanthropic_provider = dspy.AWSAnthropic(**llm_config["awsanthropic"])
-                dspy.configure(lm=awsanthropic_provider, experimental=True)
-                self.provider_list = [awsanthropic_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.AWSAnthropic(**llm_config["awsanthropic"]) for _ in range(parallisation - 1)])
-            
-            case "ollama":
-                ollama_provider = dspy.OllamaLocal(**llm_config["ollama"])
-                dspy.configure(lm=ollama_provider, experimental=True) 
-                self.provider_list = [ollama_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.OllamaLocal(**llm_config["ollama"]) for _ in range(parallisation - 1)])
-            
-            case "cohere":
-                cohere_provider = dspy.Cohere(**llm_config["cohere"])
-                dspy.configure(lm=cohere_provider, experimental=True)
-                self.provider_list = [cohere_provider]
-                if parallisation and parallisation > 1:
-                    self.provider_list.extend([dspy.Cohere(**llm_config["cohere"]) for _ in range(parallisation - 1)])
-            case _:
-                raise ValueError(f"Invalid LLM provider: {llm_provider}")
+    def init_dspy_lm(self, llm_config: dict, parallisation: int):
+        # Create the primary LLM provider using litellm configuration
+        primary_provider = dspy.LM(
+            model=llm_config["model_provider"],
+            **llm_config["model_provider_args"]
+        )
+        
+        # Configure DSPy with the primary provider
+        dspy.configure(lm=primary_provider)
+        
+        # Initialize the provider list with the primary provider
+        self.provider_list = [primary_provider]
+        
+        # Add additional providers for parallelization if needed
+        if parallisation and parallisation > 1:
+            self.provider_list.extend([
+                dspy.LM(
+                    model=llm_config["model_provider"],
+                    **llm_config["model_provider_args"]
+                ) for _ in range(parallisation - 1)
+            ])
+        
         return self.provider_list
                 
     async def parse_codebase(self) -> DspyUnoplatCodebaseSummary:
@@ -170,7 +145,7 @@ class CodebaseSummaryParser:
                 if package_name in memo:
                     package_summary = memo[package_name]
                 else:
-                    class_summaries = await self.process_classes_async(package.node_subsets,package_name,pman=pman,provider_list=self.provider_list)
+                    class_summaries = await self.process_classes_async(package.nodes,package_name,pman=pman,provider_list=self.provider_list)
                     for sub_name in package.sub_packages:
                         if sub_name in memo:
                             logger.debug("Sub package {} already processed, adding to sub_package_summaries",sub_name)
@@ -206,7 +181,7 @@ class CodebaseSummaryParser:
             return package_summaries
         
     
-    async def process_batch(self, batch: List[DspyUnoplatNodeSubset], package_name: str, pman: ProgressManager, lm_cycle: cycle) -> List[DspyUnoplatNodeSummary]:
+    async def process_batch(self, batch: List[ChapiUnoplatNode], package_name: str, pman: ProgressManager, lm_cycle: cycle) -> List[DspyUnoplatNodeSummary]:
         tasks = []
         async with asyncio.TaskGroup() as tg:
             for node in batch:
@@ -234,7 +209,7 @@ class CodebaseSummaryParser:
 
     
 
-    async def process_classes_async(self, classes: List[DspyUnoplatNodeSubset],package_name: str,pman: ProgressManager,provider_list: List[dspy.LM]) -> List[DspyUnoplatNodeSummary]:
+    async def process_classes_async(self, classes: List[ChapiUnoplatNode],package_name: str,pman: ProgressManager,provider_list: List[dspy.LM]) -> List[DspyUnoplatNodeSummary]:
         class_summaries = []
         concurrency = len(provider_list)
         lm_cycle = cycle(provider_list)
@@ -246,11 +221,11 @@ class CodebaseSummaryParser:
 
         return class_summaries
     
-    async def process_single_class_wrapper(self, node: DspyUnoplatNodeSubset, package_name: str, pman: ProgressManager, lm: dspy.LM) -> DspyUnoplatNodeSummary:
+    async def process_single_class_wrapper(self, node: ChapiUnoplatNode, package_name: str, pman: ProgressManager, lm: dspy.LM) -> DspyUnoplatNodeSummary:
         return await asyncio.to_thread(self.process_single_class, node, package_name, pman, lm)
 
     
-    def process_single_class(self, node: DspyUnoplatNodeSubset, package_name: str, pman: ProgressManager,  lm: dspy.LM) -> DspyUnoplatNodeSummary:
+    def process_single_class(self, node: ChapiUnoplatNode, package_name: str, pman: ProgressManager,  lm: dspy.LM) -> DspyUnoplatNodeSummary:
         try:
             with dspy.context(lm=lm):
                 function_summaries =  self.process_functions(node.functions, node, pman)
@@ -262,13 +237,15 @@ class CodebaseSummaryParser:
             return None
 
 
-    def process_functions(self, functions: List[DspyUnoplatFunctionSubset], node: DspyUnoplatNodeSubset, pman: ProgressManager) -> List[DspyUnoplatFunctionSummary]:
+    def process_functions(self, functions: List[ChapiUnoplatFunction], node: ChapiUnoplatNode, pman: ProgressManager) -> List[DspyUnoplatFunctionSummary]:
         function_summaries = []
         for function in functions:
             if function.name:
                 try:
-                    function_summary =  self.dspy_pipeline_function(function_metadata=function, class_metadata=node).answer
-                    function_summaries.append(DspyUnoplatFunctionSummary(FunctionName=function.name, FunctionSummary=function_summary))
+                    dspy_function_result =  self.dspy_pipeline_function(function_metadata=function, class_metadata=node)
+                    function_objective = dspy_function_result.objective
+                    function_summary = dspy_function_result.implementation_summary
+                    function_summaries.append(DspyUnoplatFunctionSummary(function_name=function.name, objective=function_objective, implementation_summary=function_summary))
                 except Exception as e:
                     logger.error(f"Error generating function summary for {function.name}: {e}")
                     logger.exception("Traceback:")
