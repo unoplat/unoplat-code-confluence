@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.14.0...unoplat-code-confluence-v0.15.0) (2024-11-04)
+
+
+### Features
+
+* added more context and right exclusions for pipelines ([add3c28](https://github.com/unoplat/unoplat-code-confluence/commit/add3c28afecb9b6a395075f195290f2dddb18b52))
+* enabled litellm support for dspy ([c96a059](https://github.com/unoplat/unoplat-code-confluence/commit/c96a059059c5d4745320d2bb02351b73594a85d3))
+* enhanced data models from python ([6288f3d](https://github.com/unoplat/unoplat-code-confluence/commit/6288f3d1b0ca68f8ee38f685102b8e22fd366aad))
+* enhanced dspy pipelines by introducing json schema before sharing json ([34d69d8](https://github.com/unoplat/unoplat-code-confluence/commit/34d69d81bc9219436bb73a39ba7ffb5f84414483))
+* enhanced function summary by introducing json schema ([c0e4944](https://github.com/unoplat/unoplat-code-confluence/commit/c0e4944aaf9f291610338d4d45dade945b7229b2))
+
 ## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.13.4...unoplat-code-confluence-v0.14.0) (2024-10-29)
 
 
