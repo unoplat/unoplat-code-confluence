@@ -13,3 +13,8 @@ class BaseNode(StructuredNode):
 class ContainsRelationship(StructuredRel):
     """Relationship for representing containment between nodes"""
     pass
+
+class CallsRelationship(StructuredRel):
+    """Represents a method call from one method to another."""
+    parameters = JSONProperty()
+    position = JSONProperty()

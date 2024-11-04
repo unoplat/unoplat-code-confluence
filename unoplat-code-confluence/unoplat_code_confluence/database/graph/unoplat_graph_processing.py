@@ -1,3 +1,4 @@
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
@@ -22,7 +23,7 @@ class UnoplatGraphProcessing:
         db.set_connection(neo4j_url)
         self.unoplat_graph_ingestion.create_schema()
 
-    def process_codebase_summary(self, codebase_summary: DspyUnoplatCodebaseSummary):
+    def process_codebase_summary(self, unoplat_codebase: UnoplatCodebase, codebase_summary: DspyUnoplatCodebaseSummary):
         try:
             # Generate embeddings
             objective_embedding = self.embedding_generator.generate_embeddings_for_single_text(
