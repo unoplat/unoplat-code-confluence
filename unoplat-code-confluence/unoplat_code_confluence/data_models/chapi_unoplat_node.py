@@ -22,3 +22,4 @@ class ChapiUnoplatNode(BaseModel):
     position: Optional[Position] = Field(default=None, alias="Position",exclude=True)
     content: Optional[str] = Field(default=None, alias="Content",exclude=True)
     annotations: List[Annotation] = Field(default_factory=list, alias="Annotations")
+    comments_description: Optional[str] = Field(default=None, alias="CommentsDescription",description="description of the node from comments")
