@@ -17,7 +17,7 @@ class ConfluenceClass(BaseNode):
     content = StringProperty()
     # Class relationships
     package = RelationshipTo('.confluence_package.ConfluencePackage', 'BELONGS_TO', model=ContainsRelationship, cardinality=One)
-    methods = RelationshipTo('.confluence_method.ConfluenceMethod', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
+    methods = RelationshipTo('.confluence_internal_method.ConfluenceInternalMethod', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
     extends = RelationshipTo('.confluence_class.ConfluenceClass', 'EXTENDS', cardinality=ZeroOrMore)
     imports = RelationshipTo('.confluence_import.ConfluenceImport', 'IMPORTS', cardinality=ZeroOrMore)
     annotations = RelationshipTo('.confluence_annotation.ConfluenceAnnotation', 'HAS_ANNOTATION', cardinality=ZeroOrMore)
