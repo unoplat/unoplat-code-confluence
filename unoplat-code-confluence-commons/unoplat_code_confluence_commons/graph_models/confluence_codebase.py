@@ -9,7 +9,7 @@ from neomodel import (
     FloatProperty
     
 )
-from .base_models import BaseNode, ContainsRelationship
+from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship
 
 class ConfluenceCodebase(BaseNode):
     """Represents a codebase in the system"""

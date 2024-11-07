@@ -1,5 +1,5 @@
-from .base_models import BaseNode, ContainsRelationship
-from neomodel import RelationshipFrom, RelationshipTo, StringProperty,ZeroOrMore,One,ArrayProperty,VectorIndex,FloatProperty,JSONProperty
+from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship, AnnotatedRelationship
+from neomodel import  RelationshipTo, StringProperty,ZeroOrMore,One,ArrayProperty,FloatProperty,JSONProperty,Relationship
 
 class ConfluenceClass(BaseNode):
     """Represents a class in a package"""
@@ -19,6 +19,6 @@ class ConfluenceClass(BaseNode):
     package = RelationshipTo('.confluence_package.ConfluencePackage', 'BELONGS_TO', model=ContainsRelationship, cardinality=One)
     methods = RelationshipTo('.confluence_internal_method.ConfluenceInternalMethod', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
     extends = RelationshipTo('.confluence_class.ConfluenceClass', 'EXTENDS', cardinality=ZeroOrMore)
-    imports = RelationshipTo('.confluence_import.ConfluenceImport', 'IMPORTS', cardinality=ZeroOrMore)
-    annotations = RelationshipTo('.confluence_annotation.ConfluenceAnnotation', 'HAS_ANNOTATION', cardinality=ZeroOrMore)
+    imports = Relationship('.confluence_import.ConfluenceImport', 'IMPORTS', cardinality=ZeroOrMore)
+    annotations = Relationship('.confluence_annotation.ConfluenceAnnotation', 'HAS_ANNOTATION', model=AnnotatedRelationship, cardinality=ZeroOrMore)
     fields = RelationshipTo('.confluence_class_field.ConfluenceClassField', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
