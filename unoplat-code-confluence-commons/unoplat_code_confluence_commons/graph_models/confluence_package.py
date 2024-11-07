@@ -1,5 +1,5 @@
-from .base_models import BaseNode, ContainsRelationship
-from neomodel import RelationshipFrom, RelationshipTo, StringProperty,ZeroOrMore,One,ArrayProperty,VectorIndex,FloatProperty
+from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship
+from neomodel import RelationshipTo, StringProperty,ZeroOrMore,One,ArrayProperty,VectorIndex,FloatProperty
 
 class ConfluencePackage(BaseNode):
     """Represents a package in the codebase"""
