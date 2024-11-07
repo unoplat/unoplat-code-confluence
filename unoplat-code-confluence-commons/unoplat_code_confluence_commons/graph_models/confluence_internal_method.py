@@ -13,7 +13,7 @@ class ConfluenceInternalMethod(BaseNode):
     content = StringProperty()
     body_hash = IntegerProperty()
     local_variables = JSONProperty()
-    description = StringProperty()
+    comments_description = StringProperty()
     # # Method relationships
     confluence_class = RelationshipTo('.confluence_class.ConfluenceClass', 'BELONGS_TO', model=ContainsRelationship, cardinality=One)
     annotations = Relationship('.confluence_annotation.ConfluenceAnnotation', 'HAS_ANNOTATION', model=AnnotatedRelationship, cardinality=ZeroOrMore)

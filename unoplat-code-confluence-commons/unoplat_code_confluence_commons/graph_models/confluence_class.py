@@ -15,6 +15,7 @@ class ConfluenceClass(BaseNode):
     multiple_extend = ArrayProperty(StringProperty())
     position = JSONProperty()
     content = StringProperty()
+    comments_description = StringProperty()
     # Class relationships
     package = RelationshipTo('.confluence_package.ConfluencePackage', 'BELONGS_TO', model=ContainsRelationship, cardinality=One)
     methods = RelationshipTo('.confluence_internal_method.ConfluenceInternalMethod', 'CONTAINS', model=ContainsRelationship, cardinality=ZeroOrMore)
