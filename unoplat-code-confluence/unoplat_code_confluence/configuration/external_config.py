@@ -8,9 +8,13 @@ from pydantic import BaseModel, ValidationInfo, field_validator, Field
 
     
 
+class PythonPackageManager(str, Enum):
+    POETRY = "poetry"
+    PIP = "pip"
+
 class ProgrammingLanguage(Enum):
     PYTHON = 'python'
-    JAVA = 'java'
+    #JAVA = 'java'
     # JAVASCRIPT = 'JavaScript'
     # CSHARP = 'C#'
     # RUBY = 'Ruby'
@@ -28,7 +32,13 @@ class AppConfig(BaseModel):
     output_path: str
     output_file_name: str
     codebase_name: str
-    programming_language: str
+    programming_language_metadata: Dict[str, str] = Field(
+        description="Metadata about the programming language and its package manager",
+        example={
+            "language": "python",
+            "package_manager": "pip"
+        }
+    )
     repo: RepoConfig
     api_tokens: Dict[str, str]
     llm_provider_config: Dict[str, Any] = Field(
@@ -63,4 +73,22 @@ class AppConfig(BaseModel):
             raise ValueError("github_token is required in api_tokens")
         if len(value) != 1:
             raise ValueError("api_tokens must only contain github_token")
+        return value
+   
+    @field_validator('programming_language_metadata')
+    def check_programming_language_metadata(cls, value, info: ValidationInfo):
+        if 'language' not in value:
+            raise ValueError("programming_language_metadata must contain 'language' key")
+        
+        if value['language'] not in [member.value for member in ProgrammingLanguage]:
+            raise ValueError("programming_language_metadata['language'] must be a valid programming language")
+        
+        # Package manager validation based on language
+        if value['language'] == 'python':
+            if 'package_manager' not in value:
+                raise ValueError("package_manager is required for Python projects")
+            
+            if value['package_manager'] not in [member.value for member in PythonPackageManager]:
+                raise ValueError("For Python projects, package_manager must be either 'poetry' or 'pip'")
+        
         return value
