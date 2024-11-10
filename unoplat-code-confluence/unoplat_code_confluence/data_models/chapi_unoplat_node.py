@@ -5,11 +5,10 @@ from unoplat_code_confluence.data_models.chapi_unoplat_class_fieldmodel import C
 from unoplat_code_confluence.data_models.chapi_unoplat_import import Import
 from unoplat_code_confluence.data_models.chapi_unoplat_function import ChapiUnoplatFunction
 from unoplat_code_confluence.data_models.chapi_unoplat_position import Position
-
-
+from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 class ChapiUnoplatNode(BaseModel):
-    node_name: Optional[str] = Field(default=None, alias="NodeName")
+    node_name: Optional[str] = Field(default=None, alias="NodeName",description="name of the class, method, function, etc.")
     type: Optional[str] = Field(default=None, alias="Type")
     file_path: Optional[str] = Field(default=None, alias="FilePath",exclude=True)
     module: Optional[str] = Field(default=None, alias="Module",exclude=True)
@@ -23,3 +22,4 @@ class ChapiUnoplatNode(BaseModel):
     content: Optional[str] = Field(default=None, alias="Content",exclude=True)
     annotations: List[Annotation] = Field(default_factory=list, alias="Annotations")
     comments_description: Optional[str] = Field(default=None, alias="CommentsDescription",description="description of the node from comments")
+    package_manager_metadata: Optional[UnoplatPackageManagerMetadata] = Field(default=None, alias="PackageManagerMetadata")
