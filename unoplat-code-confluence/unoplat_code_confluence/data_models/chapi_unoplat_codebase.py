@@ -7,6 +7,8 @@ from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import
 
 class UnoplatCodebase(BaseModel):
     name: Optional[str] = Field(default=None, alias="Name")
+    repo_name: Optional[str] = Field(default=None, alias="RepoName")
+    repo_url: Optional[str] = Field(default=None, alias="RepoURL")
     packages: Optional[UnoplatPackage] = Field(default=None, alias="UnoplatPackages")
     package_manager_metadata: Optional[UnoplatPackageManagerMetadata] = Field(default=None, alias="PackageManagerMetadata")
     
