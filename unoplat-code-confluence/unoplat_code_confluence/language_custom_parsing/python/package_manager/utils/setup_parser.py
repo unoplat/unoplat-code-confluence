@@ -92,16 +92,46 @@ class SetupParser:
                 metadata.programming_language_version = version_info
                 
             if 'entry_points' in setup_args:
-                console_scripts = setup_args['entry_points'].get('console_scripts', {})
-                if isinstance(console_scripts, list):
-                    metadata.entry_points = {
-                        name.strip(): path.strip()
-                        for script in console_scripts
-                        for name, path in [script.split('=', 1)]
-                    }
-                elif isinstance(console_scripts, dict):
-                    metadata.entry_points = console_scripts
+                entry_points = setup_args['entry_points']
+                metadata.entry_points = {}
                 
+                # Case 1: Dictionary format with console_scripts
+                if isinstance(entry_points, dict):
+                    console_scripts = entry_points.get('console_scripts', [])
+                    if isinstance(console_scripts, list):
+                        for script in console_scripts:
+                            try:
+                                name, path = [part.strip() for part in script.split('=', 1)]
+                                metadata.entry_points[name] = path
+                            except ValueError:
+                                logger.warning(f"Invalid entry point format: {script}")
+                    elif isinstance(console_scripts, dict):
+                        metadata.entry_points.update(console_scripts)
+                        
+                # Case 2: INI-style string format
+                elif isinstance(entry_points, str):
+                    try:
+                        import configparser
+                        from io import StringIO
+                        config = configparser.ConfigParser()
+                        # Add a default section if none exists
+                        if not entry_points.strip().startswith('['):
+                            entry_points = '[console_scripts]\n' + entry_points
+                        config.read_string(entry_points)
+                        if 'console_scripts' in config:
+                            metadata.entry_points.update(dict(config['console_scripts']))
+                    except Exception as e:
+                        logger.warning(f"Failed to parse entry_points string: {str(e)}")
+                        
+                # Case 3: Dictionary with direct key-value pairs
+                elif isinstance(entry_points, list):
+                    for entry in entry_points:
+                        try:
+                            name, path = [part.strip() for part in entry.split('=', 1)]
+                            metadata.entry_points[name] = path
+                        except ValueError:
+                            logger.warning(f"Invalid entry point format: {entry}")
+
             return metadata
             
         except Exception as e:
