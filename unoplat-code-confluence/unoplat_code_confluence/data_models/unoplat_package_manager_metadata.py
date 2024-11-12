@@ -12,4 +12,8 @@ class UnoplatPackageManagerMetadata(BaseModel):
     project_version: Optional[str] = Field(default=None, description="The version of the project")
     description: Optional[str] = Field(default=None, description="The description of the project")
     authors: Optional[List[str]] = Field(default=None, description="The authors of the project")
-    entry_point: Optional[str] = Field(default=None, description="The entry point of the project")
+    license: Optional[str] = Field(default=None, description="The license of the project")
+    entry_points: Dict[str, str] = Field(
+        default_factory=dict, 
+        description="Dictionary of script names to their entry points. Example: {'cli': 'package.module:main', 'serve': 'uvicorn app:main'}"
+    )
