@@ -1,4 +1,5 @@
 import argparse
+from ast import Dict
 import asyncio
 import os
 from loguru import logger
@@ -56,7 +57,7 @@ async def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,i
     )
 
 
-async def ensure_jar_downloaded(github_token, arcguard_cli_repo, local_download_directory):
+async def ensure_jar_downloaded( github_token: str, arcguard_cli_repo: str, local_download_directory: str):
     
     jar_path = Downloader.download_latest_jar(arcguard_cli_repo, local_download_directory, github_token)
     
@@ -76,21 +77,22 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_js
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
     
-    # Ensure the JAR is downloaded or use the existing one
+    # Ensure the JAR is downloaded or use the existing 
     jar_path = await ensure_jar_downloaded(app_config.api_tokens["github_token"],app_config.repo.download_url,app_config.repo.download_directory)
 
     logger.info(f"Local Workspace URL: {app_config.local_workspace_path}")
-    logger.info(f"Programming Language: {app_config.programming_language}")
+    programming_language = app_config.programming_language_metadata.language.value
+    logger.info(f"Programming Language: {programming_language}")
     logger.info(f"Output Path: {app_config.output_path}")
     logger.info(f"Codebase Name: {app_config.codebase_name}")
     
     # based on programming_language convert to extension
-    extension = await get_extension(app_config.programming_language)
+    extension = await get_extension(programming_language)
 
     # Initialize the ArchGuard handler with the collected parameters.
     archguard_handler = ArchGuardHandler(
         jar_path=jar_path,
-        language=app_config.programming_language,
+        language=programming_language,
         codebase_path=app_config.local_workspace_path,
         codebase_name=app_config.codebase_name,
         output_path=app_config.output_path,
@@ -105,7 +107,7 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_js
     
     output_filename = f"{app_config.codebase_name}_{current_timestamp}.md"
 
-    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata,app_config.local_workspace_path,app_config.programming_language)
+    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata,app_config.local_workspace_path,app_config.programming_language_metadata)
     
     dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
     

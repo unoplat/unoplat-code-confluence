@@ -3,7 +3,7 @@ from unoplat_code_confluence.configuration.external_config import PackageManager
 from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
 from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
-from unoplat_code_confluence.language_custom_parsing.python.package_manager.pip.setup_parser import SetupParser
+from unoplat_code_confluence.language_custom_parsing.python.package_manager.utils.setup_parser import SetupParser
 from unoplat_code_confluence.language_custom_parsing.python.package_manager.utils.requirements_utils import RequirementsUtils
 from typing import Dict, List, Optional
 import os
