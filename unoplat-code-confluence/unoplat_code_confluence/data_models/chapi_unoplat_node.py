@@ -23,4 +23,4 @@ class ChapiUnoplatNode(BaseModel):
     content: Optional[str] = Field(default=None, alias="Content",exclude=True)
     annotations: List[Annotation] = Field(default_factory=list, alias="Annotations")
     comments_description: Optional[str] = Field(default=None, alias="CommentsDescription",description="description of the node from comments")
-    package_manager_metadata: Optional[UnoplatPackageManagerMetadata] = Field(default=None, alias="PackageManagerMetadata")
+    
