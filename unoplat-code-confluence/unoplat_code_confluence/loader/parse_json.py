@@ -81,7 +81,7 @@ class JsonParser(IParseJson):
                     node.package = package_naming_strategy.get_package_name(
                         node.file_path,
                         local_workspace_path,
-                        node.node_name
+                        unoplat_codebase.name
                     )
                     
                 package_parts = node.package.split('.')
