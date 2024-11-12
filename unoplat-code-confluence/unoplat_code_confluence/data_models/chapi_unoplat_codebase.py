@@ -6,6 +6,7 @@ from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPac
 from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 class UnoplatCodebase(BaseModel):
+    name: Optional[str] = Field(default=None, alias="Name")
     packages: Optional[UnoplatPackage] = Field(default=None, alias="UnoplatPackages")
     package_manager_metadata: Optional[UnoplatPackageManagerMetadata] = Field(default=None, alias="PackageManagerMetadata")
     

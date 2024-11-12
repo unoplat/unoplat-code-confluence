@@ -13,6 +13,7 @@ class ChapiUnoplatNode(BaseModel):
     file_path: Optional[str] = Field(default=None, alias="FilePath",exclude=True)
     module: Optional[str] = Field(default=None, alias="Module",exclude=True)
     package: Optional[str] = Field(default=None, alias="Package",exclude=True)
+    qualified_name: Optional[str] = Field(default=None, alias="QualifiedName",exclude=True,description="name of class with absolute path")
     multiple_extend: Optional[list[str]] = Field(default_factory=list, alias="MultipleExtend")
     fields: List[ClassFieldModel] = Field(default_factory=list, alias="Fields")
     extend: Optional[str] = Field(default=None, alias="Extend")
