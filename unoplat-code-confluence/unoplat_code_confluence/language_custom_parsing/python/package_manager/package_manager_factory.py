@@ -2,7 +2,7 @@ from typing import Dict
 from unoplat_code_confluence.language_custom_parsing.python.package_manager.package_manager_strategy import PackageManagerStrategy
 from unoplat_code_confluence.language_custom_parsing.python.package_naming.package_naming_strategy import UnsupportedLanguageError
 from unoplat_code_confluence.language_custom_parsing.python.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
-#from unoplat_code_confluence.language_custom_parsing.package_manager.pip.pip_strategy import PythonPipStrategy
+from unoplat_code_confluence.language_custom_parsing.python.package_manager.pip.pip_strategy import PipStrategy
 
 
 
@@ -10,7 +10,7 @@ class PackageManagerStrategyFactory:
     _strategies: Dict[str, Dict[str, type[PackageManagerStrategy]]] = {
         "python": {
             "poetry": PythonPoetryStrategy,
-           # "pip": PythonPipStrategy
+            "pip": PipStrategy
         }
     }
 

@@ -1,16 +1,15 @@
 import ast
-from typing import Optional, Dict, List
-import re
-from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from typing import Optional, Dict
 import os
+from loguru import logger
+from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+
 class SetupParser:
     """Parser for Python setup.py files to extract package metadata"""
     
     @staticmethod
     def _extract_setup_args_from_ast(node: ast.AST) -> Optional[Dict]:
-        """
-        Extract setup() arguments from an AST node
-        """
+        """Extract setup() arguments from an AST node"""
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'setup':
             args_dict = {}
             for keyword in node.keywords:
@@ -31,65 +30,24 @@ class SetupParser:
         return None
 
     @staticmethod
-    def _parse_python_version(python_requires: str) -> Dict[str, str]:
-        """
-        Parse Python version requirements into a structured format
-        """
-        version_info = {"min": None, "max": None}
-        
-        if not python_requires:
-            return version_info
-            
-        # Handle >= format
-        if '>=' in python_requires:
-            version_info['min'] = python_requires.split('>=')[1].strip()
-        
-        # Handle <= format
-        if '<=' in python_requires:
-            version_info['max'] = python_requires.split('<=')[1].strip()
-            
-        return version_info
-
-    @staticmethod
-    def _parse_entry_points(entry_points_dict: Dict) -> Dict[str, str]:
-        """
-        Parse entry_points dictionary into the required format
-        """
-        result = {}
-        if not entry_points_dict:
-            return result
-            
-        # Handle console_scripts specifically
-        console_scripts = entry_points_dict.get('console_scripts', {})
-        if isinstance(console_scripts, list):
-            for script in console_scripts:
-                name, path = script.split('=')
-                result[name.strip()] = path.strip()
-        elif isinstance(console_scripts, dict):
-            result.update(console_scripts)
-            
-        return result
-
-    @staticmethod
     def parse_setup_file(root_dir: str, metadata: UnoplatPackageManagerMetadata) -> UnoplatPackageManagerMetadata:
-        """
-        Parse a setup.py file and update the UnoplatPackageManagerMetadata instance
+        """Parse a setup.py file and update the UnoplatPackageManagerMetadata instance
         
         Args:
-            file_path: Path to the setup.py file
+            root_dir: Path to the directory containing setup.py
             metadata: Existing UnoplatPackageManagerMetadata instance to update
             
         Returns:
             Updated UnoplatPackageManagerMetadata instance
         """
         try:
-            req_file_path = os.path.join(root_dir, "requirements.txt")
+            setup_file_path = os.path.join(root_dir, "setup.py")
         
-            if os.path.exists(req_file_path):
-                with open(req_file_path, 'r', encoding='utf-8') as file:
-                    setup_content = file.read()
-            else:
-                raise FileNotFoundError(f"Requirements file not found at {req_file_path}")
+            if not os.path.exists(setup_file_path):
+                raise FileNotFoundError(f"setup.py not found at {setup_file_path}")
+
+            with open(setup_file_path, 'r', encoding='utf-8') as file:
+                setup_content = file.read()
                     
             # Parse the AST
             tree = ast.parse(setup_content)
@@ -106,6 +64,9 @@ class SetupParser:
                 return metadata
                 
             # Update metadata fields
+            if 'name' in setup_args:
+                metadata.package_name = setup_args['name']
+
             if 'version' in setup_args:
                 metadata.project_version = setup_args['version']
                 
@@ -122,16 +83,27 @@ class SetupParser:
                 metadata.license = setup_args['license']
                 
             if 'python_requires' in setup_args:
-                metadata.programming_language_version = SetupParser._parse_python_version(
-                    setup_args['python_requires']
-                )
+                version_str = setup_args['python_requires']
+                version_info = {}
+                if '>=' in version_str:
+                    version_info['min'] = version_str
+                if '<=' in version_str:
+                    version_info['max'] = version_str
+                metadata.programming_language_version = version_info
                 
             if 'entry_points' in setup_args:
-                metadata.entry_points = SetupParser._parse_entry_points(setup_args['entry_points'])
+                console_scripts = setup_args['entry_points'].get('console_scripts', {})
+                if isinstance(console_scripts, list):
+                    metadata.entry_points = {
+                        name.strip(): path.strip()
+                        for script in console_scripts
+                        for name, path in [script.split('=', 1)]
+                    }
+                elif isinstance(console_scripts, dict):
+                    metadata.entry_points = console_scripts
                 
             return metadata
             
         except Exception as e:
-            # Log error but don't fail - return original metadata
-            print(f"Error parsing setup.py: {str(e)}")
+            logger.error(f"Error parsing setup.py: {str(e)}")
             return metadata

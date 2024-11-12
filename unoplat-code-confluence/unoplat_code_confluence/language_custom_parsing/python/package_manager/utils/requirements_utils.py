@@ -1,5 +1,6 @@
 from typing import List, Optional, Iterator
 import os
+from pkg_resources import Requirement
 import requirements
 from loguru import logger
 from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
@@ -108,7 +109,7 @@ class RequirementsUtils:
             raise
 
     @staticmethod
-    def _convert_requirement_to_dependency(req) -> Optional[UnoplatProjectDependency]:
+    def _convert_requirement_to_dependency(req: Requirement) -> Optional[UnoplatProjectDependency]:
         """Convert requirements-parser Requirement to UnoplatProjectDependency."""
         try:
             # Get package name, handling both VCS and regular requirements
@@ -130,21 +131,30 @@ class RequirementsUtils:
                 
                 # Parse version constraints into min/max versions
                 for op, ver in sorted_specs:
-                    if op in ('>=', '>'):
-                        version.minimum_version = ver
-                    elif op in ('<=', '<'):
-                        version.maximum_version = ver
+                    if op == '>=':
+                        version.minimum_version = f">={ver}"
+                    elif op == '>':
+                        version.minimum_version = f">{ver}"
+                    elif op == '<=':
+                        version.maximum_version = f"<={ver}"
+                    elif op == '<':
+                        version.maximum_version = f"<{ver}"
                     elif op == '==':
-                        version.current_version = ver
-                        
+                        version.current_version = f"=={ver}"
                     elif op == '~=':  # Compatible release operator
-                        version.minimum_version = ver
-                        # Calculate compatible release max version
+                        version.minimum_version = f">={ver}"
+                        # Handle compatible release based on version components
                         parts = ver.split('.')
                         if len(parts) >= 2:
-                            parts[-1] = '0'  # Zero out patch version
-                            parts[-2] = str(int(parts[-2]) + 1)  # Increment minor version
-                            version.maximum_version = '.'.join(parts)
+                            if len(parts) == 2:
+                                # For X.Y format, allow up to next major
+                                parts[0] = str(int(parts[0]) + 1)
+                                version.maximum_version = f"<{'.'.join(parts)}"
+                            else:
+                                # For X.Y.Z... format, allow up to next minor
+                                parts[-2] = str(int(parts[-2]) + 1)
+                                parts[-1] = '0'
+                                version.maximum_version = f"<{'.'.join(parts)}"
             
             # Determine source info
             source = None
@@ -166,7 +176,7 @@ class RequirementsUtils:
 
             return UnoplatProjectDependency(
                 name=name,
-                version=version,  # Now passing UnoplatVersion object directly
+                version=version,
                 extras=sorted(req.extras) if req.extras else None,
                 source=source,
                 source_url=source_url,
