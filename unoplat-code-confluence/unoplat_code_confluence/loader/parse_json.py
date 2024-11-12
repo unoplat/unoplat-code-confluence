@@ -1,3 +1,4 @@
+from ast import Name
 import os
 from typing import Dict
 from pydantic import ValidationError
@@ -7,23 +8,37 @@ from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPac
 from unoplat_code_confluence.loader.iparse_json import IParseJson
 from loguru import logger
 from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
-from unoplat_code_confluence.language_custom_parsing.python.package_naming.package_naming_factory import PackageNamingStrategyFactory
-from unoplat_code_confluence.language_custom_parsing.python.package_naming.package_naming_strategy import UnsupportedLanguageError
+from unoplat_code_confluence.language_custom_parsing.package_naming.package_naming_factory import PackageNamingStrategyFactory
+from unoplat_code_confluence.language_custom_parsing.package_naming.python.python_package_naming_strategy import PythonPackageNamingStrategy
 from unoplat_code_confluence.configuration.external_config import ProgrammingLanguageMetadata
 from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from unoplat_code_confluence.language_custom_parsing.python.package_manager.package_manager_factory import (
+from unoplat_code_confluence.language_custom_parsing.package_manager.package_manager_factory import (
     PackageManagerStrategyFactory,
     UnsupportedPackageManagerError
+)
+from unoplat_code_confluence.language_custom_parsing.qualified_name.qualified_name_factory import (
+    QualifiedNameStrategyFactory,
+    UnsupportedLanguageError
 )
 
 class JsonParser(IParseJson):
     def parse_json_to_nodes(self, json_data: dict, local_workspace_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> UnoplatCodebase:
         """Concrete implementation of the parse_json_to_nodes method."""
+        workspace_name = local_workspace_path.rstrip('/').split('/')[-1]
         unoplat_codebase = UnoplatCodebase()
+        unoplat_codebase.name  = workspace_name
         unoplat_package_dict: Dict[str, UnoplatPackage] = {}
         programming_language = programming_language_metadata.language.value
         package_manager = programming_language_metadata.package_manager
         package_naming_support : bool = False
+        
+        # Get the qualified name strategy
+        try:
+            qualified_name_strategy = QualifiedNameStrategyFactory.get_strategy(programming_language)
+        except UnsupportedLanguageError as e:
+            logger.error(f"Qualified name processing not supported for language: {programming_language}")
+            raise
+        
         # Get the package manager strategy
         try:
             package_manager_strategy = PackageManagerStrategyFactory.get_strategy(
@@ -48,13 +63,19 @@ class JsonParser(IParseJson):
         for item in json_data:
             try:
                 
-                
-                
-                node = ChapiUnoplatNode.model_validate(item)
+                node: ChapiUnoplatNode = ChapiUnoplatNode.model_validate(item)
                 
                 if node.node_name == "default":
                     node.node_name = os.path.basename(node.file_path).split('.')[0]
                 
+                # Get qualified name using the strategy
+                node.qualified_name = qualified_name_strategy.get_qualified_name(
+                    node_name=node.node_name,
+                    node_file_path=node.file_path,
+                    local_workspace_path=local_workspace_path,
+                    codebase_name=unoplat_codebase.name
+                )
+
                 if package_naming_support:
                     # Use the strategy to determine package name
                     node.package = package_naming_strategy.get_package_name(

@@ -1,10 +1,9 @@
 from typing import Dict, Type
-from .package_naming_strategy import (
+from unoplat_code_confluence.language_custom_parsing.package_naming.package_naming_strategy import (
     PackageNamingStrategy,
-    PythonPackageNamingStrategy,
     DefaultPackageNamingStrategy
 )
-
+from unoplat_code_confluence.language_custom_parsing.package_naming.python.python_package_naming_strategy import PythonPackageNamingStrategy
 class PackageNamingStrategyFactory:
     """Factory for creating language-specific package naming strategies."""
     
