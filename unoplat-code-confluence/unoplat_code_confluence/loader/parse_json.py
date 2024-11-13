@@ -36,7 +36,7 @@ class JsonParser(IParseJson):
         try:
             qualified_name_strategy = QualifiedNameStrategyFactory.get_strategy(programming_language)
         except UnsupportedLanguageError as e:
-            logger.error(f"Qualified name processing not supported for language: {programming_language}")
+            logger.error(f"Qualified name processing not supported for language: {programming_language}:{e}")
             raise
         
         # Get the package manager strategy
@@ -47,6 +47,7 @@ class JsonParser(IParseJson):
             )
             # Process metadata using the strategy
             processed_metadata: UnoplatPackageManagerMetadata = package_manager_strategy.process_metadata(local_workspace_path,programming_language_metadata)
+            unoplat_codebase.package_manager_metadata= processed_metadata
             
         except (UnsupportedLanguageError, UnsupportedPackageManagerError) as e:
             logger.warning(str(e))

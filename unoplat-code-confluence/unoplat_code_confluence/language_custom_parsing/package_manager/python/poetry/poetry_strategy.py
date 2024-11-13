@@ -1,4 +1,5 @@
 from loguru import logger
+from regex import D
 from unoplat_code_confluence.configuration.external_config import PackageManager, ProgrammingLanguageMetadata,PackageManagerType
 from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
@@ -30,7 +31,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             if not poetry_data:
                 logger.warning("No poetry configuration found in pyproject.toml, falling back to requirements")
                 # Try parsing requirements folder using RequirementsUtils
-                dependencies = RequirementsUtils.parse_requirements_folder(local_workspace_path)
+                dependencies: Dict[str, UnoplatProjectDependency] = RequirementsUtils.parse_requirements_folder(local_workspace_path)
                 unoplatPackageManager: UnoplatPackageManagerMetadata =  UnoplatPackageManagerMetadata(
                     dependencies=dependencies,
                     programming_language=metadata.language.value,
@@ -44,9 +45,8 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 
                 
             # Parse only main dependencies
-            dependencies: List[UnoplatProjectDependency] = []
             main_deps = poetry_data.get("dependencies", {})
-            dependencies.extend(self._parse_dependencies(main_deps))
+            dependencies: Dict[str, UnoplatProjectDependency] = self._parse_dependencies(main_deps)
             
             # Create metadata object with entry_points instead of entry_point
             return UnoplatPackageManagerMetadata(
@@ -122,8 +122,8 @@ class PythonPoetryStrategy(PackageManagerStrategy):
         # Plain version string treated as exact version
         return UnoplatVersion(current_version=f"=={constraint}")
     
-    def _parse_dependencies(self, deps_dict: Dict, group: Optional[str] = None) -> List[UnoplatProjectDependency]:
-        dependencies = []
+    def _parse_dependencies(self, deps_dict: Dict, group: Optional[str] = None) -> Dict[str, UnoplatProjectDependency]:
+        dependencies = {}
         
         for name, constraint in deps_dict.items():
             if name == "python":  # Skip python version constraint
@@ -172,27 +172,24 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                     logger.warning(f"Skipping invalid dependency specification for {name}")
                     continue
                 
-                dep = UnoplatProjectDependency(
-                    name=name,
+                tuple_dependency = UnoplatProjectDependency(
                     version=version,
-                    group=group,
                     extras=extras,
                     source=source,
                     source_url=source_url,
                     source_reference=source_reference,
                     subdirectory=subdirectory
                 )
-                dependencies.append(dep)
+                dependencies[name] = tuple_dependency
                 
             except Exception as e:
                 logger.warning(f"Error parsing dependency {name}: {str(e)}")
                 # Add dependency with empty version constraint
-                dep = UnoplatProjectDependency(
+                tuple_dependency = UnoplatProjectDependency(
                     name=name,
-                    version=UnoplatVersion(),
-                    group=group
+                    version=UnoplatVersion()
                 )
-                dependencies.append(dep)
+                dependencies[name] = tuple_dependency
                 
         return dependencies
     
