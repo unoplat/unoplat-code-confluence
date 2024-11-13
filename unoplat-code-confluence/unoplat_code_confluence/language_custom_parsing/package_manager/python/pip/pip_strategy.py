@@ -38,6 +38,10 @@ class PipStrategy(PackageManagerStrategy):
                     local_workspace_path, 
                     package_metadata
                 )
+                # if we do not get python version fall back to the one taken from configuration           
+                if package_metadata.programming_language_version is None:
+                    package_metadata.programming_language_version = metadata.language_version
+                    
             except FileNotFoundError:
                 logger.warning("setup.py not found, using only requirements data")
             except Exception as e:

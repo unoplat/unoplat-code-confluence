@@ -33,7 +33,7 @@ class RepoConfig(BaseModel):
 class ProgrammingLanguageMetadata(BaseModel):
     language: ProgrammingLanguage
     package_manager: str
-    version: str
+    language_version: str
 
     @field_validator('package_manager')
     @classmethod
@@ -49,11 +49,11 @@ class ProgrammingLanguageMetadata(BaseModel):
     
     #write a field validator on version to check if it is a valid version string this string will be used for the stdlist version init
     
-    @field_validator('version')
+    @field_validator('language_version')
     @classmethod
     def validate_version(cls, value: str, info: ValidationInfo) -> str:
         data = info.data
-        language = data.get('language')
+        language = data.get('language_version')
         if language == ProgrammingLanguage.PYTHON:
             # Check if version string matches semantic versioning format
             version_pattern = r'^\d+\.\d+\.\d+$'

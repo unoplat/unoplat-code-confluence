@@ -7,12 +7,9 @@ from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
 from typing import Dict, List, Optional
 import os
 import tomlkit
-
 from unoplat_code_confluence.language_custom_parsing.package_manager.package_manager_strategy import PackageManagerStrategy
 from unoplat_code_confluence.language_custom_parsing.package_manager.python.utils.requirements_utils import RequirementsUtils
 from unoplat_code_confluence.language_custom_parsing.package_manager.python.utils.setup_parser import SetupParser
-
-
 
 class PythonPoetryStrategy(PackageManagerStrategy):
     def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
@@ -47,14 +44,17 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             # Parse only main dependencies
             main_deps = poetry_data.get("dependencies", {})
             dependencies: Dict[str, UnoplatProjectDependency] = self._parse_dependencies(main_deps)
-            
+            programming_language_version=self._parse_python_version(main_deps.get("python"))
+            # if we do not get python version fall back to the one taken from configuration           
+            if programming_language_version is None:
+                programming_language_version = metadata.language_version
             # Create metadata object with entry_points instead of entry_point
             return UnoplatPackageManagerMetadata(
                 dependencies=dependencies,
                 package_name=poetry_data.get("name"),
                 programming_language=metadata.language.value,
                 package_manager=metadata.package_manager,
-                programming_language_version=self._parse_python_version(main_deps.get("python")),
+                programming_language_version=programming_language_version,
                 project_version=poetry_data.get("version"),
                 description=poetry_data.get("description"),
                 authors=poetry_data.get("authors"),

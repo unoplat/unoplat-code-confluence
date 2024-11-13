@@ -1,6 +1,7 @@
 from ast import Name
 import os
 from typing import Dict
+from numpy import empty
 from pydantic import ValidationError
 from unoplat_code_confluence.configuration.external_config import ProgrammingLanguage
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
@@ -47,6 +48,7 @@ class JsonParser(IParseJson):
             )
             # Process metadata using the strategy
             processed_metadata: UnoplatPackageManagerMetadata = package_manager_strategy.process_metadata(local_workspace_path,programming_language_metadata)
+            
             unoplat_codebase.package_manager_metadata= processed_metadata
             
         except (UnsupportedLanguageError, UnsupportedPackageManagerError) as e:
@@ -103,3 +105,11 @@ class JsonParser(IParseJson):
                 
         unoplat_codebase.packages = unoplat_package_dict
         return unoplat_codebase
+    
+    
+    
+    def _fill_version(self, version: str, language: ProgrammingLanguageMetadata) -> str:
+        if version is None or version == "":
+           return language.version
+        return version
+        
