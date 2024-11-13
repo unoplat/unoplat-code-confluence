@@ -28,6 +28,7 @@ unoplat-code-confluence-commons = {git = "https://github.com/unoplat/unoplat-cod
 requirements-parser = "^0.5.0"
 tomlkit = "^0.13.2"
 stdlib-list = "^0.11.0"
+pytest-cov = "^6.0.0"
 
 [tool.poetry.scripts]
 unoplat-code-confluence = "unoplat_code_confluence.__main__:main"
@@ -38,3 +39,8 @@ ipykernel = "^6.29.4"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = ["unoplat_code_confluence"]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
