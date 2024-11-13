@@ -10,7 +10,7 @@ def strategy():
 
 
 def test_parse_imports_simple_import(strategy):
-    file_path: str = "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence/unoplat_code_confluence/llm_pipelines/dspy_function_summary.py"
+    file_path: str = "/Users/jayghiya/Documents/unoplat/code_confluence_testing/unoplat-danswer/danswer/backend/danswer/connectors/confluence/onyx_confluence.py"
     with open(file_path, "r", encoding="utf-8") as file:
         code = file.read()
     result: List[ChapiUnoplatImport] = strategy.parse_imports(code)

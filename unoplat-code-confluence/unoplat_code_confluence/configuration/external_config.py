@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, List
 from pydantic import BaseModel, ValidationInfo, field_validator, Field
-
+import re
 
 
 class PackageManagerType(Enum):
@@ -33,6 +33,7 @@ class RepoConfig(BaseModel):
 class ProgrammingLanguageMetadata(BaseModel):
     language: ProgrammingLanguage
     package_manager: str
+    version: str
 
     @field_validator('package_manager')
     @classmethod
@@ -44,6 +45,20 @@ class ProgrammingLanguageMetadata(BaseModel):
             valid_managers = PackageManager().PYTHON
             if value not in valid_managers:
                 raise ValueError(f"For Python projects, package_manager must be one of: {valid_managers}")
+        return value
+    
+    #write a field validator on version to check if it is a valid version string this string will be used for the stdlist version init
+    
+    @field_validator('version')
+    @classmethod
+    def validate_version(cls, value: str, info: ValidationInfo) -> str:
+        data = info.data
+        language = data.get('language')
+        if language == ProgrammingLanguage.PYTHON:
+            # Check if version string matches semantic versioning format
+            version_pattern = r'^\d+\.\d+\.\d+$'
+            if not re.match(version_pattern, value):
+                raise ValueError("Version must be in format X.Y.Z where X, Y, Z are numbers (e.g. 3.9.0)")
         return value
 
 class AppConfig(BaseModel):

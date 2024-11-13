@@ -4,7 +4,7 @@ from typing import List
 from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
 
 class UnoplatPackageManagerMetadata(BaseModel):
-    dependencies: List[UnoplatProjectDependency] = Field(default_factory=list, description="The dependencies of the project")
+    dependencies: Dict[str,UnoplatProjectDependency] = Field(default_factory=dict, description="The dependencies of the project")
     package_name: Optional[str] = Field(default=None, description="The name of the package")
     programming_language: str = Field(required=True, description="The programming language of the project")
     package_manager: str = Field(required=True, description="The package manager of the project")

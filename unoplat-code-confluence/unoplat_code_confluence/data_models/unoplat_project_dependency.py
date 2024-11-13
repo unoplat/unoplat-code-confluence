@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field
 from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
 
 class UnoplatProjectDependency(BaseModel):
-    name: str = Field(description="Name of the dependency")
     version: UnoplatVersion = Field(description="Version of the dependency")
     group: Optional[str] = Field(default=None, description="Group of the dependency (e.g. dev, test)")
     extras: Optional[List[str]] = Field(default=None, description="Extra features or options for the dependency")

@@ -1,4 +1,4 @@
-from typing import List, Optional, Iterator
+from typing import Dict, Optional, Iterator, Tuple
 import os
 from pkg_resources import Requirement
 import requirements
@@ -22,14 +22,14 @@ class RequirementsUtils:
     }
     
     @staticmethod
-    def parse_requirements_folder(workspace_path: str) -> List[UnoplatProjectDependency]:
+    def parse_requirements_folder(workspace_path: str) -> Dict[str, UnoplatProjectDependency]:
         """Parse requirements files from the requirements folder.
         
         Args:
             workspace_path: Path to project workspace
             
         Returns:
-            List of parsed dependencies
+            Dict of parsed dependencies with package name as key
             
         Note:
             Looks for requirements files in this order:
@@ -39,7 +39,7 @@ class RequirementsUtils:
             4. requirements.txt (in workspace root)
         """
         requirements_paths = []
-        dependencies = []
+        dependencies = {}
         
         # Check requirements folder first
         req_folder = os.path.join(workspace_path, "requirements")
@@ -76,40 +76,18 @@ class RequirementsUtils:
             try:
                 with open(req_file, 'r') as f:
                     for req in requirements.parse(f):
-                        dep = RequirementsUtils._convert_requirement_to_dependency(req)
-                        if dep:
-                            dependencies.append(dep)
+                        tuple_dependency = RequirementsUtils._convert_requirement_to_dependency(req)
+                        if tuple_dependency:
+                            dependencies[tuple_dependency[0]] = tuple_dependency[1]
             except Exception as e:
                 logger.error(f"Error parsing {req_file}: {str(e)}")
                 
         return dependencies
     
-    @staticmethod 
-    def parse_requirements_file(file_path: str) -> Iterator[UnoplatProjectDependency]:
-        """Parse a single requirements file.
-        
-        Args:
-            file_path: Path to requirements file
-            
-        Yields:
-            Parsed dependencies
-            
-        Raises:
-            OSError: If file cannot be read
-            ValueError: If requirements are invalid
-        """
-        try:
-            with open(file_path, 'r') as f:
-                for req in requirements.parse(f):
-                    dep = RequirementsUtils._convert_requirement_to_dependency(req)
-                    if dep:
-                        yield dep
-        except Exception as e:
-            logger.error(f"Error parsing {file_path}: {str(e)}")
-            raise
-
+    
+       
     @staticmethod
-    def _convert_requirement_to_dependency(req: Requirement) -> Optional[UnoplatProjectDependency]:
+    def _convert_requirement_to_dependency(req: Requirement) -> Tuple[str, Optional[UnoplatProjectDependency]]:
         """Convert requirements-parser Requirement to UnoplatProjectDependency."""
         try:
             # Get package name, handling both VCS and regular requirements
@@ -174,8 +152,7 @@ class RequirementsUtils:
             if hasattr(req, 'hash_name') and req.hash_name:
                 hash_info = f"{req.hash_name}:{req.hash}"
 
-            return UnoplatProjectDependency(
-                name=name,
+            tuple_dependency = (name, UnoplatProjectDependency(
                 version=version,
                 extras=sorted(req.extras) if req.extras else None,
                 source=source,
@@ -183,7 +160,8 @@ class RequirementsUtils:
                 source_reference=req.revision if req.vcs else None,
                 subdirectory=req.subdirectory if hasattr(req, 'subdirectory') else None,
                 hash_info=hash_info
-            )
+            ))
+            return tuple_dependency
         except Exception as e:
             logger.error(f"Error converting requirement {req.line}: {str(e)}")
             return None

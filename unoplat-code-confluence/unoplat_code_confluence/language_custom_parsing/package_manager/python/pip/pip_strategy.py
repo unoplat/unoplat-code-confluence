@@ -1,9 +1,11 @@
 
+from typing import Dict
 from unoplat_code_confluence.configuration.external_config import ProgrammingLanguageMetadata
 from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 from loguru import logger
 
+from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
 from unoplat_code_confluence.language_custom_parsing.package_manager.package_manager_strategy import PackageManagerStrategy
 from unoplat_code_confluence.language_custom_parsing.package_manager.python.utils.requirements_utils import RequirementsUtils
 from unoplat_code_confluence.language_custom_parsing.package_manager.python.utils.setup_parser import SetupParser
@@ -21,7 +23,7 @@ class PipStrategy(PackageManagerStrategy):
         """
         try:
             # First parse requirements to get dependencies
-            dependencies = RequirementsUtils.parse_requirements_folder(local_workspace_path)
+            dependencies: Dict[str, UnoplatProjectDependency] = RequirementsUtils.parse_requirements_folder(local_workspace_path)
             
             # Create initial metadata with dependencies
             package_metadata = UnoplatPackageManagerMetadata(
@@ -47,7 +49,7 @@ class PipStrategy(PackageManagerStrategy):
             logger.error(f"Error processing pip metadata: {str(e)}")
             # Return basic metadata if parsing fails
             return UnoplatPackageManagerMetadata(
-                dependencies=[],
+                dependencies={},
                 programming_language=metadata.language.value,
                 package_manager=metadata.package_manager
             )
