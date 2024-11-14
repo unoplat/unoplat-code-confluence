@@ -10,12 +10,12 @@ class ImportSegregationStrategyFactory:
     }
 
     @classmethod
-    def get_strategy(cls, programming_language: str) -> ImportSegregationStrategy:
+    def get_strategy(cls, programming_language: str, programming_language_version: str | None = None) -> ImportSegregationStrategy:
         """Get the appropriate import segregation strategy for the given programming language.
         
         Args:
             programming_language: The programming language to get the strategy for
-            
+            programming_language_version: The version of the programming language to get the strategy for
         Returns:
             ImportSegregationStrategy: The strategy for the given language
             
@@ -24,5 +24,6 @@ class ImportSegregationStrategyFactory:
         """
         if programming_language not in cls._strategies:
             raise UnsupportedLanguageError(f"Unsupported programming language: {programming_language}")
+        strategy = cls._strategies[programming_language]
         
-        return cls._strategies[programming_language]() 
+        return strategy(programming_language_version)
