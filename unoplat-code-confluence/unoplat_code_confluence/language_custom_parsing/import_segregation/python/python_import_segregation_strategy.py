@@ -4,24 +4,27 @@ from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatN
 from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
 from unoplat_code_confluence.language_custom_parsing.import_segregation.import_segregation_strategy import ImportSegregationStrategy
 from unoplat_code_confluence.language_custom_parsing.import_segregation.utils.read_programming_file import ProgrammingFileReader
+from unoplat_code_confluence.language_custom_parsing.import_segregation.utils.internal_import_utility import InternalImportUtility
 import ast
 from collections import defaultdict
 from unoplat_code_confluence.data_models.chapi_unoplat_import import ChapiUnoplatImport
 
 class PythonImportSegregationStrategy(ImportSegregationStrategy):
     
-    def __init__(self):
+    def __init__(self, programming_language_version: str | None = None):
         self.file_reader = ProgrammingFileReader()
-    
+        self.internal_import_utility = InternalImportUtility(programming_language_version)
     
     def process_metadata(self, local_workspace_path: str, class_metadata: ChapiUnoplatNode, dependencies: set[str]) -> Dict[str,Dict[str,UnoplatImport]]:
         
         file_content: str = self.file_reader.read_file(local_workspace_path)
-        imports: List[ChapiUnoplatImport] = self.parse_imports(file_content)
-        
+        imports: List[ChapiUnoplatImport] = self.consolidate_imports(file_content)
+        system_imports: List[ChapiUnoplatImport] = self.internal_import_utility.get_system_imports(imports)
+        #Modify the logic for external and 
+        external_imports: List[ChapiUnoplatImport] = [imp for imp in imports if imp not in system_imports]
     
     
-    def parse_imports(self, code: str) -> List[ChapiUnoplatImport]:
+    def consolidate_imports(self, code: str) -> List[ChapiUnoplatImport]:
         tree = ast.parse(code)
         imports_dict: Dict[str, List[ImportedName]] = defaultdict(list)
         
