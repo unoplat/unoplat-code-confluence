@@ -1,15 +1,15 @@
 from loguru import logger
-from regex import D
-from unoplat_code_confluence.configuration.external_config import PackageManager, ProgrammingLanguageMetadata,PackageManagerType
+
+from unoplat_code_confluence.configuration.external_config import  ProgrammingLanguageMetadata,PackageManagerType
 from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
 from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 import os
 import tomlkit
-from unoplat_code_confluence.language_custom_parsing.package_manager.package_manager_strategy import PackageManagerStrategy
-from unoplat_code_confluence.language_custom_parsing.package_manager.python.utils.requirements_utils import RequirementsUtils
-from unoplat_code_confluence.language_custom_parsing.package_manager.python.utils.setup_parser import SetupParser
+from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
+from unoplat_code_confluence.parser.python.package_manager.python.utils.requirements_utils import RequirementsUtils
+from unoplat_code_confluence.parser.python.package_manager.python.utils.setup_parser import SetupParser
 
 class PythonPoetryStrategy(PackageManagerStrategy):
     def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
@@ -43,7 +43,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 
             # Parse only main dependencies
             main_deps = poetry_data.get("dependencies", {})
-            dependencies: Dict[str, UnoplatProjectDependency] = self._parse_dependencies(main_deps)
+            dependencies: Dict[str, UnoplatProjectDependency] = self._parse_dependencies(main_deps) #type: ignore
             programming_language_version=self._parse_python_version(main_deps.get("python"))
             # if we do not get python version fall back to the one taken from configuration           
             if programming_language_version is None:
@@ -68,7 +68,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information"""
         return UnoplatPackageManagerMetadata(
-            dependencies=[],
+            dependencies={},
             programming_language=metadata.language.value,
             package_manager=metadata.package_manager
         )
@@ -186,7 +186,6 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 logger.warning(f"Error parsing dependency {name}: {str(e)}")
                 # Add dependency with empty version constraint
                 tuple_dependency = UnoplatProjectDependency(
-                    name=name,
                     version=UnoplatVersion()
                 )
                 dependencies[name] = tuple_dependency

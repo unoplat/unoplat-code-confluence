@@ -2,12 +2,12 @@ from pathlib import Path
 
 class ProgrammingFileReader:
     @staticmethod
-    def read_file(file_path: str) -> str:
+    def read_file(file_path: str | Path) -> str:
         """
         Reads the content of a file and returns it as a string.
         
         Args:
-            file_path (str): Path to the file to be read
+            file_path (str | Path): Path to the file to be read
             
         Returns:
             str: Content of the file as a string

@@ -4,7 +4,6 @@ from tqdm import tqdm
 from github import Github
 import re  # Import regex module
 from loguru import logger
-from packaging import version
 
 class Downloader:
     @staticmethod

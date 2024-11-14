@@ -1,11 +1,9 @@
 import argparse
-from ast import Dict
 import asyncio
 import os
 from loguru import logger
 import datetime
 from unoplat_code_confluence.codebaseparser.arc_guard_handler import ArchGuardHandler
-import re
 from unoplat_code_confluence.configuration.external_config import AppConfig
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
@@ -16,11 +14,10 @@ from unoplat_code_confluence.llm_pipelines.dspy_codebase_summary import CodeConf
 from unoplat_code_confluence.llm_pipelines.dspy_function_summary import CodeConfluenceFunctionModule
 from unoplat_code_confluence.llm_pipelines.dspy_package_summary import CodeConfluencePackageModule
 from unoplat_code_confluence.loader.json_loader import JsonLoader
-from unoplat_code_confluence.loader.parse_json import JsonParser
+from unoplat_code_confluence.parser.codebase_parser import CodebaseParser
 from unoplat_code_confluence.markdownparser.markdownsummariser import MarkdownSummariser
 from unoplat_code_confluence.summary_parser.codebase_summary import CodebaseSummaryParser
 import warnings
-from packaging import version
 
 
 async def start_pipeline():
@@ -29,7 +26,7 @@ async def start_pipeline():
     args = parser.parse_args()
 
     iload_json = JsonLoader()
-    iparse_json = JsonParser()
+    codebase_parser = CodebaseParser()
     isummariser = MarkdownSummariser()
     #loading the config
     json_configuration_data = iload_json.load_json_from_file(args.config)
@@ -39,10 +36,10 @@ async def start_pipeline():
     # logger.configure(handlers=logging_config["handlers"])
 
 
-    await get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser)
+    await get_codebase_metadata(json_configuration_data,iload_json,codebase_parser,isummariser)
     
 
-async def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,isummariser):
+async def get_codebase_metadata(json_configuration_data,iload_json,codebase_parser,isummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
     app_config = AppConfig(**json_configuration_data)
     logger.configure(handlers=app_config.handlers)
@@ -52,7 +49,7 @@ async def get_codebase_metadata(json_configuration_data,iload_json,iparse_json,i
     await start_parsing(
         app_config,
         iload_json,
-        iparse_json,
+        codebase_parser,
         isummariser
     )
 
@@ -72,7 +69,7 @@ async def get_extension(programming_language: str):
     else:
         raise ValueError(f"Unsupported programming language: {programming_language}")
 
-async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_json: JsonParser, isummariser: MarkdownSummariser):
+async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, codebase_parser: CodebaseParser, isummariser: MarkdownSummariser):
 
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
@@ -107,7 +104,7 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_js
     
     output_filename = f"{app_config.codebase_name}_{current_timestamp}.md"
 
-    unoplat_codebase : UnoplatCodebase = iparse_json.parse_json_to_nodes(chapi_metadata,app_config.local_workspace_path,app_config.programming_language_metadata)
+    unoplat_codebase : UnoplatCodebase = codebase_parser.parse_codebase(chapi_metadata, app_config.local_workspace_path, app_config.programming_language_metadata)
     
     dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
     
@@ -116,10 +113,6 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, iparse_js
     dspy_package_pipeline_summary : CodeConfluencePackageModule = CodeConfluencePackageModule()
 
     dspy_codebase_pipeline_summary: CodeConfluenceCodebaseModule = CodeConfluenceCodebaseModule()
-
-    dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
-    
-    dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
 
     codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,app_config)
 
