@@ -6,9 +6,9 @@ from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import
 from loguru import logger
 
 from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
-from unoplat_code_confluence.language_custom_parsing.package_manager.package_manager_strategy import PackageManagerStrategy
-from unoplat_code_confluence.language_custom_parsing.package_manager.python.utils.requirements_utils import RequirementsUtils
-from unoplat_code_confluence.language_custom_parsing.package_manager.python.utils.setup_parser import SetupParser
+from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
+from unoplat_code_confluence.parser.python.package_manager.python.utils.requirements_utils import RequirementsUtils
+from unoplat_code_confluence.parser.python.package_manager.python.utils.setup_parser import SetupParser
 
 class PipStrategy(PackageManagerStrategy):
     def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
@@ -40,7 +40,7 @@ class PipStrategy(PackageManagerStrategy):
                 )
                 # if we do not get python version fall back to the one taken from configuration           
                 if package_metadata.programming_language_version is None:
-                    package_metadata.programming_language_version = metadata.language_version
+                    package_metadata.programming_language_version = metadata.language_version # type: ignore
                     
             except FileNotFoundError:
                 logger.warning("setup.py not found, using only requirements data")

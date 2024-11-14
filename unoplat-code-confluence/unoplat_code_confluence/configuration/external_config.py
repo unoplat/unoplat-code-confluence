@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ValidationInfo, field_validator, Field
 import re
 
@@ -33,7 +33,7 @@ class RepoConfig(BaseModel):
 class ProgrammingLanguageMetadata(BaseModel):
     language: ProgrammingLanguage
     package_manager: str
-    language_version: str
+    language_version: Optional[str] = None
 
     @field_validator('package_manager')
     @classmethod

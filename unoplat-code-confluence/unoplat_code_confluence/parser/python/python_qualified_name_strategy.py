@@ -1,7 +1,7 @@
 import os
-from unoplat_code_confluence.language_custom_parsing.qualified_name.qualified_name_strategy import QualifiedNameStrategy
 
-class PythonQualifiedNameStrategy(QualifiedNameStrategy):
+
+class PythonQualifiedNameStrategy:
     def get_qualified_name(self, node_name: str, node_file_path: str, local_workspace_path: str, codebase_name: str) -> str:
         """Get qualified name for Python nodes.
         

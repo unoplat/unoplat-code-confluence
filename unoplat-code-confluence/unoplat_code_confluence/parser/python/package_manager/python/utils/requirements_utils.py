@@ -1,7 +1,7 @@
 from typing import Dict, Optional, Iterator, Tuple
 import os
-from pkg_resources import Requirement
 import requirements
+from requirements.requirement import Requirement
 from loguru import logger
 from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
 from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
@@ -39,7 +39,7 @@ class RequirementsUtils:
             4. requirements.txt (in workspace root)
         """
         requirements_paths = []
-        dependencies = {}
+        dependencies: Dict[str, UnoplatProjectDependency] = {}
         
         # Check requirements folder first
         req_folder = os.path.join(workspace_path, "requirements")
@@ -69,7 +69,7 @@ class RequirementsUtils:
             
         if not requirements_paths:
             logger.warning(f"No requirements files found in {workspace_path}")
-            return []
+            return {}
             
         # Parse all found requirement files using requirements-parser
         for req_file in requirements_paths:
@@ -87,7 +87,7 @@ class RequirementsUtils:
     
        
     @staticmethod
-    def _convert_requirement_to_dependency(req: Requirement) -> Tuple[str, Optional[UnoplatProjectDependency]]:
+    def _convert_requirement_to_dependency(req: Requirement) -> Optional[Tuple[str, UnoplatProjectDependency]]:
         """Convert requirements-parser Requirement to UnoplatProjectDependency."""
         try:
             # Get package name, handling both VCS and regular requirements
