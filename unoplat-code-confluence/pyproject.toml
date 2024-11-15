@@ -35,6 +35,8 @@ unoplat-code-confluence = "unoplat_code_confluence.__main__:main"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"
+mypy = "^1.13.0"
+types-requests = "^2.32.0.20241016"
 
 [build-system]
 requires = ["poetry-core"]
