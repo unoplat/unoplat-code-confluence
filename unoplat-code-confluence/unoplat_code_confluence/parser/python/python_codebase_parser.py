@@ -3,8 +3,7 @@ from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCo
 from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
 from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
 from unoplat_code_confluence.configuration.external_config import ProgrammingLanguageMetadata
-
-from typing import Dict
+from typing import Dict, List
 import os
 from loguru import logger
 from unoplat_code_confluence.parser.python.package_manager.package_manager_factory import PackageManagerStrategyFactory
@@ -12,6 +11,7 @@ from unoplat_code_confluence.parser.python.python_package_naming_strategy import
 from unoplat_code_confluence.parser.python.python_qualified_name_strategy import PythonQualifiedNameStrategy
 
 class PythonCodebaseParser(CodebaseParserStrategy):
+    
     def parse_codebase(self, json_data: dict, local_workspace_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> UnoplatCodebase:
         workspace_name = local_workspace_path.rstrip('/').split('/')[-1]
         unoplat_codebase = UnoplatCodebase()
@@ -78,3 +78,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 
         unoplat_codebase.packages = unoplat_package_dict #type: ignore
         return unoplat_codebase 
+    
+    
+        
+        
