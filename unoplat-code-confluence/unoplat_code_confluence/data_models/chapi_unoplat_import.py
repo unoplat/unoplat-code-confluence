@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+# Standard Library
+from typing import List, Optional
 
+# Third Party
+from pydantic import BaseModel, Field
 
 
 class Import(BaseModel):

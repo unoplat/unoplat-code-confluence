@@ -1,26 +1,41 @@
+# Standard Library
 import argparse
 import asyncio
-import os
-from loguru import logger
 import datetime
-from unoplat_code_confluence.codebaseparser.arc_guard_handler import ArchGuardHandler
+import os
 import re
+import warnings
+
+# Third Party
+from loguru import logger
+from packaging import version
+
+# First Party
+from unoplat_code_confluence.codebaseparser.arc_guard_handler import \
+    ArchGuardHandler
 from unoplat_code_confluence.configuration.external_config import AppConfig
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
-from unoplat_code_confluence.database.graph.unoplat_graph_processing import UnoplatGraphProcessing
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+    UnoplatCodebase
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import \
+    DspyUnoplatCodebaseSummary
+from unoplat_code_confluence.database.graph.unoplat_graph_processing import \
+    UnoplatGraphProcessing
 from unoplat_code_confluence.downloader.downloader import Downloader
-from unoplat_code_confluence.dspy_class_summary import CodeConfluenceClassModule
-from unoplat_code_confluence.dspy_codebase_summary import CodeConfluenceCodebaseModule
-from unoplat_code_confluence.dspy_function_summary import CodeConfluenceFunctionModule
-from unoplat_code_confluence.dspy_package_summary import CodeConfluencePackageModule
+from unoplat_code_confluence.dspy_class_summary import \
+    CodeConfluenceClassModule
+from unoplat_code_confluence.dspy_codebase_summary import \
+    CodeConfluenceCodebaseModule
+from unoplat_code_confluence.dspy_function_summary import \
+    CodeConfluenceFunctionModule
+from unoplat_code_confluence.dspy_package_summary import \
+    CodeConfluencePackageModule
 from unoplat_code_confluence.loader import iload_json, iparse_json
 from unoplat_code_confluence.loader.json_loader import JsonLoader
 from unoplat_code_confluence.loader.parse_json import JsonParser
-from unoplat_code_confluence.markdownparser.markdownsummariser import MarkdownSummariser
-from unoplat_code_confluence.summary_parser.codebase_summary import CodebaseSummaryParser
-import warnings
-from packaging import version
+from unoplat_code_confluence.markdownparser.markdownsummariser import \
+    MarkdownSummariser
+from unoplat_code_confluence.summary_parser.codebase_summary import \
+    CodebaseSummaryParser
 
 
 async def start_pipeline():

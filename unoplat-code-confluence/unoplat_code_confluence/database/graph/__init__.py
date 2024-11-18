@@ -1,5 +1,9 @@
+# Standard Library
+from typing import Any, Dict
+
+# Third Party
 from neo4j import GraphDatabase
-from typing import Dict, Any
+
 
 class Neo4jConnector:
     def __init__(self, uri: str, username: str, password: str):

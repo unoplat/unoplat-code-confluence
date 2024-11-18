@@ -1,28 +1,43 @@
+# Standard Library
 import asyncio
-from collections import deque
 import datetime
-from itertools import cycle
 import sys
+from collections import deque
+from itertools import cycle
 from typing import Dict, List
-from unoplat_code_confluence.configuration.external_config import AppConfig
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
-from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
-from unoplat_code_confluence.dspy_class_summary import CodeConfluenceClassModule
-from unoplat_code_confluence.dspy_codebase_summary import CodeConfluenceCodebaseModule, CodeConfluenceCodebaseObjectiveSignature
-from unoplat_code_confluence.dspy_function_summary import CodeConfluenceFunctionModule
-from unoplat_code_confluence.dspy_package_summary import CodeConfluencePackageModule
+
+# Third Party
 import dspy
 from loguru import logger
 from progiter import ProgIter
 from progiter.manager import ProgressManager
-from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
-from unoplat_code_confluence.data_models.chapi_unoplat_function import ChapiUnoplatFunction
 
-
+# First Party
+from unoplat_code_confluence.configuration.external_config import AppConfig
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+    UnoplatCodebase
+from unoplat_code_confluence.data_models.chapi_unoplat_function import \
+    ChapiUnoplatFunction
+from unoplat_code_confluence.data_models.chapi_unoplat_node import \
+    ChapiUnoplatNode
+from unoplat_code_confluence.data_models.chapi_unoplat_package import \
+    UnoplatPackage
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import \
+    DspyUnoplatCodebaseSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import \
+    DspyUnoplatFunctionSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import \
+    DspyUnoplatNodeSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import \
+    DspyUnoplatPackageSummary
+from unoplat_code_confluence.dspy_class_summary import \
+    CodeConfluenceClassModule
+from unoplat_code_confluence.dspy_codebase_summary import (
+    CodeConfluenceCodebaseModule, CodeConfluenceCodebaseObjectiveSignature)
+from unoplat_code_confluence.dspy_function_summary import \
+    CodeConfluenceFunctionModule
+from unoplat_code_confluence.dspy_package_summary import \
+    CodeConfluencePackageModule
 
 
 class CodebaseSummaryParser:
