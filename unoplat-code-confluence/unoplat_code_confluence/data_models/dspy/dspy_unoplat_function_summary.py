@@ -1,6 +1,13 @@
-from typing import Optional, List
-from pydantic import BaseModel,Field
-from unoplat_code_confluence.data_models.chapi_unoplat_function import ChapiUnoplatFunction
+# Standard Library
+from typing import List, Optional
+
+# Third Party
+from pydantic import BaseModel, Field
+
+# First Party
+from unoplat_code_confluence.data_models.chapi_unoplat_function import \
+    ChapiUnoplatFunction
+
 
 class DspyUnoplatFunctionSummary(ChapiUnoplatFunction):
     qualified_name: str = Field(required=True, alias="QualifiedName",description="The qualified name of the function that contains the entire hierarchy of the class")

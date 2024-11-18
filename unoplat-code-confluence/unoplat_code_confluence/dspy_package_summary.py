@@ -1,8 +1,15 @@
+# Standard Library
 from typing import Dict, List
+
+# Third Party
 import dspy
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
 from loguru import logger
+
+# First Party
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import \
+    DspyUnoplatNodeSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import \
+    DspyUnoplatPackageSummary
 
 #TODO: optimise using gpt4 judge and miprov2s
 

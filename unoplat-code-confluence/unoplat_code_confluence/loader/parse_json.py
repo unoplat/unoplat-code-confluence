@@ -1,12 +1,22 @@
+# Standard Library
 import os
 from typing import Dict, List
-from pydantic import ValidationError
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
-from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
-from unoplat_code_confluence.loader.iparse_json import IParseJson
+
+# Third Party
 from loguru import logger
+from pydantic import ValidationError
+
+# First Party
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+    UnoplatCodebase
+from unoplat_code_confluence.data_models.chapi_unoplat_node import \
+    ChapiUnoplatNode
+from unoplat_code_confluence.data_models.chapi_unoplat_package import \
+    UnoplatPackage
+from unoplat_code_confluence.loader.iparse_json import IParseJson
 from unoplat_code_confluence.markdownparser.isummariser import ISummariser
-from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
+
+
 class JsonParser(IParseJson):
     def parse_json_to_nodes(self, json_data: dict, local_workspace_path: str, programming_language: str) -> UnoplatCodebase:
         """Concrete implementation of the parse_json_to_nodes method."""

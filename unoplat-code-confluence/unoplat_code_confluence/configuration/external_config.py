@@ -1,12 +1,10 @@
+# Standard Library
 from enum import Enum
 from typing import Any, Dict, List
-from pydantic import BaseModel, ValidationInfo, field_validator, Field
 
+# Third Party
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
-
-
-
-    
 
 class ProgrammingLanguage(Enum):
     PYTHON = 'python'

@@ -1,5 +1,6 @@
-from neo4j import GraphDatabase
 import json
+
+from neo4j import GraphDatabase
 
 # Replace these credentials with your Neo4j database info
 uri = "bolt://localhost:7687"
