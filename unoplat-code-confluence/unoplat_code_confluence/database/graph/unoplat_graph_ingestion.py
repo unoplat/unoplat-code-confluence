@@ -1,7 +1,13 @@
+# Standard Library
+from typing import Any, Dict
+
+# Third Party
 from neo4j import GraphDatabase
-from typing import Dict, Any
+from neomodel import config, db
+
+# First Party
 from unoplat_code_confluence.configuration.external_config import AppConfig
-from neomodel import config,db
+
 
 class UnoplatGraphIngestion:
     def __init__(self, app_config: AppConfig):

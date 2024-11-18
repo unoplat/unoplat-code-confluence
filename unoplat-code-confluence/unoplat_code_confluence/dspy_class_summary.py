@@ -1,11 +1,18 @@
+# Standard Library
 from typing import Dict, List
+
+# Third Party
 import dspy
-
-
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
 from loguru import logger
-from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
+
+# First Party
+from unoplat_code_confluence.data_models.chapi_unoplat_node import \
+    ChapiUnoplatNode
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import \
+    DspyUnoplatFunctionSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import \
+    DspyUnoplatNodeSummary
+
 #TODO: optimise using gpt4 judge and miprov2
 
 class CodeConfluenceClassSummarySignature(dspy.Signature):

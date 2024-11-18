@@ -1,7 +1,12 @@
+# Standard Library
 from typing import Dict, List, Optional
+
+# Third Party
 from pydantic import BaseModel, Field
 
-from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
+# First Party
+from unoplat_code_confluence.data_models.chapi_unoplat_node import \
+    ChapiUnoplatNode
 
 
 class UnoplatPackage(BaseModel):

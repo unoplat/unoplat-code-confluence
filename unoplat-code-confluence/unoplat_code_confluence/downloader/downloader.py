@@ -1,10 +1,14 @@
+# Standard Library
 import os
-import requests
-from tqdm import tqdm
-from github import Github
 import re  # Import regex module
+
+# Third Party
+import requests
+from github import Github
 from loguru import logger
 from packaging import version
+from tqdm import tqdm
+
 
 class Downloader:
     @staticmethod

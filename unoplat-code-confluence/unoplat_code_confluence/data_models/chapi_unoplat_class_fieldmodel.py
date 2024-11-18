@@ -1,8 +1,12 @@
-from pydantic import BaseModel, Field
+# Standard Library
 from typing import List, Optional
 
-from unoplat_code_confluence.data_models.chapi_unoplat_annotation import Annotation
+# Third Party
+from pydantic import BaseModel, Field
 
+# First Party
+from unoplat_code_confluence.data_models.chapi_unoplat_annotation import \
+    Annotation
 
 
 class ClassFieldModel(BaseModel):
