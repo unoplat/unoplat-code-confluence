@@ -1,7 +1,13 @@
+# Standard Library
 import os
 import subprocess
-from unoplat_code_confluence.utility.total_file_count import TotalFileCount
+
+# Third Party
 from loguru import logger
+
+# First Party
+from unoplat_code_confluence.utility.total_file_count import TotalFileCount
+
 
 class ArchGuardHandler:
     def __init__(self, jar_path, language, codebase_path,codebase_name, output_path,extension:str):

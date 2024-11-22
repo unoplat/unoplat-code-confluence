@@ -1,12 +1,13 @@
+# Standard Library
 import os
 
 
 class PythonQualifiedNameStrategy:
-    def get_qualified_name(self, node_name: str, node_file_path: str, local_workspace_path: str, codebase_name: str) -> str:
+    def get_qualified_name(self, node_name: str, node_file_path: str, local_workspace_path: str) -> str:
         """Get qualified name for Python nodes.
         
         For Python, the qualified name follows the format:
-        rootcodebasename.package.subpackage.classname
+        package.subpackage.classname
         where classname is the actual node_name rather than the filename
         
         Args:
@@ -16,7 +17,7 @@ class PythonQualifiedNameStrategy:
             codebase_name: Name of the codebase
             
         Returns:
-            str: Qualified name in format codebase_name.package.subpackage.node_name
+            str: Qualified name in format package.subpackage.node_name
         """
         # Get relative path and remove .py extension
         relative_path = os.path.relpath(node_file_path, local_workspace_path)
@@ -28,7 +29,7 @@ class PythonQualifiedNameStrategy:
         # Replace the last part (filename) with the actual node name
         path_parts[-1] = node_name
         
-        # Combine codebase name with the path
-        qualified_name = f"{codebase_name}.{'.'.join(path_parts)}"
+        # Join the path parts without adding codebase_name since it's already in the path
+        qualified_name = '.'.join(path_parts)
         
         return qualified_name 

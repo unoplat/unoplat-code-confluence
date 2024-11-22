@@ -1,9 +1,13 @@
+# Standard Library
 from abc import ABC, abstractmethod
 from typing import Dict
 
+# First Party
+from unoplat_code_confluence.configuration.external_config import \
+    ProgrammingLanguageMetadata
+from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import \
+    UnoplatPackageManagerMetadata
 
-from unoplat_code_confluence.configuration.external_config import ProgrammingLanguageMetadata
-from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 class PackageManagerStrategy(ABC):
     @abstractmethod

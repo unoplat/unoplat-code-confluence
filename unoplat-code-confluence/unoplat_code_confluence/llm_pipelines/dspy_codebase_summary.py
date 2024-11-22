@@ -1,6 +1,12 @@
+# Standard Library
 from typing import Dict
+
+# Third Party
 import dspy
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
+
+# First Party
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import \
+    DspyUnoplatPackageSummary
 
 
 #TODO: optimise using gpt4 judge and miprov2

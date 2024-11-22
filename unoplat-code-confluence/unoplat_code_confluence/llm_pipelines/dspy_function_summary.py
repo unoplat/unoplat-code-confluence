@@ -1,7 +1,13 @@
+# Third Party
 import dspy
-from unoplat_code_confluence.data_models.chapi_unoplat_function import ChapiUnoplatFunction
-from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
 from loguru import logger
+
+# First Party
+from unoplat_code_confluence.data_models.chapi_unoplat_function import \
+    ChapiUnoplatFunction
+from unoplat_code_confluence.data_models.chapi_unoplat_node import \
+    ChapiUnoplatNode
+
 
 #TODO: optimise using gpt4 judge and miprov2/textgrad
 class CodeConfluenceFunctionSummary(dspy.Signature):

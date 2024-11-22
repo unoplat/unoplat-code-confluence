@@ -1,6 +1,11 @@
-from unoplat_code_confluence.parser.codebase_parser_strategy import CodebaseParserStrategy
-from unoplat_code_confluence.parser.python.python_codebase_parser import PythonCodebaseParser
-from unoplat_code_confluence.configuration.external_config import ProgrammingLanguage
+# First Party
+from unoplat_code_confluence.configuration.external_config import \
+    ProgrammingLanguage
+from unoplat_code_confluence.parser.codebase_parser_strategy import \
+    CodebaseParserStrategy
+from unoplat_code_confluence.parser.python.python_codebase_parser import \
+    PythonCodebaseParser
+
 
 class UnsupportedLanguageError(Exception):
     pass

@@ -1,14 +1,24 @@
 
+# Standard Library
 from typing import Dict
-from unoplat_code_confluence.configuration.external_config import ProgrammingLanguageMetadata
-from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
+# Third Party
 from loguru import logger
 
-from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
-from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
-from unoplat_code_confluence.parser.python.package_manager.python.utils.requirements_utils import RequirementsUtils
-from unoplat_code_confluence.parser.python.package_manager.python.utils.setup_parser import SetupParser
+# First Party
+from unoplat_code_confluence.configuration.external_config import \
+    ProgrammingLanguageMetadata
+from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import \
+    UnoplatPackageManagerMetadata
+from unoplat_code_confluence.data_models.unoplat_project_dependency import \
+    UnoplatProjectDependency
+from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import \
+    PackageManagerStrategy
+from unoplat_code_confluence.parser.python.package_manager.utils.requirements_utils import \
+    RequirementsUtils
+from unoplat_code_confluence.parser.python.package_manager.utils.setup_parser import \
+    SetupParser
+
 
 class PipStrategy(PackageManagerStrategy):
     def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:

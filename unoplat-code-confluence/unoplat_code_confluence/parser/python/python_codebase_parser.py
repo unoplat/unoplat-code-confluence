@@ -1,21 +1,39 @@
-from unoplat_code_confluence.parser.codebase_parser_strategy import CodebaseParserStrategy
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
-from unoplat_code_confluence.data_models.chapi_unoplat_package import UnoplatPackage
-from unoplat_code_confluence.data_models.chapi_unoplat_node import ChapiUnoplatNode
-from unoplat_code_confluence.configuration.external_config import ProgrammingLanguageMetadata
-from typing import Dict, List
+# Standard Library
 import os
+from typing import Dict, List
+
+# Third Party
 from loguru import logger
-from unoplat_code_confluence.parser.python.package_manager.package_manager_factory import PackageManagerStrategyFactory
-from unoplat_code_confluence.parser.python.python_package_naming_strategy import PythonPackageNamingStrategy
-from unoplat_code_confluence.parser.python.python_qualified_name_strategy import PythonQualifiedNameStrategy
+
+# First Party
+from unoplat_code_confluence.configuration.external_config import \
+    ProgrammingLanguageMetadata
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+    UnoplatCodebase
+from unoplat_code_confluence.data_models.chapi_unoplat_import import \
+    ChapiUnoplatImport
+from unoplat_code_confluence.data_models.chapi_unoplat_node import \
+    ChapiUnoplatNode
+from unoplat_code_confluence.data_models.chapi_unoplat_package import \
+    UnoplatPackage
+from unoplat_code_confluence.data_models.unoplat_import import UnoplatImport
+from unoplat_code_confluence.data_models.unoplat_import_type import ImportType
+from unoplat_code_confluence.parser.codebase_parser_strategy import CodebaseParserStrategy
+from unoplat_code_confluence.parser.python.package_manager.package_manager_factory import \
+    PackageManagerStrategyFactory
+from unoplat_code_confluence.parser.python.python_import_segregation_strategy import \
+    PythonImportSegregationStrategy
+from unoplat_code_confluence.parser.python.python_package_naming_strategy import \
+    PythonPackageNamingStrategy
+from unoplat_code_confluence.parser.python.python_qualified_name_strategy import \
+    PythonQualifiedNameStrategy
+
 
 class PythonCodebaseParser(CodebaseParserStrategy):
     
-    def parse_codebase(self, json_data: dict, local_workspace_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> UnoplatCodebase:
-        workspace_name = local_workspace_path.rstrip('/').split('/')[-1]
-        unoplat_codebase = UnoplatCodebase()
-        unoplat_codebase.name = workspace_name
+    def parse_codebase(self,codebase_name: str, json_data: dict, local_workspace_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> UnoplatCodebase:
+        
+        
         unoplat_package_dict: Dict[str, UnoplatPackage] = {}
         package_manager = programming_language_metadata.package_manager
         package_naming_strategy: PythonPackageNamingStrategy = PythonPackageNamingStrategy()
@@ -27,12 +45,12 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 package_manager
             )
             processed_metadata = package_manager_strategy.process_metadata(local_workspace_path, programming_language_metadata)
-            unoplat_codebase.package_manager_metadata = processed_metadata
             
         except Exception as e:
             logger.warning(str(e))
             #TODO: handle this
-    
+       
+        python_import_segregation_strategy: PythonImportSegregationStrategy = PythonImportSegregationStrategy()
             
         for item in json_data:
             try:
@@ -47,17 +65,18 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 node.qualified_name = qualified_name_strategy.get_qualified_name(
                     node_name=node.node_name, # type: ignore
                     node_file_path=node.file_path, # type: ignore
-                    local_workspace_path=local_workspace_path,
-                    codebase_name=unoplat_codebase.name
+                    local_workspace_path=local_workspace_path
                 )
 
                 
                 node.package = package_naming_strategy.get_package_name(
                     node.file_path, # type: ignore
-                    local_workspace_path,
-                    unoplat_codebase.name
+                    local_workspace_path
                     )
                 
+                
+                # use python import segregation to get the right imports
+                imports_dict: Dict[ImportType, List[UnoplatImport]] = python_import_segregation_strategy.process_imports(class_metadata= node)
                 
                     
                 package_parts = node.package.split('.')
@@ -72,11 +91,18 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                         current_package[full_package_name].nodes.append(node) #type: ignore
                     else:
                         current_package = current_package[full_package_name].sub_packages #type: ignore
+                        
+                 
 
             except Exception as e:
                 logger.error(f"Error processing node: {e}")
                 
-        unoplat_codebase.packages = unoplat_package_dict #type: ignore
+        unoplat_codebase = UnoplatCodebase(
+            name=codebase_name,
+            packages=unoplat_package_dict,  # type: ignore
+            package_manager_metadata=processed_metadata,
+            local_path=local_workspace_path
+        )
         return unoplat_codebase 
     
     

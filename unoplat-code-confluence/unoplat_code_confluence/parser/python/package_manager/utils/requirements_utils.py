@@ -1,10 +1,17 @@
-from typing import Dict, Optional, Iterator, Tuple
+# Standard Library
 import os
+from typing import Dict, Iterator, Optional, Tuple
+
+# Third Party
 import requirements
-from requirements.requirement import Requirement
 from loguru import logger
-from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
+from requirements.requirement import Requirement
+
+# First Party
+from unoplat_code_confluence.data_models.unoplat_project_dependency import \
+    UnoplatProjectDependency
 from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
+
 
 class RequirementsUtils:
     """Utility class for parsing requirements files using requirements-parser library."""

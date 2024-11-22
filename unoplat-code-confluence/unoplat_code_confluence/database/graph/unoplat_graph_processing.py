@@ -1,17 +1,34 @@
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import DspyUnoplatFunctionSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import DspyUnoplatNodeSummary
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import DspyUnoplatPackageSummary
-from unoplat_code_confluence.database.graph.unoplat_graph_ingestion import UnoplatGraphIngestion
-from unoplat_code_confluence.embedding.unoplat_embedding_gen import UnoplatEmbeddingGenerator
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
-from unoplat_code_confluence.configuration.external_config import AppConfig
-from unoplat_code_confluence_commons.graph_models.confluence_codebase import ConfluenceCodebase
-from unoplat_code_confluence_commons.graph_models.confluence_package import ConfluencePackage
-from unoplat_code_confluence_commons.graph_models.confluence_class import ConfluenceClass
-from unoplat_code_confluence_commons.graph_models.confluence_method import ConfluenceMethod
-from neomodel import config, db
+# Standard Library
 import logging
+
+# Third Party
+from neomodel import config, db
+from unoplat_code_confluence_commons.graph_models.confluence_class import \
+    ConfluenceClass
+from unoplat_code_confluence_commons.graph_models.confluence_codebase import \
+    ConfluenceCodebase
+from unoplat_code_confluence_commons.graph_models.confluence_method import \
+    ConfluenceMethod
+from unoplat_code_confluence_commons.graph_models.confluence_package import \
+    ConfluencePackage
+
+# First Party
+from unoplat_code_confluence.configuration.external_config import AppConfig
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+    UnoplatCodebase
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import \
+    DspyUnoplatCodebaseSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_function_summary import \
+    DspyUnoplatFunctionSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import \
+    DspyUnoplatNodeSummary
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import \
+    DspyUnoplatPackageSummary
+from unoplat_code_confluence.database.graph.unoplat_graph_ingestion import \
+    UnoplatGraphIngestion
+from unoplat_code_confluence.embedding.unoplat_embedding_gen import \
+    UnoplatEmbeddingGenerator
+
 
 class UnoplatGraphProcessing:
     def __init__(self, app_config: AppConfig):
@@ -27,9 +44,9 @@ class UnoplatGraphProcessing:
         try:
             # Generate embeddings
             objective_embedding = self.embedding_generator.generate_embeddings_for_single_text(
-                codebase_summary.codebase_objective)
+                codebase_summary.codebase_objective) # type: ignore
             implementation_embedding = self.embedding_generator.generate_embeddings_for_single_text(
-                codebase_summary.codebase_summary)
+                codebase_summary.codebase_summary) # type: ignore
             
             # Create or update codebase node
             

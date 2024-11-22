@@ -1,9 +1,13 @@
+# Standard Library
 import os
-import requests
-from tqdm import tqdm
-from github import Github
 import re  # Import regex module
+
+# Third Party
+import requests
+from github import Github
 from loguru import logger
+from tqdm import tqdm
+
 
 class Downloader:
     @staticmethod
@@ -39,7 +43,7 @@ class Downloader:
     def download_latest_jar(repo_name, download_dir, github_token=None):
         logger.info(f"Downloading latest JAR for repository: {repo_name}")
         #todo: make this dynamic but there are breaking upstream changes as of now so hardcoding for now.
-        tag_name, assets = Downloader.get_specific_release_info(repo_name, 'v2.2.7',github_token)
+        tag_name, assets = Downloader.get_specific_release_info(repo_name, 'v2.2.8',github_token)
         jar_pattern = re.compile(r"scanner_cli-(.*)-all\.jar")  # Regex to match the jar file
         jar_asset = next((asset for asset in assets if jar_pattern.match(asset.name)), None)
         if not jar_asset:
