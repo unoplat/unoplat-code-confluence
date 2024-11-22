@@ -1,8 +1,15 @@
+# Standard Library
 import ast
-from typing import Optional, Dict, Any, List, Union
 import os
+from typing import Any, Dict, List, Optional, Union
+
+# Third Party
 from loguru import logger
-from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+
+# First Party
+from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import \
+    UnoplatPackageManagerMetadata
+
 
 class SetupParser:
     """Parser for Python setup.py files to extract package metadata"""
@@ -75,6 +82,7 @@ class SetupParser:
 
         elif isinstance(entry_points, str):
             try:
+                # Standard Library
                 import configparser
                 config = configparser.ConfigParser()
                 if not entry_points.strip().startswith('['):

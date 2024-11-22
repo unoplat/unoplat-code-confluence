@@ -1,8 +1,11 @@
+# Standard Library
+from typing import List, Optional
+
+# Third Party
 from pydantic import BaseModel, Field
-from typing import Optional, List
 
+# First Party
 from unoplat_code_confluence.data_models.unoplat_import_type import ImportType
-
 
 
 class ChapiUnoplatImport(BaseModel):

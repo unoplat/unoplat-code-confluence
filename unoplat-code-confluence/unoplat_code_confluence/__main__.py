@@ -1,23 +1,41 @@
+# Standard Library
 import argparse
 import asyncio
-import os
-from loguru import logger
 import datetime
-from unoplat_code_confluence.codebaseparser.arc_guard_handler import ArchGuardHandler
-from unoplat_code_confluence.configuration.external_config import AppConfig
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import UnoplatCodebase
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import DspyUnoplatCodebaseSummary
-from unoplat_code_confluence.database.graph.unoplat_graph_processing import UnoplatGraphProcessing
-from unoplat_code_confluence.downloader.downloader import Downloader
-from unoplat_code_confluence.llm_pipelines.dspy_class_summary import CodeConfluenceClassModule
-from unoplat_code_confluence.llm_pipelines.dspy_codebase_summary import CodeConfluenceCodebaseModule
-from unoplat_code_confluence.llm_pipelines.dspy_function_summary import CodeConfluenceFunctionModule
-from unoplat_code_confluence.llm_pipelines.dspy_package_summary import CodeConfluencePackageModule
-from unoplat_code_confluence.loader.json_loader import JsonLoader
-from unoplat_code_confluence.parser.codebase_parser import CodebaseParser
-from unoplat_code_confluence.markdownparser.markdownsummariser import MarkdownSummariser
-from unoplat_code_confluence.summary_parser.codebase_summary import CodebaseSummaryParser
+import os
 import warnings
+
+# Third Party
+from loguru import logger
+
+# First Party
+from unoplat_code_confluence.codebaseparser.arc_guard_handler import \
+    ArchGuardHandler
+from unoplat_code_confluence.configuration.external_config import AppConfig
+from unoplat_code_confluence.confluence_git.github_helper import GithubHelper
+from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+    UnoplatCodebase
+from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import \
+    DspyUnoplatCodebaseSummary
+from unoplat_code_confluence.data_models.unoplat_git_repository import \
+    UnoplatGitRepository
+from unoplat_code_confluence.database.graph.unoplat_graph_processing import \
+    UnoplatGraphProcessing
+from unoplat_code_confluence.downloader.downloader import Downloader
+from unoplat_code_confluence.llm_pipelines.dspy_class_summary import \
+    CodeConfluenceClassModule
+from unoplat_code_confluence.llm_pipelines.dspy_codebase_summary import \
+    CodeConfluenceCodebaseModule
+from unoplat_code_confluence.llm_pipelines.dspy_function_summary import \
+    CodeConfluenceFunctionModule
+from unoplat_code_confluence.llm_pipelines.dspy_package_summary import \
+    CodeConfluencePackageModule
+from unoplat_code_confluence.loader.json_loader import JsonLoader
+from unoplat_code_confluence.markdownparser.markdownsummariser import \
+    MarkdownSummariser
+from unoplat_code_confluence.parser.codebase_parser import CodebaseParser
+from unoplat_code_confluence.summary_parser.codebase_summary import \
+    CodebaseSummaryParser
 
 
 async def start_pipeline():
@@ -69,67 +87,96 @@ async def get_extension(programming_language: str):
     else:
         raise ValueError(f"Unsupported programming language: {programming_language}")
 
+#TODO: do it in parallel for each repository and inside repository if it is a mono repo for each codebase. .Rightnow keep it simple  as we will move to temporal soon.
 async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, codebase_parser: CodebaseParser, isummariser: MarkdownSummariser):
-
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
     
     # Ensure the JAR is downloaded or use the existing 
-    jar_path = await ensure_jar_downloaded(app_config.api_tokens["github_token"],app_config.repo.download_url,app_config.repo.download_directory)
-
-    logger.info(f"Local Workspace URL: {app_config.local_workspace_path}")
-    programming_language = app_config.programming_language_metadata.language.value
-    logger.info(f"Programming Language: {programming_language}")
-    logger.info(f"Output Path: {app_config.output_path}")
-    logger.info(f"Codebase Name: {app_config.codebase_name}")
-    
-    # based on programming_language convert to extension
-    extension = await get_extension(programming_language)
-
-    # Initialize the ArchGuard handler with the collected parameters.
-    archguard_handler = ArchGuardHandler(
-        jar_path=jar_path,
-        language=programming_language,
-        codebase_path=app_config.local_workspace_path,
-        codebase_name=app_config.codebase_name,
-        output_path=app_config.output_path,
-        extension=extension
+    jar_path = await ensure_jar_downloaded(
+        app_config.repositories[0].personal_access_token, 
+        app_config.repo.download_url, 
+        app_config.repo.download_directory
     )
     
-    chapi_metadata_path = archguard_handler.run_scan()
+    github_helper = GithubHelper()
+    # Process each repository
+    for index, repository in enumerate(app_config.repositories):
+        logger.info(f"Processing repository: {repository.git_url}")
+        github_repository: UnoplatGitRepository = github_helper.clone_repository(repository)
+        markdown_output_path = repository.markdown_output_path
+        # Process each codebase in the repository
+        for codebase_index, codebase in enumerate(github_repository.codebases):
+            
+            logger.info(f"Processing codebase at path: {codebase.local_path}")
+            
+            programming_language = codebase.package_manager_metadata.programming_language #type: ignore
+            
+            logger.info(f"Programming Language: {programming_language}")
+            logger.info(f"Output Path: {repository.markdown_output_path}")
+            logger.info(f"Codebase Name: {codebase.name}")
+            
+            # Get file extension based on programming language
+            extension = await get_extension(programming_language)
 
-    chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)   
-   
-    current_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    
-    output_filename = f"{app_config.codebase_name}_{current_timestamp}.md"
+            # Initialize the ArchGuard handler with the collected parameters
+            archguard_handler = ArchGuardHandler(
+                jar_path=jar_path,
+                language=programming_language,
+                codebase_path=codebase.local_path,
+                codebase_name=codebase.name,
+                output_path=markdown_output_path,
+                extension=extension
+            )
+            
+            chapi_metadata_path = archguard_handler.run_scan()
+            chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)   
+            
+            current_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            output_filename = f"{os.path.basename(codebase.name)}_{current_timestamp}.md"
 
-    unoplat_codebase : UnoplatCodebase = codebase_parser.parse_codebase(chapi_metadata, app_config.local_workspace_path, app_config.programming_language_metadata)
-    
-    dspy_function_pipeline_summary : CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
-    
-    dspy_class_pipeline_summary : CodeConfluenceClassModule = CodeConfluenceClassModule()
-    
-    dspy_package_pipeline_summary : CodeConfluencePackageModule = CodeConfluencePackageModule()
+            unoplat_codebase: UnoplatCodebase = codebase_parser.parse_codebase(
+                json_data = chapi_metadata, 
+                local_workspace_path = codebase.local_path,
+                programming_language_metadata = app_config.repositories[index].codebases[codebase_index].programming_language_metadata,
+                codebase_name=codebase.name
+            )
+            #TODO: enable one by one different sections
+            
+            # # Initialize DSPy modules
+            # dspy_function_pipeline_summary: CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
+            # dspy_class_pipeline_summary: CodeConfluenceClassModule = CodeConfluenceClassModule()
+            # dspy_package_pipeline_summary: CodeConfluencePackageModule = CodeConfluencePackageModule()
+            # dspy_codebase_pipeline_summary: CodeConfluenceCodebaseModule = CodeConfluenceCodebaseModule()
 
-    dspy_codebase_pipeline_summary: CodeConfluenceCodebaseModule = CodeConfluenceCodebaseModule()
+            # codebase_summary = CodebaseSummaryParser(
+            #     unoplat_codebase,
+            #     dspy_function_pipeline_summary, 
+            #     dspy_class_pipeline_summary,
+            #     dspy_package_pipeline_summary,
+            #     dspy_codebase_pipeline_summary,
+            #     app_config
+            # )
 
-    codebase_summary = CodebaseSummaryParser(unoplat_codebase,dspy_function_pipeline_summary, dspy_class_pipeline_summary,dspy_package_pipeline_summary,dspy_codebase_pipeline_summary,app_config)
+            # unoplat_codebase_summary: DspyUnoplatCodebaseSummary = await codebase_summary.parse_codebase()
+            # unoplat_graph_processing = UnoplatGraphProcessing(app_config)
+            
+            # # Set codebase name from path
+            # unoplat_codebase_summary.codebase_name = os.path.basename(codebase.path)
+            
+            # unoplat_graph_processing.process_codebase_summary(unoplat_codebase, unoplat_codebase_summary)
 
-    unoplat_codebase_summary: DspyUnoplatCodebaseSummary = await codebase_summary.parse_codebase()
-    
-    unoplat_graph_processing = UnoplatGraphProcessing(app_config)
+            # markdown_output = isummariser.summarise_to_markdown(unoplat_codebase_summary)
+            
+            # # Write the markdown output to a file
+            # output_filepath = os.path.join(repository.markdown_output_path, output_filename)
+            # os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
+            # with open(output_filepath, 'w') as md_file:
+            #     md_file.write(markdown_output)
+            
+            # logger.info(f"Completed processing codebase: {codebase.path}")
 
-    unoplat_codebase_summary.codebase_name = app_config.codebase_name
-    
-    unoplat_graph_processing.process_codebase_summary(unoplat_codebase,unoplat_codebase_summary)
-
-    markdown_output = isummariser.summarise_to_markdown(unoplat_codebase_summary)
-    # write the markdown output to a file
-    with open(os.path.join(app_config.output_path, output_filename), 'w') as md_file:
-        md_file.write(markdown_output)
-        
-    logger.info("Parsing process completed.")
+    logger.info("Parsing process completed for all repositories and codebases.")
 
     
 def main():
@@ -138,4 +185,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

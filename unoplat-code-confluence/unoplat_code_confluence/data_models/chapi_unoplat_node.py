@@ -1,12 +1,24 @@
+# Standard Library
+from typing import Dict, List, Optional
+
+# Third Party
 from pydantic import BaseModel, Field
-from typing import Dict, Optional, List
-from unoplat_code_confluence.data_models.unoplat_import import UnoplatImport
-from unoplat_code_confluence.data_models.chapi_unoplat_annotation import Annotation
-from unoplat_code_confluence.data_models.chapi_unoplat_class_fieldmodel import ClassFieldModel
-from unoplat_code_confluence.data_models.chapi_unoplat_import import ChapiUnoplatImport
-from unoplat_code_confluence.data_models.chapi_unoplat_function import ChapiUnoplatFunction
+
+# First Party
+from unoplat_code_confluence.data_models.chapi_unoplat_annotation import \
+    Annotation
+from unoplat_code_confluence.data_models.chapi_unoplat_class_fieldmodel import \
+    ClassFieldModel
+from unoplat_code_confluence.data_models.chapi_unoplat_function import \
+    ChapiUnoplatFunction
+from unoplat_code_confluence.data_models.chapi_unoplat_import import \
+    ChapiUnoplatImport
 from unoplat_code_confluence.data_models.chapi_unoplat_position import Position
-from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from unoplat_code_confluence.data_models.unoplat_import import UnoplatImport
+from unoplat_code_confluence.data_models.unoplat_import_type import ImportType
+from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import \
+    UnoplatPackageManagerMetadata
+
 
 class ChapiUnoplatNode(BaseModel):
     node_name: Optional[str] = Field(default=None, alias="NodeName",description="name of the class, method, function, etc.")
@@ -24,4 +36,7 @@ class ChapiUnoplatNode(BaseModel):
     content: Optional[str] = Field(default=None, alias="Content",exclude=True)
     annotations: List[Annotation] = Field(default_factory=list, alias="Annotations")
     comments_description: Optional[str] = Field(default=None, alias="CommentsDescription",description="description of the node from comments")
-    segregated_imports: Optional[Dict[str,Dict[str,UnoplatImport]]] = Field(default=None, alias="SegregatedImports in terms of internal ,external and standard libraries")
+    segregated_imports: Optional[Dict[ImportType,List[UnoplatImport]]] = Field(default=None, alias="SegregatedImports in terms of internal ,external ,standard and local libraries")
+    dependent_internal_classes: List['ChapiUnoplatNode'] = Field(default_factory=list)
+
+ChapiUnoplatNode.model_rebuild()

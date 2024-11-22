@@ -1,7 +1,13 @@
-from typing import Dict, Optional
+# Standard Library
+from typing import Dict, List, Optional
+
+# Third Party
 from pydantic import BaseModel, Field
-from typing import List
-from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
+
+# First Party
+from unoplat_code_confluence.data_models.unoplat_project_dependency import \
+    UnoplatProjectDependency
+
 
 class UnoplatPackageManagerMetadata(BaseModel):
     dependencies: Dict[str,UnoplatProjectDependency] = Field(default_factory=dict, description="The dependencies of the project")

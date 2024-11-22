@@ -1,7 +1,10 @@
+# Standard Library
+import re
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, ValidationInfo, field_validator, Field
-import re
+
+# Third Party
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 
 class PackageManagerType(Enum):
@@ -11,7 +14,7 @@ class PackageManagerType(Enum):
     
 #TODO: add pip support
 class PackageManager(BaseModel):
-    PYTHON: List[str] = Field(default_factory=lambda: ["poetry","pip"], frozen=True)
+    PYTHON: List[str] = Field(default_factory=lambda: [PackageManagerType.POETRY.value,PackageManagerType.PIP.value], frozen=True)
     #PIP = "pip"
     
 #TODO: add java and javascript support
@@ -61,14 +64,22 @@ class ProgrammingLanguageMetadata(BaseModel):
                 raise ValueError("Version must be in format X.Y.Z where X, Y, Z are numbers (e.g. 3.9.0)")
         return value
 
-class AppConfig(BaseModel):
-    local_workspace_path: str
-    output_path: str
-    output_file_name: str
-    codebase_name: str
+class CodebaseConfig(BaseModel):
+    codebase_folder_name: str = Field(description="Name of the codebase folder")
+    root_package_name: Optional[str] = Field(default=None,description="Root package name of the codebase. Needed for python codebases")
     programming_language_metadata: ProgrammingLanguageMetadata
-    repo: RepoConfig
-    api_tokens: Dict[str, str]
+    
+
+class RepositoryConfig(BaseModel):
+    git_url: str = Field(default=None,description="Git URL of the codebase")
+    personal_access_token: str = Field(default=None,description="Personal Access Token for the codebase")
+    codebases: List[CodebaseConfig] = Field(default_factory=list,description="List of codebases in the repository")
+    markdown_output_path: str = Field(default=None,description="Path to the markdown output files")
+    
+    
+class AppConfig(BaseModel):
+    repositories: List[RepositoryConfig]
+    repo: RepoConfig = Field(default=None,description="ArcGuard Repo Config",alias="archguard")
     llm_provider_config: Dict[str, Any] = Field(
         description="Configuration for the LLM provider based on litellm",
         examples=[{
@@ -81,18 +92,8 @@ class AppConfig(BaseModel):
         }]
     )
     handlers: List[Dict[str, Any]] = Field(default_factory=list,alias="logging_handlers")
-    parallisation: int = 1
     json_output: bool = False
     sentence_transformer_model: str = Field(default="jinaai/jina-embeddings-v3", description="Name or path of the sentence transformer model")
     neo4j_uri: str = Field(default="bolt://localhost:7687", description="URI of the Neo4j database")
     neo4j_username: str = Field(default="neo4j", description="Username for the Neo4j database")
     neo4j_password: str = Field(default="Ke7Rk7jB:Jn2Uz:", description="Password for the Neo4j database")
- 
-    @field_validator('api_tokens')
-    @classmethod
-    def check_api_tokens(cls, value: Dict[str, str], info: ValidationInfo) -> Dict[str, str]:
-        if 'github_token' not in value:
-            raise ValueError("github_token is required in api_tokens")
-        if len(value) != 1:
-            raise ValueError("api_tokens must only contain github_token")
-        return value

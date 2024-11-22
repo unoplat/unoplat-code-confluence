@@ -1,6 +1,12 @@
-from sentence_transformers import SentenceTransformer
+# Standard Library
 from typing import List
+
+# Third Party
+from sentence_transformers import SentenceTransformer
+
+# First Party
 from unoplat_code_confluence.configuration.external_config import AppConfig
+
 
 class UnoplatEmbeddingGenerator:
     def __init__(self, config: AppConfig):

@@ -1,6 +1,12 @@
-from typing import Optional, List
+# Standard Library
+from typing import List, Optional
+
+# Third Party
 from pydantic import BaseModel, Field
+
+# First Party
 from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
+
 
 class UnoplatProjectDependency(BaseModel):
     version: UnoplatVersion = Field(description="Version of the dependency")

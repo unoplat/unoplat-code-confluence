@@ -1,8 +1,13 @@
-from unoplat_code_confluence.data_models.chapi_unoplat_annotation_key_val import ChapiUnoplatAnnotationKeyVal
-from unoplat_code_confluence.data_models.chapi_unoplat_position import Position
-from pydantic import  BaseModel, Field
+# Standard Library
 from typing import Optional
 
+# Third Party
+from pydantic import BaseModel, Field
+
+# First Party
+from unoplat_code_confluence.data_models.chapi_unoplat_annotation_key_val import \
+    ChapiUnoplatAnnotationKeyVal
+from unoplat_code_confluence.data_models.chapi_unoplat_position import Position
 
 
 class Annotation(BaseModel):

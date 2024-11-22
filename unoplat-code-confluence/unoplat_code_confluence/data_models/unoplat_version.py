@@ -1,5 +1,10 @@
-from pydantic import BaseModel, Field
+# Standard Library
 from typing import Optional
+
+# Third Party
+from pydantic import BaseModel, Field
+
+
 class UnoplatVersion(BaseModel):
     minimum_version: Optional[str] = Field(default=None, description="The minimum version of the project")
     maximum_version: Optional[str] = Field(default=None, description="The maximum version of the project")

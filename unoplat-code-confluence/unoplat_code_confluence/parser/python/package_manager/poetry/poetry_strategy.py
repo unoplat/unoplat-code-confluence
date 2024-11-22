@@ -1,15 +1,26 @@
+# Standard Library
+import os
+from typing import Dict, Optional
+
+# Third Party
+import tomlkit
 from loguru import logger
 
-from unoplat_code_confluence.configuration.external_config import  ProgrammingLanguageMetadata,PackageManagerType
-from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from unoplat_code_confluence.data_models.unoplat_project_dependency import UnoplatProjectDependency
+# First Party
+from unoplat_code_confluence.configuration.external_config import (
+    PackageManagerType, ProgrammingLanguageMetadata)
+from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import \
+    UnoplatPackageManagerMetadata
+from unoplat_code_confluence.data_models.unoplat_project_dependency import \
+    UnoplatProjectDependency
 from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
-from typing import Dict, Optional
-import os
-import tomlkit
-from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
-from unoplat_code_confluence.parser.python.package_manager.python.utils.requirements_utils import RequirementsUtils
-from unoplat_code_confluence.parser.python.package_manager.python.utils.setup_parser import SetupParser
+from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import \
+    PackageManagerStrategy
+from unoplat_code_confluence.parser.python.package_manager.utils.requirements_utils import \
+    RequirementsUtils
+from unoplat_code_confluence.parser.python.package_manager.utils.setup_parser import \
+    SetupParser
+
 
 class PythonPoetryStrategy(PackageManagerStrategy):
     def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:

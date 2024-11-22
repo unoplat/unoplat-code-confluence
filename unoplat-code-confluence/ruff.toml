@@ -1,0 +1,36 @@
+# Target Python 3.10
+target-version = "py311"
+
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+]
+
+src = ["unoplat_code_confluence"]  # Adjust this to your project's source directory
+
+[lint]
+# Enable only flake8-tidy-imports
+select = ["TID"]
+
+[lint.per-file-ignores]
+"__init__.py" = ["E402"]
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+# [lint.isort]
+
+# known-first-party = ["unoplat_code_confluence"]
+# known-third-party = ["marko", "pydantic", "ruff", "loguru", "pygithub", "pypdf", "pydantic_settings", "litellm", "pytest", "dspy_ai", "packaging", "progiter", "sentence_transformers", "einops", "rich", "neo4j", "neomodel", "requirements_parser", "tomlkit", "stdlib_list", "pytest_cov"]
+# section-order = ["first-party", "local-folder","future", "standard-library", "third-party"]
+# lines-between-types = 2
+
+# Specifically ban relative imports
+
+
