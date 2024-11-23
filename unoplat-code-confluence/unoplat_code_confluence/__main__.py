@@ -11,7 +11,6 @@ from loguru import logger
 # First Party
 from unoplat_code_confluence.codebaseparser.arc_guard_handler import \
     ArchGuardHandler
-from unoplat_code_confluence.configuration.external_config import AppConfig
 from unoplat_code_confluence.confluence_git.github_helper import GithubHelper
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
     UnoplatCodebase
@@ -19,8 +18,6 @@ from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary impo
     DspyUnoplatCodebaseSummary
 from unoplat_code_confluence.data_models.unoplat_git_repository import \
     UnoplatGitRepository
-from unoplat_code_confluence.database.graph.unoplat_graph_processing import \
-    UnoplatGraphProcessing
 from unoplat_code_confluence.downloader.downloader import Downloader
 from unoplat_code_confluence.llm_pipelines.dspy_class_summary import \
     CodeConfluenceClassModule
@@ -34,38 +31,49 @@ from unoplat_code_confluence.loader.json_loader import JsonLoader
 from unoplat_code_confluence.markdownparser.markdownsummariser import \
     MarkdownSummariser
 from unoplat_code_confluence.parser.codebase_parser import CodebaseParser
-from unoplat_code_confluence.summary_parser.codebase_summary import \
-    CodebaseSummaryParser
+from unoplat_code_confluence.configuration.settings import AppSettings
 
 
 async def start_pipeline():
     parser = argparse.ArgumentParser(description="Codebase Parser CLI")
-    parser.add_argument("--config", help="Path to configuration file for unoplat utility", default=os.getcwd() + '/default_config.json', type=str)
+    parser.add_argument(
+        "--config", 
+        help="Path to configuration file for unoplat utility", 
+        default=None,
+        type=str
+    )
     args = parser.parse_args()
 
+    # Load settings with optional config override
+    settings = AppSettings.get_settings(args.config)
+    
+    # Configure logging from settings
+    if settings.config.logging_handlers:
+        logger.configure(handlers=settings.config.logging_handlers)
+
+    # Initialize components
     iload_json = JsonLoader()
     codebase_parser = CodebaseParser()
     isummariser = MarkdownSummariser()
-    #loading the config
-    json_configuration_data = iload_json.load_json_from_file(args.config)
-    
-    #TODO: fix logging config
-    # logging_config = iload_json.load_json_from_file("loguru.json")
-    # logger.configure(handlers=logging_config["handlers"])
+
+    # Process repositories
+    for repo_config in settings.repositories:
+        try:
+            await get_codebase_metadata(repo_config, iload_json, codebase_parser, isummariser)
+        except Exception as e:
+            logger.error(f"Error processing repository {repo_config.git_url}: {str(e)}")
 
 
-    await get_codebase_metadata(json_configuration_data,iload_json,codebase_parser,isummariser)
-    
-
-async def get_codebase_metadata(json_configuration_data,iload_json,codebase_parser,isummariser):
+async def get_codebase_metadata(settings: AppSettings, iload_json: JsonLoader, codebase_parser: CodebaseParser, isummariser: MarkdownSummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
-    app_config = AppConfig(**json_configuration_data)
-    logger.configure(handlers=app_config.handlers)
+    
+    #logger.configure(handlers=app_config.handlers)
+    logger.configure(handlers=settings.config.logging_handlers)
 
 
     # Button to submit the indexing
     await start_parsing(
-        app_config,
+        settings,
         iload_json,
         codebase_parser,
         isummariser
@@ -88,20 +96,20 @@ async def get_extension(programming_language: str):
         raise ValueError(f"Unsupported programming language: {programming_language}")
 
 #TODO: do it in parallel for each repository and inside repository if it is a mono repo for each codebase. .Rightnow keep it simple  as we will move to temporal soon.
-async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, codebase_parser: CodebaseParser, isummariser: MarkdownSummariser):
+async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codebase_parser: CodebaseParser, isummariser: MarkdownSummariser):
     # Log the start of the parsing process
     logger.info("Starting parsing process...")
     
-    # Ensure the JAR is downloaded or use the existing 
+    
     jar_path = await ensure_jar_downloaded(
-        app_config.repositories[0].personal_access_token, 
-        app_config.repo.download_url, 
-        app_config.repo.download_directory
+        app_settings.secrets.github_token,
+        app_settings.config.archguard.download_url, 
+        app_settings.config.archguard.download_directory
     )
     
     github_helper = GithubHelper()
     # Process each repository
-    for index, repository in enumerate(app_config.repositories):
+    for index, repository in enumerate(app_settings.config.repositories):
         logger.info(f"Processing repository: {repository.git_url}")
         github_repository: UnoplatGitRepository = github_helper.clone_repository(repository)
         markdown_output_path = repository.markdown_output_path
@@ -138,7 +146,7 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, codebase_
             unoplat_codebase: UnoplatCodebase = codebase_parser.parse_codebase(
                 json_data = chapi_metadata, 
                 local_workspace_path = codebase.local_path,
-                programming_language_metadata = app_config.repositories[index].codebases[codebase_index].programming_language_metadata,
+                programming_language_metadata = app_settings.repositories[index].codebases[codebase_index].programming_language_metadata,
                 codebase_name=codebase.name
             )
             #TODO: enable one by one different sections
@@ -182,6 +190,5 @@ async def start_parsing(app_config: AppConfig, iload_json: JsonLoader, codebase_
 def main():
     warnings.filterwarnings("ignore", category=DeprecationWarning, module='pydantic.*')
     asyncio.run(start_pipeline())
-
 if __name__ == "__main__":
     main()
