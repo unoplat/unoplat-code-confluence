@@ -9,19 +9,21 @@ from git import Repo
 from github import Auth, Github
 
 # First Party
-from unoplat_code_confluence.configuration.external_config import (
-    ProgrammingLanguageMetadata, RepositoryConfig)
 from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
     UnoplatCodebase
 from unoplat_code_confluence.data_models.unoplat_git_repository import \
     UnoplatGitRepository
 from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import \
     UnoplatPackageManagerMetadata
+from unoplat_code_confluence.configuration.settings import AppSettings, ProgrammingLanguageMetadata, RepositorySettings
 
 
 class GithubHelper:
+    def __init__(self):
+        self.settings = AppSettings.get_settings()
+        
     # works with - vhttps://github.com/organization/repository,https://github.com/organization/repository.git,git@github.com:organization/repository.git
-    def clone_repository(self,repository_config: RepositoryConfig) -> UnoplatGitRepository:
+    def clone_repository(self,repository_config: RepositorySettings) -> UnoplatGitRepository:
         """
         Clone the repository and return repository details
         Works with URL formats:
@@ -31,7 +33,7 @@ class GithubHelper:
         """
         
         # Initialize Github client with personal access token
-        auth = Auth.Token(repository_config.personal_access_token)
+        auth = Auth.Token(self.settings.secrets.github_token)
         github_client = Github(auth=auth)
     
         # Get repository from URL
@@ -106,7 +108,8 @@ class GithubHelper:
                 repository_name=repo_name,
                 repository_metadata=repo_metadata,
                 codebases=codebases,
-                readme=readme_content
+                readme=readme_content,
+                github_organization=github_repo.organization.login if github_repo.organization else None
             )
             
         except Exception as e:
