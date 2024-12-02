@@ -47,7 +47,7 @@ export default function Footer() {
                 </div>
                 <div class="text--center">
                 
-                Copyright © 2024 Code Confluence, Inc.
+                Copyright © 2024 Unoplat Technologies, Private Limited.
                 </div>
             </div>
         </footer>
