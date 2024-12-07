@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Union
 from loguru import logger
 
 # First Party
-from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import \
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import \
     UnoplatPackageManagerMetadata
 
 

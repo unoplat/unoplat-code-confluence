@@ -42,8 +42,8 @@ class ArchGuardConfig(BaseModel):
     download_directory: str
 
 class LLMProviderConfig(BaseModel):
-    model_provider: str
-    model_provider_args: Dict[str, Any]
+    llm_model_provider: str
+    llm_model_provider_args: Dict[str, Any]
 
 class DatabaseConfig(BaseModel):
     name: DatabaseType

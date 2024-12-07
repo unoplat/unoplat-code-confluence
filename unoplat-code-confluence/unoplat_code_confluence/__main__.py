@@ -12,24 +12,13 @@ from loguru import logger
 from unoplat_code_confluence.codebaseparser.arc_guard_handler import \
     ArchGuardHandler
 from unoplat_code_confluence.confluence_git.github_helper import GithubHelper
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import \
     UnoplatCodebase
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_codebase_summary import \
-    DspyUnoplatCodebaseSummary
-from unoplat_code_confluence.data_models.unoplat_git_repository import \
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_git_repository import \
     UnoplatGitRepository
 from unoplat_code_confluence.downloader.downloader import Downloader
-from unoplat_code_confluence.llm_pipelines.dspy_class_summary import \
-    CodeConfluenceClassModule
-from unoplat_code_confluence.llm_pipelines.dspy_codebase_summary import \
-    CodeConfluenceCodebaseModule
-from unoplat_code_confluence.llm_pipelines.dspy_function_summary import \
-    CodeConfluenceFunctionModule
-from unoplat_code_confluence.llm_pipelines.dspy_package_summary import \
-    CodeConfluencePackageModule
 from unoplat_code_confluence.loader.json_loader import JsonLoader
-from unoplat_code_confluence.markdownparser.markdownsummariser import \
-    MarkdownSummariser
+from unoplat_code_confluence.markdownparser.markdownsummariser import MarkdownSummariser
 from unoplat_code_confluence.parser.codebase_parser import CodebaseParser
 from unoplat_code_confluence.configuration.settings import AppSettings
 
@@ -54,15 +43,13 @@ async def start_pipeline():
     # Initialize components
     iload_json = JsonLoader()
     codebase_parser = CodebaseParser()
+    
     isummariser = MarkdownSummariser()
 
     # Process repositories
-    for repo_config in settings.repositories:
-        try:
-            await get_codebase_metadata(repo_config, iload_json, codebase_parser, isummariser)
-        except Exception as e:
-            logger.error(f"Error processing repository {repo_config.git_url}: {str(e)}")
-
+    
+    await get_codebase_metadata(settings, iload_json, codebase_parser, isummariser)
+    
 
 async def get_codebase_metadata(settings: AppSettings, iload_json: JsonLoader, codebase_parser: CodebaseParser, isummariser: MarkdownSummariser):
     # Collect necessary inputs from the user to set up the codebase indexing
@@ -70,8 +57,6 @@ async def get_codebase_metadata(settings: AppSettings, iload_json: JsonLoader, c
     #logger.configure(handlers=app_config.handlers)
     logger.configure(handlers=settings.config.logging_handlers)
 
-
-    # Button to submit the indexing
     await start_parsing(
         settings,
         iload_json,
@@ -107,7 +92,7 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
         app_settings.config.archguard.download_directory
     )
     
-    github_helper = GithubHelper()
+    github_helper = GithubHelper(app_settings=app_settings)
     # Process each repository
     for index, repository in enumerate(app_settings.config.repositories):
         logger.info(f"Processing repository: {repository.git_url}")

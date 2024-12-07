@@ -1,6 +1,10 @@
-import os
+# Standard Library
 import glob
+import os
+
+# Third Party
 from loguru import logger
+
 
 class TotalFileCount:
     def __init__(self, directory, extension):
