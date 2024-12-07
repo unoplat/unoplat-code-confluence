@@ -1,26 +1,24 @@
 # Standard Library
 import os
-from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 # Third Party
-import git
 from git import Repo
 from github import Auth, Github
 
 # First Party
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import \
     UnoplatCodebase
-from unoplat_code_confluence.data_models.unoplat_git_repository import \
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_git_repository import \
     UnoplatGitRepository
-from unoplat_code_confluence.data_models.unoplat_package_manager_metadata import \
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import \
     UnoplatPackageManagerMetadata
 from unoplat_code_confluence.configuration.settings import AppSettings, ProgrammingLanguageMetadata, RepositorySettings
 
 
 class GithubHelper:
-    def __init__(self):
-        self.settings = AppSettings.get_settings()
+    def __init__(self,app_settings: AppSettings):
+        self.settings = app_settings
         
     # works with - vhttps://github.com/organization/repository,https://github.com/organization/repository.git,git@github.com:organization/repository.git
     def clone_repository(self,repository_config: RepositorySettings) -> UnoplatGitRepository:

@@ -1,15 +1,11 @@
 # Standard Library
-import ast
-from collections import defaultdict
 from typing import Dict, List
 
 # First Party
-from unoplat_code_confluence.data_models.chapi_unoplat_import import \
-    ChapiUnoplatImport
-from unoplat_code_confluence.data_models.chapi_unoplat_node import \
-    ChapiUnoplatNode
-from unoplat_code_confluence.data_models.unoplat_import import ImportedName, UnoplatImport
-from unoplat_code_confluence.data_models.unoplat_import_type import ImportType
+
+from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_import import ImportedName, UnoplatImport
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 from unoplat_code_confluence.parser.python.utils.python_import_comment_parser import \
     PythonImportCommentParser
 from unoplat_code_confluence.parser.python.utils.read_programming_file import \
@@ -43,7 +39,7 @@ class PythonImportSegregationStrategy:
         self.comment_parser = PythonImportCommentParser()
         
     def process_imports(
-        self, class_metadata: ChapiUnoplatNode
+        self, class_metadata: ChapiNode
     ) -> Dict[ImportType, List[UnoplatImport]]:
         """Process and categorize imports from a Python source file.
         

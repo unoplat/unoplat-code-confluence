@@ -1,7 +1,6 @@
 # First Party
-from unoplat_code_confluence.configuration.external_config import \
-    ProgrammingLanguageMetadata
-from unoplat_code_confluence.data_models.chapi_unoplat_codebase import \
+from unoplat_code_confluence.configuration.settings import ProgrammingLanguageMetadata
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import \
     UnoplatCodebase
 from unoplat_code_confluence.parser.codebase_parser_factory import \
     CodebaseParserFactory

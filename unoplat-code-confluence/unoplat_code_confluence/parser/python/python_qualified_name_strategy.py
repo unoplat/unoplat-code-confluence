@@ -14,7 +14,6 @@ class PythonQualifiedNameStrategy:
             node_name: The actual name of the class/node
             node_file_path: Path to the node's file
             local_workspace_path: Base workspace path
-            codebase_name: Name of the codebase
             
         Returns:
             str: Qualified name in format package.subpackage.node_name

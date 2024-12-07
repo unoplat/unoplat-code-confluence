@@ -1,6 +1,6 @@
 # Standard Library
 import os
-from typing import Dict, Iterator, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 # Third Party
 import requirements
@@ -8,9 +8,9 @@ from loguru import logger
 from requirements.requirement import Requirement
 
 # First Party
-from unoplat_code_confluence.data_models.unoplat_project_dependency import \
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_project_dependency import \
     UnoplatProjectDependency
-from unoplat_code_confluence.data_models.unoplat_version import UnoplatVersion
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_version import UnoplatVersion
 
 
 class RequirementsUtils:
