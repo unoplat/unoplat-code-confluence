@@ -94,6 +94,20 @@ class FunctionMetadataParser:
                     stack.append(child)
         return values
     
+    def __clean_function_call(self, value: str) -> str:
+        """Clean function call value to get just the function name.
+        
+        Args:
+            value: Function call string (e.g., "inner()", "obj.method(arg)")
+            
+        Returns:
+            str: Cleaned function name (e.g., "inner", "obj.method")
+        """
+        if '(' in value and value.endswith(')'):
+            # Extract everything before the parentheses
+            return value.split('(')[0]
+        return value
+    
     def __process_local_variable(self, node: Node, local_vars: Dict[str, ChapiFunctionFieldModel]) -> None:
         """Process a local variable assignment."""
         # Handle pattern-based assignment
@@ -131,6 +145,9 @@ class FunctionMetadataParser:
                 type_hint = child.text.decode('utf8').strip(": ")
             elif child.type in {"=", ":="} and child.next_sibling:
                 value = child.next_sibling.text.decode('utf8')
+                if child.next_sibling.type == "call":
+                    # Clean function call value
+                    value = self.__clean_function_call(value)
 
         if var_name and var_name not in local_vars:
             local_vars[var_name] = ChapiFunctionFieldModel(
