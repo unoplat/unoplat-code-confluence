@@ -16,10 +16,10 @@ src = ["unoplat_code_confluence"]  # Adjust this to your project's source direct
 
 [lint]
 # Enable only flake8-tidy-imports
-select = ["TID"]
+select = ["TID","F401"]
 
 [lint.per-file-ignores]
-"__init__.py" = ["E402"]
+"__init__.py" = ["E402","F401"]
 
 [lint.flake8-tidy-imports]
 ban-relative-imports = "all"
