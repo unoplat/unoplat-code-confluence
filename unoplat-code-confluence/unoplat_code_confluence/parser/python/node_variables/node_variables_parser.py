@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Tuple
 from tree_sitter import Node, TreeCursor
-from unoplat_code_confluence.parser.confluence_tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
+from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
 from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 from unoplat_code_confluence.data_models.chapi.class_global_field_metadata import ClassGlobalFieldMetadata
 from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation, ChapiAnnotationKeyVal
