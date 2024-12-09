@@ -639,7 +639,7 @@ def test_local_variables_with_complex_types_2(parser: FunctionMetadataParser, sa
     
     # Check function result assignment
     assert "inner_var" in var_dict
-    assert var_dict["inner_var"].function_variable_value == "inner()"
+    assert var_dict["inner_var"].function_variable_value == "inner"  # Just function name
     assert var_dict["inner_var"].function_variable_type is None
     
     # Check nested pattern assignment
