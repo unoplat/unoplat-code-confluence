@@ -112,3 +112,17 @@ unoplat-code-confluence/unoplat_code_confluence/parser/python/package_manager/pi
 unoplat-code-confluence/unoplat_code_confluence/parser/python/package_manager/poetry/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/parser/python/package_manager/utils/__pycache__
 unoplat-code-confluence/unoplat_code_confluence/parser/python/utils/__pycache__
+unoplat-code-confluence/tests/confluence_git/__pycache__
+unoplat-code-confluence/tests/parser/python/node_variables/__pycache__
+unoplat-code-confluence/tests/parser/python/in_class_dependency/__pycache__
+unoplat-code-confluence/tests/parser/python/function_calls/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/data_models/chapi/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/data_models/chapi_forge/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/parser/confluence_tree_sitter/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/parser/python/function_calls/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/parser/python/in_class_dependency/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/parser/python/node_variables/__pycache__
+unoplat-code-confluence/tests/parser/python/function_metadata/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/parser/python/function_metadata/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/parser/tree_sitter/__pycache__
+unoplat-code-confluence/unoplat_code_confluence/data_models/forge_summary/__pycache__
