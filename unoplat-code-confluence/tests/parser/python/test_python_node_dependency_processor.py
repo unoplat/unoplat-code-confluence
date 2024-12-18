@@ -91,10 +91,10 @@ def test_simple_class_dependencies(dependency_processor: PythonNodeDependencyPro
     
     dependency_processor.process_dependencies(node, qualified_dict)
     
-    assert len(node.dependent_internal_classes) == 3
-    assert qualified_dict["myproject.models.UserModel"] in node.dependent_internal_classes
-    assert qualified_dict["myproject.models.BaseModel"] in node.dependent_internal_classes
-    assert qualified_dict["myproject.utils"] in node.dependent_internal_classes
+    assert len(node.dependent_internal_classes) == 3 #type: ignore
+    assert qualified_dict["myproject.models.UserModel"] in node.dependent_internal_classes #type: ignore
+    assert qualified_dict["myproject.models.BaseModel"] in node.dependent_internal_classes #type: ignore
+    assert qualified_dict["myproject.utils"] in node.dependent_internal_classes #type: ignore
 
 
 def test_class_with_alias(dependency_processor: PythonNodeDependencyProcessor) -> None:
@@ -112,8 +112,8 @@ def test_class_with_alias(dependency_processor: PythonNodeDependencyProcessor) -
     
     dependency_processor.process_dependencies(node, qualified_dict)
     
-    assert len(node.dependent_internal_classes) == 1
-    assert qualified_dict["myproject.core.DataModel"] in node.dependent_internal_classes
+    assert len(node.dependent_internal_classes) == 1 #type: ignore
+    assert qualified_dict["myproject.core.DataModel"] in node.dependent_internal_classes #type: ignore
 
 
 def test_mixed_dependencies(dependency_processor: PythonNodeDependencyProcessor) -> None:
@@ -136,10 +136,10 @@ def test_mixed_dependencies(dependency_processor: PythonNodeDependencyProcessor)
     
     dependency_processor.process_dependencies(node, qualified_dict)
     
-    assert len(node.dependent_internal_classes) == 3  # 2 classes + 1 module
-    assert qualified_dict["myproject.models.UserModel"] in node.dependent_internal_classes
-    assert qualified_dict["myproject.models.DataModel"] in node.dependent_internal_classes
-    assert qualified_dict["myproject.models"] in node.dependent_internal_classes
+    assert len(node.dependent_internal_classes) == 3  # type: ignore
+    assert qualified_dict["myproject.models.UserModel"] in node.dependent_internal_classes #type: ignore
+    assert qualified_dict["myproject.models.DataModel"] in node.dependent_internal_classes #type: ignore
+    assert qualified_dict["myproject.models"] in node.dependent_internal_classes #type: ignore
 
 
 def test_no_class_dependencies(dependency_processor: PythonNodeDependencyProcessor) -> None:
@@ -160,8 +160,8 @@ def test_no_class_dependencies(dependency_processor: PythonNodeDependencyProcess
     
     dependency_processor.process_dependencies(node, qualified_dict)
     
-    assert len(node.dependent_internal_classes) == 1
-    assert qualified_dict["myproject.utils"] in node.dependent_internal_classes
+    assert len(node.dependent_internal_classes) == 1 #type: ignore
+    assert qualified_dict["myproject.utils"] in node.dependent_internal_classes #type: ignore
 
 
 def test_all_class_dependencies(dependency_processor: PythonNodeDependencyProcessor) -> None:
@@ -183,10 +183,10 @@ def test_all_class_dependencies(dependency_processor: PythonNodeDependencyProces
     
     dependency_processor.process_dependencies(node, qualified_dict)
     
-    assert len(node.dependent_internal_classes) == 3
-    assert qualified_dict["myproject.models.ModelOne"] in node.dependent_internal_classes
-    assert qualified_dict["myproject.models.ModelTwo"] in node.dependent_internal_classes
-    assert qualified_dict["myproject.models.BaseModel"] in node.dependent_internal_classes
+    assert len(node.dependent_internal_classes) == 3 #type: ignore
+    assert qualified_dict["myproject.models.ModelOne"] in node.dependent_internal_classes #type: ignore
+    assert qualified_dict["myproject.models.ModelTwo"] in node.dependent_internal_classes #type: ignore
+    assert qualified_dict["myproject.models.BaseModel"] in node.dependent_internal_classes #type: ignore
 
 
 def test_constants_vs_classes(dependency_processor: PythonNodeDependencyProcessor) -> None:
@@ -208,10 +208,10 @@ def test_constants_vs_classes(dependency_processor: PythonNodeDependencyProcesso
     
     dependency_processor.process_dependencies(node, qualified_dict)
     
-    assert len(node.dependent_internal_classes) == 3
-    assert qualified_dict["myproject.constants.UserModel"] in node.dependent_internal_classes
-    assert qualified_dict["myproject.constants.Model"] in node.dependent_internal_classes
-    assert qualified_dict["myproject.constants"] in node.dependent_internal_classes
+    assert len(node.dependent_internal_classes) == 3 #type: ignore
+    assert qualified_dict["myproject.constants.UserModel"] in node.dependent_internal_classes #type: ignore
+    assert qualified_dict["myproject.constants.Model"] in node.dependent_internal_classes #type: ignore
+    assert qualified_dict["myproject.constants"] in node.dependent_internal_classes #type: ignore
 
 
 def test_empty_imports(dependency_processor: PythonNodeDependencyProcessor) -> None:
@@ -221,6 +221,6 @@ def test_empty_imports(dependency_processor: PythonNodeDependencyProcessor) -> N
     
     dependency_processor.process_dependencies(node, qualified_dict)
     
-    assert len(node.dependent_internal_classes) == 0
+    assert len(node.dependent_internal_classes) == 0 #type: ignore
     
     # Similar updates needed for remaining tests... 

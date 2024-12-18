@@ -1,6 +1,6 @@
 from unoplat_code_confluence.configuration.settings import ProgrammingLanguage
 from tree_sitter import Language, Parser
-import tree_sitter_python
+import tree_sitter_python #type: ignore
 
 
 class CodeConfluenceTreeSitter:
@@ -22,4 +22,3 @@ class CodeConfluenceTreeSitter:
                 
     def get_parser(self) -> Parser:
         return self.parser
-    
