@@ -17,8 +17,8 @@ from unoplat_code_confluence.data_models.chapi_forge.unoplat_import import Unopl
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_package import UnoplatPackage
 from unoplat_code_confluence.parser.codebase_parser_strategy import CodebaseParserStrategy
+from unoplat_code_confluence.parser.python.function_metadata.function_metadata_parser import FunctionMetadataParser
 from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
-from unoplat_code_confluence.parser.python.function_metadata.function_metadata_parser import PythonFunctionCalls
 from unoplat_code_confluence.parser.python.in_class_dependency.sort_function_dependencies import SortFunctionDependencies
 from unoplat_code_confluence.parser.python.package_manager.package_manager_factory import \
     PackageManagerStrategyFactory
@@ -41,7 +41,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         self.qualified_name_strategy = PythonQualifiedNameStrategy()
         self.python_import_segregation_strategy = PythonImportSegregationStrategy()
         self.code_confluence_tree_sitter = CodeConfluenceTreeSitter(language=ProgrammingLanguage.PYTHON)
-        self.python_function_calls = PythonFunctionCalls(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
+        self.python_function_calls = FunctionMetadataParser(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
         self.sort_function_dependencies = SortFunctionDependencies()
         self.python_node_dependency_processor = PythonNodeDependencyProcessor()
         

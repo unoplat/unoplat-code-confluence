@@ -1,2 +1,5 @@
 [virtualenvs]
 in-project = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -5,11 +5,13 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 # First Party
-from unoplat_code_confluence.data_models.chapi.class_global_field_metadata import ClassGlobalFieldMetadata
-from unoplat_code_confluence.data_models.chapi.class_global_field_scope import ClassGlobalFieldScope
+from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
+from unoplat_code_confluence.data_models.chapi.chapi_position import Position
 
 
 class ClassGlobalFieldModel(BaseModel):
-    scope: str = Field(..., alias="Scope",description="Variable Field Scope")
     class_field_name: str = Field(..., alias="TypeKey",description="Class Field Name")
-    field_metadata: List[ClassGlobalFieldMetadata] = Field(..., alias="FieldMetadata",description="Class Field Metadata")
+    class_field_type: Optional[str] = Field(default=None, alias="Type",description="Class Field Type")
+    class_field_value: Optional[str] = Field(default=None,alias="DefaultValue",description="Class Variable Value")
+    annotations: Optional[List[ChapiAnnotation]]= Field(default=None, alias="Annotations",description="Class Field Annotation")
+    position: Optional[Position] = Field(default=None, alias="Position",description="Class Field Position")

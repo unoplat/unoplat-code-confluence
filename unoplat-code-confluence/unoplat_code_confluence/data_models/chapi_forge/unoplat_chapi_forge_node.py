@@ -13,7 +13,6 @@ class UnoplatChapiForgeNode(ChapiNode):
     segregated_imports: Optional[Dict[ImportType,List[UnoplatImport]]] = Field(default=None,alias="SegregatedImports", description="SegregatedImports in terms of internal ,external ,standard and local libraries")
     dependent_internal_classes: Optional[List['UnoplatChapiForgeNode']] = Field(default_factory=list,alias="DependentInternalClasses",description="list of classes that this node is dependent on")
     functions: Optional[List[UnoplatChapiForgeFunction]] = Field(default_factory=list,alias="Functions",description="functions of the node") #type: ignore
-    # file_type: Optional[UnoplatFileType] = Field(default=None,alias="FileType",description="type of the file whether object oriented or procedural or mix of both")
     
     
     @classmethod 
