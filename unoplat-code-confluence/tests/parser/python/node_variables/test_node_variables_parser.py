@@ -23,6 +23,117 @@ def parser() -> NodeVariablesParser:
     return NodeVariablesParser(tree_sitter)
 
 
+
+def test_failed_class(parser: NodeVariablesParser):
+    """Test parsing of a class with no class-level variables."""
+    code = """
+    class UnoplatGraphIngestion:
+        def __init__(self, app_config: AppConfig):
+            uri = app_config.neo4j_uri
+            username = app_config.neo4j_username
+            password = app_config.neo4j_password
+            config.DATABASE_URL = f'bolt://{username}:{password}@{uri.split("://")[-1]}'
+            db.set_connection(config.DATABASE_URL)
+            
+        def close(self):
+            db.close_connection()
+        
+        def create_schema(self):
+            db.install_all_labels()
+
+        def create_vector_index(self, label: str, property: str, dimension: int = None, similarity_function: str = 'cosine') -> None:
+            query = f"CREATE VECTOR INDEX {property}_vector_index FOR (n:{label}) ON (n.{property})"
+            if dimension is not None:
+                query += f" OPTIONS {{indexConfig: {{`vector.dimensions`: {dimension}, `vector.similarity_function`: '{similarity_function}'}}}}"
+            try:
+                db.cypher_query(query)
+            except Exception as e:
+                if "equivalent index already exists" in str(e):
+                    print(f"Vector index for {label}.{property} already exists. Skipping creation.")
+                else:
+                    raise
+
+        def create_text_index(self, label: str, property: str) -> None:
+            index_name = f"{property.lower()}_text_index"
+            query = f"CREATE TEXT INDEX {index_name} FOR (n:{label}) ON (n.{property})"
+            db.cypher_query(query)
+    """
+    
+    # Create list of functions with their content
+    functions = [
+        ChapiFunction(
+            Name="__init__",
+            Parameters=[
+                ChapiParameter(TypeValue="self"),
+                ChapiParameter(TypeValue="app_config")
+            ],
+            Content="""
+                def __init__(self, app_config: AppConfig):
+                    uri = app_config.neo4j_uri
+                    username = app_config.neo4j_username
+                    password = app_config.neo4j_password
+                    config.DATABASE_URL = f'bolt://{username}:{password}@{uri.split("://")[-1]}'
+                    db.set_connection(config.DATABASE_URL)
+            """
+        ),
+        ChapiFunction(
+            Name="close",
+            Parameters=[ChapiParameter(TypeValue="self")],
+            Content="""
+                def close(self):
+                    db.close_connection()
+            """
+        ),
+        ChapiFunction(
+            Name="create_schema",
+            Parameters=[ChapiParameter(TypeValue="self")],
+            Content="""
+                def create_schema(self):
+                    db.install_all_labels()
+            """
+        ),
+        ChapiFunction(
+            Name="create_vector_index",
+            Parameters=[
+                ChapiParameter(TypeValue="self"),
+                ChapiParameter(TypeValue="label", TypeType="str"),
+                ChapiParameter(TypeValue="property", TypeType="str"),
+                ChapiParameter(TypeValue="None", TypeType="dimension"),
+                ChapiParameter(TypeValue="'cosine'", TypeType="similarity_function")
+            ],
+            Content="def _create_vector_index(self, node_label: str, embedding_property: str, dimensions: int):        self.unoplat_graph_ingestion.create_vector_index(label=node_label, dimension=dimensions,property=embedding_property)"
+        ),
+        ChapiFunction(
+            Name="create_text_index",
+            Parameters=[
+                ChapiParameter(TypeValue="self"),
+                ChapiParameter(TypeValue="label", TypeType="str"),
+                ChapiParameter(TypeValue="property", TypeType="str")
+            ],
+            Content="""
+                def create_text_index(self, label: str, property: str) -> None:
+                    index_name = f"{property.lower()}_text_index"
+                    query = f"CREATE TEXT INDEX {index_name} FOR (n:{label}) ON (n.{property})"
+                    db.cypher_query(query)
+            """
+        )
+    ]
+    
+    # Parse class variables with functions list
+    variables = parser.parse_class_variables(code, functions)
+    
+    # Verify no class-level variables were found
+    assert len(variables) == 0, "Should not find any class-level variables"
+    
+    # Also verify no instance variables were captured
+    var_dict = {v.class_field_name: v for v in variables}
+    local_vars = [
+        "uri", "username", "password",  # from __init__
+        "query", "index_name"  # from other methods
+    ]
+    for local_var in local_vars:
+        assert local_var not in var_dict, f"Local variable {local_var} should not be captured"
+
 def test_global_variables(parser: NodeVariablesParser):
     """Test parsing of global variables in a complex file structure."""
     file_content = """
@@ -658,3 +769,133 @@ def test_class_complexities(parser: NodeVariablesParser):
     # 4. Test that only expected variables are present
     for var_name in var_dict:
         assert var_name in expected_vars, f"Unexpected variable {var_name} was captured"
+
+def test_procedural_code_globals(parser: NodeVariablesParser):
+    """Test parsing of global variables in procedural code with functions."""
+    code = """
+    from typing import List, Dict, Optional
+    import json
+    import os
+    
+    # Configuration globals
+    API_VERSION = "v1.0"
+    MAX_RETRIES = 3
+    DEFAULT_TIMEOUT = 30.0
+    
+    # Complex type globals
+    ResponseType = Dict[str, Any]
+    VALID_MODES: List[str] = ["debug", "prod", "test"]
+    
+    # Global with computation
+    BUFFER_SIZE = 1024 * 4
+    
+    def process_data(data: dict) -> ResponseType:
+        # Local variables that should not be captured
+        result = {}
+        temp_data = data.copy()
+        return result
+    
+    # More globals after function
+    PROCESSING_MODES = {
+        "fast": {"buffer": BUFFER_SIZE,"timeout":10},
+        "safe": {"buffer":1024,"timeout":DEFAULT_TIMEOUT}
+    }
+    
+    def validate_config(config: dict) -> bool:
+        # Local vars not captured
+        is_valid = True
+        mode = config.get("mode", "safe")
+        return mode in VALID_MODES
+    
+    # Tuple unpacking at global level
+    HOST, PORT = "localhost", 8080
+    
+    # None-initialized globals
+    current_mode: Optional[str] = None
+    error_count: int = 0
+    
+    def reset_globals():
+        global current_mode, error_count
+        current_mode = None
+        error_count = 0
+    """
+    
+    global_vars = parser.parse_global_variables(code)
+    var_dict = {v.class_field_name: v for v in global_vars}
+    
+    # Expected global variables with their values and types
+    expected_globals = {
+        "API_VERSION": {
+            "value": '"v1.0"',
+            "type": None
+        },
+        "MAX_RETRIES": {
+            "value": "3",
+            "type": None
+        },
+        "DEFAULT_TIMEOUT": {
+            "value": "30.0",
+            "type": None
+        },
+        "ResponseType": {
+            "value": "Dict[str, Any]",
+            "type": None
+        },
+        "VALID_MODES": {
+            "value": '["debug", "prod", "test"]',
+            "type": "List[str]"
+        },
+        "BUFFER_SIZE": {
+            "value": "1024 * 4",
+            "type": None
+        },
+        "PROCESSING_MODES": {
+            "value": '{"fast": {"buffer": BUFFER_SIZE, "timeout": 10},"safe": {"buffer": 1024, "timeout": DEFAULT_TIMEOUT}}',
+            "type": None
+        },
+        "HOST": {
+            "value": '"localhost"',
+            "type": None
+        },
+        "PORT": {
+            "value": "8080",
+            "type": None
+        },
+        "current_mode": {
+            "value": "None",
+            "type": "Optional[str]"
+        },
+        "error_count": {
+            "value": "0",
+            "type": "int"
+        }
+    }
+    
+    # Verify we captured all expected globals
+    assert len(var_dict) == len(expected_globals), f"Expected {len(expected_globals)} globals, got {len(var_dict)}"
+    
+    # # Check each global variable
+    # for var_name, expected in expected_globals.items():
+    #     assert var_name in var_dict, f"Missing global variable: {var_name}"
+    #     var = var_dict[var_name]
+        
+    #     # Check value
+    #     assert var.class_field_value == expected["value"], f"Wrong value for {var_name}"
+        
+    #     # Check type hint if present
+    #     assert var.class_field_type == expected["type"], f"Wrong type for {var_name}"
+        
+    #     # Verify position exists and is valid
+    #     assert var.position is not None, f"Missing position for {var_name}"
+    #     assert var.position.start_line > 0, f"Invalid start line for {var_name}"
+    #     assert var.position.start_line_position >= 0, f"Invalid start position for {var_name}"
+    #     assert var.position.stop_line > 0, f"Invalid end line for {var_name}"
+    #     assert var.position.stop_line_position > 0, f"Invalid end position for {var_name}"
+    
+    # Verify local variables from functions are not captured
+    local_vars = [
+        "result", "temp_data",  # from process_data
+        "is_valid", "mode",     # from validate_config
+    ]
+    for local_var in local_vars:
+        assert local_var not in var_dict, f"Local variable {local_var} should not be captured"

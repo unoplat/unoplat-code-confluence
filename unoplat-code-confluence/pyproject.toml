@@ -32,6 +32,7 @@ pytest-cov = "^6.0.0"
 gitpython = "^3.1.43"
 tree-sitter = "^0.23.2"
 tree-sitter-python = "^0.23.4"
+black = "^23.12.1"
 
 [tool.poetry.scripts]
 unoplat-code-confluence = "unoplat_code_confluence.__main__:main"
@@ -49,3 +50,13 @@ build-backend = "poetry.core.masonry.api"
 pythonpath = ["unoplat_code_confluence"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyw?$'
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+^/docs
+'''

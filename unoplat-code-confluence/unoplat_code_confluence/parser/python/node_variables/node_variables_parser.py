@@ -123,52 +123,6 @@ class NodeVariablesParser:
                 inside_function = False
             elif inside_class and node.type == "class_definition":
                 inside_class = False
-
-    # def __traverse_class_variables(self, cursor: TreeCursor) -> None:
-    #     """Parse variables defined at class level (outside any function)."""
-    #     inside_function = False
-    #     current_decorators: List[ChapiAnnotation] = []
-        
-    #     # First, find the class definition node
-    #     while cursor.node.type != "class_definition":
-    #         if not cursor.goto_first_child():
-    #             return
-            
-    #     # Find the block node (class body)
-    #     if not cursor.goto_first_child():  # Enter class definition internals
-    #         return
-            
-    #     while cursor.node.type != "block":  # Skip class name, etc until we hit the body
-    #         if not cursor.goto_next_sibling():
-    #             return
-            
-    #     # Now we're at the block node, enter it
-    #     if not cursor.goto_first_child():  # Enter block contents
-    #         return
-            
-    #     while True:
-    #         node = cursor.node
-            
-    #         if node.type == "function_definition":
-    #             inside_function = True
-                
-    #         elif node.type == "decorator" and not inside_function:
-    #             annotation = self.__get_annotation(node)
-    #             if annotation:
-    #                 current_decorators.append(annotation)
-                
-    #         elif not inside_function and node.type == "expression_statement":
-    #             if node.children and node.children[0].type == "assignment":
-    #                 self.__process_assignment(node.children[0], current_decorators)
-    #                 current_decorators = []
-            
-    #         # Move to next sibling if possible
-    #         if cursor.goto_next_sibling():
-    #             if inside_function and node.type == "function_definition":
-    #                 inside_function = False
-    #             continue
-            
-    #         break  # No more siblings in block
         
     def __traverse_class_variables(self, cursor: TreeCursor) -> None:
         """Parse variables defined at class level (outside any function)."""
@@ -222,94 +176,65 @@ class NodeVariablesParser:
 
             break  # No more siblings    
 
-    def __traverse_function_variables(self, cursor: TreeCursor, 
-                                    seen_variables: set[str]) -> None:
+   
+
+    def __traverse_function_variables(self, cursor: TreeCursor, seen_variables: set[str]) -> None:
         """Parse variables from function body."""
-        # First find either function_definition or decorated_definition
+
+        # Step 1: Navigate to function_definition or decorated_definition
         while cursor.node.type not in ["function_definition", "decorated_definition"]:
             if not cursor.goto_first_child():
                 print("Failed to find function/decorated definition")
                 return
-        
-        print(f"\nProcessing function node: {cursor.node.type}")
-        
-        # If it's a decorated function, move to the actual function_definition
+
+        # If decorated, move to the function_definition within
         if cursor.node.type == "decorated_definition":
-            if not cursor.goto_first_child():  # Enter decorated_definition
+            if not cursor.goto_first_child():
                 return
-            
-            # Skip decorators until we find function_definition
             while cursor.node.type != "function_definition":
                 if not cursor.goto_next_sibling():
                     return
-        
-        # Enter function body (block)
-        if not cursor.goto_first_child():  # Enter function internals
+
+        # Step 2: Move down into the function_definition's children
+        if not cursor.goto_first_child():
             print("Failed to enter function internals")
             return
-        
-        print(f"Inside function, current node: {cursor.node.type}")
-        
-        while cursor.node.type != "block":  # Find the block node
-            print(f"Looking for block, current node: {cursor.node.type}")
+
+        # Step 3: Iterate siblings until we find the block node
+        # The block node is the actual function body.
+        while cursor.node.type != "block":
             if not cursor.goto_next_sibling():
                 print("Failed to find block")
                 return
-        
-        print("Found block node")
-        
-        if not cursor.goto_first_child():  # Enter block contents
+
+        # Now cursor.node is 'block', enter it
+        if not cursor.goto_first_child():
             print("Failed to enter block contents")
             return
-        
-        print("Entered block contents")
-        
+
+        # Step 4: We are now inside the function body. Iterate over statements.
         while True:
             node = cursor.node
-            print(f"\nFunction node type: {node.type}")
-            if node.children:
-                print(f"Children types: {[child.type for child in node.children]}")
-            
-            if node.type == "expression_statement":
-                if node.children and node.children[0].type == "assignment":
-                    assignment = node.children[0]
-                    lhs = assignment.children[0] if assignment.children else None
-                    
+
+            if node.type == "expression_statement" and node.children:
+                first_child = node.children[0]
+                if first_child.type == "assignment":
+                    lhs = first_child.children[0] if first_child.children else None
                     if lhs and lhs.type == "attribute":
                         attr_text = lhs.text.decode('utf8')
-                        print(f"Found attribute assignment: {attr_text}")
-                        
-                        # Check for any instance/class variable assignment (self.x or cls.x)
+                        # Check for instance/class variable assignments (self.x or cls.x)
                         if attr_text.startswith(("self.", "cls.")):
-                            # Remove the prefix (self. or cls.)
                             var_name = attr_text.split('.', 1)[1]
-                            print(f"Found class/instance variable: {var_name}")
                             if var_name not in seen_variables:
                                 seen_variables.add(var_name)
-                                # Process the assignment but extract the actual variable name
-                                # from the attribute's last part
-                                if len(lhs.children) >= 3 and lhs.children[2].type == "identifier":
-                                    # Keep track of the original variable name
-                                    orig_var_name = var_name
-                                    # Process the assignment normally
-                                    self.__process_assignment(assignment, [])
-                                    # If the variable was added with the full prefix (self.x or cls.x)
-                                    # update the dictionary key to use just the variable name
-                                    if f"self.{orig_var_name}" in self.variables_dict:
-                                        var = self.variables_dict[f"self.{orig_var_name}"]
-                                        del self.variables_dict[f"self.{orig_var_name}"]
-                                        self.variables_dict[orig_var_name] = var
-                                    elif f"cls.{orig_var_name}" in self.variables_dict:
-                                        var = self.variables_dict[f"cls.{orig_var_name}"]
-                                        del self.variables_dict[f"cls.{orig_var_name}"]
-                                        self.variables_dict[orig_var_name] = var
-            
-            # Move to next sibling if possible
-            if cursor.goto_next_sibling():
-                continue
-            
-            break  # No more siblings in block
+                                # Process the assignment as needed
+                                self.__process_assignment(first_child, [])
+                                # If needed, rename the variable in self.variables_dict here
 
+            if not cursor.goto_next_sibling():
+                break  # No more siblings in block
+            
+        
     def __get_annotation(self, node: Node) -> Optional[ChapiAnnotation]:
         """Extract annotation from decorator node."""
         # Skip @ symbol
@@ -451,8 +376,8 @@ class NodeVariablesParser:
             )
             
             var = ClassGlobalFieldModel(
-                TypeKey=var_name,
-                Type=type_hint,
+                TypeValue=var_name,
+                TypeType=type_hint,
                 DefaultValue=value,
                 Annotations=decorators if decorators else None,
                 Position=position  # Add position information
