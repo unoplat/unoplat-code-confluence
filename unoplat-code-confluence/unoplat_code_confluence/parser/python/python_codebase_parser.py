@@ -1,6 +1,6 @@
 # Standard Library
 import os
-from typing import Dict, List, Tuple,Union
+from typing import Dict, List, Tuple
 
 # Third Party
 from loguru import logger
@@ -8,7 +8,6 @@ from loguru import logger
 # First Party
 from unoplat_code_confluence.configuration.settings import ProgrammingLanguage, ProgrammingLanguageMetadata
 from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
-from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
 from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode

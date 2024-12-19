@@ -2,6 +2,7 @@
 import argparse
 import asyncio
 import datetime
+import json
 import os
 import warnings
 
@@ -82,9 +83,8 @@ async def get_extension(programming_language: str):
 
 #TODO: do it in parallel for each repository and inside repository if it is a mono repo for each codebase. .Rightnow keep it simple  as we will move to temporal soon.
 async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codebase_parser: CodebaseParser, isummariser: MarkdownSummariser):
-    # Log the start of the parsing process
+    """Start parsing process for repositories and codebases."""
     logger.info("Starting parsing process...")
-    
     
     jar_path = await ensure_jar_downloaded(
         app_settings.secrets.github_token,
@@ -98,9 +98,10 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
         logger.info(f"Processing repository: {repository.git_url}")
         github_repository: UnoplatGitRepository = github_helper.clone_repository(repository)
         markdown_output_path = repository.markdown_output_path
+        
         # Process each codebase in the repository
         for codebase_index, codebase in enumerate(github_repository.codebases):
-            
+           
             logger.info(f"Processing codebase at path: {codebase.local_path}")
             
             programming_language = codebase.package_manager_metadata.programming_language #type: ignore
@@ -112,7 +113,7 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
             # Get file extension based on programming language
             extension = await get_extension(programming_language)
 
-            # Initialize the ArchGuard handler with the collected parameters
+            # Initialize the ArchGuard handler
             archguard_handler = ArchGuardHandler(
                 jar_path=jar_path,
                 language=programming_language,
@@ -126,7 +127,7 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
             chapi_metadata = iload_json.load_json_from_file(chapi_metadata_path)   
             
             current_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            output_filename = f"{os.path.basename(codebase.name)}_{current_timestamp}.md"
+            output_filename = f"{os.path.basename(codebase.name)}_{current_timestamp}.json"
 
             unoplat_codebase: UnoplatCodebase = codebase_parser.parse_codebase(
                 json_data = chapi_metadata, 
@@ -134,40 +135,32 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
                 programming_language_metadata = app_settings.repositories[index].codebases[codebase_index].programming_language_metadata,
                 codebase_name=codebase.name
             )
-            #TODO: enable one by one different sections
+            github_repository.codebases[codebase_index] = unoplat_codebase
+                
+                # Serialize repository to JSON string with proper formatting
+        try:
+            json_str = github_repository.model_dump_json(
+                indent=2
+            )
             
-            # # Initialize DSPy modules
-            # dspy_function_pipeline_summary: CodeConfluenceFunctionModule = CodeConfluenceFunctionModule()
-            # dspy_class_pipeline_summary: CodeConfluenceClassModule = CodeConfluenceClassModule()
-            # dspy_package_pipeline_summary: CodeConfluencePackageModule = CodeConfluencePackageModule()
-            # dspy_codebase_pipeline_summary: CodeConfluenceCodebaseModule = CodeConfluenceCodebaseModule()
-
-            # codebase_summary = CodebaseSummaryParser(
-            #     unoplat_codebase,
-            #     dspy_function_pipeline_summary, 
-            #     dspy_class_pipeline_summary,
-            #     dspy_package_pipeline_summary,
-            #     dspy_codebase_pipeline_summary,
-            #     app_config
-            # )
-
-            # unoplat_codebase_summary: DspyUnoplatCodebaseSummary = await codebase_summary.parse_codebase()
-            # unoplat_graph_processing = UnoplatGraphProcessing(app_config)
+            # Write JSON output to file
+            json_output_path = os.path.join(repository.markdown_output_path, output_filename)
+            os.makedirs(os.path.dirname(json_output_path), exist_ok=True)
             
-            # # Set codebase name from path
-            # unoplat_codebase_summary.codebase_name = os.path.basename(codebase.path)
+            with open(json_output_path, 'w', encoding='utf-8') as json_file:
+                json_file.write(json_str)
+                
+            logger.info(f"Successfully wrote repository JSON schema to {json_output_path}")
+                
+        except Exception as e:
+            logger.error(
+                f"Error serializing/writing JSON output for repository {repository.git_url}\n"
+                f"Codebase: {codebase.name}\n"
+                f"Error: {str(e)}"
+            )
             
-            # unoplat_graph_processing.process_codebase_summary(unoplat_codebase, unoplat_codebase_summary)
-
-            # markdown_output = isummariser.summarise_to_markdown(unoplat_codebase_summary)
-            
-            # # Write the markdown output to a file
-            # output_filepath = os.path.join(repository.markdown_output_path, output_filename)
-            # os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
-            # with open(output_filepath, 'w') as md_file:
-            #     md_file.write(markdown_output)
-            
-            # logger.info(f"Completed processing codebase: {codebase.path}")
+                    
+        
 
     logger.info("Parsing process completed for all repositories and codebases.")
 

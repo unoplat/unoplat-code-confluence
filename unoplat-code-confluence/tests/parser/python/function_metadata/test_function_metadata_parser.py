@@ -1,13 +1,7 @@
-from typing import ClassVar, List, Dict, Any
+from typing import List
 import pytest
-import os
-from datetime import datetime
-import json
 
-from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
-from unoplat_code_confluence.data_models.chapi.chapi_functioncall import ChapiFunctionCall
-from unoplat_code_confluence.data_models.chapi.chapi_function_field_model import ChapiFunctionFieldModel
 from unoplat_code_confluence.data_models.chapi.chapi_parameter import ChapiParameter
 from unoplat_code_confluence.data_models.chapi.chapi_position import Position
 from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation

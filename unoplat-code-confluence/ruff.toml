@@ -13,10 +13,10 @@ exclude = [
 ]
 
 src = ["unoplat_code_confluence"]  # Adjust this to your project's source directory
-
+line-length = 320
 [lint]
 # Enable only flake8-tidy-imports
-select = ["TID","F401","F841"]
+select = ["I","F401","F841","E402"]
 
 [lint.per-file-ignores]
 "__init__.py" = ["E402","F401"]
