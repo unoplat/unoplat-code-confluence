@@ -14,9 +14,10 @@ exclude = [
 
 src = ["unoplat_code_confluence"]  # Adjust this to your project's source directory
 line-length = 320
+
 [lint]
 # Enable only flake8-tidy-imports
-select = ["I","F401","F841","E402"]
+select = ["I","E402","INP001","TID","F401","F841"]
 
 [lint.per-file-ignores]
 "__init__.py" = ["E402","F401"]
@@ -24,10 +25,9 @@ select = ["I","F401","F841","E402"]
 [lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[format]
-quote-style = "single"
-indent-style = "tab"
-docstring-code-format = true
+[lint.isort]
+combine-as-imports = true
+force-to-top = ["os","sys"]
 
 # [lint.isort]
 
