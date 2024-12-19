@@ -1,18 +1,12 @@
-from typing import List, Optional, Any
 import pytest
-from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
 from unoplat_code_confluence.parser.python.node_variables.node_variables_parser import NodeVariablesParser
 from unoplat_code_confluence.configuration.settings import ProgrammingLanguage
-from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
 from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
 from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
 from unoplat_code_confluence.data_models.chapi.chapi_parameter import ChapiParameter
 from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
 from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
-import json
-from datetime import datetime
-from uuid import uuid4
 
 
 

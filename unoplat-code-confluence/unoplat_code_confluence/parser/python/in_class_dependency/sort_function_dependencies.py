@@ -2,7 +2,6 @@ from typing import List, Dict, Set, Deque
 from collections import defaultdict, deque
 
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 
 
 class SortFunctionDependencies:

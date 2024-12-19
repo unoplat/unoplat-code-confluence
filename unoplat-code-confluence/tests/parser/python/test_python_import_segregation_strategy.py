@@ -1,15 +1,12 @@
 # Standard Library
-import os
 import tempfile
 from pathlib import Path
-from typing import List
 
 import pytest
-
 from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_import import UnoplatImport, ImportedName
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 from unoplat_code_confluence.parser.python.python_import_segregation_strategy import PythonImportSegregationStrategy
+
 
 @pytest.fixture
 def strategy():
@@ -127,3 +124,6 @@ from myproject.utils import helper
     assert len(internal_imports) == 1
     assert internal_imports[0].source == "myproject.utils"
     assert internal_imports[0].usage_names[0].original_name == "helper" #type: ignore
+    
+    
+    
