@@ -3,7 +3,7 @@ import os
 
 
 class PythonQualifiedNameStrategy:
-    def get_qualified_name(self, node_name: str, node_file_path: str, local_workspace_path: str) -> str:
+    def get_qualified_name(self, node_name: str, node_file_path: str, local_workspace_path: str,node_type: str) -> str:
         """Get qualified name for Python nodes.
         
         For Python, the qualified name follows the format:
@@ -26,7 +26,8 @@ class PythonQualifiedNameStrategy:
         path_parts = path_without_ext.replace('/', '.').replace('\\', '.').split('.')
         
         # Replace the last part (filename) with the actual node name
-        path_parts[-1] = node_name
+        if node_type == "CLASS":
+            path_parts.append(node_name)
         
         # Join the path parts without adding codebase_name since it's already in the path
         qualified_name = '.'.join(path_parts)

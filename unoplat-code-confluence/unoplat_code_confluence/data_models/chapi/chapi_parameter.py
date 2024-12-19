@@ -6,6 +6,6 @@ from pydantic import BaseModel, Field
 
 
 class ChapiParameter(BaseModel):
-    type_value: Optional[str] = Field(default=None, alias="TypeValue")
-    type_type: Optional[str] = Field(default=None, alias="TypeType")
-    default_value: Optional[str] = Field(default=None, alias="DefaultValue")
+    type_value: Optional[str] = Field(default=None,description="parameter name", alias="TypeValue")
+    type_type: Optional[str] = Field(default=None,description="parameter type", alias="TypeType")
+    default_value: Optional[str] = Field(default=None,description="parameter default value", alias="DefaultValue")

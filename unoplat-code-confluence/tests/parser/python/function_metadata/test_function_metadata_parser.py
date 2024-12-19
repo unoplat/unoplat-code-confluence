@@ -186,9 +186,6 @@ def sample_function_with_complex_variables_2() -> ChapiFunction:
     comp_dict = {f"key{i}": i for i in range(3)}
     comp_set = {j for j in range(3)}
     
-    # Assign via function call
-    def inner():
-        return "inner_value"
     inner_var = inner()
     
     # Reassign z to test only-type var gets a value now
@@ -263,8 +260,6 @@ def sample_function_with_return_type() -> ChapiFunction:
 def complex_sample_function() -> ChapiFunction:
     """Create a complex function with multiple features."""
     content = """
-    @validator
-    @deprecated
     def process_data(self, data: dict, retry: int = 3) -> Optional[List[str]]:
         # Local variables
         result = []
@@ -381,20 +376,30 @@ def test_extreme_function(parser: FunctionMetadataParser):
     assert parsed_function.return_type == 'Union[Tuple[int, str], Literal["error"]]'  # Exact text as in code
 
     # Check for presence of local variables and calls
-    # For complexity, just check that certain known variable names appear in local variables
-    local_var_names = [lv.function_variable_name for lv in parsed_function.local_variables]
-    # Variables from pattern assignments
-    assert "w" in local_var_names
-    assert "x" in local_var_names
-    assert "y" in local_var_names
-    assert "z" in local_var_names
-    # Star expression variable
-    assert "first" in local_var_names
-    assert "last" in local_var_names
-
-    # Check that a complex function call like 'complicated_call(...)' is captured
+    local_vars = {v.function_variable_name: v for v in parsed_function.local_variables}
+    
+    # Instead of checking individual variables, check complete patterns
+    assert "(w, (x, (y, z)))" in local_vars
+    assert local_vars["(w, (x, (y, z)))"].function_variable_value == "(1, (2, (3, 4)))"
+    
+    # Check starred expression pattern
+    assert "first, *middle, last" in local_vars
+    assert local_vars["first, *middle, last"].function_variable_value == "[10, 20, 30, 40, 50]"
+    
+    # Rest of complex variable checks
+    complex_data_var = next((lv for lv in parsed_function.local_variables if lv.function_variable_name == "complex_data"), None)
+    assert complex_data_var is not None
+    assert "Dict[str, Dict[str, List[Optional[int]]]]" in (complex_data_var.function_variable_type or "")
+    assert '"outer"' in (complex_data_var.function_variable_value or "")
+    
+    # Function call checks remain same
     call_names = [c.function_name for c in parsed_function.function_calls]
-    assert "complicated_call" in call_names  # It's a key function call
+    assert "complicated_call" in call_names
+    
+    # Check result_data with complex call
+    result_data_var = next((lv for lv in parsed_function.local_variables if lv.function_variable_name == "result_data"), None)
+    assert result_data_var is not None
+    assert "complicated_call" in (result_data_var.function_variable_value or "")
 
     # No runtime class vars or self.x handling: Just ensure no weird references appeared as local vars
     # For instance, if code had self.data = ... we wouldn't see 'data' from self assignment as local var
@@ -416,4 +421,162 @@ def test_extreme_function(parser: FunctionMetadataParser):
 
     # If no errors occur and assertions pass, we've tested a complex scenario successfully.    
 
+def test_basic_sample_function(parser: FunctionMetadataParser):
+    """Test basic function with no special features."""
+    func = create_sample_function(
+        name="basic_function",
+        content="""
+        def basic_function():
+            x = 1
+            y = 2
+            return x + y
+        """
+    )
+    
+    parsed_functions = parser.process_functions([func])
+    parsed_func = parsed_functions[0]
+    
+    # Basic assertions
+    assert parsed_func.name == "basic_function"
+    assert parsed_func.return_type is None  # No return type annotation
+    
+    # Check local variables
+    local_vars = {v.function_variable_name: v for v in parsed_func.local_variables}
+    assert len(local_vars) == 2
+    assert "x" in local_vars
+    assert "y" in local_vars
+    assert local_vars["x"].function_variable_value == "1"
+    assert local_vars["y"].function_variable_value == "2"
 
+def test_complex_sample_function(parser: FunctionMetadataParser, complex_sample_function: ChapiFunction):
+    """Test complex function with multiple features."""
+    parsed_functions = parser.process_functions([complex_sample_function])
+    parsed_func = parsed_functions[0]
+    
+    # Test return type
+    assert parsed_func.return_type == "Optional[List[str]]"
+    
+    # Test parameters
+    params = {p.type_value: p.type_type for p in parsed_func.parameters}
+    assert "self" in params
+    assert params["data"] == "dict"
+    assert params["3"] == "retry"
+    
+    # Test local variables
+    local_vars = {v.function_variable_name: v for v in parsed_func.local_variables}
+    
+    # Check result variable (initial assignment)
+    assert "result" in local_vars
+    assert local_vars["result"].function_variable_value == "[]"
+    
+    # Check count variable (initial assignment with type hint)
+    assert "count" in local_vars
+    assert local_vars["count"].function_variable_type == "int"
+    assert local_vars["count"].function_variable_value == "0"
+    
+    # Check x (initial assignment only)
+    assert "x" in local_vars
+    assert local_vars["x"].function_variable_type is None  # No type hint in first assignment
+    assert local_vars["x"].function_variable_value == "1"  # First value
+    
+    # Test function calls
+    calls = {c.function_name: c for c in parsed_func.function_calls}
+    assert "validate" in calls
+    assert calls["validate"].node_name == "self"
+    assert "process" in calls
+    assert calls["process"].node_name == "helper"
+
+def test_function_with_complex_variables(parser: FunctionMetadataParser, sample_function_with_complex_variables: ChapiFunction):
+    """Test function with complex variable assignments."""
+    parsed_functions = parser.process_functions([sample_function_with_complex_variables])
+    parsed_func = parsed_functions[0]
+    
+    local_vars = {v.function_variable_name: v for v in parsed_func.local_variables}
+    
+    # Test simple assignments (initial only)
+    assert "x" in local_vars
+    assert local_vars["x"].function_variable_value == "1"  # First assignment value
+    
+    # Test type hints with initial assignment
+    assert "y" in local_vars
+    assert local_vars["y"].function_variable_type == "int"
+    assert local_vars["y"].function_variable_value == "2"  # Initial value
+    
+    # Test type hint only (initial declaration)
+    assert "z" in local_vars
+    assert local_vars["z"].function_variable_type == "str"
+    assert not local_vars["z"].function_variable_value  # No initial value
+    
+    # Test complex type hints (initial assignments)
+    assert "result" in local_vars
+    assert local_vars["result"].function_variable_type == "List[int]"
+    assert local_vars["result"].function_variable_value == "[]"
+    
+    assert "data" in local_vars
+    assert local_vars["data"].function_variable_type == "Dict[str, Any]"
+    assert local_vars["data"].function_variable_value == '{"key": "value"}'
+    
+    # Test tuple unpacking as single pattern (initial assignment)
+    assert "a, b" in local_vars
+    assert local_vars["a, b"].function_variable_value == "1, 2"
+
+def test_function_with_complex_variables_2(parser: FunctionMetadataParser, sample_function_with_complex_variables_2: ChapiFunction):
+    """Test function with more complex variable patterns."""
+    parsed_functions = parser.process_functions([sample_function_with_complex_variables_2])
+    parsed_func = parsed_functions[0]
+    
+    local_vars = {v.function_variable_name: v for v in parsed_func.local_variables}
+    
+    # Test simple assignment (initial only)
+    assert "x" in local_vars
+    assert local_vars["x"].function_variable_value == "1"  # First assignment
+    
+    # Test initial nested pattern unpacking - assert entire pattern
+    assert "(c, (d, e))" in local_vars
+    assert local_vars["(c, (d, e))"].function_variable_value == "(3, (4, 5))"
+    
+    # Test initial walrus operator assignments
+    assert "n" in local_vars
+    assert "f" in local_vars
+    assert local_vars["f"].function_variable_value == "0"  # Initial value
+    
+    # Test initial comprehension assignments (not loop variables)
+    assert "comp_list" in local_vars
+    assert "comp_dict" in local_vars
+    assert "comp_set" in local_vars
+    assert "i" not in local_vars  # Loop variable
+    assert "j" not in local_vars  # Loop variable
+    
+    # Test initial function-scoped variable
+    assert "inner_var" in local_vars
+    assert local_vars["inner_var"].function_variable_value == "inner()"
+    
+    # Test initial nested pattern unpacking with different types - assert entire pattern
+    assert "(p, q), r" in local_vars
+    assert local_vars["(p, q), r"].function_variable_value == '(("nested", True), 42)'
+
+
+def test_vector_index_function(parser: FunctionMetadataParser):
+    code ="""
+    def create_vector_index(self, label: str, property: str, dimension: int = None, similarity_function: str = 'cosine') -> None:
+        query = f"CREATE VECTOR INDEX {property}_vector_index FOR (n:{label}) ON (n.{property})"
+        if dimension is not None:
+            query += f" OPTIONS {{indexConfig: {{`vector.dimensions`: {dimension}, `vector.similarity_function`: '{similarity_function}'}}}}"
+        try:
+            # Using neomodel's db object to execute the query
+            db.cypher_query(query)
+        except Exception as e:
+            if "equivalent index already exists" in str(e):
+                print(f"Vector index for {label}.{property} already exists. Skipping creation.")
+            else:
+                raise  # Re-raise the exception if it's not about existing index
+    """
+    create_vector_index = create_sample_function(
+        name="create_vector_index",
+        content=code
+    )
+    parsed_functions = parser.process_functions([create_vector_index])
+    parsed_func = parsed_functions[0]
+    assert parsed_func.name == "create_vector_index"
+    assert parsed_func.return_type == "None"
+    assert len(parsed_func.local_variables) == 1

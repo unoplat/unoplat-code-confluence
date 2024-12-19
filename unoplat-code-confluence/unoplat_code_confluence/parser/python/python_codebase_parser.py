@@ -7,6 +7,7 @@ from loguru import logger
 
 # First Party
 from unoplat_code_confluence.configuration.settings import ProgrammingLanguage, ProgrammingLanguageMetadata
+from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
 from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
@@ -18,6 +19,7 @@ from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import 
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_package import UnoplatPackage
 from unoplat_code_confluence.parser.codebase_parser_strategy import CodebaseParserStrategy
 from unoplat_code_confluence.parser.python.function_metadata.function_metadata_parser import FunctionMetadataParser
+from unoplat_code_confluence.parser.python.node_variables.node_variables_parser import NodeVariablesParser
 from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
 from unoplat_code_confluence.parser.python.in_class_dependency.sort_function_dependencies import SortFunctionDependencies
 from unoplat_code_confluence.parser.python.package_manager.package_manager_factory import \
@@ -41,34 +43,27 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         self.qualified_name_strategy = PythonQualifiedNameStrategy()
         self.python_import_segregation_strategy = PythonImportSegregationStrategy()
         self.code_confluence_tree_sitter = CodeConfluenceTreeSitter(language=ProgrammingLanguage.PYTHON)
-        self.python_function_calls = FunctionMetadataParser(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
+        self.python_function_calls = FunctionMetadataParser(tree_sitter=self.code_confluence_tree_sitter)
         self.sort_function_dependencies = SortFunctionDependencies()
         self.python_node_dependency_processor = PythonNodeDependencyProcessor()
-        
+        self.node_variables_parser = NodeVariablesParser(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
         
     # we handle procedural , class and mix of procedural and class nodes.
     def __preprocess_nodes(
         self, json_data: dict, local_workspace_path: str,codebase_name: str
     ) -> Tuple[Dict[str, List[UnoplatChapiForgeNode]],Dict[str,UnoplatChapiForgeNode]]:
-        """Preprocess nodes to extract qualified names and segregate imports.
-        
-        Args:
-            json_data: Raw JSON data of nodes
-            local_workspace_path: Path to local workspace
-            
-        Returns:
-            Dict mapping of preprocessed nodes
-        """
-        file_path_nodes: Dict[str, List[UnoplatChapiForgeNode]] = {}  # Track nodes by file path
+        """Preprocess nodes to extract qualified names and segregate imports."""
+        file_path_nodes: Dict[str, List[UnoplatChapiForgeNode]] = {}  
         qualified_names_dict: Dict[str,UnoplatChapiForgeNode] = {}
         
         for item in json_data:
             try:
                 node: ChapiNode = ChapiNode.model_validate(item)
-                
-            
                 unoplat_node: UnoplatChapiForgeNode = self.__common_node_processing(node, local_workspace_path)
                 
+                # Add debug logging
+                logger.debug(f"Processing node: {node.node_name}")
+                logger.debug(f"Qualified name: {unoplat_node.qualified_name}")
                 
                 if unoplat_node.file_path not in file_path_nodes:
                     file_path_nodes[unoplat_node.file_path] = [unoplat_node] #type: ignore
@@ -80,7 +75,12 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             except Exception as e:
                 logger.error(f"Error building qualified name map: {e}")
         
-        return file_path_nodes,qualified_names_dict
+        # Add debug logging for final map
+        logger.debug("Qualified names in dict:")
+        for qname in qualified_names_dict.keys():
+            logger.debug(f"  {qname}")
+            
+        return file_path_nodes, qualified_names_dict
 
             
     def __common_node_processing(self, node: ChapiNode, local_workspace_path: str):
@@ -95,7 +95,8 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             qualified_name = self.qualified_name_strategy.get_qualified_name(
                 node_name=node.node_name,
                 node_file_path=node.file_path,
-                local_workspace_path=local_workspace_path
+                local_workspace_path=local_workspace_path,
+                node_type=node.type
             )
         
         # segregating imports
@@ -116,14 +117,19 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 node.file_path,
                 local_workspace_path
             )
-        if node.functions:
-            self.__process_functions(node.functions)
+        
+        # TODO: enable below when archguard fixes the formatting issues of code content - be it class or function
+        # node.fields = []
+        # if node is of type class do parse class variables and instance variables and add them to node.class_variables
+        # if node.type == "CLASS":
+        #     node.fields = self.node_variables_parser.parse_class_variables(node.content, node.functions)
+                  
+        # if node.functions:
+        #     self.python_function_calls.process_functions(node.functions)
                 
         return UnoplatChapiForgeNode.from_chapi_node(chapi_node=node, qualified_name=qualified_name,segregated_imports=imports_dict if imports_dict is not None else {})        
     
-    def __process_functions(self, functions: List[ChapiFunction]):
-        for function in functions:
-            function.function_calls = self.python_function_calls.get_function_calls(function.content)
+    
     
     def parse_codebase(
         self, codebase_name: str, json_data: dict, local_workspace_path: str, 
@@ -135,7 +141,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         then processes dependencies for each node using that map.
         """
         # Phase 1: Preprocess nodes
-        preprocessed_nodes, qualified_name_dict = self.__preprocess_nodes(json_data, local_workspace_path, codebase_name)
+        preprocessed_file_path_nodes, preprocessed_qualified_name_dict = self.__preprocess_nodes(json_data, local_workspace_path, codebase_name)
         
         # Get package manager metadata
         try:
@@ -153,20 +159,38 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         # Phase 2: Process dependencies using the map
         unoplat_package_dict: Dict[str, UnoplatPackage] = {}
         
-        for list_nodes in preprocessed_nodes.values():
+        for file_path, nodes in preprocessed_file_path_nodes.items():
             try:
-                if len(list_nodes) == 1:   
-                    node: UnoplatChapiForgeNode = list_nodes[0]
-                    sorted_functions: List[UnoplatChapiForgeFunction] = self.sort_function_dependencies.sort_function_dependencies(functions=node.functions,node_type=node.type)
+                
+                #TODO: enable when archguard fixes the formatting issues of code content - be it class or function
+                # The operation of generating global variables should be done once per file even if there are multiple nodes in the file
+                global_variables: List[ClassGlobalFieldModel] = self.node_variables_parser.parse_global_variables(file_path)
+                
+                # The operation of figuring out dependent class should be done once per file even if there are multiple nodes in the file
+                dependent_classes: List[UnoplatChapiForgeNode] = self.python_node_dependency_processor.process_dependencies(nodes[0], preprocessed_qualified_name_dict)
+                
+                # Process all nodes from file
+                for node in nodes:
+                    # TODO: check for interface and abstract class - what are types from chapi
+                    sorted_functions: List[UnoplatChapiForgeFunction] = self.sort_function_dependencies.sort_function_dependencies(
+                        functions=node.functions,
+                        node_type=node.type
+                    )
+                    
+                    #TODO: enable when archguard fixes the formatting issues of code content - be it class or function
+                    node.global_variables = global_variables
                     
                     if sorted_functions:
                         node.functions = sorted_functions
                     
                     # Generate dependent classes
-                    self.python_node_dependency_processor.process_dependencies(node,qualified_node_dict=qualified_name_dict)
+                    # skip first node since it is already processed
+                    if node.node_name != nodes[0].node_name:
+                        node.dependent_internal_classes = dependent_classes
+                        
                     
                     # Build package structure
-                    if node.package:  # Type guard for linter
+                    if node.package:
                         package_parts = node.package.split('.')
                         current_package = unoplat_package_dict
                         full_package_name = ""
@@ -176,14 +200,12 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                             if full_package_name not in current_package:
                                 current_package[full_package_name] = UnoplatPackage(name=full_package_name)
                             if i == len(package_parts) - 1:
-                                current_package[full_package_name].nodes.append(node) #type: ignore
+                                # Add nodes to dict by file path
+                                if file_path not in current_package[full_package_name].nodes:
+                                    current_package[full_package_name].nodes[file_path] = []
+                                current_package[full_package_name].nodes[file_path].append(node)
                             else:
                                 current_package = current_package[full_package_name].sub_packages #type: ignore
-                else:
-                    sorted_nodes: List[UnoplatChapiForgeFunction] = self.sort_function_dependencies.sort_function_dependencies(functions=node.functions,node_type=node.type)
-                        
-                                    
-                
             except Exception as e:
                 logger.error(f"Error processing node dependencies: {e}")
        

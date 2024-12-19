@@ -24,6 +24,11 @@ select = ["TID","F401","F841"]
 [lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
+[format]
+quote-style = "single"
+indent-style = "tab"
+docstring-code-format = true
+
 # [lint.isort]
 
 # known-first-party = ["unoplat_code_confluence"]

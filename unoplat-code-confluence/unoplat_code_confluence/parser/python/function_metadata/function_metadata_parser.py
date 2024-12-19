@@ -5,23 +5,25 @@ from unoplat_code_confluence.data_models.chapi.chapi_functioncall import ChapiFu
 from unoplat_code_confluence.data_models.chapi.chapi_parameter import ChapiParameter
 
 from unoplat_code_confluence.data_models.chapi.chapi_function_field_model import ChapiFunctionFieldModel
-from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
 from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
-from unoplat_code_confluence.configuration.settings import ProgrammingLanguage
 
 class FunctionMetadataParser:
     def __init__(self, tree_sitter: CodeConfluenceTreeSitter):
         self.parser = tree_sitter.get_parser()
+        self.seen_variables: set[str] = set()  # Track variables we've seen
 
     def process_functions(self, functions: List[ChapiFunction]) -> List[ChapiFunction]:
         updated_functions = []
         for func in functions:
+            func.local_variables = []
             updated_functions.append(self.__get_function_metadata(func))
         return updated_functions
 
     def __get_function_metadata(self, chapi_function: ChapiFunction) -> ChapiFunction:
         if not chapi_function.content:
             return chapi_function
+
+        self.seen_variables.clear()
 
         tree = self.parser.parse(bytes(chapi_function.content, "utf8"))
         function_calls: List[ChapiFunctionCall] = []
@@ -38,26 +40,23 @@ class FunctionMetadataParser:
         chapi_function.function_calls = function_calls
 
         return chapi_function
-
+    
     def __get_return_type(self, tree) -> Optional[str]:
-        cursor = tree.walk()
-        reached_root = False
-        while not reached_root:
-            node = cursor.node
+    # Instead of manually navigating cursor, we can do a DFS using the tree's children.
+        root = tree.root_node
+        stack = [root]
+
+        while stack:
+            node = stack.pop()
             if node.type == "function_definition":
+                # Check children for a 'type' node
                 for child in node.children:
                     if child.type == "type":
                         return child.text.decode('utf8').strip(": ")
-            if cursor.goto_first_child():
-                continue
-            if cursor.goto_next_sibling():
-                continue
-            retracing = True
-            while retracing:
-                if not cursor.goto_parent():
-                    reached_root = True
-                elif cursor.goto_next_sibling():
-                    retracing = False
+            # Push children into stack to continue traversal
+            for child in reversed(node.children):
+                stack.append(child)
+
         return None
 
     def __traverse_tree(self, cursor: TreeCursor, function_calls: List[ChapiFunctionCall], local_vars: Dict[str, ChapiFunctionFieldModel]) -> None:
@@ -142,92 +141,54 @@ class FunctionMetadataParser:
 
         if var_name and var_name not in local_vars:
             local_vars[var_name] = ChapiFunctionFieldModel(
-                NameOfField=var_name,
-                TypeOfField=None,
-                ValueOfField=value
+                TypeValue=var_name,
+                TypeType=None,
+                DefaultValue=value
             )
 
     def __process_local_variable(self, node: Node, local_vars: Dict[str, ChapiFunctionFieldModel]) -> None:
-        var_names = self.__get_variable_names_from_assignment(node)
-        if not var_names:
+        var_name = self.__get_variable_names_from_assignment(node)
+        if not var_name:
             return
 
+        # Skip if we've seen this variable before (only keep initial assignment)
+        if var_name in self.seen_variables:
+            return
+            
+        self.seen_variables.add(var_name)  # Mark as seen
+        
         var_type = self.__get_type_hint(node)
-        values = self.__get_value(node)
+        value = self.__get_value(node)
+        
+        local_vars[var_name] = ChapiFunctionFieldModel(
+            TypeValue=var_name,
+            TypeType=var_type if var_type else None,
+            DefaultValue=value if value else None
+        )
 
-        for i, var_name in enumerate(var_names):
-            if var_name in local_vars:
-                # already recorded (first assignment only)
-                continue
-            value = values[i] if i < len(values) else None
-            local_vars[var_name] = ChapiFunctionFieldModel(
-                NameOfField=var_name,
-                TypeOfField=var_type if var_type else None,
-                ValueOfField=value if value else None
-            )
+    def __get_variable_names_from_assignment(self, node: Node) -> str:
+        """
+        Extract the entire LHS of the assignment as a single 'variable name'.
 
-    def __get_variable_names_from_assignment(self, node: Node) -> List[str]:
+        For example:
+        - "x = 1"  -> "x"
+        - "x: int = 1" -> "x"
+        - "(c, (d, e)) = (3, (4, 5))" -> "(c, (d, e))"
+
+        We skip 'type' nodes here because __get_type_hint handles them separately.
         """
-        Extract variable names from the left-hand side of an assignment.
-        Structure can be:
-        - Simple: identifier = value
-        - Type hint: identifier : type = value
-        - Tuple: (a, b) = value
-        - Pattern: a, *b, c = value
-        """
-        names = []
+        lhs_parts = []
         for c in node.children:
-            if c.type == "identifier":
-                # Direct identifier - capture the name
-                names.append(c.text.decode('utf8'))
-            elif c.type in ["pattern_list", "tuple_pattern", "list_splat_pattern"]:
-                # Handle tuple unpacking and patterns
-                names.extend(self.__extract_var_names_from_pattern(c))
-            elif c.type in {"=", ":="}:
-                # Stop when we hit the assignment operator
+            if c.type in {"=", ":="}:
                 break
+            elif c.type == ":":
+                continue
+            elif c.type == "type":
+                continue
+            lhs_parts.append(c.text.decode('utf8'))
 
-        return names
-
-    def __extract_var_names_from_pattern(self, node: Node) -> List[str]:
-        """
-        Recursively extract variable names from patterns:
-        - identifier: return [identifier]
-        - pattern_list: a,b,c
-        - tuple_pattern: (x, y)
-        - list_splat_pattern: *middle
-        We ignore attributes (self.x) as local variables.
-        """
-        names = []
-        if node.type == "identifier":
-            var_name = node.text.decode('utf8')
-            names.append(var_name)
-        elif node.type in ["pattern_list"]:
-            for c in node.children:
-                if c.type in ["identifier", "pattern_list", "tuple_pattern", "list_splat_pattern"]:
-                    names.extend(self.__extract_var_names_from_pattern(c))
-        elif node.type == "tuple_pattern":
-            # tuple_pattern children can contain identifiers, tuple_patterns, etc.
-            for c in node.children:
-                if c.type in ["identifier", "pattern_list", "tuple_pattern", "list_splat_pattern"]:
-                    names.extend(self.__extract_var_names_from_pattern(c))
-        elif node.type == "list_splat_pattern":
-            # *middle scenario
-            # children: '*' and 'identifier'
-            for c in node.children:
-                if c.type == "identifier":
-                    var_name = c.text.decode('utf8')
-                    names.append(var_name)
-
-        # If there's a parenthesized expression or generic patterns,
-        # handle them similarly by recursing.
-        # For completeness:
-        elif node.type == "parenthesized_expression":
-            # Just go inside
-            for c in node.children:
-                names.extend(self.__extract_var_names_from_pattern(c))
-
-        return names
+        lhs = "".join(lhs_parts).strip()
+        return lhs if lhs else ''
 
     def __get_type_hint(self, node: Node) -> Optional[str]:
         for child in node.children:
@@ -235,26 +196,19 @@ class FunctionMetadataParser:
                 return child.text.decode('utf8').strip(": ")
         return None
 
-    def __get_value(self, node: Node) -> List[str]:
-        values = []
+    def __get_value(self, node: Node) -> str:
         found_equal = False
+        rhs_parts = []
         for child in node.children:
             if child.type in {"=", ":="}:
                 found_equal = True
                 continue
             if found_equal:
-                if child.type == "expression_list":
-                    # Handle tuple unpacking - keep per variable behavior
-                    for expr_child in child.children:
-                        if expr_child.type not in [",", "(", ")"]:
-                            values.append(expr_child.text.decode('utf8'))
-                else:
-                    # For single variable assignment, capture entire RHS
-                    values.append(child.text.decode('utf8'))
-                    # Only break if this is a single value assignment
-                    if len(values) == 1:  # If we have one value, it's a single assignment
-                        break
-        return values
+                # Append all parts of the RHS into one string
+                rhs_parts.append(child.text.decode('utf8'))
+
+        rhs = "".join(rhs_parts).strip()
+        return rhs
 
     def __extract_function_call(self, call_node: Node) -> Optional[ChapiFunctionCall]:
         func_name, node_name = None, None

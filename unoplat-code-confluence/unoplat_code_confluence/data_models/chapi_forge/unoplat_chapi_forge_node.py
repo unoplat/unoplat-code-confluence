@@ -5,6 +5,7 @@ from unoplat_code_confluence.data_models.chapi_forge.unoplat_import import Unopl
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 from pydantic import Field
 from typing import Any, Optional, Dict, List
+from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 
 class UnoplatChapiForgeNode(ChapiNode):
     
@@ -13,6 +14,7 @@ class UnoplatChapiForgeNode(ChapiNode):
     segregated_imports: Optional[Dict[ImportType,List[UnoplatImport]]] = Field(default=None,alias="SegregatedImports", description="SegregatedImports in terms of internal ,external ,standard and local libraries")
     dependent_internal_classes: Optional[List['UnoplatChapiForgeNode']] = Field(default_factory=list,alias="DependentInternalClasses",description="list of classes that this node is dependent on")
     functions: Optional[List[UnoplatChapiForgeFunction]] = Field(default_factory=list,alias="Functions",description="functions of the node") #type: ignore
+    global_variables: Optional[List[ClassGlobalFieldModel]] = Field(default_factory=list,alias="GlobalVariables",description="global variables of the node") #type: ignore
     
     
     @classmethod 
