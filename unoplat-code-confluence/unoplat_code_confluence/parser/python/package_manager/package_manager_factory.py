@@ -2,12 +2,9 @@
 from typing import Dict
 
 # First Party
-from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import \
-    PackageManagerStrategy
-from unoplat_code_confluence.parser.python.package_manager.pip.pip_strategy import \
-    PipStrategy
-from unoplat_code_confluence.parser.python.package_manager.poetry.poetry_strategy import \
-    PythonPoetryStrategy
+from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
+from unoplat_code_confluence.parser.python.package_manager.pip.pip_strategy import PipStrategy
+from unoplat_code_confluence.parser.python.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
 
 
 class PackageManagerStrategyFactory:

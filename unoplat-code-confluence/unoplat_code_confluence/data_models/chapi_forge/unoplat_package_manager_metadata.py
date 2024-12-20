@@ -5,8 +5,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 # First Party
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_project_dependency import \
-    UnoplatProjectDependency
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
 
 
 class UnoplatPackageManagerMetadata(BaseModel):

@@ -5,10 +5,8 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 # First Party
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_package import \
-    UnoplatPackage
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import \
-    UnoplatPackageManagerMetadata
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_package import UnoplatPackage
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 
 class UnoplatCodebase(BaseModel):

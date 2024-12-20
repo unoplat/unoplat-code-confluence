@@ -7,19 +7,13 @@ import tomlkit
 from loguru import logger
 
 # First Party
-from unoplat_code_confluence.configuration.settings import (
-    PackageManagerType, ProgrammingLanguageMetadata)
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import \
-    UnoplatPackageManagerMetadata
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_project_dependency import \
-    UnoplatProjectDependency
+from unoplat_code_confluence.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_version import UnoplatVersion
-from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import \
-    PackageManagerStrategy
-from unoplat_code_confluence.parser.python.package_manager.utils.requirements_utils import \
-    RequirementsUtils
-from unoplat_code_confluence.parser.python.package_manager.utils.setup_parser import \
-    SetupParser
+from unoplat_code_confluence.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
+from unoplat_code_confluence.parser.python.package_manager.utils.requirements_utils import RequirementsUtils
+from unoplat_code_confluence.parser.python.package_manager.utils.setup_parser import SetupParser
 
 
 class PythonPoetryStrategy(PackageManagerStrategy):
