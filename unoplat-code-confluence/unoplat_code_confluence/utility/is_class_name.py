@@ -1,5 +1,9 @@
-from loguru import logger
+# Standard Library
 import re
+
+# Third Party
+from loguru import logger
+
 
 class IsClassName:
     # Class-level regex pattern for valid Python class names

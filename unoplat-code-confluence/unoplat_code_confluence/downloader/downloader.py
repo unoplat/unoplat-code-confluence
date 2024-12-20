@@ -1,10 +1,6 @@
 # Standard Library
-# Standard Library
 import os
-import re  # Import regex module
-
-# Third Party
-import re  # Import regex module
+import re  # Import regex module  # Import regex module
 
 # Third Party
 import requests

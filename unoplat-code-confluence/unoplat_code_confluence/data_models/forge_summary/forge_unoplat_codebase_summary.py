@@ -5,9 +5,6 @@ from typing import Dict, Optional
 # Third Party
 from pydantic import BaseModel, Field
 
-# Third Party
-from pydantic import BaseModel, Field
-
 # First Party
 from unoplat_code_confluence.data_models.forge_summary.forge_unoplat_package_summary import DspyUnoplatPackageSummary
 

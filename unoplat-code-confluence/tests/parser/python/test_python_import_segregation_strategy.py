@@ -2,7 +2,10 @@
 import tempfile
 from pathlib import Path
 
+# Third Party
 import pytest
+
+# First Party
 from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 from unoplat_code_confluence.parser.python.python_import_segregation_strategy import PythonImportSegregationStrategy
