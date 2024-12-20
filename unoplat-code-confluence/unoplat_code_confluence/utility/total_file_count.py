@@ -6,6 +6,7 @@ import glob
 from loguru import logger
 
 
+
 class TotalFileCount:
     def __init__(self, directory, extension):
         self.directory = directory
