@@ -1,15 +1,14 @@
-import logging
 from typing import Dict, List, Set
+
+from loguru import logger
 
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 from unoplat_code_confluence.utility.is_class_name import IsClassName
 
-logger = logging.getLogger(__name__)
-
 
 class PythonNodeDependencyProcessor:
-    def process_dependencies(self, node: UnoplatChapiForgeNode, qualified_dict: Dict[str, UnoplatChapiForgeNode]) -> List['UnoplatChapiForgeNode']:
+    def process_dependencies(self, node: UnoplatChapiForgeNode, qualified_dict: Dict[str, UnoplatChapiForgeNode]) -> List[str]:
         """Process dependencies for a given node.
         
         We have internal imports with source and usage - original and alias both.
@@ -35,12 +34,17 @@ class PythonNodeDependencyProcessor:
             - For non-classes: adds only the source module path
         """
         try:
+            logger.debug("Processing dependencies for node: {}", node.node_name)
+            
             if not node.segregated_imports or ImportType.INTERNAL not in node.segregated_imports:
+                logger.debug("No internal imports found for node: {}", node.node_name)
                 return []
             
             node.dependent_internal_classes = []
             procedural_nodes: Set[str] = set()    
             internal_imports = node.segregated_imports[ImportType.INTERNAL]
+            
+            logger.debug("Found {} internal imports for node: {}", len(internal_imports), node.node_name)
             
             for imp in internal_imports:
                 if imp.usage_names:
@@ -50,16 +54,7 @@ class PythonNodeDependencyProcessor:
                                 if IsClassName.is_python_class_name(usage.original_name):
                                     # For classes, add the fully qualified name
                                     qualified_name = f"{imp.source}.{usage.original_name}"
-                                    # try:
-                                    #     class_dependent_node = qualified_dict[qualified_name]
-                                    # except KeyError:
-                                    #     logger.error(
-                                    #         f"Missing qualified name in dictionary: {qualified_name}\n"
-                                    #         f"Available qualified names: {list(qualified_dict.keys())}\n"
-                                    #         f"Current node: {node.node_name}\n"
-                                    #         f"Import source: {imp.source}"
-                                    #     )
-                                    #     continue
+                                    logger.debug("Found class dependency: {} -> {}", node.node_name, qualified_name)
                                     node.dependent_internal_classes.append(qualified_name)
                                 
                                 else:
@@ -68,34 +63,54 @@ class PythonNodeDependencyProcessor:
                                         procedural_dependent_node = qualified_dict[imp.source] #type: ignore
                                     except KeyError:
                                         logger.error(
-                                            f"Missing source module in dictionary: {imp.source}\n"
-                                            f"Available modules: {list(qualified_dict.keys())}\n"
-                                            f"Current node: {node.node_name}"
+                                            "Missing source module in dictionary: {}\n"
+                                            "Available modules: {}\n"
+                                            "Current node: {}", 
+                                            imp.source, list(qualified_dict.keys()), node.node_name
                                         )
                                         continue
                                         
                                     if procedural_dependent_node.node_name not in procedural_nodes:
+                                        logger.debug(
+                                            "Found procedural dependency: {} -> {}", 
+                                            node.node_name, procedural_dependent_node.node_name
+                                        )
                                         node.dependent_internal_classes.append(imp.source) #type: ignore
                                         procedural_nodes.add(procedural_dependent_node.node_name) #type: ignore
                                         
                             except Exception as inner_e:
                                 logger.error(
-                                    f"Error processing import usage: {usage.original_name}\n"
-                                    f"Import source: {imp.source}\n"
-                                    f"Error: {str(inner_e)}"
+                                    "Error processing import usage: {}\n"
+                                    "Import source: {}\n"
+                                    "Error: {}", 
+                                    usage.original_name, imp.source, str(inner_e)
                                 )
                                 continue
+            
+            logger.debug(
+                "Completed processing dependencies for node: {}\n"
+                "Found {} class dependencies and {} procedural dependencies",
+                node.node_name, 
+                len(node.dependent_internal_classes) - len(procedural_nodes),
+                len(procedural_nodes)
+            )
                                 
             return node.dependent_internal_classes                            
                     
         except Exception as e:
-            logger.error(
-                f"Error processing dependencies for node: {node.node_name}\n"
-                f"Node type: {node.type}\n"
-                f"Node package: {node.package}\n"
-                f"Internal imports: {internal_imports if 'internal_imports' in locals() else 'Not initialized'}\n"
-                f"Error: {str(e)}\n"
-                f"Available qualified names: {list(qualified_dict.keys())}"
+            logger.opt(exception=True).error(
+                "Error processing dependencies for node: {}\n"
+                "Node type: {}\n"
+                "Node package: {}\n"
+                "Internal imports: {}\n"
+                "Error: {}\n"
+                "Available qualified names: {}",
+                node.node_name,
+                node.type,
+                node.package,
+                internal_imports if 'internal_imports' in locals() else 'Not initialized',
+                str(e),
+                list(qualified_dict.keys())
             )
             return []
                         

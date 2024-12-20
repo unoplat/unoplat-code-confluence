@@ -8,8 +8,7 @@ from loguru import logger
 from requirements.requirement import Requirement
 
 # First Party
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_project_dependency import \
-    UnoplatProjectDependency
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_version import UnoplatVersion
 
 

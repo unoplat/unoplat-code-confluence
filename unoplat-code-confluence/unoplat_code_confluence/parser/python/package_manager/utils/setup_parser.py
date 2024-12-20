@@ -1,14 +1,13 @@
 # Standard Library
-import ast
 import os
+import ast
 from typing import Any, Dict, List, Optional, Union
 
 # Third Party
 from loguru import logger
 
 # First Party
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import \
-    UnoplatPackageManagerMetadata
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 
 class SetupParser:

@@ -4,12 +4,9 @@ from typing import Optional
 # Third Party
 from pydantic import BaseModel, Field
 
-
 # First Party
 from unoplat_code_confluence.data_models.chapi.chapi_annotation_key_val import ChapiAnnotationKeyVal
 from unoplat_code_confluence.data_models.chapi.chapi_position import Position
-
-
 
 
 class ChapiAnnotation(BaseModel):

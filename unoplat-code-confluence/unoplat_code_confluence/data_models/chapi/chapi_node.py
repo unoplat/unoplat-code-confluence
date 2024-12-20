@@ -5,12 +5,9 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 # First Party
-from unoplat_code_confluence.data_models.chapi.chapi_annotation import \
-    ChapiAnnotation
-from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import \
-    ClassGlobalFieldModel
-from unoplat_code_confluence.data_models.chapi.chapi_function import \
-    ChapiFunction
+from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
+from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
+from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
 from unoplat_code_confluence.data_models.chapi.chapi_import import ChapiImport
 from unoplat_code_confluence.data_models.chapi.chapi_position import Position
 

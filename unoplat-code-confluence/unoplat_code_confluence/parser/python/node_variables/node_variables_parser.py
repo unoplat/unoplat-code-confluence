@@ -1,10 +1,14 @@
 from typing import Dict, List, Optional
+
+from loguru import logger
 from tree_sitter import Node, TreeCursor
-from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
-from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
-from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
+
 from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation, ChapiAnnotationKeyVal
+from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
+from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
 from unoplat_code_confluence.data_models.chapi.chapi_position import Position
+from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
+
 
 # The class is responsible for parsing global and class variables that is classvar and instance variables defined in a class but outside of any functions..
 class NodeVariablesParser:
@@ -50,21 +54,21 @@ class NodeVariablesParser:
         tree = self.parser.parse(bytes(content_of_class_code, "utf8"))
         self.variables_dict = {}  # Reset for new parsing
         cursor = tree.walk()
-        print("Before class variables:", len(self.variables_dict))
+        logger.debug("Before class variables: {}", len(self.variables_dict))
         self.__traverse_class_variables(cursor)
-        print("After class variables:", len(self.variables_dict))
+        logger.debug("After class variables: {}", len(self.variables_dict))
         
         # Track seen variables to avoid duplicates
         seen_variables = {v.class_field_name for v in self.variables_dict.values()}
-        print("Seen variables:", seen_variables)
+        logger.debug("Seen variables: {}", seen_variables)
         
         # Phase 2: Parse variables from function contents
         for function in list_of_functions:
             if not function.content:
                 continue
             
-            print(f"\nProcessing function: {function.name}")
-            print("Function content:", function.content)
+            logger.debug("Processing function: {}", function.name)
+            logger.debug("Function content: {}", function.content)
             
             func_tree = self.parser.parse(bytes(function.content, "utf8"))
             func_cursor = func_tree.walk()
@@ -72,7 +76,7 @@ class NodeVariablesParser:
                 cursor=func_cursor,
                 seen_variables=seen_variables
             )
-            print("Variables after function:", len(self.variables_dict))
+            logger.debug("Variables after function: {}", len(self.variables_dict))
         
         return list(self.variables_dict.values())
 
@@ -184,7 +188,7 @@ class NodeVariablesParser:
         # Step 1: Navigate to function_definition or decorated_definition
         while cursor.node.type not in ["function_definition", "decorated_definition"]:
             if not cursor.goto_first_child():
-                print("Failed to find function/decorated definition")
+                logger.error("Failed to find function/decorated definition")
                 return
 
         # If decorated, move to the function_definition within
@@ -197,19 +201,19 @@ class NodeVariablesParser:
 
         # Step 2: Move down into the function_definition's children
         if not cursor.goto_first_child():
-            print("Failed to enter function internals")
+            logger.error("Failed to enter function internals")
             return
 
         # Step 3: Iterate siblings until we find the block node
         # The block node is the actual function body.
         while cursor.node.type != "block":
             if not cursor.goto_next_sibling():
-                print("Failed to find block")
+                logger.error("Failed to find block")
                 return
 
         # Now cursor.node is 'block', enter it
         if not cursor.goto_first_child():
-            print("Failed to enter block contents")
+            logger.error("Failed to enter block contents")
             return
 
         # Step 4: We are now inside the function body. Iterate over statements.

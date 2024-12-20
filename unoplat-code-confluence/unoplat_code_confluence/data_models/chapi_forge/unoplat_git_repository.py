@@ -5,8 +5,7 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, Field
 
 # First Party
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import \
-    UnoplatCodebase
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import UnoplatCodebase
 
 
 class UnoplatGitRepository(BaseModel):

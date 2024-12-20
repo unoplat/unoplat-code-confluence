@@ -3,7 +3,6 @@ from typing import List, Optional
 
 # Third Party
 from pydantic import BaseModel, Field
-
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 
 

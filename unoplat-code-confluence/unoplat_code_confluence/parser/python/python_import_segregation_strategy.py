@@ -2,14 +2,11 @@
 from typing import Dict, List
 
 # First Party
-
 from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import import ImportedName, UnoplatImport
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
-from unoplat_code_confluence.parser.python.utils.python_import_comment_parser import \
-    PythonImportCommentParser
-from unoplat_code_confluence.parser.python.utils.read_programming_file import \
-    ProgrammingFileReader
+from unoplat_code_confluence.parser.python.utils.python_import_comment_parser import PythonImportCommentParser
+from unoplat_code_confluence.parser.python.utils.read_programming_file import ProgrammingFileReader
 
 
 class PythonImportSegregationStrategy:

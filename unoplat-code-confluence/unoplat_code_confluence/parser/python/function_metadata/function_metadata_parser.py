@@ -1,11 +1,13 @@
-from typing import List, Optional, Dict, Tuple
+from typing import Dict, List, Optional, Tuple
+
 from tree_sitter import Node, TreeCursor
+
 from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
+from unoplat_code_confluence.data_models.chapi.chapi_function_field_model import ChapiFunctionFieldModel
 from unoplat_code_confluence.data_models.chapi.chapi_functioncall import ChapiFunctionCall
 from unoplat_code_confluence.data_models.chapi.chapi_parameter import ChapiParameter
-
-from unoplat_code_confluence.data_models.chapi.chapi_function_field_model import ChapiFunctionFieldModel
 from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
+
 
 class FunctionMetadataParser:
     def __init__(self, tree_sitter: CodeConfluenceTreeSitter):

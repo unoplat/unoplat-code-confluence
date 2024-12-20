@@ -8,8 +8,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 # First Party
-from unoplat_code_confluence.data_models.chapi.chapi_parameter import \
-    ChapiParameter
+from unoplat_code_confluence.data_models.chapi.chapi_parameter import ChapiParameter
 from unoplat_code_confluence.data_models.chapi.chapi_position import Position
 
 
