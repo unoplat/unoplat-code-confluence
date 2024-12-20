@@ -1,27 +1,23 @@
 # Standard Library
+import os
 import argparse
 import asyncio
 import datetime
-import json
-import os
 import warnings
 
 # Third Party
 from loguru import logger
 
 # First Party
-from unoplat_code_confluence.codebaseparser.arc_guard_handler import \
-    ArchGuardHandler
+from unoplat_code_confluence.codebaseparser.arc_guard_handler import ArchGuardHandler
+from unoplat_code_confluence.configuration.settings import AppSettings
 from unoplat_code_confluence.confluence_git.github_helper import GithubHelper
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import \
-    UnoplatCodebase
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_git_repository import \
-    UnoplatGitRepository
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import UnoplatCodebase
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
 from unoplat_code_confluence.downloader.downloader import Downloader
 from unoplat_code_confluence.loader.json_loader import JsonLoader
 from unoplat_code_confluence.markdownparser.markdownsummariser import MarkdownSummariser
 from unoplat_code_confluence.parser.codebase_parser import CodebaseParser
-from unoplat_code_confluence.configuration.settings import AppSettings
 
 
 async def start_pipeline():
@@ -112,12 +108,12 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
             
             # Get file extension based on programming language
             extension = await get_extension(programming_language)
-
+            codebase_path = os.path.join(codebase.local_path, codebase.name)
             # Initialize the ArchGuard handler
             archguard_handler = ArchGuardHandler(
                 jar_path=jar_path,
                 language=programming_language,
-                codebase_path=codebase.local_path,
+                codebase_path=codebase_path,
                 codebase_name=codebase.name,
                 output_path=markdown_output_path,
                 extension=extension
