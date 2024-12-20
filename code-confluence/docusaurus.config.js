@@ -5,11 +5,15 @@
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
 import {themes as prismThemes} from 'prism-react-renderer';
+import React from 'react';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Code confluence',
-  tagline: 'Powered by Unoplat',
+  tagline: 'Powered by Unoplat Technologies',
+  customFields: {
+    taglineImage: 'img/unoplat_logo.png',
+  },
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
