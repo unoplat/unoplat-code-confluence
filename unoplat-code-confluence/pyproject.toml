@@ -25,13 +25,38 @@ rich = "^13.9.2"
 neo4j = "5.19.0"
 neomodel = "^5.3.3"
 unoplat-code-confluence-commons = {git = "https://github.com/unoplat/unoplat-code-confluence.git", rev = "main", subdirectory = "unoplat-code-confluence-commons"}
+requirements-parser = "^0.5.0"
+tomlkit = "^0.13.2"
+stdlib-list = "^0.11.0"
+pytest-cov = "^6.0.0"
+gitpython = "^3.1.43"
+tree-sitter = "^0.23.2"
+tree-sitter-python = "^0.23.4"
+black = "^23.12.1"
 
 [tool.poetry.scripts]
 unoplat-code-confluence = "unoplat_code_confluence.__main__:main"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.4"
+mypy = "^1.13.0"
+types-requests = "^2.32.0.20241016"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = ["unoplat_code_confluence"]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyw?$'
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+^/docs
+'''

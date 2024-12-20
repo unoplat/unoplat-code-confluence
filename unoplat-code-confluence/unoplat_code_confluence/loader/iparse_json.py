@@ -12,3 +12,4 @@ class IParseJson(ABC):
     def parse_json_to_nodes(self, json_data: dict, local_workspace_path: str, programming_language: str) -> List[ChapiUnoplatNode]:
         """Parses JSON data into a list of Node objects."""
         pass
+

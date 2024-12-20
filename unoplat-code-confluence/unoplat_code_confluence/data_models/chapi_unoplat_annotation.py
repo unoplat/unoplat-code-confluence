@@ -14,3 +14,4 @@ class Annotation(BaseModel):
     name: Optional[str] = Field(default=None, alias="Name")
     key_values: Optional[list[ChapiUnoplatAnnotationKeyVal]] = Field(default_factory=list, alias="KeyValues")
     position: Optional[Position] = Field(default=None, alias="Position")
+

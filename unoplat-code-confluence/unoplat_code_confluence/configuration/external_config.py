@@ -62,3 +62,4 @@ class AppConfig(BaseModel):
         if len(value) != 1:
             raise ValueError("api_tokens must only contain github_token")
         return value
+

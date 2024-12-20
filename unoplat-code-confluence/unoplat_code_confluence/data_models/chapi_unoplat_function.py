@@ -23,3 +23,4 @@ class ChapiUnoplatFunction(BaseModel):
     local_variables: List[UnoplatFunctionFieldModel] = Field(default_factory=list, alias="LocalVariables")
     body_hash: Optional[int] = Field(default=None, alias="BodyHash",exclude=True)
     content: Optional[str] = Field(default=None, alias="Content")
+

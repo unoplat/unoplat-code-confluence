@@ -1,15 +1,18 @@
 # Standard Library
+# Standard Library
 from typing import Dict, Optional
 
 # Third Party
 from pydantic import BaseModel, Field
 
+# Third Party
+from pydantic import BaseModel, Field
+
 # First Party
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_package_summary import \
-    DspyUnoplatPackageSummary
+from unoplat_code_confluence.data_models.forge_summary.forge_unoplat_package_summary import DspyUnoplatPackageSummary
 
 
-class DspyUnoplatCodebaseSummary(BaseModel):
+class ForgeUnoplatCodebaseSummary(BaseModel):
     codebase_summary: Optional[str] = Field(default=None, description="A summary of the codebase")
     codebase_objective: Optional[str] = Field(default=None, description="The objective of the codebase")
     metadata: Optional[dict] = Field(default=None, description="The metadata of the codebase")

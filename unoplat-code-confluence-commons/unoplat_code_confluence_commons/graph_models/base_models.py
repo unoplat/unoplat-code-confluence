@@ -14,6 +14,10 @@ class ContainsRelationship(StructuredRel):
     """Relationship for representing containment between nodes"""
     pass
 
+class AnnotatedRelationship(StructuredRel):
+    """Relationship for representing annotation on nodes and methods"""
+    position = JSONProperty()
+
 class CallsRelationship(StructuredRel):
     """Represents a method call from one method to another."""
     parameters = JSONProperty()
