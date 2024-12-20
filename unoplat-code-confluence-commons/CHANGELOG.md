@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.3.0...unoplat-code-confluence-commons-v0.4.0) (2024-12-20)
+
+
+### Features
+
+* added comments based description to improve summarisation and query ([513c38f](https://github.com/unoplat/unoplat-code-confluence/commit/513c38fa0884b3f1a4226d82d35e39a1dc4b7932))
+* added extensible rich schema for neomodel ([2a8427e](https://github.com/unoplat/unoplat-code-confluence/commit/2a8427e7eb5dc349398d1de9edf4d7e4702841b0))
+
 ## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.2.7...unoplat-code-confluence-commons-v0.3.0) (2024-11-04)
 
 
