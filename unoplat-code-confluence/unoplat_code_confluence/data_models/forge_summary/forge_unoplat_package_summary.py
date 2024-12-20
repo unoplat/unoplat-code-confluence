@@ -1,12 +1,14 @@
 # Standard Library
+# Standard Library
 from typing import Dict, List, Optional
 
 # Third Party
 from pydantic import BaseModel, Field
+# Third Party
+from pydantic import BaseModel, Field
 
 # First Party
-from unoplat_code_confluence.data_models.dspy.dspy_unoplat_node_summary import \
-    DspyUnoplatNodeSummary
+from unoplat_code_confluence.data_models.forge_summary.forge_unoplat_node_summary import DspyUnoplatNodeSummary
 
 
 class DspyUnoplatPackageSummary(BaseModel):

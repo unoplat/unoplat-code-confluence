@@ -29,3 +29,4 @@ class ChapiUnoplatNode(BaseModel):
     position: Optional[Position] = Field(default=None, alias="Position",exclude=True)
     content: Optional[str] = Field(default=None, alias="Content",exclude=True)
     annotations: List[Annotation] = Field(default_factory=list, alias="Annotations")
+

@@ -38,8 +38,11 @@ class ArchGuardHandler:
         ]
         logger.info(f"Command: {' '.join(command)}")
         
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        
+        if process.stdout is None:
+            raise RuntimeError("Failed to open subprocess stdout")
+            
         while True:
             output = process.stdout.readline()
             logger.debug(output)

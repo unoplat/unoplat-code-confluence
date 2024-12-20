@@ -1,5 +1,7 @@
 # Standard Library
+# Standard Library
 import json
+from typing import Any
 
 # Third Party
 from loguru import logger
@@ -10,7 +12,7 @@ from unoplat_code_confluence.loader.iload_json import ILoadJson
 
 class JsonLoader(ILoadJson):
     @logger.catch
-    def load_json_from_file(self, file_path: str) -> json:
+    def load_json_from_file(self, file_path: str) -> Any:
         """
         Load JSON data from a file and return the JSON object.
 
@@ -29,7 +31,7 @@ class JsonLoader(ILoadJson):
         """
         try:
             with open(file_path, 'r') as file:
-                data = json.load(file)
+                data: Any = json.load(file)
             logger.info(f"JSON data successfully loaded from {file_path}")
             return data
         except Exception as e:
