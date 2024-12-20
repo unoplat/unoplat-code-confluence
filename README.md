@@ -1,26 +1,93 @@
-# Unoplat-CodeConfluence - Where Code Meets Clarity 
+# Unoplat-CodeConfluence - The Universal Code Context Engine
+
+## 🎯 Vision
+
+Unoplat-CodeConfluence aims to be the definitive solution for extracting, understanding, and providing precise code context across repositories and domains. By combining deterministic code grammar with state-of-the-art LLM pipelines, we achieve human-like understanding of codebases in minutes rather than months. Our graph-based architecture ensures relationships and context are preserved at every level.
+
+## 🌟 Why Unoplat-CodeConfluence?
+
+- **Precision First**: Built for deterministic and accurate code context extraction using Antlr and tree-sitter grammars
+- **AI-Powered Understanding**: Advanced LLM pipelines that comprehend code relationships and semantics just like humans based on inhouse graph based structures and parsing algorithms.
+- **Graph Intelligence**: Uses graph databases for both ingestion and querying, enabling deep contextual understanding
+- **Enterprise-Grade Reliability**: Powered by workflow orchestration for scalable and reliable processing
+- **Cross-Repository Intelligence**: Understand relationships between codebases across your domain
+- **Comprehensive Metadata**: Parse and analyze package dependencies and project configurations
+- **Integration Ready**: Designed to enhance existing AI coding tools and knowledge bases
+- **Open Source Foundation**: Built transparently with and for the developer community
 
 
-## The Ultimate Goal
+## 🤝 For Integration Partners
 
-Goal of the project is to be the most deterministic and precise code context provider for any code repository and across multiple such code repositories tied through domain and then eventually become the unified code context provider which then can be integrated with projects like OpenDevin, Devon, Danswer,
-Continue Dev and other oss , thereby complimenting the precision of these frameworks with minimal opex.
+Are you building an AI coding assistant, knowledge engine, or developer tooling? Unoplat-CodeConfluence provides:
 
+- High-precision code context API powered by graph-based retrieval
+- Cross-repository semantic understanding through LLM pipelines
+- Reduced operational complexity for context extraction
+- Ready-to-use integration with popular tools like OpenDevin, Devon, Danswer, and Continue Dev
 
-## Unoplat OSS Atlas
+## 🔍 OSS Atlas Initiative
 
-The objective of the repo below is to curate comprehensive understanding of oss repos. We are starting with oss repos that inspired us to do this work and giving them back first. Please go through readme of the below repo to get started. 
+Our [UnoplatOssAtlas](https://github.com/unoplat/unoplat-oss-atlas/tree/main) project is designed to dramatically accelerate contributor onboarding and productivity in open-source projects. By providing deep, contextual understanding of popular repositories, we help developers:
 
-[UnoplatOssAtlas](https://github.com/unoplat/unoplat-oss-atlas/tree/main)
+- **Accelerate Onboarding**: Understand complex codebases in minutes instead of months
+- **Boost Contribution Velocity**: Make meaningful contributions faster with deep contextual insights
+- **Navigate Complex Systems**: Easily understand dependencies, patterns, and architectural decisions
+- **Learn Best Practices**: Study and adopt patterns from well-established open-source projects
+
+This initiative demonstrates our commitment to:
+
+- Empowering the open-source ecosystem by reducing barriers to contribution
+- Showcasing practical applications of our context extraction capabilities
+- Supporting sustainable open-source development through better understanding and reducing time to value for oss projects.
+
+## 🚀 Getting Started
+
+Ready to enhance your development workflow? Check out our [Quick Start Guide](https://unoplat.github.io/unoplat-code-confluence/docs/quickstart/how-to-run)
 
 ## Project Status
 
 ALPHA
 
-## How to Get Started?
+### Programming Language Support
 
-[Quick Start](https://unoplat.github.io/unoplat-code-confluence/docs/quickstart/how-to-run)
+| Language | In-POC | Alpha | Beta | Stable |
+|----------|---------|-------|------|---------|
+| Python   | ✓       | ✓     | ✓    |         |
+| Java     | ✓       |       |      |         |
+| TypeScript |       |       |      |         |
+| Go       |       |       |      |         |
 
+### Tasks Status
+
+| Task                                  | Research | POC | Released |
+|---------------------------------------|----------|-----|----------|
+| Code Grammar                          | ✓        | ✓   | ✓        |
+| Integration With Workflow Orchestrator | ✓        | ✓   |          |
+| Data Modelling for Code Summarisation | ✓        | ✓   |          |
+| SOTA LLM Report based Pipelines       | ✓        | ✓   |          |
+| Data Modelling for Graph             | ✓        | ✓   |          |
+| Insertion of Graph                    | ✓        | ✓   |          |
+
+### Code Grammar
+
+#### Python
+
+| Feature                          | Beta | Stable |
+|----------------------------------|------|---------|
+| Package Parsing                  | ✓    |        |
+| Package Metadata Parsing - Poetry and PIP | ✓    |        |
+| Inheritance                      | ✓    |        |
+| Function Parsing                 | ✓    |        |
+| Class Parsing                    | ✓    |        |
+| Procedural Code Parsing          | ✓    |        |
+| Global Variable Parsing          | ✓    |        |
+| Function Call Parsing            | ✓    |        |
+| Class Variables Parsing          | ✓    |        |
+| Function Local Variable Parsing  | ✓    |        |
+| Function Return Type Parsing     | ✓    |        |
+| Figuring out dependent internal classes | ✓    |        |
+| Import Segregation              | ✓    |        |
+| Sorting functions within a class/procedure based on dependency | ✓    |        |
 
 ## Credits/heroes/supporters/Inspirations
 
@@ -48,7 +115,9 @@ These are the people because of which this work has been possible. Unoplat code 
 Book a call with us - [Cal Link](https://cal.com/jay-ghiya/15min)
   
 ## Community Channel
+
 [UnoplatCodeConfluence Discord Channel](https://discord.com/channels/1131597983058755675/1169968780953260106) 
   
 ## X handle
 [x](https://x.com/unoplatio)
+
