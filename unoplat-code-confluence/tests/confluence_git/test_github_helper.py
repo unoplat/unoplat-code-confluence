@@ -1,8 +1,8 @@
 import os
-import pytest
 import shutil
 from pathlib import Path
 
+import pytest
 from unoplat_code_confluence.configuration.settings import AppSettings
 from unoplat_code_confluence.confluence_git.github_helper import GithubHelper
 

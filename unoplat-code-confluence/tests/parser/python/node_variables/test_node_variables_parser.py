@@ -1,13 +1,10 @@
 import pytest
-from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
-from unoplat_code_confluence.parser.python.node_variables.node_variables_parser import NodeVariablesParser
 from unoplat_code_confluence.configuration.settings import ProgrammingLanguage
 from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
 from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
 from unoplat_code_confluence.data_models.chapi.chapi_parameter import ChapiParameter
-from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
-from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
-
+from unoplat_code_confluence.parser.python.node_variables.node_variables_parser import NodeVariablesParser
+from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
 
 
 @pytest.fixture
@@ -893,3 +890,196 @@ def test_procedural_code_globals(parser: NodeVariablesParser):
     ]
     for local_var in local_vars:
         assert local_var not in var_dict, f"Local variable {local_var} should not be captured"
+
+def test_api_key_globals(parser: NodeVariablesParser):
+    """Test parsing global variables from API key handling module."""
+    file_content = '''# Standard Library
+import hashlib
+import secrets
+import uuid
+from urllib.parse import quote, unquote
+
+# Third Party
+from fastapi import Request
+from passlib.hash import sha256_crypt
+from pydantic import BaseModel
+
+# First Party
+from onyx.auth.schemas import UserRole
+from onyx.configs.app_configs import API_KEY_HASH_ROUNDS
+
+_API_KEY_HEADER_NAME = "Authorization"
+_API_KEY_HEADER_ALTERNATIVE_NAME = "X-Onyx-Authorization"
+_BEARER_PREFIX = "Bearer "
+_API_KEY_PREFIX = "on_"
+_DEPRECATED_API_KEY_PREFIX = "dn_"
+_API_KEY_LEN = 192
+
+
+class ApiKeyDescriptor(BaseModel):
+    api_key_id: int
+    api_key_display: str
+    api_key: str | None = None  # only present on initial creation
+    api_key_name: str | None = None
+    api_key_role: UserRole
+
+    user_id: uuid.UUID
+
+
+def generate_api_key(tenant_id: str | None = None) -> str:
+    # For backwards compatibility, if no tenant_id, generate old style key
+    if not tenant_id:
+        return _API_KEY_PREFIX + secrets.token_urlsafe(_API_KEY_LEN)
+
+    encoded_tenant = quote(tenant_id)  # URL encode the tenant ID
+    return f"{_API_KEY_PREFIX}{encoded_tenant}.{secrets.token_urlsafe(_API_KEY_LEN)}"
+
+
+def extract_tenant_from_api_key_header(request: Request) -> str | None:
+    """Extract tenant ID from request. Returns None if auth is disabled or invalid format."""
+    raw_api_key_header = request.headers.get(
+        _API_KEY_HEADER_ALTERNATIVE_NAME
+    ) or request.headers.get(_API_KEY_HEADER_NAME)
+
+    if not raw_api_key_header or not raw_api_key_header.startswith(_BEARER_PREFIX):
+        return None
+
+    api_key = raw_api_key_header[len(_BEARER_PREFIX) :].strip()
+
+    if not api_key.startswith(_API_KEY_PREFIX) and not api_key.startswith(
+        _DEPRECATED_API_KEY_PREFIX
+    ):
+        return None
+
+    parts = api_key[len(_API_KEY_PREFIX) :].split(".", 1)
+    if len(parts) != 2:
+        return None
+
+    tenant_id = parts[0]
+    return unquote(tenant_id) if tenant_id else None
+
+
+def _deprecated_hash_api_key(api_key: str) -> str:
+    return sha256_crypt.hash(api_key, salt="", rounds=API_KEY_HASH_ROUNDS)
+
+
+def hash_api_key(api_key: str) -> str:
+    # NOTE: no salt is needed, as the API key is randomly generated
+    # and overlaps are impossible
+    if api_key.startswith(_API_KEY_PREFIX):
+        return hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+    elif api_key.startswith(_DEPRECATED_API_KEY_PREFIX):
+        return _deprecated_hash_api_key(api_key)
+    else:
+        raise ValueError(f"Invalid API key prefix: {api_key[:3]}")
+
+
+def build_displayable_api_key(api_key: str) -> str:
+    if api_key.startswith(_API_KEY_PREFIX):
+        api_key = api_key[len(_API_KEY_PREFIX) :]
+
+    return _API_KEY_PREFIX + api_key[:4] + "********" + api_key[-4:]
+
+
+def get_hashed_api_key_from_request(request: Request) -> str | None:
+    raw_api_key_header = request.headers.get(
+        _API_KEY_HEADER_ALTERNATIVE_NAME
+    ) or request.headers.get(_API_KEY_HEADER_NAME)
+    if raw_api_key_header is None:
+        return None
+
+    if raw_api_key_header.startswith(_BEARER_PREFIX):
+        raw_api_key_header = raw_api_key_header[len(_BEARER_PREFIX) :].strip()
+
+    return hash_api_key(raw_api_key_header)
+'''
+
+    global_vars = parser.parse_global_variables(file_content)
+    var_dict = {v.class_field_name: v for v in global_vars}
+
+    # Expected global variables with their properties
+    expected_globals = {
+        "_API_KEY_HEADER_NAME": {
+            "value": '"Authorization"',
+            "type": None,
+            "position": {
+                "start_line": 14,
+                "end_line": 14
+            }
+        },
+        "_API_KEY_HEADER_ALTERNATIVE_NAME": {
+            "value": '"X-Onyx-Authorization"',
+            "type": None,
+            "position": {
+                "start_line": 15,
+                "end_line": 15
+            }
+        },
+        "_BEARER_PREFIX": {
+            "value": '"Bearer "',
+            "type": None,
+            "position": {
+                "start_line": 16,
+                "end_line": 16
+            }
+        },
+        "_API_KEY_PREFIX": {
+            "value": '"on_"',
+            "type": None,
+            "position": {
+                "start_line": 17,
+                "end_line": 17
+            }
+        },
+        "_DEPRECATED_API_KEY_PREFIX": {
+            "value": '"dn_"',
+            "type": None,
+            "position": {
+                "start_line": 18,
+                "end_line": 18
+            }
+        },
+        "_API_KEY_LEN": {
+            "value": "192",
+            "type": None,
+            "position": {
+                "start_line": 19,
+                "end_line": 19
+            }
+        }
+    }
+
+    # Verify we captured all expected globals
+    assert len(var_dict) == len(expected_globals), \
+        f"Expected {len(expected_globals)} globals, got {len(var_dict)}"
+
+    # Check each global variable
+    for var_name, expected in expected_globals.items():
+        assert var_name in var_dict, f"Missing global variable: {var_name}"
+        var = var_dict[var_name]
+
+        # Check value
+        assert var.class_field_value == expected["value"], \
+            f"Wrong value for {var_name}. Expected {expected['value']}, got {var.class_field_value}"
+
+        # Check type hint
+        assert var.class_field_type == expected["type"], \
+            f"Wrong type for {var_name}. Expected {expected['type']}, got {var.class_field_type}"
+
+        # # Verify position exists and matches expected line numbers
+        # assert var.position is not None, f"Missing position for {var_name}"
+        # assert var.position.start_line == expected["position"]["start_line"], \
+        #     f"Wrong start line for {var_name}. Expected {expected['position']['start_line']}, got {var.position.start_line}"
+        # assert var.position.stop_line == expected["position"]["end_line"], \
+        #     f"Wrong end line for {var_name}. Expected {expected['position']['end_line']}, got {var.position.stop_line}"
+
+    # Verify no class variables or function-local variables were captured
+    class_and_local_vars = [
+        "ApiKeyDescriptor",  # class name
+        "api_key_id", "api_key_display", "api_key",  # class fields
+        "tenant_id", "raw_api_key_header", "api_key"  # function locals
+    ]
+    
+    for var_name in class_and_local_vars:
+        assert var_name not in var_dict, \
+            f"Should not have captured {var_name} as a global variable"

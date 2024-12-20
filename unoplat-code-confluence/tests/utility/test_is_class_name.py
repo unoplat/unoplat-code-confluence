@@ -1,6 +1,7 @@
 import pytest
 from unoplat_code_confluence.utility.is_class_name import IsClassName
 
+
 @pytest.mark.parametrize("name,expected", [
     # Valid class names (CamelCase)
     ("MyClass", True),

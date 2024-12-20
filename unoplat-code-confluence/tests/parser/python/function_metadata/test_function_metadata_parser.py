@@ -1,13 +1,14 @@
 from typing import List
-import pytest
 
+import pytest
+from unoplat_code_confluence.configuration.settings import ProgrammingLanguage
+from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
 from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction
 from unoplat_code_confluence.data_models.chapi.chapi_parameter import ChapiParameter
 from unoplat_code_confluence.data_models.chapi.chapi_position import Position
-from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation
-from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
 from unoplat_code_confluence.parser.python.function_metadata.function_metadata_parser import FunctionMetadataParser
-from unoplat_code_confluence.configuration.settings import ProgrammingLanguage
+from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
+
 
 @pytest.fixture
 def parser() -> FunctionMetadataParser:
