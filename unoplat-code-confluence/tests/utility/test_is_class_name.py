@@ -28,12 +28,10 @@ def test_is_python_class_name(name: str, expected: bool):
 def test_is_python_class_name_edge_cases():
     """Test edge cases for class name validation."""
     # None type
-    with pytest.raises(AttributeError):
-        IsClassName.is_python_class_name(None) # type: ignore
+    assert not IsClassName.is_python_class_name(None) # type: ignore
         
     # Non-string types
-    with pytest.raises(AttributeError):
-        IsClassName.is_python_class_name(123) # type: ignore
+    assert not IsClassName.is_python_class_name(123) # type: ignore
         
     # Empty string
     assert not IsClassName.is_python_class_name("")
