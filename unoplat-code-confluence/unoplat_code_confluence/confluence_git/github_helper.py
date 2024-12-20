@@ -6,14 +6,12 @@ from typing import List
 from git import Repo
 from github import Auth, Github
 
-# First Party
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import \
-    UnoplatCodebase
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_git_repository import \
-    UnoplatGitRepository
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import \
-    UnoplatPackageManagerMetadata
 from unoplat_code_confluence.configuration.settings import AppSettings, ProgrammingLanguageMetadata, RepositorySettings
+
+# First Party
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import UnoplatCodebase
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 
 class GithubHelper:
@@ -81,8 +79,11 @@ class GithubHelper:
             # Create UnoplatCodebase objects for each codebase config
             codebases: List[UnoplatCodebase] = []
             for codebase_config in repository_config.codebases:
-                # Construct local path for this codebase
-                local_path = os.path.join(repo_path, codebase_config.codebase_folder_name)
+                # Split the path and join each component properly
+                path_components = codebase_config.codebase_folder_name.split('/')
+                local_path = repo_path
+                for component in path_components:
+                    local_path = os.path.join(local_path, component)
                 
                 programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
                 # Verify the path exists
