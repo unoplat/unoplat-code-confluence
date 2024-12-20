@@ -11,27 +11,22 @@ from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel imp
 from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import \
-    UnoplatCodebase
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import import UnoplatImport
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_package import UnoplatPackage
 from unoplat_code_confluence.parser.codebase_parser_strategy import CodebaseParserStrategy
 from unoplat_code_confluence.parser.python.function_metadata.function_metadata_parser import FunctionMetadataParser
-from unoplat_code_confluence.parser.python.node_variables.node_variables_parser import NodeVariablesParser
-from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
 from unoplat_code_confluence.parser.python.in_class_dependency.sort_function_dependencies import SortFunctionDependencies
-from unoplat_code_confluence.parser.python.package_manager.package_manager_factory import \
-    PackageManagerStrategyFactory
+from unoplat_code_confluence.parser.python.node_variables.node_variables_parser import NodeVariablesParser
+from unoplat_code_confluence.parser.python.package_manager.package_manager_factory import PackageManagerStrategyFactory
 from unoplat_code_confluence.parser.python.python_extract_inheritance import PythonExtractInheritance
-from unoplat_code_confluence.parser.python.python_import_segregation_strategy import \
-    PythonImportSegregationStrategy
+from unoplat_code_confluence.parser.python.python_import_segregation_strategy import PythonImportSegregationStrategy
 from unoplat_code_confluence.parser.python.python_node_dependency_processor import PythonNodeDependencyProcessor
-from unoplat_code_confluence.parser.python.python_package_naming_strategy import \
-    PythonPackageNamingStrategy
-from unoplat_code_confluence.parser.python.python_qualified_name_strategy import \
-    PythonQualifiedNameStrategy
-
+from unoplat_code_confluence.parser.python.python_package_naming_strategy import PythonPackageNamingStrategy
+from unoplat_code_confluence.parser.python.python_qualified_name_strategy import PythonQualifiedNameStrategy
+from unoplat_code_confluence.parser.python.utils.read_programming_file import ProgrammingFileReader
+from unoplat_code_confluence.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
 
 
 class PythonCodebaseParser(CodebaseParserStrategy):
@@ -163,7 +158,8 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 
                 #TODO: enable when archguard fixes the formatting issues of code content - be it class or function
                 # The operation of generating global variables should be done once per file even if there are multiple nodes in the file
-                global_variables: List[ClassGlobalFieldModel] = self.node_variables_parser.parse_global_variables(file_path)
+                content_of_file = ProgrammingFileReader.read_file(file_path)
+                global_variables: List[ClassGlobalFieldModel] = self.node_variables_parser.parse_global_variables(content_of_file)
                 
                 # The operation of figuring out dependent class should be done once per file even if there are multiple nodes in the file
                 dependent_classes: List[UnoplatChapiForgeNode] = self.python_node_dependency_processor.process_dependencies(nodes[0], preprocessed_qualified_name_dict)
