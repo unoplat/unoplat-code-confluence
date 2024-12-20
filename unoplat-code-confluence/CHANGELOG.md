@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.15.0...unoplat-code-confluence-v0.16.0) (2024-12-20)
+
+
+### Features
+
+* add example config and enhance type checking. included robust class variables and function local variables handling ([d1d2afb](https://github.com/unoplat/unoplat-code-confluence/commit/d1d2afb68573a599d65b4358a0cbfe0be9dcb000))
+* add function call cleaning method and new tests for sorting function dependencies- Introduced a new method `__clean_function_call` in `FunctionMetadataParser` to extract just the function name from call strings.- Updated the test for local variables to reflect the change in function call value assertion.- Added new tests for sorting function dependencies, covering various scenarios including simple chains, no dependencies, and cyclic dependencies.- Created an empty `__init__.py` file in the `in_class_dependency` directory to establish the package structure. ([1a174bc](https://github.com/unoplat/unoplat-code-confluence/commit/1a174bc0deff5e7f730b905aff1464f773ac5a7f))
+* added ability to read package manager based on programming language for enhanced context starting with python ([f9a6cd2](https://github.com/unoplat/unoplat-code-confluence/commit/f9a6cd24f366fe3907d00ee9597a009479cd6d16))
+* added ability to read versions if not able to figure out from proper poetry or pip package management ([5ccbea3](https://github.com/unoplat/unoplat-code-confluence/commit/5ccbea3b3806dadd869b56801ee342cf5d29851b))
+* added ability to segregate imports and improved context based on github repo to many codebases. Also improved unoplat inhouse struct for handling imports of programming languages like python that can have multiple ways of imports being defined. ([d691bd6](https://github.com/unoplat/unoplat-code-confluence/commit/d691bd6ea5ac200205a48926d40aa664cd866a32))
+* added comments for class and function ([97fd429](https://github.com/unoplat/unoplat-code-confluence/commit/97fd429126ccbd72783fe1525e8d698b8cd6cd28))
+* added parameters as part of function chapi metadata which was missing and added default value if parameter has been assigned default value ([4cf6294](https://github.com/unoplat/unoplat-code-confluence/commit/4cf6294307935a76ad249fddd238e6625de4ef44))
+* added parsing and consolidating imports through ast and filling in unique imports in chapi struct as chapi is ambiguos right now ([03bd901](https://github.com/unoplat/unoplat-code-confluence/commit/03bd901154754fd83430f3ba859b7f00eb351868))
+* added reference to package manager metadata from source codebase data model ([cc246fd](https://github.com/unoplat/unoplat-code-confluence/commit/cc246fd8937f24846eac4a5b0ecf0a96848cc1e2))
+* added requirement_utils ([8991012](https://github.com/unoplat/unoplat-code-confluence/commit/89910122c06430cb8cf766954e28813adb91252d))
+* added stdlist module to figure out system modules of python ([d4c5671](https://github.com/unoplat/unoplat-code-confluence/commit/d4c56719706f13a0bbb25f52a15b8ac2092c6159))
+* added support for pip ([5c9a5f2](https://github.com/unoplat/unoplat-code-confluence/commit/5c9a5f222ba488b87a80484a477c4ce81cc7d312))
+* Added support for qualified names of packages ([6018817](https://github.com/unoplat/unoplat-code-confluence/commit/6018817151eff03305a3f16ba75641a70fd0e4c3))
+* added support for repo name and repo url as metadata ([f6577a7](https://github.com/unoplat/unoplat-code-confluence/commit/f6577a7cedf970e1737daf51ef251126d5be61ed))
+* added support for system import reading ([177f9ff](https://github.com/unoplat/unoplat-code-confluence/commit/177f9fff763f1fe912bea8b86e85bf6055fb729e))
+* enabled qualified name while parsing classes and better structure for custom language things ([8f6faeb](https://github.com/unoplat/unoplat-code-confluence/commit/8f6faeba5850484dc9c0007a297a8c683c330a94))
+* enhance Python parsing with tree-sitter, new metadata parsers, dependency sorting, refactoring, and robust unit tests ([bd9bec6](https://github.com/unoplat/unoplat-code-confluence/commit/bd9bec6ec4d854a8dd9bcc6efa08de391ab3390e))
+* introduce new data models and refactor existing ones for enhanced codebase management and import handling- Added new data models under `chapi_forge` for better organization and handling of codebases, repositories, and package metadata.- Refactored existing models to improve clarity and maintainability, including renaming and restructuring imports.- Introduced unit tests for `GithubHelper` to ensure proper functionality when cloning repositories.- Created an empty `__init__.py` file to establish the `confluence_git` package.- Updated main application logic to utilize the new data models and improve overall code structure. ([4440955](https://github.com/unoplat/unoplat-code-confluence/commit/444095510b15ddb9df06eb20a04d76a101b897a7))
+* moved to requirements-parser lib for parsing requirements file making the implementation more robust ([efe5c54](https://github.com/unoplat/unoplat-code-confluence/commit/efe5c549412674015b4a8c3c77a850fc19e4ae0f))
+* revamped entire code to do programming language related custom processing with ease and implemented external dependency parsing ([501ff7c](https://github.com/unoplat/unoplat-code-confluence/commit/501ff7c443946d0883578b5e1c04ded97a8b9347))
+* segregated secrets and normal json config through base model and base settings of pydantic and a class to handle them both ([c23c9f1](https://github.com/unoplat/unoplat-code-confluence/commit/c23c9f1468a498fa3dab81bc126d8ac2b146ddee))
+* update dependencies and enhance code structureAdded black (v23.12.1) and pathspec (v0.12.1) for formatting and path matching.Updated pyproject.toml and ruff.toml with enhanced configurations.Added debug_tree_sitter_content.py for AST analysis.Refactored data models for clarity (e.g., renamed fields in chapi_class_global_fieldmodel and chapi_function_field_model).Improved NodeVariablesParser logic and added class name utility.Updated tests for new features and robustness. ([b24403a](https://github.com/unoplat/unoplat-code-confluence/commit/b24403a57b3385aabb2e31b9cfb2e84295fb57a0))
+* update linting rules, refactor tests, add class name validator, and enhance dependency error handling ([1f4e370](https://github.com/unoplat/unoplat-code-confluence/commit/1f4e3704c85300cec213a83daada67af49eb0dbe))
+* upgraded arcguard to 2.2.3 ([1b865c4](https://github.com/unoplat/unoplat-code-confluence/commit/1b865c40cfae895ebdd0cb298b54b52c252a8124))
+* upgraded upstream archguard to 2.2.7 which fixes parameters of functions and function calls ([d6f2b3c](https://github.com/unoplat/unoplat-code-confluence/commit/d6f2b3c4109a93fe6da156073ba1acf5439fae41))
+
+
+### Bug Fixes
+
+* handle different types of setup scripts in setup.py ([dd30032](https://github.com/unoplat/unoplat-code-confluence/commit/dd30032ce059668673af686f61db15fee05ab921))
+* handle multi path for codebases inside monorepo ([b2a754a](https://github.com/unoplat/unoplat-code-confluence/commit/b2a754a64521f761280a2ec2c81339194693d3f2))
+* only pass root package for parsing ([19b1345](https://github.com/unoplat/unoplat-code-confluence/commit/19b1345065582c9ea3669737f3dbf7bed752a80b))
+* pass content of file to parse global variables ([9eee27c](https://github.com/unoplat/unoplat-code-confluence/commit/9eee27c10345f4cae99196c7b64ad4a0171fb59d))
+* read/parse poetry better ([49cd0a8](https://github.com/unoplat/unoplat-code-confluence/commit/49cd0a88f1f88970892a4592209904f4609e055f))
+* removed redundant field ([749d054](https://github.com/unoplat/unoplat-code-confluence/commit/749d05472db51ea497cde9048209cfa60f8b2cf3))
+* support falling back to explicit python version from user if not mentioned in setup.py(pip) or poetry config ([7613f5a](https://github.com/unoplat/unoplat-code-confluence/commit/7613f5a55ebb9cd360cddc78a503e62f23a91873))
+
 ## [0.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.14.0...unoplat-code-confluence-v0.15.0) (2024-11-04)
 
 
