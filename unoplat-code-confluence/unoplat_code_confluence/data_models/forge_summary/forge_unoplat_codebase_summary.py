@@ -3,7 +3,6 @@
 from typing import Dict, Optional
 
 # Third Party
-# Third Party
 from pydantic import BaseModel, Field
 
 # First Party

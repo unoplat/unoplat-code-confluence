@@ -1,4 +1,7 @@
+# Third Party
 import pytest
+
+# First Party
 from unoplat_code_confluence.utility.is_class_name import IsClassName
 
 

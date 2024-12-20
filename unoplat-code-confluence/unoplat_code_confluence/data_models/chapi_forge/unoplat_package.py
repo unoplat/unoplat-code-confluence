@@ -3,12 +3,10 @@
 from typing import Dict, List, Optional
 
 # Third Party
-# Third Party
 from pydantic import BaseModel, Field
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 
 # First Party
-
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 
 
 class UnoplatPackage(BaseModel):

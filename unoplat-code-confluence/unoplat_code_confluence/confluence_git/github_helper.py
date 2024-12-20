@@ -6,9 +6,8 @@ from typing import List
 from git import Repo
 from github import Auth, Github
 
-from unoplat_code_confluence.configuration.settings import AppSettings, ProgrammingLanguageMetadata, RepositorySettings
-
 # First Party
+from unoplat_code_confluence.configuration.settings import AppSettings, ProgrammingLanguageMetadata, RepositorySettings
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_codebase import UnoplatCodebase
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata

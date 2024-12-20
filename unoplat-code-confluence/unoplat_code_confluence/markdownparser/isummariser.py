@@ -1,5 +1,4 @@
 # Standard Library
-# Standard Library
 from abc import ABC, abstractmethod
 
 # First Party
