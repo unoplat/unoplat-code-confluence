@@ -64,9 +64,11 @@ ALPHA
 | Code Grammar                          | ✓        | ✓   | ✓        |
 | Integration With Workflow Orchestrator | ✓        | ✓   |          |
 | Data Modelling for Code Summarisation | ✓        | ✓   |          |
-| SOTA LLM Report based Pipelines       | ✓        | ✓   |          |
+| SOTA LLM Pipelines For Code Grammar Summarisation/Reports       | ✓        | ✓   |          |
 | Data Modelling for Graph             | ✓        | ✓   |          |
-| Insertion of Graph                    | ✓        | ✓   |          |
+| Insertion into Graph Database                   | ✓        | ✓   |          |
+| GraphRag based Query Integration Layer                  | ✓        |    |          |
+
 
 ### Code Grammar
 
