@@ -1,9 +1,10 @@
-import pytest
 from typing import List, Optional
 
+import pytest
 from unoplat_code_confluence.data_models.chapi.chapi_functioncall import ChapiFunctionCall
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
 from unoplat_code_confluence.parser.python.in_class_dependency.sort_function_dependencies import SortFunctionDependencies
+
 
 @pytest.fixture
 def sort_dependencies() -> SortFunctionDependencies:
