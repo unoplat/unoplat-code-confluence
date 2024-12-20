@@ -1,7 +1,10 @@
+# Standard Library
 from typing import Dict, List, Set
 
+# Third Party
 from loguru import logger
 
+# First Party
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_import_type import ImportType
 from unoplat_code_confluence.utility.is_class_name import IsClassName

@@ -1,6 +1,10 @@
+# Standard Library
 from typing import Any, Dict, List, Optional
 
+# Third Party
 from pydantic import Field
+
+# First Party
 from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 from unoplat_code_confluence.data_models.chapi.chapi_node import ChapiNode
 from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction

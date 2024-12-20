@@ -1,8 +1,5 @@
 # Standard Library
-# Standard Library
 import os
-
-# Third Party
 import re  # Import regex module  # Import regex module
 
 # Third Party
