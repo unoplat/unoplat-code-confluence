@@ -2,7 +2,7 @@
   "repositories": [
     {
       "git_url": "https://github.com/unoplat/unoplat-code-confluence",
-      "markdown_output_path": "/Users/jayghiya/Documents/unoplat",
+      "output_path": "/Users/jayghiya/Documents/unoplat",
       "codebases": [
         {
           "codebase_folder_name": "unoplat-code-confluence",

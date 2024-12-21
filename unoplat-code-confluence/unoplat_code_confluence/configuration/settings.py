@@ -38,7 +38,7 @@ class CodebaseConfig(BaseModel):
 
 class RepositorySettings(BaseModel):
     git_url: str
-    markdown_output_path: str
+    output_path: str
     codebases: List[CodebaseConfig]
 
 class ArchGuardConfig(BaseModel):
