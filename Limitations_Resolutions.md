@@ -27,4 +27,4 @@ Upstream Issue Tracking: [Issue](https://github.com/phodal/chapi/issues/34)
 
 Upstream Issue Tracking: [Issue](https://github.com/phodal/chapi/issues/32)
 
-- We have poc which use tree sitter to capture this at node level but they are waiting on [issue](https://github.com/archguard/archguard/issues/159). 
+- We have a poc which uses tree sitter to capture this at node level but they are waiting on [issue](https://github.com/archguard/archguard/issues/159). 
