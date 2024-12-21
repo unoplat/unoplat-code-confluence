@@ -6,28 +6,42 @@ sidebar_position: 2
 
 Welcome to **Unoplat Code Confluence**
 
+:::info Current Status
+Unoplat Code Confluence currently supports Python codebases and is in alpha stage. We're actively working on expanding language support and features.
+:::
+
 ## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
 3. [Installation](#installation)
-4. [Troubleshooting](#troubleshooting)
+4. [Configuration](#configuration)
+5. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
-**Unoplat Code Confluence** currently supports python codebases. It is currently in alpha stage and we are working on adding support for more codebases and features. The current version supports parsing codebases and exporting a json representation of code graph. For more details on upcoming features, vision, deep dive please check out [vision](/docs/deep-dive/vision), [roadmap](/docs/deep-dive/roadmap) and [How-It-Works](/docs/deep-dive/how-it-works) respectively.
+The current version supports parsing codebases and exporting a JSON representation of code graph. For more details, check out:
+- [📘 Vision](/docs/deep-dive/vision)
 
 ## Prerequisites
 
 ### Codebase Requirements
 
-Currently unoplat code confluence supports python codebases till 3.11 (due to dependency on isort). To support features like segregating imports and figuring out internal dependencies code confluence relies on [ruff](https://docs.astral.sh/ruff/) and [isort](https://pycqa.github.io/isort/) ecosystem.
+:::caution Version Limitation
+Currently supports Python codebases up to 3.11 (due to dependency on isort)
+:::
 
-Here are the configurations that are required to be set in codebase:
+Code Confluence relies on two powerful tools for import segregation and dependency analysis:
+- [🔍 Ruff](https://docs.astral.sh/ruff/) - For code analysis
+- [🔄 isort](https://pycqa.github.io/isort/) - For import organization
 
-#### 1. ruff.toml
+### Required Configurations
 
-```toml
+#### 1. Ruff Configuration
+
+Create a `ruff.toml` file in your project root:
+
+```toml title="ruff.toml"
 target-version = "py311"
 
 exclude = [
@@ -59,38 +73,46 @@ combine-as-imports = true
 force-to-top = ["os","sys"]
 ```
 
-Then run ruff on cli with:
+
+
+Run Ruff with:
 
 ```bash
 ruff check --fix . --unsafe-fixes
 ```
 
-#### 2. Isort Configuration (.isort.cfg)
+#### 2. isort Configuration
 
-```ini
+Create an `.isort.cfg` file:
+
+```ini title=".isort.cfg"
 [settings]
 known_third_party = "Include third party dependencies here"
 import_heading_stdlib = Standard Library
 import_heading_thirdparty = Third Party
 import_heading_firstparty = First Party
 import_heading_localfolder = Local 
-py_version = 311  # For Python 3.12
+py_version = 311
 line_length = 500
 ```
 
-Then run isort on cli with:
+Run isort with:
 
 ```bash
 isort . --python-version 311
 ```
 
+:::note
+This configuration is temporary for the alpha version and will be automated in future releases.
+:::
+
 ### Installation Requirements
 
-Before you begin, ensure you have the following installed on your system:
+Before starting, install these tools:
 
-- [PyEnv](https://github.com/pyenv/pyenv)
-- [Pipx](https://github.com/pypa/pipx) 
-- [Poetry](https://python-poetry.org/) 
+- [🐍 PyEnv](https://github.com/pyenv/pyenv) - Python version manager
+- [📦 Pipx](https://github.com/pypa/pipx) - Python app installer
+- [🎭 Poetry](https://python-poetry.org/) - Dependency manager
 
 ```bash
 pipx install poetry
@@ -105,9 +127,9 @@ pyenv install 3.12.1
 pyenv global 3.12.1
 ```
 
-### 2. Install Unoplat Code Confluence
+### 2. Install Code Confluence
 
-```bash
+```bash title="Install latest version"
 pipx install --python $(pyenv which python) 'git+https://github.com/unoplat/unoplat-code-confluence.git@unoplat-code-confluence-v0.17.0#subdirectory=unoplat-code-confluence'
 ```
 
@@ -115,33 +137,46 @@ pipx install --python $(pyenv which python) 'git+https://github.com/unoplat/unop
 
 ### JSON Configuration
 
-#### Configuration Fields
+:::tip
+All configuration fields support environment variable overrides using the `UNOPLAT_` prefix.
+:::
 
-1. **repositories** (Required): Array of repositories to analyze
-   - `git_url`: URL of the Git repository
-   - `output_path`: Local directory where analysis results will be stored
-   - `codebases`: Array of codebases within the repository
-     - `codebase_folder_name`: Name of the folder containing the codebase
-     - `root_package_name`: Root package name (optional for some languages)
-     - `programming_language_metadata`: Language-specific configuration
-       - `language`: Programming language (currently supports "python")
-       - `package_manager`: Package manager type ("poetry" or "pip")
-       - `language_version`: Version of the programming language
+#### Required Fields
 
-2. **archguard** (Required): Configuration for ArchGuard tool
-   - `download_url`: URL to download ArchGuard from
-   - `download_directory`: Local directory to store ArchGuard
+<details>
+<summary><b>repositories</b>: Array of repositories to analyze</summary>
 
-3. **logging_handlers** (Required): Array of logging configurations
-   - `sink`: Log file path
-   - `format`: Log message format
-   - `rotation`: Log file rotation size
-   - `retention`: Log retention period
-   - `level`: Logging level
+- `git_url`: Repository URL
+- `output_path`: Analysis output directory
+- `codebases`: Array of codebase configurations
+  - `codebase_folder_name`: Codebase directory name
+  - `root_package_name`: Root package name
+  - `programming_language_metadata`: Language config
+    - `language`: Programming language
+    - `package_manager`: Package manager type
+    - `language_version`: Language version
+</details>
+
+<details>
+<summary><b>archguard</b>: ArchGuard tool configuration</summary>
+
+- `download_url`: ArchGuard download URL
+- `download_directory`: Local storage directory
+</details>
+
+<details>
+<summary><b>logging_handlers</b>: Logging configuration</summary>
+
+- `sink`: Log file path
+- `format`: Log message format
+- `rotation`: Log rotation size
+- `retention`: Log retention period
+- `level`: Logging level
+</details>
 
 #### Example Configuration
 
-```json
+```json title="config.json"
 {
   "repositories": [
     {
@@ -178,9 +213,9 @@ pipx install --python $(pyenv which python) 'git+https://github.com/unoplat/unop
 
 ### Environment Variables
 
-Create a `.env.dev` file where you intend to run the project:
+Create a `.env.dev` file:
 
-```env
+```env title=".env.dev"
 UNOPLAT_ENV=dev
 UNOPLAT_DEBUG=true 
 UNOPLAT_GITHUB_TOKEN=Your_Github_Pat_Token
@@ -193,4 +228,16 @@ unoplat-code-confluence --config /path/to/your/config.json
 ```
 
 ## Troubleshooting
+
+:::danger Common Issues
+If you encounter any issues, please check:
+1. Python version compatibility
+2. Environment variable configuration
+3. JSON configuration syntax
+4. For Code Grammar issues please check out current issues and possible resolutions on [GitHub](https://github.com/unoplat/unoplat-code-confluence/) page.
+:::
+
+
+
+For more help, visit our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page or join our [Discord](https://discord.com/channels/1131597983058755675/1169968780953260106) community.
 
