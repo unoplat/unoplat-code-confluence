@@ -1,8 +1,8 @@
 {
-  "label": "Code Confluence Roadmap",
+  "label": "Code Confluence Introduction",
   "position": 3,
   "link": {
     "type": "generated-index",
-    "description": "This will cover the roadmap for Unoplat Code Confluence and deep dive into the architecture"
+    "description": "This will cover the vision,roadmap  and how-it-works for Unoplat Code Confluence."
   }
 }
