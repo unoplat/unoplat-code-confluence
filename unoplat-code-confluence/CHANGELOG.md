@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.16.0...unoplat-code-confluence-v0.17.0) (2024-12-21)
+
+
+### Features
+
+* made config as per current progress ([9a315d1](https://github.com/unoplat/unoplat-code-confluence/commit/9a315d11ece4c361d1b489d8442d66f8b177b124))
+
+
+### Bug Fixes
+
+* changed the name of output path to not tie it with extension of file ([35e6675](https://github.com/unoplat/unoplat-code-confluence/commit/35e667580736bcdc7f4c0d7132972599a4ec7e90))
+
 ## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.15.0...unoplat-code-confluence-v0.16.0) (2024-12-20)
 
 
