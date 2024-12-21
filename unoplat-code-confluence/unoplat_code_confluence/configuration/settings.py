@@ -38,7 +38,7 @@ class CodebaseConfig(BaseModel):
 
 class RepositorySettings(BaseModel):
     git_url: str
-    markdown_output_path: str
+    output_path: str
     codebases: List[CodebaseConfig]
 
 class ArchGuardConfig(BaseModel):
@@ -53,6 +53,10 @@ class DatabaseConfig(BaseModel):
     name: DatabaseType
     uri: str
 
+class DatabaseSettings(BaseModel):
+    host: str
+    port: int
+
 # Environment Settings (BaseSettings for environment variables)
 class EnvironmentSettings(BaseSettings):
     """Environment variables and secrets"""
@@ -62,7 +66,8 @@ class EnvironmentSettings(BaseSettings):
         env_file_encoding='utf-8',
         case_sensitive=True,
         extra='ignore',  # Ignore extra fields
-        populate_by_name=True
+        populate_by_name=True,
+        env_parse_none_str=None  # Changed from list to None to fix type error
     )
 
     # Environment
@@ -74,16 +79,16 @@ class EnvironmentSettings(BaseSettings):
         default=...,
         alias="GITHUB_TOKEN"
     )
-    llm_api_key: str = Field(
-        default=...,
+    llm_api_key: Optional[str] = Field(
+        default=None,
         alias="LLM_API_KEY"
     )
-    neo4j_username: str = Field(
-        default=...,
+    neo4j_username: Optional[str] = Field(
+        default=None,
         alias="NEO4J_USERNAME"
     )
-    neo4j_password: str = Field(
-        default=...,
+    neo4j_password: Optional[str] = Field(
+        default=None,
         alias="NEO4J_PASSWORD"
     )
 
@@ -109,10 +114,10 @@ class AppConfig(BaseModel):
     repositories: List[RepositorySettings]
     archguard: ArchGuardConfig
     logging_handlers: List[Dict[str, Any]]
-    llm_provider_config: LLMProviderConfig
-    databases: List[DatabaseConfig]
-    json_output: bool = False
-    sentence_transformer_model: str = "jinaai/jina-embeddings-v3"
+    llm_provider_config: Optional[LLMProviderConfig] = None
+    databases: Optional[List[DatabaseConfig]] = None
+    json_output: Optional[bool] = None
+    sentence_transformer_model: Optional[str] = None
 
     @classmethod
     def load(cls, config_path: Optional[str] = None) -> "AppConfig":
@@ -157,6 +162,8 @@ class AppSettings:
 
     @property
     def databases(self) -> List[DatabaseConfig]:
+        if self.config.databases is None:
+            return []  # Return empty list instead of None
         return self.config.databases
 
     @classmethod
