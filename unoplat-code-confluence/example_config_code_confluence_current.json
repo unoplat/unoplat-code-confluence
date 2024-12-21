@@ -20,19 +20,6 @@
     "download_url": "archguard/archguard",
     "download_directory": "/Users/jayghiya/Documents/unoplat"
   },
-  "databases": [
-    {
-      "name": "neo4j",
-      "uri": "bolt://localhost:7687"
-    }
-  ],
-  "llm_provider_config": {
-    "llm_model_provider": "openai/gpt-4o-mini",
-    "llm_model_provider_args": {
-      "max_tokens": 500,
-      "temperature": 0.0
-    }
-  },
   "logging_handlers": [
     {
       "sink": "~/Documents/unoplat/app.log",
@@ -41,7 +28,5 @@
       "retention": "10 days",
       "level": "DEBUG"
     }
-  ],
-  "json_output": false,
-  "sentence_transformer_model": "jinaai/jina-embeddings-v3"
+  ]
 }

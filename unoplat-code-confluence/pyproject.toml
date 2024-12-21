@@ -50,13 +50,3 @@ build-backend = "poetry.core.masonry.api"
 pythonpath = ["unoplat_code_confluence"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-
-[tool.black]
-line-length = 88
-target-version = ['py39']
-include = '\.pyw?$'
-extend-exclude = '''
-# A regex preceded with ^/ will apply only to files and directories
-# in the root of the project.
-^/docs
-'''
