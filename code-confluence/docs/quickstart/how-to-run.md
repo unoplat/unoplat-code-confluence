@@ -22,8 +22,6 @@ Unoplat Code Confluence currently supports Python codebases and is in alpha stag
 
 The current version supports parsing codebases and exporting a JSON representation of code graph. For more details, check out:
 - [📘 Vision](/docs/deep-dive/vision)
-- [🗺️ Roadmap](/docs/deep-dive/roadmap)
-- [⚙️ How It Works](/docs/deep-dive/how-it-works)
 
 ## Prerequisites
 
@@ -75,9 +73,7 @@ combine-as-imports = true
 force-to-top = ["os","sys"]
 ```
 
-:::note
-This configuration is temporary for the alpha version and will be automated in future releases.
-:::
+
 
 Run Ruff with:
 
@@ -105,6 +101,10 @@ Run isort with:
 ```bash
 isort . --python-version 311
 ```
+
+:::note
+This configuration is temporary for the alpha version and will be automated in future releases.
+:::
 
 ### Installation Requirements
 
@@ -234,7 +234,10 @@ If you encounter any issues, please check:
 1. Python version compatibility
 2. Environment variable configuration
 3. JSON configuration syntax
+4. For Code Grammar issues please check out current issues and possible resolutions on [GitHub](https://github.com/unoplat/unoplat-code-confluence/) page.
 :::
 
-For more help, visit our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page.
+
+
+For more help, visit our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page or join our [Discord](https://discord.com/channels/1131597983058755675/1169968780953260106) community.
 
