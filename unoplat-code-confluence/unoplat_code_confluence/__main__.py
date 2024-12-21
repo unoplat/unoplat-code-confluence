@@ -93,7 +93,7 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
     for index, repository in enumerate(app_settings.config.repositories):
         logger.info(f"Processing repository: {repository.git_url}")
         github_repository: UnoplatGitRepository = github_helper.clone_repository(repository)
-        markdown_output_path = repository.markdown_output_path
+        output_path = repository.output_path
         
         # Process each codebase in the repository
         for codebase_index, codebase in enumerate(github_repository.codebases):
@@ -103,7 +103,7 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
             programming_language = codebase.package_manager_metadata.programming_language #type: ignore
             
             logger.info(f"Programming Language: {programming_language}")
-            logger.info(f"Output Path: {repository.markdown_output_path}")
+            logger.info(f"Output Path: {repository.output_path}")
             logger.info(f"Codebase Name: {codebase.name}")
             
             # Get file extension based on programming language
@@ -115,7 +115,7 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
                 language=programming_language,
                 codebase_path=codebase_path,
                 codebase_name=codebase.name,
-                output_path=markdown_output_path,
+                output_path=output_path,
                 extension=extension
             )
             
@@ -140,7 +140,7 @@ async def start_parsing(app_settings: AppSettings, iload_json: JsonLoader, codeb
             )
             
             # Write JSON output to file
-            json_output_path = os.path.join(repository.markdown_output_path, output_filename)
+            json_output_path = os.path.join(repository.output_path, output_filename)
             os.makedirs(os.path.dirname(json_output_path), exist_ok=True)
             
             with open(json_output_path, 'w', encoding='utf-8') as json_file:
