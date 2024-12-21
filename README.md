@@ -16,9 +16,9 @@ Unoplat-CodeConfluence aims to be the definitive solution for extracting, unders
 - **Open Source Foundation**: Built transparently with and for the developer community
 
 
-## 🤝 For Integration Partners
+## 🤝 For Knowledge Engine and AI  Coding Assistants' Integration Partners
 
-Are you building an AI coding assistant, knowledge engine, or developer tooling? Unoplat-CodeConfluence provides:
+ Unoplat-CodeConfluence provides:
 
 - High-precision code context API powered by graph-based retrieval
 - Cross-repository semantic understanding through LLM pipelines
@@ -72,22 +72,25 @@ ALPHA
 
 #### Python
 
-| Feature                          | Beta | Stable |
-|----------------------------------|------|---------|
-| Package Parsing                  | ✓    |        |
-| Package Metadata Parsing - Poetry and PIP | ✓    |        |
-| Inheritance                      | ✓    |        |
-| Function Parsing                 | ✓    |        |
-| Class Parsing                    | ✓    |        |
-| Procedural Code Parsing          | ✓    |        |
-| Global Variable Parsing          | ✓    |        |
-| Function Call Parsing            | ✓    |        |
-| Class Variables Parsing          | ✓    |        |
-| Function Local Variable Parsing  | ✓    |        |
-| Function Return Type Parsing     | ✓    |        |
-| Figuring out dependent internal classes | ✓    |        |
-| Import Segregation              | ✓    |        |
-| Sorting functions within a class/procedure based on dependency | ✓    |        |
+| Feature                          | Beta | Stable | Limitations |
+|----------------------------------|------|---------|-------------|
+| Package Parsing                  | ✓    |        |             |
+| Package Metadata Parsing - Poetry and PIP | ✓    |        |             |
+| Inheritance                      | ✓    |        |             |
+| Function Parsing                 | ✓    |        |             |
+| Class Parsing                    | ✓    |        |             |
+| Procedural Code Parsing          | ✓    |        |             |
+| Global Variable Parsing          | ✓    |        |             |
+| Function Call Parsing            | ✓    |        | Certain function calls are not detected. |
+| Class Variables/Instance Variables Parsing          | ✓    |        |Not available per class/procedure.  But available per function across functions.             |
+| Function Local Variable Parsing  | ✓    |        |             |
+| Function Return Type Parsing     | ✓    |        | Return type is not captured properly. |
+| Figuring out dependent internal classes | ✓    |        |             |
+| Import Segregation              | ✓    |        |             |
+| Sorting functions within a class/procedure based on dependency | ✓    |        | Circular dependencies/recursion will not work as topological sort is used. |
+
+Note: For detailed limitations and resolutions that we are working towards refer to [Limitations_Resolutions.md](Limitations_Resolutions.md)
+
 
 ## Credits/heroes/supporters/Inspirations
 
