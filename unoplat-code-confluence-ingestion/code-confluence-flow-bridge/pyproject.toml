@@ -1,0 +1,12 @@
+[project]
+name = "Code-Confluence-Flow-Bridge"
+version = "0.1.0"
+description = "Bridge between Code Confluence User and Ingestion Workflow" 
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]>=0.115.6",
+    "pydantic-settings>=2.7.0",
+    "pydantic>=2.10.4",
+] 
+# Specify source directory
