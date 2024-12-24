@@ -1,16 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
+from src.code_confluence_flow_bridge.models.configuration.settings import AppConfig
 from temporalio.client import Client
 import asyncio
 
 app = FastAPI(title="Code Confluence Flow Bridge")
 
-class DraftConfiguration(BaseModel):
-    workflow_id: str = Field(..., description="Unique identifier for the workflow")
-    task_queue: str = Field(..., description="Task queue name for the workflow")
-    configuration: Dict[str, Any] = Field(..., description="Configuration parameters for the workflow")
-    metadata: Optional[Dict[str, str]] = Field(default=None, description="Optional metadata for the workflow")
 
 async def get_temporal_client() -> Client:
     """Create and return a Temporal client instance."""
@@ -18,10 +14,10 @@ async def get_temporal_client() -> Client:
     client = await Client.connect("localhost:7233")
     return client
 
-@app.post("/drafts", status_code=201)
-async def create_draft(config: DraftConfiguration):
+@app.post("/start-ingestion", status_code=201)
+async def start_ingestion(config: AppConfig):
     """
-    Create a new draft configuration and submit it to Temporal workflow.
+    Start the ingestion workflow.
     """
     try:
         # Get temporal client
@@ -38,7 +34,7 @@ async def create_draft(config: DraftConfiguration):
 
         return {
             "status": "success",
-            "message": "Draft configuration submitted successfully",
+            "message": "Ingestion workflow started successfully",
             "workflow_id": config.workflow_id
         }
     
