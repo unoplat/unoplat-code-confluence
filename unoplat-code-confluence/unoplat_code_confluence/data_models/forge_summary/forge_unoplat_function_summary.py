@@ -3,10 +3,9 @@ from typing import List, Optional
 
 # Third Party
 from pydantic import Field
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
 
 # First Party
-
+from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
 
 
 class DspyUnoplatFunctionSummary(UnoplatChapiForgeFunction):

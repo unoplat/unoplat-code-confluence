@@ -1,8 +1,11 @@
+# Standard Library
 from typing import Dict, List, Optional
 
+# Third Party
 from loguru import logger
 from tree_sitter import Node, TreeCursor
 
+# First Party
 from unoplat_code_confluence.data_models.chapi.chapi_annotation import ChapiAnnotation, ChapiAnnotationKeyVal
 from unoplat_code_confluence.data_models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 from unoplat_code_confluence.data_models.chapi.chapi_function import ChapiFunction

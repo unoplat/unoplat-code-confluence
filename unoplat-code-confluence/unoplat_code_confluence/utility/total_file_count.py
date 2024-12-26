@@ -1,10 +1,9 @@
 # Standard Library
-import os
 import glob
+import os
 
 # Third Party
 from loguru import logger
-
 
 
 class TotalFileCount:
