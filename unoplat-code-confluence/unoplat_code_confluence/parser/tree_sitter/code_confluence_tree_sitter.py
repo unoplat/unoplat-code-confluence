@@ -1,6 +1,8 @@
-import tree_sitter_python  #type: ignore
+# Third Party
+import tree_sitter_python  # type: ignore
 from tree_sitter import Language, Parser
 
+# First Party
 from unoplat_code_confluence.configuration.settings import ProgrammingLanguage
 
 

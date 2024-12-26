@@ -4,82 +4,200 @@ sidebar_position: 2
 
 # Quick Start Guide
 
-Welcome to **Unoplat Code Confluence**! This guide will help you quickly set up and start using our platform to enhance your codebase management and collaboration.
+Welcome to **Unoplat Code Confluence**
+
+:::info Current Status
+Unoplat Code Confluence currently supports Python codebases and is in alpha stage. We're actively working on expanding language support and features.
+:::
 
 ## Table of Contents
 
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
-3. [1. Graph Database Setup](#1-graph-database-setup)
-   - [Installation](#installation)
-4. [2. Generate Summary and Ingest Codebase](#2-generate-summary-and-ingest-codebase)
-   - [Ingestion Configuration](#ingestion-configuration)
-   - [Run the Unoplat Code Confluence Ingestion Utility](#run-the-unoplat-code-confluence-ingestion-utility)
-5. [3. Setup Chat Interface](#3-setup-chat-interface)
-   - [Query Engine Configuration](#query-engine-configuration)
-   - [Launch Query Engine](#launch-query-engine)
-6. [Troubleshooting](#troubleshooting)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
-**Unoplat Code Confluence** empowers developers to effortlessly navigate and understand complex codebases. By leveraging a graph database and an intuitive chat interface, our platform enhances collaboration and accelerates onboarding.
+The current version supports parsing codebases and exporting a JSON representation of code graph. For more details, check out:
+- [📘 Vision](/docs/deep-dive/vision)
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your system:
+### Codebase Requirements
 
-- [Docker](https://www.docker.com/get-started) 
-- [Pipx](https://github.com/pypa/pipx) 
-- [Poetry](https://python-poetry.org/) 
+:::caution Version Limitation
+Currently supports Python codebases up to 3.11 (due to dependency on isort)
+:::
+
+Code Confluence relies on two powerful tools for import segregation and dependency analysis:
+- [🔍 Ruff](https://docs.astral.sh/ruff/) - For code analysis
+- [🔄 isort](https://pycqa.github.io/isort/) - For import organization
+
+### Required Configurations
+
+#### 1. Ruff Configuration
+
+Create a `ruff.toml` file in your project root:
+
+```toml title="ruff.toml"
+target-version = "py311"
+
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+]
+
+src = ["unoplat_code_confluence"]  # Adjust this to your project's source directory
+line-length = 320
+
+[lint]
+# Enable only flake8-tidy-imports
+select = ["I","E402","INP001","TID","F401","F841"]
+
+[lint.per-file-ignores]
+"__init__.py" = ["E402","F401"]
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[lint.isort]
+combine-as-imports = true
+force-to-top = ["os","sys"]
+```
+
+
+
+Run Ruff with:
+
+```bash
+ruff check --fix . --unsafe-fixes
+```
+
+#### 2. isort Configuration
+
+Create an `.isort.cfg` file:
+
+```ini title=".isort.cfg"
+[settings]
+known_third_party = "Include third party dependencies here"
+import_heading_stdlib = Standard Library
+import_heading_thirdparty = Third Party
+import_heading_firstparty = First Party
+import_heading_localfolder = Local 
+py_version = 311
+line_length = 500
+```
+
+Run isort with:
+
+```bash
+isort . --python-version 311
+```
+
+:::note
+This configuration is temporary for the alpha version and will be automated in future releases.
+:::
+
+### Installation Requirements
+
+Before starting, install these tools:
+
+- [🐍 PyEnv](https://github.com/pyenv/pyenv) - Python version manager
+- [📦 Pipx](https://github.com/pypa/pipx) - Python app installer
+- [🎭 Poetry](https://python-poetry.org/) - Dependency manager
 
 ```bash
 pipx install poetry
 ```
 
-## 1. Graph Database Setup
+## Installation
 
-### Installation
-
-1. **Run the Neo4j Container**
+### 1. Python Setup
 
 ```bash
-docker run \
-  --name neo4j-container \
-  --restart always \
-  --publish 7474:7474 \
-  --publish 7687:7687 \
-  --env NEO4J_AUTH=neo4j/Ke7Rk7jB:Jn2Uz: \
-  --volume /Users/jayghiya/Documents/unoplat/neo4j-data:/data \
-  --volume /Users/jayghiya/Documents/unoplat/neo4j-plugins/:/plugins \
-  neo4j:5.23.0
+pyenv install 3.12.1
+pyenv global 3.12.1
 ```
 
-## 2. Generate Summary and Ingest Codebase
+### 2. Install Code Confluence
 
-### Ingestion Configuration
+```bash title="Install latest version"
+pipx install --python $(pyenv which python) 'git+https://github.com/unoplat/unoplat-code-confluence.git@unoplat-code-confluence-v0.17.0#subdirectory=unoplat-code-confluence'
+```
 
-```json
+## Configuration
+
+### JSON Configuration
+
+:::tip
+All configuration fields support environment variable overrides using the `UNOPLAT_` prefix.
+:::
+
+#### Required Fields
+
+<details>
+<summary><b>repositories</b>: Array of repositories to analyze</summary>
+
+- `git_url`: Repository URL
+- `output_path`: Analysis output directory
+- `codebases`: Array of codebase configurations
+  - `codebase_folder_name`: Codebase directory name
+  - `root_package_name`: Root package name
+  - `programming_language_metadata`: Language config
+    - `language`: Programming language
+    - `package_manager`: Package manager type
+    - `language_version`: Language version
+</details>
+
+<details>
+<summary><b>archguard</b>: ArchGuard tool configuration</summary>
+
+- `download_url`: ArchGuard download URL
+- `download_directory`: Local storage directory
+</details>
+
+<details>
+<summary><b>logging_handlers</b>: Logging configuration</summary>
+
+- `sink`: Log file path
+- `format`: Log message format
+- `rotation`: Log rotation size
+- `retention`: Log retention period
+- `level`: Logging level
+</details>
+
+#### Example Configuration
+
+```json title="config.json"
 {
-  "local_workspace_path": "/Users/jayghiya/Documents/unoplat/textgrad/textgrad",
-  "output_path": "/Users/jayghiya/Documents/unoplat",
-  "output_file_name": "unoplat_textgrad.md",
-  "codebase_name": "textgrad",
-  "programming_language": "python",
-  "repo": {
+  "repositories": [
+    {
+      "git_url": "https://github.com/unoplat/unoplat-code-confluence",
+      "output_path": "/Users/jayghiya/Documents/unoplat",
+      "codebases": [
+        {
+          "codebase_folder_name": "unoplat-code-confluence",
+          "root_package_name": "unoplat_code_confluence",
+          "programming_language_metadata": {
+            "language": "python",
+            "package_manager": "poetry",
+            "language_version": "3.12.0"
+          }        
+        }
+      ]
+    }
+  ],
+  "archguard": {
     "download_url": "archguard/archguard",
     "download_directory": "/Users/jayghiya/Documents/unoplat"
-  },
-  "api_tokens": {
-    "github_token": "Your github pat token"
-  },
-  "llm_provider_config": {
-    "openai": {
-      "api_key": "Your openai api key",
-      "model": "gpt-4o-mini",
-      "model_type": "chat",
-      "max_tokens": 512,
-      "temperature": 0.0
-    }
   },
   "logging_handlers": [
     {
@@ -89,88 +207,37 @@ docker run \
       "retention": "10 days",
       "level": "DEBUG"
     }
-  ],
-  "parallisation": 3,
-  "sentence_transformer_model": "jinaai/jina-embeddings-v3",
-  "neo4j_uri": "bolt://localhost:7687",
-  "neo4j_username": "neo4j",
-  "neo4j_password": "Ke7Rk7jB:Jn2Uz:"
+  ]
 }
 ```
 
-> **Note**: As of now for `sentence_transformer_model`, only Hugging Face sentence embedding models with dimensions up to 4096 are supported. Dimensions' upper limit is due to Neo4j vector index limitations. Make sure your chosen model meets these requirements.
+### Environment Variables
 
-### Run the Unoplat Code Confluence Ingestion Utility
+Create a `.env.dev` file:
 
-1. **Installation**
-
-```bash
-pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.14.0#subdirectory=unoplat-code-confluence'
+```env title=".env.dev"
+UNOPLAT_ENV=dev
+UNOPLAT_DEBUG=true 
+UNOPLAT_GITHUB_TOKEN=Your_Github_Pat_Token
 ```
 
-2. **Run the Ingestion Utility**
+### Running the Application
 
 ```bash
 unoplat-code-confluence --config /path/to/your/config.json
 ```
 
-
-3. **Example Run**
-
-
-<img src={require('../../static/img/code-confluence-parsing-ingestion.png').default} alt="Unoplat Code Confluence Output" className="zoomable" />
-
-After running the ingestion utility, you'll find the generated markdown file in the specified output directory. The file will contain a comprehensive summary of your codebase. Also the summary and other relevant metadata would be stored in the graph database.
-
-Also check out the Neo4j Browser to visualize the graph database. Go to [http://localhost:7474/browser/](http://localhost:7474/browser/)
-
-<img src={require('../../static/img/code-confluence-neo4j-browser.png').default} alt="Unoplat Code Confluence Graph Database" className="zoomable" />
-
-## 3. Setup Chat Interface
-
-### Query Engine Configuration
-
-```json
-{
-  "sentence_transformer_model": "jinaai/jina-embeddings-v3",
-  "neo4j_uri": "bolt://localhost:7687",
-  "neo4j_username": "neo4j",
-  "neo4j_password": "your neo4j password",
-  "provider_model_dict": {
-    "model_provider": "openai/gpt-4o-mini",
-    "model_provider_args": {
-      "api_key": "your openai api key",
-      "max_tokens": 500,
-      "temperature": 0.0
-    }
-  }
-}
-```
-
-> **Note**: As of now for `sentence_transformer_model`, only Hugging Face sentence embedding models with dimensions up to 4096 are supported. Dimensions' upper limit is due to Neo4j vector index limitations. Make sure your chosen model meets these requirements.
-
-### Launch Query Engine
-
-1. **Installation**
-
-```bash
-pipx install 'git+https://github.com/unoplat/unoplat-code-confluence.git@v0.5.0#subdirectory=unoplat-code-confluence-query-engine'
-```
-
-2. **Run the Query Engine**
-
-```bash
-unoplat-code-confluence-query-engine --config /path/to/your/config.json
-```
-
-3. **Example Run**
-
-
-<img src={require('../../static/img/code-confluence-query-engine.png').default} alt="Unoplat Code Confluence Query Engine" className="zoomable" />
-
-We had added [textgrad](https://github.com/zou-group/textgrad) to our graph database in the configuration of ingestion utility. You can now chat with the codebase. To view existing codebases press ctrl + e.
-
-<img src={require('../../static/img/code-confluence-existing-codebases.png').default} alt="Unoplat Code Confluence Existing Codebases" className="zoomable" />
-
 ## Troubleshooting
+
+:::danger Common Issues
+If you encounter any issues, please check:
+1. Python version compatibility
+2. Environment variable configuration
+3. JSON configuration syntax
+4. For Code Grammar issues please check out current issues and possible resolutions on [GitHub](https://github.com/unoplat/unoplat-code-confluence/) page.
+:::
+
+
+
+For more help, visit our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page or join our [Discord](https://discord.com/channels/1131597983058755675/1169968780953260106) community.
 

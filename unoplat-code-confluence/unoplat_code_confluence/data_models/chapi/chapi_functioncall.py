@@ -6,7 +6,6 @@
 from typing import List, Optional
 
 # Third Party
-# Third Party
 from pydantic import BaseModel, Field
 
 # First Party
