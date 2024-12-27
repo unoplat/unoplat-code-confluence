@@ -1,0 +1,19 @@
+{
+  "repositories": [
+    {
+      "git_url": "https://github.com/unoplat/unoplat-code-confluence",
+      "output_path": "/Users/jayghiya/Documents/unoplat",
+      "codebases": [
+        {
+          "codebase_folder_name": "unoplat-code-confluence",
+          "root_package_name": "unoplat_code_confluence",
+          "programming_language_metadata": {
+            "language": "python",
+            "package_manager": "poetry",
+            "language_version": "3.12.0"
+          }        
+        }
+      ]
+    }
+  ]
+}
