@@ -11,6 +11,13 @@ This is a bridge between Code Confluence User and Ingestion Workflow.
 uv sync 
 ```
 
+## Run
+
+```bash
+task dev
+```
+
+
 ## References
 
 - [Package Structure](https://github.com/astral-sh/uv/issues/7341)
