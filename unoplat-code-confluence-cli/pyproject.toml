@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "unoplat-code-confluence-cli"
 version = "0.1.0"
-description = "Add your description here"
+description = "Code Confluence CLI tool"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -16,6 +16,5 @@ dependencies = [
     "httpx>=0.25.0",
 ]
 
-
-[tool.uv.scripts]
-unoplat-code-confluence-cli = "unoplat_code_confluence_cli.__main__:main"
+[project.scripts]
+code-confluence = "unoplat_code_confluence_cli.__main__:main"
