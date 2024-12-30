@@ -1,3 +1,4 @@
+import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
@@ -9,23 +10,27 @@ from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
 
 from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
+from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
+from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 
 
 async def get_temporal_client() -> Client:
     """Create and return a Temporal client instance."""
     # Connect to local temporal server
-    temporal_client = await Client.connect("localhost:7233")
+    # Read from env - TEMPORAL_SERVER_ADDRESS, default to localhost:7233
+    temporal_server = os.getenv("TEMPORAL_SERVER_ADDRESS", "localhost:7233")
+    temporal_client = await Client.connect(temporal_server)
     return temporal_client
 
 
-async def run_worker(gitActivity: GitActivity,client: Client, activity_executor):
+async def run_worker(gitActivity: GitActivity,package_metadata_child_activity: PackageMetadataActivity,client: Client, activity_executor):
     worker = Worker(
         client,
         task_queue="unoplat-code-confluence-repository-context-ingestion",
-        workflows=[RepoWorkflow],
-        activities=[gitActivity.process_git_activity],
+        workflows=[RepoWorkflow,CodebaseChildWorkflow],
+        activities=[gitActivity.process_git_activity,package_metadata_child_activity.run],
         activity_executor=activity_executor
     )
     
@@ -53,7 +58,8 @@ async def lifespan(app: FastAPI):
     app.state.temporal_client = await get_temporal_client()
     app.state.git_activity = GitActivity()
     app.state.activity_executor = ThreadPoolExecutor()
-    asyncio.create_task(run_worker(app.state.git_activity,app.state.temporal_client, app.state.activity_executor))
+    app.state.package_metadata_activity = PackageMetadataActivity()
+    asyncio.create_task(run_worker(app.state.git_activity,app.state.package_metadata_activity,app.state.temporal_client, app.state.activity_executor))
     #await worker_task
     yield    
 
@@ -61,7 +67,7 @@ app = FastAPI(lifespan=lifespan)
     
 
 
-    # Create background task for workflow completion
+# Create background task for workflow completion
 async def monitor_workflow(workflow_handle: WorkflowHandle):
     try:
         result = await workflow_handle.result()

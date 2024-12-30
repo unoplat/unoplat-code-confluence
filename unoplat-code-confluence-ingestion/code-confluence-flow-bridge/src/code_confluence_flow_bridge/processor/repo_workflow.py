@@ -3,6 +3,7 @@ from datetime import timedelta
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
+    from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
     from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 
 with workflow.unsafe.imports_passed_through():
@@ -36,6 +37,12 @@ class RepoWorkflow:
             args=(repository_settings, github_token),
             start_to_close_timeout=timedelta(minutes=10)
         )
-        
+        # Starting a child workflow from within a parent workflow
+        for unoplat_codebase in git_repo_metadata.codebases:
+            codebase_handle = await workflow.execute_child_workflow(
+                CodebaseChildWorkflow.run,
+                args=[unoplat_codebase],
+                id=f"codebase-child-workflow-{unoplat_codebase.local_path}"
+            )
         return git_repo_metadata
                 

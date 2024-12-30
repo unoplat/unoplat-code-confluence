@@ -1,4 +1,3 @@
-
 # Standard Library
 from typing import Dict
 
@@ -10,22 +9,14 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependen
 
 # First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
-from src.code_confluence_flow_bridge.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
-from src.code_confluence_flow_bridge.parser.python.package_manager.utils.requirements_utils import RequirementsUtils
-from src.code_confluence_flow_bridge.parser.python.package_manager.utils.setup_parser import SetupParser
+from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
+from src.code_confluence_flow_bridge.parser.package_manager.utils.requirements_utils import RequirementsUtils
+from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import SetupParser
 
 
 class PipStrategy(PackageManagerStrategy):
     def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
-        """Process pip specific metadata from requirements files and setup.py.
-        
-        Args:
-            local_workspace_path: Path to the project workspace
-            metadata: Programming language metadata
-            
-        Returns:
-            UnoplatPackageManagerMetadata containing parsed project information
-        """
+        """Process pip specific metadata from requirements files and setup.py."""
         try:
             # First parse requirements to get dependencies
             dependencies: Dict[str, UnoplatProjectDependency] = RequirementsUtils.parse_requirements_folder(local_workspace_path)
@@ -34,7 +25,8 @@ class PipStrategy(PackageManagerStrategy):
             package_metadata = UnoplatPackageManagerMetadata(
                 dependencies=dependencies,
                 programming_language=metadata.language.value,
-                package_manager=metadata.package_manager
+                package_manager=metadata.package_manager,
+                programming_language_version=metadata.language_version  # Set this early
             )
             
             try:
@@ -43,10 +35,6 @@ class PipStrategy(PackageManagerStrategy):
                     local_workspace_path, 
                     package_metadata
                 )
-                # if we do not get python version fall back to the one taken from configuration           
-                if package_metadata.programming_language_version is None:
-                    package_metadata.programming_language_version = metadata.language_version # type: ignore
-                    
             except FileNotFoundError:
                 logger.warning("setup.py not found, using only requirements data")
             except Exception as e:
@@ -60,5 +48,6 @@ class PipStrategy(PackageManagerStrategy):
             return UnoplatPackageManagerMetadata(
                 dependencies={},
                 programming_language=metadata.language.value,
-                package_manager=metadata.package_manager
+                package_manager=metadata.package_manager,
+                programming_language_version=metadata.language_version
             )

@@ -13,7 +13,7 @@ class UnoplatPackageManagerMetadata(BaseModel):
     package_name: Optional[str] = Field(default=None, description="The name of the package")
     programming_language: str = Field(description="The programming language of the project")
     package_manager: str = Field(description="The package manager of the project")
-    programming_language_version: Optional[Dict[str,str]] = Field(default=None, description="The version of the programming language")
+    programming_language_version: Optional[str] = Field(default=None, description="The version of the programming language")
     project_version: Optional[str] = Field(default=None, description="The version of the project")
     description: Optional[str] = Field(default=None, description="The description of the project")
     authors: Optional[List[str]] = Field(default=None, description="The authors of the project")

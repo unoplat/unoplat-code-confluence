@@ -94,7 +94,7 @@ class GithubHelper:
                     package_manager_metadata=UnoplatPackageManagerMetadata(
                         programming_language=programming_language_metadata.language.value,
                         package_manager=programming_language_metadata.package_manager,
-                        programming_language_version={'version': programming_language_metadata.language_version} if programming_language_metadata.language_version else None
+                        programming_language_version=programming_language_metadata.language_version
                     )
                 )
                 codebases.append(codebase)
@@ -103,7 +103,7 @@ class GithubHelper:
             return UnoplatGitRepository(
                 repository_url=repo_url,
                 repository_name=repo_name,
-                repository_metadata=repo_metadata,
+                repository_metadata=repo_metadata, #type: ignore
                 codebases=codebases,
                 readme=readme_content,
                 github_organization=github_repo.organization.login if github_repo.organization else None

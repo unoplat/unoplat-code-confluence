@@ -12,9 +12,9 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import U
 
 # First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata
-from src.code_confluence_flow_bridge.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
-from src.code_confluence_flow_bridge.parser.python.package_manager.utils.requirements_utils import RequirementsUtils
-from src.code_confluence_flow_bridge.parser.python.package_manager.utils.setup_parser import SetupParser
+from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
+from src.code_confluence_flow_bridge.parser.package_manager.utils.requirements_utils import RequirementsUtils
+from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import SetupParser
 
 
 class PythonPoetryStrategy(PackageManagerStrategy):
@@ -198,53 +198,24 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 
         return dependencies
     
-    def _parse_python_version(self, version_constraint: Optional[str]) -> Dict[str, str]:
-        """Parse Python version constraint into a standardized format."""
-        if not version_constraint:
-            return {}  # Return empty dict if no constraint
-            
-        if "," in version_constraint:
-            parts = [p.strip() for p in version_constraint.split(",")]
-            min_ver = None
-            max_ver = None
-            
-            for part in parts:
-                if part.startswith(">="):
-                    min_ver = part
-                elif part.startswith(">"):
-                    min_ver = part
-                elif part.startswith("<="):
-                    max_ver = part
-                elif part.startswith("<"):
-                    max_ver = part
-                elif part.startswith("^"):
-                    min_ver = f">={part[1:]}"
-                elif part.startswith("~"):
-                    min_ver = f">={part[1:]}"
-                    
-            result = {}
-            if min_ver:
-                result["min"] = min_ver
-            if max_ver:
-                result["max"] = max_ver
-            return result
+    def _parse_python_version(self, version_constraint: Optional[str]) -> str:
+        """
+        Parse Python version constraint into a single string.
         
-        # Handle single constraints
-        if version_constraint.startswith("^"):
-            return {"min": f">={version_constraint[1:]}"}
-        elif version_constraint.startswith("~"):
-            return {"min": f">={version_constraint[1:]}"}
-        elif version_constraint.startswith(">="):
-            return {"min": version_constraint}
-        elif version_constraint.startswith(">"):
-            return {"min": version_constraint}
-        elif version_constraint.startswith("<="):
-            return {"max": version_constraint}
-        elif version_constraint.startswith("<"):
-            return {"max": version_constraint}
-        else:
-            # Exact version
-            return {"min": f">={version_constraint}", "max": f"<={version_constraint}"}
+        Args:
+            version_constraint: Version constraint string from pyproject.toml
+            
+        Returns:
+            str: Formatted version string or empty string if no constraint
+        """
+        if not version_constraint:
+            return ""  # Return empty string if no constraint
+            
+        # Remove any whitespace but preserve all version constraint symbols
+        version_constraint = version_constraint.strip()
+        
+        # Return the version constraint exactly as specified
+        return version_constraint
     
     def _get_entry_points(self, scripts: Dict[str, str]) -> Dict[str, str]:
         """Get all entry points from Poetry scripts section.
