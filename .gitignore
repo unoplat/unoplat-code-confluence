@@ -140,3 +140,17 @@ unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluenc
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/pydantic_converter/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/package_manager/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/package_manager/pip/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/package_manager/poetry/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/package_manager/utils/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/python/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/python/in_class_dependency/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/python/node_variables/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/python/utils/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/tree_sitter/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/utility/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/confluence_git/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/.env.testing
