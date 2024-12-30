@@ -13,6 +13,8 @@ uv sync
 
 ## Run
 
+Go to root directory where Taskfile.yml exists and run the following command.
+
 ```bash
 task dev
 ```

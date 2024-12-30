@@ -1,0 +1,17 @@
+# Standard Library
+from abc import ABC, abstractmethod
+
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+
+# First Party
+from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
+
+
+class PackageManagerStrategy(ABC):
+    @abstractmethod
+    def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+        """Process package manager specific metadata"""
+        pass
+
+
+

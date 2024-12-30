@@ -1,6 +1,6 @@
 # Standard Library
-import json
 import os
+import json
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -112,8 +112,6 @@ class EnvironmentSettings(BaseSettings):
 class AppConfig(BaseModel):
     """JSON configuration"""
     repositories: List[RepositorySettings]
-    archguard: ArchGuardConfig
-    logging_handlers: List[Dict[str, Any]]
     llm_provider_config: Optional[LLMProviderConfig] = None
     databases: Optional[List[DatabaseConfig]] = None
     json_output: Optional[bool] = None

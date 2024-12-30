@@ -1,12 +1,10 @@
-from dataclasses import dataclass
+from loguru import logger
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
-from loguru import logger
-from typing import Dict, Any, Optional
-from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
-from src.code_confluence_flow_bridge.models.configuration.settings import AppSettings, RepositorySettings
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
 
+from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
+from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
 
 
 class GitActivity:

@@ -1,16 +1,13 @@
-from dataclasses import dataclass
 from datetime import timedelta
-from typing import Dict, Any, Optional
 
-from temporalio import workflow, activity
-
+from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 
 with workflow.unsafe.imports_passed_through():
-    from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
     from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
+    from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
 
 
 @workflow.defn(name="repo-activity-workflow")
@@ -34,11 +31,11 @@ class RepoWorkflow:
         """
         
         # Execute git activity with retry policy
-        result: UnoplatGitRepository = await workflow.execute_activity(
+        git_repo_metadata: UnoplatGitRepository = await workflow.execute_activity(
             activity=GitActivity.process_git_activity,
             args=(repository_settings, github_token),
             start_to_close_timeout=timedelta(minutes=10)
         )
         
-        return result
+        return git_repo_metadata
                 

@@ -1,15 +1,17 @@
-from fastapi import APIRouter, FastAPI, HTTPException, Header
-from fastapi.concurrency import asynccontextmanager
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
-from src.code_confluence_flow_bridge.models.configuration.settings import AppConfig, RepositorySettings
-from temporalio.client import Client,WorkflowHandle
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
+
+from fastapi import FastAPI, Header, HTTPException
+from fastapi.concurrency import asynccontextmanager
+from loguru import logger
+from temporalio.client import Client, WorkflowHandle
+from temporalio.worker import Worker
+
+from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
-from temporalio.worker import Worker
-from concurrent.futures import ThreadPoolExecutor
-from loguru import logger
+
 
 async def get_temporal_client() -> Client:
     """Create and return a Temporal client instance."""
