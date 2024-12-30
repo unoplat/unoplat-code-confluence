@@ -13,7 +13,7 @@ tasks:
     deps: [sync]
     dir: code-confluence-flow-bridge/src/code_confluence_flow_bridge
     cmds:
-      - uv run fastapi dev  --port 8001
+      - uv run fastapi dev
 
   dev:
     desc: Install dependencies and run the application

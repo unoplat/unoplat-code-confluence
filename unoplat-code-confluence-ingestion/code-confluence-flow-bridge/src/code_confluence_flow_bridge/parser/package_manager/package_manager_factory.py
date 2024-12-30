@@ -1,27 +1,43 @@
 # Standard Library
-from typing import Dict
+from typing import Dict, Tuple
 
 # First Party
-from src.code_confluence_flow_bridge.parser.python.package_manager.package_manager_strategy import PackageManagerStrategy
-from src.code_confluence_flow_bridge.parser.python.package_manager.pip.pip_strategy import PipStrategy
-from src.code_confluence_flow_bridge.parser.python.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
+from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguage, ProgrammingLanguageMetadata
+from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
+from src.code_confluence_flow_bridge.parser.package_manager.pip.pip_strategy import PipStrategy
+from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
 
 
 class PackageManagerStrategyFactory:
-    _strategies: Dict[str, type[PackageManagerStrategy]] = {
-        "poetry": PythonPoetryStrategy,
-        "pip": PipStrategy   
+    # Map (language, package_manager) pairs to their strategy classes
+    _strategies: Dict[Tuple[ProgrammingLanguage, PackageManagerType], type[PackageManagerStrategy]] = {
+        (ProgrammingLanguage.PYTHON, PackageManagerType.POETRY): PythonPoetryStrategy,
+        (ProgrammingLanguage.PYTHON, PackageManagerType.PIP): PipStrategy,
     }
 
     @classmethod
-    def get_strategy(cls, package_manager: str) -> PackageManagerStrategy:
+    def get_strategy(cls, programming_language: ProgrammingLanguage, package_manager_type: PackageManagerType) -> PackageManagerStrategy:
+        """
+        Get appropriate package manager strategy based on programming language and package manager
         
-        if package_manager not in cls._strategies:
+        Args:
+            metadata: Programming language metadata from config
+            
+        Returns:
+            PackageManagerStrategy: Appropriate strategy instance
+            
+        Raises:
+            UnsupportedPackageManagerError: If combination is not supported
+        """
+        key = (programming_language, package_manager_type)
+        
+        if key not in cls._strategies:
             raise UnsupportedPackageManagerError(
-                f"Unsupported package manager {package_manager}"
+                f"Unsupported combination - Language: {programming_language}, "
+                f"Package Manager: {package_manager_type}"
             )
         
-        return cls._strategies[package_manager]()
+        return cls._strategies[key]()
 
 class UnsupportedPackageManagerError(Exception):
     pass 

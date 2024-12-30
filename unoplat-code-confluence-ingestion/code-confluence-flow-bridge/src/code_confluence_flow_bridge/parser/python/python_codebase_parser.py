@@ -19,7 +19,6 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Progra
 from src.code_confluence_flow_bridge.parser.codebase_parser_strategy import CodebaseParserStrategy
 from src.code_confluence_flow_bridge.parser.python.in_class_dependency.sort_function_dependencies import SortFunctionDependencies
 from src.code_confluence_flow_bridge.parser.python.node_variables.node_variables_parser import NodeVariablesParser
-from src.code_confluence_flow_bridge.parser.python.package_manager.package_manager_factory import PackageManagerStrategyFactory
 from src.code_confluence_flow_bridge.parser.python.python_extract_inheritance import PythonExtractInheritance
 from src.code_confluence_flow_bridge.parser.python.python_import_segregation_strategy import PythonImportSegregationStrategy
 from src.code_confluence_flow_bridge.parser.python.python_node_dependency_processor import PythonNodeDependencyProcessor
@@ -136,18 +135,18 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         # Phase 1: Preprocess nodes
         preprocessed_file_path_nodes, preprocessed_qualified_name_dict = self.__preprocess_nodes(json_data, local_workspace_path, codebase_name)
         
-        # Get package manager metadata
-        try:
-            package_manager_strategy = PackageManagerStrategyFactory.get_strategy(
-                programming_language_metadata.package_manager
-            )
-            processed_metadata = package_manager_strategy.process_metadata(
-                local_workspace_path, 
-                programming_language_metadata
-            )
-        except Exception as e:
-            logger.warning(f"Error processing package manager metadata: {e}")
-            processed_metadata = None
+        # # Get package manager metadata
+        # try:
+        #     package_manager_strategy = PackageManagerStrategyFactory.get_strategy(
+        #         programming_language_metadata.package_manager
+        #     )
+        #     processed_metadata = package_manager_strategy.process_metadata(
+        #         local_workspace_path, 
+        #         programming_language_metadata
+        #     )
+        # except Exception as e:
+        #     logger.warning(f"Error processing package manager metadata: {e}")
+        #     processed_metadata = None
         
         # Phase 2: Process dependencies using the map
         unoplat_package_dict: Dict[str, UnoplatPackage] = {}
