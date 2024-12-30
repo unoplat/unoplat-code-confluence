@@ -5,6 +5,15 @@
 
 This is a bridge between Code Confluence User and Ingestion Workflow.
 
+## Prerequisites
+
+- [Temporal Server](https://docs.temporal.io/docs/get-started/set-up-a-local-server/)
+
+Start Temporal Server with UI
+```
+temporal server start-dev --ui-port 8080
+```
+
 ## Installation
 
 ```bash
