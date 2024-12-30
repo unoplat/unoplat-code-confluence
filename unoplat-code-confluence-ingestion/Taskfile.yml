@@ -19,3 +19,9 @@ tasks:
     desc: Install dependencies and run the application
     cmds:
       - task: run-dev
+
+  test:
+    desc: Run tests
+    dir: code-confluence-flow-bridge
+    cmds:
+      - uv run pytest tests/ -v 
