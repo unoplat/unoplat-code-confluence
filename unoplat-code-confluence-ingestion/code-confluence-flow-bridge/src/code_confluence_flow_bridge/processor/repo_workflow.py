@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 
 from temporalio import workflow
@@ -31,18 +32,26 @@ class RepoWorkflow:
             RepoActivityResult containing the processing outcome
         """
         
-        # Execute git activity with retry policy
-        git_repo_metadata: UnoplatGitRepository = await workflow.execute_activity(
+        # 1. First executes a git activity
+        git_repo_metadata = await workflow.execute_activity(
             activity=GitActivity.process_git_activity,
             args=(repository_settings, github_token),
             start_to_close_timeout=timedelta(minutes=10)
         )
-        # Starting a child workflow from within a parent workflow
+        
+        child_workflow_handles = []
+        # 2. Then spawns child workflows for each codebase
         for unoplat_codebase in git_repo_metadata.codebases:
-            codebase_handle = await workflow.execute_child_workflow(
+            codebase_handle = await workflow.start_child_workflow(
                 CodebaseChildWorkflow.run,
                 args=[unoplat_codebase],
                 id=f"codebase-child-workflow-{unoplat_codebase.local_path}"
             )
+            child_workflow_handles.append(codebase_handle)
+        
+        # 3. Waits for all child workflows to complete
+        await asyncio.gather(*child_workflow_handles)
+
+        
         return git_repo_metadata
                 
