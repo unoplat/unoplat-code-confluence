@@ -2,6 +2,7 @@ import asyncio
 from datetime import timedelta
 
 from temporalio import workflow
+from temporalio.workflow import ParentClosePolicy
 
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
@@ -39,19 +40,15 @@ class RepoWorkflow:
             start_to_close_timeout=timedelta(minutes=10)
         )
         
-        child_workflow_handles = []
         # 2. Then spawns child workflows for each codebase
         for unoplat_codebase in git_repo_metadata.codebases:
             codebase_handle = await workflow.start_child_workflow(
                 CodebaseChildWorkflow.run,
                 args=[unoplat_codebase],
-                id=f"codebase-child-workflow-{unoplat_codebase.local_path}"
+                id=f"codebase-child-workflow-{unoplat_codebase.local_path}",
+                parent_close_policy=ParentClosePolicy.ABANDON
             )
-            child_workflow_handles.append(codebase_handle)
         
-        # 3. Waits for all child workflows to complete
-        await asyncio.gather(*child_workflow_handles)
-
         
         return git_repo_metadata
                 
