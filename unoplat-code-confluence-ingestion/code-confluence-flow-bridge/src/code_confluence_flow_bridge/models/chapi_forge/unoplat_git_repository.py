@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 # First Party
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
 
-
+#TODO: Currently this is the root. Moving forward , root should be a Organisation and then it should have multiple Domains. And then each domain should have multiple repositories.
 class UnoplatGitRepository(BaseModel):
     repository_url: str = Field(description="The URL of the repository")
     repository_name: str = Field(description="The name of the repository")
