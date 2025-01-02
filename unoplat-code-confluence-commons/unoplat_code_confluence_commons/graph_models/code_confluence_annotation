@@ -1,0 +1,16 @@
+from neomodel import (
+    StructuredNode,
+    StringProperty,
+    JSONProperty,
+    UniqueIdProperty,
+)
+
+class CodeConfluenceAnnotation(StructuredNode):
+    """
+    Represents an annotation node, based on ChapiAnnotation.
+    """
+    name = StringProperty()      # Name
+    position = JSONProperty(required=False)    # Position
+
+    # key_values can be stored as JSON if you don’t need them as separate nodes
+    key_values = JSONProperty(default=[])      # KeyValues (list[ChapiAnnotationKeyVal])
