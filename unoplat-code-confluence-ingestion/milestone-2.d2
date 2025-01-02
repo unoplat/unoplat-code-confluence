@@ -47,6 +47,22 @@ workflow: {
   }
 }
 
+database: {
+  shape: cylinder
+  style: {
+    fill: "#f5f5f5"
+    stroke: "#2563eb"
+    stroke-width: 2
+  }
+  label: Database Layer
+  neo4j: {
+    shape: cylinder
+    label: Neo4j Graph DB
+    icon: ./neo4j_icon.png
+  }
+}
+
 client.cli -> api.fastapi: HTTP/JSON
-api.fastapi -> workflow.temporal: gRPC
-workflow.temporal -> workflow.worker: Tasks
+api.fastapi <-> workflow.temporal: gRPC
+workflow.temporal <-> workflow.worker: Tasks
+workflow.worker <-> database.neo4j: TCP
