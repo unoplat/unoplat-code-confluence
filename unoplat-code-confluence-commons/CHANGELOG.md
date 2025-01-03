@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.5.0...unoplat-code-confluence-commons-v0.6.0) (2025-01-03)
+
+
+### Features
+
+* added qualified names to repository and codebase for uniqueness ([b2272e7](https://github.com/unoplat/unoplat-code-confluence/commit/b2272e7e07cae25404ad329a9416bd1e3d313792))
+
 ## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.4.0...unoplat-code-confluence-commons-v0.5.0) (2025-01-03)
 
 
