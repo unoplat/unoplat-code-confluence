@@ -15,13 +15,12 @@ class CodeConfluenceCodebase(BaseNode):
     Fields:
         name (str): The name of the codebase or root package.
         readme (str): Optional content of the codebase’s README file.
-        local_path (str): Filesystem path to the codebase.
     
     Relationships:
         packages (RelationshipTo): Connects to package nodes.
         package_manager_metadata (RelationshipTo): Connects to package manager metadata node.
     """
-    name = StringProperty(required=True,unique_index=True)
+    name = StringProperty(required=True)
     readme = StringProperty()
     
     
