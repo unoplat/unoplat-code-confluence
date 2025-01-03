@@ -17,6 +17,8 @@ dependencies = [
     "tree-sitter>=0.23.2",
     "tree-sitter-python>=0.23.6",
     "pytest>=8.3.4",
+    "neomodel>=5.4.2",
+    "unoplat-code-confluence-commons",
 ] 
 
 [dependency-groups]
@@ -27,5 +29,8 @@ test = [
     "pytest-cov>=6.0.0",
     "pytest-mock>=3.14.0",
 ]
+
+[tool.uv.sources]
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "main" }
 # Specify source directory
 
