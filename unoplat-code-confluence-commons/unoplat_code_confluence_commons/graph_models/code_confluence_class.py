@@ -42,4 +42,4 @@ class CodeConfluenceClass(BaseNode):
     annotations = RelationshipTo(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=ContainsRelationship,cardinality=ZeroOrMore)
     
     # relation to package
-    package = RelationshipFrom(".code_confluence_package.CodeConfluencePackage", "PART_OF_PACKAGE",model=ContainsRelationship,cardinality=One)
+    package = RelationshipTo(".code_confluence_package.CodeConfluencePackage", "PART_OF_PACKAGE",model=ContainsRelationship,cardinality=One)
