@@ -9,6 +9,7 @@ from loguru import logger
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
 
+from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
@@ -16,6 +17,8 @@ from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 
+# Setup logging
+logger = setup_logging()
 
 async def get_temporal_client() -> Client:
     """Create and return a Temporal client instance."""
