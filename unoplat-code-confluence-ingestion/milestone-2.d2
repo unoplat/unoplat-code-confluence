@@ -1,0 +1,68 @@
+direction: right
+client: {
+  shape: rectangle
+  style: {
+    fill: "#f5f5f5"
+    stroke: "#2563eb"
+    stroke-width: 2
+  }
+  label: Client Layer
+  cli: {
+    shape: rectangle
+    label: CLI Tool
+    icon: https://icons.terrastruct.com/aws%2F_General%2FClient_light-bg.svg
+  }
+}
+api: {
+  shape: rectangle
+  style: {
+    fill: "#f5f5f5"
+    stroke: "#2563eb"
+    stroke-width: 2
+  }
+  label: API Layer
+  fastapi: {
+    shape: rectangle
+    label: FastAPI Service
+    icon: https://icons.terrastruct.com/dev/python.svg
+  }
+}
+workflow: {
+  shape: rectangle
+  style: {
+    fill: "#f5f5f5"
+    stroke: "#2563eb"
+    stroke-width: 2
+  }
+  label: Workflow Layer
+  temporal: {
+    shape: rectangle
+    label: Temporal Cluster
+    icon: ./temporal.png
+  }
+  worker: {
+    shape: rectangle
+    label: Workflow Workers
+    icon: https://icons.terrastruct.com/dev/docker.svg
+  }
+}
+
+database: {
+  shape: cylinder
+  style: {
+    fill: "#f5f5f5"
+    stroke: "#2563eb"
+    stroke-width: 2
+  }
+  label: Database Layer
+  neo4j: {
+    shape: cylinder
+    label: Neo4j Graph DB
+    icon: ./neo4j_icon.png
+  }
+}
+
+client.cli -> api.fastapi: HTTP/JSON
+api.fastapi <-> workflow.temporal: gRPC
+workflow.temporal <-> workflow.worker: Tasks
+workflow.worker <-> database.neo4j: TCP

@@ -1,0 +1,31 @@
+[project]
+name = "Code-Confluence-Flow-Bridge"
+version = "0.1.0"
+description = "Bridge between Code Confluence User and Ingestion Workflow" 
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]>=0.115.6",
+    "pydantic-settings>=2.7.0",
+    "pydantic>=2.10.4",
+    "temporalio>=1.9.0",
+    "loguru>=0.7.3",
+    "gitpython>=3.1.43",
+    "pygithub>=2.5.0",
+    "requirements-parser>=0.11.0",
+    "tomlkit>=0.13.2",
+    "tree-sitter>=0.23.2",
+    "tree-sitter-python>=0.23.6",
+    "pytest>=8.3.4",
+] 
+
+[dependency-groups]
+test = [
+    "httpx>=0.28.1",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.0",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+]
+# Specify source directory
+
