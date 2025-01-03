@@ -9,29 +9,28 @@ from neomodel import (
     One
 )
 
-from unoplat_code_confluence_commons.graph_models.base_models import ContainsRelationship
+from .base_models import BaseNode, ContainsRelationship
 
-class CodeConfluenceClass(StructuredNode):
+class CodeConfluenceClass(BaseNode):
     """
     Represents a class-like node, combining fields from:
       - ChapiNode
       - UnoplatChapiForgeNode
     """
     # From ChapiNode
-    node_name = StringProperty(required=False)       # NodeName
-    type_ = StringProperty(required=False)           # Type (renamed to avoid Python 'type' shadowing)
-    file_path = StringProperty(required=False)       # FilePath
-    module = StringProperty(required=False)          # Module
+    node_name = StringProperty()       # NodeName
+    type_ = StringProperty()           # Type (renamed to avoid Python 'type' shadowing)
+    file_path = StringProperty()       # FilePath
+    module = StringProperty()          # Module
     multiple_extend = ArrayProperty(StringProperty(), default=[])  # MultipleExtend
-    fields = JSONProperty(default=[])                # Fields (list of ClassGlobalFieldModel)
-    extend = StringProperty(required=False)          # Extend
-    position = JSONProperty(required=False)          # Position
-    content = StringProperty(required=False)         # Content
+    fields = JSONProperty()                # Fields (list of ClassGlobalFieldModel)
+    extend = StringProperty()          # Extend
+    position = JSONProperty()          # Position
+    content = StringProperty()         # Content
 
     # From UnoplatChapiForgeNode
-    qualified_name = StringProperty(required=True,unique_index=True)  # QualifiedName
-    comments_description = StringProperty(required=False)  # CommentsDescription
-    segregated_imports = JSONProperty(required=False)      # SegregatedImports
+    comments_description = StringProperty()  # CommentsDescription
+    segregated_imports = JSONProperty()      # SegregatedImports
     dependent_internal_classes = ArrayProperty(StringProperty(), default=[])  # DependentInternalClasses
     global_variables = JSONProperty(default=[])            # GlobalVariables
 
