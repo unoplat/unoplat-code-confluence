@@ -30,7 +30,7 @@ class CodeConfluencePackage(BaseNode):
     )
     
     # Relationship to the parent codebase
-    codebase = RelationshipFrom(
+    codebase = RelationshipTo(
         '.code_confluence_codebase.CodeConfluenceCodebase',
         'PART_OF_CODEBASE',
         model=ContainsRelationship,

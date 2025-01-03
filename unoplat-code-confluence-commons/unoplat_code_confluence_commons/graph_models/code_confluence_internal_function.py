@@ -30,4 +30,4 @@ class CodeConfluenceInternalFunction(BaseNode):
     # RELATIONSHIPS
     annotations = RelationshipTo(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=ContainsRelationship,cardinality=ZeroOrMore)
     
-    confluence_class = RelationshipFrom(".code_confluence_class.CodeConfluenceClass", "PART_OF_CLASS",model=ContainsRelationship,cardinality=One)
+    confluence_class = RelationshipTo(".code_confluence_class.CodeConfluenceClass", "PART_OF_CLASS",model=ContainsRelationship,cardinality=One)
