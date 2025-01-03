@@ -37,7 +37,7 @@ class CodeConfluencePackageManagerMetadata(BaseNode):
     authors = ArrayProperty(StringProperty())
 
     # Bidirectional relationship with CodeConfluenceCodebase
-    codebase = RelationshipFrom(
+    codebase = RelationshipTo(
         '.code_confluence_codebase.CodeConfluenceCodebase',
         'PART_OF_CODEBASE',
         model=ContainsRelationship,
