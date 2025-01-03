@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.4.0...unoplat-code-confluence-commons-v0.5.0) (2025-01-03)
+
+
+### Features
+
+* added relationships for annotation ([3c97e15](https://github.com/unoplat/unoplat-code-confluence/commit/3c97e1521134022c6dbcfcba7ae8293621eae378))
+* neomodel schema updated with newer ingestion schema ([2964ca2](https://github.com/unoplat/unoplat-code-confluence/commit/2964ca2b6b6808473fc2e4873c1c15ba809708ff))
+
 ## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.3.0...unoplat-code-confluence-commons-v0.4.0) (2024-12-20)
 
 
