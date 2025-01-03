@@ -38,7 +38,7 @@ class CodeConfluenceCodebase(BaseNode):
         cardinality=One
     )
     
-    git_repository = RelationshipFrom(
+    git_repository = RelationshipTo(
         '.code_confluence_git_repository.CodeConfluenceGitRepository',
         'PART_OF_GIT_REPOSITORY',
         model=ContainsRelationship,
