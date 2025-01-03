@@ -2,7 +2,8 @@ from neomodel import (
     StringProperty,
     JSONProperty,
     RelationshipTo,
-    ZeroOrMore
+    ZeroOrMore,
+    StructuredNode
 )
 from .base_models import BaseNode, ContainsRelationship
 
