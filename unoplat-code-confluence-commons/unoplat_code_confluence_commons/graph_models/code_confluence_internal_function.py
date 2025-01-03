@@ -9,7 +9,7 @@ from neomodel import (
     ZeroOrMore,
     One
 )
-from unoplat_code_confluence_commons.graph_models.base_models import BaseNode,ContainsRelationship
+from .base_models import BaseNode,ContainsRelationship
 class CodeConfluenceInternalFunction(BaseNode):
     """
     Represents a function-like node, combining fields from:
@@ -17,15 +17,15 @@ class CodeConfluenceInternalFunction(BaseNode):
       - UnoplatChapiForgeFunction
     """
     # From ChapiFunction
-    name = StringProperty(required=False)              # Name
-    return_type = StringProperty(required=False)       # ReturnType
+    name = StringProperty()              # Name
+    return_type = StringProperty()       # ReturnType
     # function_calls, parameters, local_variables can be stored as JSON
     function_calls = JSONProperty(default=[])          # FunctionCalls
     parameters = JSONProperty(default=[])              # Parameters
-    position = JSONProperty(required=False)            # Position
-    body_hash = IntegerProperty(required=False)        # BodyHash
-    content = StringProperty(required=False)           # Content
-    comments_description = StringProperty(required=False) # CommentsDescription
+    position = JSONProperty()            # Position
+    body_hash = IntegerProperty()        # BodyHash
+    content = StringProperty()           # Content
+    comments_description = StringProperty() # CommentsDescription
 
     # RELATIONSHIPS
     annotations = RelationshipTo(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=ContainsRelationship,cardinality=ZeroOrMore)
