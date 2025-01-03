@@ -155,6 +155,6 @@ unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/confluence_git/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/.env.testing
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/package_metadata_activity/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/logging/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/__pycache__
-unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/logging/__pycache__

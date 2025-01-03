@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.6.0...unoplat-code-confluence-commons-v0.6.1) (2025-01-03)
+
+
+### Bug Fixes
+
+* relationship direction ([fc08aff](https://github.com/unoplat/unoplat-code-confluence/commit/fc08aff5610de56741f0b295d5a94c8465f3993e))
+
 ## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.5.0...unoplat-code-confluence-commons-v0.6.0) (2025-01-03)
 
 
