@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.6.1...unoplat-code-confluence-commons-v0.6.2) (2025-01-04)
+
+
+### Bug Fixes
+
+* import issues ([5be2854](https://github.com/unoplat/unoplat-code-confluence/commit/5be285468aac53f049e7376db90a604ba5ba2ac1))
+
 ## [0.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.6.0...unoplat-code-confluence-commons-v0.6.1) (2025-01-03)
 
 
