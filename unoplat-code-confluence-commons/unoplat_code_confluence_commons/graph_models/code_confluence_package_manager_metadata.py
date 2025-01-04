@@ -1,9 +1,9 @@
 from neomodel import (
     StringProperty,
     JSONProperty,
-    RelationshipFrom,
+    AsyncRelationshipFrom,
     ArrayProperty,
-    One
+    AsyncOne
 )
 from .base_models import BaseNode, ContainsRelationship
 
@@ -37,9 +37,9 @@ class CodeConfluencePackageManagerMetadata(BaseNode):
     authors = ArrayProperty(StringProperty())
 
     # Bidirectional relationship with CodeConfluenceCodebase
-    codebase = RelationshipFrom(
+    codebase = AsyncRelationshipFrom(
         '.code_confluence_codebase.CodeConfluenceCodebase',
         'HAS_PACKAGE_MANAGER_METADATA',
         model=ContainsRelationship,
-        cardinality=One
+        cardinality=AsyncOne
     )
