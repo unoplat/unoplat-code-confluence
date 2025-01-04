@@ -13,6 +13,7 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 class CodeConfluenceGraphIngestion:
     def __init__(self,code_confluence_env: EnvironmentSettings):
         self.code_confluence_graph = CodeConfluenceGraph(code_confluence_env=code_confluence_env)
+        self.code_confluence_graph.create_schema()
 
     def insert_code_confluence_git_repo(self,git_repo: UnoplatGitRepository) -> None:
         git_repo_dict = [

@@ -32,3 +32,8 @@ task dev
 ## References
 
 - [Package Structure](https://github.com/astral-sh/uv/issues/7341)
+
+
+## Internal Dependency
+
+uv add "git+https://github.com/unoplat/unoplat-code-confluence.git@unoplat-code-confluence-commons-v0.6.1#subdirectory=unoplat-code-confluence-commons"
