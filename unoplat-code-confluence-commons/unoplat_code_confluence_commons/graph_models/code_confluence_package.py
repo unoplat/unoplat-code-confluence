@@ -2,6 +2,7 @@ from neomodel import (
     StringProperty,
     RelationshipTo,
     ZeroOrMore,
+    Relationship,
     One
 )
 from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship
@@ -20,7 +21,7 @@ class CodeConfluencePackage(BaseNode):
     name = StringProperty()
     
     # Relationship to sub-packages within the package
-    sub_packages = RelationshipTo(
+    sub_packages = Relationship(
         '.code_confluence_package.CodeConfluencePackage',
         'CONTAINS_PACKAGE',
         model=ContainsRelationship,

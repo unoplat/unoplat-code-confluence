@@ -5,11 +5,13 @@ from neomodel import (
     JSONProperty,
     RelationshipTo,
     RelationshipFrom,
+    Relationship,
     ZeroOrMore,
-    One
+    One,
+    OneOrMore
 )
 
-from .base_models import BaseNode, ContainsRelationship
+from .base_models import AnnotatedRelationship, BaseNode, ContainsRelationship
 
 class CodeConfluenceClass(BaseNode):
     """
@@ -39,7 +41,7 @@ class CodeConfluenceClass(BaseNode):
     functions = RelationshipTo(".code_confluence_internal_function.CodeConfluenceInternalFunction", "HAS_FUNCTION",model=ContainsRelationship,cardinality=ZeroOrMore)
     
     # Classes can also have annotations
-    annotations = RelationshipTo(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=ContainsRelationship,cardinality=ZeroOrMore)
+    annotations = Relationship(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=AnnotatedRelationship,cardinality=ZeroOrMore)
     
     # relation to package
     package = RelationshipTo(".code_confluence_package.CodeConfluencePackage", "PART_OF_PACKAGE",model=ContainsRelationship,cardinality=One)
