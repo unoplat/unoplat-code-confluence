@@ -1,14 +1,13 @@
 from neomodel import (
-    StructuredNode,
     StringProperty,
     IntegerProperty,
     JSONProperty,
     UniqueIdProperty,
-    RelationshipTo,
-    RelationshipFrom,
-    Relationship,
-    ZeroOrMore,
-    One
+    AsyncRelationshipTo,
+    AsyncRelationshipFrom,
+    AsyncRelationship,
+    AsyncZeroOrMore,
+    AsyncOne
 )
 from .base_models import AnnotatedRelationship, BaseNode,ContainsRelationship
 class CodeConfluenceInternalFunction(BaseNode):
@@ -29,6 +28,6 @@ class CodeConfluenceInternalFunction(BaseNode):
     comments_description = StringProperty() # CommentsDescription
 
     # RELATIONSHIPS
-    annotations = Relationship(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=AnnotatedRelationship,cardinality=ZeroOrMore)
+    annotations = AsyncRelationship(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=AnnotatedRelationship,cardinality=AsyncZeroOrMore)
     
-    confluence_class = RelationshipTo(".code_confluence_class.CodeConfluenceClass", "PART_OF_CLASS",model=ContainsRelationship,cardinality=One)
+    confluence_class = AsyncRelationshipTo(".code_confluence_class.CodeConfluenceClass", "PART_OF_CLASS",model=ContainsRelationship,cardinality=AsyncOne)

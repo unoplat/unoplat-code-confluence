@@ -1,9 +1,8 @@
 from neomodel import (
     StringProperty,
     JSONProperty,
-    RelationshipTo,
-    OneOrMore,
-    StructuredNode
+    AsyncRelationshipTo,
+    AsyncOneOrMore
 )
 from .base_models import BaseNode, ContainsRelationship
 
@@ -28,15 +27,15 @@ class CodeConfluenceGitRepository(BaseNode):
                                     extra relationship metadata.
     """
     repository_url = StringProperty(required=True,unique_index=True)
-    repository_name = StringProperty(required=True)
+    repository_name = StringProperty(required=True, unique_index=True)
     repository_metadata = JSONProperty()
     readme = StringProperty()
 
     # Example relationship to a Codebase node class (not shown in this snippet)
     # The ContainsRelationship lets you store relationship metadata if desired
-    codebases = RelationshipTo(
+    codebases = AsyncRelationshipTo(
         '.code_confluence_codebase.CodeConfluenceCodebase',  # adjust import path to match your structure
         'CONTAINS_CODEBASE',
         model=ContainsRelationship,
-        cardinality=OneOrMore
+        cardinality=AsyncOneOrMore
     )

@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  install:
+    desc: Install poetry dependencies
+    cmds:
+      - poetry install --no-root
+
+  test:
+    desc: Run pytest through poetry
+    deps: [install]
+    cmds:
+      - poetry run pytest -v tests/
+
+  test:watch:
+    desc: Run pytest in watch mode
+    deps: [install]
+    cmds:
+      - poetry run pytest -v -f tests/
+
+  all:
+    desc: Run all checks (install, test)
+    cmds:
+      - task: install
+      - task: test
