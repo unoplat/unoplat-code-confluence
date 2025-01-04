@@ -1,7 +1,7 @@
 from neomodel import (
     StringProperty,
     JSONProperty,
-    RelationshipFrom,
+    RelationshipTo,
     ArrayProperty,
     One
 )
