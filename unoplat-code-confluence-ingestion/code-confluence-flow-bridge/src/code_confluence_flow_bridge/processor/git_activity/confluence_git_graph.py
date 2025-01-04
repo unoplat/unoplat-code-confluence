@@ -17,7 +17,7 @@ class ConfluenceGitGraph:
         logger.info("Initialized ConfluenceGitGraph with CodeConfluenceGraphIngestion")
 
     @activity.defn
-    def insert_git_repo_into_graph_db(self,git_repo: UnoplatGitRepository) -> None:
+    async def insert_git_repo_into_graph_db(self,git_repo: UnoplatGitRepository) -> str:
         """
         Process Git activity using GithubHelper
         
@@ -28,7 +28,7 @@ class ConfluenceGitGraph:
             logger.info("inserting git repo into graph db")
             
             # Process git activity using github helper
-            self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
+            git_repo_qualified_name: str = self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
             
             logger.success("Successfully inserted git repo into graph db")
             
@@ -40,3 +40,4 @@ class ConfluenceGitGraph:
                 details={"error": str(e)}
             )
             
+        return git_repo_qualified_name
