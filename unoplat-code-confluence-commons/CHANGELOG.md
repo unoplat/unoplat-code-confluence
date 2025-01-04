@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.7.0...unoplat-code-confluence-commons-v0.8.0) (2025-01-04)
+
+
+### Features
+
+* made models completely async and added async pytest with testcontainers ([2432a37](https://github.com/unoplat/unoplat-code-confluence/commit/2432a37e09f367e9adc4948fb10c1150746aa303))
+
 ## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.6.2...unoplat-code-confluence-commons-v0.7.0) (2025-01-04)
 
 
