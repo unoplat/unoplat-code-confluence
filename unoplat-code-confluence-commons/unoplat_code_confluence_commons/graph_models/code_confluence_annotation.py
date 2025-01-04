@@ -1,20 +1,19 @@
 from neomodel import (
-    StructuredNode,
+    AsyncStructuredNode,
     StringProperty,
     JSONProperty,
     UniqueIdProperty,
-    RelationshipTo,
+    Relationship,
     ZeroOrMore
 )
 
 from unoplat_code_confluence_commons.graph_models.base_models import AnnotatedRelationship
 
-class CodeConfluenceAnnotation(StructuredNode):
+class CodeConfluenceAnnotation(AsyncStructuredNode):
     """
     Represents an annotation node based on ChapiAnnotation.
     """
-    name = StringProperty()      # Name
+    name = StringProperty(required=True,unique_index=True)      # Name
     # key_values can be stored as JSON if you don’t need them as separate nodes
-    key_values = JSONProperty()      # KeyValues (list[ChapiAnnotationKeyVal])
-    annotated_classes = RelationshipTo('.code_confluence_class.CodeConfluenceClass', 'HAS_ANNOTATION', model=AnnotatedRelationship, cardinality=ZeroOrMore)
-    annotated_functions = RelationshipTo('.code_confluence_internal_function.CodeConfluenceInternalFunction', 'HAS_ANNOTATION', model=AnnotatedRelationship, cardinality=ZeroOrMore)
+    annotated_classes = Relationship('.code_confluence_class.CodeConfluenceClass', 'HAS_ANNOTATION', model=AnnotatedRelationship, cardinality=ZeroOrMore)
+    annotated_functions = Relationship('.code_confluence_internal_function.CodeConfluenceInternalFunction', 'HAS_ANNOTATION', model=AnnotatedRelationship, cardinality=ZeroOrMore)
