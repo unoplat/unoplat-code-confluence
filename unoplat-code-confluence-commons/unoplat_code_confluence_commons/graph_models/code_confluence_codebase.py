@@ -1,10 +1,10 @@
 from neomodel import (
     StringProperty,
     JSONProperty,
-    RelationshipTo,
-    ZeroOrMore,
-    One,
-    RelationshipFrom
+    AsyncRelationshipTo,
+    AsyncZeroOrMore,
+    AsyncOne,
+    AsyncRelationshipFrom
 )
 from .base_models import BaseNode, ContainsRelationship
 
@@ -24,23 +24,23 @@ class CodeConfluenceCodebase(BaseNode):
     readme = StringProperty()
     
     
-    packages = RelationshipTo(
+    packages = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',
         'CONTAINS_PACKAGE',
         model=ContainsRelationship,
-        cardinality=ZeroOrMore
+        cardinality=AsyncZeroOrMore
     )
     
-    package_manager_metadata = RelationshipTo(
+    package_manager_metadata = AsyncRelationshipTo(
         '.code_confluence_package_manager_metadata.CodeConfluencePackageManagerMetadata',
         'HAS_PACKAGE_MANAGER_METADATA',
         model=ContainsRelationship,
-        cardinality=One
+        cardinality=AsyncOne
     )
     
-    git_repository = RelationshipTo(
+    git_repository = AsyncRelationshipTo(
         '.code_confluence_git_repository.CodeConfluenceGitRepository',
         'PART_OF_GIT_REPOSITORY',
         model=ContainsRelationship,
-        cardinality=One
+        cardinality=AsyncOne
     )

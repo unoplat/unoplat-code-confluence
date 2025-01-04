@@ -7,9 +7,22 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-neomodel = "^5.3.3"
+neomodel = "^5.4.2"
+testcontainers = {extras = ["neo4j"], version = "^3.7.1"}
+pytest = "8.3.4"
+pytest-asyncio = "^0.23.5"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = ["unoplat_code_confluence_commons"]
+testpaths = ["tests"]
+
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true

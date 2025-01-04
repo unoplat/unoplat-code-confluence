@@ -1,14 +1,13 @@
 from neomodel import (
-    StructuredNode,
     StringProperty,
     ArrayProperty,
     JSONProperty,
-    RelationshipTo,
-    RelationshipFrom,
-    Relationship,
-    ZeroOrMore,
-    One,
-    OneOrMore
+    AsyncRelationshipTo,
+    AsyncRelationshipFrom,
+    AsyncRelationship,
+    AsyncZeroOrMore,
+    AsyncOne,
+    AsyncOneOrMore
 )
 
 from .base_models import AnnotatedRelationship, BaseNode, ContainsRelationship
@@ -20,7 +19,7 @@ class CodeConfluenceClass(BaseNode):
       - UnoplatChapiForgeNode
     """
     # From ChapiNode
-    node_name = StringProperty()       # NodeName
+    name = StringProperty()       # NodeName
     type_ = StringProperty()           # Type (renamed to avoid Python 'type' shadowing)
     file_path = StringProperty()       # FilePath
     module = StringProperty()          # Module
@@ -38,10 +37,10 @@ class CodeConfluenceClass(BaseNode):
 
     # RELATIONSHIPS
     # "Functions" from either ChapiNode or UnoplatChapiForgeNode become a relationship
-    functions = RelationshipTo(".code_confluence_internal_function.CodeConfluenceInternalFunction", "HAS_FUNCTION",model=ContainsRelationship,cardinality=ZeroOrMore)
+    functions = AsyncRelationshipTo(".code_confluence_internal_function.CodeConfluenceInternalFunction", "HAS_FUNCTION",model=ContainsRelationship,cardinality=AsyncZeroOrMore)
     
     # Classes can also have annotations
-    annotations = Relationship(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=AnnotatedRelationship,cardinality=ZeroOrMore)
+    annotations = AsyncRelationship(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=AnnotatedRelationship,cardinality=AsyncZeroOrMore)
     
     # relation to package
-    package = RelationshipTo(".code_confluence_package.CodeConfluencePackage", "PART_OF_PACKAGE",model=ContainsRelationship,cardinality=One)
+    package = AsyncRelationshipTo(".code_confluence_package.CodeConfluencePackage", "PART_OF_PACKAGE",model=ContainsRelationship,cardinality=AsyncOne)
