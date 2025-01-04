@@ -15,10 +15,11 @@ class CodeConfluenceGraphIngestion:
         self.code_confluence_graph = CodeConfluenceGraph(code_confluence_env=code_confluence_env)
         self.code_confluence_graph.create_schema()
 
-    def insert_code_confluence_git_repo(self,git_repo: UnoplatGitRepository) -> None:
+    def insert_code_confluence_git_repo(self,git_repo: UnoplatGitRepository) -> str:
+        qualified_name = f"{git_repo.github_organization}_{git_repo.repository_name}"
         git_repo_dict = [
             {
-                "qualified_name": f"{git_repo.github_organization}_{git_repo.repository_name}",
+                "qualified_name": qualified_name,
                 "repository_url": git_repo.repository_url,
                 "repository_name": git_repo.repository_name,
                 "repository_metadata": git_repo.repository_metadata,
@@ -36,7 +37,7 @@ class CodeConfluenceGraphIngestion:
             for codebase in git_repo.codebases:
                 codebase_dict = [
                     {
-                        "qualified_name": f"{git_repo.github_organization}_{git_repo.repository_name}_{codebase.name}",
+                        "qualified_name": f"{qualified_name}_{codebase.name}",
                         "name": codebase.name,
                         "readme": codebase.readme
                     }
@@ -50,3 +51,5 @@ class CodeConfluenceGraphIngestion:
         except Exception as e:
             logger.error(f"Error creating nodes: {str(e)}")
             raise
+       
+        return qualified_name 
