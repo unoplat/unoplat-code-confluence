@@ -183,7 +183,7 @@ requires-dist = [
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "tree-sitter", specifier = ">=0.23.2" },
     { name = "tree-sitter-python", specifier = ">=0.23.6" },
-    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=main" },
+    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.6.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -1137,8 +1137,8 @@ wheels = [
 
 [[package]]
 name = "unoplat-code-confluence-commons"
-version = "0.5.0"
-source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=main#47825a199bb666e158050649d2d2d1abd6b050f6" }
+version = "0.6.1"
+source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.6.1#93f8196d60ed3132f05bf311b4c7f8b581a34f66" }
 dependencies = [
     { name = "neomodel" },
 ]
