@@ -1,9 +1,9 @@
 from neomodel import (
     StringProperty,
-    RelationshipTo,
-    ZeroOrMore,
-    Relationship,
-    One
+    AsyncRelationshipTo,
+    AsyncZeroOrMore,
+    AsyncRelationship,
+    AsyncOne
 )
 from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship
 
@@ -21,24 +21,24 @@ class CodeConfluencePackage(BaseNode):
     name = StringProperty()
     
     # Relationship to sub-packages within the package
-    sub_packages = Relationship(
+    sub_packages = AsyncRelationship(
         '.code_confluence_package.CodeConfluencePackage',
         'CONTAINS_PACKAGE',
         model=ContainsRelationship,
-        cardinality=ZeroOrMore
+        cardinality=AsyncZeroOrMore
     )
     
     # Relationship to the parent codebase
-    codebase = RelationshipTo(
+    codebase = AsyncRelationshipTo(
         '.code_confluence_codebase.CodeConfluenceCodebase',
         'PART_OF_CODEBASE',
         model=ContainsRelationship,
-        cardinality=One
+        cardinality=AsyncOne
     )
     
-    classes = RelationshipTo(
+    classes = AsyncRelationshipTo(
         '.code_confluence_class.CodeConfluenceClass',
         'CONTAINS_CLASS',
         model=ContainsRelationship,
-        cardinality=ZeroOrMore
+        cardinality=AsyncZeroOrMore
     )
