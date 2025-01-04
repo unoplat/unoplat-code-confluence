@@ -12,6 +12,7 @@ from temporalio.worker import Worker
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
@@ -58,13 +59,15 @@ async def start_workflow(temporal_client: Client, repository: RepositorySettings
 async def lifespan(app: FastAPI):
     app.state.code_confluence_env = EnvironmentSettings()
     app.state.temporal_client = await get_temporal_client()
+    app.state.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=app.state.code_confluence_env)
+    await app.state.code_confluence_graph_ingestion.initialize()
     app.state.git_activity = GitActivity()
     app.state.activity_executor = ThreadPoolExecutor()
     app.state.package_metadata_activity = PackageMetadataActivity()
-    app.state.confluence_git_graph = ConfluenceGitGraph(code_confluence_env=app.state.code_confluence_env)
+    app.state.confluence_git_graph = ConfluenceGitGraph(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
     asyncio.create_task(run_worker(gitActivity=app.state.git_activity,package_metadata_child_activity=app.state.package_metadata_activity,confluence_git_graph=app.state.confluence_git_graph,client=app.state.temporal_client, activity_executor=app.state.activity_executor))
-    #await worker_task
     yield    
+    await app.state.code_confluence_graph_ingestion.close()
 
 app = FastAPI(lifespan=lifespan)
     

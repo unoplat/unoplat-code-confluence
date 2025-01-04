@@ -71,15 +71,24 @@ class EnvironmentSettings(BaseSettings):
         default=...,
         alias="NEO4J_PASSWORD"
     )
-
-    @property
-    def neo4j_connection_params(self) -> dict:
-        """Return validated Neo4j connection parameters"""
-        return {
-            "url": str(self.neo4j_url),
-            "username": self.neo4j_username,
-            "password": self.neo4j_password.get_secret_value()
-        }
+    
+    neo4j_max_connection_lifetime: int = Field(
+        default=3600,
+        alias="NEO4J_MAX_CONNECTION_LIFETIME",
+        description="The maximum lifetime of a connection to the Neo4j database in seconds"
+    )
+    
+    neo4j_max_connection_pool_size: int = Field(
+        default=50,
+        alias="NEO4J_MAX_CONNECTION_POOL_SIZE",
+        description="The maximum number of connections in the Neo4j connection pool"
+    )
+    
+    neo4j_connection_acquisition_timeout: int = Field(
+        default=60,
+        alias="NEO4J_CONNECTION_ACQUISITION_TIMEOUT",
+        description="The maximum time to wait for a connection to be acquired from the Neo4j connection pool in seconds"
+    )
 
 
 

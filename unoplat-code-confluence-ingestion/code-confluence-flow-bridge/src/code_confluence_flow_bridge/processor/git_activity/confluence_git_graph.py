@@ -12,32 +12,28 @@ class ConfluenceGitGraph:
     """
     Temporal activity class for GitHub operations using GithubHelper
     """
-    def __init__(self,code_confluence_env: EnvironmentSettings):
-        self.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=code_confluence_env)
+    def __init__(self,code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
+        self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
         logger.info("Initialized ConfluenceGitGraph with CodeConfluenceGraphIngestion")
 
     @activity.defn
     async def insert_git_repo_into_graph_db(self,git_repo: UnoplatGitRepository) -> str:
         """
-        Process Git activity using GithubHelper
+        Insert a git repository into the graph database
         
+        Args:
+            git_repo: UnoplatGitRepository containing git repository data
+            
         Returns:
-            UnoplatGitRepository containing processed git activity data
+            Qualified name of the git repository
         """
         try:
-            logger.info("inserting git repo into graph db")
-            
-            # Process git activity using github helper
-            git_repo_qualified_name: str = self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
-            
+            git_repo_qualified_name: str = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
             logger.success("Successfully inserted git repo into graph db")
-            
-
         except Exception as e:
             logger.error("Failed to insert git repo into graph db: {}", str(e))
             raise ApplicationError(
                 "Failed to insert git repo into graph db",
-                details={"error": str(e)}
+                details=tuple({"error": str(e)})
             )
-            
         return git_repo_qualified_name
