@@ -1,7 +1,7 @@
 from neomodel import (
     StringProperty,
     JSONProperty,
-    RelationshipTo,
+    RelationshipFrom,
     ArrayProperty,
     One
 )
@@ -37,9 +37,9 @@ class CodeConfluencePackageManagerMetadata(BaseNode):
     authors = ArrayProperty(StringProperty())
 
     # Bidirectional relationship with CodeConfluenceCodebase
-    codebase = RelationshipTo(
+    codebase = RelationshipFrom(
         '.code_confluence_codebase.CodeConfluenceCodebase',
-        'PART_OF_CODEBASE',
+        'HAS_PACKAGE_MANAGER_METADATA',
         model=ContainsRelationship,
         cardinality=One
     )

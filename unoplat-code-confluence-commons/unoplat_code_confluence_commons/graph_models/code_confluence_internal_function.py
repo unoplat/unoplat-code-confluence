@@ -6,10 +6,11 @@ from neomodel import (
     UniqueIdProperty,
     RelationshipTo,
     RelationshipFrom,
+    Relationship,
     ZeroOrMore,
     One
 )
-from .base_models import BaseNode,ContainsRelationship
+from .base_models import AnnotatedRelationship, BaseNode,ContainsRelationship
 class CodeConfluenceInternalFunction(BaseNode):
     """
     Represents a function-like node, combining fields from:
@@ -28,6 +29,6 @@ class CodeConfluenceInternalFunction(BaseNode):
     comments_description = StringProperty() # CommentsDescription
 
     # RELATIONSHIPS
-    annotations = RelationshipTo(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=ContainsRelationship,cardinality=ZeroOrMore)
+    annotations = Relationship(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=AnnotatedRelationship,cardinality=ZeroOrMore)
     
     confluence_class = RelationshipTo(".code_confluence_class.CodeConfluenceClass", "PART_OF_CLASS",model=ContainsRelationship,cardinality=One)

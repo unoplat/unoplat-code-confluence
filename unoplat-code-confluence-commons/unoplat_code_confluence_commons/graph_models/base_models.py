@@ -1,24 +1,19 @@
 from neomodel import (
-    StructuredNode, 
+    AsyncStructuredNode, 
     StringProperty, 
-    JSONProperty, 
-    ArrayProperty,
-    StructuredRel
+    JSONProperty,
+    AsyncStructuredRel
 )
 
-class BaseNode(StructuredNode):
+class BaseNode(AsyncStructuredNode):
     """Base node with common properties"""
     qualified_name = StringProperty(unique_index=True, required=True)
     
-class ContainsRelationship(StructuredRel):
+class ContainsRelationship(AsyncStructuredNode):
     """Relationship for representing containment between nodes"""
     pass
 
-class AnnotatedRelationship(StructuredRel):
+class AnnotatedRelationship(AsyncStructuredRel):
     """Relationship for representing annotation on nodes and methods"""
     position = JSONProperty()
-
-class CallsRelationship(StructuredRel):
-    """Represents a method call from one method to another."""
-    parameters = JSONProperty()
-    position = JSONProperty()
+    key_values = JSONProperty()      # KeyValues (list[ChapiAnnotationKeyVal])
