@@ -2,7 +2,7 @@ from neomodel import (
     StringProperty,
     JSONProperty,
     RelationshipTo,
-    ZeroOrMore,
+    OneOrMore,
     StructuredNode
 )
 from .base_models import BaseNode, ContainsRelationship
@@ -38,5 +38,5 @@ class CodeConfluenceGitRepository(BaseNode):
         '.code_confluence_codebase.CodeConfluenceCodebase',  # adjust import path to match your structure
         'CONTAINS_CODEBASE',
         model=ContainsRelationship,
-        cardinality=ZeroOrMore
+        cardinality=OneOrMore
     )
