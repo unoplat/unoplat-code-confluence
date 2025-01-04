@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.6.2...unoplat-code-confluence-commons-v0.7.0) (2025-01-04)
+
+
+### Features
+
+* moved to async nodes and relationships ([1c207c4](https://github.com/unoplat/unoplat-code-confluence/commit/1c207c4e48ba6f8ba3e831c881255f93f7c0638f))
+
 ## [0.6.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.6.1...unoplat-code-confluence-commons-v0.6.2) (2025-01-04)
 
 
