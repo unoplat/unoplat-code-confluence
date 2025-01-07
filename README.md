@@ -44,7 +44,7 @@ This initiative demonstrates our commitment to:
 
 Ready to enhance your development workflow? 
 Check out our [Quick Start Guide](https://unoplat.github.io/unoplat-code-confluence/docs/quickstart/how-to-run) 
-We ran our code graph capability on [Onyx](https://github.com/onyx-dot-app/onyx) for its python backend and here is the result available on 
+We ran our code graph capability on [Onyx](https://github.com/onyx-dot-app/onyx) for its python backend and here is 
 [result](https://github.com/unoplat/unoplat-oss-atlas/blob/main/danswer/onyx_code_grammar_graph.json) 
 
 ## Project Status
