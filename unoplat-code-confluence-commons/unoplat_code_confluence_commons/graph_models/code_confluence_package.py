@@ -20,7 +20,7 @@ class CodeConfluencePackage(BaseNode):
     """
     name = StringProperty()
     
-    # Relationship to sub-packages within the package
+    
     sub_packages = AsyncRelationship(
         '.code_confluence_package.CodeConfluencePackage',
         'CONTAINS_PACKAGE',
