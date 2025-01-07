@@ -22,7 +22,8 @@
             "release-type": "node",
             "changelog-path": "CHANGELOG.md",
             "include-component-in-tag": true,
-            "component": "code-confluence-docs"
+            "component": "code-confluence-docs",
+            "package-name": "code-confluence-docs"
         }
     }
 }
