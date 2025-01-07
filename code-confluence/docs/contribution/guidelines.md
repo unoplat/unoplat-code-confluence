@@ -27,16 +27,9 @@ If you encounter any bugs or issues:
 Have ideas for new features or improvements?
 
 1. Check our existing issues and feature requests first
-2. Create a new issue using our feature request template
+2. Create a new issue.
 3. Clearly describe the feature and its use cases
 4. Explain how it would benefit the project and its users
 
-## Future Contributions
-
-Once Code Confluence reaches a more stable state, we plan to open up for community contributions. We'll update these guidelines when that time comes.
-
-## Security Issues
-
-If you discover a security vulnerability, please do **NOT** create a public issue. Instead, report it through our security issue reporting process (coming soon).
 
 We appreciate your interest in Code Confluence and look forward to your feedback as we continue to develop the project!
