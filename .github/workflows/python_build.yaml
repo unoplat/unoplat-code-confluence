@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - 'unoplat-code-confluence/**'c
+      - 'unoplat-code-confluence/**'
       - 'unoplat-code-confluence-query-engine/**'
       - 'unoplat-code-confluence-commons/**'
 
