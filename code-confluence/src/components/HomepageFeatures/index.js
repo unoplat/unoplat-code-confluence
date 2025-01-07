@@ -8,7 +8,7 @@ const FeatureList = [
     Svg: require('@site/static/img/collab.svg').default,
     description: (
       <>
-        Unlock deterministic code parsing with Unoplat Code Confluence. Powered by CHAPI and ANTLR, it seamlessly parses any architecture and programming language. Gain clear, consistent insights into complex codebases, enabling your team to navigate and understand projects with exceptional clarity.
+        Unlock deterministic code parsing with Unoplat Code Confluence. Powered by ArchGuard, CHAPI and Tree-sitter it seamlessly parses any architecture and programming language. Gain clear, consistent insights into complex codebases, enabling your team to navigate and understand projects with exceptional clarity.
       </>
     ),
   },
