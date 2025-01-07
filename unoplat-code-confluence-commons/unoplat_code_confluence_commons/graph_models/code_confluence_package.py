@@ -17,6 +17,7 @@ class CodeConfluencePackage(BaseNode):
     Relationships:
         sub_packages (RelationshipTo): Connects to sub-package nodes.
         codebase (RelationshipTo): Connects to the parent codebase.
+        classes (RelationshipTo): Connects to the classes within the package.
     """
     name = StringProperty()
     
