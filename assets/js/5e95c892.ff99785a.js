@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkcode_confluence_docs=self.webpackChunkcode_confluence_docs||[]).push([[647],{7121:(e,c,s)=>{s.r(c),s.d(c,{default:()=>l});s(6540);var n=s(4164),r=s(9024),u=s(7559),o=s(2831),d=s(2130),a=s(4848);function l(e){return(0,a.jsx)(r.e3,{className:(0,n.A)(u.G.wrapper.docsPages),children:(0,a.jsx)(d.A,{children:(0,o.v)(e.route.routes)})})}}}]);
