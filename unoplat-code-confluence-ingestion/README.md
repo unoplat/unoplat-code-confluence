@@ -33,6 +33,11 @@ Orchestrates and executes the core code analysis workflows:
 - Executes complex code analysis tasks through worker processes
 - Maintains workflow state and handles failures gracefully
 
+## Graph Database
+
+### Neo4j with DozerDb 
+
+
 ## Data Flow
 1. User initiates analysis through CLI with configuration
 2. CLI constructs JSON payload and sends to Flow Bridge

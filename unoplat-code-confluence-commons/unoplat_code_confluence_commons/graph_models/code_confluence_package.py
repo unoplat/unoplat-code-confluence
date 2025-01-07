@@ -28,7 +28,7 @@ class CodeConfluencePackage(BaseNode):
         cardinality=AsyncZeroOrMore
     )
     
-    # Relationship to the parent codebase
+    
     codebase = AsyncRelationshipTo(
         '.code_confluence_codebase.CodeConfluenceCodebase',
         'PART_OF_CODEBASE',
