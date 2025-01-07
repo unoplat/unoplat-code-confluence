@@ -4,8 +4,8 @@
   <ShortName>Code confluence</ShortName>
   <Description>Search Code confluence</Description>
   <InputEncoding>UTF-8</InputEncoding>
-  <Image width="16" height="16" type="image/x-icon">https://docs.unoplat.io/unoplat-code-confluence/img/favicon.ico</Image>
-  <Url type="text/html" method="get" template="https://docs.unoplat.io/unoplat-code-confluence/search?q={searchTerms}"/>
-  <Url type="application/opensearchdescription+xml" rel="self" template="https://docs.unoplat.io/unoplat-code-confluence/opensearch.xml" />
-  <moz:SearchForm>https://docs.unoplat.io/unoplat-code-confluence/</moz:SearchForm>
+  <Image width="16" height="16" type="image/x-icon">https://docs.unoplat.io/img/favicon.ico</Image>
+  <Url type="text/html" method="get" template="https://docs.unoplat.io/search?q={searchTerms}"/>
+  <Url type="application/opensearchdescription+xml" rel="self" template="https://docs.unoplat.io/opensearch.xml" />
+  <moz:SearchForm>https://docs.unoplat.io/</moz:SearchForm>
 </OpenSearchDescription>
