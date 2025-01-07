@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.8.0...unoplat-code-confluence-commons-v0.8.1) (2025-01-07)
+
+
+### Bug Fixes
+
+* test for release of commons post huly release ([c7224df](https://github.com/unoplat/unoplat-code-confluence/commit/c7224df1faf7f6bc28bc6c459d4a1ddfe577620a))
+* test github release please action ([b3cc20e](https://github.com/unoplat/unoplat-code-confluence/commit/b3cc20ef1526b177e88f4ecdebb9229cf8d7126b))
+* test google release please action ([aec06a7](https://github.com/unoplat/unoplat-code-confluence/commit/aec06a79262e2528181e718352d6edc36a74a002))
+
 ## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.7.0...unoplat-code-confluence-commons-v0.8.0) (2025-01-04)
 
 
