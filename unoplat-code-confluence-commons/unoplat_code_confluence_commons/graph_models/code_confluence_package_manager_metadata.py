@@ -14,8 +14,8 @@ class CodeConfluencePackageManagerMetadata(BaseNode):
     Fields:
         package_manager (str): Name of the package manager (e.g., pip, npm)
         programming_language (str): Programming language used in the codebase
-        programming_language_version (str): Version of the programming language
         project_version (str): Version of the project
+        programming_language_version (str): Version of the programming language
         description (str): Description of the project
         license (str): License of the project
         dependencies (dict): JSON object containing project dependencies
