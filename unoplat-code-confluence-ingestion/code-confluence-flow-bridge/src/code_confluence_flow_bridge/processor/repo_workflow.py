@@ -4,9 +4,12 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.workflow import ParentClosePolicy
 
+
+
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
     from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
+    from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
@@ -39,6 +42,14 @@ class RepoWorkflow:
             args=(repository_settings, github_token),
             start_to_close_timeout=timedelta(minutes=10)
         )
+        
+        # 2. Then insert the git repo into the graph db
+        await workflow.execute_activity(
+            activity=ConfluenceGitGraph.insert_git_repo_into_graph_db,
+            arg=git_repo_metadata,
+            start_to_close_timeout=timedelta(minutes=10)
+        )
+        
         
         # 2. Then spawns child workflows for each codebase
         for unoplat_codebase in git_repo_metadata.codebases:
