@@ -18,7 +18,7 @@ Unoplat-CodeConfluence aims to be the definitive solution for extracting, unders
 
 ## 🤝 For Knowledge Engine and AI  Coding Assistants' Integration Partners
 
- Unoplat-CodeConfluence provides:
+ Unoplat-CodeConfluence will provide:
 
 - High-precision code context API powered by graph-based retrieval
 - Cross-repository semantic understanding through LLM pipelines
@@ -27,7 +27,7 @@ Unoplat-CodeConfluence aims to be the definitive solution for extracting, unders
 
 ## 🔍 OSS Atlas Initiative
 
-Our [UnoplatOssAtlas](https://github.com/unoplat/unoplat-oss-atlas/tree/main) project is designed to dramatically accelerate contributor onboarding and productivity in open-source projects. By providing deep, contextual understanding of popular repositories, we help developers:
+Our [UnoplatOssAtlas](https://github.com/unoplat/unoplat-oss-atlas/tree/main) project is designed to dramatically accelerate contributor onboarding and productivity in open-source projects. By providing deep, contextual understanding of popular repositories, we will help developers in the following:
 
 - **Accelerate Onboarding**: Understand complex codebases in minutes instead of months
 - **Boost Contribution Velocity**: Make meaningful contributions faster with deep contextual insights
