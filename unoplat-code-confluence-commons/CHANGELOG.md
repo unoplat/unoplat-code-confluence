@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.9.0...unoplat-code-confluence-commons-v0.9.1) (2025-01-08)
+
+
+### Bug Fixes
+
+* increase version of pytest asyncio to be compatible with parent project ingestion ([af7deef](https://github.com/unoplat/unoplat-code-confluence/commit/af7deef64a7e13cdff5a9106cbe18c364118a4d7))
+* poetry install ([e793acb](https://github.com/unoplat/unoplat-code-confluence/commit/e793acb17871b3a02674e2b4c0db29bec678ab5e))
+
 ## [0.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.8.1...unoplat-code-confluence-commons-v0.9.0) (2025-01-07)
 
 
