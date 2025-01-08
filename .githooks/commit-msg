@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Regular expression for Conventional Commits
+pattern="^(build|ci|docs|feat|fix|perf|refactor|style|test|chore|revert)(\([\w\-]+\))?: .{1,52}$"
+
+# Read the commit message
+commit_msg=$(cat "$1")
+
+# Validate the commit message against the pattern
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo "Error: Commit message does not follow Conventional Commits format."
+  echo "Expected format: <type>(<scope>): <description>"
+  echo "Example: feat(auth): add login functionality"
+  exit 1
+fi
