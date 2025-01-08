@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Regular expression for Conventional Commits
-pattern="^(build|ci|docs|feat|fix|perf|refactor|style|test|chore|revert)(\([\w\-]+\))?: .{1,52}$"
+# Regular expression for Conventional Commits - with more permissive description length
+pattern="^(build|ci|docs|feat|fix|perf|refactor|style|test|chore|revert)(\([\w\-]+\))?: .+$"
 
 # Read the commit message
 commit_msg=$(cat "$1")
