@@ -160,3 +160,7 @@ unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluenc
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/Code_Confluence_Flow_Bridge.egg-info
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/.env.dev
+unoplat-code-confluence-commons/tests/__pycache__
+unoplat-code-confluence-commons/unoplat_code_confluence_commons/__pycache__
+unoplat-code-confluence-commons/unoplat_code_confluence_commons/graph_models/__pycache__
+code-confluence/code-conflu
