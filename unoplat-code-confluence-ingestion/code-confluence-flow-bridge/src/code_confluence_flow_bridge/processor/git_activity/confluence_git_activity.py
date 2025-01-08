@@ -11,7 +11,7 @@ class GitActivity:
     """
     Temporal activity class for GitHub operations using GithubHelper
     """
-    def __init__(self, ):
+    def __init__(self):
         self.github_helper = GithubHelper()
         logger.info("Initialized GitActivity with GithubHelper")
 

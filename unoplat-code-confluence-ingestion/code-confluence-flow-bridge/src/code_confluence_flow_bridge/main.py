@@ -9,12 +9,17 @@ from loguru import logger
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
 
-from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
+from src.code_confluence_flow_bridge.logging.log_config import setup_logging
+from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
+from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 
+# Setup logging
+logger = setup_logging()
 
 async def get_temporal_client() -> Client:
     """Create and return a Temporal client instance."""
@@ -25,12 +30,12 @@ async def get_temporal_client() -> Client:
     return temporal_client
 
 
-async def run_worker(gitActivity: GitActivity,package_metadata_child_activity: PackageMetadataActivity,client: Client, activity_executor):
+async def run_worker(gitActivity: GitActivity,package_metadata_child_activity: PackageMetadataActivity,confluence_git_graph: ConfluenceGitGraph,client: Client, activity_executor):
     worker = Worker(
         client,
         task_queue="unoplat-code-confluence-repository-context-ingestion",
         workflows=[RepoWorkflow,CodebaseChildWorkflow],
-        activities=[gitActivity.process_git_activity,package_metadata_child_activity.run],
+        activities=[gitActivity.process_git_activity,package_metadata_child_activity.run,confluence_git_graph.insert_git_repo_into_graph_db],
         activity_executor=activity_executor
     )
     
@@ -46,22 +51,23 @@ async def start_workflow(temporal_client: Client, repository: RepositorySettings
         id=repository.git_url,
         task_queue="unoplat-code-confluence-repository-context-ingestion"
     )
-    
     logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
-    
     return workflow_handle    
     
 # Create FastAPI lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    
+    app.state.code_confluence_env = EnvironmentSettings()
     app.state.temporal_client = await get_temporal_client()
+    app.state.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=app.state.code_confluence_env)
+    await app.state.code_confluence_graph_ingestion.initialize()
     app.state.git_activity = GitActivity()
     app.state.activity_executor = ThreadPoolExecutor()
     app.state.package_metadata_activity = PackageMetadataActivity()
-    asyncio.create_task(run_worker(app.state.git_activity,app.state.package_metadata_activity,app.state.temporal_client, app.state.activity_executor))
-    #await worker_task
+    app.state.confluence_git_graph = ConfluenceGitGraph(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
+    asyncio.create_task(run_worker(gitActivity=app.state.git_activity,package_metadata_child_activity=app.state.package_metadata_activity,confluence_git_graph=app.state.confluence_git_graph,client=app.state.temporal_client, activity_executor=app.state.activity_executor))
     yield    
+    await app.state.code_confluence_graph_ingestion.close()
 
 app = FastAPI(lifespan=lifespan)
     

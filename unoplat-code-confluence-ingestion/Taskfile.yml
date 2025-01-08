@@ -2,6 +2,24 @@ version: '3'
 
 
 tasks:
+  check-temporal-port:
+    cmds:
+      - |
+        if ! lsof -i:8080 > /dev/null 2>&1; then
+          echo "Port 8080 is available"
+          exit 0
+        else
+          echo "Port 8080 is already in use"
+          exit 1
+        fi
+    silent: true
+
+  start-temporal:
+    deps: [check-temporal-port]
+    cmds:
+      # Run temporal server in background using &
+      - temporal server start-dev --ui-port 8080
+
   sync:
     desc: Setup project with dependencies
     dir: code-confluence-flow-bridge
