@@ -20,10 +20,11 @@ Unoplat-CodeConfluence aims to be the definitive solution for extracting, unders
 
  Unoplat-CodeConfluence will provide:
 
-- High-precision code context API powered by graph-based retrieval
-- Cross-repository semantic understanding through LLM pipelines
-- Reduced operational complexity for context extraction
-- Ready-to-use integration with popular tools like OpenDevin, Devon, Danswer, and Continue Dev
+- High-precision code context API powered by GraphRag, featuring:
+  - Cross-repository domain-linked semantic understanding through LLM pipelines
+  - Ready-to-use integration SDKs with OSS ecosystems such as:
+    - Danswer
+    - Continue.dev
 
 ## 🔍 OSS Atlas Initiative
 
