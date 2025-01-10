@@ -4,12 +4,14 @@ from pathlib import Path
 from typing import AsyncGenerator
 
 # Third Party
+from pydantic_core import ValidationError
 import pytest
 from loguru import logger
 from testcontainers.neo4j import Neo4jContainer
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
 from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import CodeConfluenceGitRepository
 from pydantic import SecretStr
+from temporalio.exceptions import ApplicationError
 
 # First Party
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
@@ -41,6 +43,8 @@ def neo4j_container():
     container.start()
     
     yield container
+    
+    container.stop()
 
 @pytest.fixture
 def env_settings(neo4j_container: Neo4jContainer) -> EnvironmentSettings:
@@ -149,14 +153,15 @@ class TestCodeConfluenceGraphIngestion:
     @pytest.mark.asyncio
     async def test_error_handling(self, graph_ingestion: CodeConfluenceGraphIngestion):
         """Test error handling for invalid data"""
-        invalid_repo = UnoplatGitRepository(
-            repository_url="invalid-url",
-            repository_name="",  # Invalid empty name
-            github_organization="",  # Invalid empty org
-            repository_metadata={},
-            readme="",
-            codebases=[]
-        )
+        with pytest.raises(ValidationError):
+            invalid_repo = UnoplatGitRepository(
+                repository_url="invalid-url",
+                repository_name=None,  # Invalid empty name
+                github_organization="",  # Invalid empty org
+                repository_metadata={},
+                readme="",
+                codebases=[]
+            )
 
-        with pytest.raises(Exception):
-            await graph_ingestion.insert_code_confluence_git_repo(invalid_repo) 
+        
+        

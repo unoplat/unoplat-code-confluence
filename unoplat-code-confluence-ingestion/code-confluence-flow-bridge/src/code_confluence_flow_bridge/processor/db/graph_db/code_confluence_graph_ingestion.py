@@ -1,7 +1,9 @@
 # Standard Library
+from typing import Optional
 
 # Third Party
 from loguru import logger
+from temporalio.exceptions import ApplicationError
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
 from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import CodeConfluenceGitRepository
 
@@ -29,7 +31,7 @@ class CodeConfluenceGraphIngestion:
         """Close graph connection"""
         await self.code_confluence_graph.close()
         
-    async def insert_code_confluence_git_repo(self,git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
+    async def insert_code_confluence_git_repo(self, git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
         """
         Insert a git repository into the graph database
         
@@ -37,14 +39,17 @@ class CodeConfluenceGraphIngestion:
             git_repo: UnoplatGitRepository containing git repository data
             
         Returns:
-            Qualified name of the git repository
+            ParentChildCloneMetadata: Metadata about created nodes
+            
+        Raises:
+            ApplicationError: If repository insertion fails
         """
-        
         qualified_name = f"{git_repo.github_organization}_{git_repo.repository_name}"
         parent_child_clone_metadata = ParentChildCloneMetadata(
             repository_qualified_name=qualified_name,
             codebase_qualified_name=[]
         )
+        
         try:
             async with self.code_confluence_graph.transaction:
                 # Create repository node
@@ -59,7 +64,11 @@ class CodeConfluenceGraphIngestion:
                 
                 repo_results = await CodeConfluenceGitRepository.create_or_update(repo_dict)
                 if not repo_results:
-                    raise Exception("Failed to create repository node")
+                    raise ApplicationError(
+                        message=f"Failed to create repository node: {qualified_name}",
+                        type="REPOSITORY_CREATION_ERROR",
+                        details=[{"repository": qualified_name}]
+                    )
                 
                 repo_node = repo_results[0]
                 logger.success(f"Created repository node: {qualified_name}")
@@ -73,27 +82,35 @@ class CodeConfluenceGraphIngestion:
                         "name": codebase.name,
                         "readme": codebase.readme
                     }
-                    parent_child_clone_metadata.codebase_qualified_name.append(codebase_qualified_name) # type: ignore
+                    parent_child_clone_metadata.codebase_qualified_name.append(codebase_qualified_name)
                     
                     codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
                     if not codebase_results:
-                        raise Exception(f"Failed to create codebase node for {codebase.name}")
+                        raise ApplicationError(
+                            message=f"Failed to create codebase node: {codebase.name}",
+                            type="CODEBASE_CREATION_ERROR",
+                            details=[{
+                                "repository": qualified_name,
+                                "codebase": codebase.name
+                            }]
+                        )
                     
                     codebase_node = codebase_results[0]
-                    logger.debug(f"Created codebase node: {codebase.name}")
                     
-                    # Establish bidirectional relationships
+                    # Establish relationships
                     await repo_node.codebases.connect(codebase_node)
                     await codebase_node.git_repository.connect(repo_node)
-                    logger.debug(f"Established relationships for codebase: {codebase.name}")
                 
-                
-                logger.success(f"Successfully ingested repository {qualified_name} with {len(git_repo.codebases)} codebases")
+                logger.success(f"Successfully ingested repository {qualified_name}")
                 return parent_child_clone_metadata
                 
         except Exception as e:
-            logger.error(f"Failed to insert repository {qualified_name}: {str(e)}")
-            raise
+            error_msg = f"Failed to insert repository {qualified_name}"
+            logger.error(f"{error_msg}: {str(e)}")
+            raise ApplicationError(
+                message=error_msg,
+                type="GRAPH_INGESTION_ERROR"
+            ) from e
         
                 
       
