@@ -7,6 +7,7 @@ from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository
 
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
+from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
 
 
@@ -28,7 +29,7 @@ class CodeConfluenceGraphIngestion:
         """Close graph connection"""
         await self.code_confluence_graph.close()
         
-    async def insert_code_confluence_git_repo(self,git_repo: UnoplatGitRepository) -> str:
+    async def insert_code_confluence_git_repo(self,git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
         """
         Insert a git repository into the graph database
         
@@ -38,7 +39,12 @@ class CodeConfluenceGraphIngestion:
         Returns:
             Qualified name of the git repository
         """
+        
         qualified_name = f"{git_repo.github_organization}_{git_repo.repository_name}"
+        parent_child_clone_metadata = ParentChildCloneMetadata(
+            repository_qualified_name=qualified_name,
+            codebase_qualified_name=[]
+        )
         try:
             async with self.code_confluence_graph.transaction:
                 # Create repository node
@@ -51,7 +57,7 @@ class CodeConfluenceGraphIngestion:
                     "github_organization": git_repo.github_organization
                 }
                 
-                repo_results, _ = await CodeConfluenceGitRepository.create_or_update(repo_dict)
+                repo_results = await CodeConfluenceGitRepository.create_or_update(repo_dict)
                 if not repo_results:
                     raise Exception("Failed to create repository node")
                 
@@ -60,13 +66,16 @@ class CodeConfluenceGraphIngestion:
                 
                 # Create codebase nodes and establish relationships
                 for codebase in git_repo.codebases:
+                    codebase_qualified_name = f"{qualified_name}_{codebase.name}"
+                    
                     codebase_dict = {
-                        "qualified_name": f"{qualified_name}_{codebase.name}",
+                        "qualified_name": codebase_qualified_name,
                         "name": codebase.name,
                         "readme": codebase.readme
                     }
+                    parent_child_clone_metadata.codebase_qualified_name.append(codebase_qualified_name) # type: ignore
                     
-                    codebase_results, _ = await CodeConfluenceCodebase.create_or_update(codebase_dict)
+                    codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
                     if not codebase_results:
                         raise Exception(f"Failed to create codebase node for {codebase.name}")
                     
@@ -78,8 +87,9 @@ class CodeConfluenceGraphIngestion:
                     await codebase_node.git_repository.connect(repo_node)
                     logger.debug(f"Established relationships for codebase: {codebase.name}")
                 
+                
                 logger.success(f"Successfully ingested repository {qualified_name} with {len(git_repo.codebases)} codebases")
-                return qualified_name
+                return parent_child_clone_metadata
                 
         except Exception as e:
             logger.error(f"Failed to insert repository {qualified_name}: {str(e)}")

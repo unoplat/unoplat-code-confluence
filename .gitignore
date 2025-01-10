@@ -164,3 +164,7 @@ unoplat-code-confluence-commons/tests/__pycache__
 unoplat-code-confluence-commons/unoplat_code_confluence_commons/__pycache__
 unoplat-code-confluence-commons/unoplat_code_confluence_commons/graph_models/__pycache__
 code-confluence/code-conflu
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/models/workflow/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/processor/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/processor/db/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/processor/db/graph_db/__pycache__
