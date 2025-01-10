@@ -17,7 +17,7 @@ class PackageMetadataActivity:
         self.package_manager_parser = PackageManagerParser()
     
     @activity.defn
-    def run(self, local_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+    def get_package_metadata(self, local_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """
         Process package manager specific metadata
         

@@ -4,10 +4,12 @@ from typing import Optional
 # Third Party
 from loguru import logger
 from temporalio.exceptions import ApplicationError
+from unoplat_code_confluence_commons import CodeConfluencePackageManagerMetadata
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
 from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import CodeConfluenceGitRepository
 
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
@@ -47,7 +49,7 @@ class CodeConfluenceGraphIngestion:
         qualified_name = f"{git_repo.github_organization}_{git_repo.repository_name}"
         parent_child_clone_metadata = ParentChildCloneMetadata(
             repository_qualified_name=qualified_name,
-            codebase_qualified_name=[]
+            codebase_qualified_names=[]
         )
         
         try:
@@ -82,7 +84,7 @@ class CodeConfluenceGraphIngestion:
                         "name": codebase.name,
                         "readme": codebase.readme
                     }
-                    parent_child_clone_metadata.codebase_qualified_name.append(codebase_qualified_name)
+                    parent_child_clone_metadata.codebase_qualified_names.append(codebase_qualified_name)
                     
                     codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
                     if not codebase_results:
@@ -113,4 +115,66 @@ class CodeConfluenceGraphIngestion:
             ) from e
         
                 
-      
+    async def insert_code_confluence_codebase_package_manager_metadata(
+        self,
+        codebase_qualified_name: str,
+        package_manager_metadata: UnoplatPackageManagerMetadata
+    ) -> None:
+        """
+        Insert codebase package manager metadata into the graph database
+        
+        Args:
+            codebase_qualified_name: Qualified name of the codebase
+            package_manager_metadata: UnoplatPackageManagerMetadata containing package manager metadata
+        """
+        try:
+            async with self.code_confluence_graph.transaction:
+                # Use get() instead of filter() for unique index
+                try:
+                    codebase_node = await CodeConfluenceCodebase.nodes.get(
+                        qualified_name=codebase_qualified_name
+                    )
+                except CodeConfluenceCodebase.DoesNotExist:
+                    raise ApplicationError(
+                        message=f"Codebase not found: {codebase_qualified_name}",
+                        type="CODEBASE_NOT_FOUND"
+                    )
+
+                # Create package manager metadata node
+                metadata_dict = {
+                    "qualified_name": f"{codebase_qualified_name}_package_manager_metadata",
+                    "dependencies": {k: v.model_dump() for k, v in package_manager_metadata.dependencies.items()},
+                    "package_manager": package_manager_metadata.package_manager,
+                    "programming_language": package_manager_metadata.programming_language,
+                    "programming_language_version": package_manager_metadata.programming_language_version,
+                    "project_version": package_manager_metadata.project_version,
+                    "description": package_manager_metadata.description,
+                    "license": package_manager_metadata.license,
+                    "package_name": package_manager_metadata.package_name,
+                    "entry_points": package_manager_metadata.entry_points,
+                    "authors": package_manager_metadata.authors or []
+                }
+                
+                metadata_results = await CodeConfluencePackageManagerMetadata.create_or_update(metadata_dict)
+                if not metadata_results:
+                    raise ApplicationError(
+                        message=f"Failed to create package manager metadata for {codebase_qualified_name}",
+                        type="METADATA_CREATION_ERROR"
+                    )
+                
+                metadata_node: CodeConfluencePackageManagerMetadata = metadata_results[0]
+                
+                # Connect metadata to codebase
+                await codebase_node.package_manager_metadata.connect(metadata_node)
+                
+                logger.success(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
+                
+        except Exception as e:
+            error_msg = f"Failed to insert package manager metadata for {codebase_qualified_name}"
+            logger.error(f"{error_msg}: {str(e)}")
+            raise ApplicationError(
+                message=error_msg,
+                type="PACKAGE_METADATA_ERROR"
+            )
+        
+ 
