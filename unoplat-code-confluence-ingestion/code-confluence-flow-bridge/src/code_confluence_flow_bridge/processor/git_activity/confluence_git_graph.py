@@ -28,12 +28,34 @@ class ConfluenceGitGraph:
             ParentChildCloneMetadata containing the qualified name of the git repository and the codebase qualified names
         """
         try:
-            parent_child_clone_metadata: ParentChildCloneMetadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
-            logger.success("Successfully inserted git repo into graph db")
-        except Exception as e:
-            logger.error("Failed to insert git repo into graph db: {}", str(e))
-            raise ApplicationError(
-                "Failed to insert git repo into graph db",
-                details=tuple({"error": str(e)})
+            info = activity.info()
+            logger.info(
+                "Starting graph db insertion",
+                workflow_id=info.workflow_id,
+                activity_id=info.activity_id,
+                repository=git_repo.repository_url
             )
-        return parent_child_clone_metadata
+            
+            parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
+            
+            logger.success(
+                "Successfully inserted git repo into graph db",
+                workflow_id=info.workflow_id,
+                activity_id=info.activity_id,
+                repository=git_repo.repository_url
+            )
+            return parent_child_clone_metadata
+            
+        except Exception as e:
+            error_msg = f"Failed to insert git repo into graph db: {git_repo.repository_url}"
+            logger.error(
+                error_msg,
+                workflow_id=activity.info().workflow_id,
+                activity_id=activity.info().activity_id,
+                error=str(e),
+                repository=git_repo.repository_url
+            )
+            raise ApplicationError(
+                message=error_msg,
+                type="GRAPH_INGESTION_ERROR"
+            )
