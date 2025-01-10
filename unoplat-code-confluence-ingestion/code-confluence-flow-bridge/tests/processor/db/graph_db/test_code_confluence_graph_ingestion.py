@@ -206,7 +206,7 @@ class TestCodeConfluenceGraphIngestion:
             )
             
             # Verify metadata node was created and linked
-            codebase_node = await CodeConfluenceCodebase.nodes.get(
+            codebase_node: CodeConfluenceCodebase = await CodeConfluenceCodebase.nodes.get(
                 qualified_name=codebase_qualified_name
             )
             
