@@ -102,7 +102,7 @@ Note: For detailed limitations and resolutions that we are working towards refer
 
 ## Credits/heroes/supporters/Inspirations
 
-These are the people because of which this work has been possible. Unoplat code confluence would not exist without them.
+These are the people/entities because of which this work has been possible. Unoplat code confluence would not exist without them.
 1. [Phodal from Chapi and ArcGuard](https://github.com/phodal)
 2. [Ishaan & Krrish from Litellm](ishaan@berri.ai / krrish@berri.ai)
 3. [Omar Khattab](https://omarkhattab.com/)
