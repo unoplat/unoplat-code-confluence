@@ -19,6 +19,7 @@ dependencies = [
     "pytest>=8.3.4",
     "neomodel>=5.4.2",
     "unoplat-code-confluence-commons",
+    "packaging>=24.2",
 ] 
 
 [dependency-groups]
