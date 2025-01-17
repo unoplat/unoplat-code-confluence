@@ -22,3 +22,29 @@ class UnoplatPackageManagerMetadata(BaseModel):
         default_factory=dict, 
         description="Dictionary of script names to their entry points. Example: {'cli': 'package.module:main', 'serve': 'uvicorn app:main'}"
     )
+    # New fields for additional metadata
+    homepage: Optional[str] = Field(
+        default=None,
+        description="The homepage URL of the project"
+    )
+    repository: Optional[str] = Field(
+        default=None,
+        description="The repository URL of the project"
+    )
+    documentation: Optional[str] = Field(
+        default=None,
+        description="The documentation URL of the project"
+    )
+    keywords: List[str] = Field(
+        default_factory=list,
+        description="List of keywords/tags for the project"
+    )
+    maintainers: List[str] = Field(
+        default_factory=list,
+        description="List of project maintainers"
+    )
+    readme: Optional[str] = Field(
+        default=None,
+        description="Path to or content of the project's README file"
+    )
+    

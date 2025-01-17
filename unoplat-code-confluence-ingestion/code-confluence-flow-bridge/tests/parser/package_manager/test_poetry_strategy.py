@@ -76,6 +76,7 @@ def test_process_metadata_all_required_sections(
 
     package_metadata = mock_poetry_strategy.process_metadata(str(tmp_path), mock_metadata)
 
+    # Test basic metadata
     assert package_metadata is not None
     assert package_metadata.package_name == "test_package"
     assert package_metadata.project_version == "0.1.0"
@@ -85,14 +86,33 @@ def test_process_metadata_all_required_sections(
     assert package_metadata.package_manager == "poetry"
     assert package_metadata.programming_language_version == "^3.9"
 
-    # Check dependencies
+    # Test additional metadata fields
+    assert package_metadata.license == "MIT"
+    assert package_metadata.homepage == "https://example.com"
+    assert package_metadata.repository == "https://github.com/example/test_package"
+    assert package_metadata.documentation == "https://docs.example.com"
+    assert "test" in package_metadata.keywords
+    assert "Maintainer <maintainer@example.com>" in package_metadata.maintainers
+    assert package_metadata.readme == "README.md"
+
+    # Test dependencies from all groups
     deps_dict: Dict[str, UnoplatProjectDependency] = package_metadata.dependencies
+    
+    # Main dependencies
     assert "requests" in deps_dict
     assert "git_dep" in deps_dict
     assert "path_dep" in deps_dict
     assert deps_dict["requests"].version.minimum_version == ">=2.0.0"
+    
+    # Dev dependencies
+    assert "pytest" in deps_dict
+    assert "black" in deps_dict
+    
+    # Docs dependencies
+    assert "sphinx" in deps_dict
+    assert "mkdocs" in deps_dict
 
-    # Check if scripts were parsed
+    # Test scripts/entry points
     assert package_metadata.entry_points is not None
     assert package_metadata.entry_points["cli"] == "test_package.module:function"
     assert package_metadata.entry_points["serve"] == "uvicorn main:app --reload"
