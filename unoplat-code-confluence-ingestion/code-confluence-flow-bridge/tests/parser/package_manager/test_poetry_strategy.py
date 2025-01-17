@@ -136,4 +136,4 @@ def test_process_metadata_with_optional_sections(
         pytest.fail("Expected fallback to pip or empty metadata, but got poetry")
     
     # Confirm empty dependencies when no requirements found
-    assert len(package_metadata.dependencies) == 0 
+    assert len(package_metadata.dependencies) == 0
