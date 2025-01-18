@@ -13,6 +13,7 @@ class ProgrammingLanguage(str, Enum):
 class PackageManagerType(str, Enum):
     POETRY = "poetry"
     PIP = "pip"
+    UV = "uv"
 class DatabaseType(str, Enum):
     NEO4J = "neo4j"
 

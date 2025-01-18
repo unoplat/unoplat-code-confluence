@@ -1,0 +1,8 @@
+# Include all runtime dependencies
+-r requirements.txt
+
+# Development extras from setup.py
+-e .[dev]
+
+# Additional development dependencies not in setup.py
+pytest>=6.0.0 

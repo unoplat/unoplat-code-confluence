@@ -6,6 +6,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Packag
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.pip.pip_strategy import PipStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
+from src.code_confluence_flow_bridge.parser.package_manager.uv.uv_strategy import UvStrategy
 
 
 class PackageManagerStrategyFactory:
@@ -13,6 +14,7 @@ class PackageManagerStrategyFactory:
     _strategies: Dict[Tuple[ProgrammingLanguage, PackageManagerType], type[PackageManagerStrategy]] = {
         (ProgrammingLanguage.PYTHON, PackageManagerType.POETRY): PythonPoetryStrategy,
         (ProgrammingLanguage.PYTHON, PackageManagerType.PIP): PipStrategy,
+        (ProgrammingLanguage.PYTHON, PackageManagerType.UV): UvStrategy,
     }
 
     @classmethod
