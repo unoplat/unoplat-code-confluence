@@ -13,7 +13,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
 
 # Constants
-TEST_DATA_DIR = Path(__file__).parent.parent.parent / "data"
+TEST_DATA_DIR = Path(__file__).parent.parent.parent / "test_data"
 
 def load_toml_content(filename: str) -> str:
     """Helper function to load TOML content from test data directory"""

@@ -5,9 +5,12 @@ from typing import Any, Dict, List, Optional, Union
 
 # Third Party
 from loguru import logger
+from packaging.requirements import Requirement
 
 # First Party
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
 
 
 class SetupParser:
@@ -29,14 +32,22 @@ class SetupParser:
         ]
 
     @staticmethod
-    def _extract_dict_values(node: ast.Dict) -> Dict[str, str]:
-        """Extract key-value pairs from an AST Dict node"""
-        return {
-            key.value: value.value
-            for key, value in zip(node.keys, node.values)
-            if isinstance(key, ast.Constant) and isinstance(value, ast.Constant) 
-            and isinstance(key.value, str) and isinstance(value.value, str)
-        }
+    def _extract_dict_values(node: ast.Dict) -> Dict[str, Any]:
+        """Extract key-value pairs from an AST Dict node, including nested structures."""
+        result = {}
+        for key, value in zip(node.keys, node.values):
+            if not isinstance(key, ast.Constant) or not isinstance(key.value, str):
+                continue
+                
+            if isinstance(value, ast.Constant):
+                if isinstance(value.value, str):
+                    result[key.value] = value.value
+            elif isinstance(value, ast.List):
+                result[key.value] = SetupParser._extract_list_values(value)
+            elif isinstance(value, ast.Dict):
+                result[key.value] = SetupParser._extract_dict_values(value)
+                
+        return result
 
     @staticmethod
     def _extract_setup_args_from_ast(node: ast.AST) -> Optional[Dict[str, Any]]:
@@ -51,6 +62,7 @@ class SetupParser:
         for keyword in node.keywords:
             if keyword.arg is None:  # Skip if no argument name
                 continue
+                
             if isinstance(keyword.value, ast.Constant):
                 value = SetupParser._extract_constant_value(keyword.value)
                 if value is not None:
@@ -58,6 +70,7 @@ class SetupParser:
             elif isinstance(keyword.value, ast.List):
                 args_dict[keyword.arg] = SetupParser._extract_list_values(keyword.value)
             elif isinstance(keyword.value, ast.Dict):
+                # Handle nested dictionary structures
                 args_dict[keyword.arg] = SetupParser._extract_dict_values(keyword.value)
                 
         return args_dict
@@ -113,31 +126,104 @@ class SetupParser:
 
         if 'version' in setup_args:
             metadata.project_version = setup_args['version']
-            
+                
         if 'description' in setup_args:
             metadata.description = setup_args['description']
-            
+                
         if 'author' in setup_args:
             authors = [setup_args['author']]
             if 'author_email' in setup_args:
                 authors[0] = f"{authors[0]} <{setup_args['author_email']}>"
             metadata.authors = authors
-            
+                
         if 'license' in setup_args:
             metadata.license = setup_args['license']
-            
+                
         if 'python_requires' in setup_args:
             version_str = setup_args['python_requires']
-            version_info = {}
-            if '>=' in version_str:
-                version_info['min'] = version_str
-            if '<=' in version_str:
-                version_info['max'] = version_str
-            metadata.programming_language_version = version_info
             
+            metadata.programming_language_version = version_str
+                
         if 'entry_points' in setup_args:
             metadata.entry_points = SetupParser._parse_entry_points(setup_args['entry_points'])
-
+            
+        # Process install_requires
+        if 'install_requires' in setup_args:
+            for req_str in setup_args['install_requires']:
+                req = Requirement(req_str)
+                version = UnoplatVersion()
+                
+                # Handle version specifiers
+                if req.specifier:
+                    min_ver: Optional[str] = None
+                    max_ver: Optional[str] = None
+                    current_ver: Optional[str] = None
+                    
+                    for spec in req.specifier:
+                        spec_str = str(spec)
+                        if spec.operator == "==":
+                            current_ver = spec_str
+                        elif spec.operator in (">=", ">"):
+                            min_ver = spec_str
+                        elif spec.operator in ("<=", "<"):
+                            max_ver = spec_str
+                            
+                    version = UnoplatVersion(
+                        minimum_version=min_ver,
+                        maximum_version=max_ver,
+                        current_version=current_ver
+                    )
+                
+                dep = UnoplatProjectDependency(
+                    version=version,
+                    extras=list(req.extras) if req.extras else None,
+                    environment_marker=str(req.marker) if req.marker else None
+                )
+                metadata.dependencies[req.name] = dep
+        
+        # Process extras_require
+        if 'extras_require' in setup_args:
+            for extra_name, req_list in setup_args['extras_require'].items():
+                for req_str in req_list:
+                    req = Requirement(req_str)
+                    version = UnoplatVersion()
+                    
+                    # Handle version specifiers
+                    if req.specifier:
+                        min_ver: Optional[str] = None
+                        max_ver: Optional[str] = None
+                        current_ver: Optional[str] = None
+                        
+                        for spec in req.specifier:
+                            spec_str = str(spec)
+                            if spec.operator == "==":
+                                current_ver = spec_str
+                            elif spec.operator in (">=", ">"):
+                                min_ver = spec_str
+                            elif spec.operator in ("<=", "<"):
+                                max_ver = spec_str
+                                
+                        version = UnoplatVersion(
+                            minimum_version=min_ver,
+                            maximum_version=max_ver,
+                            current_version=current_ver
+                        )
+                    
+                    dep = UnoplatProjectDependency(
+                        version=version,
+                        extras=[extra_name] + list(req.extras) if req.extras else [extra_name],
+                        environment_marker=str(req.marker) if req.marker else None,
+                        group=extra_name
+                    )
+                    if req.name not in metadata.dependencies:
+                        metadata.dependencies[req.name] = dep
+                    else:
+                        existing_dep = metadata.dependencies[req.name]
+                        if existing_dep.extras:
+                            existing_dep.extras.append(extra_name)
+                        else:
+                            existing_dep.extras = [extra_name]
+                            
         return metadata
 
     @staticmethod
