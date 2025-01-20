@@ -2,7 +2,7 @@ import os
 import pytest
 import tomlkit
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
 from src.code_confluence_flow_bridge.models.configuration.settings import (
@@ -33,6 +33,11 @@ def mock_pyproject_optional_sections_only() -> str:
     return load_toml_content("pyproject_optional_sections.toml")
 
 @pytest.fixture
+def mock_pyproject_unoplat() -> str:
+    """Returns pyproject.toml content from unoplat project"""
+    return load_toml_content("pyproject_unoplat.toml")
+
+@pytest.fixture
 def mock_poetry_strategy() -> PythonPoetryStrategy:
     """Create a fixture to return an instance of PythonPoetryStrategy"""
     return PythonPoetryStrategy()
@@ -54,7 +59,8 @@ def writepyproject(content: str, tmp_path: Path) -> Path:
 
 @pytest.mark.parametrize("toml_filename", [
     "pyproject_all_required.toml",
-    "pyproject_optional_sections.toml"
+    "pyproject_optional_sections.toml",
+    "pyproject_unoplat.toml"
 ])
 def test_pyproject_is_written_correctly(toml_filename: str, tmp_path: Path):
     """Test that TOML files can be read and parsed correctly"""
@@ -81,7 +87,7 @@ def test_process_metadata_all_required_sections(
     assert package_metadata.package_name == "test_package"
     assert package_metadata.project_version == "0.1.0"
     assert package_metadata.description == "Sample description"
-    assert "Test Author <test@example.com>" in package_metadata.authors
+    assert any("Test Author <test@example.com>" in author for author in package_metadata.authors or [])
     assert package_metadata.programming_language == "python"
     assert package_metadata.package_manager == "poetry"
     assert package_metadata.programming_language_version == "^3.9"
@@ -91,8 +97,8 @@ def test_process_metadata_all_required_sections(
     assert package_metadata.homepage == "https://example.com"
     assert package_metadata.repository == "https://github.com/example/test_package"
     assert package_metadata.documentation == "https://docs.example.com"
-    assert "test" in package_metadata.keywords
-    assert "Maintainer <maintainer@example.com>" in package_metadata.maintainers
+    assert "test" in (package_metadata.keywords or [])
+    assert any("Maintainer <maintainer@example.com>" in maintainer for maintainer in package_metadata.maintainers or [])
     assert package_metadata.readme == "README.md"
 
     # Test dependencies from all groups
@@ -102,7 +108,7 @@ def test_process_metadata_all_required_sections(
     assert "requests" in deps_dict
     assert "git_dep" in deps_dict
     assert "path_dep" in deps_dict
-    assert deps_dict["requests"].version.minimum_version == ">=2.0.0"
+    assert deps_dict["requests"].version.specifier == ">=2.0.0,<2.0.0"
     
     # Dev dependencies
     assert "pytest" in deps_dict
@@ -116,6 +122,62 @@ def test_process_metadata_all_required_sections(
     assert package_metadata.entry_points is not None
     assert package_metadata.entry_points["cli"] == "test_package.module:function"
     assert package_metadata.entry_points["serve"] == "uvicorn main:app --reload"
+
+def test_process_metadata_unoplat(
+    tmp_path: Path,
+    mock_poetry_strategy: PythonPoetryStrategy,
+    mock_pyproject_unoplat: str,
+    mock_metadata: ProgrammingLanguageMetadata
+):
+    """Test processing of unoplat's pyproject.toml"""
+    writepyproject(mock_pyproject_unoplat, tmp_path)
+
+    package_metadata = mock_poetry_strategy.process_metadata(str(tmp_path), mock_metadata)
+
+    # Test basic metadata
+    assert package_metadata is not None
+    assert package_metadata.package_name == "unoplat-code-confluence"
+    assert package_metadata.project_version == "0.17.0"
+    assert package_metadata.description == "codebase understanding"
+    assert any("JayGhiya <ghiya6548@gmail.com>" in author for author in package_metadata.authors or [])
+    assert package_metadata.programming_language == "python"
+    assert package_metadata.package_manager == "poetry"
+    assert package_metadata.programming_language_version == "^3.10, <=3.13"
+    assert package_metadata.readme == "README.md"
+
+    # Test dependencies
+    deps_dict: Dict[str, UnoplatProjectDependency] = package_metadata.dependencies
+    
+    # Check core dependencies
+    core_deps = [
+        "pydantic", "ruff", "loguru", "pygithub", "pypdf", "pydantic-settings",
+        "litellm", "pytest", "dspy-ai", "packaging", "progiter", "sentence-transformers",
+        "einops", "rich", "neo4j", "neomodel", "requirements-parser", "tomlkit",
+        "stdlib-list", "pytest-cov", "gitpython", "tree-sitter", "tree-sitter-python", "black"
+    ]
+    for dep in core_deps:
+        assert dep in deps_dict, f"Core dependency {dep} not found"
+    
+    # Check specific version constraints
+    assert deps_dict["pygithub"].version.specifier == ">=1.59.1,<2.0.0"
+    assert deps_dict["neo4j"].version.specifier == "5.19.0"
+    
+    # Check git dependency
+    assert "unoplat-code-confluence-commons" in deps_dict
+    git_dep = deps_dict["unoplat-code-confluence-commons"]
+    assert git_dep.source == "git"
+    assert git_dep.source_url == "https://github.com/unoplat/unoplat-code-confluence.git"
+    assert git_dep.source_reference == "main"
+    assert git_dep.subdirectory == "unoplat-code-confluence-commons"
+    
+    # Check dev dependencies
+    dev_deps = ["ipykernel", "mypy", "types-requests"]
+    for dep in dev_deps:
+        assert dep in deps_dict, f"Dev dependency {dep} not found"
+
+    # Test scripts/entry points
+    assert package_metadata.entry_points is not None
+    assert package_metadata.entry_points["unoplat-code-confluence"] == "unoplat_code_confluence.__main__:main"
 
 def test_process_metadata_with_optional_sections(
     tmp_path: Path,

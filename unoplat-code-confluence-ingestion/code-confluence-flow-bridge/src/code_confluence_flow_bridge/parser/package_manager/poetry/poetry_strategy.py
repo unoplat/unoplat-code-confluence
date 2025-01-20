@@ -5,7 +5,6 @@ from typing import Dict, Optional
 # Third Party
 import tomlkit
 from loguru import logger
-from packaging.specifiers import SpecifierSet
 
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
@@ -59,7 +58,6 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 keywords=poetry_data.get("keywords", []),
                 maintainers=poetry_data.get("maintainers", []),
                 readme=poetry_data.get("readme"),
-             
             )
             
         except Exception as e:
@@ -112,38 +110,12 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             return UnoplatVersion()
             
         try:
-            # Use packaging's SpecifierSet to parse the constraint
-            spec_set = SpecifierSet(constraint)
-            
-            # Convert to UnoplatVersion format
-            min_ver = None
-            max_ver = None
-            current_ver = None
-            
-            for spec in spec_set:
-                if spec.operator in (">=", ">"):
-                    min_ver = str(spec)
-                elif spec.operator in ("<=", "<"):
-                    max_ver = str(spec)
-                elif spec.operator == "==":
-                    current_ver = str(spec)
-                elif spec.operator == "~=":
-                    # Handle compatible release operator
-                    min_ver = str(spec)
-                elif spec.operator == "!=":
-                    # Skip not equal constraints for now
-                    continue
-                    
-            return UnoplatVersion(
-                minimum_version=min_ver,
-                maximum_version=max_ver,
-                current_version=current_ver
-            )
+            # Simply store the raw version constraint as specifier
+            return UnoplatVersion(specifier=constraint)
             
         except Exception as e:
             logger.warning(f"Error parsing version constraint '{constraint}': {str(e)}")
             return UnoplatVersion()
-
 
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information"""
@@ -243,35 +215,5 @@ class PythonPoetryStrategy(PackageManagerStrategy):
         return version_constraint
     
     def _get_entry_points(self, scripts: Dict[str, str]) -> Dict[str, str]:
-        """Get all entry points from Poetry scripts section.
-        
-        Returns all scripts defined in pyproject.toml as a dictionary mapping
-        script names to their entry points.
-        
-        Handles various script definitions:
-        1. Module format:
-            [tool.poetry.scripts]
-            cli = "package_name.module:function"
-        
-        2. Command format:
-            [tool.poetry.scripts]
-            serve = "uvicorn main:app --reload"
-        
-        Args:
-            scripts (Dict[str, str]): Dictionary of scripts from pyproject.toml
-        
-        Returns:
-            Dict[str, str]: Dictionary mapping script names to their entry points
-        
-        Example from pyproject.toml:
-            [tool.poetry.scripts]
-            unoplat-code-confluence = "unoplat_code_confluence.__main__:main"
-            serve = "uvicorn api:app --reload"
-            
-            Returns:
-            {
-                "unoplat-code-confluence": "unoplat_code_confluence.__main__:main",
-                "serve": "uvicorn api:app --reload"
-            }
-        """
+        """Get all entry points from Poetry scripts section."""
         return scripts if scripts else {}
