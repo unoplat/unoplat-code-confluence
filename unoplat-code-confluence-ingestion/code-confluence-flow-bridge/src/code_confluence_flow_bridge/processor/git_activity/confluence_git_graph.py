@@ -1,4 +1,3 @@
-from loguru import logger
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
@@ -14,7 +13,7 @@ class ConfluenceGitGraph:
     """
     def __init__(self,code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
         self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
-        logger.info("Initialized ConfluenceGitGraph with CodeConfluenceGraphIngestion")
+        activity.logger.info("Initialized ConfluenceGitGraph with CodeConfluenceGraphIngestion")
 
     @activity.defn
     async def insert_git_repo_into_graph_db(self,git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
@@ -29,31 +28,37 @@ class ConfluenceGitGraph:
         """
         try:
             info = activity.info()
-            logger.info(
+            activity.logger.info(
                 "Starting graph db insertion",
-                workflow_id=info.workflow_id,
-                activity_id=info.activity_id,
-                repository=git_repo.repository_url
+                extra={
+                    "workflow_id": info.workflow_id,
+                    "activity_id": info.activity_id,
+                    "repository": git_repo.repository_url
+                }
             )
             
             parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
             
-            logger.success(
+            activity.logger.info(
                 "Successfully inserted git repo into graph db",
-                workflow_id=info.workflow_id,
-                activity_id=info.activity_id,
-                repository=git_repo.repository_url
+                extra={
+                    "workflow_id": info.workflow_id,
+                    "activity_id": info.activity_id,
+                    "repository": git_repo.repository_url
+                }
             )
             return parent_child_clone_metadata
             
         except Exception as e:
             error_msg = f"Failed to insert git repo into graph db: {git_repo.repository_url}"
-            logger.error(
+            activity.logger.error(
                 error_msg,
-                workflow_id=activity.info().workflow_id,
-                activity_id=activity.info().activity_id,
-                error=str(e),
-                repository=git_repo.repository_url
+                extra={
+                    "workflow_id": activity.info().workflow_id,
+                    "activity_id": activity.info().activity_id,
+                    "error": str(e),
+                    "repository": git_repo.repository_url
+                }
             )
             raise ApplicationError(
                 message=error_msg,

@@ -1,4 +1,3 @@
-from loguru import logger
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
@@ -12,7 +11,7 @@ class PackageManagerMetadataIngestion:
     """
     def __init__(self, code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
         self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
-        logger.info("Initialized PackageManagerMetadataIngestion")
+        activity.logger.info("Initialized PackageManagerMetadataIngestion")
 
     @activity.defn
     async def insert_package_manager_metadata(
@@ -29,11 +28,15 @@ class PackageManagerMetadataIngestion:
         """
         try:
             info = activity.info()
-            logger.info(
+            activity.logger.info(
                 "Starting package manager metadata ingestion",
-                workflow_id=info.workflow_id,
-                activity_id=info.activity_id,
-                codebase=codebase_qualified_name
+                extra={
+                    "temporal_workflow_id": info.workflow_id,
+                    "temporal_activity_id": info.activity_id,
+                    "codebase_name": codebase_qualified_name,
+                    "programming_language": package_manager_metadata.programming_language,
+                    "package_manager": package_manager_metadata.package_manager
+                }
             )
             
             await self.code_confluence_graph_ingestion.insert_code_confluence_codebase_package_manager_metadata(
@@ -41,20 +44,27 @@ class PackageManagerMetadataIngestion:
                 package_manager_metadata=package_manager_metadata
             )
             
-            logger.success(
+            activity.logger.info(
                 "Successfully ingested package manager metadata",
-                workflow_id=info.workflow_id,
-                activity_id=info.activity_id,
-                codebase=codebase_qualified_name
+                extra={
+                    "temporal_workflow_id": info.workflow_id,
+                    "temporal_activity_id": info.activity_id,
+                    "codebase_name": codebase_qualified_name,
+                    "status": "success"
+                }
             )
             
         except Exception as e:
-            logger.error(
+            activity.logger.error(
                 "Failed to ingest package manager metadata",
-                workflow_id=activity.info().workflow_id,
-                activity_id=activity.info().activity_id,
-                error=str(e),
-                codebase=codebase_qualified_name
+                extra={
+                    "temporal_workflow_id": activity.info().workflow_id,
+                    "temporal_activity_id": activity.info().activity_id,
+                    "error_type": type(e).__name__,
+                    "error_details": str(e),
+                    "codebase_name": codebase_qualified_name,
+                    "status": "error"
+                }
             )
             raise ApplicationError(
                 message=f"Failed to ingest package manager metadata for {codebase_qualified_name}",

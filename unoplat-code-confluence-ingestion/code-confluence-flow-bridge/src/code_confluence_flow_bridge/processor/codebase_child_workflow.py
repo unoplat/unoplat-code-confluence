@@ -22,14 +22,17 @@ class CodebaseChildWorkflow:
         package_manager_metadata: UnoplatPackageManagerMetadata
     ) -> None:
         """Execute the codebase workflow"""
+        workflow.logger.info(f"Starting codebase workflow for {codebase_qualified_name}")
         
         # 1. Parse package metadata
+        workflow.logger.info(f"Creating programming language metadata for {package_manager_metadata.programming_language}")
         programming_language_metadata = ProgrammingLanguageMetadata(
             language=ProgrammingLanguage(package_manager_metadata.programming_language.lower()),
             package_manager=PackageManagerType(package_manager_metadata.package_manager.lower()),
             language_version=package_manager_metadata.programming_language_version
         )
         
+        workflow.logger.info(f"Parsing package metadata for {codebase_qualified_name}")
         parsed_metadata: UnoplatPackageManagerMetadata = await workflow.execute_activity(
             activity=PackageMetadataActivity.get_package_metadata,
             args=[local_path, programming_language_metadata],
@@ -37,8 +40,11 @@ class CodebaseChildWorkflow:
         )
         
         # 2. Ingest package metadata into graph
+        workflow.logger.info(f"Ingesting package metadata for {codebase_qualified_name} into graph")
         await workflow.execute_activity(
             activity=PackageManagerMetadataIngestion.insert_package_manager_metadata,
             args=[codebase_qualified_name, parsed_metadata],
             start_to_close_timeout=timedelta(minutes=10)
         )
+        
+        workflow.logger.info(f"Codebase workflow completed successfully for {codebase_qualified_name}")
