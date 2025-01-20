@@ -22,7 +22,7 @@ class CodeConfluenceCodebase(BaseNode):
     """
     name = StringProperty(required=True)
     readme = StringProperty()
-    
+    local_path = StringProperty()
     
     packages = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',

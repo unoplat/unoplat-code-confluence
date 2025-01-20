@@ -82,7 +82,8 @@ class CodeConfluenceGraphIngestion:
                     codebase_dict = {
                         "qualified_name": codebase_qualified_name,
                         "name": codebase.name,
-                        "readme": codebase.readme
+                        "readme": codebase.readme,
+                        "local_path": codebase.local_path
                     }
                     parent_child_clone_metadata.codebase_qualified_names.append(codebase_qualified_name)
                     
