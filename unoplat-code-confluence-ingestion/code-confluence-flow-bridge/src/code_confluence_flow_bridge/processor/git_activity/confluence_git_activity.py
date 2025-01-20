@@ -1,4 +1,3 @@
-from loguru import logger
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
@@ -13,7 +12,7 @@ class GitActivity:
     """
     def __init__(self):
         self.github_helper = GithubHelper()
-        logger.info("Initialized GitActivity with GithubHelper")
+        activity.logger.info("Initialized GitActivity with GithubHelper")
 
     @activity.defn
     def process_git_activity(self,repository_settings: RepositorySettings, github_token: str) -> UnoplatGitRepository:
@@ -26,30 +25,40 @@ class GitActivity:
         try:
             # Get activity info for context
             info = activity.info()
-            logger.info(
+            activity.logger.info(
                 "Starting git activity processing",
-                workflow_id=info.workflow_id,
-                activity_id=info.activity_id,
-                attempt=info.attempt
+                extra={
+                    "temporal_workflow_id": info.workflow_id,
+                    "temporal_activity_id": info.activity_id,
+                    "temporal_attempt": info.attempt,
+                    "git_url": repository_settings.git_url
+                }
             )
             
             activity_data = self.github_helper.clone_repository(repository_settings, github_token)
             
-            logger.success(
+            activity.logger.info(
                 "Successfully processed git activity",
-                workflow_id=info.workflow_id,
-                activity_id=info.activity_id,
-                repository=repository_settings.git_url
+                extra={
+                    "temporal_workflow_id": info.workflow_id,
+                    "temporal_activity_id": info.activity_id,
+                    "git_url": repository_settings.git_url,
+                    "status": "success"
+                }
             )
             return activity_data
 
         except Exception as e:
-            logger.error(
+            activity.logger.error(
                 "Failed to process git activity",
-                workflow_id=activity.info().workflow_id,
-                activity_id=activity.info().activity_id,
-                error=str(e),
-                repository=repository_settings.git_url
+                extra={
+                    "temporal_workflow_id": activity.info().workflow_id,
+                    "temporal_activity_id": activity.info().activity_id,
+                    "error_type": type(e).__name__,
+                    "error_details": str(e),
+                    "git_url": repository_settings.git_url,
+                    "status": "error"
+                }
             )
             raise ApplicationError(
                 message="Failed to process git activity",
