@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.9.1...unoplat-code-confluence-commons-v0.9.2) (2025-01-20)
+
+
+### Bug Fixes
+
+* fix schema not handling local path of codebase node in neo4j ([9d5e7d2](https://github.com/unoplat/unoplat-code-confluence/commit/9d5e7d2bd6cd2d24505ec2cc6e0febd58875191a))
+
 ## [0.9.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.9.0...unoplat-code-confluence-commons-v0.9.1) (2025-01-08)
 
 
