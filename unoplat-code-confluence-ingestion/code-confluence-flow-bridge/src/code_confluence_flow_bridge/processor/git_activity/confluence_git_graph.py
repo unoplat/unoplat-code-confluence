@@ -4,7 +4,7 @@ from temporalio.exceptions import ApplicationError
 
 from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
+from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
 
@@ -17,7 +17,7 @@ class ConfluenceGitGraph:
         logger.info("Initialized ConfluenceGitGraph with CodeConfluenceGraphIngestion")
 
     @activity.defn
-    async def insert_git_repo_into_graph_db(self,git_repo: UnoplatGitRepository) -> str:
+    async def insert_git_repo_into_graph_db(self,git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
         """
         Insert a git repository into the graph database
         
@@ -25,15 +25,37 @@ class ConfluenceGitGraph:
             git_repo: UnoplatGitRepository containing git repository data
             
         Returns:
-            Qualified name of the git repository
+            ParentChildCloneMetadata containing the qualified name of the git repository and the codebase qualified names
         """
         try:
-            git_repo_qualified_name: str = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
-            logger.success("Successfully inserted git repo into graph db")
-        except Exception as e:
-            logger.error("Failed to insert git repo into graph db: {}", str(e))
-            raise ApplicationError(
-                "Failed to insert git repo into graph db",
-                details=tuple({"error": str(e)})
+            info = activity.info()
+            logger.info(
+                "Starting graph db insertion",
+                workflow_id=info.workflow_id,
+                activity_id=info.activity_id,
+                repository=git_repo.repository_url
             )
-        return git_repo_qualified_name
+            
+            parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
+            
+            logger.success(
+                "Successfully inserted git repo into graph db",
+                workflow_id=info.workflow_id,
+                activity_id=info.activity_id,
+                repository=git_repo.repository_url
+            )
+            return parent_child_clone_metadata
+            
+        except Exception as e:
+            error_msg = f"Failed to insert git repo into graph db: {git_repo.repository_url}"
+            logger.error(
+                error_msg,
+                workflow_id=activity.info().workflow_id,
+                activity_id=activity.info().activity_id,
+                error=str(e),
+                repository=git_repo.repository_url
+            )
+            raise ApplicationError(
+                message=error_msg,
+                type="GRAPH_INGESTION_ERROR"
+            )

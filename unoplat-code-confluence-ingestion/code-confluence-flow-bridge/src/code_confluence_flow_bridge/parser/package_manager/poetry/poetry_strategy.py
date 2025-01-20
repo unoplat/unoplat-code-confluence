@@ -5,12 +5,11 @@ from typing import Dict, Optional
 # Third Party
 import tomlkit
 from loguru import logger
+from packaging.specifiers import SpecifierSet
 
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
-
-# First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.utils.requirements_utils import RequirementsUtils
@@ -32,29 +31,17 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             
             poetry_data = pyproject_data.get("tool", {}).get("poetry", {})
             if not poetry_data:
-                logger.warning("No poetry configuration found in pyproject.toml, falling back to requirements")
-                # Try parsing requirements folder using RequirementsUtils
-                dependencies: Dict[str, UnoplatProjectDependency] = RequirementsUtils.parse_requirements_folder(local_workspace_path)
-                unoplatPackageManager: UnoplatPackageManagerMetadata =  UnoplatPackageManagerMetadata(
-                    dependencies=dependencies,
-                    programming_language=metadata.language.value,
-                    package_manager=PackageManagerType.PIP.value
-                )
-                try:
-                    unoplatPackageManager = SetupParser.parse_setup_file(local_workspace_path, unoplatPackageManager)
-                except FileNotFoundError:
-                    logger.warning("setup.py not found, skipping setup.py parsing")
-                return unoplatPackageManager
+                return self._handle_fallback(local_workspace_path, metadata)
                 
-                
-            # Parse only main dependencies
-            main_deps = poetry_data.get("dependencies", {})
-            dependencies: Dict[str, UnoplatProjectDependency] = self._parse_dependencies(main_deps) #type: ignore
-            programming_language_version=self._parse_python_version(main_deps.get("python"))
-            # if we do not get python version fall back to the one taken from configuration           
-            if programming_language_version is None:
-                programming_language_version = metadata.language_version
-            # Create metadata object with entry_points instead of entry_point
+            # Parse dependencies from all groups
+            dependencies = self._parse_all_dependency_groups(poetry_data)
+            
+            # Parse Python version
+            programming_language_version = self._parse_python_version(
+                poetry_data.get("dependencies", {}).get("python")
+            ) or metadata.language_version
+            
+            # Create metadata object with all available fields
             return UnoplatPackageManagerMetadata(
                 dependencies=dependencies,
                 package_name=poetry_data.get("name"),
@@ -64,13 +51,100 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 project_version=poetry_data.get("version"),
                 description=poetry_data.get("description"),
                 authors=poetry_data.get("authors"),
-                entry_points=self._get_entry_points(poetry_data.get("scripts", {}))
+                entry_points=self._get_entry_points(poetry_data.get("scripts", {})),
+                license=poetry_data.get("license"),
+                homepage=poetry_data.get("homepage"),
+                repository=poetry_data.get("repository"),
+                documentation=poetry_data.get("documentation"),
+                keywords=poetry_data.get("keywords", []),
+                maintainers=poetry_data.get("maintainers", []),
+                readme=poetry_data.get("readme"),
+             
             )
             
         except Exception as e:
             logger.error(f"Error parsing pyproject.toml: {str(e)}")
             return self._create_empty_metadata(metadata)
-    
+
+    def _handle_fallback(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+        """Handle fallback to requirements.txt when no poetry config is found"""
+        logger.warning("No poetry configuration found in pyproject.toml, falling back to requirements")
+        dependencies = RequirementsUtils.parse_requirements_folder(local_workspace_path)
+        package_manager = UnoplatPackageManagerMetadata(
+            dependencies=dependencies,
+            programming_language=metadata.language.value,
+            package_manager=PackageManagerType.PIP.value
+        )
+        try:
+            return SetupParser.parse_setup_file(local_workspace_path, package_manager)
+        except FileNotFoundError:
+            logger.warning("setup.py not found, skipping setup.py parsing")
+            return package_manager
+
+    def _parse_all_dependency_groups(self, poetry_data: Dict) -> Dict[str, UnoplatProjectDependency]:
+        """Parse dependencies from all groups including main, dev, and custom groups"""
+        all_dependencies = {}
+        
+        # Parse main dependencies
+        main_deps = poetry_data.get("dependencies", {})
+        all_dependencies.update(self._parse_dependencies(main_deps))
+        
+        # Parse dev dependencies (legacy format)
+        dev_deps = poetry_data.get("dev-dependencies", {})
+        if dev_deps:
+            all_dependencies.update(self._parse_dependencies(dev_deps, group="dev"))
+            
+        # Parse group dependencies (Poetry 1.2+ format)
+        groups = poetry_data.get("group", {})
+        for group_name, group_data in groups.items():
+            if isinstance(group_data, dict) and "dependencies" in group_data:
+                group_deps = self._parse_dependencies(
+                    group_data["dependencies"], 
+                    group=group_name
+                )
+                all_dependencies.update(group_deps)
+                
+        return all_dependencies
+
+    def _parse_version_constraint(self, constraint: str) -> UnoplatVersion:
+        """Parse version constraint using packaging library"""
+        if not constraint or constraint == "*":
+            return UnoplatVersion()
+            
+        try:
+            # Use packaging's SpecifierSet to parse the constraint
+            spec_set = SpecifierSet(constraint)
+            
+            # Convert to UnoplatVersion format
+            min_ver = None
+            max_ver = None
+            current_ver = None
+            
+            for spec in spec_set:
+                if spec.operator in (">=", ">"):
+                    min_ver = str(spec)
+                elif spec.operator in ("<=", "<"):
+                    max_ver = str(spec)
+                elif spec.operator == "==":
+                    current_ver = str(spec)
+                elif spec.operator == "~=":
+                    # Handle compatible release operator
+                    min_ver = str(spec)
+                elif spec.operator == "!=":
+                    # Skip not equal constraints for now
+                    continue
+                    
+            return UnoplatVersion(
+                minimum_version=min_ver,
+                maximum_version=max_ver,
+                current_version=current_ver
+            )
+            
+        except Exception as e:
+            logger.warning(f"Error parsing version constraint '{constraint}': {str(e)}")
+            return UnoplatVersion()
+
+
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information"""
         return UnoplatPackageManagerMetadata(
@@ -78,55 +152,6 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             programming_language=metadata.language.value,
             package_manager=metadata.package_manager
         )
-    
-    def _parse_version_constraint(self, constraint: str) -> UnoplatVersion:
-        """Parse version constraint into UnoplatVersion format."""
-        if not constraint or constraint == "*":
-            return UnoplatVersion()
-            
-        # Handle comma-separated constraints (e.g., ">=1.0.0,<2.0.0")
-        if "," in constraint:
-            parts = [p.strip() for p in constraint.split(",")]
-            min_ver = None
-            max_ver = None
-            current_ver = None
-            
-            for part in parts:
-                if part.startswith(">=") or part.startswith(">"):
-                    min_ver = part
-                elif part.startswith("<=") or part.startswith("<"):
-                    max_ver = part
-                elif part.startswith("=="):
-                    current_ver = part
-                    
-            return UnoplatVersion(
-                minimum_version=min_ver,
-                maximum_version=max_ver,
-                current_version=current_ver
-            )
-        
-        # Handle caret constraints (e.g., "^1.0.0")
-        if constraint.startswith("^"):
-            return UnoplatVersion(
-                minimum_version=constraint
-            )
-        
-        # Handle tilde constraints (e.g., "~1.0.0")
-        if constraint.startswith("~"):
-            return UnoplatVersion(
-                minimum_version=constraint
-            )
-        
-        # Handle comparison operators
-        if constraint.startswith(">=") or constraint.startswith(">"):
-            return UnoplatVersion(minimum_version=constraint)
-        elif constraint.startswith("<=") or constraint.startswith("<"):
-            return UnoplatVersion(maximum_version=constraint)
-        elif constraint.startswith("=="):
-            return UnoplatVersion(current_version=constraint)
-        
-        # Plain version string treated as exact version
-        return UnoplatVersion(current_version=f"=={constraint}")
     
     def _parse_dependencies(self, deps_dict: Dict, group: Optional[str] = None) -> Dict[str, UnoplatProjectDependency]:
         dependencies = {}

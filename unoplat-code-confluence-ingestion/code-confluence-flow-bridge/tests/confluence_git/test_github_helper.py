@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
 
 # Use the example config file path
-TEST_CONFIG_PATH = Path(__file__).parent.parent/"data"/ "example_config.json"
+TEST_CONFIG_PATH = Path(__file__).parent.parent/"test_data"/ "example_config.json"
 TEST_OUTPUT_DIR = Path("test_output")
 
 

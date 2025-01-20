@@ -24,18 +24,39 @@ class GitActivity:
             UnoplatGitRepository containing processed git activity data
         """
         try:
-            logger.info("Starting git activity processing")
+            # Get activity info for context
+            info = activity.info()
+            logger.info(
+                "Starting git activity processing",
+                workflow_id=info.workflow_id,
+                activity_id=info.activity_id,
+                attempt=info.attempt
+            )
             
-            # Process git activity using github helper
-            activity_data: UnoplatGitRepository = self.github_helper.clone_repository(repository_settings, github_token)
+            activity_data = self.github_helper.clone_repository(repository_settings, github_token)
             
-            logger.success("Successfully processed git activity")
+            logger.success(
+                "Successfully processed git activity",
+                workflow_id=info.workflow_id,
+                activity_id=info.activity_id,
+                repository=repository_settings.git_url
+            )
             return activity_data
 
         except Exception as e:
-            logger.error("Failed to process git activity: {}", str(e))
-            raise ApplicationError(
+            logger.error(
                 "Failed to process git activity",
-                details={"error": str(e)}
+                workflow_id=activity.info().workflow_id,
+                activity_id=activity.info().activity_id,
+                error=str(e),
+                repository=repository_settings.git_url
+            )
+            raise ApplicationError(
+                message="Failed to process git activity",
+                type="GIT_ACTIVITY_ERROR",
+                details=[{
+                    "repository": repository_settings.git_url,
+                    "error": str(e)
+                }]
             )
             

@@ -1,10 +1,9 @@
-import asyncio
 from datetime import timedelta
 
 from temporalio import workflow
 from temporalio.workflow import ParentClosePolicy
 
-
+from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
@@ -37,14 +36,14 @@ class RepoWorkflow:
         """
         
         # 1. First executes a git activity
-        git_repo_metadata = await workflow.execute_activity(
+        git_repo_metadata: UnoplatGitRepository = await workflow.execute_activity(
             activity=GitActivity.process_git_activity,
             args=(repository_settings, github_token),
             start_to_close_timeout=timedelta(minutes=10)
         )
         
         # 2. Then insert the git repo into the graph db
-        await workflow.execute_activity(
+        parent_child_clone_metadata: ParentChildCloneMetadata = await workflow.execute_activity(
             activity=ConfluenceGitGraph.insert_git_repo_into_graph_db,
             arg=git_repo_metadata,
             start_to_close_timeout=timedelta(minutes=10)
@@ -52,11 +51,12 @@ class RepoWorkflow:
         
         
         # 2. Then spawns child workflows for each codebase
-        for unoplat_codebase in git_repo_metadata.codebases:
+        for codebase_qualified_name,unoplat_codebase in zip(parent_child_clone_metadata.codebase_qualified_names,git_repo_metadata.codebases):
+            
             codebase_handle = await workflow.start_child_workflow(
                 CodebaseChildWorkflow.run,
-                args=[unoplat_codebase],
-                id=f"codebase-child-workflow-{unoplat_codebase.local_path}",
+                args=[parent_child_clone_metadata.repository_qualified_name, codebase_qualified_name,unoplat_codebase.local_path,unoplat_codebase.package_manager_metadata],
+                id=f"codebase-child-workflow-{codebase_qualified_name}",
                 parent_close_policy=ParentClosePolicy.ABANDON
             )
         
