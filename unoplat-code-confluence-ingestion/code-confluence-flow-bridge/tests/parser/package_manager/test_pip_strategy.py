@@ -46,6 +46,20 @@ def requirements_dir(tmp_path: Path) -> Path:
     
     return req_dir.parent
 
+@pytest.fixture
+def types_requirements_dir(tmp_path: Path) -> Path:
+    """Create a temporary directory with types requirements file."""
+    # Create directory
+    req_dir = tmp_path / "requirements"
+    req_dir.mkdir()
+    
+    # Copy only the types requirements file
+    src = TEST_DATA_DIR / "requirements" / "requirements-types.txt"
+    dst = req_dir.parent / "requirements-types.txt"
+    dst.write_text(src.read_text())
+    
+    return req_dir.parent
+
 def test_setup_py_parsing(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
     """Test parsing of core dependencies and metadata from setup.py."""
     metadata = pip_strategy.process_metadata(str(requirements_dir), mock_metadata)
@@ -143,4 +157,54 @@ def test_entry_points(pip_strategy: PipStrategy, requirements_dir: Path, mock_me
     
     assert "test-cli" in metadata.entry_points
     assert metadata.entry_points["test-cli"] == "test_package.cli:main"
-    assert metadata.entry_points["serve"] == "test_package.server:run" 
+    assert metadata.entry_points["serve"] == "test_package.server:run"
+
+def test_types_requirements_parsing(pip_strategy: PipStrategy, types_requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+    """Test parsing of type stubs and development dependencies."""
+    metadata = pip_strategy.process_metadata(str(types_requirements_dir), mock_metadata)
+    deps = metadata.dependencies
+    
+    # Test type stubs
+    assert "boto3-stubs" in deps
+    assert deps["boto3-stubs"].version.current_version == "==1.34.133"
+    assert deps["boto3-stubs"].extras == ["s3"]
+    
+    assert "types-requests" in deps
+    assert deps["types-requests"].version.current_version == "==2.28.11.17"
+    
+    assert "pandas-stubs" in deps
+    assert deps["pandas-stubs"].version.current_version == "==2.2.3.241009"
+    
+    # Test ML dependencies
+    assert "cohere" in deps
+    assert deps["cohere"].version.current_version == "==5.6.1"
+    
+    assert "google-cloud-aiplatform" in deps
+    assert deps["google-cloud-aiplatform"].version.current_version == "==1.58.0"
+    
+    assert "sentence-transformers" in deps
+    assert deps["sentence-transformers"].version.current_version == "==2.6.1"
+    
+    # Test development tools
+    assert "black" in deps
+    assert deps["black"].version.current_version == "==23.3.0"
+    
+    assert "ruff" in deps
+    assert deps["ruff"].version.current_version == "==0.0.286"
+    
+    assert "pre-commit" in deps
+    assert deps["pre-commit"].version.current_version == "==3.2.2"
+    
+    # Test data processing
+    assert "pandas" in deps
+    assert deps["pandas"].version.current_version == "==2.2.3"
+    
+    assert "lxml" in deps
+    assert deps["lxml"].version.current_version == "==5.3.0"
+    
+    # Test testing tools
+    assert "pytest" in deps
+    assert deps["pytest"].version.current_version == "==7.4.4"
+    
+    assert "pytest-asyncio" in deps
+    assert deps["pytest-asyncio"].version.current_version == "==0.22.0" 
