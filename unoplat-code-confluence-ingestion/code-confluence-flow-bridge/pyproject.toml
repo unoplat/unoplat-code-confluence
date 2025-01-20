@@ -1,5 +1,5 @@
 [project]
-name = "Code-Confluence-Flow-Bridge"
+name = "code-confluence-flow-bridge"
 version = "0.1.0"
 description = "Bridge between Code Confluence User and Ingestion Workflow" 
 readme = "README.md"

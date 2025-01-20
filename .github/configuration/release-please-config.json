@@ -24,6 +24,12 @@
             "include-component-in-tag": true,
             "component": "code-confluence-docs",
             "package-name": "code-confluence-docs"
+        },
+        "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": {
+            "release-type": "python",
+            "changelog-path": "CHANGELOG.md",
+            "include-component-in-tag": true,
+            "component": "code-confluence-flow-bridge"
         }
     }
 }
