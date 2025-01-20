@@ -48,7 +48,7 @@ class RepoWorkflow:
         workflow.logger.info("Inserting git repository metadata into graph database")
         parent_child_clone_metadata: ParentChildCloneMetadata = await workflow.execute_activity(
             activity=ConfluenceGitGraph.insert_git_repo_into_graph_db,
-            args=git_repo_metadata,
+            args=(git_repo_metadata,),
             start_to_close_timeout=timedelta(minutes=10)
         )
         

@@ -37,7 +37,7 @@ class ConfluenceGitGraph:
                 }
             )
             
-            parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo)
+            parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
             
             activity.logger.info(
                 "Successfully inserted git repo into graph db",

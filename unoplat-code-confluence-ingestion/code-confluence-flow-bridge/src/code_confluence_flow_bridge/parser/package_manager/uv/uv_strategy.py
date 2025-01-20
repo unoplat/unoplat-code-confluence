@@ -210,7 +210,7 @@ class UvStrategy(PackageManagerStrategy):
             return dep_string.strip(), None, None
 
     def _parse_version_constraint(self, constraint: str) -> UnoplatVersion:
-        """Parse version constraint into minimum, maximum, and current versions.
+        """Parse version constraint into a specifier string.
         
         Handles various version constraint formats:
         - Simple constraints: "==1.0.0", ">=2.0.0"
@@ -219,46 +219,24 @@ class UvStrategy(PackageManagerStrategy):
         
         Examples:
             >>> _parse_version_constraint(">=1.0.0")
-            UnoplatVersion(minimum_version=">=1.0.0")
+            UnoplatVersion(specifier=">=1.0.0")
             >>> _parse_version_constraint(">=1.0.0,<2.0.0")
-            UnoplatVersion(minimum_version=">=1.0.0", maximum_version="<2.0.0")
+            UnoplatVersion(specifier=">=1.0.0,<2.0.0")
             >>> _parse_version_constraint("==1.0.0")
-            UnoplatVersion(current_version="==1.0.0")
+            UnoplatVersion(specifier="==1.0.0")
         
         Args:
             constraint: Version constraint string
             
         Returns:
-            UnoplatVersion with appropriate version fields set
+            UnoplatVersion with specifier field set
         """
         if not constraint or constraint == "*":
             return UnoplatVersion()
             
         try:
-            # Use packaging's SpecifierSet to parse the constraint
-            spec_set = SpecifierSet(constraint)
-            
-            # Convert to UnoplatVersion format
-            min_ver = None
-            max_ver = None
-            current_ver = None
-            
-            for spec in spec_set:
-                if spec.operator in (">=", ">"):
-                    min_ver = str(spec)
-                elif spec.operator in ("<=", "<"):
-                    max_ver = str(spec)
-                elif spec.operator == "==":
-                    current_ver = str(spec)
-                elif spec.operator == "~=":
-                    # Handle compatible release operator
-                    min_ver = str(spec)
-                    
-            return UnoplatVersion(
-                minimum_version=min_ver,
-                maximum_version=max_ver,
-                current_version=current_ver
-            )
+            # Simply store the raw version constraint as specifier
+            return UnoplatVersion(specifier=constraint)
             
         except Exception as e:
             logger.warning(f"Error parsing version constraint '{constraint}': {str(e)}")

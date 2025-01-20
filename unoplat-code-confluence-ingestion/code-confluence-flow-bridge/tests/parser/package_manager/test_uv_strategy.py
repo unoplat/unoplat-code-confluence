@@ -55,11 +55,11 @@ def test_dependencies_parsing(uv_strategy: UvStrategy, pyproject_dir: Path, mock
     
     # Check main dependencies
     assert "fastapi" in deps
-    assert deps["fastapi"].version.minimum_version == ">=0.115.6"
+    assert deps["fastapi"].version.specifier == ">=0.115.6"
     assert deps["fastapi"].extras == ["standard"]
     
     assert "pydantic" in deps
-    assert deps["pydantic"].version.minimum_version == ">=2.10.4"
+    assert deps["pydantic"].version.specifier == ">=2.10.4"
     assert deps["pydantic"].extras == ["email"]
     assert deps["pydantic"].environment_marker == "python_version >=3.8"
 
@@ -70,12 +70,12 @@ def test_optional_dependencies(uv_strategy: UvStrategy, pyproject_dir: Path, moc
     
     # Test group
     assert "pytest" in deps
-    assert deps["pytest"].version.minimum_version == ">=8.3.4"
+    assert deps["pytest"].version.specifier == ">=8.3.4"
     assert deps["pytest"].group == "test"
     
     # Dev group
     assert "black" in deps
-    assert deps["black"].version.minimum_version == ">=23.0.0"
+    assert deps["black"].version.specifier == ">=23.0.0"
     assert deps["black"].group == "dev"
 
 def test_git_source_parsing(uv_strategy: UvStrategy, pyproject_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
@@ -136,18 +136,12 @@ def test_version_constraint_parsing(uv_strategy: UvStrategy):
     """Test parsing of version constraints."""
     # Simple version
     version = uv_strategy._parse_version_constraint(">=1.0.0")
-    assert version.minimum_version == ">=1.0.0"
-    assert version.maximum_version is None
-    assert version.current_version is None
+    assert version.specifier == ">=1.0.0"
     
     # Complex version
     version = uv_strategy._parse_version_constraint(">=1.0.0,<2.0.0")
-    assert version.minimum_version == ">=1.0.0"
-    assert version.maximum_version == "<2.0.0"
-    assert version.current_version is None
+    assert version.specifier == ">=1.0.0,<2.0.0"
     
     # Exact version
     version = uv_strategy._parse_version_constraint("==1.0.0")
-    assert version.minimum_version is None
-    assert version.maximum_version is None
-    assert version.current_version == "==1.0.0" 
+    assert version.specifier == "==1.0.0" 
