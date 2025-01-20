@@ -1,0 +1,6 @@
+[project]
+name = "fallback_package"
+version = "0.2.0"
+
+[build-system]
+requires = ["setuptools>=42", "wheel"] 

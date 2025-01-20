@@ -1,7 +1,7 @@
 import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional
+from typing import Callable, List, Optional, Sequence
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.concurrency import asynccontextmanager
@@ -16,6 +16,7 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
+from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 
 # Setup logging
@@ -30,18 +31,28 @@ async def get_temporal_client() -> Client:
     return temporal_client
 
 
-async def run_worker(gitActivity: GitActivity,package_metadata_child_activity: PackageMetadataActivity,confluence_git_graph: ConfluenceGitGraph,client: Client, activity_executor):
+async def run_worker(
+    activities: List[Callable],
+    client: Client,
+    activity_executor: ThreadPoolExecutor
+) -> None:
+    """
+    Run the Temporal worker with given activities
+    
+    Args:
+        activities: List of activity functions
+        client: Temporal client
+        activity_executor: Thread pool executor for activities
+    """
     worker = Worker(
         client,
         task_queue="unoplat-code-confluence-repository-context-ingestion",
-        workflows=[RepoWorkflow,CodebaseChildWorkflow],
-        activities=[gitActivity.process_git_activity,package_metadata_child_activity.run,confluence_git_graph.insert_git_repo_into_graph_db],
+        workflows=[RepoWorkflow, CodebaseChildWorkflow],
+        activities=activities,
         activity_executor=activity_executor
     )
     
-    # Run the worker in the background
-    await worker.run()    
-     
+    await worker.run()
 
 
 async def start_workflow(temporal_client: Client, repository: RepositorySettings, github_token: str):
@@ -61,11 +72,25 @@ async def lifespan(app: FastAPI):
     app.state.temporal_client = await get_temporal_client()
     app.state.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=app.state.code_confluence_env)
     await app.state.code_confluence_graph_ingestion.initialize()
-    app.state.git_activity = GitActivity()
+    
     app.state.activity_executor = ThreadPoolExecutor()
-    app.state.package_metadata_activity = PackageMetadataActivity()
-    app.state.confluence_git_graph = ConfluenceGitGraph(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
-    asyncio.create_task(run_worker(gitActivity=app.state.git_activity,package_metadata_child_activity=app.state.package_metadata_activity,confluence_git_graph=app.state.confluence_git_graph,client=app.state.temporal_client, activity_executor=app.state.activity_executor))
+    
+    # Define activities
+    activities: List[Callable] = []
+    git_activity = GitActivity()
+    activities.append(git_activity.process_git_activity)
+    
+    package_metadata_activity = PackageMetadataActivity()
+    activities.append(package_metadata_activity.get_package_metadata)
+    
+    confluence_git_graph = ConfluenceGitGraph(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
+    activities.append(confluence_git_graph.insert_git_repo_into_graph_db)
+    
+    codebase_package_ingestion = PackageManagerMetadataIngestion(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
+    activities.append(codebase_package_ingestion.insert_package_manager_metadata)
+    
+    
+    asyncio.create_task(run_worker(activities=activities,client=app.state.temporal_client, activity_executor=app.state.activity_executor))
     yield    
     await app.state.code_confluence_graph_ingestion.close()
 

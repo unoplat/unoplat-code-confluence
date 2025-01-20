@@ -164,3 +164,11 @@ unoplat-code-confluence-commons/tests/__pycache__
 unoplat-code-confluence-commons/unoplat_code_confluence_commons/__pycache__
 unoplat-code-confluence-commons/unoplat_code_confluence_commons/graph_models/__pycache__
 code-confluence/code-conflu
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/models/workflow/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/processor/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/processor/db/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/processor/db/graph_db/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/package_manager/__pycache__/test_poetry_strategy.cpython-312-pytest-8.3.4.pyc
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/package_manager/__pycache__/test_pip_strategy.cpython-312-pytest-8.3.4.pyc
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/package_manager/uv/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/package_manager/__pycache__

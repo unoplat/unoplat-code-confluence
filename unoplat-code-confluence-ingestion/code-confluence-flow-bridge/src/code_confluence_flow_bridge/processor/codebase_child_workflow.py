@@ -1,13 +1,11 @@
 from datetime import timedelta
-
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
     from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
     from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguage, ProgrammingLanguageMetadata
     from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
-    
+    from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
 
 @workflow.defn(name="child-codebase-workflow")
 class CodebaseChildWorkflow:
@@ -16,28 +14,31 @@ class CodebaseChildWorkflow:
         self.package_metadata_activity = PackageMetadataActivity()
     
     @workflow.run
-    async def run(self, unoplat_codebase: UnoplatCodebase) -> UnoplatCodebase:
-        """
-        Execute the repository activity workflow
+    async def run(
+        self,
+        repository_qualified_name: str,
+        codebase_qualified_name: str,
+        local_path: str,
+        package_manager_metadata: UnoplatPackageManagerMetadata
+    ) -> None:
+        """Execute the codebase workflow"""
         
-        Args:
-            repository_settings: Repository configuration
-            app_settings: Application settings including GitHub token
-            
-        Returns:
-            RepoActivityResult containing the processing outcome
-        """
+        # 1. Parse package metadata
         programming_language_metadata = ProgrammingLanguageMetadata(
-            language=ProgrammingLanguage(unoplat_codebase.package_manager_metadata.programming_language.lower()),
-            package_manager=PackageManagerType(unoplat_codebase.package_manager_metadata.package_manager.lower()),
-            language_version=unoplat_codebase.package_manager_metadata.programming_language_version
+            language=ProgrammingLanguage(package_manager_metadata.programming_language.lower()),
+            package_manager=PackageManagerType(package_manager_metadata.package_manager.lower()),
+            language_version=package_manager_metadata.programming_language_version
         )
-        # Execute git activity with retry policy
-        package_metadata: UnoplatPackageManagerMetadata = await workflow.execute_activity(
-            activity=PackageMetadataActivity.run,
-            args=(unoplat_codebase.local_path, programming_language_metadata),
+        
+        parsed_metadata: UnoplatPackageManagerMetadata = await workflow.execute_activity(
+            activity=PackageMetadataActivity.get_package_metadata,
+            args=[local_path, programming_language_metadata],
             start_to_close_timeout=timedelta(minutes=10)
         )
-        unoplat_codebase.package_manager_metadata = package_metadata
         
-        return unoplat_codebase
+        # 2. Ingest package metadata into graph
+        await workflow.execute_activity(
+            activity=PackageManagerMetadataIngestion.insert_package_manager_metadata,
+            args=[codebase_qualified_name, parsed_metadata],
+            start_to_close_timeout=timedelta(minutes=10)
+        )
