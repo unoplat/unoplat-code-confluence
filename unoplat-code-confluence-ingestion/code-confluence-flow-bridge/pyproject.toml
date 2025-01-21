@@ -1,6 +1,6 @@
 [project]
-name = "Code-Confluence-Flow-Bridge"
-version = "0.1.0"
+name = "code-confluence-flow-bridge"
+version = "0.3.0"
 description = "Bridge between Code Confluence User and Ingestion Workflow" 
 readme = "README.md"
 requires-python = ">=3.11"
