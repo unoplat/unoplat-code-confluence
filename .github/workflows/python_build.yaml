@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        path: ['unoplat-code-confluence', 'unoplat-code-confluence-query-engine', 'unoplat-code-confluence-commons']
+        path: ['unoplat-code-confluence-commons']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,5 +41,34 @@ jobs:
         working-directory: ${{ matrix.path }}
         run: poetry build -f wheel
         
+  test-uv-projects:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [
+          'unoplat-code-confluence-ingestion/code-confluence-flow-bridge',
+          # Add more uv-based project paths here as needed
+        ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ GITHUB.HEAD_REF }}
 
-          
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        
+      - name: Install dependencies and run tests
+        working-directory: ${{ matrix.project }}
+        env:
+          GITHUB_PAT_TOKEN: ${{ github.token }} 
+        run: |
+          uv sync
+          uv run pytest tests/ -v
+    
