@@ -66,6 +66,8 @@ jobs:
         
       - name: Install dependencies and run tests
         working-directory: ${{ matrix.project }}
+        env:
+          GITHUB_PAT_TOKEN: ${{ github.token }} 
         run: |
           uv sync
           uv run pytest tests/ -v
