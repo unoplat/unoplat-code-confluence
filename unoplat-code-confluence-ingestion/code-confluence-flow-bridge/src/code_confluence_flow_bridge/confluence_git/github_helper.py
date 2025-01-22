@@ -11,7 +11,7 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository i
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata, RepositorySettings
+from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig, ProgrammingLanguageMetadata, RepositorySettings
 
 
 class GithubHelper:
@@ -56,7 +56,7 @@ class GithubHelper:
             
             # Clone repository if not already cloned
             if not os.path.exists(repo_path):
-                repo_metadata: Repo = Repo.clone_from(repo_url, repo_path)
+                git_repo: Repo = Repo.clone_from(repo_url, repo_path)
             
             # Get repository metadata
             repo_metadata: Dict[str, Any] = {
@@ -76,12 +76,24 @@ class GithubHelper:
                 
             # Create UnoplatCodebase objects for each codebase config
             codebases: List[UnoplatCodebase] = []
-            for codebase_config in repository_settings.codebases:
-                # Split the path and join each component properly
-                path_components = codebase_config.codebase_folder_name.split('/')
+            for codebase_config in repository_settings.codebases: #type: CodebaseConfig
+                # First build path with codebase_folder
                 local_path = repo_path
-                for component in path_components:
-                    local_path = os.path.join(local_path, component)
+                if codebase_config.codebase_folder and codebase_config.codebase_folder != ".":
+
+                    path_components = codebase_config.codebase_folder.split('/')
+                    
+                    for component in path_components:
+                        local_path = os.path.join(local_path, component)
+                
+                # Then append root_package components if present
+                if codebase_config.root_package and codebase_config.root_package != ".":
+                    root_package_components = codebase_config.root_package.split('/')
+                    for component in root_package_components:
+                        local_path = os.path.join(local_path, component)
+                else:
+                    if codebase_config.programming_language_metadata.language.value == "python":
+                        raise Exception("Root package should be specified for python codebases")
                 
                 programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
                 # Verify the path exists
@@ -89,7 +101,7 @@ class GithubHelper:
                     raise Exception(f"Codebase path not found: {local_path}")
                 
                 codebase = UnoplatCodebase(
-                    name=codebase_config.root_package_name, #type: ignore
+                    name=codebase_config.root_package, #type: ignore
                     local_path=local_path,
                     package_manager_metadata=UnoplatPackageManagerMetadata(
                         programming_language=programming_language_metadata.language.value,
