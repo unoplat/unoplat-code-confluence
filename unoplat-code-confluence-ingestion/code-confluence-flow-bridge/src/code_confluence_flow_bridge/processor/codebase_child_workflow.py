@@ -47,4 +47,7 @@ class CodebaseChildWorkflow:
             start_to_close_timeout=timedelta(minutes=10)
         )
         
+        #TODO: apply ruff config on the codebase by knowing the local path and programming language metadata
+        
+        
         workflow.logger.info(f"Codebase workflow completed successfully for {codebase_qualified_name}")

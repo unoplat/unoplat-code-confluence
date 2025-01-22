@@ -14,6 +14,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Reposi
 
 # Use the example config file path
 TEST_CONFIG_PATH = Path(__file__).parent.parent/"test_data"/ "example_config.json"
+NESTED_CONFIG_PATH = Path(__file__).parent.parent/"test_data"/ "nested_package_git_config.json"
 TEST_OUTPUT_DIR = Path("test_output")
 
 
@@ -29,6 +30,13 @@ def settings():
     assert TEST_CONFIG_PATH.exists(), f"Config file not found at {TEST_CONFIG_PATH}"
     
     return load_config(TEST_CONFIG_PATH)
+
+@pytest.fixture(scope="module")
+def nested_settings():
+    """Load nested package test settings"""
+    assert NESTED_CONFIG_PATH.exists(), f"Config file not found at {NESTED_CONFIG_PATH}"
+    
+    return load_config(NESTED_CONFIG_PATH)
 
 @pytest.fixture(scope="module")
 def github_helper():
@@ -59,14 +67,11 @@ def github_pat_token():
 class TestGithubHelper:
     
     def test_clone_repository(self, github_helper: GithubHelper, settings: RepositorySettings, github_pat_token: str):
-        """Test cloning a real repository"""
-        # Get the first repository config
-        
-        
+        """Test cloning a real repository using example_config.json"""
         # Clone repository
         repo = github_helper.clone_repository(settings, github_token=github_pat_token)
         
-        # Assertions
+        # Basic repository assertions
         assert repo is not None
         assert repo.repository_url == settings.git_url
         assert repo.repository_name == "unoplat-code-confluence"
@@ -82,15 +87,66 @@ class TestGithubHelper:
         # Check codebases
         assert len(repo.codebases) == len(settings.codebases)
         for codebase, config in zip(repo.codebases, settings.codebases):
-            assert codebase.name == config.root_package_name
+            assert codebase.name == config.root_package
             assert os.path.exists(codebase.local_path)
             assert codebase.package_manager_metadata.programming_language == "python"
             assert codebase.package_manager_metadata.package_manager == "poetry"
             
+            # Build expected path based on example_config.json
+            expected_path = os.path.join(
+                os.path.expanduser("~"), 
+                ".unoplat", 
+                "repositories",
+                "unoplat-code-confluence",
+                config.codebase_folder,
+                config.root_package
+            )
+            assert codebase.local_path == expected_path
+        
         # Check README
         assert repo.readme is not None
         assert len(repo.readme) > 0
+
+    def test_clone_nested_repository(self, github_helper: GithubHelper, nested_settings: RepositorySettings, github_pat_token: str):
+        """Test cloning a repository with nested package structure using nested_package_git_config.json"""
+        # Clone repository
+        repo = github_helper.clone_repository(nested_settings, github_token=github_pat_token)
         
+        # Basic repository assertions
+        assert repo is not None
+        assert repo.repository_url == nested_settings.git_url
+        assert repo.repository_name == "unoplat-code-confluence"
+        assert repo.github_organization == "unoplat"
+        
+        # Check repository metadata
+        assert repo.repository_metadata is not None
+        assert "stars" in repo.repository_metadata
+        assert "forks" in repo.repository_metadata
+        assert "language" in repo.repository_metadata
+        assert repo.repository_metadata["language"] == "Python"
+        
+        # Check codebases with nested structure
+        assert len(repo.codebases) == len(nested_settings.codebases)
+        for codebase, config in zip(repo.codebases, nested_settings.codebases):
+            assert codebase.name == config.root_package
+            assert os.path.exists(codebase.local_path)
+            assert codebase.package_manager_metadata.programming_language == "python"
+            assert codebase.package_manager_metadata.package_manager == "uv"
+            
+            # Build expected path based on nested_package_git_config.json
+            expected_path = os.path.join(
+                os.path.expanduser("~"), 
+                ".unoplat", 
+                "repositories",
+                "unoplat-code-confluence",
+                config.codebase_folder,
+                config.root_package
+            )
+            assert codebase.local_path == expected_path
+        
+        # Check README
+        assert repo.readme is not None
+        assert len(repo.readme) > 0
 
     def test_github_connection(self, github_pat_token):
         # Use github_pat_token in your test
