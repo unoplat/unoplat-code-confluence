@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.6.0...code-confluence-docs-v0.6.1) (2025-01-23)
+
+
+### Bug Fixes
+
+* fixed swc core ([a89aa3f](https://github.com/unoplat/unoplat-code-confluence/commit/a89aa3fff92714c1a0a91b085cb22b50156cd279))
+
 ## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.5.0...code-confluence-docs-v0.6.0) (2025-01-23)
 
 
