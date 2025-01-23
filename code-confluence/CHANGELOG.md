@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.5.0...code-confluence-docs-v0.6.0) (2025-01-23)
+
+
+### Features
+
+* improved descriptions ([e4f99c1](https://github.com/unoplat/unoplat-code-confluence/commit/e4f99c1352fd470d0c895f89883929508f9a7ce5))
+* updated docusaurus ([7ea056d](https://github.com/unoplat/unoplat-code-confluence/commit/7ea056dd1908e437fa62807a3a7a56bc1cebfd9c))
+
 ## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.4.0...code-confluence-docs-v0.5.0) (2025-01-23)
 
 
