@@ -12,7 +12,7 @@ const config = {
   title: 'Code confluence',
   tagline: 'Powered by Unoplat Technologies',
   customFields: {
-    taglineImage: 'img/unoplat_logo.png',
+    taglineImage: 'img/unoplat_logo.svg',
   },
   favicon: 'img/favicon.ico',
 
@@ -165,7 +165,25 @@ const config = {
   ],
   plugins: [
     'docusaurus-plugin-image-zoom'
-  ]
+  ],
+  webpack: {
+    jsLoader: (isServer) => ({
+      loader: require.resolve('swc-loader'),
+      options: {
+        jsc: {
+          parser: {
+            syntax: 'ecmascript',
+            jsx: true,
+          },
+          transform: {
+            react: {
+              runtime: 'automatic',
+            },
+          },
+        },
+      },
+    }),
+  }
 };
 
 export default config;
