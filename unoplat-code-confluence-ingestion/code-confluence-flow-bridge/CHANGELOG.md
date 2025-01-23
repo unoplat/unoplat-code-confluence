@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.3.0...code-confluence-flow-bridge-v0.4.0) (2025-01-23)
+
+
+### Features
+
+* Enhance HomepageFeatures component with new features and modals ([9755836](https://github.com/unoplat/unoplat-code-confluence/commit/975583689e968a307173918c04f6e50c5e0c8a9e))
+
 ## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.2.0...code-confluence-flow-bridge-v0.3.0) (2025-01-21)
 
 
