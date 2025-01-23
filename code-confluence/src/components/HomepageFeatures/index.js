@@ -9,7 +9,7 @@ const FeatureList = [
     Svg: require('@site/static/img/arch_chapi_tree_sitter.svg').default,
     description: (
       <>
-        Decode any codebase with unmatched clarity using Unoplat Code Confluence. Our powerful combination of ArchGuard, CHAPI, Tree-sitters, linters and inhouse data structures and algorithms delivers deterministic parsing across all programming languages and architectures. Get consistent, reliable insights that make complex projects instantly understandable. Transform how your team navigates and comprehends code, enabling smarter, faster development decisions.
+        Decode any codebase with unmatched clarity using Unoplat Code Confluence. Code Confluence uses powerful combination of ArchGuard, CHAPI, Tree-sitters, linters and inhouse data structures and algorithms to deliver deterministic parsing across all programming languages and architectures. Get consistent, reliable insights that make complex projects instantly understandable. Transform how your team navigates and comprehends code, enabling smarter, faster development decisions.
       </>
     ),
     imgStyle: {
@@ -54,15 +54,31 @@ function ImageModal({ isOpen, onClose, children }) {
   useEffect(() => {
     let timeoutId;
     if (isOpen) {
-      // Small delay before showing to prevent accidental triggers
       timeoutId = setTimeout(() => {
         setIsVisible(true);
-      }, 100); // 200ms delay before showing
+      }, 100);
     } else {
       setIsVisible(false);
     }
-    return () => clearTimeout(timeoutId);
-  }, [isOpen]);
+
+    // Enhanced event handler for better cross-browser compatibility
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
+        event.preventDefault(); // Prevent default browser behavior
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      // Capture phase to ensure we get the event before other handlers
+      document.addEventListener('keydown', handleEscapeKey, true);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('keydown', handleEscapeKey, true);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
   
@@ -123,9 +139,9 @@ export default function HomepageFeatures() {
   return (
     <div className={styles.lessWidth}>
       <section className={styles.advertise}>
-        <Heading as="h3" className={styles.paddingLeftRight}> Transforming Code into Plain Language.</Heading>
+        <Heading as="h2" className={styles.paddingLeftRight}> Transforming Code into Plain Language.</Heading>
         <p className={styles.paddingLeftRight}>
-          Centralize your knowledge base, empowering employees to find answers quickly and become more efficient.
+          Centralize your siloed codebases across your organization, empowering all stakeholders.
         </p>
       </section>
       <section className={styles.features}>
