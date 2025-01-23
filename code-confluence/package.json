@@ -31,7 +31,8 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.7.0",
-    "@docusaurus/types": "^3.7.0"
+    "@docusaurus/types": "^3.7.0",
+    "@swc/core": "^1.10.9"
   },
   "browserslist": {
     "production": [
