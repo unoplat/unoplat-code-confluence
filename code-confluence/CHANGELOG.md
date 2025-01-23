@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.4.0...code-confluence-docs-v0.5.0) (2025-01-23)
+
+
+### Features
+
+* Enhance HomepageFeatures component with new features and modals ([9755836](https://github.com/unoplat/unoplat-code-confluence/commit/975583689e968a307173918c04f6e50c5e0c8a9e))
+* moved to rust based compiler speedy web compiler to become atleast 20x faster while building and deploying locally/server ([13c1767](https://github.com/unoplat/unoplat-code-confluence/commit/13c17672fc5bd178a4964522989439a08d9eb01b))
+
 ## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.3.0...code-confluence-docs-v0.4.0) (2025-01-07)
 
 
