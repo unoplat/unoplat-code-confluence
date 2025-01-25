@@ -1,7 +1,7 @@
 import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, List, Optional, Sequence
+from typing import Callable, List, Optional
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.concurrency import asynccontextmanager
@@ -22,6 +22,7 @@ from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 # Setup logging
 logger = setup_logging()
 
+
 async def get_temporal_client() -> Client:
     """Create and return a Temporal client instance."""
     # Connect to local temporal server
@@ -31,40 +32,26 @@ async def get_temporal_client() -> Client:
     return temporal_client
 
 
-async def run_worker(
-    activities: List[Callable],
-    client: Client,
-    activity_executor: ThreadPoolExecutor
-) -> None:
+async def run_worker(activities: List[Callable], client: Client, activity_executor: ThreadPoolExecutor) -> None:
     """
     Run the Temporal worker with given activities
-    
+
     Args:
         activities: List of activity functions
         client: Temporal client
         activity_executor: Thread pool executor for activities
     """
-    worker = Worker(
-        client,
-        task_queue="unoplat-code-confluence-repository-context-ingestion",
-        workflows=[RepoWorkflow, CodebaseChildWorkflow],
-        activities=activities,
-        activity_executor=activity_executor
-    )
-    
+    worker = Worker(client, task_queue="unoplat-code-confluence-repository-context-ingestion", workflows=[RepoWorkflow, CodebaseChildWorkflow], activities=activities, activity_executor=activity_executor)
+
     await worker.run()
 
 
 async def start_workflow(temporal_client: Client, repository: RepositorySettings, github_token: str):
-    workflow_handle = await temporal_client.start_workflow(
-        RepoWorkflow.run,
-        args=(repository, github_token),
-        id=repository.git_url,
-        task_queue="unoplat-code-confluence-repository-context-ingestion"
-    )
+    workflow_handle = await temporal_client.start_workflow(RepoWorkflow.run, args=(repository, github_token), id=repository.git_url, task_queue="unoplat-code-confluence-repository-context-ingestion")
     logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
-    return workflow_handle    
-    
+    return workflow_handle
+
+
 # Create FastAPI lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -72,30 +59,29 @@ async def lifespan(app: FastAPI):
     app.state.temporal_client = await get_temporal_client()
     app.state.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=app.state.code_confluence_env)
     await app.state.code_confluence_graph_ingestion.initialize()
-    
+
     app.state.activity_executor = ThreadPoolExecutor()
-    
+
     # Define activities
     activities: List[Callable] = []
     git_activity = GitActivity()
     activities.append(git_activity.process_git_activity)
-    
+
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)
-    
+
     confluence_git_graph = ConfluenceGitGraph(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
     activities.append(confluence_git_graph.insert_git_repo_into_graph_db)
-    
+
     codebase_package_ingestion = PackageManagerMetadataIngestion(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
     activities.append(codebase_package_ingestion.insert_package_manager_metadata)
-    
-    
-    asyncio.create_task(run_worker(activities=activities,client=app.state.temporal_client, activity_executor=app.state.activity_executor))
-    yield    
+
+    asyncio.create_task(run_worker(activities=activities, client=app.state.temporal_client, activity_executor=app.state.activity_executor))
+    yield
     await app.state.code_confluence_graph_ingestion.close()
 
+
 app = FastAPI(lifespan=lifespan)
-    
 
 
 # Create background task for workflow completion
@@ -106,40 +92,28 @@ async def monitor_workflow(workflow_handle: WorkflowHandle):
     except Exception as e:
         logger.error(f"Workflow failed: {e}")
 
-    
 
 @app.post("/start-ingestion", status_code=201)
-async def ingestion(repository: RepositorySettings,authorization: Optional[str] = Header(None)):
+async def ingestion(repository: RepositorySettings, authorization: Optional[str] = Header(None)):
     """
     Start the ingestion workflow.
     """
 
     # Extract GitHub token from Authorization header
-    if not authorization or not authorization.startswith('Bearer '):
-        raise HTTPException(
-            status_code=401,
-            detail="Missing or invalid Authorization header"
-        )
-    
-    github_token = authorization.replace('Bearer ', '')
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+
+    github_token = authorization.replace("Bearer ", "")
 
     # Start the workflow
     workflow_handle = await start_workflow(app.state.temporal_client, repository, github_token)
-    
+
     # Wait for the workflow to complete if needed
     asyncio.create_task(monitor_workflow(workflow_handle))
-    
+
     logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
-    
+
     return {"workflow_id": workflow_handle.id, "run_id": workflow_handle.result_run_id}
 
 
-
 # Create FastAPI application
-
-        
-
-    
-
-    
-

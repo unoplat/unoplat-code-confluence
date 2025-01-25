@@ -12,6 +12,7 @@ class ImportedName(BaseModel):
     original_name: Optional[str] = None
     alias: Optional[str] = None
 
+
 class UnoplatImport(BaseModel):
     source: Optional[str] = Field(default=None, alias="Source")
     usage_names: Optional[List[ImportedName]] = Field(default_factory=list, alias="UsageName")

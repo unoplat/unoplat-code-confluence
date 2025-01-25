@@ -16,7 +16,7 @@ class ChapiFunction(BaseModel):
     name: Optional[str] = Field(default=None, alias="Name")
     return_type: Optional[str] = Field(default=None, alias="ReturnType")
     function_calls: List[ChapiFunctionCall] = Field(default_factory=list, alias="FunctionCalls")
-    parameters: List[ChapiParameter] = Field(default_factory=list, alias="Parameters",description="parameters of the function")
+    parameters: List[ChapiParameter] = Field(default_factory=list, alias="Parameters", description="parameters of the function")
     annotations: List[ChapiAnnotation] = Field(default_factory=list, alias="Annotations")
     position: Optional[Position] = Field(default=None, alias="Position")
     local_variables: List[ChapiFunctionFieldModel] = Field(default_factory=list, alias="LocalVariables")

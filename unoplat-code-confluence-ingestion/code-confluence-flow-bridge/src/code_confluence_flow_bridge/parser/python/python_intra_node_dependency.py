@@ -5,8 +5,8 @@
 
 
 # class PythonIntraNodeDependency:
-    
-    
+
+
 #     def process_related_nodes(
 #         self, unsorted_nodes: List[UnoplatChapiForgeNode]
 #     ) -> List[UnoplatChapiForgeNode]:
@@ -143,4 +143,3 @@
 #             sorted_nodes.extend(remaining_nodes)
 
 #         return sorted_nodes
-        

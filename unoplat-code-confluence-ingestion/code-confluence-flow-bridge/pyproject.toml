@@ -35,3 +35,6 @@ test = [
 unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.10.0" }
 # Specify source directory
 
+[tool.poetry.dependencies]
+validate-pyproject = {extras = ["all"], version = "^0.23"}
+
