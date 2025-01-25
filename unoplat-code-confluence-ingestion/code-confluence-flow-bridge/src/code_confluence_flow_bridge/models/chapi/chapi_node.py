@@ -13,7 +13,7 @@ from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
 
 
 class ChapiNode(BaseModel):
-    node_name: Optional[str] = Field(default=None, alias="NodeName",description="name of the class, method, function, etc.")
+    node_name: Optional[str] = Field(default=None, alias="NodeName", description="name of the class, method, function, etc.")
     type: Optional[str] = Field(default=None, alias="Type")
     file_path: Optional[str] = Field(default=None, alias="FilePath")
     module: Optional[str] = Field(default=None, alias="Module")
@@ -26,4 +26,3 @@ class ChapiNode(BaseModel):
     position: Optional[Position] = Field(default=None, alias="Position")
     content: Optional[str] = Field(default=None, alias="Content")
     annotations: Optional[List[ChapiAnnotation]] = Field(default_factory=list, alias="Annotations")
-    

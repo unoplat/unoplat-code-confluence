@@ -12,15 +12,12 @@ class PackageManagerStrategy(ABC):
     def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """
         Process package manager specific metadata
-        
+
         Args:
             local_workspace_path: Path to the local workspace
             metadata: Programming language metadata from config
-            
+
         Returns:
             UnoplatPackageManagerMetadata: Processed package manager metadata
         """
         pass
-
-
-

@@ -11,4 +11,4 @@ class CodebaseParserStrategy(ABC):
     @abstractmethod
     def parse_codebase(self, codebase_name: str, json_data: dict, local_workspace_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> UnoplatCodebase:
         """Parse codebase based on language specific implementation"""
-        pass 
+        pass

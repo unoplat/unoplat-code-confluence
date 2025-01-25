@@ -90,7 +90,7 @@ def test_process_metadata_all_required_sections(
     assert any("Test Author <test@example.com>" in author for author in package_metadata.authors or [])
     assert package_metadata.programming_language == "python"
     assert package_metadata.package_manager == "poetry"
-    assert package_metadata.programming_language_version == "^3.9"
+    assert package_metadata.programming_language_version == ">=3.9,<4.0"
 
     # Test additional metadata fields
     assert package_metadata.license == "MIT"

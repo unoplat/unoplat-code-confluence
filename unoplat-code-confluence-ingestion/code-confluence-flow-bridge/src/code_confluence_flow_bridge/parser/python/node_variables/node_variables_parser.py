@@ -15,37 +15,35 @@ from src.code_confluence_flow_bridge.parser.tree_sitter.code_confluence_tree_sit
 
 # The class is responsible for parsing global and class variables that is classvar and instance variables defined in a class but outside of any functions..
 class NodeVariablesParser:
-    
     def __init__(self, code_confluence_tree_sitter: CodeConfluenceTreeSitter):
         self.parser = code_confluence_tree_sitter.get_parser()
         # Change to simple string key since we no longer track scope
         self.variables_dict: Dict[str, ClassGlobalFieldModel] = {}
 
-# Here the content refers to content of a file where it can contain multiple classes/procedural functions and variables    
+    # Here the content refers to content of a file where it can contain multiple classes/procedural functions and variables
     def parse_global_variables(self, content_of_file: str) -> List[ClassGlobalFieldModel]:
         """Parse variables from Python content."""
         tree = self.parser.parse(bytes(content_of_file, "utf8"))
-        
+
         self.variables_dict = {}
         cursor = tree.walk()
-        #this is for class and global variables
+        # this is for class and global variables
         self.__traverse_global_variables(cursor)
-    
+
         return list(self.variables_dict.values())
-    
+
     # It should parse class variables and instance variables defined in a class but outside of any functions based on content of class
     # and then should use list of functions to check if there are any instance variables or class run variables defined in the functions and add them. Make sure there is no duplication.
-    def parse_class_variables(self, content_of_class_code: str, 
-                             list_of_functions: List[ChapiFunction]) -> List[ClassGlobalFieldModel]:
+    def parse_class_variables(self, content_of_class_code: str, list_of_functions: List[ChapiFunction]) -> List[ClassGlobalFieldModel]:
         """Parse class-level and instance variables from class content.
-        
+
         First parses variables defined at class level (outside functions),
         then processes function contents for instance/runtime variables.
-        
+
         Args:
             content_of_class_code: Content of just the class definition
             list_of_functions: List of functions to check for instance/runtime variables
-                              
+
         Returns:
             List[ClassGlobalFieldModel]: All unique class variables including:
                 - ClassVar variables
@@ -60,27 +58,24 @@ class NodeVariablesParser:
         logger.debug("Before class variables: {}", len(self.variables_dict))
         self.__traverse_class_variables(cursor)
         logger.debug("After class variables: {}", len(self.variables_dict))
-        
+
         # Track seen variables to avoid duplicates
         seen_variables = {v.class_field_name for v in self.variables_dict.values()}
         logger.debug("Seen variables: {}", seen_variables)
-        
+
         # Phase 2: Parse variables from function contents
         for function in list_of_functions:
             if not function.content:
                 continue
-            
+
             logger.debug("Processing function: {}", function.name)
             logger.debug("Function content: {}", function.content)
-            
+
             func_tree = self.parser.parse(bytes(function.content, "utf8"))
             func_cursor = func_tree.walk()
-            self.__traverse_function_variables(
-                cursor=func_cursor,
-                seen_variables=seen_variables
-            )
+            self.__traverse_function_variables(cursor=func_cursor, seen_variables=seen_variables)
             logger.debug("Variables after function: {}", len(self.variables_dict))
-        
+
         return list(self.variables_dict.values())
 
     def __traverse_global_variables(self, cursor: TreeCursor) -> None:
@@ -92,25 +87,24 @@ class NodeVariablesParser:
 
         # Move cursor to first child if exists
         should_traverse_children = cursor.goto_first_child()
-        
+
         while should_traverse_children:
             node = cursor.node
-            
+
             # Track scope
             if node.type == "function_definition":
                 inside_function = True
             elif node.type == "class_definition":
                 inside_class = True
-            
+
             # Process global variables
             if node.type == "expression_statement":
-                if (not inside_function and not inside_class and 
-                    node.children and node.children[0].type == "assignment"):
+                if not inside_function and not inside_class and node.children and node.children[0].type == "assignment":
                     assignment_node = node.children[0]
                     self.__process_assignment(assignment_node, current_decorators)
                     current_decorators = []
                     processed_decorators.clear()
-            
+
             # Try to move to next sibling
             if cursor.goto_next_sibling():
                 # If we moved to sibling, check if we're exiting a scope
@@ -119,18 +113,18 @@ class NodeVariablesParser:
                 elif inside_class and node.type == "class_definition":
                     inside_class = False
                 continue
-            
+
             # No more siblings, go back to parent
             if not cursor.goto_parent():
                 # We've reached the root, stop traversal
                 break
-            
+
             # Reset scope flags when exiting their definitions
             if inside_function and node.type == "function_definition":
                 inside_function = False
             elif inside_class and node.type == "class_definition":
                 inside_class = False
-        
+
     def __traverse_class_variables(self, cursor: TreeCursor) -> None:
         """Parse variables defined at class level (outside any function)."""
         inside_function = False
@@ -181,9 +175,7 @@ class NodeVariablesParser:
                 # Don't update node here, rely on next iteration's node = cursor.node
                 continue
 
-            break  # No more siblings    
-
-   
+            break  # No more siblings
 
     def __traverse_function_variables(self, cursor: TreeCursor, seen_variables: set[str]) -> None:
         """Parse variables from function body."""
@@ -228,10 +220,10 @@ class NodeVariablesParser:
                 if first_child.type == "assignment":
                     lhs = first_child.children[0] if first_child.children else None
                     if lhs and lhs.type == "attribute":
-                        attr_text = lhs.text.decode('utf8')
+                        attr_text = lhs.text.decode("utf8")
                         # Check for instance/class variable assignments (self.x or cls.x)
                         if attr_text.startswith(("self.", "cls.")):
-                            var_name = attr_text.split('.', 1)[1]
+                            var_name = attr_text.split(".", 1)[1]
                             if var_name not in seen_variables:
                                 seen_variables.add(var_name)
                                 # Process the assignment as needed
@@ -240,34 +232,30 @@ class NodeVariablesParser:
 
             if not cursor.goto_next_sibling():
                 break  # No more siblings in block
-            
-        
+
     def __get_annotation(self, node: Node) -> Optional[ChapiAnnotation]:
         """Extract annotation from decorator node."""
         # Skip @ symbol
         for child in node.children:
             if child.type == "identifier":
                 # Simple decorator without arguments
-                return ChapiAnnotation(Name=child.text.decode('utf8'))
+                return ChapiAnnotation(Name=child.text.decode("utf8"))
             elif child.type == "call":
                 # Decorator with arguments
                 func_name = None
                 for call_child in child.children:
                     if call_child.type == "identifier":
-                        func_name = call_child.text.decode('utf8')
+                        func_name = call_child.text.decode("utf8")
                         break
-                
+
                 if func_name:
                     key_values = self.__extract_annotation_arguments(child)
-                    return ChapiAnnotation(
-                        Name=func_name,
-                        KeyValues=key_values if key_values else None
-                    )
+                    return ChapiAnnotation(Name=func_name, KeyValues=key_values if key_values else None)
         return None
 
     def __extract_annotation_arguments(self, call_node: Node) -> List[ChapiAnnotationKeyVal]:
         """Extract arguments from a decorator call node.
-        
+
         Examples:
             @decorator(1, x=2)           -> [("0", "1"), ("x", "2")]
             @decorator("str", y="test")  -> [("0", "\"str\""), ("y", "\"test\"")]
@@ -275,12 +263,12 @@ class NodeVariablesParser:
             @decorator(1, 2, 3)          -> [("0", "1"), ("1", "2"), ("2", "3")]
         """
         key_values: List[ChapiAnnotationKeyVal] = []
-        
+
         # Find argument_list node
         for child in call_node.children:
             if child.type == "argument_list":
                 pos_arg_index = 0
-                
+
                 # Process each argument
                 for arg in child.children:
                     if arg.type == "keyword_argument":
@@ -288,22 +276,16 @@ class NodeVariablesParser:
                         for i, kw_child in enumerate(arg.children):
                             if kw_child.type == "=":
                                 # Get key (everything before =)
-                                key = arg.children[i-1].text.decode('utf8')
+                                key = arg.children[i - 1].text.decode("utf8")
                                 # Get value (everything after =)
-                                value = arg.children[i+1].text.decode('utf8')
-                                key_values.append(ChapiAnnotationKeyVal(
-                                    Key=key,
-                                    Value=value
-                                ))
+                                value = arg.children[i + 1].text.decode("utf8")
+                                key_values.append(ChapiAnnotationKeyVal(Key=key, Value=value))
                                 break
                     elif arg.type not in ["(", ")", ","]:
                         # Handle positional arguments
-                        key_values.append(ChapiAnnotationKeyVal(
-                            Key=str(pos_arg_index),
-                            Value=arg.text.decode('utf8')
-                        ))
+                        key_values.append(ChapiAnnotationKeyVal(Key=str(pos_arg_index), Value=arg.text.decode("utf8")))
                         pos_arg_index += 1
-                        
+
         return key_values
 
     def __process_assignment(self, node: Node, decorators: List[ChapiAnnotation]) -> None:
@@ -311,82 +293,82 @@ class NodeVariablesParser:
         Only captures variables on their first occurrence."""
         if not node.children:
             return
-        
+
         lhs = node.children[0]  # Left-hand side of assignment
-        
+
         # Get variable names based on node type
         var_names = []
         if lhs.type == "identifier":
-            var_names.append(lhs.text.decode('utf8'))
+            var_names.append(lhs.text.decode("utf8"))
             start_point = lhs.start_point
             end_point = lhs.end_point
         elif lhs.type == "pattern_list":
             # Handle tuple unpacking (x, y = ...)
             for pattern_child in lhs.children:
                 if pattern_child.type == "identifier":
-                    var_names.append(pattern_child.text.decode('utf8'))
+                    var_names.append(pattern_child.text.decode("utf8"))
                     # For tuple unpacking, use each identifier's position
                     start_point = pattern_child.start_point
                     end_point = pattern_child.end_point
         elif lhs.type == "attribute":
             # Handle self.x or cls.x attributes
             if len(lhs.children) >= 3:  # Need at least 3 parts: self/cls, ., var_name
-                prefix = lhs.children[0].text.decode('utf8')
+                prefix = lhs.children[0].text.decode("utf8")
                 if prefix in ("self", "cls"):
                     var_name_node = lhs.children[2]
-                    var_names.append(var_name_node.text.decode('utf8'))
+                    var_names.append(var_name_node.text.decode("utf8"))
                     # For attributes, use the variable part's position
                     start_point = var_name_node.start_point
                     end_point = var_name_node.end_point
-        
+
         if not var_names:
             return
-        
+
         # Get type hint if present
         type_hint = None
         values = []
-        
+
         # Look for type hint and values
         for i, child in enumerate(node.children):
             if child.type == ":" and i + 1 < len(node.children):
                 type_node = node.children[i + 1]
-                type_hint = type_node.text.decode('utf8')
+                type_hint = type_node.text.decode("utf8")
             elif child.type == "=" and i + 1 < len(node.children):
                 value_node = node.children[i + 1]
                 if value_node.type == "expression_list":
                     # Handle tuple values (1, 2)
                     for value_child in value_node.children:
                         if value_child.type not in [",", "(", ")"]:
-                            values.append(value_child.text.decode('utf8').strip())
+                            values.append(value_child.text.decode("utf8").strip())
                 else:
                     # Single value - normalize dictionary/object literals
-                    value = value_node.text.decode('utf8')
+                    value = value_node.text.decode("utf8")
                     if value_node.type == "dictionary":
                         # Remove newlines and extra whitespace
-                        value = ''.join(value.split())
+                        value = "".join(value.split())
                     values.append(value)
-        
+
         # Create variables for each name-value pair, but only if not already captured
         for i, var_name in enumerate(var_names):
             # Skip if variable already exists
             if var_name in self.variables_dict:
                 continue
-            
+
             value = values[i] if i < len(values) else None
-            
+
             # Create position object
             position = Position(
                 StartLine=start_point[0],  # Convert to 1-based line numbers
                 StartLinePosition=start_point[1],
                 StopLine=end_point[0],
-                StopLinePosition=end_point[1]
+                StopLinePosition=end_point[1],
             )
-            
+
             var = ClassGlobalFieldModel(
                 TypeValue=var_name,
                 TypeType=type_hint,
                 DefaultValue=value,
                 Annotations=decorators if decorators else None,
-                Position=position  # Add position information
+                Position=position,  # Add position information
             )
             self.variables_dict[var_name] = var
