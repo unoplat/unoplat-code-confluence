@@ -70,7 +70,7 @@ const FeatureList = [
         <div className={styles.featurePoints}>
           <div className={styles.featurePoint}>
             <strong>🔌 Seamless Ecosystem Integration</strong>
-            <p>Native integration with development and knowledge engines environments ensures insights are available right where developers work, eliminating context switching and enhancing productivity.</p>
+            <p>Working closely with developer tools like copilots/ides and knowledge engines to deliver insights seamlessly within your workflow, reducing cognitive load and maximizing productivity through contextual assistance.</p>
           </div>
           
           <div className={styles.featurePoint}>
@@ -78,10 +78,7 @@ const FeatureList = [
             <p>Built for cloud-native enterprises with self-hosted deployment options, offering enterprise-grade scalability, reliability, and security while maintaining full data control.</p>
           </div>
           
-          <div className={styles.featurePoint}>
-            <strong>🛡️ Ecosystem Collaboration</strong>
-            <p>Working closely with the developer tooling ecosystem to ensure seamless integration and enhanced developer experience without additional cognitive load.</p>
-          </div>
+          
         </div>
       </>
     ),
