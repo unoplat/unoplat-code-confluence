@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.6.1...code-confluence-docs-v0.7.0) (2025-01-30)
+
+
+### Features
+
+* Enhance homepage feature descriptions and update SVG illustrations ([e780c43](https://github.com/unoplat/unoplat-code-confluence/commit/e780c43c32f3369add8751457bba082e25162ff6))
+
 ## [0.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.6.0...code-confluence-docs-v0.6.1) (2025-01-23)
 
 
