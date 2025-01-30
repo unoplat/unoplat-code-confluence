@@ -24,11 +24,6 @@ const FeatureList = [
             <strong>📦 Smart Dependency Resolution</strong>
             <p>Deep parsing and understanding of <a href="https://devopedia.org/package-manager" className={styles.inlineLink}>package manager's</a> data reveals project structure and library relationships, both internal and external.</p>
           </div>
-          
-          <div className={styles.featurePoint}>
-            <strong>🔄 Dynamic Graph Generation</strong>
-            <p>Query your codebase through intelligent mapping of repositories, codebases, packages, classes, functions and function calls in their true <a href="https://neo4j.com/whitepapers/knowledge-graphs-unlimited-insights/" className={styles.inlineLink}>graphical</a> form.</p>
-          </div>
         </div>
       </>
     ),
@@ -56,7 +51,7 @@ const FeatureList = [
           
           <div className={styles.featurePoint}>
             <strong>💬 Interactive Code Intelligence</strong>
-            <p>Knowledge graph integration enables precise, context-aware conversations with your codebase, making information retrieval natural and efficient.</p>
+            <p>Query and explore your codebase through intelligent mapping of repositories, codebases, packages, classes, and function calls in their true <a href="https://neo4j.com/whitepapers/knowledge-graphs-unlimited-insights/" className={styles.inlineLink}>graphical</a> form, making information retrieval natural and efficient.</p>
           </div>
         </div>
       </>
@@ -74,18 +69,13 @@ const FeatureList = [
       <>
         <div className={styles.featurePoints}>
           <div className={styles.featurePoint}>
-            <strong>🔌 Seamless IDE Integration</strong>
+            <strong>🔌 Seamless Ecosystem Integration</strong>
             <p>Native integration with development and knowledge engines environments ensures insights are available right where developers work, eliminating context switching and enhancing productivity.</p>
           </div>
           
           <div className={styles.featurePoint}>
             <strong>🤝 Enterprise-Ready</strong>
             <p>Built for cloud-native enterprises with self-hosted deployment options, offering enterprise-grade scalability, reliability, and security while maintaining full data control.</p>
-          </div>
-          
-          <div className={styles.featurePoint}>
-            <strong>🔗 Extensible SDK Platform</strong>
-            <p>Integration SDK and APIs enable knowledge engines and copilots to leverage deterministic code understanding, delivering domain-aware insights across codebases.</p>
           </div>
           
           <div className={styles.featurePoint}>
