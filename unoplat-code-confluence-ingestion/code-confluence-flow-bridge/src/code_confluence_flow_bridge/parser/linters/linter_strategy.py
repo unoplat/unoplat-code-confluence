@@ -1,12 +1,11 @@
-# Standard Library
 from abc import ABC, abstractmethod
-
-# First Party
+from typing import Optional, List
 
 
 class LinterStrategy(ABC):
+    
     @abstractmethod
-    def lint_codebase(self, local_workspace_path: str) -> bool:
+    def lint_codebase(self, local_workspace_path: str, dependencies: Optional[List], programming_language_version: str) -> bool:
         """
         Run linting on the codebase and return results
 

@@ -5,12 +5,13 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
     from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguage, ProgrammingLanguageMetadata
+    from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
     from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
     from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
 
 
 @workflow.defn(name="child-codebase-workflow")
-class CodebaseChildWorkflow:
+class  CodebaseChildWorkflow:
     def __init__(self):
         self.package_metadata_activity = PackageMetadataActivity()
 
@@ -30,6 +31,20 @@ class CodebaseChildWorkflow:
         workflow.logger.info(f"Ingesting package metadata for {codebase_qualified_name} into graph")
         await workflow.execute_activity(activity=PackageManagerMetadataIngestion.insert_package_manager_metadata, args=[codebase_qualified_name, parsed_metadata], start_to_close_timeout=timedelta(minutes=10))
 
-        # TODO: apply ruff config on the codebase by knowing the local path and programming language metadata
+        # 3. Process codebase (linting, AST generation, parsing)
+        workflow.logger.info(f"Processing codebase for {codebase_qualified_name}")
+        await workflow.execute_activity(
+            activity=CodebaseProcessingActivity.process_codebase,
+            args=[
+                local_path,
+                repository_qualified_name,
+                codebase_qualified_name,
+                parsed_metadata.dependencies,
+                programming_language_metadata
+            ],
+            start_to_close_timeout=timedelta(minutes=30)
+        )
 
         workflow.logger.info(f"Codebase workflow completed successfully for {codebase_qualified_name}")
+        
+        

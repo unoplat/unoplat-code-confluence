@@ -1,12 +1,12 @@
 # Standard Library
-from typing import Dict, Tuple
-
 # First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguage
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.pip.pip_strategy import PipStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.uv.uv_strategy import UvStrategy
+
+from typing import Dict, Tuple
 
 
 class PackageManagerStrategyFactory:

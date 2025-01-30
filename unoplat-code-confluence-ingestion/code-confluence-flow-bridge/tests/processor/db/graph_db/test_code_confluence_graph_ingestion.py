@@ -93,6 +93,7 @@ def sample_git_repo() -> UnoplatGitRepository:
                 name="unoplat_code_confluence",
                 readme="# Sample Codebase README",
                 local_path="/tmp/unoplat-code-confluence",
+                source_directory="src",
                 package_manager_metadata=UnoplatPackageManagerMetadata(
                     programming_language="python",
                     package_manager="poetry"

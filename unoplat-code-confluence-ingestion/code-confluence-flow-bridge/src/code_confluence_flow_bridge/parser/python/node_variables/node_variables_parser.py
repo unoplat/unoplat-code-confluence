@@ -1,16 +1,16 @@
 # Standard Library
-from typing import Dict, List, Optional
-
-# Third Party
-from loguru import logger
-from tree_sitter import Node, TreeCursor
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi.chapi_annotation import ChapiAnnotation, ChapiAnnotationKeyVal
 from src.code_confluence_flow_bridge.models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 from src.code_confluence_flow_bridge.models.chapi.chapi_function import ChapiFunction
 from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
 from src.code_confluence_flow_bridge.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
+
+from typing import Dict, List, Optional
+
+# Third Party
+from loguru import logger
+from tree_sitter import Node, TreeCursor
 
 
 # The class is responsible for parsing global and class variables that is classvar and instance variables defined in a class but outside of any functions..

@@ -1,4 +1,9 @@
 # Standard Library
+# First Party
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
+
 import os
 import ast
 from typing import Any, Dict, List, Optional, Union
@@ -7,11 +12,6 @@ from packaging.requirements import Requirement
 
 # Third Party
 from temporalio import activity
-
-# First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
 
 
 class SetupParser:

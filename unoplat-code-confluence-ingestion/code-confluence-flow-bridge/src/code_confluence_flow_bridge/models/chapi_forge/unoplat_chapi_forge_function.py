@@ -1,11 +1,11 @@
 # Standard Library
+# First Party
+from src.code_confluence_flow_bridge.models.chapi.chapi_function import ChapiFunction
+
 from typing import Optional
 
 # Third Party
 from pydantic import Field
-
-# First Party
-from src.code_confluence_flow_bridge.models.chapi.chapi_function import ChapiFunction
 
 
 class UnoplatChapiForgeFunction(ChapiFunction):

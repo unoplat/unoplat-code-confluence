@@ -1,10 +1,4 @@
 # Standard Library
-import os
-from typing import Dict, List, Tuple
-
-# Third Party
-from loguru import logger
-
 from src.code_confluence_flow_bridge.models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
 from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
@@ -26,6 +20,12 @@ from src.code_confluence_flow_bridge.parser.python.python_package_naming_strateg
 from src.code_confluence_flow_bridge.parser.python.python_qualified_name_strategy import PythonQualifiedNameStrategy
 from src.code_confluence_flow_bridge.parser.python.utils.read_programming_file import ProgrammingFileReader
 from src.code_confluence_flow_bridge.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
+
+import os
+from typing import Dict, List, Tuple
+
+# Third Party
+from loguru import logger
 
 
 class PythonCodebaseParser(CodebaseParserStrategy):
@@ -102,7 +102,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
 
         return UnoplatChapiForgeNode.from_chapi_node(chapi_node=node, qualified_name=qualified_name, segregated_imports=imports_dict if imports_dict is not None else {})
 
-    def parse_codebase(self, codebase_name: str, json_data: dict, local_workspace_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> UnoplatCodebase:
+    def parse_codebase(self, codebase_name: str, json_data: dict, local_workspace_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> List[UnoplatPackage]:
         """Parse the entire codebase.
 
         First preprocesses nodes to extract qualified names and segregate imports,
@@ -172,11 +172,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                                 current_package = current_package[full_package_name].sub_packages  # type: ignore
             except Exception as e:
                 logger.error(f"Error processing node dependencies: {e}")
-
-        unoplat_codebase: UnoplatCodebase = UnoplatCodebase(
-            name=codebase_name,
-            packages=list(unoplat_package_dict.values())[0] if unoplat_package_dict else None,
-            package_manager_metadata=processed_metadata,  # type: ignore
-            local_path=local_workspace_path,
-        )  # type: ignore
-        return unoplat_codebase
+        
+        packages: List[UnoplatPackage] = list(unoplat_package_dict.values()) if unoplat_package_dict else []
+        
+        return packages

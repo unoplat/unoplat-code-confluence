@@ -20,6 +20,7 @@ dependencies = [
     "neomodel>=5.4.2",
     "unoplat-code-confluence-commons",
     "packaging>=24.2",
+    "validate-pyproject[all]>=0.23",
 ] 
 
 [dependency-groups]
@@ -33,8 +34,4 @@ test = [
 
 [tool.uv.sources]
 unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.10.0" }
-# Specify source directory
-
-[tool.poetry.dependencies]
-validate-pyproject = {extras = ["all"], version = "^0.23"}
 

@@ -1,15 +1,15 @@
 # Standard Library
-from typing import List, Optional
-
-# Third Party
-from pydantic import BaseModel, Field
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi.chapi_annotation import ChapiAnnotation
 from src.code_confluence_flow_bridge.models.chapi.chapi_function_field_model import ChapiFunctionFieldModel
 from src.code_confluence_flow_bridge.models.chapi.chapi_functioncall import ChapiFunctionCall
 from src.code_confluence_flow_bridge.models.chapi.chapi_parameter import ChapiParameter
 from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
+
+from typing import List, Optional
+
+# Third Party
+from pydantic import BaseModel, Field
 
 
 class ChapiFunction(BaseModel):

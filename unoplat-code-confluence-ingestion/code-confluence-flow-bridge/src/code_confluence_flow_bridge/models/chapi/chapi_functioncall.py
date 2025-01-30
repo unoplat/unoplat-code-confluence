@@ -1,13 +1,13 @@
 # Standard Library
 # Standard Library
+# First Party
+from src.code_confluence_flow_bridge.models.chapi.chapi_parameter import ChapiParameter
+from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
+
 from typing import List, Optional
 
 # Third Party
 from pydantic import BaseModel, Field
-
-# First Party
-from src.code_confluence_flow_bridge.models.chapi.chapi_parameter import ChapiParameter
-from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
 
 
 class ChapiFunctionCall(BaseModel):

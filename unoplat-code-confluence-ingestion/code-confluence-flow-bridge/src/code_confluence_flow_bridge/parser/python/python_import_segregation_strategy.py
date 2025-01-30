@@ -1,12 +1,12 @@
 # Standard Library
-from typing import Dict, List
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import ImportedName, UnoplatImport
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import ImportType
 from src.code_confluence_flow_bridge.parser.python.utils.python_import_comment_parser import PythonImportCommentParser
 from src.code_confluence_flow_bridge.parser.python.utils.read_programming_file import ProgrammingFileReader
+
+from typing import Dict, List
 
 
 class PythonImportSegregationStrategy:

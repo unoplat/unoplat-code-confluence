@@ -1,9 +1,9 @@
 # Third Party
-from tree_sitter import Language, Parser
-import tree_sitter_python  # type: ignore
-
 # First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguage
+
+from tree_sitter import Language, Parser
+import tree_sitter_python  # type: ignore
 
 
 class CodeConfluenceTreeSitter:

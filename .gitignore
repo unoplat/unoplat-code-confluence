@@ -172,3 +172,11 @@ unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/packa
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/package_manager/__pycache__/test_pip_strategy.cpython-312-pytest-8.3.4.pyc
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/package_manager/uv/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/package_manager/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/dependencies/analysers
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/models/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/linters/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/linters/python/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/archguard/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/codebase_processing/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/linters/python/__pycache__

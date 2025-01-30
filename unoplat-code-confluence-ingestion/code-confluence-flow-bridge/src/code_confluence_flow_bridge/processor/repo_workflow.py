@@ -1,9 +1,9 @@
+from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
+
 from datetime import timedelta
 
 from temporalio import workflow
 from temporalio.workflow import ParentClosePolicy
-
-from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
