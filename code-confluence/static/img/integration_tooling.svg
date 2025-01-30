@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="842" height="530" viewBox="0 0 842 530"
+    style="fill:none;stroke:none;fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;"
+    version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <style id="fontImports">
+        @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=block");
+    </style>
+    <rect id="" x="0" y="0" width="842" height="530" style="fill: #ffffff;"></rect>
+    <g id="items" style="isolation: isolate">
+        <g id="blend" style="mix-blend-mode: normal">
+            <g id="g-root-tf_4mb3hi1sp61hn-fill" data-item-order="-443520" transform="translate(-9, -9)">
+                <g id="tf_4mb3hi1sp61hn-fill" stroke="none" fill="#ffffff">
+                    <g>
+                        <path d="M 10 10L 850 10L 850 538L 10 538Z"></path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-3.g-3_fr_1urs57q1sotdse-fill" data-item-order="-342134"
+                transform="translate(410, 178.0009765625)">
+                <g id="3.g-3_fr_1urs57q1sotdse-fill" stroke="none" fill="#e3fff2">
+                    <g>
+                        <path
+                            d="M 190 79.2821L 70.0001 10L 10 44.641L 70.0007 79.2812L 70.0007 148.563L 70.001 217.846L 10.001 252.487L 70.0004 287.129L 129.999 252.488L 190 217.846L 190 79.2821Z">
+                        </path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-1.g-1_fr_1qbyn3a1soteko-fill" data-item-order="-342130"
+                transform="translate(230.00100708007812, 178)">
+                <g id="1.g-1_fr_1qbyn3a1soteko-fill" stroke="none" fill="#edf4ff">
+                    <g>
+                        <path
+                            d="M 10 79.2821L 10 217.846L 70.0001 252.487L 130 287.129L 190 252.488L 130 217.848L 129.999 148.565L 129.999 79.283L 190 44.6419L 130 10L 10 79.2821Z">
+                        </path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-2.g-2_fr_1qbyn3a1sotekq-fill" data-item-order="-342126"
+                transform="translate(350, 212.64208984375)">
+                <g id="2.g-2_fr_1qbyn3a1sotekq-fill" stroke="none" fill="#e8f9ff">
+                    <g>
+                        <path
+                            d="M 70.0001 10L 10 44.641L 10 113.923L 10.0006 183.205L 70.0007 217.845L 130.001 183.204L 130.001 113.922L 130.001 44.6402L 70.0001 10Z">
+                        </path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx_knowledg_1448ndy1sp60oy-fill" data-item-order="0" transform="translate(14, 286)">
+                <g id="tx_knowledg_1448ndy1sp60oy-fill" stroke="none" fill="#4e88e7">
+                    <g><text style="font: bold 20px Roboto, sans-serif; white-space: pre;" font-weight="bold"
+                            font-size="20px" font-family="Roboto, sans-serif">
+                            <tspan x="24.14" y="34" dominant-baseline="ideographic">Knowledge Engines</tspan>
+                        </text></g>
+                </g>
+            </g>
+            <g id="g-root-time_140hsva1sp4npl-fill" data-item-order="0" transform="translate(278, 293)"></g>
+            <g id="g-root-reco_qrj6ue1sp0eme-fill" data-item-order="0" transform="translate(494, 293)"></g>
+            <g id="g-root-tx_copilots_de797q1sp62o9-fill" data-item-order="0" transform="translate(614, 286)">
+                <g id="tx_copilots_de797q1sp62o9-fill" stroke="none" fill="#3cc583">
+                    <g><text style="font: bold 20px Roboto, sans-serif; white-space: pre;" font-weight="bold"
+                            font-size="20px" font-family="Roboto, sans-serif">
+                            <tspan x="12" y="34" dominant-baseline="ideographic">Copilots</tspan>
+                        </text></g>
+                </g>
+            </g>
+            <g id="g-root-tf_4mb3hi1sp61hn-stroke" data-item-order="-443520" transform="translate(-9, -9)"></g>
+            <g id="g-root-3.g-3_fr_1urs57q1sotdse-stroke" data-item-order="-342134"
+                transform="translate(410, 178.0009765625)">
+                <g id="3.g-3_fr_1urs57q1sotdse-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-miterlimit="4" stroke="#3cc583" stroke-width="2">
+                    <g>
+                        <path
+                            d="M 190.0002 79.2821L 70.0001 10L 10 44.641L 70.0007 79.2812L 70.001 217.8456L 10.001 252.4866L 70.0004 287.1285L 190.0002 217.8463L 190.0002 79.2821Z">
+                        </path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-1.g-1_fr_1qbyn3a1soteko-stroke" data-item-order="-342130"
+                transform="translate(230.00100708007812, 178)">
+                <g id="1.g-1_fr_1qbyn3a1soteko-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-miterlimit="4" stroke="#4e88e7" stroke-width="2">
+                    <g>
+                        <path
+                            d="M 10 79.2821L 10 217.8463L 129.9997 287.1288L 189.9998 252.4877L 129.9997 217.8475L 129.9995 79.283L 189.9995 44.6419L 130.0001 10L 10 79.2821Z">
+                        </path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-2.g-2_fr_1qbyn3a1sotekq-stroke" data-item-order="-342126"
+                transform="translate(350, 212.64208984375)">
+                <g id="2.g-2_fr_1qbyn3a1sotekq-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-miterlimit="4" stroke="#1eabda" stroke-width="2">
+                    <g>
+                        <path
+                            d="M 70.0001 10L 10 44.641L 10.0006 183.2052L 70.0007 217.8453L 130.0007 183.2043L 130.0007 44.6402L 70.0001 10Z">
+                        </path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx_knowledg_1448ndy1sp60oy-stroke" data-item-order="0" transform="translate(14, 286)"></g>
+            <g id="g-root-time_140hsva1sp4npl-stroke" data-item-order="0" transform="translate(278, 293)">
+                <g id="time_140hsva1sp4npl-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-miterlimit="4" stroke="#4e88e7" stroke-width="2">
+                    <g>
+                        <path
+                            d="M 34.5 11.5C 34.5 17.1 42.5 21.70002 53.700001 21.70002L 56.5 21.70002M 56.5 27.700199C 36.700001 27.700199 21.5 20.9002 21.5 12.7002M 40.300201 33.099998C 21.900101 34.700001 12.1001 40.700199 12.1001 47.700199M 32.099998 43.099998C 25.5 45.700001 21.5 49.5 21.5 53.5M 54.5 33.5L 56.5 33.5M 11.5 18.5C 11.5 25.5 21.5 31.5 40.299999 33.099998M 47.5 56.5C 52.4706 56.5 56.5 52.4706 56.5 47.5C 56.5 42.5294 52.4706 38.5 47.5 38.5C 42.5294 38.5 38.5 42.5294 38.5 47.5C 38.5 52.4706 42.5294 56.5 47.5 56.5ZM 47.5 38.5L 47.5 47.5L 56.453201 46.585999">
+                        </path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-reco_qrj6ue1sp0eme-stroke" data-item-order="0" transform="translate(494, 293)">
+                <g id="reco_qrj6ue1sp0eme-stroke" fill="none" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-miterlimit="4" stroke="#3cc583" stroke-width="2">
+                    <g>
+                        <path
+                            d="M 34.571999 54.858002C 34.570896 56.041317 33.61132 57 32.428001 57L 13.142 57C 11.959463 56.998898 11.001102 56.040539 11 54.858002L 11 49.5C 11 42.990772 16.276772 37.714001 22.785999 37.714001C 29.295229 37.714001 34.571999 42.990772 34.571999 49.5ZM 18.285999 45C 18.285999 45.276142 18.509857 45.5 18.785999 45.5C 19.062141 45.5 19.285999 45.276142 19.285999 45C 19.285999 44.723858 19.062141 44.5 18.785999 44.5C 18.509857 44.5 18.285999 44.723858 18.285999 45M 26.285999 44.987999C 26.285999 45.264141 26.509857 45.487999 26.785999 45.487999C 27.062143 45.487999 27.285999 45.264141 27.285999 44.987999C 27.285999 44.711857 27.062143 44.487999 26.785999 44.487999C 26.509857 44.487999 26.285999 44.711857 26.285999 44.987999M 22.785999 37.714001L 22.785999 33.428001M 19.571999 30.214001C 19.572001 31.989044 21.010956 33.428001 22.785999 33.428001C 24.561043 33.428001 26 31.989044 26 30.214001C 26 28.438957 24.561043 27 22.785999 27C 21.010956 27 19.572001 28.438957 19.572001 30.214001M 11 51.630001L 34.571999 51.630001M 27 21L 27 23.5M 32 19L 32 31M 37 17L 37 33M 57 21L 57 29M 52 19L 52 31M 47 17L 47 33M 42 11L 42 39">
+                        </path>
+                    </g>
+                </g>
+            </g>
+            <g id="g-root-tx_copilots_de797q1sp62o9-stroke" data-item-order="0" transform="translate(614, 286)"></g>
+            <g id="g-root-im_hvwpk61tsw0zn" data-item-order="342147" transform="translate(380.75, 286.75)">
+                <image id="im_hvwpk61tsw0zn" height="70" width="70" x="5" y="0"
+                    href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD0AAAA9CAYAAAAeYmHpAAAAAXNSR0IArs4c6QAABlxJREFUaEPNW81uHEUQrtmNE29QEBFSJHJIBBeuHLhjPwDhBXz0JRHv4Ow7RMnFR79AwgN4c+fAlQsoORgJCRmByDrZ7A6qYXpSW1N/3bsePFKk2NM/9XX9fVU9rmDg5/XB4WkNsJe2rQBm906O94cUoxpyM9zr1cFhzfdcAex/fnI8G0qWQUG/Ojh8DABHArjp/ZNjfDfIszHoBOT+ybG7lgY6auLtfNj0gFxBtaP/9eBwbwxwlPwzIjj3Z7q2d2jCgRVbRxHoUo1J/pyAW369bbcoAo1aHgGcKlYgasCZAxpoAzBuX6TtItBaFCaH0AmDYPH31BWMaDVdAcxSJHcAqwflRcNi0JZ/4qbo4zQfe4Lw95H5XhzQ9iwG7Zkr3XBnUsPO7grenI9V7DgGn8U8LFKRabcKydXBh/FWYMJRN28vYXJ71U3467drIqjoOCrpJoQmfKzS0XgmzsGgFhE4f/i4+fnItAqcX2ra29C0xrAaXBwM/o5rWxrjgY5wAst+RU1HmI8XWTXQXNsloFtApk+3MWdPYm890DxAtVH0JZ1MAVsBSAIUiSCa7wsBcQ04Z4m4l+T7PdCWBvEAcKGUiigoySQ10KMvd6G6NYb67yWsfr7onYO3Fns/rQC+sdIj9/810BGTTRJqgFCgxcUIJp8s4fqdUQOMP+OvP+p+tfzxn977dCB0rWRRabBmDYolrVlEMWgU4uPP3qvWqmkTAeG79KCm6cGM7l6H6u4O1GcLWJ29U9f/45ediKd0Y6i2s8zbSzX0PdUmBZBApbHUxPk7yQpwnhfdqRxSpLeit1Ts904Xtc1NDwclTVNwqGXtQfD0vebvWq6X1tVSm0pOov6tmTk34yxbxGCpmHeGL6spzWRkEeBqhG59MxdsZxmbgTZzuEtDPeCffrEAGnyS0BiM9KeeAVRdR1Q1+bNFE+RwrRTR3/70VqSy3b6B7qoLOvFr1Ch/ru3WjT/ToGUCrcZTfD/59sla53P+/NFjqMSGYW85jPZvXq83VFGO9xdVx9c9Xu6CTpUUalR7eNTtj6tnkwfP3N62B14Lbmm/lMa8Cizk015ObqK15sM1TCffPQ23d+cvHp5Kpu/lbZQhBTmvIFFBUx4bAS2lqcaUHzx1rYlbBgfuaTjNp6CXAFPtAqERKFUkyGHxZ43HegVEz7cztZyEn//w/R7Uq7XGo0ZUcA7m7vmfY7FBkQomHJf6b5XXCJD8mIPHyNr8YxG7RMu4nwQazRs1TimrBdZKlUWgcUGaqrQNSkE3wBXfbiyxrc5y+XeX1ko03YFuS8TLAf2od9FH90Fz/39Am6wrlqa0A5u/0EEPrmmM5Fgr0yJD82moRvuciFi+Rt9x0I0/t37dBbzzUfNfq7Us7delk9QX07oQEli+YC96F4KWSIoVvbHU1MCTbs/LLnpbJ08pKO1fa3N4OQlQZuKSlqW2EpeDVmAWKzOJQ2oSRsiJTkXzgGtUNIeReRd7LlvaCvcOkhQrTTWpKthC2oh740ZalYXNP7yfunmvWut5mYFKAN8QkQbR8ihSbqYqK+2f9sOf0z3YNqos8xYD20U3vrrR1buoDYmdyYdh19W4VvPcGv23fqtpKz97xQYuF6qyLO1p/u6Xm3by0kw52BQs65x4HZMk8mW1i3hrOO13aT2yKOBERyWdSa3eobuhWhTvmXcOF7dKzXDfm0RkflCatoMm3ujC7XvnaNirrbtmIbuv4q1h7rvaPIuIRKitesOR80mFBDrVt5jKkMEhAOlqJnKX9e73VdMYwIdzffxdjra5mWeZN+lCNLcf3q1l5PZD4tQ5t5ZcJq5117xxgnQ/zftN1A0QOCUGdFPPBTSztLSIKZJ8jLOWmlLRxL4/7aUv9S6Lfs8lCRfx/8hXBpI1BE3XzMUon4bB5d5WkPAivQSasymJ3ARAF39O5TIyLyp62o5+NcS17YGOUE1L9o00nfsdmcaZqbbRX+kVjSa8V0ldCmhPy3xTFoB6MuV+MXglQfOPcjxXoe8jczcx8WLzdkw7kkrWzgFB8NTokaVSbReBLvkGuxSAtdegoA0AXu5UG/hWt+NKfNmf7JIJ4+bObf0Nh+QKmTEjZ3h/LALHXnnkD8o21ZjFsnJQFPl0zgZ0bKlblO6nzbsSoEsDUulhDAoahUS/5sJGXKMUoDTvX4PjsZqQv1HkAAAAAElFTkSuQmCC"
+                    style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke:#969696;stroke-width:0">
+                </image>
+            </g>
+        </g>
+    </g>
+</svg>
