@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.6.1...code-confluence-docs-v0.7.0) (2025-01-30)
+
+
+### Features
+
+* Enhance homepage feature descriptions and update SVG illustrations ([e780c43](https://github.com/unoplat/unoplat-code-confluence/commit/e780c43c32f3369add8751457bba082e25162ff6))
+
+## [0.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.6.0...code-confluence-docs-v0.6.1) (2025-01-23)
+
+
+### Bug Fixes
+
+* fixed swc core ([a89aa3f](https://github.com/unoplat/unoplat-code-confluence/commit/a89aa3fff92714c1a0a91b085cb22b50156cd279))
+
+## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.5.0...code-confluence-docs-v0.6.0) (2025-01-23)
+
+
+### Features
+
+* improved descriptions ([e4f99c1](https://github.com/unoplat/unoplat-code-confluence/commit/e4f99c1352fd470d0c895f89883929508f9a7ce5))
+* updated docusaurus ([7ea056d](https://github.com/unoplat/unoplat-code-confluence/commit/7ea056dd1908e437fa62807a3a7a56bc1cebfd9c))
+
+## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.4.0...code-confluence-docs-v0.5.0) (2025-01-23)
+
+
+### Features
+
+* Enhance HomepageFeatures component with new features and modals ([9755836](https://github.com/unoplat/unoplat-code-confluence/commit/975583689e968a307173918c04f6e50c5e0c8a9e))
+* moved to rust based compiler speedy web compiler to become atleast 20x faster while building and deploying locally/server ([13c1767](https://github.com/unoplat/unoplat-code-confluence/commit/13c17672fc5bd178a4964522989439a08d9eb01b))
+
 ## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.3.0...code-confluence-docs-v0.4.0) (2025-01-07)
 
 
