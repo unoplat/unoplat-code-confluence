@@ -1,3 +1,14 @@
+from src.code_confluence_flow_bridge.logging.log_config import setup_logging
+from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
+from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
+from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
+from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
+from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
+from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
+from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+
 import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -8,16 +19,6 @@ from fastapi.concurrency import asynccontextmanager
 from loguru import logger
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
-
-from src.code_confluence_flow_bridge.logging.log_config import setup_logging
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
-from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
-from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
-from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
-from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
-from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
-from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 
 # Setup logging
 logger = setup_logging()
@@ -75,6 +76,9 @@ async def lifespan(app: FastAPI):
 
     codebase_package_ingestion = PackageManagerMetadataIngestion(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
     activities.append(codebase_package_ingestion.insert_package_manager_metadata)
+    
+    codebase_processing_activity = CodebaseProcessingActivity()
+    activities.append(codebase_processing_activity.process_codebase)
 
     asyncio.create_task(run_worker(activities=activities, client=app.state.temporal_client, activity_executor=app.state.activity_executor))
     yield

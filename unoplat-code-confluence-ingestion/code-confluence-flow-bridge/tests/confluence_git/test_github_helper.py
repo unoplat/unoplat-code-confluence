@@ -92,16 +92,28 @@ class TestGithubHelper:
             assert codebase.package_manager_metadata.programming_language == "python"
             assert codebase.package_manager_metadata.package_manager == "poetry"
             
-            # Build expected path based on example_config.json
-            expected_path = os.path.join(
+            # Build expected paths
+            repo_base = os.path.join(
                 os.path.expanduser("~"), 
                 ".unoplat", 
                 "repositories",
-                "unoplat-code-confluence",
+                "unoplat-code-confluence"
+            )
+            
+            # Expected local_path includes root_package
+            expected_path = os.path.join(
+                repo_base,
                 config.codebase_folder,
                 config.root_package
             )
             assert codebase.local_path == expected_path
+            
+            # Verify source_directory (should be codebase folder path)
+            expected_source_dir = os.path.join(
+                repo_base,
+                config.codebase_folder if config.codebase_folder and config.codebase_folder != "." else ""
+            )
+            assert codebase.source_directory == expected_source_dir
         
         # Check README
         assert repo.readme is not None
@@ -133,16 +145,28 @@ class TestGithubHelper:
             assert codebase.package_manager_metadata.programming_language == "python"
             assert codebase.package_manager_metadata.package_manager == "uv"
             
-            # Build expected path based on nested_package_git_config.json
-            expected_path = os.path.join(
+            # Build expected paths
+            repo_base = os.path.join(
                 os.path.expanduser("~"), 
                 ".unoplat", 
                 "repositories",
-                "unoplat-code-confluence",
+                "unoplat-code-confluence"
+            )
+            
+            # Expected local_path includes root_package
+            expected_path = os.path.join(
+                repo_base,
                 config.codebase_folder,
                 config.root_package
             )
             assert codebase.local_path == expected_path
+            
+            # Verify source_directory (should be codebase folder path)
+            expected_source_dir = os.path.join(
+                repo_base,
+                config.codebase_folder if config.codebase_folder and config.codebase_folder != "." else ""
+            )
+            assert codebase.source_directory == expected_source_dir
         
         # Check README
         assert repo.readme is not None

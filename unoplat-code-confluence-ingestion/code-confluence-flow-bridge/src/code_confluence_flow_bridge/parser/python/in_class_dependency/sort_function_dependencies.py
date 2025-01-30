@@ -1,9 +1,9 @@
 # Standard Library
-from collections import defaultdict, deque
-from typing import Deque, Dict, List, Set
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
+
+from collections import defaultdict, deque
+from typing import Deque, Dict, List, Set
 
 
 class SortFunctionDependencies:

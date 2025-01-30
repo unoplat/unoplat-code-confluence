@@ -1,11 +1,4 @@
 # Standard Library
-from pathlib import Path
-from typing import Dict, List, Optional
-
-# Third Party
-from loguru import logger
-from packaging.requirements import Requirement
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
@@ -13,6 +6,13 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import U
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import SetupParser
+
+from pathlib import Path
+from typing import Dict, List, Optional
+
+# Third Party
+from loguru import logger
+from packaging.requirements import Requirement
 
 
 class PipStrategy(PackageManagerStrategy):

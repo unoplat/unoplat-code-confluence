@@ -1,9 +1,9 @@
 # Standard Library
-import re
-from typing import Dict, List, Optional
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import ImportType
+
+import re
+from typing import Dict, List, Optional
 
 
 # TODO: does not support comments trailing or in between imports. Should work with ruff and understand python standards regarding the same.

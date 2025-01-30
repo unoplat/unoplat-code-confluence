@@ -1,9 +1,9 @@
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
-
 from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
 from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
+
+from temporalio import activity
+from temporalio.exceptions import ApplicationError
 
 
 class GitActivity:

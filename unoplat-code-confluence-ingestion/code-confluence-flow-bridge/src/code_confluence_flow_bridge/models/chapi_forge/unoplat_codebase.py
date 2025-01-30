@@ -1,12 +1,12 @@
 # Standard Library
+# First Party
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+
 from typing import Optional
 
 # Third Party
 from pydantic import BaseModel, Field
-
-# First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 
 class UnoplatCodebase(BaseModel):

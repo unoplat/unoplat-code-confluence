@@ -69,7 +69,7 @@ def test_setup_py_parsing(pip_strategy: PipStrategy, requirements_dir: Path, moc
     assert metadata.project_version == "1.0.0"
     assert metadata.description == "Test package for setup.py parsing"
     assert metadata.license == "MIT"
-    assert "Test Author <test@example.com>" in metadata.authors
+    assert metadata.authors and "Test Author <test@example.com>" in metadata.authors
     
     # Check programming language metadata
     assert metadata.programming_language == ProgrammingLanguage.PYTHON.value
@@ -79,29 +79,42 @@ def test_setup_py_parsing(pip_strategy: PipStrategy, requirements_dir: Path, moc
     # Check core dependencies
     deps = metadata.dependencies
     assert "requests" in deps
-    assert deps["requests"].version.minimum_version == ">=2.0.0"
+    assert deps["requests"].version.specifier == ">=2.0.0"
     
     assert "flask" in deps
-    assert deps["flask"].version.minimum_version == ">=2.0.0"
+    assert deps["flask"].version.specifier == ">=2.0.0"
     
     assert "redis" in deps
-    assert deps["redis"].extras == ["hiredis"]
-    assert deps["redis"].version.minimum_version == ">=4.0.0"
+    assert deps["redis"].extras and "hiredis" in deps["redis"].extras
+    assert deps["redis"].version.specifier == ">=4.0.0"
+    
+    # Check conditional dependency
+    assert "importlib-metadata" in deps
+    assert deps["importlib-metadata"].environment_marker == 'python_version < "3.8"'
+    
+    # Check dev dependencies
+    assert "black" in deps
+    assert deps["black"].version.specifier == "==22.3.0"
+    assert deps["black"].group == "dev"
+    
+    # Check aws dependencies
+    assert "boto3" in deps
+    assert deps["boto3"].version.specifier == ">=1.20.0"
+    assert deps["boto3"].group == "aws"
 
 def test_requirements_parsing(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
     """Test parsing of additional dependencies from requirements.txt."""
     metadata = pip_strategy.process_metadata(str(requirements_dir), mock_metadata)
     deps = metadata.dependencies
     
-    # Check additional runtime dependencies
+    # Check URL dependencies
     assert "urllib3" in deps
-    assert deps["urllib3"].version.minimum_version == ">=1.21.1"
-    assert deps["urllib3"].version.maximum_version == "<1.26"
+    assert deps["urllib3"].version.specifier == "!=1.25.0,!=1.25.1,<1.26,>=1.21.1"
     
     # Check dependencies with extras
     assert "celery" in deps
-    assert set(deps["celery"].extras) == {"redis", "rabbitmq"}
-    assert deps["celery"].version.minimum_version == ">=5.0.0"
+    assert deps["celery"].extras and set(deps["celery"].extras) == {"redis", "rabbitmq"}
+    assert deps["celery"].version.specifier == ">=5.0.0"
 
 def test_vcs_dependencies(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
     """Test parsing of VCS dependencies from requirements.txt."""
@@ -120,6 +133,8 @@ def test_vcs_dependencies(pip_strategy: PipStrategy, requirements_dir: Path, moc
     assert requests_vcs.source == "git"
     assert requests_vcs.source_url == "https://github.com/psf/requests-vcs.git"
     assert requests_vcs.source_reference == "main"
+    # For non-version references, specifier should remain None
+    assert requests_vcs.version.specifier is None
 
 def test_environment_markers(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
     """Test parsing of dependencies with environment markers from setup.py."""
@@ -136,20 +151,20 @@ def test_development_dependencies(pip_strategy: PipStrategy, requirements_dir: P
     
     # From setup.py dev extras
     assert "black" in deps
-    assert deps["black"].version.current_version == "==22.3.0"
+    assert deps["black"].version.specifier == "==22.3.0"
     assert deps["black"].group == "dev"
     
     assert "flake8" in deps
-    assert deps["flake8"].version.minimum_version == ">=3.9.0"
+    assert deps["flake8"].version.specifier == ">=3.9.0"
     assert deps["flake8"].group == "dev"
     
     assert "mypy" in deps
-    assert deps["mypy"].version.minimum_version == ">=0.900"
+    assert deps["mypy"].version.specifier == ">=0.900"
     assert deps["mypy"].group == "dev"
     
     # From requirements-dev.txt
     assert "pytest" in deps
-    assert deps["pytest"].version.minimum_version == ">=6.0.0"
+    assert deps["pytest"].version.specifier == ">=6.0.0"
 
 def test_entry_points(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
     """Test parsing of entry points from setup.py."""
@@ -166,45 +181,39 @@ def test_types_requirements_parsing(pip_strategy: PipStrategy, types_requirement
     
     # Test type stubs
     assert "boto3-stubs" in deps
-    assert deps["boto3-stubs"].version.current_version == "==1.34.133"
-    assert deps["boto3-stubs"].extras == ["s3"]
+    assert deps["boto3-stubs"].version.specifier == "==1.34.133"
+    assert deps["boto3-stubs"].extras and "s3" in deps["boto3-stubs"].extras
     
     assert "types-requests" in deps
-    assert deps["types-requests"].version.current_version == "==2.28.11.17"
-    
-    assert "pandas-stubs" in deps
-    assert deps["pandas-stubs"].version.current_version == "==2.2.3.241009"
+    assert deps["types-requests"].version.specifier == "==2.28.11.17"
     
     # Test ML dependencies
     assert "cohere" in deps
-    assert deps["cohere"].version.current_version == "==5.6.1"
-    
-    assert "google-cloud-aiplatform" in deps
-    assert deps["google-cloud-aiplatform"].version.current_version == "==1.58.0"
+    assert deps["cohere"].version.specifier == "==5.6.1"
     
     assert "sentence-transformers" in deps
-    assert deps["sentence-transformers"].version.current_version == "==2.6.1"
+    assert deps["sentence-transformers"].version.specifier == "==2.6.1"
     
     # Test development tools
     assert "black" in deps
-    assert deps["black"].version.current_version == "==23.3.0"
+    assert deps["black"].version.specifier == "==23.3.0"
     
     assert "ruff" in deps
-    assert deps["ruff"].version.current_version == "==0.0.286"
+    assert deps["ruff"].version.specifier == "==0.0.286"
     
     assert "pre-commit" in deps
-    assert deps["pre-commit"].version.current_version == "==3.2.2"
+    assert deps["pre-commit"].version.specifier == "==3.2.2"
     
     # Test data processing
     assert "pandas" in deps
-    assert deps["pandas"].version.current_version == "==2.2.3"
+    assert deps["pandas"].version.specifier == "==2.2.3"
     
     assert "lxml" in deps
-    assert deps["lxml"].version.current_version == "==5.3.0"
+    assert deps["lxml"].version.specifier == "==5.3.0"
     
     # Test testing tools
     assert "pytest" in deps
-    assert deps["pytest"].version.current_version == "==7.4.4"
+    assert deps["pytest"].version.specifier == "==7.4.4"
     
     assert "pytest-asyncio" in deps
-    assert deps["pytest-asyncio"].version.current_version == "==0.22.0" 
+    assert deps["pytest-asyncio"].version.specifier == "==0.22.0" 

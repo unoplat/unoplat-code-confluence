@@ -1,12 +1,12 @@
 # Standard Library
 # Standard Library
+# First Party
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
+
 from typing import Dict, List, Optional
 
 # Third Party
 from pydantic import BaseModel, Field
-
-# First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 
 
 class UnoplatPackage(BaseModel):

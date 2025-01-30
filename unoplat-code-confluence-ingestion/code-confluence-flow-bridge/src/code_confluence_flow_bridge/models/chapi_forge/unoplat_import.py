@@ -1,11 +1,11 @@
 # Standard Library
+# First Party
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import ImportType
+
 from typing import List, Optional
 
 # Third Party
 from pydantic import BaseModel, Field
-
-# First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import ImportType
 
 
 class ImportedName(BaseModel):

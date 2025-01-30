@@ -1,13 +1,13 @@
 # Standard Library
-from typing import Dict, List, Set
-
-# Third Party
-from loguru import logger
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import ImportType
 from src.code_confluence_flow_bridge.utility.is_class_name import IsClassName
+
+from typing import Dict, List, Set
+
+# Third Party
+from loguru import logger
 
 
 class PythonNodeDependencyProcessor:

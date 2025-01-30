@@ -1,13 +1,13 @@
 # Standard Library
 
 # Third Party
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_parser import PackageManagerParser
+
+from temporalio import activity
+from temporalio.exceptions import ApplicationError
 
 
 class PackageMetadataActivity:

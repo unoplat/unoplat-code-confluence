@@ -1,10 +1,10 @@
 # Standard Library
+from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
+
 from loguru import logger
 
 # Third Party
 from neomodel import adb, config
-
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 
 
 class CodeConfluenceGraph:

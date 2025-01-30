@@ -1,8 +1,8 @@
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
-
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+
+from temporalio import activity
+from temporalio.exceptions import ApplicationError
 
 
 class PackageManagerMetadataIngestion:

@@ -1,9 +1,9 @@
 # Standard Library
-from typing import List
-
 # First Party
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
-from unoplat_code_confluence.data_models.chapi_forge.unoplat_import import UnoplatImport
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import UnoplatImport
+
+from typing import List
 
 
 class PythonExtractInheritance:
