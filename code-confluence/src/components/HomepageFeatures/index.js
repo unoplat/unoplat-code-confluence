@@ -5,11 +5,31 @@ import { useState, useEffect, useRef } from 'react';
 
 const FeatureList = [
   {
-    title: 'Deterministic and language-agnostic code parsing',
+    title: 'Deterministic and Language-Agnostic Code Analysis',
     Svg: require('@site/static/img/arch_chapi_tree_sitter.svg').default,
     description: (
       <>
-        Decode any codebase with unmatched clarity using Unoplat Code Confluence. Code Confluence uses powerful combination of ArchGuard, CHAPI, Tree-sitters, linters and inhouse data structures and algorithms to deliver deterministic parsing across all programming languages and architectures. Get consistent, reliable insights that make complex projects instantly understandable. Transform how your team navigates and comprehends code, enabling smarter, faster development decisions.
+        <div className={styles.featurePoints}>
+          <div className={styles.featurePoint}>
+            <strong>🎯 Deterministic Parsing</strong>
+            <p>Advanced parsing techniques powered by <a href="https://archguard.org" className={styles.inlineLink}>ArchGuard</a> and <a href="https://tree-sitter.github.io/tree-sitter/" className={styles.inlineLink}>Treesitters</a> ensure consistent and reliable insights across all programming languages.</p>
+          </div>
+          
+          <div className={styles.featurePoint}>
+            <strong>🔍 Intelligent Linting</strong>
+            <p><a href="https://www.sonarsource.com/learn/linter" className={styles.inlineLink}>Linters</a> maintain code quality and eliminate code smells and ambiguities, ensuring consistent and reliable insights.</p>
+          </div>
+          
+          <div className={styles.featurePoint}>
+            <strong>📦 Smart Dependency Resolution</strong>
+            <p>Deep parsing and understanding of <a href="https://devopedia.org/package-manager" className={styles.inlineLink}>package manager's</a> data reveals project structure and library relationships, both internal and external.</p>
+          </div>
+          
+          <div className={styles.featurePoint}>
+            <strong>🔄 Dynamic Graph Generation</strong>
+            <p>Query your codebase through intelligent mapping of repositories, codebases, packages, classes, functions and function calls in their true <a href="https://neo4j.com/whitepapers/knowledge-graphs-unlimited-insights/" className={styles.inlineLink}>graphical</a> form.</p>
+          </div>
+        </div>
       </>
     ),
     imgStyle: {
@@ -23,7 +43,22 @@ const FeatureList = [
     Svg: require('@site/static/img/automatic_documentation.svg').default,
     description: (
       <>
-        Turn your codebase into an interactive knowledge map where every component is instantly discoverable. Unoplat automatically documents all functions, classes, and dependencies while revealing their connections in intuitive graphs. New team members can dive right in, while seasoned developers make confident contributions with full context at their fingertips. From understanding code to shipping features—we make it seamless.
+        <div className={styles.featurePoints}>
+          <div className={styles.featurePoint}>
+            <strong>🔄 Bottom-Up Summarization</strong>
+            <p>Hierarchical deterministicsummarization from functions to entire codebases, ensuring precise and contextual understanding at every level.</p>
+          </div>
+          
+          <div className={styles.featurePoint}>
+            <strong>🚀 Enhanced Onboarding</strong>
+            <p>New team members can quickly understand complex codebases through intuitive, interconnected documentation at every level of a codebase and explore connected codebases through Domains.</p>
+          </div>
+          
+          <div className={styles.featurePoint}>
+            <strong>💬 Interactive Code Intelligence</strong>
+            <p>Knowledge graph integration enables precise, context-aware conversations with your codebase, making information retrieval natural and efficient.</p>
+          </div>
+        </div>
       </>
     ),
     imgStyle: {
@@ -37,12 +72,32 @@ const FeatureList = [
     Svg: require('@site/static/img/integration_tooling.svg').default,
     description: (
       <>
-      Supercharge your AI stack with deterministic code understanding. Our self-hosted, open-source platform seamlessly integrates with knowledge engines and copilots, delivering domain-aware insights across your codebases. Built for cloud-native enterprises, it offers enterprise-grade scalability, reliability, and security while keeping you in full control of your data and infrastructure. Empower your AI tools to truly comprehend your organization's unique code ecosystem—and unlock new levels of innovation.
+        <div className={styles.featurePoints}>
+          <div className={styles.featurePoint}>
+            <strong>🔌 Seamless IDE Integration</strong>
+            <p>Native integration with development and knowledge engines environments ensures insights are available right where developers work, eliminating context switching and enhancing productivity.</p>
+          </div>
+          
+          <div className={styles.featurePoint}>
+            <strong>🤝 Enterprise-Ready</strong>
+            <p>Built for cloud-native enterprises with self-hosted deployment options, offering enterprise-grade scalability, reliability, and security while maintaining full data control.</p>
+          </div>
+          
+          <div className={styles.featurePoint}>
+            <strong>🔗 Extensible SDK Platform</strong>
+            <p>Integration SDK and APIs enable knowledge engines and copilots to leverage deterministic code understanding, delivering domain-aware insights across codebases.</p>
+          </div>
+          
+          <div className={styles.featurePoint}>
+            <strong>🛡️ Ecosystem Collaboration</strong>
+            <p>Working closely with the developer tooling ecosystem to ensure seamless integration and enhanced developer experience without additional cognitive load.</p>
+          </div>
+        </div>
       </>
     ),
     imgStyle: {
       width: '100%',
-      height: 'auto', 
+      height: 'auto',
       maxWidth: '800px'
     }
   },

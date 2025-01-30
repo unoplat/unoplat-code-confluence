@@ -65,3 +65,34 @@
 .modalContent.show {
   transform: scale(1);
 }
+
+.featurePoints {
+  text-align: left;
+  padding: 1rem;
+}
+
+.featurePoint {
+  margin-bottom: 1.5rem;
+}
+
+.featurePoint strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: var(--ifm-color-primary);
+}
+
+.featurePoint p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.inlineLink {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
