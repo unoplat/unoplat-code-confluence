@@ -212,3 +212,5 @@ experiments/unoplat-code-confluence/.env.dev
 experiments/unoplat-code-confluence/unoplat_code_confluence_codes.json
 experiments/unoplat-code-confluence-query-engine/dist
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/dependencies/analysers
+experiments/unoplat-code-confluence/~/Documents/unoplat
+experiments/unoplat-code-confluence-query-engine/experiment_graph_cypher_query.ipynb
