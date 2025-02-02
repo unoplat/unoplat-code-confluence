@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.7.0...code-confluence-docs-v0.8.0) (2025-02-02)
+
+
+### Features
+
+* improved contact us responsiveness and basic layout ([5337d51](https://github.com/unoplat/unoplat-code-confluence/commit/5337d51bdbb51a34c2d4218498fb4bcf3e2055f8))
+
 ## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.6.1...code-confluence-docs-v0.7.0) (2025-01-30)
 
 
