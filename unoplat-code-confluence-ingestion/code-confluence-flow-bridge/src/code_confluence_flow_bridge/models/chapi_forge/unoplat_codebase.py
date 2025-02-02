@@ -14,5 +14,5 @@ class UnoplatCodebase(BaseModel):
     readme: Optional[str] = Field(default=None)
     packages: Optional[UnoplatPackage] = Field(default=None)
     package_manager_metadata: UnoplatPackageManagerMetadata = Field(description="The package manager metadata of the codebase")
-    local_path: str = Field(description="Local path of the codebase")
-    source_directory: str = Field(description="Source directory of the codebase")
+    local_path: str = Field(description="Codebase source code path")
+    source_directory: str = Field(description="Codebase root path")

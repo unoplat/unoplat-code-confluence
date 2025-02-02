@@ -71,7 +71,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
 
         return file_path_nodes, qualified_names_dict
 
-    def __common_node_processing(self, node: ChapiNode, local_workspace_path: str):
+    def  __common_node_processing(self, node: ChapiNode, local_workspace_path: str):
         if node.node_name == "default":
             node.node_name = os.path.basename(node.file_path).split(".")[0] if node.file_path else "unknown"
 
@@ -111,18 +111,6 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         # Phase 1: Preprocess nodes
         preprocessed_file_path_nodes, preprocessed_qualified_name_dict = self.__preprocess_nodes(json_data, local_workspace_path, codebase_name)
 
-        # # Get package manager metadata
-        # try:
-        #     package_manager_strategy = PackageManagerStrategyFactory.get_strategy(
-        #         programming_language_metadata.package_manager
-        #     )
-        #     processed_metadata = package_manager_strategy.process_metadata(
-        #         local_workspace_path,
-        #         programming_language_metadata
-        #     )
-        # except Exception as e:
-        #     logger.warning(f"Error processing package manager metadata: {e}")
-        #     processed_metadata = None
 
         # Phase 2: Process dependencies using the map
         unoplat_package_dict: Dict[str, UnoplatPackage] = {}
