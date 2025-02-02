@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.4.0...code-confluence-flow-bridge-v0.5.0) (2025-02-02)
+
+
+### Features
+
+* enhance codebase processing with linting, archguard analysis, and package parsing ([0310a37](https://github.com/unoplat/unoplat-code-confluence/commit/0310a37518d29a5e9be5b91e62163071c08911e2))
+* improved contact us responsiveness and basic layout ([5337d51](https://github.com/unoplat/unoplat-code-confluence/commit/5337d51bdbb51a34c2d4218498fb4bcf3e2055f8))
+
 ## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.3.0...code-confluence-flow-bridge-v0.4.0) (2025-01-23)
 
 
