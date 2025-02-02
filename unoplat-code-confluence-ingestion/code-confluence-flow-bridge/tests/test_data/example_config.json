@@ -5,12 +5,11 @@
         "output_path": "/Users/jayghiya/Documents/unoplat",
         "codebases": [
           {
-            "codebase_folder_name": "unoplat-code-confluence",
-            "root_package_name": "unoplat_code_confluence",
+            "codebase_folder": "unoplat-code-confluence",
+            "root_package": "unoplat_code_confluence",
             "programming_language_metadata": {
               "language": "python",
-              "package_manager": "poetry",
-              "language_version": "3.12.0"
+              "package_manager": "poetry"
             }        
           }
         ]

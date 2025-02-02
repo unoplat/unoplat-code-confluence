@@ -7,9 +7,10 @@ from src.code_confluence_flow_bridge.parser.python.python_codebase_parser import
 class UnsupportedLanguageError(Exception):
     pass
 
+
 class CodebaseParserFactory:
     @staticmethod
     def get_parser(programming_language: str) -> CodebaseParserStrategy:
         if programming_language.lower() == ProgrammingLanguage.PYTHON.value:
             return PythonCodebaseParser()
-        raise UnsupportedLanguageError(f"No parser implementation for language: {programming_language}") 
+        raise UnsupportedLanguageError(f"No parser implementation for language: {programming_language}")

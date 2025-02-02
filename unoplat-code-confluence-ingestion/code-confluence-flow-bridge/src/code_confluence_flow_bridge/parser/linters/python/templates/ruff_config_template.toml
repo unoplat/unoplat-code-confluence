@@ -1,0 +1,37 @@
+# Default Ruff configuration template
+# This file can be modified without rebuilding the container
+
+target-version = "{python_version}"
+
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "tests"
+]
+
+src = ["{src_path}"]
+line-length = 320
+
+[lint]
+preview = true
+select = ["I","E402","INP001","TID","F401","F841","PLC0415"]
+
+[lint.per-file-ignores]
+"__init__.py" = ["E402","F401"]
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[lint.isort]
+force-to-top = ["os","sys"]
+force-sort-within-sections = true
+combine-as-imports = true
+from-first = true
+section-order = ["first-party", "local-folder","future", "standard-library", "third-party"]
+lines-between-types = 2 
