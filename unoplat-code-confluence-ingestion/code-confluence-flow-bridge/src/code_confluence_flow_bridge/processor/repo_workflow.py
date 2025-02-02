@@ -48,7 +48,7 @@ class RepoWorkflow:
         for codebase_qualified_name, unoplat_codebase in zip(parent_child_clone_metadata.codebase_qualified_names, git_repo_metadata.codebases):
             workflow.logger.info(f"Starting child workflow for codebase: {codebase_qualified_name}")
             await workflow.start_child_workflow(
-                CodebaseChildWorkflow.run, args=[parent_child_clone_metadata.repository_qualified_name, codebase_qualified_name, unoplat_codebase.local_path, unoplat_codebase.package_manager_metadata], id=f"codebase-child-workflow-{codebase_qualified_name}", parent_close_policy=ParentClosePolicy.ABANDON
+                CodebaseChildWorkflow.run, args=[parent_child_clone_metadata.repository_qualified_name, codebase_qualified_name, unoplat_codebase.local_path,unoplat_codebase.source_directory, unoplat_codebase.package_manager_metadata], id=f"codebase-child-workflow-{codebase_qualified_name}", parent_close_policy=ParentClosePolicy.ABANDON
             )
 
         workflow.logger.info(f"Repository workflow completed successfully for {repository_settings.git_url}")

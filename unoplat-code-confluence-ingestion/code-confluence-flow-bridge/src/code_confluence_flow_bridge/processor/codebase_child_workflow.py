@@ -16,7 +16,7 @@ class  CodebaseChildWorkflow:
         self.package_metadata_activity = PackageMetadataActivity()
 
     @workflow.run
-    async def run(self, repository_qualified_name: str, codebase_qualified_name: str, local_path: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
+    async def run(self, repository_qualified_name: str, codebase_qualified_name: str, local_path: str, source_directory: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
         """Execute the codebase workflow"""
         workflow.logger.info(f"Starting codebase workflow for {codebase_qualified_name}")
 
@@ -37,6 +37,7 @@ class  CodebaseChildWorkflow:
             activity=CodebaseProcessingActivity.process_codebase,
             args=[
                 local_path,
+                source_directory,
                 repository_qualified_name,
                 codebase_qualified_name,
                 parsed_metadata.dependencies,

@@ -1,4 +1,5 @@
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
 from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
@@ -18,11 +19,12 @@ class CodebaseProcessingActivity:
     async def process_codebase(
         self,
         local_workspace_path: str,
+        source_directory: str,
         repository_qualified_name: str,
         codebase_qualified_name: str,
         dependencies: Optional[List[str]],
         programming_language_metadata: ProgrammingLanguageMetadata,
-    ) -> UnoplatCodebase:
+    ) -> List[UnoplatPackage]:
         """
         Process codebase through linting, AST generation, and parsing.
 
@@ -67,7 +69,7 @@ class CodebaseProcessingActivity:
             json_data = json.load(f)
 
         parser = CodebaseParser()
-        parsed_codebase = parser.parse_codebase(
+        list_packages: List[UnoplatPackage] = parser.parse_codebase(
             codebase_name=codebase_qualified_name,
             json_data=json_data,
             local_workspace_path=local_workspace_path,
@@ -75,4 +77,4 @@ class CodebaseProcessingActivity:
         )
 
         activity.logger.info(f"Completed codebase processing for {codebase_qualified_name}")
-        return parsed_codebase 
+        return list_packages 

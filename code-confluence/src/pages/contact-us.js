@@ -69,15 +69,41 @@ export default function Contact() {
 
   return (
     <Layout title="Contact Us">
-      <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', display: 'flex', gap: '6rem' }}>
-        <div style={{ backgroundColor: '#ffffff', padding: '4rem', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)' }}>
-          <div style={{ flex: 1 }}>
+      <div style={{ 
+        padding: '2rem', 
+        maxWidth: '1400px', 
+        margin: '0 auto', 
+        display: 'flex', 
+        flexDirection: 'column',
+        gap: '3rem',
+        '@media (min-width: 768px)': {
+          flexDirection: 'row',
+          gap: '6rem'
+        }
+      }}>
+        <div style={{ 
+          backgroundColor: '#ffffff', 
+          padding: '2rem',
+          boxShadow: '0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)',
+          '@media (min-width: 768px)': {
+            padding: '4rem',
+            flex: 2
+          }
+        }}>
+          <div>
             <h1 style={{ marginBottom: '1rem' }}>Contact Us</h1>
-            <p style={{ marginBottom: '2rem' }}>Please fill this form in a decent manner</p>
+            <p style={{ marginBottom: '2rem' }}>Have questions about contributing to our open source project? Want to report a bug or suggest a feature? We'd love to hear from you! Feel free to send us a message or book a quick call.</p>
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '1.5rem' }}>
                 <label htmlFor="fullName" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Full Name *</label>
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  '@media (min-width: 480px)': {
+                    flexDirection: 'row'
+                  }
+                }}>
                   <div style={{ flex: 1 }}>
                     <input
                       type="text"
@@ -144,49 +170,51 @@ export default function Contact() {
               }}>
                 SUBMIT
               </button>
-
             </form>
           </div>
         </div>
-        <div style={{ flex: 1 }}>
 
-          {/* <div className={styles.locationContainer}>
-            <FontAwesomeIcon icon={faMapMarkerAlt} className={styles.locationIcon} />
-            <div className={styles.locationInfo}>
-              <h3 className={styles.locationTitle}>Location</h3>
-              <a
-                href="https://www.google.com/maps/search/?api=1&query=Gf-10+Allen+Complex,+Nizampura+Rd,+Nizampura+Char+Rasta,+LG+Nagar-390002,+Vadodara,+Gujarat"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.mapLink}
-              >
-                <p className={styles.locationAddress}>
-                  Gf-10 Allen Complex,<br />
-                  Nizampura Rd, Nizampura Char Rasta,<br />
-                  LG Nagar-390002, Vadodara, Gujarat
-                </p>
-              </a>
-            </div>
-
-          </div> */}
-          {/* <div style={{ width:'fit-content',height:'fit-content',padding:'1rem',border:'1px solid #e0e0e0',boxSizing:'border-box',borderRadius:'12px',backgroundColor:'#f8f8f8',boxShadow:'0 2px 4px rgba(0, 0, 0, 0.05);',display:'flex',flexDirection:'column',gap:'1rem' }}> */}
-          <h2 style={{marginTop:'1rem'}}>Contact Details</h2>
-            <div>
+        <div style={{ 
+          flex: 1,
+          padding: '0 1rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2rem',
+          '@media (max-width: 768px)': {
+            alignItems: 'center'
+          }
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2rem',
+            alignItems: 'flex-start',
+            '@media (max-width: 768px)': {
+              alignItems: 'center',
+              width: '100%'
+            }
+          }}>
+            <div className={styles.quickCallContainer}>
+              <h2 style={{ marginBottom: '1rem' }}>Prefer a Quick Call?</h2>
               <a href="https://cal.com/jay-ghiya/15min" className={styles.bookCallLink}>
                 <FontAwesomeIcon icon={faPhone} className={styles.callIcon} />
-              <span>Book a Call</span>
+                <span>Schedule a 15-min Call</span>
               </a>
             </div>
 
             <div className={styles.socialLinksContainer}>
-              <a href="https://discord.com/channels/1131597983058755675/1169968780953260106" className={`${styles.socialLink} ${styles.discordLink}`}>
+              <a href="https://discord.com/channels/1131597983058755675/1169968780953260106" 
+                 className={`${styles.socialLink} ${styles.discordLink}`}
+                 title="Join us on Discord">
                 <FontAwesomeIcon icon={faDiscord} className={styles.icon} />
               </a>
-              <a href="https://x.com/unoplatio" className={`${styles.socialLink} ${styles.twitterLink}`}>
+              <a href="https://x.com/unoplatio" 
+                 className={`${styles.socialLink} ${styles.twitterLink}`}
+                 title="Follow us on X">
                 <FontAwesomeIcon icon={faTwitter} className={styles.icon} />
               </a>
             </div>
-          {/* </div> */}
+          </div>
         </div>
       </div>
     </Layout>
