@@ -19,7 +19,7 @@ export default function Footer() {
                     <li class="footer__item">
                         <a class="footer__link-item" href="https://discord.com/channels/1131597983058755675/1169968780953260106">Discord</a>
                     </li>
-                    
+                                        
                     </ul>
                 </div>
                 <div class="col footer__col">

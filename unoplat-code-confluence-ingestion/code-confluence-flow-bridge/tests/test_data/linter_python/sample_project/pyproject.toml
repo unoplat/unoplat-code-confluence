@@ -1,0 +1,5 @@
+[project]
+name = "sample-project"
+version = "0.1.0"
+description = "Sample project for testing Ruff linting"
+

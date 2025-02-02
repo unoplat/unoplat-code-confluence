@@ -1,0 +1,19 @@
+{
+    "repositories": [
+      {
+        "git_url": "https://github.com/unoplat/unoplat-code-confluence",
+        "output_path": "/Users/jayghiya/Documents/unoplat",
+        "codebases": [
+          {
+            "codebase_folder": "unoplat-code-confluence-ingestion",
+            "root_package": "code-confluence-flow-bridge/src/code_confluence_flow_bridge",
+            "programming_language_metadata": {
+              "language": "python",
+              "package_manager": "uv"
+            }        
+          }
+        ]
+      }
+    ]
+  }
+  

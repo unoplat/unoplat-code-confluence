@@ -1,12 +1,12 @@
 # Standard Library
+# First Party
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+
 from typing import Optional
 
 # Third Party
 from pydantic import BaseModel, Field
-
-# First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 
 class UnoplatCodebase(BaseModel):
@@ -14,4 +14,5 @@ class UnoplatCodebase(BaseModel):
     readme: Optional[str] = Field(default=None)
     packages: Optional[UnoplatPackage] = Field(default=None)
     package_manager_metadata: UnoplatPackageManagerMetadata = Field(description="The package manager metadata of the codebase")
-    local_path: str = Field(description="Local path of the codebase")
+    local_path: str = Field(description="Codebase source code path")
+    source_directory: str = Field(description="Codebase root path")

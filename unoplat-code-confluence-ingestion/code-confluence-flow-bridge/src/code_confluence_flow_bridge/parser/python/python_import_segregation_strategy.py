@@ -1,227 +1,133 @@
 # Standard Library
-from typing import Dict, List
-
 # First Party
 from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import ImportedName, UnoplatImport
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import ImportType
-from src.code_confluence_flow_bridge.parser.python.utils.python_import_comment_parser import PythonImportCommentParser
 from src.code_confluence_flow_bridge.parser.python.utils.read_programming_file import ProgrammingFileReader
+from src.code_confluence_flow_bridge.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
+
+from typing import Dict, List, Tuple
+
+from tree_sitter import Node
 
 
 class PythonImportSegregationStrategy:
     """Strategy for segregating Python imports into different categories based on their types.
-    
+
     This class processes Python source files to extract and categorize imports based on their
-    types (standard library, external, internal, local). It handles various import patterns
-    including aliased imports and multiline imports.
-    
-    Attributes:
-        file_reader: Reader for accessing Python source files
-        comment_parser: Parser for extracting imports based on section comments
-        
-    Note:
-        Current limitations:
-        1. Does not preserve inline comments on imports
-        2. Does not handle comments between imports
-        3. Only preserves section comments (# Standard Library, # Third Party, etc.)
-        
-        For handling comments, it's recommended to use tools like isort for import formatting
-        before processing with this strategy.
+    types using Tree-sitter parsing. It specifically identifies internal imports based on
+    the source directory prefix.
     """
-    
-    def __init__(self):
-        """Initialize the import segregation strategy with required components."""
-        self.file_reader = ProgrammingFileReader()
-        self.comment_parser = PythonImportCommentParser()
-        
-    def process_imports(
-        self, class_metadata: ChapiNode
-    ) -> Dict[ImportType, List[UnoplatImport]]:
-        """Process and categorize imports from a Python source file.
-        
-        Reads a Python source file and processes its imports, categorizing them into
-        different types (standard library, external, internal, local) based on section
-        comments. Handles various import patterns including:
-        - Simple imports: import os
-        - Aliased imports: import pandas as pd
-        - From imports: from pathlib import Path
-        - Multiple imports: from os import path, getcwd
-        - Aliased from imports: from datetime import datetime as dt
-        - Multiline imports: from sqlalchemy import (Column, Integer)
+
+    def __init__(self, code_confluence_tree_sitter: CodeConfluenceTreeSitter):
+        """Initialize the import segregation strategy with required components.
         
         Args:
-            class_metadata: Metadata about the class/file being processed,
-                          including file path
+            code_confluence_tree_sitter: Initialized Tree-sitter instance for Python
+        """
+        self.file_reader = ProgrammingFileReader()
+        self.parser = code_confluence_tree_sitter.get_parser()
         
+        # Updated query to better handle different import types
+        self.import_query = self.parser.language.query("""
+            (import_statement 
+                name: (dotted_name) @module_name
+            )
+
+            (import_from_statement
+                module_name: (dotted_name) @from_module
+                name: (dotted_name) @imported_name
+            )
+
+            (aliased_import
+                name: (dotted_name) @original_name
+                alias: (identifier) @alias_name
+            )
+        """)
+
+    def _is_internal_import(self, module_path: str, source_directory: str) -> bool:
+        """Check if an import is internal based on source directory."""
+        return (
+            module_path.startswith(f"{source_directory}.") or 
+            module_path == source_directory
+        )
+
+    def _extract_module_path(self, node: Node) -> str:
+        """Extract the module path from a Tree-sitter node."""
+        return node.text.decode('utf-8').strip()
+
+    def _process_from_import(self, module_node: Node, name_node: Node) -> Tuple[str, List[ImportedName]]:
+        """Process a 'from' import statement."""
+        source = self._extract_module_path(module_node)
+        name_text = self._extract_module_path(name_node)
+        
+        imported_names = []
+        if " as " in name_text:
+            original, alias = name_text.split(" as ")
+            imported_names.append(ImportedName(original_name=original.strip(), alias=alias.strip()))
+        else:
+            imported_names.append(ImportedName(original_name=name_text))
+            
+        return source, imported_names
+
+    def _process_direct_import(self, module_node: Node) -> Tuple[str, List[ImportedName]]:
+        """Process a direct import statement."""
+        module_path = self._extract_module_path(module_node)
+        
+        if " as " in module_path:
+            original, alias = module_path.split(" as ")
+            return original.strip(), [ImportedName(original_name=original.strip(), alias=alias.strip())]
+        else:
+            return module_path, [ImportedName(original_name=module_path)]
+
+    def process_imports(self, source_directory: str, class_metadata: ChapiNode) -> Dict[ImportType, List[UnoplatImport]]:
+        """Process and categorize imports from a Python source file.
+
+        Args:
+            class_metadata: Metadata about the class/file being processed,
+                          including file path and source directory information
+
         Returns:
             Dictionary mapping ImportType to list of UnoplatImport objects.
-            Each UnoplatImport contains:
-            - Source: The module being imported from
-            - UsageName: List of ImportedName objects containing:
-                - original_name: The original name being imported
-                - alias: Optional alias if the import uses 'as'
-            - ImportType: The category of the import (STANDARD, EXTERNAL, etc.)
-            
-        Example:
-            For input file content:
-            ```python
-            # Standard Library
-            import os
-            from datetime import datetime as dt
-            
-            # Third Party
-            import pandas as pd
-            
-            # First Party
-            from myproject.utils import helper
-            ```
-            
-            Returns:
-            {
-                ImportType.STANDARD: [
-                    UnoplatImport(Source="os", UsageName=[ImportedName(original_name="os")]),
-                    UnoplatImport(Source="datetime", 
-                                UsageName=[ImportedName(original_name="datetime", alias="dt")])
-                ],
-                ImportType.EXTERNAL: [
-                    UnoplatImport(Source="pandas", 
-                                UsageName=[ImportedName(original_name="pandas", alias="pd")])
-                ],
-                ImportType.INTERNAL: [
-                    UnoplatImport(Source="myproject.utils", 
-                                UsageName=[ImportedName(original_name="helper")])
-                ]
-            }
         """
         file_content: str = self.file_reader.read_file(class_metadata.file_path)
         
-        # Parse imports based on comments
-        import_sections: Dict[ImportType, List[str]] = self.comment_parser.parse_import_sections(
-            file_content
-        )
         
-        # Convert each section to UnoplatImport format
-        final_segregated_dict: Dict[ImportType, List[UnoplatImport]] = {}
+        sections: Dict[ImportType, List[UnoplatImport]] = {
+            ImportType.INTERNAL: [],
+            ImportType.STANDARD: [],
+            ImportType.EXTERNAL: [],
+            ImportType.LOCAL: []
+        }
         
-        for section_type, imports in import_sections.items():
-            if imports:
-                imports_list = []
-                for import_str in imports:
-                    parts = import_str.split()
-                    
-                    if parts[0] == 'from':
-                        # Handle 'from module import name1 as n1, name2 as n2, ...' case
-                        source = parts[1]
-                        # Join all parts after 'import' and split by commas
-                        import_names = ' '.join(parts[3:]).split(',')
-                        # Clean up any whitespace and handle aliases
-                        imported_names = []
-                        for name in import_names:
-                            name_parts = name.strip().split(' as ')
-                            if len(name_parts) > 1:
-                                # If there's an alias
-                                imported_names.append(
-                                    ImportedName(
-                                        original_name=name_parts[0].strip(),
-                                        alias=name_parts[1].strip().rstrip(',')
-                                    )
-                                )
-                            else:
-                                # If no alias
-                                imported_names.append(
-                                    ImportedName(original_name=name_parts[0].strip())
-                                )
-                    else:
-                        # Handle 'import module as m1, module2 as m2' case
-                        imports_list.extend(self._process_simple_imports(parts, section_type))
-                    
-                    if parts[0] == 'from':
-                        imports_list.append(
-                            UnoplatImport(
-                                Source=source,
-                                UsageName=imported_names,
-                                ImportType=section_type
-                            )
-                        )
-                final_segregated_dict[section_type] = imports_list
+        tree = self.parser.parse(bytes(file_content, "utf8"))
+        captures = self.import_query.captures(tree.root_node)
         
-        return final_segregated_dict
-
-    def _process_simple_imports(self, parts: List[str], section_type: ImportType) -> List[UnoplatImport]:
-        """Process simple imports like 'import module as alias, module2 as alias2'.
+        current_module = None
         
-        Args:
-            parts: List of parts from splitting the import string
-            section_type: Type of import section (STANDARD, EXTERNAL, etc.)
-            
-        Returns:
-            List of UnoplatImport objects
-        """
-        result: List[UnoplatImport] = []
-        current_module: List[str] = []
-        
-        for part in parts[1:]:  # Skip 'import'
-            if part == 'as':
-                continue
-            if part.endswith(','):
-                # End of current module
-                current_module.append(part.rstrip(','))
-                if len(current_module) > 1:
-                    # Has alias
-                    result.append(
-                        UnoplatImport(
-                            Source=current_module[0],
-                            UsageName=[
-                                ImportedName(
-                                    original_name=current_module[0],
-                                    alias=current_module[1]
-                                )
-                            ],
-                            ImportType=section_type
-                        )
-                    )
-                else:
-                    # No alias
-                    result.append(
-                        UnoplatImport(
-                            Source=current_module[0],
-                            UsageName=[
-                                ImportedName(original_name=current_module[0])
-                            ],
-                            ImportType=section_type
-                        )
-                    )
-                current_module = []
-            else:
-                current_module.append(part)
-        
-        # Handle last module
-        if current_module:
-            if len(current_module) > 1:
-                # Has alias
-                result.append(
+        # Handle potential extra capture elements using extended unpacking
+        for node, capture_name, *_ in captures:  # Added *_ to handle extra elements
+            if capture_name == "module_name":
+                source, imported_names = self._process_direct_import(node)
+                import_type = ImportType.INTERNAL if self._is_internal_import(source, source_directory) else ImportType.STANDARD
+                sections[import_type].append(
                     UnoplatImport(
-                        Source=current_module[0],
-                        UsageName=[
-                            ImportedName(
-                                original_name=current_module[0],
-                                alias=current_module[1]
-                            )
-                        ],
-                        ImportType=section_type
+                        Source=source,
+                        UsageName=imported_names,
+                        ImportType=import_type
                     )
                 )
-            else:
-                # No alias
-                result.append(
+            elif capture_name == "from_module":
+                current_module = node
+            elif capture_name == "imported_name" and current_module:
+                source, imported_names = self._process_from_import(current_module, node)
+                import_type = ImportType.INTERNAL if self._is_internal_import(source, source_directory) else ImportType.EXTERNAL
+                sections[import_type].append(
                     UnoplatImport(
-                        Source=current_module[0],
-                        UsageName=[
-                            ImportedName(original_name=current_module[0])
-                        ],
-                        ImportType=section_type
+                        Source=source,
+                        UsageName=imported_names,
+                        ImportType=import_type
                     )
                 )
         
-        return result
+        return sections
