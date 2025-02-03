@@ -25,7 +25,7 @@ class  CodebaseChildWorkflow:
         programming_language_metadata = ProgrammingLanguageMetadata(language=ProgrammingLanguage(package_manager_metadata.programming_language.lower()), package_manager=PackageManagerType(package_manager_metadata.package_manager.lower()), language_version=package_manager_metadata.programming_language_version)
 
         workflow.logger.info(f"Parsing package metadata for {codebase_qualified_name}")
-        parsed_metadata: UnoplatPackageManagerMetadata = await workflow.execute_activity(activity=PackageMetadataActivity.get_package_metadata, args=[local_path, programming_language_metadata], start_to_close_timeout=timedelta(minutes=10))
+        parsed_metadata: UnoplatPackageManagerMetadata = await workflow.execute_activity(activity=PackageMetadataActivity.get_package_metadata, args=[source_directory, programming_language_metadata], start_to_close_timeout=timedelta(minutes=10))
 
         # 2. Ingest package metadata into graph
         workflow.logger.info(f"Ingesting package metadata for {codebase_qualified_name} into graph")
