@@ -1,4 +1,3 @@
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
@@ -42,7 +41,7 @@ class CodebaseProcessingActivity:
         
         linter_parser = LinterParser()
         lint_result = linter_parser.lint_codebase(
-            local_workspace_path=local_workspace_path,
+            local_workspace_path=source_directory,
             dependencies=[],
             programming_language_metadata=programming_language_metadata
         )
