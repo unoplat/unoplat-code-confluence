@@ -5,11 +5,11 @@
         "output_path": "/Users/jayghiya/Documents/unoplat",
         "codebases": [
           {
-            "codebase_folder": "unoplat-code-confluence",
-            "root_package": "unoplat_code_confluence",
+            "codebase_folder": "unoplat-code-confluence-ingestion/code-confluence-flow-bridge",
+            "root_package": "src/code_confluence_flow_bridge",
             "programming_language_metadata": {
               "language": "python",
-              "package_manager": "poetry"
+              "package_manager": "uv"
             }        
           }
         ]
