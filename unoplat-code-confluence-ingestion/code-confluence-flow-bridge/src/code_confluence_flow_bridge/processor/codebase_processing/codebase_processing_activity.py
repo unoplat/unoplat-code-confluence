@@ -73,6 +73,7 @@ class CodebaseProcessingActivity:
             codebase_name=codebase_qualified_name,
             json_data=json_data,
             local_workspace_path=local_workspace_path,
+            source_directory=source_directory,
             programming_language_metadata=programming_language_metadata
         )
 

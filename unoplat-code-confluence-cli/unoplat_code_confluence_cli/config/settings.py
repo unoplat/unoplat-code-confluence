@@ -12,40 +12,51 @@ from pydantic import BaseModel
 class ProgrammingLanguage(str, Enum):
     PYTHON = 'python'
 
+
 class PackageManagerType(str, Enum):
     POETRY = "poetry"
     PIP = "pip"
+    UV = "uv"
+
 
 class DatabaseType(str, Enum):
     NEO4J = "neo4j"
 
 # Configuration Models (BaseModel for JSON config)
+
+
 class ProgrammingLanguageMetadata(BaseModel):
     language: ProgrammingLanguage
     package_manager: PackageManagerType
     language_version: Optional[str] = None
+
 
 class CodebaseConfig(BaseModel):
     codebase_folder: str
     root_package: Optional[str] = None
     programming_language_metadata: ProgrammingLanguageMetadata
 
+
 class RepositorySettings(BaseModel):
     git_url: str
     output_path: str
     codebases: List[CodebaseConfig]
 
+
 class ArchGuardConfig(BaseModel):
     download_url: str
     download_directory: str
+
 
 class LLMProviderConfig(BaseModel):
     llm_model_provider: str
     llm_model_provider_args: Dict[str, Any]
 
+
 class DatabaseConfig(BaseModel):
     name: DatabaseType
     uri: str
+
 
 class DatabaseSettings(BaseModel):
     host: str
@@ -71,8 +82,11 @@ class AppConfig(BaseModel):
         return cls(**config_data)
 
 # Main Settings Class
+
+
 class AppSettings:
     """Application settings combining environment variables and JSON config"""
+
     def __init__(self, config_path: Optional[str] = None):
         self._config = AppConfig.load(config_path)
 
