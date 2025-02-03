@@ -14,7 +14,7 @@ exclude = [
 ]
 
 src = ["src/code_confluence_flow_bridge"]  # Adjust this to your project's source directory
-line-length = 320
+line-length = 150
 
 [lint]
 preview = true
@@ -33,5 +33,6 @@ combine-as-imports = true
 from-first = true
 section-order = ["first-party", "local-folder","future", "standard-library", "third-party"]
 lines-between-types = 2
+
 
 

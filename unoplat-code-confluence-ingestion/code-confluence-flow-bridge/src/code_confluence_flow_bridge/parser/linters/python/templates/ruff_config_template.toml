@@ -16,7 +16,7 @@ exclude = [
 ]
 
 src = ["{src_path}"]
-line-length = 320
+line-length = 88
 
 [lint]
 preview = true
