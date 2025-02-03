@@ -90,7 +90,7 @@ class TestGithubHelper:
             assert codebase.name == config.root_package
             assert os.path.exists(codebase.local_path)
             assert codebase.package_manager_metadata.programming_language == "python"
-            assert codebase.package_manager_metadata.package_manager == "poetry"
+            assert codebase.package_manager_metadata.package_manager == "uv"
             
             # Build expected paths
             repo_base = os.path.join(

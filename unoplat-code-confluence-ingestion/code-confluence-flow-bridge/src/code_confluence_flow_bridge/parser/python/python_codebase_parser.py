@@ -1,25 +1,59 @@
 # Standard Library
-from src.code_confluence_flow_bridge.models.chapi.chapi_class_global_fieldmodel import ClassGlobalFieldModel
+from src.code_confluence_flow_bridge.models.chapi.chapi_class_global_fieldmodel import (
+    ClassGlobalFieldModel,
+)
 from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import UnoplatImport
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import ImportType
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_function import (
+    UnoplatChapiForgeFunction,
+)
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import (
+    UnoplatChapiForgeNode,
+)
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import (
+    UnoplatImport,
+)
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import (
+    ImportType,
+)
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import (
+    UnoplatPackage,
+)
 
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguage, ProgrammingLanguageMetadata
-from src.code_confluence_flow_bridge.parser.codebase_parser_strategy import CodebaseParserStrategy
-from src.code_confluence_flow_bridge.parser.python.in_class_dependency.sort_function_dependencies import SortFunctionDependencies
-from src.code_confluence_flow_bridge.parser.python.node_variables.node_variables_parser import NodeVariablesParser
-from src.code_confluence_flow_bridge.parser.python.python_extract_inheritance import PythonExtractInheritance
-from src.code_confluence_flow_bridge.parser.python.python_import_segregation_strategy import PythonImportSegregationStrategy
-from src.code_confluence_flow_bridge.parser.python.python_node_dependency_processor import PythonNodeDependencyProcessor
-from src.code_confluence_flow_bridge.parser.python.python_package_naming_strategy import PythonPackageNamingStrategy
-from src.code_confluence_flow_bridge.parser.python.python_qualified_name_strategy import PythonQualifiedNameStrategy
-from src.code_confluence_flow_bridge.parser.python.utils.read_programming_file import ProgrammingFileReader
-from src.code_confluence_flow_bridge.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    ProgrammingLanguage,
+    ProgrammingLanguageMetadata,
+)
+from src.code_confluence_flow_bridge.parser.codebase_parser_strategy import (
+    CodebaseParserStrategy,
+)
+from src.code_confluence_flow_bridge.parser.python.in_class_dependency.sort_function_dependencies import (
+    SortFunctionDependencies,
+)
+from src.code_confluence_flow_bridge.parser.python.node_variables.node_variables_parser import (
+    NodeVariablesParser,
+)
+from src.code_confluence_flow_bridge.parser.python.python_extract_inheritance import (
+    PythonExtractInheritance,
+)
+from src.code_confluence_flow_bridge.parser.python.python_import_segregation_strategy import (
+    PythonImportSegregationStrategy,
+)
+from src.code_confluence_flow_bridge.parser.python.python_node_dependency_processor import (
+    PythonNodeDependencyProcessor,
+)
+from src.code_confluence_flow_bridge.parser.python.python_package_naming_strategy import (
+    PythonPackageNamingStrategy,
+)
+from src.code_confluence_flow_bridge.parser.python.python_qualified_name_strategy import (
+    PythonQualifiedNameStrategy,
+)
+from src.code_confluence_flow_bridge.parser.python.utils.read_programming_file import (
+    ProgrammingFileReader,
+)
+from src.code_confluence_flow_bridge.parser.tree_sitter.code_confluence_tree_sitter import (
+    CodeConfluenceTreeSitter,
+)
 
 import os
 from typing import Dict, List, Tuple
@@ -40,7 +74,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         self.node_variables_parser = NodeVariablesParser(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
 
     # we handle procedural , class and mix of procedural and class nodes.
-    def __preprocess_nodes(self, json_data: dict, local_workspace_path: str, codebase_name: str) -> Tuple[Dict[str, List[UnoplatChapiForgeNode]], Dict[str, UnoplatChapiForgeNode]]:
+    def __preprocess_nodes(self, json_data: dict, local_workspace_path: str, source_directory: str, codebase_name: str) -> Tuple[Dict[str, List[UnoplatChapiForgeNode]], Dict[str, UnoplatChapiForgeNode]]:
         """Preprocess nodes to extract qualified names and segregate imports."""
         file_path_nodes: Dict[str, List[UnoplatChapiForgeNode]] = {}
         qualified_names_dict: Dict[str, UnoplatChapiForgeNode] = {}
@@ -48,7 +82,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         for item in json_data:
             try:
                 node: ChapiNode = ChapiNode.model_validate(item)
-                unoplat_node: UnoplatChapiForgeNode = self.__common_node_processing(node, local_workspace_path)
+                unoplat_node: UnoplatChapiForgeNode = self.__common_node_processing(node, local_workspace_path, source_directory)
 
                 # Add debug logging
                 logger.debug(f"Processing node: {node.node_name}")
@@ -71,20 +105,46 @@ class PythonCodebaseParser(CodebaseParserStrategy):
 
         return file_path_nodes, qualified_names_dict
 
-    def  __common_node_processing(self, node: ChapiNode, local_workspace_path: str):
+    def __common_node_processing(self, node: ChapiNode, local_workspace_path: str, source_directory: str):
+        """Process common node attributes and imports.
+        
+        Args:
+            node: The ChapiNode to process
+            local_workspace_path: Path like /Users/user/projects/myproject/src/code_confluence_flow_bridge
+            source_directory: Path like /Users/user/projects/myproject
+        """
         if node.node_name == "default":
             node.node_name = os.path.basename(node.file_path).split(".")[0] if node.file_path else "unknown"
 
         if node.node_name and node.file_path:  # Type guard for linter
-            qualified_name = self.qualified_name_strategy.get_qualified_name(node_name=node.node_name, node_file_path=node.file_path, local_workspace_path=local_workspace_path, node_type=node.type)
-
+            qualified_name = self.qualified_name_strategy.get_qualified_name(
+                node_name=node.node_name, 
+                node_file_path=node.file_path, 
+                local_workspace_path=local_workspace_path, 
+                node_type=node.type
+            )
+        
+        # Get the import prefix by finding the path from workspace to source root
+        # If local_workspace_path is /Users/user/projects/myproject/src/code_confluence_flow_bridge
+        # And source_directory is /Users/user/projects/myproject
+        # Then we want "src.code_confluence_flow_bridge" as the prefix
+        import_prefix = os.path.relpath(
+            local_workspace_path,  # From workspace path
+            source_directory      # To source root
+        ).replace(os.sep, ".")
+        
         # segregating imports
-        imports_dict: Dict[ImportType, List[UnoplatImport]] = self.python_import_segregation_strategy.process_imports(node)
+        imports_dict: Dict[ImportType, List[UnoplatImport]] = self.python_import_segregation_strategy.process_imports(
+            source_directory=import_prefix,  # Now correctly "src.code_confluence_flow_bridge"
+            class_metadata=node
+        )
 
         # Extracting inheritance
-
         if imports_dict and ImportType.INTERNAL in imports_dict:
-            final_internal_imports = self.python_extract_inheritance.extract_inheritance(node, imports_dict[ImportType.INTERNAL])
+            final_internal_imports = self.python_extract_inheritance.extract_inheritance(
+                node, 
+                imports_dict[ImportType.INTERNAL]
+            )
             imports_dict[ImportType.INTERNAL] = final_internal_imports
 
         # Todo: Add dependent nodes
@@ -102,14 +162,14 @@ class PythonCodebaseParser(CodebaseParserStrategy):
 
         return UnoplatChapiForgeNode.from_chapi_node(chapi_node=node, qualified_name=qualified_name, segregated_imports=imports_dict if imports_dict is not None else {})
 
-    def parse_codebase(self, codebase_name: str, json_data: dict, local_workspace_path: str, programming_language_metadata: ProgrammingLanguageMetadata) -> List[UnoplatPackage]:
+    def parse_codebase(self, codebase_name: str, json_data: dict, local_workspace_path: str, source_directory: str, programming_language_metadata: ProgrammingLanguageMetadata) -> List[UnoplatPackage]:
         """Parse the entire codebase.
 
         First preprocesses nodes to extract qualified names and segregate imports,
         then processes dependencies for each node using that map.
         """
         # Phase 1: Preprocess nodes
-        preprocessed_file_path_nodes, preprocessed_qualified_name_dict = self.__preprocess_nodes(json_data, local_workspace_path, codebase_name)
+        preprocessed_file_path_nodes, preprocessed_qualified_name_dict = self.__preprocess_nodes(json_data, local_workspace_path, source_directory, codebase_name)
 
 
         # Phase 2: Process dependencies using the map
