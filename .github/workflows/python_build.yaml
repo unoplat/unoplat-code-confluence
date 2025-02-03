@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - 'unoplat-code-confluence-commons/**'
+      - 'unoplat-code-confluence-ingestion'
 
 jobs:
   prepare-matrix:
