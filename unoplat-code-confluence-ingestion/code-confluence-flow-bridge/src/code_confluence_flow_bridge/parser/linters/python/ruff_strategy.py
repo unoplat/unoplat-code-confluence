@@ -1,14 +1,14 @@
 from src.code_confluence_flow_bridge.parser.linters.linter_strategy import LinterStrategy
 
-from ast import List
-import json
 import os
+from ast import List
 from pathlib import Path
 import re
 import subprocess
 from typing import Any, Optional
-import tomlkit
+
 from loguru import logger
+import tomlkit
 
 
 class RuffStrategy(LinterStrategy):
@@ -49,6 +49,7 @@ class RuffStrategy(LinterStrategy):
             '>=3.11,<4.0' -> 'py311'
         """
         try:
+            logger.info(f"Converting Python version '{version_spec}' to Ruff version")
             # Extract the minimum version using regex
             match = re.search(r'>=?\s*(\d+)\.(\d+)', version_spec)
             if match:

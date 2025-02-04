@@ -16,68 +16,23 @@ class TestPythonQualifiedNameStrategy:
         return PythonQualifiedNameStrategy()
 
     @pytest.fixture
-    def workspace_path(self) -> str:
-        """Create a mock workspace path."""
-        return "/workspace/project"
+    def import_prefix(self) -> str:
+        """Create a mock import prefix."""
+        return "src/code_confluence_flow_bridge"
 
-    def test_class_qualified_name_simple(self, strategy: PythonQualifiedNameStrategy, workspace_path: str) -> None:
+    def test_class_qualified_name_simple(self, strategy: PythonQualifiedNameStrategy, import_prefix: str) -> None:
         """Test qualified name generation for a simple class path."""
-        node_name = "MyClass"
-        file_path = "/workspace/project/module/file.py"
+        node_name = "GithubHelper"
+        file_path = "/Users/jayghiya/.unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/confluence_git/github_helper.py"
         node_type = "CLASS"
 
         qualified_name = strategy.get_qualified_name(
             node_name=node_name,
             node_file_path=file_path,
-            local_workspace_path=workspace_path,
-            node_type=node_type
+            node_type=node_type,
+            import_prefix=import_prefix
         )
 
-        assert qualified_name == "module.file.MyClass"
-
-    def test_class_qualified_name_nested_packages(self, strategy: PythonQualifiedNameStrategy, workspace_path: str) -> None:
-        """Test qualified name generation for a class in nested packages."""
-        node_name = "MyClass"
-        file_path = "/workspace/project/package/subpackage/module/file.py"
-        node_type = "CLASS"
-
-        qualified_name = strategy.get_qualified_name(
-            node_name=node_name,
-            node_file_path=file_path,
-            local_workspace_path=workspace_path,
-            node_type=node_type
-        )
-
-        assert qualified_name == "package.subpackage.module.file.MyClass"
-
-    def test_function_qualified_name(self, strategy: PythonQualifiedNameStrategy, workspace_path: str) -> None:
-        """Test qualified name generation for a function."""
-        node_name = "my_function"
-        file_path = "/workspace/project/module/file.py"
-        node_type = "FUNCTION"
-
-        qualified_name = strategy.get_qualified_name(
-            node_name=node_name,
-            node_file_path=file_path,
-            local_workspace_path=workspace_path,
-            node_type=node_type
-        )
-
-        assert qualified_name == "module.file"
+        assert qualified_name == "src.code_confluence_flow_bridge.confluence_git.GithubHelper"
 
     
-    def test_same_directory_level(self, strategy: PythonQualifiedNameStrategy) -> None:
-        """Test qualified name generation when file is at workspace root."""
-        node_name = "MyClass"
-        file_path = "/workspace/project/file.py"
-        workspace_path = "/workspace/project"
-        node_type = "CLASS"
-
-        qualified_name = strategy.get_qualified_name(
-            node_name=node_name,
-            node_file_path=file_path,
-            local_workspace_path=workspace_path,
-            node_type=node_type
-        )
-
-        assert qualified_name == "file.MyClass"

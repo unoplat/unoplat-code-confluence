@@ -6,6 +6,7 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import U
 
 import os
 import ast
+import configparser
 from typing import Any, Dict, List, Optional, Union
 
 from packaging.requirements import Requirement
@@ -120,7 +121,7 @@ class SetupParser:
 
         elif isinstance(entry_points, str):
             try:
-                import configparser
+                
 
                 config = configparser.ConfigParser()
                 if not entry_points.strip().startswith("["):

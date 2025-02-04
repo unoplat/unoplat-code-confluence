@@ -5,6 +5,8 @@ from src.code_confluence_flow_bridge.parser.linters.linter_factory import Linter
 
 from typing import List, Optional
 
+from temporalio import activity
+
 
 class LinterParser:
     def lint_codebase(
@@ -32,11 +34,14 @@ class LinterParser:
             linter_type = LinterType.RUFF
         else:
             linter_type = LinterType.RUFF  # Default to Ruff for now
-            
+        
+        
+        
         linter_strategy = LinterStrategyFactory.get_strategy(
             programming_language=programming_language_metadata.language,
             linter_type=linter_type
         )
+        
         return linter_strategy.lint_codebase(
             local_workspace_path=local_workspace_path,
             dependencies=dependencies,
