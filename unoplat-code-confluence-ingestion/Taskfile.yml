@@ -1,5 +1,4 @@
-version: '3'
-
+version: "3"
 
 tasks:
   check-temporal-port:
@@ -41,4 +40,4 @@ tasks:
     desc: Run tests
     dir: code-confluence-flow-bridge
     cmds:
-      - uv run pytest tests/ -v 
+      - uv run pytest tests/ -v

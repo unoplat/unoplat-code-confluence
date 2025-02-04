@@ -150,8 +150,8 @@ class PythonImportSegregationStrategy:
             (
               import_from_statement
                  module_name: (dotted_name) @module
-            )
-            (#match? @module "^{escaped_prefix}")
+                 (#match? @module "^{escaped_prefix}")
+            ) 
             """
         )
 

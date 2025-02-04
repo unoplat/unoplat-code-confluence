@@ -67,8 +67,8 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         self.python_extract_inheritance = PythonExtractInheritance()
         self.package_naming_strategy = PythonPackageNamingStrategy()
         self.qualified_name_strategy = PythonQualifiedNameStrategy()
-        self.python_import_segregation_strategy = PythonImportSegregationStrategy()
         self.code_confluence_tree_sitter = CodeConfluenceTreeSitter(language=ProgrammingLanguage.PYTHON)
+        self.python_import_segregation_strategy = PythonImportSegregationStrategy(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
         self.sort_function_dependencies = SortFunctionDependencies()
         self.python_node_dependency_processor = PythonNodeDependencyProcessor()
         self.node_variables_parser = NodeVariablesParser(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
@@ -116,14 +116,6 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         if node.node_name == "default":
             node.node_name = os.path.basename(node.file_path).split(".")[0] if node.file_path else "unknown"
 
-        if node.node_name and node.file_path:  # Type guard for linter
-            qualified_name = self.qualified_name_strategy.get_qualified_name(
-                node_name=node.node_name, 
-                node_file_path=node.file_path, 
-                local_workspace_path=local_workspace_path, 
-                node_type=node.type
-            )
-        
         # Get the import prefix by finding the path from workspace to source root
         # If local_workspace_path is /Users/user/projects/myproject/src/code_confluence_flow_bridge
         # And source_directory is /Users/user/projects/myproject
@@ -131,11 +123,22 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         import_prefix = os.path.relpath(
             local_workspace_path,  # From workspace path
             source_directory      # To source root
-        ).replace(os.sep, ".")
+        )
+        
+        
+        if node.node_name and node.file_path:  # Type guard for linter
+            qualified_name = self.qualified_name_strategy.get_qualified_name(
+                node_name=node.node_name, 
+                node_file_path=node.file_path, 
+                node_type=node.type,
+                import_prefix=import_prefix
+            )
+        
+        import_prefix_directory = import_prefix.replace(os.sep, ".")
         
         # segregating imports
         imports_dict: Dict[ImportType, List[UnoplatImport]] = self.python_import_segregation_strategy.process_imports(
-            source_directory=import_prefix,  # Now correctly "src.code_confluence_flow_bridge"
+            source_directory=import_prefix_directory,  # Now correctly "src.code_confluence_flow_bridge"
             class_metadata=node
         )
 
@@ -149,7 +152,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
 
         # Todo: Add dependent nodes
         if node.file_path:  # Type guard for linter
-            node.package = self.package_naming_strategy.get_package_name(node.file_path, local_workspace_path)
+            node.package = self.package_naming_strategy.get_package_name(file_path=node.file_path, import_prefix=import_prefix)
 
         # TODO: enable below when archguard fixes the formatting issues of code content - be it class or function
         # node.fields = []
