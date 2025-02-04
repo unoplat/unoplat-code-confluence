@@ -1,4 +1,3 @@
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
@@ -38,7 +37,7 @@ class CodebaseProcessingActivity:
             UnoplatCodebase: Parsed codebase data
         """
         activity.logger.info(f"Starting codebase processing for {codebase_qualified_name}")
-
+        activity.logger.info(f"Programming language metadata: {programming_language_metadata.language.value}")
         
         linter_parser = LinterParser()
         lint_result = linter_parser.lint_codebase(
@@ -51,7 +50,7 @@ class CodebaseProcessingActivity:
             activity.logger.exception("Linting process completed with warnings")
 
         # 2. Generate AST using ArchGuard
-        scanner_jar_path = str(Path(__file__).parent.parent.parent.parent.parent / "assets" / "scanner_cli-2.2.8-all.jar")
+        scanner_jar_path = "~/.unoplat/repositories/assets/scanner_cli-2.2.8-all.jar"
         
         arch_guard = ArchGuardHandler(
             jar_path=scanner_jar_path,
