@@ -10,7 +10,13 @@ This is a bridge between Code Confluence User and Ingestion Workflow.
 - [Temporal Server](https://docs.temporal.io/docs/get-started/set-up-a-local-server/)
 
 ```
-temporal server start-dev --ui-port 8080
+temporal server start-dev --ui-port 8080 --log-level debug
+```
+
+Note: to debug temporal server, run the following command.
+
+```
+journalctl -u temporal.service
 ```
 
 - Neo4j
@@ -31,6 +37,7 @@ temporal server start-dev --ui-port 8080
     --env NEO4J_dbms_security_procedures_unrestricted='*' \
     graphstack/dozerdb:5.25.1.0-alpha.1
 ```
+
 
 ## Installation
 

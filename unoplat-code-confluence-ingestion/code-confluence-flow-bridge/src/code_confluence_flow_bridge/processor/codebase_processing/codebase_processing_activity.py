@@ -37,11 +37,11 @@ class CodebaseProcessingActivity:
             UnoplatCodebase: Parsed codebase data
         """
         activity.logger.info(f"Starting codebase processing for {codebase_qualified_name}")
-
+        activity.logger.info(f"Programming language metadata: {programming_language_metadata.language.value}")
         
         linter_parser = LinterParser()
         lint_result = linter_parser.lint_codebase(
-            local_workspace_path=source_directory,
+            local_workspace_path=local_workspace_path,
             dependencies=[],
             programming_language_metadata=programming_language_metadata
         )
@@ -50,7 +50,7 @@ class CodebaseProcessingActivity:
             activity.logger.exception("Linting process completed with warnings")
 
         # 2. Generate AST using ArchGuard
-        scanner_jar_path = str(Path(__file__).parent.parent.parent.parent.parent / "assets" / "scanner_cli-2.2.8-all.jar")
+        scanner_jar_path = "~/.unoplat/repositories/assets/scanner_cli-2.2.8-all.jar"
         
         arch_guard = ArchGuardHandler(
             jar_path=scanner_jar_path,

@@ -220,3 +220,15 @@ unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluenc
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/archguard/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/codebase_processing/__pycache__
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/debug/debug_output
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/debug_output
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-cli/dependencies/analysers
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/dependencies/analysers
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/dependencies/analysers
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-ingestion/scanner_cli-2.2.8-all.jar
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-ingestion/Taskfile.yml
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-ingestion/milestone-2.d2
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-ingestion/milestone-2.svg
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-ingestion/neo4j_icon.png
+unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/test_data/unoplat-code-confluence-ingestion/temporal.png
+unoplat-code-confluence-ingestion/dependencies/analysers
