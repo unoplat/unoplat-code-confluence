@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.5.0...code-confluence-flow-bridge-v0.6.0) (2025-02-04)
+
+
+### Features
+
+* Add test data and infrastructure for code confluence ingestion ([8025b5e](https://github.com/unoplat/unoplat-code-confluence/commit/8025b5e66d38dcec778abfdee7b9322e2bccdeed))
+
+
+### Bug Fixes
+
+* package manager metadata wrong path ([c33cca3](https://github.com/unoplat/unoplat-code-confluence/commit/c33cca3eb0c8858c5a94d4b3e1a806a5b637c389))
+
 ## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.4.0...code-confluence-flow-bridge-v0.5.0) (2025-02-02)
 
 
