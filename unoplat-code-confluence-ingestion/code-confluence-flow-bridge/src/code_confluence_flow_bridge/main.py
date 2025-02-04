@@ -77,7 +77,7 @@ async def lifespan(app: FastAPI):
     codebase_package_ingestion = PackageManagerMetadataIngestion(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
     activities.append(codebase_package_ingestion.insert_package_manager_metadata)
     
-    codebase_processing_activity = CodebaseProcessingActivity()
+    codebase_processing_activity = CodebaseProcessingActivity(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
     activities.append(codebase_processing_activity.process_codebase)
 
     asyncio.create_task(run_worker(activities=activities, client=app.state.temporal_client, activity_executor=app.state.activity_executor))

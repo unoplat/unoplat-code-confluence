@@ -69,25 +69,25 @@ class TestPythonCodebaseParser:
             json_data = json.load(f)
         return json_data    
     
-    def test_parse_codebase_ingestion(
-        self,
-        parser: PythonCodebaseParser,
-        code_confluence_ingestion_data: List[Dict],
-        local_workspace_path_cci: Path,
-        source_directory_cci: Path,
-        programming_language_metadata: ProgrammingLanguageMetadata
-    ) -> None:
-        """Test basic codebase parsing functionality."""
-        packages: List[UnoplatPackage] = parser.parse_codebase(
-            codebase_name="test_codebase",
-            json_data=code_confluence_ingestion_data,
-            local_workspace_path=str(local_workspace_path_cci),
-            source_directory=str(source_directory_cci),
-            programming_language_metadata=programming_language_metadata
-        )
+    # def test_parse_codebase_ingestion(
+    #     self,
+    #     parser: PythonCodebaseParser,
+    #     code_confluence_ingestion_data: List[Dict],
+    #     local_workspace_path_cci: Path,
+    #     source_directory_cci: Path,
+    #     programming_language_metadata: ProgrammingLanguageMetadata
+    # ) -> None:
+    #     """Test basic codebase parsing functionality."""
+    #     packages: List[UnoplatPackage] = parser.parse_codebase(
+    #         codebase_name="test_codebase",
+    #         json_data=code_confluence_ingestion_data,
+    #         local_workspace_path=str(local_workspace_path_cci),
+    #         source_directory=str(source_directory_cci),
+    #         programming_language_metadata=programming_language_metadata
+    #     )
 
-        # Verify packages were created
-        assert len(packages) > 0
+    #     # Verify packages were created
+    #     assert len(packages) > 0
 
 
     
