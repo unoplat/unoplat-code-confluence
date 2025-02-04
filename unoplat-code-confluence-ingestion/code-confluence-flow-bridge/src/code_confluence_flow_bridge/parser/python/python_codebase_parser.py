@@ -104,7 +104,14 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             logger.debug(f"  {qname}")
 
         return file_path_nodes, qualified_names_dict
-
+    
+    def __get_import_prefix(self, local_workspace_path: str, source_directory: str):
+        return os.path.relpath(
+            local_workspace_path,  # From workspace path
+            source_directory      # To source root
+        )
+    
+    
     def __common_node_processing(self, node: ChapiNode, local_workspace_path: str, source_directory: str):
         """Process common node attributes and imports.
         
@@ -117,13 +124,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             node.node_name = os.path.basename(node.file_path).split(".")[0] if node.file_path else "unknown"
 
         # Get the import prefix by finding the path from workspace to source root
-        # If local_workspace_path is /Users/user/projects/myproject/src/code_confluence_flow_bridge
-        # And source_directory is /Users/user/projects/myproject
-        # Then we want "src.code_confluence_flow_bridge" as the prefix
-        import_prefix = os.path.relpath(
-            local_workspace_path,  # From workspace path
-            source_directory      # To source root
-        )
+        import_prefix = self.__get_import_prefix(local_workspace_path=local_workspace_path, source_directory=source_directory)
         
         
         if node.node_name and node.file_path:  # Type guard for linter
@@ -165,62 +166,86 @@ class PythonCodebaseParser(CodebaseParserStrategy):
 
         return UnoplatChapiForgeNode.from_chapi_node(chapi_node=node, qualified_name=qualified_name, segregated_imports=imports_dict if imports_dict is not None else {})
 
-    def parse_codebase(self, codebase_name: str, json_data: dict, local_workspace_path: str, source_directory: str, programming_language_metadata: ProgrammingLanguageMetadata) -> List[UnoplatPackage]:
+    def parse_codebase(
+        self, 
+        codebase_name: str, 
+        json_data: dict, 
+        local_workspace_path: str, 
+        source_directory: str, 
+        programming_language_metadata: ProgrammingLanguageMetadata
+    ) -> List[UnoplatPackage]:
         """Parse the entire codebase.
 
         First preprocesses nodes to extract qualified names and segregate imports,
         then processes dependencies for each node using that map.
         """
         # Phase 1: Preprocess nodes
-        preprocessed_file_path_nodes, preprocessed_qualified_name_dict = self.__preprocess_nodes(json_data, local_workspace_path, source_directory, codebase_name)
-
+        preprocessed_file_path_nodes, preprocessed_qualified_name_dict = self.__preprocess_nodes(
+            json_data, 
+            local_workspace_path, 
+            source_directory, 
+            codebase_name
+        )
 
         # Phase 2: Process dependencies using the map
         unoplat_package_dict: Dict[str, UnoplatPackage] = {}
+        
+        import_prefix_directory = self.__get_import_prefix(
+            local_workspace_path=local_workspace_path, 
+            source_directory=source_directory
+        ).replace(os.sep, ".")
 
         for file_path, nodes in preprocessed_file_path_nodes.items():
             try:
-                # TODO: enable when archguard fixes the formatting issues of code content - be it class or function
-                # The operation of generating global variables should be done once per file even if there are multiple nodes in the file
+                # Process file-level data
                 content_of_file = ProgrammingFileReader.read_file(file_path)
                 global_variables: List[ClassGlobalFieldModel] = self.node_variables_parser.parse_global_variables(content_of_file)
-
-                # The operation of figuring out dependent class should be done once per file even if there are multiple nodes in the file
                 dependent_classes: List[str] = self.python_node_dependency_processor.process_dependencies(nodes[0], preprocessed_qualified_name_dict)
 
                 # Process all nodes from file
                 for node in nodes:
-                    # TODO: check for interface and abstract class - what are types from chapi
-                    sorted_functions: List[UnoplatChapiForgeFunction] = self.sort_function_dependencies.sort_function_dependencies(functions=node.functions, node_type=node.type)
-
-                    # TODO: enable when archguard fixes the formatting issues of code content - be it class or function
+                    sorted_functions: List[UnoplatChapiForgeFunction] = self.sort_function_dependencies.sort_function_dependencies(
+                        functions=node.functions, 
+                        node_type=node.type
+                    )
                     node.global_variables = global_variables
 
                     if sorted_functions:
                         node.functions = sorted_functions
 
-                    # Generate dependent classes
-                    # skip first node since it is already processed
                     if node.node_name != nodes[0].node_name:
                         node.dependent_internal_classes = dependent_classes
 
-                    # Build package structure
+                    # Build package structure using the desired root prefix
                     if node.package:
-                        package_parts = node.package.split(".")
+                        # If node.package starts with the desired prefix, collapse it into one token
+                        if node.package.startswith(import_prefix_directory):
+                            suffix = node.package[len(import_prefix_directory):].strip(".")
+                            if suffix:
+                                package_parts = [import_prefix_directory] + suffix.split(".")
+                            else:
+                                package_parts = [import_prefix_directory]
+                        else:
+                            # Otherwise, just split the node.package on the dot
+                            package_parts = node.package.split(".")
+
                         current_package = unoplat_package_dict
                         full_package_name = ""
-
+                        
                         for i, part in enumerate(package_parts):
                             full_package_name = part if i == 0 else f"{full_package_name}.{part}"
+                            
                             if full_package_name not in current_package:
                                 current_package[full_package_name] = UnoplatPackage(name=full_package_name)
+                                
                             if i == len(package_parts) - 1:
-                                # Add nodes to dict by file path
+                                # Add node under file_path key
                                 if file_path not in current_package[full_package_name].nodes:
                                     current_package[full_package_name].nodes[file_path] = []
                                 current_package[full_package_name].nodes[file_path].append(node)
                             else:
                                 current_package = current_package[full_package_name].sub_packages  # type: ignore
+                                
             except Exception as e:
                 logger.error(f"Error processing node dependencies: {e}")
         
