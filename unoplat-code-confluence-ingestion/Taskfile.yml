@@ -80,7 +80,9 @@ tasks:
       - uv run pytest tests/ -v
 
   ci-test:
-    desc: Run tests in CI mode
-    dir: code-confluence-flow-bridge
+    desc: Run tests in CI mode using act command with additional environment variable
+    dir: ../
+    env:
+      DOCKER_HOST: "unix:///${HOME}/.orbstack/run/docker.sock"
     cmds:
-      - uv run pytest tests/ -v
+      - act pull_request_target -j test-uv-projects -s GITHUB_TOKEN="$(gh auth token)" --env GITHUB_REPOSITORY="unoplat/unoplat-code-confluence" --env GITHUB_HEAD_REF="end-end-test-local-temporal-workflow" --env GITHUB_BASE_REF="main" --local-repository="." --container-architecture linux/amd64 -P ubuntu-latest=catthehacker/ubuntu:act-latest
