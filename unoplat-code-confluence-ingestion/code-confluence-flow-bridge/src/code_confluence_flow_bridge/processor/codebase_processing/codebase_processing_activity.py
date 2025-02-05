@@ -10,9 +10,14 @@ from typing import List, Optional
 
 from temporalio import activity
 
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+
 
 class CodebaseProcessingActivity:
     """Activity for processing codebase through linting, AST generation and parsing."""
+   
+    def __init__(self, code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
+        self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
 
     @activity.defn  
     async def process_codebase(
@@ -23,7 +28,7 @@ class CodebaseProcessingActivity:
         codebase_qualified_name: str,
         dependencies: Optional[List[str]],
         programming_language_metadata: ProgrammingLanguageMetadata,
-    ) -> List[UnoplatPackage]:
+    ) -> None:
         """
         Process codebase through linting, AST generation, and parsing.
 
@@ -75,6 +80,8 @@ class CodebaseProcessingActivity:
             source_directory=source_directory,
             programming_language_metadata=programming_language_metadata
         )
+        
+        await self.code_confluence_graph_ingestion.insert_code_confluence_package(codebase_qualified_name=codebase_qualified_name, packages=list_packages)
 
         activity.logger.info(f"Completed codebase processing for {codebase_qualified_name}")
-        return list_packages 
+        
