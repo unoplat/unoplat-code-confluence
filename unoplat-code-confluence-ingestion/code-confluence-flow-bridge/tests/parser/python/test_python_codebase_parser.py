@@ -65,7 +65,7 @@ class TestPythonCodebaseParser:
     @pytest.fixture
     def sample_json_data(self,source_directory_cc_cli: Path) -> List[Dict]:
         """Create sample JSON data representing Python nodes."""
-        with open(source_directory_cc_cli/"unoplat_code_confluence_cli.json", 'r') as f:
+        with open(source_directory_cc_cli/"0_codes.json", 'r') as f:
             json_data = json.load(f)
         return json_data    
     
