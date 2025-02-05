@@ -44,10 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [
-          'unoplat-code-confluence-ingestion/code-confluence-flow-bridge',
-          # Add more uv-based project paths here as needed
-        ]
+        project: ['unoplat-code-confluence-ingestion/code-confluence-flow-bridge']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
