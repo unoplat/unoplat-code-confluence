@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.6.0...code-confluence-flow-bridge-v0.7.0) (2025-02-05)
+
+
+### Features
+
+* Enhance test infrastructure with Scanner CLI and GitHub Actions ([9d9371a](https://github.com/unoplat/unoplat-code-confluence/commit/9d9371a3fba7d86cd0b3e6eab10d6d90d2ace055))
+
 ## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.5.0...code-confluence-flow-bridge-v0.6.0) (2025-02-04)
 
 
