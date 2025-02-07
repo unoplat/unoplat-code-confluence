@@ -1,16 +1,15 @@
+import os
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
 from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
 from src.code_confluence_flow_bridge.processor.archguard.arc_guard_handler import ArchGuardHandler
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
 import json
-from pathlib import Path
 from typing import List, Optional
 
 from temporalio import activity
-
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
 
 class CodebaseProcessingActivity:
@@ -55,7 +54,9 @@ class CodebaseProcessingActivity:
             activity.logger.exception("Linting process completed with warnings")
 
         # 2. Generate AST using ArchGuard
-        scanner_jar_path = "~/.unoplat/repositories/assets/scanner_cli-2.2.8-all.jar"
+        jar_env: str = os.getenv("SCANNER_JAR_PATH", "/app/jars/scanner_cli-2.2.8-all.jar")
+        if jar_env:
+            scanner_jar_path: str = jar_env
         
         arch_guard = ArchGuardHandler(
             jar_path=scanner_jar_path,

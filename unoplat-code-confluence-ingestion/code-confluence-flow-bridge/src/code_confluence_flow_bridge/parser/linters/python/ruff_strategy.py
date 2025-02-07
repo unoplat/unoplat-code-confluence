@@ -11,6 +11,7 @@ from loguru import logger
 import tomlkit
 
 
+
 class RuffStrategy(LinterStrategy):
     
     def _get_config_template_path(self) -> str:
@@ -29,8 +30,10 @@ class RuffStrategy(LinterStrategy):
             Path("/etc/code-confluence/ruff_config_template.toml")
         ]
         
-        for path in locations:
+        for path  in locations:
+            logger.info(f"checking config template path if it exists {str(path)}")
             if path.exists():
+                logger.info(f"ruff config path that exists {str(path)}")
                 return str(path)
                 
         raise FileNotFoundError("Ruff config template not found in any standard location")
@@ -169,6 +172,7 @@ class RuffStrategy(LinterStrategy):
         try:
             # First check and handle existing Ruff config
             pyproject_path = os.path.join(local_workspace_path, "pyproject.toml")
+            logger.info(f"current linting path {pyproject_path}")
             self._delete_ruff_sections(pyproject_path)
             
             # Create our Ruff configuration

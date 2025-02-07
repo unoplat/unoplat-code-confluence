@@ -12,6 +12,10 @@ from typing import Any, Dict, List
 # Third Party
 from git import Repo
 from github import Auth, Github
+from loguru import logger
+
+# NEW: Add Temporal activity based logging import
+from temporalio import activity
 
 
 class GithubHelper:
@@ -30,32 +34,35 @@ class GithubHelper:
         github_client = Github(auth=auth)
 
         # Get repository from URL
-        repo_url = repository_settings.git_url
+        repo_url: str = repository_settings.git_url
 
         # Extract owner and repo name from different URL formats
         if repo_url.startswith("git@"):
             # Handle SSH format: git@github.com:org/repo.git
-            repo_path = repo_url.split("github.com:")[-1]
+            repo_path: str = repo_url.split("github.com:")[-1]
         else:
             # Handle HTTPS format: https://github.com/org/repo[.git]
             repo_path = repo_url.split("github.com/")[-1]
 
         # Remove .git suffix if present
         repo_path = repo_path.replace(".git", "")
-        repo_name = repo_path.split("/")[-1]
+        repo_name: str = repo_path.split("/")[-1]
 
         try:
             # Get repository object from Github using owner/repo format
             github_repo = github_client.get_repo(repo_path)
 
             # Create local directory if it doesn't exist
-            local_path = os.path.join(os.path.expanduser("~"), ".unoplat", "repositories")
+            local_path: str = os.path.join(os.path.expanduser("~"), ".unoplat", "repositories")
             os.makedirs(local_path, exist_ok=True)
+            # Reassign repo_path to the local clone path
             repo_path = os.path.join(local_path, repo_name)
 
             # Clone repository if not already cloned
             if not os.path.exists(repo_path):
                 Repo.clone_from(repo_url, repo_path)
+            # Activity-based logging: log the repository's local clone path
+            logger.info(f"Temporal Repository is available at local path: {repo_path} in activity {activity.info}")
 
             # Get repository metadata
             repo_metadata: Dict[str, Any] = {
@@ -70,7 +77,7 @@ class GithubHelper:
             # Get README content
             try:
                 readme_content = github_repo.get_readme().decoded_content.decode("utf-8")
-            except:
+            except Exception:
                 readme_content = None
 
             # Create UnoplatCodebase objects for each codebase config
@@ -80,11 +87,10 @@ class GithubHelper:
                 local_path = repo_path
                 if codebase_config.codebase_folder and codebase_config.codebase_folder != ".":
                     path_components = codebase_config.codebase_folder.split("/")
-
                     for component in path_components:
                         local_path = os.path.join(local_path, component)
 
-                source_directory = local_path
+                source_directory: str = local_path
 
                 # Then append root_package components if present
                 if codebase_config.root_package and codebase_config.root_package != ".":
@@ -95,6 +101,9 @@ class GithubHelper:
                     if codebase_config.programming_language_metadata.language.value == "python":
                         raise Exception("Root package should be specified for python codebases")
 
+                # NEW: Log the computed local path for the codebase
+                logger.info(f"[Temporal] Codebase local path computed as: {local_path}")
+
                 programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
                 # Verify the path exists
                 if not os.path.exists(local_path):
@@ -104,7 +113,11 @@ class GithubHelper:
                     name=codebase_config.root_package,  # type: ignore
                     local_path=local_path,
                     source_directory=source_directory,
-                    package_manager_metadata=UnoplatPackageManagerMetadata(programming_language=programming_language_metadata.language.value, package_manager=programming_language_metadata.package_manager, programming_language_version=programming_language_metadata.language_version),
+                    package_manager_metadata=UnoplatPackageManagerMetadata(
+                        programming_language=programming_language_metadata.language.value,
+                        package_manager=programming_language_metadata.package_manager,
+                        programming_language_version=programming_language_metadata.language_version,
+                    ),
                 )
                 codebases.append(codebase)
 
@@ -120,9 +133,3 @@ class GithubHelper:
 
         except Exception as e:
             raise Exception(f"Failed to clone repository: {str(e)}")
-
-    def close(self):
-        """
-        Close the Github client connection
-        """
-        self.github_client.close()
