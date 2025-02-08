@@ -1,0 +1,105 @@
+version: "3"
+
+tasks:
+  check-temporal-port:
+    cmds:
+      - |
+        if ! lsof -i:8080 > /dev/null 2>&1; then
+          echo "Port 8080 is available"
+          exit 0
+        else
+          echo "Port 8080 is already in use"
+          exit 1
+        fi
+    silent: true
+
+  start-temporal:
+    deps: [check-temporal-port]
+    cmds:
+      # Run temporal server in background using &
+      - temporal server start-dev --ui-port 8080
+
+  start-neo4j:
+    cmds:
+      - docker run 
+          -p7474:7474 -p7687:7687 
+          -v "$HOME/neo4j/data:/data" 
+          -v "$HOME/neo4j/logs:/logs" 
+          -v "$HOME/neo4j/import:/var/lib/neo4j/import" 
+          -v "$HOME/neo4j/plugins:/plugins" 
+          --env NEO4J_AUTH=neo4j/password 
+          --env NEO4J_PLUGINS='["apoc"]' 
+          --env NEO4J_apoc_export_file_enabled=true 
+          --env NEO4J_apoc_import_file_enabled=true 
+          --env NEO4J_dbms_security_procedures_unrestricted='*' 
+          graphstack/dozerdb:5.25.1.0-alpha.1
+
+  sync:
+    desc: Setup project with dependencies
+    dir: .
+    cmds:
+      - uv sync
+
+  run-dev:
+    desc: Run FastAPI application in development mode
+    deps: [sync]
+    dir: src/code_confluence_flow_bridge
+    env:
+      SCANNER_JAR_PATH: "{{.HOME}}/.unoplat/repositories/assets/scanner_cli-2.2.8-all.jar"
+    cmds:
+      - uv run fastapi dev
+
+  dev:
+    desc: Install dependencies and run the application
+    cmds:
+      - task: run-dev
+
+  ensure-scanner-cli:
+    desc: Ensure scanner CLI exists in the user's environment
+    cmds:
+      - |
+            SCANNER_DIR="$HOME/.unoplat/repositories/assets"
+            SCANNER_JAR="scanner_cli-2.2.8-all.jar"
+            SCANNER_URL="https://github.com/archguard/archguard/releases/download/v2.2.8/$SCANNER_JAR"
+    
+            # Create directory if it doesn't exist
+            mkdir -p "$SCANNER_DIR"
+    
+            # Download scanner CLI if not found
+            if [ ! -f "$SCANNER_DIR/$SCANNER_JAR" ]; then
+              echo "Downloading Scanner CLI..."
+              curl -L -o "$SCANNER_DIR/$SCANNER_JAR" "$SCANNER_URL"
+            else
+              echo "Scanner CLI already exists."
+            fi
+
+  generate-test-prerequisites:
+    desc: Generate test prerequisites
+    deps: [ensure-scanner-cli]
+    dir: tests/test_data/unoplat-code-confluence-cli
+    cmds:
+      - |
+        SCANNER_DIR="$HOME/.unoplat/repositories/assets"
+        SCANNER_JAR="scanner_cli-2.2.8-all.jar"
+        
+        java -jar "$SCANNER_DIR/$SCANNER_JAR" \
+          --with-function-code --language=python \
+          --output=arrow --output=json \
+          --path=unoplat_code_confluence_cli \
+          --output-dir=unoplat_code_confluence_cli/ \
+          --depth=20
+
+  test:
+    desc: Run tests
+    deps: [generate-test-prerequisites]
+    dir: .
+    cmds:
+      - uv run pytest tests/ -v
+
+  ci-test:
+    desc: Run tests in CI mode using act command with additional environment variable
+    dir: ../../
+    env:
+      DOCKER_HOST: "unix:///{{.HOME}}/.orbstack/run/docker.sock"
+    cmds:
+      - act pull_request_target -j test-uv-projects -s GITHUB_TOKEN="$(gh auth token)" --env GITHUB_REPOSITORY="unoplat/unoplat-code-confluence" --env GITHUB_HEAD_REF="end-end-test-local-temporal-workflow" --env GITHUB_BASE_REF="main" --local-repository="." --container-architecture linux/amd64 -P ubuntu-latest=catthehacker/ubuntu:act-latest
