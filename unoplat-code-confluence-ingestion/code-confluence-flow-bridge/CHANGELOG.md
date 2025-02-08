@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.10.0...code-confluence-flow-bridge-v0.11.0) (2025-02-08)
+
+
+### Features
+
+* Update Development Setup and Local Workflow for Code Confluence Flow Bridge ([89f13d6](https://github.com/unoplat/unoplat-code-confluence/commit/89f13d6722c9e9c723949afe859fe65749a1222a))
+
+
+### Documentation
+
+* improve the local development ([7d7d80e](https://github.com/unoplat/unoplat-code-confluence/commit/7d7d80e6de15c76387df9e716fec92cb5be248a3))
+
 ## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.9.0...code-confluence-flow-bridge-v0.10.0) (2025-02-08)
 
 
