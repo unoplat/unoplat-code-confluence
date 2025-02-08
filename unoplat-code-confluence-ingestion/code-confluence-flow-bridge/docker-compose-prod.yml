@@ -52,6 +52,7 @@ services:
       - POSTGRES_USER=temporal
       - POSTGRES_PWD=temporal
       - POSTGRES_SEEDS=postgresql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
@@ -119,17 +120,15 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  fastapi:
-    container_name: fastapi-app
-    build:
-      context: ..
-      dockerfile: Dockerfile
+  code-confluence-flow-bridge:
+    container_name: code-confluence-flow-bridge
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
       - NEO4J_USERNAME=neo4j
       - NEO4J_PASSWORD=password
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.8.0
     depends_on:
       temporal:
         condition: service_healthy
