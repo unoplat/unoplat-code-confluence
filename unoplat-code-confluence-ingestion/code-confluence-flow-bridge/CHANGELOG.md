@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.7.0...code-confluence-flow-bridge-v0.8.0) (2025-02-08)
+
+
+### Features
+
+* Add Docker and development infrastructure for code confluence flow bridge ([fd1ab9c](https://github.com/unoplat/unoplat-code-confluence/commit/fd1ab9c79fc7bb35891bd8ae89990d7b524c5181))
+* Enhance Docker Release Workflow for Code Confluence Flow Bridge ([792560e](https://github.com/unoplat/unoplat-code-confluence/commit/792560e35052c37e927ec11bbbcfdab5b58cc82b))
+
 ## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.6.0...code-confluence-flow-bridge-v0.7.0) (2025-02-05)
 
 
