@@ -1,0 +1,25 @@
+# Tiltfile for a uv-based FastAPI Application with Hot Reload Support
+
+# Build the Docker image "fastapi-app" from the current directory.
+docker_build(
+    "fastapi-app",  # The image tag that your Kubernetes manifests should reference.
+    ".",            # Build context (the entire repository root).
+    live_update=[
+        # Live Update step: sync all source files to /app in the container,
+        # excluding unnecessary directories to speed up updates.
+        sync(".", "/app"),
+
+        # Live Update step: if requirements.txt changes, reinstall Python dependencies.
+        run("uv sync --frozen --no-cache", trigger=["pyproject.toml"])
+    ]
+)
+
+# Run the container locally using a docker run command.
+# The CMD from your Dockerfile is assumed to be:
+# CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "80", "--host", "0.0.0.0"]
+local_resource(
+    "run-fastapi",
+    "docker run --rm -p 80:80 fastapi-app",
+    deps=["Dockerfile", "requirements.txt", "app/main.py", "app/"],
+    resource_deps=['fastapi-app']
+)

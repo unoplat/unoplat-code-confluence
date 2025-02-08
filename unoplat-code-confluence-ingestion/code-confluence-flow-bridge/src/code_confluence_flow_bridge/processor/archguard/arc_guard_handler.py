@@ -4,6 +4,7 @@ import subprocess
 from typing import Optional
 
 # Third Party
+from loguru import logger
 from temporalio import activity
 
 
@@ -33,7 +34,9 @@ class ArchGuardHandler:
             str: Path to the generated JSON file
         """
         # Expand the jar path if it contains tilde
+        logger.debug(f"jar path:{self.jar_path}")
         expanded_jar_path: str = os.path.expanduser(self.jar_path)
+        logger.debug(f"expanded_jar_path:{expanded_jar_path}")
         
         activity.logger.info(
             "Starting ArchGuard scan",
@@ -48,8 +51,9 @@ class ArchGuardHandler:
         
         try:
             # Change to output directory before running command
+            logger.debug("Current working directory: {}", os.getcwd())
             os.chdir(self.output_path)
-            activity.logger.info(f"Changed working directory to: {self.output_path}")
+            logger.debug(f"Changed working directory to: {self.output_path}")
 
             command = [
                 "java", "-jar", expanded_jar_path,
@@ -60,7 +64,7 @@ class ArchGuardHandler:
                 f"--output-dir={self.output_path}",
                 f"--depth=30"
             ]
-            activity.logger.info(
+            logger.info(
                 "Executing command",
                 extra={"command": ' '.join(command)}
             )
@@ -74,7 +78,7 @@ class ArchGuardHandler:
             )
             
             if process.stdout is None:
-                activity.logger.error("Failed to open subprocess stdout")
+                logger.error("Failed to open subprocess stdout")
                 raise RuntimeError("Failed to open subprocess stdout")
                 
             while True:
@@ -82,11 +86,11 @@ class ArchGuardHandler:
                 if output == '' and process.poll() is not None:
                     break
                 if output:
-                    activity.logger.debug(output.strip())
+                    logger.debug(output.strip())
                     
             _stdout, stderr = process.communicate()
             if process.returncode == 0:
-                activity.logger.info("ArchGuard scan completed successfully")
+                logger.info("ArchGuard scan completed successfully")
                 
                 # Use absolute path for output file
                 output_file: str = os.path.join(self.output_path, "0_codes.json")
