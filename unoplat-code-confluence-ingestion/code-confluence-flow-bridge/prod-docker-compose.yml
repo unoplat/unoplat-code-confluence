@@ -128,6 +128,7 @@ services:
       - NEO4J_USERNAME=neo4j
       - NEO4J_PASSWORD=password
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
+      - SCANNER_JAR_PATH=/root/assets/scanner_cli-2.2.8-all.jar
     image: ghcr.io/unoplat/code-confluence-flow-bridge:0.9.0
     depends_on:
       temporal:
