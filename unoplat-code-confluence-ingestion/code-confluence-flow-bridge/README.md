@@ -7,7 +7,21 @@ This is a bridge between Code Confluence User and Ingestion Workflow.
 
 ## Prerequisites
 
-- [Temporal Server](https://docs.temporal.io/docs/get-started/set-up-a-local-server/)
+### Task
+
+```
+brew install go-task/tap/go-task
+```
+
+## Run Locally in Development Mode
+
+Note - Directory to be in : unoplat-code-confluence-ingestion/code-confluence-flow-bridge
+
+- task start-temporal
+- task start-neo4j
+- task dev
+- 
+
 
 ```
 temporal server start-dev --ui-port 8080 --log-level debug
