@@ -27,6 +27,11 @@ COPY . /app/
 # Install dependencies using uv sync
 RUN uv sync --frozen --no-cache
 
+# Create directory for scanner and download scanner CLI
+RUN mkdir -p /root/assets && \
+    curl -L -o /root/assets/scanner_cli-2.2.8-all.jar \
+    https://github.com/archguard/archguard/releases/download/v2.2.8/scanner_cli-2.2.8-all.jar
+
 # Expose the port that the FastAPI app listens on
 EXPOSE 8000
 

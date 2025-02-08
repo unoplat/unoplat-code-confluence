@@ -12,7 +12,6 @@ tests
 .pytest_cache
 .ruff_Cache
 .vscode
-app/jars/scanner_cli-2.2.8-all.jar
 mypy.ini
 ruff.toml
 tiltfile
