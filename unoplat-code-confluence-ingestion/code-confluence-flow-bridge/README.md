@@ -20,7 +20,9 @@ Note - Directory to be in : unoplat-code-confluence-ingestion/code-confluence-fl
 - task start-temporal
 - task start-neo4j
 - task dev
-- 
+- task run-client
+
+Then go to localhost:7687 and you will be able to visualise the codebase data in graphical form.
 
 
 ```
