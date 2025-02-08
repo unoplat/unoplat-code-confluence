@@ -39,6 +39,12 @@ tasks:
     dir: .
     cmds:
       - uv sync
+  
+  run-client:
+    desc: run client to submit request to code confluence flow code-confluence-flow-bridge
+    dir: ../../unoplat-code-confluence-cli
+    cmds:
+      - uv run unoplat_code_confluence_cli --config example_config_code_confluence_current.json
 
   run-dev:
     desc: Run FastAPI application in development mode
