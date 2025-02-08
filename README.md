@@ -63,15 +63,15 @@ ALPHA
 | Task                                  | Research | POC | Released |
 |---------------------------------------|----------|-----|----------|
 | Code Grammar                          | ✓        | ✓   | ✓        |
-| Integration With Workflow Orchestrator | ✓        | ✓   | ✓          |
+| Integration With Workflow Orchestrator | ✓        | ✓   | ✓        |
+| Data Modelling for Code Grammar             | ✓        | ✓   | ✓         |
+| Insertion into Graph Database         | ✓        | ✓   | ✓        |
 | Data Modelling for Code Summarisation | ✓        | ✓   |          |
-| SOTA Embeddings on Codebase Functions | ✓        |    |          |
-| SOTA LLM Pipelines For Code Grammar Summarisation/Reports       | ✓        | ✓   |          |
-| Automatic Documentation       | ✓        |    |          |
-| Data Modelling for Graph             | ✓        | ✓   | ✓         |
-| Insertion into Graph Database                   | ✓        | ✓   |    ✓      |
-| GraphRag based Query Module                  |         |    |          |
-| SDK for integration                   |         |    |          |
+| SOTA LLM Pipelines For Code Grammar Summarisation/Reports | ✓        | ✓   |          |
+| SOTA Embeddings on Codebase Functions | ✓        |     |          |
+| Automatic Documentation              | ✓        |     |          |
+| GraphRag based Query Module          |          |     |          |
+| SDK for integration                  |          |     |          |
 
 
 ### Code Grammar
