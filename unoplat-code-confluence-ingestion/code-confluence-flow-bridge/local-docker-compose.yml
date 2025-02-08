@@ -119,10 +119,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  fastapi:
-    container_name: fastapi-app
+  code-confluence-flow-bridge:
+    container_name: code-confluence-flow-bridge
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     environment:
       - NEO4J_HOST=neo4j
