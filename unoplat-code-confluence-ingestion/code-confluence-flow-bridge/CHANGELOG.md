@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.8.0...code-confluence-flow-bridge-v0.9.0) (2025-02-08)
+
+
+### Features
+
+* Enhance Docker Compose Configuration for Code Confluence Flow Bridge ([dcdc313](https://github.com/unoplat/unoplat-code-confluence/commit/dcdc313c1d1531a3eea88e87121b5de49c3acbef))
+
 ## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.7.0...code-confluence-flow-bridge-v0.8.0) (2025-02-08)
 
 
