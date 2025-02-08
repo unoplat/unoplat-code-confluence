@@ -38,14 +38,6 @@ class PythonImportSegregationStrategy:
         self.parser = code_confluence_tree_sitter.get_parser()
         
         
-        
-
-    def _is_internal_import(self, module_path: str, source_directory: str) -> bool:
-        """Check if an import is internal based on source directory."""
-        return (
-            module_path.startswith(f"{source_directory}.") or 
-            module_path == source_directory
-        )
 
     def _extract_module_path(self, node: Node) -> str:
         """Extract the module path from a Tree-sitter node."""
