@@ -6,6 +6,7 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_parser import PackageManagerParser
 
+from loguru import logger
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
@@ -28,7 +29,7 @@ class PackageMetadataActivity:
         """
         try:
             info = activity.info()
-            activity.logger.info(
+            logger.info(
                 "Processing package metadata",
                 extra={
                     "temporal_workflow_id": info.workflow_id,
@@ -42,9 +43,9 @@ class PackageMetadataActivity:
 
             package_metadata = self.package_manager_parser.parse_package_metadata(local_workspace_path=local_path, programming_language_metadata=programming_language_metadata)
 
-            activity.logger.info("Successfully processed package metadata", extra={"temporal_workflow_id": info.workflow_id, "temporal_activity_id": info.activity_id, "codebase_path": local_path, "status": "success"})
+            logger.info("Successfully processed package metadata", extra={"temporal_workflow_id": info.workflow_id, "temporal_activity_id": info.activity_id, "codebase_path": local_path, "status": "success"})
             return package_metadata
 
         except Exception as e:
-            activity.logger.error("Failed to process package metadata", extra={"temporal_workflow_id": activity.info().workflow_id, "temporal_activity_id": activity.info().activity_id, "error_type": type(e).__name__, "error_details": str(e), "codebase_path": local_path, "status": "error"})
+            logger.error("Failed to process package metadata", extra={"temporal_workflow_id": activity.info().workflow_id, "temporal_activity_id": activity.info().activity_id, "error_type": type(e).__name__, "error_details": str(e), "codebase_path": local_path, "status": "error"})
             raise ApplicationError(message=f"Failed to process package metadata for {local_path}", type="PACKAGE_METADATA_ERROR")
