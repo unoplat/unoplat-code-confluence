@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.9.0...code-confluence-flow-bridge-v0.10.0) (2025-02-08)
+
+
+### Features
+
+* Add Scanner CLI download to GitHub Actions workflow ([82d8a72](https://github.com/unoplat/unoplat-code-confluence/commit/82d8a724afb454c7079fc727a4b656041d7e76fc))
+* Enhance Docker Workflow and Scanner CLI Integration ([fcf6ab3](https://github.com/unoplat/unoplat-code-confluence/commit/fcf6ab31e4a79c25551f4869ae4f13df7b0eb3ec))
+
 ## [0.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.8.0...code-confluence-flow-bridge-v0.9.0) (2025-02-08)
 
 
