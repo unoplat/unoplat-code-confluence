@@ -104,6 +104,9 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ matrix.version }}
 
+      - name: Install js-yaml
+        run: npm install js-yaml
+
       - name: Modify prod docker compose file with right image and version      
         uses: actions/github-script@v5
         with:
