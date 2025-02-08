@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release_action_plan.outputs.releases_created }}
-      matrix: ${{ steps.create-matrix.outputs.matrix }}  
+      matrix: ${{ steps.create-matrix.outputs.matrix }}   # noqa: unknown-context
     steps:
     - name: Checkout our repository
       uses: actions/checkout@v2
@@ -40,49 +40,68 @@ jobs:
       uses: actions/github-script@v5
       with:
         script: |
-          const allOutputs = ${{toJson(steps.release_action_plan.outputs)}};
-          console.log("all outputs",allOutputs);
-          const pathsReleased =  JSON.parse('${{ steps.release_action_plan.outputs.paths_released }}');
-          console.log("pathsReleased",pathsReleased);
+          const allOutputs = ${{ toJson(steps.release_action_plan.outputs) }};
+          const pathsReleased = JSON.parse('${{ steps.release_action_plan.outputs.paths_released }}');
           
-          let includeArray = pathsReleased.map(path => {
+          console.log("Processing paths:", pathsReleased);
+          
+          const includeArray = pathsReleased.map((path) => {
+            if (!path.endsWith('code-confluence-flow-bridge')) {
+              console.log(`Skipping non-docker component: ${path}`);
+              return null;
+            }
+            
+            const name = allOutputs[`${path}--name`];
             const tag_name = allOutputs[`${path}--tag_name`];
-            return { path, tag_name };
-          });
-
+            
+            const image_name = name.split(':')[0].trim();
+            const version = tag_name.split('-v')[1];
+            
+            console.log(`Processing docker component: ${path} -> ${image_name}:${version}`);
+            return { path, image_name, version };
+          }).filter(item => item !== null);
+          
+          console.log("Final Docker Matrix:", includeArray);
           core.setOutput('matrix', JSON.stringify({ include: includeArray }));
-#TODO: fix the path and add publish. The only release that needs to be skipped is website
-  release-matrix:
+
+  release-docker-image:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
     needs: main-pr-merge
     permissions: 
       contents: read
       packages: write
-      id-token: write
     if: needs.main-pr-merge.outputs.release_created == 'true'
     strategy:
-      matrix: ${{ fromJson(needs.main-pr-merge.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.main-pr-merge.outputs.matrix) }}  # noqa: unknown-context
     steps:
-      - name: Checkout our repository
-        uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           ref: main
-          fetch-depth: 0
-# todo: the below three steps are not required use github artifact to transfer the build between workflows :) but doing it as of now for alpha releases
-      - name: Install python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - uses: Gr1N/setup-poetry@v8
-        with:
-          poetry-version: "1.8.3"
 
-      # - name: Build poetry
-      #   working-directory: ${{ matrix.path }}
-      #   run: poetry build -f wheel
-    
-      # - name: Publish package distributions to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     packages-dir: ${{ matrix.path }}/dist
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.path }}
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ matrix.version }}
+
+
 
