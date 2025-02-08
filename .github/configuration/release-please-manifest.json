@@ -1,5 +1,5 @@
 {
   "unoplat-code-confluence-commons": "0.10.0",
   "code-confluence": "0.8.0",
-  "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": "0.8.0"
+  "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": "0.9.0"
 }
