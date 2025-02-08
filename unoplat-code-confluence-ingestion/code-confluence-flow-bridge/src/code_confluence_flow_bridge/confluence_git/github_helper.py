@@ -53,7 +53,7 @@ class GithubHelper:
             github_repo = github_client.get_repo(repo_path)
 
             # Create local directory if it doesn't exist
-            local_path: str = os.path.join(os.path.expanduser("~"), ".unoplat", "repositories")
+            local_path = os.path.join(os.path.expanduser("~"), ".unoplat", "repositories")
             os.makedirs(local_path, exist_ok=True)
             # Reassign repo_path to the local clone path
             repo_path = os.path.join(local_path, repo_name)
@@ -62,7 +62,9 @@ class GithubHelper:
             if not os.path.exists(repo_path):
                 Repo.clone_from(repo_url, repo_path)
             # Activity-based logging: log the repository's local clone path
-            logger.info(f"Temporal Repository is available at local path: {repo_path} in activity {activity.info}")
+            activity.logger.info(f"[Temporal] Repository is available at local path: {repo_path}")
+            # Pass-through logging using Loguru's logger
+            logger.info(f"[Temporal-Python @Web] Repository is available at local path: {repo_path}")
 
             # Get repository metadata
             repo_metadata: Dict[str, Any] = {
@@ -102,7 +104,9 @@ class GithubHelper:
                         raise Exception("Root package should be specified for python codebases")
 
                 # NEW: Log the computed local path for the codebase
-                logger.info(f"[Temporal] Codebase local path computed as: {local_path}")
+                activity.logger.info(f"[Temporal] Codebase local path computed as: {local_path}")
+                # Pass-through logging using Loguru's logger
+                logger.info(f"[Temporal-Python @Web] Codebase local path computed as: {local_path}")
 
                 programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
                 # Verify the path exists
