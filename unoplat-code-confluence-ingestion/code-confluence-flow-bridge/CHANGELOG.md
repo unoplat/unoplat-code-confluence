@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.11.0...code-confluence-flow-bridge-v0.11.1) (2025-02-09)
+
+
+### Documentation
+
+* improvement in docs ([0b8f858](https://github.com/unoplat/unoplat-code-confluence/commit/0b8f8588cd80976007d520b62eeb8a8f6b1d77f0))
+
 ## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.10.0...code-confluence-flow-bridge-v0.11.0) (2025-02-08)
 
 
