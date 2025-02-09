@@ -2,242 +2,186 @@
 sidebar_position: 2
 ---
 
-# Quick Start Guide
+# 🚀 Quick Start Guide
 
-Welcome to **Unoplat Code Confluence**
+Welcome to **Unoplat Code Confluence** - Your Gateway to Code Understanding!
 
 :::info Current Status
-Unoplat Code Confluence currently supports Python codebases and is in alpha stage. We're actively working on expanding language support and features.
+🔄 Unoplat Code Confluence currently supports Python codebases and is in alpha stage. We're actively working on expanding language support and features.
 :::
 
-## Table of Contents
+## 📑 Table of Contents
 
-1. [Introduction](#introduction)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [Configuration](#configuration)
-5. [Troubleshooting](#troubleshooting)
+1. [🎯 Introduction](#introduction)
+2. [📋 Prerequisites](#prerequisites)
+3. [⚙️ Setting Up Code Confluence](#setting-up-code-confluence)
+4. [🔄 Repository Configuration](#repository-configuration)
+5. [💻 CLI Installation](#cli-installation)
+6. [▶️ Running the Application](#running-the-application)
+7. [🆘 Troubleshooting](#troubleshooting)
 
 ## Introduction
 
 The current version supports parsing codebases and exporting a JSON representation of code graph. For more details, check out:
-- [📘 Vision](/docs/deep-dive/vision)
+- 📘 [**Vision »**](/docs/deep-dive/vision)
 
 ## Prerequisites
 
-### Codebase Requirements
+Before you begin, ensure you have the following tools installed:
 
-:::caution Version Limitation
-Currently supports Python codebases up to 3.11 (due to dependency on isort)
-:::
+| Tool | Purpose |
+|------|---------|
+| [**🚀 uv »**](https://docs.astral.sh/uv/getting-started/installation/) | Fast Python package installer and resolver |
+| [**🐳 Docker & Docker Compose »**](https://www.portainer.io/) | For running services |
 
-Code Confluence relies on two powerful tools for import segregation and dependency analysis:
-- [🔍 Ruff](https://docs.astral.sh/ruff/) - For code analysis
-- [🔄 isort](https://pycqa.github.io/isort/) - For import organization
+## Setting Up Code Confluence
 
-### Required Configurations
+Follow these steps to set up the ingestion engine:
 
-#### 1. Ruff Configuration
+1. **Create Project Directory and Download Configuration:**
+   ```bash
+   mkdir -p code-confluence && cd code-confluence
+   
+   # Download Docker Compose file
+   curl -O https://raw.githubusercontent.com/unoplat/unoplat-code-confluence/main/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/prod-docker-compose.yml
+   ```
 
-Create a `ruff.toml` file in your project root:
+2. **Launch Services:**
+   ```bash
+   docker compose -f prod-docker-compose.yml up -d
+   ```
 
-```toml title="ruff.toml"
-target-version = "py311"
+3. **Verify Deployment:**
+   ```bash
+   docker compose -f prod-docker-compose.yml ps
+   ```
 
-exclude = [
-    ".git",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".ruff_cache",
-    ".venv",
-    "venv",
-    "build",
-    "dist",
-]
+## Repository Configuration
 
-src = ["unoplat_code_confluence"]  # Adjust this to your project's source directory
-line-length = 320
+### 📝 Creating Your Configuration
 
-[lint]
-# Enable only flake8-tidy-imports
-select = ["I","E402","INP001","TID","F401","F841"]
-
-[lint.per-file-ignores]
-"__init__.py" = ["E402","F401"]
-
-[lint.flake8-tidy-imports]
-ban-relative-imports = "all"
-
-[lint.isort]
-combine-as-imports = true
-force-to-top = ["os","sys"]
-```
-
-
-
-Run Ruff with:
-
-```bash
-ruff check --fix . --unsafe-fixes
-```
-
-#### 2. isort Configuration
-
-Create an `.isort.cfg` file:
-
-```ini title=".isort.cfg"
-[settings]
-known_third_party = "Include third party dependencies here"
-import_heading_stdlib = Standard Library
-import_heading_thirdparty = Third Party
-import_heading_firstparty = First Party
-import_heading_localfolder = Local 
-py_version = 311
-line_length = 500
-```
-
-Run isort with:
-
-```bash
-isort . --python-version 311
-```
-
-:::note
-This configuration is temporary for the alpha version and will be automated in future releases.
-:::
-
-### Installation Requirements
-
-Before starting, install these tools:
-
-- [🐍 PyEnv](https://github.com/pyenv/pyenv) - Python version manager
-- [📦 Pipx](https://github.com/pypa/pipx) - Python app installer
-- [🎭 Poetry](https://python-poetry.org/) - Dependency manager
-
-```bash
-pipx install poetry
-```
-
-## Installation
-
-### 1. Python Setup
-
-```bash
-pyenv install 3.12.1
-pyenv global 3.12.1
-```
-
-### 2. Install Code Confluence
-
-```bash title="Install latest version"
-pipx install --python $(pyenv which python) 'git+https://github.com/unoplat/unoplat-code-confluence.git@unoplat-code-confluence-v0.17.0#subdirectory=unoplat-code-confluence'
-```
-
-## Configuration
-
-### JSON Configuration
-
-:::tip
-All configuration fields support environment variable overrides using the `UNOPLAT_` prefix.
-:::
-
-#### Required Fields
+Create a `config.json` file with your repository details:
 
 <details>
-<summary><b>repositories</b>: Array of repositories to analyze</summary>
+<summary>Basic Configuration Template</summary>
 
-- `git_url`: Repository URL
-- `output_path`: Analysis output directory
-- `codebases`: Array of codebase configurations
-  - `codebase_folder_name`: Codebase directory name
-  - `root_package_name`: Root package name
-  - `programming_language_metadata`: Language config
-    - `language`: Programming language
-    - `package_manager`: Package manager type
-    - `language_version`: Language version
-</details>
-
-<details>
-<summary><b>archguard</b>: ArchGuard tool configuration</summary>
-
-- `download_url`: ArchGuard download URL
-- `download_directory`: Local storage directory
-</details>
-
-<details>
-<summary><b>logging_handlers</b>: Logging configuration</summary>
-
-- `sink`: Log file path
-- `format`: Log message format
-- `rotation`: Log rotation size
-- `retention`: Log retention period
-- `level`: Logging level
-</details>
-
-#### Example Configuration
-
-```json title="config.json"
+```json
 {
   "repositories": [
     {
-      "git_url": "https://github.com/unoplat/unoplat-code-confluence",
-      "output_path": "/Users/jayghiya/Documents/unoplat",
+      "git_url": "https://github.com/your-org/your-repo",
+      "output_path": "/path/to/output/directory",
       "codebases": [
         {
-          "codebase_folder_name": "unoplat-code-confluence",
-          "root_package_name": "unoplat_code_confluence",
+          "codebase_folder": "path/to/codebase",
+          "root_package": "src/package_name",
           "programming_language_metadata": {
             "language": "python",
-            "package_manager": "poetry",
-            "language_version": "3.12.0"
-          }        
+            "package_manager": "uv"
+          }
         }
       ]
-    }
-  ],
-  "archguard": {
-    "download_url": "archguard/archguard",
-    "download_directory": "/Users/jayghiya/Documents/unoplat"
-  },
-  "logging_handlers": [
-    {
-      "sink": "~/Documents/unoplat/app.log",
-      "format": "<green>{time:YYYY-MM-DD at HH:mm:ss}</green> | <level>{level}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | <magenta>{thread.name}</magenta> - <level>{message}</level>",
-      "rotation": "10 MB",
-      "retention": "10 days",
-      "level": "DEBUG"
     }
   ]
 }
 ```
+</details>
 
-### Environment Variables
+### Configuration Fields
 
-Create a `.env.dev` file:
+| Field | Description |
+|-------|-------------|
+| `repositories` | Array of repositories to analyze |
+| `git_url` | Repository URL (HTTPS) |
+| `output_path` | Local directory for analysis output |
+| `codebases` | Array of codebase configurations |
+| `codebase_folder` | Path to codebase within repository |
+| `root_package` | Path to root package/module |
+| `programming_language_metadata` | Language configuration details |
 
-```env title=".env.dev"
-UNOPLAT_ENV=dev
-UNOPLAT_DEBUG=true 
-UNOPLAT_GITHUB_TOKEN=Your_Github_Pat_Token
+### 💡 Example Configuration
+
+<details>
+<summary>Real-world Configuration Example</summary>
+
+```json
+{
+  "repositories": [
+    {
+      "git_url": "https://github.com/unoplat/unoplat-code-confluence",
+      "output_path": "/Users/username/Documents/unoplat",
+      "codebases": [
+        {
+          "codebase_folder": "unoplat-code-confluence-ingestion/code-confluence-flow-bridge",
+          "root_package": "src/code_confluence_flow_bridge",
+          "programming_language_metadata": {
+            "language": "python",
+            "package_manager": "uv"
+          }
+        }
+      ]
+    }
+  ]
+}
 ```
+</details>
 
-### Running the Application
+## CLI Installation
 
-```bash
-unoplat-code-confluence --config /path/to/your/config.json
-```
+1. **Create Virtual Environment:**
+   ```bash
+   uv venv
+   ```
+
+2. **Install Code Confluence CLI:**
+   ```bash
+   uv pip install --system "git+https://github.com/unoplat/unoplat-code-confluence.git#subdirectory=unoplat-code-confluence-cli" 
+   ```
+
+## Running the Application
+
+1. **Execute Analysis:**
+   ```bash
+   code-confluence --config /path/to/your/config.json
+   ```
+
+2. **Access Neo4j Browser:**
+   - 🌐 Open: `http://localhost:7687`
+   - 🔑 Login with:
+     ```
+     Username: neo4j
+     Password: password
+     ```
+
+3. **Explore Your Code Graph:**
+   ```cypher
+   MATCH (n) 
+   RETURN n 
+   LIMIT 25
+   ```
+
+:::tip
+The above query displays the first 25 nodes in your code graph, perfect for a quick overview!
+:::
 
 ## Troubleshooting
 
-:::danger Common Issues
-If you encounter any issues, please check:
-1. Python version compatibility
-2. Environment variable configuration
-3. JSON configuration syntax
-4. For Code Grammar issues please check out current issues and possible resolutions on [GitHub](https://github.com/unoplat/unoplat-code-confluence/) page.
+Need assistance? We're here to help! 
+
+### 🔍 Support Options
+
+1. **GitHub Issues**
+   - 📝 Visit [**GitHub Issues »**](https://github.com/unoplat/unoplat-code-confluence/issues) to:
+     - Report bugs or request features
+     - Browse existing solutions
+     - Get developer support
+
+2. **Community Support**
+   - 💬 Join our [**Discord Community »**](https://discord.com/channels/1131597983058755675/1169968780953260106) to:
+     - Connect with other users
+     - Get real-time assistance
+
+:::note
+Remember to check existing issues before creating a new one!
 :::
-
-
-
-For more help, visit our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page or join our [Discord](https://discord.com/channels/1131597983058755675/1169968780953260106) community.
 
