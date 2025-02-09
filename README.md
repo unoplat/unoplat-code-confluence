@@ -6,25 +6,22 @@ Unoplat-CodeConfluence aims to be the definitive solution for extracting, unders
 
 ## 🌟 Why Unoplat-CodeConfluence?
 
-- **Precision First**: Built for deterministic and accurate code context extraction using Antlr and tree-sitter grammars
-- **AI-Powered Understanding**: Advanced LLM pipelines that comprehend code relationships and semantics just like humans based on inhouse graph based structures and parsing algorithms.
-- **Graph Intelligence**: Uses graph databases for both ingestion and querying, enabling deep contextual understanding
-- **Enterprise-Grade Reliability**: Powered by workflow orchestration for scalable and reliable processing
-- **Cross-Repository Intelligence**: Understand relationships between codebases across your domain
-- **Comprehensive Metadata**: Parse and analyze package dependencies and project configurations
-- **Integration Ready**: Designed to enhance existing AI coding tools and knowledge bases
-- **Open Source Foundation**: Built transparently with and for the developer community
+- **Deterministic Understanding**: Built on ArchGuard and Tree-sitter for reliable, language-agnostic code parsing
+- **Smart Summarization**: Bottom-up code analysis from functions to entire codebases, preserving context at every level
+- **Graph based Embedding**: Embed codebases' functions using SOTA embeddings to enable semantic search and retrieval
+- **Enhanced Onboarding**: Intuitive, interconnected documentation helps new team members understand complex codebases quickly
+- **Graph-Based Intelligence**: Query and explore codebases through natural, graphical relationships between components
+- **Deep Dependency Insights**: Comprehensive parsing of package managers as well as any other related metadata reveals true project structure and relationships.
+- **Integration Ready**: Designed to work seamlessly with your existing development tools and workflows
 
+## 🤝 For Knowledge Engine and AI Coding Assistants
 
-## 🤝 For Knowledge Engine and AI  Coding Assistants' Integration Partners
+Unoplat-CodeConfluence will provide:
 
- Unoplat-CodeConfluence will provide:
-
-- High-precision code context API powered by GraphRag, featuring:
-  - Cross-repository domain-linked semantic understanding through LLM pipelines
-  - Ready-to-use integration SDKs with OSS ecosystems such as:
-    - Danswer
-    - Continue.dev
+- **Precise Context API**: Get reliable, deterministic code understanding through:
+  - Bottom-up code summarization from functions to systems
+  - Graph-based querying on SOTA embeddings with deterministic code grammar for natural code exploration.
+  - Deep package and dependency analysis
 
 ## 🔍 OSS Atlas Initiative
 
@@ -66,14 +63,15 @@ ALPHA
 | Task                                  | Research | POC | Released |
 |---------------------------------------|----------|-----|----------|
 | Code Grammar                          | ✓        | ✓   | ✓        |
-| Integration With Workflow Orchestrator | ✓        | ✓   |          |
+| Integration With Workflow Orchestrator | ✓        | ✓   | ✓        |
+| Data Modelling for Code Grammar             | ✓        | ✓   | ✓         |
+| Insertion into Graph Database         | ✓        | ✓   | ✓        |
 | Data Modelling for Code Summarisation | ✓        | ✓   |          |
-| SOTA LLM Pipelines For Code Grammar Summarisation/Reports       | ✓        | ✓   |          |
-| Automatic Documentation       | ✓        |    |          |
-| Data Modelling for Graph             | ✓        | ✓   |          |
-| Insertion into Graph Database                   | ✓        | ✓   |          |
-| GraphRag based Query Module                  |         |    |          |
-| SDK for integration                   |         |    |          |
+| SOTA LLM Pipelines For Code Grammar Summarisation/Reports | ✓        | ✓   |          |
+| SOTA Embeddings on Codebase Functions | ✓        |     |          |
+| Automatic Documentation              | ✓        |     |          |
+| GraphRag based Query Module          |          |     |          |
+| SDK for integration                  |          |     |          |
 
 
 ### Code Grammar
@@ -83,7 +81,7 @@ ALPHA
 | Feature                          | Beta | Stable | Limitations |
 |----------------------------------|------|---------|-------------|
 | Package Parsing                  | ✓    |        |             |
-| Package Metadata Parsing - Poetry and PIP | ✓    |        |             |
+| Package Metadata Parsing - Poetry and PIP and UV | ✓    |        |             |
 | Inheritance                      | ✓    |        |             |
 | Function Parsing                 | ✓    |        |             |
 | Class Parsing                    | ✓    |        |             |
