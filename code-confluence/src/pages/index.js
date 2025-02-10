@@ -18,6 +18,25 @@ function HomepageHeader() {
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
+        
+        <div className={styles.buttons}>
+          <Link
+            className={clsx(
+              'button button--secondary button--lg',
+              styles.getStarted,
+            )}
+            to="/docs/quickstart/how-to-run">
+            🚀 Quick Start Guide - 5min ⏱️
+          </Link>
+          <Link
+            className={clsx(
+              'button button--outline button--lg',
+              styles.learnMore,
+            )}
+            to="/docs/deep-dive/roadmap">
+            📍 View Roadmap
+          </Link>
+        </div>
       </div>
     </header>
   );
