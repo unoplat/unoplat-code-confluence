@@ -1,0 +1,349 @@
+
+   FastAPI   Starting development server 🚀
+ 
+             Searching for package file structure from directories with __init__.py files
+             Importing from 
+             /Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence
+             -flow-bridge
+ 
+    module   📁 src
+             ├── 🐍 __init__.py
+             └── 📁 code_confluence_flow_bridge
+                 ├── 🐍 __init__.py
+                 └── 🐍 main.py
+ 
+      code   Importing the FastAPI app object from the module with the following code:
+ 
+             from src.code_confluence_flow_bridge.main import app
+ 
+       app   Using import string: src.code_confluence_flow_bridge.main:app
+ 
+    server   Server started at http://127.0.0.1:8000
+    server   Documentation at http://127.0.0.1:8000/docs
+ 
+       tip   Running in development mode, for production use: fastapi run
+ 
+             Logs:
+ 
+      INFO   Will watch for changes in these directories: 
+             ['/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluen
+             ce-flow-bridge/src/code_confluence_flow_bridge']
+      INFO   Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+      INFO   Started reloader process [5964] using WatchFiles
+      INFO   Started server process [5972]
+      INFO   Waiting for application startup.
+[32m2025-02-03 14:45:14.166[0m | [1mINFO    [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph[0m:[36m__init__[0m:[36m30[0m - [1mNeo4j connection settings initialized[0m
+[32m2025-02-03 14:45:14.181[0m | [1mINFO    [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph[0m:[36mconnect[0m:[36m36[0m - [1mSuccessfully connected to Neo4j database[0m
+Setting up indexes and constraints...
+
+Found unoplat_code_confluence_commons.graph_models.base_models.BaseNode
+ + Creating node unique constraint for qualified_name on label BaseNode for class unoplat_code_confluence_commons.graph_models.base_models.BaseNode
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=4, name='constraint_unique_BaseNode_qualified_name', type='UNIQUENESS', schema=(:BaseNode {qualified_name}), ownedIndex=3 )'.}
+Found unoplat_code_confluence_commons.graph_models.code_confluence_annotation.CodeConfluenceAnnotation
+ + Creating node unique constraint for name on label CodeConfluenceAnnotation for class unoplat_code_confluence_commons.graph_models.code_confluence_annotation.CodeConfluenceAnnotation
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=12, name='constraint_unique_CodeConfluenceAnnotation_name', type='UNIQUENESS', schema=(:CodeConfluenceAnnotation {name}), ownedIndex=11 )'.}
+Found unoplat_code_confluence_commons.graph_models.code_confluence_class.CodeConfluenceClass
+ + Creating node unique constraint for qualified_name on label CodeConfluenceClass for class unoplat_code_confluence_commons.graph_models.code_confluence_class.CodeConfluenceClass
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=14, name='constraint_unique_CodeConfluenceClass_qualified_name', type='UNIQUENESS', schema=(:CodeConfluenceClass {qualified_name}), ownedIndex=13 )'.}
+Found unoplat_code_confluence_commons.graph_models.code_confluence_codebase.CodeConfluenceCodebase
+ + Creating node unique constraint for qualified_name on label CodeConfluenceCodebase for class unoplat_code_confluence_commons.graph_models.code_confluence_codebase.CodeConfluenceCodebase
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=6, name='constraint_unique_CodeConfluenceCodebase_qualified_name', type='UNIQUENESS', schema=(:CodeConfluenceCodebase {qualified_name}), ownedIndex=5 )'.}
+Found unoplat_code_confluence_commons.graph_models.code_confluence_git_repository.CodeConfluenceGitRepository
+ + Creating node unique constraint for qualified_name on label CodeConfluenceGitRepository for class unoplat_code_confluence_commons.graph_models.code_confluence_git_repository.CodeConfluenceGitRepository
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=8, name='constraint_unique_CodeConfluenceGitRepository_qualified_name', type='UNIQUENESS', schema=(:CodeConfluenceGitRepository {qualified_name}), ownedIndex=7 )'.}
+ + Creating node unique constraint for repository_url on label CodeConfluenceGitRepository for class unoplat_code_confluence_commons.graph_models.code_confluence_git_repository.CodeConfluenceGitRepository
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=10, name='constraint_unique_CodeConfluenceGitRepository_repository_url', type='UNIQUENESS', schema=(:CodeConfluenceGitRepository {repository_url}), ownedIndex=9 )'.}
+ + Creating node unique constraint for repository_name on label CodeConfluenceGitRepository for class unoplat_code_confluence_commons.graph_models.code_confluence_git_repository.CodeConfluenceGitRepository
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=16, name='constraint_unique_CodeConfluenceGitRepository_repository_name', type='UNIQUENESS', schema=(:CodeConfluenceGitRepository {repository_name}), ownedIndex=15 )'.}
+Found unoplat_code_confluence_commons.graph_models.code_confluence_internal_function.CodeConfluenceInternalFunction
+ + Creating node unique constraint for qualified_name on label CodeConfluenceInternalFunction for class unoplat_code_confluence_commons.graph_models.code_confluence_internal_function.CodeConfluenceInternalFunction
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=18, name='constraint_unique_CodeConfluenceInternalFunction_qualified_name', type='UNIQUENESS', schema=(:CodeConfluenceInternalFunction {qualified_name}), ownedIndex=17 )'.}
+Found unoplat_code_confluence_commons.graph_models.code_confluence_package.CodeConfluencePackage
+ + Creating node unique constraint for qualified_name on label CodeConfluencePackage for class unoplat_code_confluence_commons.graph_models.code_confluence_package.CodeConfluencePackage
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=20, name='constraint_unique_CodeConfluencePackage_qualified_name', type='UNIQUENESS', schema=(:CodeConfluencePackage {qualified_name}), ownedIndex=19 )'.}
+Found unoplat_code_confluence_commons.graph_models.code_confluence_package_manager_metadata.CodeConfluencePackageManagerMetadata
+ + Creating node unique constraint for qualified_name on label CodeConfluencePackageManagerMetadata for class unoplat_code_confluence_commons.graph_models.code_confluence_package_manager_metadata.CodeConfluencePackageManagerMetadata
+{code: Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists} {message: An equivalent constraint already exists, 'Constraint( id=22, name='constraint_unique_CodeConfluencePackageManagerMetadata_qualified_name', type='UNIQUENESS', schema=(:CodeConfluencePackageManagerMetadata {qualified_name}), ownedIndex=21 )'.}
+
+Finished 8 classes.
+[32m2025-02-03 14:45:14.213[0m | [1mINFO    [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph[0m:[36mcreate_schema[0m:[36m54[0m - [1mSuccessfully installed all labels[0m
+[32m2025-02-03 14:45:14.213[0m | [1mINFO    [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minitialize[0m:[36m26[0m - [1mGraph initialization complete[0m
+      INFO   Application startup complete.
+/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/converter.py:563: UserWarning: If you're using pydantic model, refer to https://github.com/temporalio/samples-python/tree/main/pydantic_converter for better support
+  warnings.warn(
+[32m2025-02-03 14:45:55.955[0m | [1mINFO    [0m | [36msrc.code_confluence_flow_bridge.main[0m:[36mstart_workflow[0m:[36m52[0m - [1mStarted workflow. Workflow ID: https://github.com/unoplat/unoplat-code-confluence, RunID d368c14b-3ba1-46c8-acd7-a9545bf75882[0m
+[32m2025-02-03 14:45:55.955[0m | [1mINFO    [0m | [36msrc.code_confluence_flow_bridge.main[0m:[36mingestion[0m:[36m118[0m - [1mStarted workflow. Workflow ID: https://github.com/unoplat/unoplat-code-confluence, RunID d368c14b-3ba1-46c8-acd7-a9545bf75882[0m
+      INFO   127.0.0.1:52460 - "POST /start-ingestion HTTP/1.1" 201
+[32m2025-02-03 14:45:57.764[0m | [32m[1mSUCCESS [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m61[0m - [32m[1mCreated repository node: unoplat_unoplat-code-confluence[0m
+[32m2025-02-03 14:45:57.774[0m | [31m[1mERROR   [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m85[0m - [31m[1mFailed to insert repository unoplat_unoplat-code-confluence: Node already has one relationship[0m
+Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 1, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Completing activity as failed ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 1, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 78, in insert_code_confluence_git_repo
+    await codebase_node.git_repository.connect(repo_node)
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/neomodel/async_/cardinality.py", line 143, in connect
+    raise AttemptedCardinalityViolation("Node already has one relationship")
+neomodel.exceptions.AttemptedCardinalityViolation: Node already has one relationship
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 33, in insert_git_repo_into_graph_db
+    parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 86, in insert_code_confluence_git_repo
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert repository unoplat_unoplat-code-confluence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 453, in _run_activity
+    result = await impl.execute_activity(input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 711, in execute_activity
+    return await input.fn(*input.args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 41, in insert_git_repo_into_graph_db
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence
+[32m2025-02-03 14:45:58.814[0m | [32m[1mSUCCESS [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m61[0m - [32m[1mCreated repository node: unoplat_unoplat-code-confluence[0m
+[32m2025-02-03 14:45:58.834[0m | [31m[1mERROR   [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m85[0m - [31m[1mFailed to insert repository unoplat_unoplat-code-confluence: Node already has one relationship[0m
+Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 2, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Completing activity as failed ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 2, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 78, in insert_code_confluence_git_repo
+    await codebase_node.git_repository.connect(repo_node)
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/neomodel/async_/cardinality.py", line 143, in connect
+    raise AttemptedCardinalityViolation("Node already has one relationship")
+neomodel.exceptions.AttemptedCardinalityViolation: Node already has one relationship
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 33, in insert_git_repo_into_graph_db
+    parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 86, in insert_code_confluence_git_repo
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert repository unoplat_unoplat-code-confluence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 453, in _run_activity
+    result = await impl.execute_activity(input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 711, in execute_activity
+    return await input.fn(*input.args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 41, in insert_git_repo_into_graph_db
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence
+[32m2025-02-03 14:46:00.866[0m | [32m[1mSUCCESS [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m61[0m - [32m[1mCreated repository node: unoplat_unoplat-code-confluence[0m
+[32m2025-02-03 14:46:00.883[0m | [31m[1mERROR   [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m85[0m - [31m[1mFailed to insert repository unoplat_unoplat-code-confluence: Node already has one relationship[0m
+Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 3, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Completing activity as failed ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 3, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 78, in insert_code_confluence_git_repo
+    await codebase_node.git_repository.connect(repo_node)
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/neomodel/async_/cardinality.py", line 143, in connect
+    raise AttemptedCardinalityViolation("Node already has one relationship")
+neomodel.exceptions.AttemptedCardinalityViolation: Node already has one relationship
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 33, in insert_git_repo_into_graph_db
+    parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 86, in insert_code_confluence_git_repo
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert repository unoplat_unoplat-code-confluence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 453, in _run_activity
+    result = await impl.execute_activity(input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 711, in execute_activity
+    return await input.fn(*input.args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 41, in insert_git_repo_into_graph_db
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence
+[32m2025-02-03 14:46:04.913[0m | [32m[1mSUCCESS [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m61[0m - [32m[1mCreated repository node: unoplat_unoplat-code-confluence[0m
+[32m2025-02-03 14:46:04.924[0m | [31m[1mERROR   [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m85[0m - [31m[1mFailed to insert repository unoplat_unoplat-code-confluence: Node already has one relationship[0m
+Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 4, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Completing activity as failed ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 4, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 78, in insert_code_confluence_git_repo
+    await codebase_node.git_repository.connect(repo_node)
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/neomodel/async_/cardinality.py", line 143, in connect
+    raise AttemptedCardinalityViolation("Node already has one relationship")
+neomodel.exceptions.AttemptedCardinalityViolation: Node already has one relationship
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 33, in insert_git_repo_into_graph_db
+    parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 86, in insert_code_confluence_git_repo
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert repository unoplat_unoplat-code-confluence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 453, in _run_activity
+    result = await impl.execute_activity(input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 711, in execute_activity
+    return await input.fn(*input.args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 41, in insert_git_repo_into_graph_db
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence
+[32m2025-02-03 14:46:12.953[0m | [32m[1mSUCCESS [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m61[0m - [32m[1mCreated repository node: unoplat_unoplat-code-confluence[0m
+[32m2025-02-03 14:46:12.968[0m | [31m[1mERROR   [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m85[0m - [31m[1mFailed to insert repository unoplat_unoplat-code-confluence: Node already has one relationship[0m
+Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 5, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Completing activity as failed ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 5, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 78, in insert_code_confluence_git_repo
+    await codebase_node.git_repository.connect(repo_node)
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/neomodel/async_/cardinality.py", line 143, in connect
+    raise AttemptedCardinalityViolation("Node already has one relationship")
+neomodel.exceptions.AttemptedCardinalityViolation: Node already has one relationship
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 33, in insert_git_repo_into_graph_db
+    parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 86, in insert_code_confluence_git_repo
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert repository unoplat_unoplat-code-confluence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 453, in _run_activity
+    result = await impl.execute_activity(input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 711, in execute_activity
+    return await input.fn(*input.args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 41, in insert_git_repo_into_graph_db
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence
+[32m2025-02-03 14:46:28.988[0m | [32m[1mSUCCESS [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m61[0m - [32m[1mCreated repository node: unoplat_unoplat-code-confluence[0m
+[32m2025-02-03 14:46:29.010[0m | [31m[1mERROR   [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m85[0m - [31m[1mFailed to insert repository unoplat_unoplat-code-confluence: Node already has one relationship[0m
+Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 6, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Completing activity as failed ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 6, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 78, in insert_code_confluence_git_repo
+    await codebase_node.git_repository.connect(repo_node)
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/neomodel/async_/cardinality.py", line 143, in connect
+    raise AttemptedCardinalityViolation("Node already has one relationship")
+neomodel.exceptions.AttemptedCardinalityViolation: Node already has one relationship
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 33, in insert_git_repo_into_graph_db
+    parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 86, in insert_code_confluence_git_repo
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert repository unoplat_unoplat-code-confluence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 453, in _run_activity
+    result = await impl.execute_activity(input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 711, in execute_activity
+    return await input.fn(*input.args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 41, in insert_git_repo_into_graph_db
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence
+[32m2025-02-03 14:47:01.047[0m | [32m[1mSUCCESS [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m61[0m - [32m[1mCreated repository node: unoplat_unoplat-code-confluence[0m
+[32m2025-02-03 14:47:01.075[0m | [31m[1mERROR   [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m85[0m - [31m[1mFailed to insert repository unoplat_unoplat-code-confluence: Node already has one relationship[0m
+Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 7, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Completing activity as failed ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 7, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 78, in insert_code_confluence_git_repo
+    await codebase_node.git_repository.connect(repo_node)
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/neomodel/async_/cardinality.py", line 143, in connect
+    raise AttemptedCardinalityViolation("Node already has one relationship")
+neomodel.exceptions.AttemptedCardinalityViolation: Node already has one relationship
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 33, in insert_git_repo_into_graph_db
+    parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 86, in insert_code_confluence_git_repo
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert repository unoplat_unoplat-code-confluence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 453, in _run_activity
+    result = await impl.execute_activity(input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 711, in execute_activity
+    return await input.fn(*input.args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 41, in insert_git_repo_into_graph_db
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence
+[32m2025-02-03 14:48:05.098[0m | [32m[1mSUCCESS [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m61[0m - [32m[1mCreated repository node: unoplat_unoplat-code-confluence[0m
+[32m2025-02-03 14:48:05.124[0m | [31m[1mERROR   [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion[0m:[36minsert_code_confluence_git_repo[0m:[36m85[0m - [31m[1mFailed to insert repository unoplat_unoplat-code-confluence: Node already has one relationship[0m
+Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 8, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Completing activity as failed ({'activity_id': '2', 'activity_type': 'insert_git_repo_into_graph_db', 'attempt': 8, 'namespace': 'default', 'task_queue': 'unoplat-code-confluence-repository-context-ingestion', 'workflow_id': 'https://github.com/unoplat/unoplat-code-confluence', 'workflow_run_id': 'd368c14b-3ba1-46c8-acd7-a9545bf75882', 'workflow_type': 'repo-activity-workflow'})
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 78, in insert_code_confluence_git_repo
+    await codebase_node.git_repository.connect(repo_node)
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/neomodel/async_/cardinality.py", line 143, in connect
+    raise AttemptedCardinalityViolation("Node already has one relationship")
+neomodel.exceptions.AttemptedCardinalityViolation: Node already has one relationship
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 33, in insert_git_repo_into_graph_db
+    parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/graph_db/code_confluence_graph_ingestion.py", line 86, in insert_code_confluence_git_repo
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert repository unoplat_unoplat-code-confluence
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 453, in _run_activity
+    result = await impl.execute_activity(input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/.venv/lib/python3.12/site-packages/temporalio/worker/_activity.py", line 711, in execute_activity
+    return await input.fn(*input.args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/git_activity/confluence_git_graph.py", line 41, in insert_git_repo_into_graph_db
+    raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
+temporalio.exceptions.ApplicationError: GRAPH_INGESTION_ERROR: Failed to insert git repo into graph db: https://github.com/unoplat/unoplat-code-confluence
+      INFO   Shutting down
+      INFO   Waiting for application shutdown.
+[32m2025-02-03 14:48:25.725[0m | [1mINFO    [0m | [36msrc.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph[0m:[36mclose[0m:[36m45[0m - [1mSuccessfully closed Neo4j connection[0m
+      INFO   Application shutdown complete.
+      INFO   Finished server process [5972]
+      INFO   Stopping reloader process [5964]
+
+/Users/jayghiya/.pyenv/versions/3.12.0/lib/python3.12/multiprocessing/resource_tracker.py:224: UserWarning: resource_tracker: There appear to be 8 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
