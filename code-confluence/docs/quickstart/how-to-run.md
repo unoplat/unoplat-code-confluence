@@ -8,6 +8,7 @@ Welcome to **Unoplat Code Confluence** - Your Gateway to Code Understanding!
 
 :::info Current Status
 🔄 Unoplat Code Confluence currently supports Python codebases and is in alpha stage. We're actively working on expanding language support and features.
+While in alpha stage, it's best suited for developers and tech enthusiasts who enjoy exploring new tools, don't mind a few rough edges, and are willing to provide feedback as we work towards establishing a complete end-to-end workflow!
 :::
 
 ## 📑 Table of Contents
