@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.8.0...code-confluence-docs-v0.8.1) (2025-02-10)
+
+
+### Bug Fixes
+
+* docs ([c7aed15](https://github.com/unoplat/unoplat-code-confluence/commit/c7aed152e76751326ae9634bfc620c9d117dc93f))
+
 ## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.7.0...code-confluence-docs-v0.8.0) (2025-02-02)
 
 
