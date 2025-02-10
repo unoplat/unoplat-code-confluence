@@ -87,17 +87,25 @@ Create a `config.json` file with your repository details:
 ```
 </details>
 
+:::tip
+You can configure multiple repositories by including additional objects in the "repositories" array, and within each repository, you can specify multiple codebases in the "codebases" array. All of these will be processed in parallel.
+:::
+
+:::note
+Currently, the only supported language is Python.
+:::
+
 ### Configuration Fields
 
-| Field | Description |
-|-------|-------------|
-| `repositories` | Array of repositories to analyze |
-| `git_url` | Repository URL (HTTPS) |
-| `output_path` | Local directory for analysis output |
-| `codebases` | Array of codebase configurations |
-| `codebase_folder` | Path to codebase within repository |
-| `root_package` | Path to root package/module |
-| `programming_language_metadata` | Language configuration details |
+| Field                             | Description                                 |
+|-----------------------------------|---------------------------------------------|
+| `repositories`                    | Array of repositories to analyze            |
+| `git_url`                         | Repository URL (HTTPS)                      |
+| `output_path`                     | Local directory for analysis output         |
+| `codebases`                       | Array of codebase configurations            |
+| `codebase_folder`                 | Path to codebase within repository          |
+| `root_package`                    | Path to root package/module                 |
+| `programming_language_metadata`   | Language configuration details              |
 
 ### 💡 Example Configuration
 
@@ -135,7 +143,7 @@ Create a `config.json` file with your repository details:
 
 2. **Install Code Confluence CLI:**
    ```bash
-   uv pip install --system "git+https://github.com/unoplat/unoplat-code-confluence.git#subdirectory=unoplat-code-confluence-cli" 
+   uv pip install "git+https://github.com/unoplat/unoplat-code-confluence.git#subdirectory=unoplat-code-confluence-cli" 
    ```
 
 ## Running the Application
@@ -144,6 +152,19 @@ Create a `config.json` file with your repository details:
    ```bash
    code-confluence --config /path/to/your/config.json
    ```
+
+   When you run this command, you'll be prompted to enter a GitHub Personal Access Token (PAT). This token is needed to  clone the repositories specified in your config file.
+
+   :::tip Getting a GitHub PAT
+   If you don't have a GitHub PAT:
+   1. Go to GitHub Settings → Developer Settings → Personal Access Tokens → Tokens (classic)
+   2. Click "Generate new token (classic)"
+   3. Give it a name like "CodeConfluence"
+   4. Select only the `repo` scope (this gives read access to repositories)
+   5. Click "Generate token" and copy it
+   
+   You only need read access since we'll just be cloning repositories!
+   :::
 
 2. **Access Neo4j Browser:**
    - 🌐 Open: `http://localhost:7687`
