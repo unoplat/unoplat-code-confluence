@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.8.1...code-confluence-docs-v0.8.2) (2025-02-11)
+
+
+### Bug Fixes
+
+* cta buttons alignment on mobile screen ([38659ab](https://github.com/unoplat/unoplat-code-confluence/commit/38659ab71194e438bbc53fc7fe44a296aca6a9f1))
+
 ## [0.8.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.8.0...code-confluence-docs-v0.8.1) (2025-02-10)
 
 
