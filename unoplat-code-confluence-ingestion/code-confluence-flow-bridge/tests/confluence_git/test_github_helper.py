@@ -66,10 +66,11 @@ def github_pat_token():
 
 class TestGithubHelper:
     
-    def test_clone_repository(self, github_helper: GithubHelper, settings: RepositorySettings, github_pat_token: str):
+    @pytest.mark.asyncio  # Mark test as async
+    async def test_clone_repository(self, github_helper: GithubHelper, settings: RepositorySettings, github_pat_token: str):
         """Test cloning a real repository using example_config.json"""
-        # Clone repository
-        repo = github_helper.clone_repository(settings, github_token=github_pat_token)
+        # Clone repository - now with await
+        repo = await github_helper.clone_repository(settings, github_token=github_pat_token)
         
         # Basic repository assertions
         assert repo is not None
@@ -119,10 +120,11 @@ class TestGithubHelper:
         assert repo.readme is not None
         assert len(repo.readme) > 0
 
-    def test_clone_nested_repository(self, github_helper: GithubHelper, nested_settings: RepositorySettings, github_pat_token: str):
+    @pytest.mark.asyncio  # Mark test as async
+    async def test_clone_nested_repository(self, github_helper: GithubHelper, nested_settings: RepositorySettings, github_pat_token: str):
         """Test cloning a repository with nested package structure using nested_package_git_config.json"""
-        # Clone repository
-        repo = github_helper.clone_repository(nested_settings, github_token=github_pat_token)
+        # Clone repository - now with await
+        repo = await github_helper.clone_repository(nested_settings, github_token=github_pat_token)
         
         # Basic repository assertions
         assert repo is not None
@@ -173,7 +175,7 @@ class TestGithubHelper:
         assert len(repo.readme) > 0
 
     def test_github_connection(self, github_pat_token):
-        # Use github_pat_token in your test
+        """Test GitHub connection - remains synchronous as it just validates the token"""
         assert github_pat_token is not None
         # ... rest of your test
         

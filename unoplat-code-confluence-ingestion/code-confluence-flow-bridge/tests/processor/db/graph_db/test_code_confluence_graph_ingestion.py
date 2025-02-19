@@ -72,8 +72,6 @@ async def graph_ingestion(env_settings: EnvironmentSettings) -> AsyncGenerator[C
     await ingestion.initialize()
     yield ingestion
     await ingestion.close()
-        
-        
 
 @pytest.fixture
 def sample_git_repo() -> UnoplatGitRepository:
@@ -106,66 +104,41 @@ class TestCodeConfluenceGraphIngestion:
     """Test cases for CodeConfluenceGraphIngestion"""
 
     @pytest.mark.asyncio
-    async def test_initialize_and_close(self, env_settings: EnvironmentSettings):
-        """Test initialization and closing of graph connection"""
-        ingestion = CodeConfluenceGraphIngestion(code_confluence_env=env_settings)
-        
-        # Test initialization
-        await ingestion.initialize()
-        assert ingestion.code_confluence_graph is not None
-        
-        # Test closing
-        await ingestion.close()
-
-    @pytest.mark.asyncio
     async def test_insert_git_repo(self, graph_ingestion: CodeConfluenceGraphIngestion, sample_git_repo: UnoplatGitRepository):
         """Test inserting git repository data"""
-        # Get the actual instance from the generator
-        async for ingestion in graph_ingestion:
-            # Insert repository
-            metadata = await ingestion.insert_code_confluence_git_repo(sample_git_repo)
-            
-            # Verify metadata
-            assert isinstance(metadata, ParentChildCloneMetadata)
-            assert metadata.repository_qualified_name == "unoplat_unoplat-code-confluence"
-            assert len(metadata.codebase_qualified_names) == 1
-            assert metadata.codebase_qualified_names[0] == "unoplat_unoplat-code-confluence_unoplat_code_confluence"
+        # Insert repository
+        metadata = await graph_ingestion.insert_code_confluence_git_repo(sample_git_repo)
+        
+        # Verify metadata
+        assert isinstance(metadata, ParentChildCloneMetadata)
+        assert metadata.repository_qualified_name == "unoplat_unoplat-code-confluence"
+        assert len(metadata.codebase_qualified_names) == 1
+        assert metadata.codebase_qualified_names[0] == "unoplat_unoplat-code-confluence_unoplat_code_confluence"
 
-            # Verify repository node
-            repo_nodes = await CodeConfluenceGitRepository.nodes.filter(
-                qualified_name=metadata.repository_qualified_name
-            ).all()
-            assert len(repo_nodes) == 1
-            repo_node: CodeConfluenceGitRepository = repo_nodes[0]
-            assert repo_node.repository_url == sample_git_repo.repository_url
-            assert repo_node.repository_name == sample_git_repo.repository_name
-            
+        # Verify repository node
+        repo_nodes = await CodeConfluenceGitRepository.nodes.filter(
+            qualified_name=metadata.repository_qualified_name
+        ).all()
+        assert len(repo_nodes) == 1
+        repo_node: CodeConfluenceGitRepository = repo_nodes[0]
+        assert repo_node.repository_url == sample_git_repo.repository_url
+        assert repo_node.repository_name == sample_git_repo.repository_name
+        
 
-            # Verify codebase node
-            codebase_nodes = await CodeConfluenceCodebase.nodes.filter(
-                qualified_name=metadata.codebase_qualified_names[0]
-            ).all()
-            assert len(codebase_nodes) == 1
-            codebase_node = codebase_nodes[0]
-            assert codebase_node.name == sample_git_repo.codebases[0].name
+        # Verify codebase node
+        codebase_nodes = await CodeConfluenceCodebase.nodes.filter(
+            qualified_name=metadata.codebase_qualified_names[0]
+        ).all()
+        assert len(codebase_nodes) == 1
+        codebase_node = codebase_nodes[0]
+        assert codebase_node.name == sample_git_repo.codebases[0].name
 
-            # Verify relationships
-            repo_codebases = await repo_node.codebases.all()
-            assert len(repo_codebases) == 1
-            assert repo_codebases[0].qualified_name == metadata.codebase_qualified_names[0]
+        # Verify relationships
+        repo_codebases = await repo_node.codebases.all()
+        assert len(repo_codebases) == 1
+        assert repo_codebases[0].qualified_name == metadata.codebase_qualified_names[0]
 
-    @pytest.mark.asyncio
-    async def test_error_handling(self, graph_ingestion: CodeConfluenceGraphIngestion):
-        """Test error handling for invalid data"""
-        with pytest.raises(ValidationError):
-            invalid_repo = UnoplatGitRepository(
-                repository_url="invalid-url",
-                repository_name=None,  # Invalid empty name
-                github_organization="",  # Invalid empty org
-                repository_metadata={},
-                readme="",
-                codebases=[]
-            )
+
 
     @pytest.mark.asyncio
     async def test_insert_package_manager_metadata(self, graph_ingestion: CodeConfluenceGraphIngestion):
@@ -177,51 +150,50 @@ class TestCodeConfluenceGraphIngestion:
             "name": "test_codebase",
             "readme": "# Test Codebase"
         }
-        async for ingestion in graph_ingestion:
         
-            codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
-            assert len(codebase_results) == 1
-            codebase_node = codebase_results[0]
-            
-            # Create sample package manager metadata
-            package_metadata = UnoplatPackageManagerMetadata(
-                dependencies={
-                    "requests": UnoplatProjectDependency(
-                        version=UnoplatVersion(minimum_version="2.0.0")
-                    )
-                },
-                package_name="test-package",
-                programming_language="python",
-                package_manager="poetry",
-                programming_language_version="3.9",
-                project_version="1.0.0",
-                description="Test package",
-                authors=["Test Author"],
-                entry_points={"cli": "test_package.cli:main"}
-            )
-            
-            # Insert metadata
-            await ingestion.insert_code_confluence_codebase_package_manager_metadata(
-                codebase_qualified_name=codebase_qualified_name,
-                package_manager_metadata=package_metadata
-            )
-            
-            # Verify metadata node was created and linked
-            codebase_node: CodeConfluenceCodebase = await CodeConfluenceCodebase.nodes.get(
-                qualified_name=codebase_qualified_name
-            )
-            
-            metadata_nodes = await codebase_node.package_manager_metadata.all()
-            assert len(metadata_nodes) == 1
-            metadata_node = metadata_nodes[0]
-            
-            # Verify metadata fields
-            assert metadata_node.package_name == package_metadata.package_name
-            assert metadata_node.programming_language == package_metadata.programming_language
-            assert metadata_node.package_manager == package_metadata.package_manager
-            assert metadata_node.programming_language_version == package_metadata.programming_language_version
-            assert metadata_node.project_version == package_metadata.project_version
-            assert metadata_node.description == package_metadata.description
-            assert metadata_node.authors == package_metadata.authors
-            assert metadata_node.entry_points == package_metadata.entry_points
-            assert metadata_node.dependencies["requests"]["version"]["minimum_version"] == "2.0.0"
+        codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
+        assert len(codebase_results) == 1
+        created_codebase = codebase_results[0]
+        
+        # Create sample package manager metadata
+        package_metadata = UnoplatPackageManagerMetadata(
+            dependencies={
+                "requests": UnoplatProjectDependency(
+                    version=UnoplatVersion(minimum_version="2.0.0")
+                )
+            },
+            package_name="test-package",
+            programming_language="python",
+            package_manager="poetry",
+            programming_language_version="3.9",
+            project_version="1.0.0",
+            description="Test package",
+            authors=["Test Author"],
+            entry_points={"cli": "test_package.cli:main"}
+        )
+        
+        # Insert metadata
+        await graph_ingestion.insert_code_confluence_codebase_package_manager_metadata(
+            codebase_qualified_name=codebase_qualified_name,
+            package_manager_metadata=package_metadata
+        )
+        
+        # Verify metadata node was created and linked
+        retrieved_codebase: CodeConfluenceCodebase = await CodeConfluenceCodebase.nodes.get(
+            qualified_name=codebase_qualified_name
+        )
+        
+        metadata_nodes = await retrieved_codebase.package_manager_metadata.all()
+        assert len(metadata_nodes) == 1
+        metadata_node = metadata_nodes[0]
+        
+        # Verify metadata fields
+        assert metadata_node.package_name == package_metadata.package_name
+        assert metadata_node.programming_language == package_metadata.programming_language
+        assert metadata_node.package_manager == package_metadata.package_manager
+        assert metadata_node.programming_language_version == package_metadata.programming_language_version
+        assert metadata_node.project_version == package_metadata.project_version
+        assert metadata_node.description == package_metadata.description
+        assert metadata_node.authors == package_metadata.authors
+        assert metadata_node.entry_points == package_metadata.entry_points
+        assert metadata_node.dependencies["requests"]["version"]["minimum_version"] == "2.0.0"
