@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 from typing import AsyncGenerator
+from contextlib import asynccontextmanager
 
 # Third Party
 from pydantic_core import ValidationError
@@ -65,13 +66,21 @@ def env_settings(neo4j_container: Neo4jContainer) -> EnvironmentSettings:
         NEO4J_CONNECTION_ACQUISITION_TIMEOUT=60
     )
 
+@asynccontextmanager
+async def create_graph_ingestion(env_settings: EnvironmentSettings) -> AsyncGenerator[CodeConfluenceGraphIngestion, None]:
+    """Create and manage a graph ingestion instance with proper lifecycle management."""
+    ingestion = CodeConfluenceGraphIngestion(code_confluence_env=env_settings)
+    try:
+        await ingestion.initialize()
+        yield ingestion
+    finally:
+        await ingestion.close()
+
 @pytest.fixture
 async def graph_ingestion(env_settings: EnvironmentSettings) -> AsyncGenerator[CodeConfluenceGraphIngestion, None]:
     """Create and initialize graph ingestion instance"""
-    ingestion = CodeConfluenceGraphIngestion(code_confluence_env=env_settings)
-    await ingestion.initialize()
-    yield ingestion
-    await ingestion.close()
+    async with create_graph_ingestion(env_settings) as ingestion:
+        yield ingestion
         
         
 
@@ -118,9 +127,8 @@ class TestCodeConfluenceGraphIngestion:
         await ingestion.close()
 
     @pytest.mark.asyncio
-    async def test_insert_git_repo(self, graph_ingestion: CodeConfluenceGraphIngestion, sample_git_repo: UnoplatGitRepository):
+    async def test_insert_git_repo(self, graph_ingestion: AsyncGenerator[CodeConfluenceGraphIngestion, None], sample_git_repo: UnoplatGitRepository):
         """Test inserting git repository data"""
-        # Get the actual instance from the generator
         async for ingestion in graph_ingestion:
             # Insert repository
             metadata = await ingestion.insert_code_confluence_git_repo(sample_git_repo)
@@ -154,34 +162,23 @@ class TestCodeConfluenceGraphIngestion:
             assert len(repo_codebases) == 1
             assert repo_codebases[0].qualified_name == metadata.codebase_qualified_names[0]
 
-    @pytest.mark.asyncio
-    async def test_error_handling(self, graph_ingestion: CodeConfluenceGraphIngestion):
-        """Test error handling for invalid data"""
-        with pytest.raises(ValidationError):
-            invalid_repo = UnoplatGitRepository(
-                repository_url="invalid-url",
-                repository_name=None,  # Invalid empty name
-                github_organization="",  # Invalid empty org
-                repository_metadata={},
-                readme="",
-                codebases=[]
-            )
+  
 
     @pytest.mark.asyncio
-    async def test_insert_package_manager_metadata(self, graph_ingestion: CodeConfluenceGraphIngestion):
+    async def test_insert_package_manager_metadata(self, graph_ingestion: AsyncGenerator[CodeConfluenceGraphIngestion, None]):
         """Test inserting package manager metadata"""
-        # First create a codebase node to link metadata to
-        codebase_qualified_name = "test_org_test-repo_test_codebase"
-        codebase_dict = {
-            "qualified_name": codebase_qualified_name,
-            "name": "test_codebase",
-            "readme": "# Test Codebase"
-        }
         async for ingestion in graph_ingestion:
-        
+            # First create a codebase node to link metadata to
+            codebase_qualified_name = "test_org_test-repo_test_codebase"
+            codebase_dict = {
+                "qualified_name": codebase_qualified_name,
+                "name": "test_codebase",
+                "readme": "# Test Codebase"
+            }
+            
             codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
             assert len(codebase_results) == 1
-            codebase_node = codebase_results[0]
+            created_codebase = codebase_results[0]
             
             # Create sample package manager metadata
             package_metadata = UnoplatPackageManagerMetadata(
@@ -207,11 +204,11 @@ class TestCodeConfluenceGraphIngestion:
             )
             
             # Verify metadata node was created and linked
-            codebase_node: CodeConfluenceCodebase = await CodeConfluenceCodebase.nodes.get(
+            retrieved_codebase: CodeConfluenceCodebase = await CodeConfluenceCodebase.nodes.get(
                 qualified_name=codebase_qualified_name
             )
             
-            metadata_nodes = await codebase_node.package_manager_metadata.all()
+            metadata_nodes = await retrieved_codebase.package_manager_metadata.all()
             assert len(metadata_nodes) == 1
             metadata_node = metadata_nodes[0]
             

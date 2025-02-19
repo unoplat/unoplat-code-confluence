@@ -13,13 +13,19 @@ While in alpha stage, it's best suited for developers and tech enthusiasts who e
 
 ## 📑 Table of Contents
 
-1. [🎯 Introduction](#introduction)
-2. [📋 Prerequisites](#prerequisites)
-3. [⚙️ Setting Up Code Confluence](#setting-up-code-confluence)
-4. [🔄 Repository Configuration](#repository-configuration)
-5. [💻 CLI Installation](#cli-installation)
-6. [▶️ Running the Application](#running-the-application)
-7. [🆘 Troubleshooting](#troubleshooting)
+- [🚀 Quick Start Guide](#-quick-start-guide)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [Introduction](#introduction)
+  - [Prerequisites](#prerequisites)
+  - [Setting Up Code Confluence](#setting-up-code-confluence)
+  - [Repository Configuration](#repository-configuration)
+    - [📝 Creating Your Configuration](#-creating-your-configuration)
+    - [Configuration Fields](#configuration-fields)
+    - [💡 Example Configuration](#-example-configuration)
+  - [CLI Installation](#cli-installation)
+  - [Running the Application](#running-the-application)
+  - [Troubleshooting](#troubleshooting)
+    - [🔍 Support Options](#-support-options)
 
 ## Introduction
 
@@ -168,7 +174,7 @@ Currently, the only supported language is Python.
    :::
 
 2. **Access Neo4j Browser:**
-   - 🌐 Open: `http://localhost:7687`
+   - 🌐 Open: `http://localhost:7474/browser/`
    - 🔑 Login with:
      ```
      Username: neo4j
