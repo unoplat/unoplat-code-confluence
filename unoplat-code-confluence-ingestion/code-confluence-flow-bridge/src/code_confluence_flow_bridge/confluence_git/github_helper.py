@@ -7,6 +7,7 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata, RepositorySettings
 
 import os
+import asyncio  # NEW: Import asyncio to run blocking calls in a thread
 from typing import Any, Dict, List
 
 # Third Party
@@ -20,53 +21,48 @@ from temporalio import activity
 
 class GithubHelper:
     # works with - vhttps://github.com/organization/repository,https://github.com/organization/repository.git,git@github.com:organization/repository.git
-    def clone_repository(self, repository_settings: RepositorySettings, github_token: str) -> UnoplatGitRepository:
+    async def clone_repository(self, repository_settings: RepositorySettings, github_token: str) -> UnoplatGitRepository:
         """
-        Clone the repository and return repository details
+        Clone the repository asynchronously and return repository details.
         Works with URL formats:
         - https://github.com/organization/repository
         - https://github.com/organization/repository.git
         - git@github.com:organization/repository.git
         """
-
         # Initialize Github client with personal access token
         auth = Auth.Token(github_token)
-        github_client = Github(auth=auth)
+        github_client: Github = Github(auth=auth)
 
-        # Get repository from URL
+        # Get repository URL from settings and prepare repo_path and repo_name
         repo_url: str = repository_settings.git_url
-
-        # Extract owner and repo name from different URL formats
         if repo_url.startswith("git@"):
             # Handle SSH format: git@github.com:org/repo.git
             repo_path: str = repo_url.split("github.com:")[-1]
         else:
             # Handle HTTPS format: https://github.com/org/repo[.git]
             repo_path = repo_url.split("github.com/")[-1]
-
-        # Remove .git suffix if present
         repo_path = repo_path.replace(".git", "")
         repo_name: str = repo_path.split("/")[-1]
 
         try:
-            # Get repository object from Github using owner/repo format
-            github_repo = github_client.get_repo(repo_path)
+            # Get repository object asynchronously (blocking network call wrapped in thread)
+            github_repo = await asyncio.to_thread(github_client.get_repo, repo_path)
 
             # Create local directory if it doesn't exist
-            local_path = os.path.join(os.path.expanduser("~"), ".unoplat", "repositories")
+            local_path: str = os.path.join(os.path.expanduser("~"), ".unoplat", "repositories")
             os.makedirs(local_path, exist_ok=True)
             # Reassign repo_path to the local clone path
             repo_path = os.path.join(local_path, repo_name)
 
-            # Clone repository if not already cloned
+            # Clone repository asynchronously if not already cloned
             if not os.path.exists(repo_path):
-                Repo.clone_from(repo_url, repo_path)
-            # Activity-based logging: log the repository's local clone path
+                await asyncio.to_thread(Repo.clone_from, repo_url, repo_path)
+
+            # Activity-based and pass-through logging
             activity.logger.info(f"[Temporal] Repository is available at local path: {repo_path}")
-            # Pass-through logging using Loguru's logger
             logger.info(f"[Temporal-Python @Web] Repository is available at local path: {repo_path}")
 
-            # Get repository metadata
+            # Build repo metadata
             repo_metadata: Dict[str, Any] = {
                 "stars": github_repo.stargazers_count,
                 "forks": github_repo.forks_count,
@@ -76,9 +72,11 @@ class GithubHelper:
                 "language": github_repo.language,
             }
 
-            # Get README content
+            # Get README content asynchronously (if available)
             try:
-                readme_content = github_repo.get_readme().decoded_content.decode("utf-8")
+                readme_content: str | None = await asyncio.to_thread(
+                    lambda: github_repo.get_readme().decoded_content.decode("utf-8")
+                )
             except Exception:
                 readme_content = None
 
@@ -103,14 +101,13 @@ class GithubHelper:
                     if codebase_config.programming_language_metadata.language.value == "python":
                         raise Exception("Root package should be specified for python codebases")
 
-                # NEW: Log the computed local path for the codebase
+                # Log the computed local path for the codebase (activity-based and pass-through)
                 activity.logger.info(f"[Temporal] Codebase local path computed as: {local_path}")
-                # Pass-through logging using Loguru's logger
                 logger.info(f"[Temporal-Python @Web] Codebase local path computed as: {local_path}")
 
                 programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
-                # Verify the path exists
-                if not os.path.exists(local_path):
+                # Verify the path exists asynchronously
+                if not await asyncio.to_thread(os.path.exists, local_path):
                     raise Exception(f"Codebase path not found: {local_path}")
 
                 codebase = UnoplatCodebase(
