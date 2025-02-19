@@ -35,4 +35,10 @@ test = [
 [tool.uv.sources]
 unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.10.0" }
 
+[tool.poetry.dev-dependencies]
+pytest-asyncio = "^0.23.5"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
 

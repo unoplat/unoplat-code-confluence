@@ -16,7 +16,7 @@ class GitActivity:
         activity.logger.info("Initialized GitActivity with GithubHelper")
 
     @activity.defn
-    def process_git_activity(self, repository_settings: RepositorySettings, github_token: str) -> UnoplatGitRepository:
+    async def process_git_activity(self, repository_settings: RepositorySettings, github_token: str) -> UnoplatGitRepository:
         """
         Process Git activity using GithubHelper
 
@@ -28,7 +28,7 @@ class GitActivity:
             info = activity.info()
             activity.logger.info("Starting git activity processing", extra={"temporal_workflow_id": info.workflow_id, "temporal_activity_id": info.activity_id, "temporal_attempt": info.attempt, "git_url": repository_settings.git_url})
 
-            activity_data = self.github_helper.clone_repository(repository_settings, github_token)
+            activity_data = await self.github_helper.clone_repository(repository_settings, github_token)
 
             activity.logger.info("Successfully processed git activity", extra={"temporal_workflow_id": info.workflow_id, "temporal_activity_id": info.activity_id, "git_url": repository_settings.git_url, "status": "success"})
             return activity_data
