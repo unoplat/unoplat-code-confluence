@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.8.2...code-confluence-docs-v0.8.3) (2025-02-19)
+
+
+### Bug Fixes
+
+* move git clone to async operation to not block fix tests and fix browser url link in docs ([0f2a7ac](https://github.com/unoplat/unoplat-code-confluence/commit/0f2a7acc5bbfae2a9f5bafe061d936d60cba3929))
+
 ## [0.8.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.8.1...code-confluence-docs-v0.8.2) (2025-02-11)
 
 
