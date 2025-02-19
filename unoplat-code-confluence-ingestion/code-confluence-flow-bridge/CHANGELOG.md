@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.11.1...code-confluence-flow-bridge-v0.12.0) (2025-02-19)
+
+
+### Features
+
+* made git clone operation async to not block the event loop ([d13b440](https://github.com/unoplat/unoplat-code-confluence/commit/d13b440babbe3f5880e4fac36ead40e7504e30ce))
+
+
+### Bug Fixes
+
+* move git clone to async operation to not block fix tests and fix browser url link in docs ([0f2a7ac](https://github.com/unoplat/unoplat-code-confluence/commit/0f2a7acc5bbfae2a9f5bafe061d936d60cba3929))
+* test updates ([2171011](https://github.com/unoplat/unoplat-code-confluence/commit/21710113ed919e290a5abfdc011b26156f7480e0))
+
 ## [0.11.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.11.0...code-confluence-flow-bridge-v0.11.1) (2025-02-09)
 
 
