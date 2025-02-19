@@ -6,7 +6,7 @@
 <title data-rh="true">🚀 Quick Start Guide | Code confluence</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://docs.unoplat.io/docs/quickstart/how-to-run"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="🚀 Quick Start Guide | Code confluence"><meta data-rh="true" name="description" content="Welcome to Unoplat Code Confluence - Your Gateway to Code Understanding!"><meta data-rh="true" property="og:description" content="Welcome to Unoplat Code Confluence - Your Gateway to Code Understanding!"><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://docs.unoplat.io/docs/quickstart/how-to-run"><link data-rh="true" rel="alternate" href="https://docs.unoplat.io/docs/quickstart/how-to-run" hreflang="en"><link data-rh="true" rel="alternate" href="https://docs.unoplat.io/docs/quickstart/how-to-run" hreflang="x-default"><link data-rh="true" rel="preconnect" href="https://0PYM5MWDAT-dsn.algolia.net" crossorigin="anonymous"><link rel="search" type="application/opensearchdescription+xml" title="Code confluence" href="/opensearch.xml">
 
 <link rel="stylesheet" href="/src/css/custom.css"><link rel="stylesheet" href="/assets/css/styles.83725a18.css">
-<script src="/assets/js/runtime~main.91a71205.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.485e7da6.js" defer="defer"></script>
 <script src="/assets/js/main.336b0f63.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -15,15 +15,30 @@
 <div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>Current Status</div><div class="admonitionContent_BuS1"><p>🔄 Unoplat Code Confluence currently supports Python codebases and is in alpha stage. We&#x27;re actively working on expanding language support and features.
 While in alpha stage, it&#x27;s best suited for developers and tech enthusiasts who enjoy exploring new tools, don&#x27;t mind a few rough edges, and are willing to provide feedback as we work towards establishing a complete end-to-end workflow!</p></div></div>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="-table-of-contents">📑 Table of Contents<a href="#-table-of-contents" class="hash-link" aria-label="Direct link to 📑 Table of Contents" title="Direct link to 📑 Table of Contents">​</a></h2>
-<ol>
-<li><a href="#introduction">🎯 Introduction</a></li>
-<li><a href="#prerequisites">📋 Prerequisites</a></li>
-<li><a href="#setting-up-code-confluence">⚙️ Setting Up Code Confluence</a></li>
-<li><a href="#repository-configuration">🔄 Repository Configuration</a></li>
-<li><a href="#cli-installation">💻 CLI Installation</a></li>
-<li><a href="#running-the-application">▶️ Running the Application</a></li>
-<li><a href="#troubleshooting">🆘 Troubleshooting</a></li>
-</ol>
+<ul>
+<li><a href="#-quick-start-guide">🚀 Quick Start Guide</a>
+<ul>
+<li><a href="#-table-of-contents">📑 Table of Contents</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#setting-up-code-confluence">Setting Up Code Confluence</a></li>
+<li><a href="#repository-configuration">Repository Configuration</a>
+<ul>
+<li><a href="#-creating-your-configuration">📝 Creating Your Configuration</a></li>
+<li><a href="#configuration-fields">Configuration Fields</a></li>
+<li><a href="#-example-configuration">💡 Example Configuration</a></li>
+</ul>
+</li>
+<li><a href="#cli-installation">CLI Installation</a></li>
+<li><a href="#running-the-application">Running the Application</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a>
+<ul>
+<li><a href="#-support-options">🔍 Support Options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="introduction">Introduction<a href="#introduction" class="hash-link" aria-label="Direct link to Introduction" title="Direct link to Introduction">​</a></h2>
 <p>The current version supports parsing codebases and exporting a JSON representation of code graph. For more details, check out:</p>
 <ul>
@@ -96,7 +111,7 @@ While in alpha stage, it&#x27;s best suited for developers and tech enthusiasts 
 <li>
 <p><strong>Access Neo4j Browser:</strong></p>
 <ul>
-<li>🌐 Open: <code>http://localhost:7687</code></li>
+<li>🌐 Open: <code>http://localhost:7474/browser/</code></li>
 <li>🔑 Login with:<!-- -->
 <div class="codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">Username: neo4j</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">Password: password</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
 </li>
