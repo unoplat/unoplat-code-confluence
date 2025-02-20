@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.12.0...code-confluence-flow-bridge-v0.13.0) (2025-02-20)
+
+
+### Features
+
+* update latest archguard jar to get right spaces and indentations in function blocks ([c9a1f00](https://github.com/unoplat/unoplat-code-confluence/commit/c9a1f00479201c1eb4b89ccd1b938e276e025dec))
+* updated jar versions in docker files ([aad52d7](https://github.com/unoplat/unoplat-code-confluence/commit/aad52d783481b0893ab02a19298a1377d7f5d610))
+* upgraded archguard jars ([0b7499e](https://github.com/unoplat/unoplat-code-confluence/commit/0b7499e1ce2704c951f4e22a8551ec962c978f13))
+
+
+### Bug Fixes
+
+* update release to get the right updated jar ([4e298ea](https://github.com/unoplat/unoplat-code-confluence/commit/4e298ea19e95491b4370710435fee668d2213b22))
+
 ## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.11.1...code-confluence-flow-bridge-v0.12.0) (2025-02-19)
 
 
