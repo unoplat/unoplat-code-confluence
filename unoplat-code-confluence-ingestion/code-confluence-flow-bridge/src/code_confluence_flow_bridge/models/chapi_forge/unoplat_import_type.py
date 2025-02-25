@@ -8,3 +8,4 @@ class ImportType(Enum):
     EXTERNAL = "EXTERNAL"  # Third party imports
     STANDARD = "STANDARD"  # Standard library imports
     LOCAL = "LOCAL"
+    OTHER = "OTHER"
