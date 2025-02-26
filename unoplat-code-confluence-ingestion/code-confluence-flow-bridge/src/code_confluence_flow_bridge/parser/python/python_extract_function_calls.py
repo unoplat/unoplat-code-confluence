@@ -20,57 +20,56 @@ class PythonExtractFunctionCalls:
         """Initialize the function call extractor with Python Tree-sitter parser."""
         self.parser: Parser = code_confluence_tree_sitter.get_parser()
 
-    def extract_function_calls(self, file_path_nodes:dict[str, List[ChapiNode]], imports: List[UnoplatImport], entire_code: str) -> dict[str, List[ChapiNode]]:
+    def _handle_node_functions(self, node: ChapiNode, imports: List[UnoplatImport], entire_code: str) -> None:
         """
-        Extract function calls from the given function content using Tree-sitter.
-        
-        Args:
-            file_path_nodes: Dictionary mapping file paths to lists of ChapiNodes
-            imports: List of UnoplatImport objects
-            entire_code: The entire code of the file
-            
-        Returns:
-            Updated dictionary with function calls linked to their targets
+        Common logic for processing functions in a node (either procedural or class).
+        Builds the instantiation map and import map, extracts function calls for each function,
+        processes them, and updates the function's function_calls list.
         """
-        # Parse the content
-        for _, nodes in file_path_nodes.items():
-            if len(nodes) == 1 and (nodes[0].type is None or not nodes[0].type or nodes[0].type == "" or nodes[0].type != "CLASS"):
-               self.handle_procedural_code(nodes[0], imports, entire_code) 
-        
-        return file_path_nodes
-
-    def handle_procedural_code(self, node: ChapiNode, imports: List[UnoplatImport], entire_code: str) -> None:
-        """
-        Handle procedural code by extracting function calls and linking them to their targets.
-        
-        Args:
-            node: The ChapiNode representing the procedural code
-            imports: List of UnoplatImport objects
-            entire_code: The entire code of the file
-        """
-        # Step 1: Build object instantiation map
-        inst_map = self.extract_instantiations_ts(entire_code)
-        
-        # Step 2: Build import map for resolving qualified names
-        import_map = self._build_import_map(imports)
-        
-        # Step 3: Process each function in the procedural node
+        inst_map: Dict[str, str] = self.extract_instantiations_ts(entire_code)
+        import_map: Dict[str, str] = self._build_import_map(imports)
         if node.functions:
             for function in node.functions:
-                # Step 4: Extract function calls from this function's content
                 if function.content:
                     function_calls: List[ChapiFunctionCall] = self._extract_function_calls_from_content(function.content)
-                    
-                    # Step 5: Process each function call to link it to its target
                     processed_calls: List[ChapiFunctionCall] = []
                     for call in function_calls:
                         processed_call: Optional[ChapiFunctionCall] = self._process_function_call(call, inst_map, import_map, node)
                         if processed_call:
                             processed_calls.append(processed_call)
-                    
-                    # Step 6: Update the function with the processed calls
                     function.function_calls = processed_calls
-                    
+
+    def handle_procedural_code(self, node: ChapiNode, imports: List[UnoplatImport], entire_code: str) -> None:
+        """
+        Handle procedural code by processing functions in a procedural node.
+        """
+        self._handle_node_functions(node, imports, entire_code)
+
+    def handle_class_code(self, node: ChapiNode, imports: List[UnoplatImport], entire_code: str) -> None:
+        """
+        Handle class code by processing methods in a class node.
+        This maps function calls made within the same class (methods) and also calls to external procedures or
+        classes' functions in the codebase.
+        """
+        self._handle_node_functions(node, imports, entire_code)
+
+    def extract_function_calls(self, file_path_nodes: dict[str, List[ChapiNode]], imports: List[UnoplatImport], entire_code: str) -> dict[str, List[ChapiNode]]:
+        """
+        Extract function calls from the given function content using Tree-sitter parser.
+        Updates nodes by linking function calls to their targets based on whether a node is procedural or a class.
+        """
+        # Process each node per file path
+        for _, nodes in file_path_nodes.items():
+            if len(nodes) == 1:
+                # If the node is a procedural node (no type or empty) or not a class
+                if not nodes[0].type or nodes[0].type == "" or nodes[0].type != "CLASS":
+                    self.handle_procedural_code(nodes[0], imports, entire_code)
+                # If the node is a class node, use handle_class_code
+                elif nodes[0].type == "CLASS":
+                    self.handle_class_code(nodes[0], imports, entire_code)
+        
+        return file_path_nodes
+
     def _extract_function_calls_from_content(self, content: str) -> List[ChapiFunctionCall]:
         """
         Extract function calls from the given content using Tree-sitter.
@@ -251,26 +250,36 @@ class PythonExtractFunctionCalls:
         Returns:
             Updated ChapiFunctionCall with linked information or None if the call should be ignored
         """
-        # Step 1: Check if it's a same-file function (local procedure)
+        # Step 1: Check if it's a same-file function call
         is_local_procedure: bool = False
         if node.functions:
             for function in node.functions:
-                if function.name == call.function_name:
+                # For procedural nodes or direct method calls (without "self.")
+                # check if node_name is None and function name matches
+                if function.name == call.function_name and (call.node_name is None):
                     call.type = FunctionCallType.SAME_FILE.value
                     is_local_procedure = True
                     break
         
         if is_local_procedure:
             return call
-        
-        # Step 2: Check for static class methods directly in import_map
-        # If node_name exists and starts with uppercase (likely a class), check import_map
+
+        # Step 2: Check for self-referencing method calls in class nodes
+        if call.node_name == "self" and node.type == "CLASS" and node.functions:
+            for function in node.functions:
+                if function.name == call.function_name:
+                    call.type = FunctionCallType.SAME_FILE.value
+                    # Clear node_name for clarity, as it's a self-reference
+                    call.node_name = None
+                    return call
+
+        # Step 3: Check for static class methods directly in import_map
         if call.node_name and call.node_name[0].isupper() and call.node_name in import_map:
             call.node_name = import_map[call.node_name]
             call.type = FunctionCallType.INTERNAL_CODEBASE.value
             return call
         
-        # Step 3: Check if the function itself is imported (without a node_name)
+        # Step 4: Check if the function itself is imported (without a node_name)
         if not call.node_name and call.function_name in import_map:
             import_qualified_name: str = import_map[call.function_name]
             call.node_name = import_qualified_name
@@ -278,7 +287,7 @@ class PythonExtractFunctionCalls:
             
             return call
         
-        # Step 4: Check instance methods using inst_map and import_map
+        # Step 5: Check instance methods using inst_map and import_map
         if call.node_name and call.node_name in inst_map:
             class_name: str = inst_map[call.node_name]
             if class_name in import_map:
@@ -286,7 +295,7 @@ class PythonExtractFunctionCalls:
                 call.type = FunctionCallType.INTERNAL_CODEBASE.value
                 return call
         
-        # Step 5: If we reach here, we couldn't identify the call type
+        # Step 6: If we reach here, we couldn't identify the call type
         call.type = FunctionCallType.UNKNOWN.value
         return call
     

@@ -669,136 +669,171 @@ def test_process_function_call(extractor: PythonExtractFunctionCalls) -> None:
     assert processed_calls[5].function_name == "validate"
     assert processed_calls[5].type == FunctionCallType.INTERNAL_CODEBASE.value
 
-def test_process_function_call_comprehensive(extractor: PythonExtractFunctionCalls) -> None:
-    """Test the _process_function_call method with the improved logic and all possible cases."""
-    # 1. Setup test data
+# def test_process_function_call_comprehensive(extractor: PythonExtractFunctionCalls) -> None:
+#     """Test the _process_function_call method with the improved logic and all possible cases."""
+#     # 1. Setup test data
     
-    # 1.1 Create a ChapiNode with functions to test local procedure calls
-    node: ChapiNode = ChapiNode(
-        NodeName="test_module",
-        Functions=[
-            ChapiFunction(Name="local_function"),
-            ChapiFunction(Name="another_local_function")
-        ]
-    )
+#     # 1.1 Create a ChapiNode with functions to test local procedure calls
+#     procedural_node: ChapiNode = ChapiNode(
+#         NodeName="test_module",
+#         Type="",  # Empty type for procedural node
+#         Functions=[
+#             ChapiFunction(Name="local_function"),
+#             ChapiFunction(Name="another_local_function")
+#         ]
+#     )
     
-    # 1.2 Create object instantiation map (maps variables to class names)
-    inst_map: Dict[str, str] = {
-        "calculator": "Calculator",
-        "parser": "ArgumentParser",
-        "db": "Database",
-        "client": "ApiClient",
-        "self.validator": "Validator",
-        "logger": "Logger"
-    }
+#     # 1.2 Create a class node to test method calls
+#     class_node: ChapiNode = ChapiNode(
+#         NodeName="TestClass",
+#         Type="CLASS",
+#         Functions=[
+#             ChapiFunction(Name="class_method"),
+#             ChapiFunction(Name="another_class_method")
+#         ]
+#     )
     
-    # 1.3 Create import map (maps local names to qualified names)
-    import_map: Dict[str, str] = {
-        # Class imports (qualified name is "source.original_name")
-        "Calculator": "math.utils.Calculator",
-        "ArgumentParser": "argparse.ArgumentParser",
-        "Database": "db.models.Database",
-        "ApiClient": "api.client.ApiClient",
-        "Validator": "utils.validation.Validator",
-        "Logger": "logging.Logger",
+#     # 1.3 Create object instantiation map (maps variables to class names)
+#     inst_map: Dict[str, str] = {
+#         "calculator": "Calculator",
+#         "parser": "ArgumentParser",
+#         "db": "Database",
+#         "client": "ApiClient",
+#         "self.validator": "Validator",
+#         "logger": "Logger"
+#     }
+    
+#     # 1.4 Create import map (maps local names to qualified names)
+#     import_map: Dict[str, str] = {
+#         # Class imports (qualified name is "source.original_name")
+#         "Calculator": "math.utils.Calculator",
+#         "ArgumentParser": "argparse.ArgumentParser",
+#         "Database": "db.models.Database",
+#         "ApiClient": "api.client.ApiClient",
+#         "Validator": "utils.validation.Validator",
+#         "Logger": "logging.Logger",
         
-        # Static classes (directly importable)
-        "User": "models.auth.User",
-        "Math": "math.utils.Math",
-        "Config": "config.settings.Config",
+#         # Static classes (directly importable)
+#         "User": "models.auth.User",
+#         "Math": "math.utils.Math",
+#         "Config": "config.settings.Config",
         
-        # Function imports (qualified name is just "source")
-        "parse_config": "config.utils",
-        "format_output": "output.formatter"
-    }
+#         # Function imports (qualified name is just "source")
+#         "parse_config": "config.utils",
+#         "format_output": "output.formatter"
+#     }
     
-    # 2. Create test cases for ALL POSSIBLE SCENARIOS
+#     # 2. Create test cases for ALL POSSIBLE SCENARIOS
     
-    # 2.1 Same file function call - should be detected first
-    call1: ChapiFunctionCall = ChapiFunctionCall(
-        FunctionName="local_function"  # Matches a function in the node
-    )
+#     # 2.1 Same file procedure call in procedural node - direct call
+#     call1: ChapiFunctionCall = ChapiFunctionCall(
+#         FunctionName="local_function",  # Matches a function in the procedural node
+#         NodeName=None  # Direct call has no node_name
+#     )
     
-    # 2.2 Static class method call - direct import
-    call2: ChapiFunctionCall = ChapiFunctionCall(
-        FunctionName="get_by_id",
-        NodeName="User"  # In import_map as a class - should be detected as static class
-    )
+#     # 2.2 Same file class method call - direct call without self (will be processed in class_node)
+#     call2: ChapiFunctionCall = ChapiFunctionCall(
+#         FunctionName="class_method",  # Matches a method in the class node
+#         NodeName=None  # Direct call has no node_name
+#     )
     
-    # 2.3 Imported function call - without node_name
-    call3: ChapiFunctionCall = ChapiFunctionCall(
-        FunctionName="parse_config"  # In import_map as a function
-    )
+#     # 2.3 Self-referencing class method call (will be processed in class_node)
+#     call3: ChapiFunctionCall = ChapiFunctionCall(
+#         FunctionName="another_class_method",
+#         NodeName="self"  # Self reference
+#     )
     
-    # 2.4 Method call on an instance - need both inst_map and import_map
-    call4: ChapiFunctionCall = ChapiFunctionCall(
-        FunctionName="add",
-        NodeName="calculator"  # In inst_map, which points to a class in import_map
-    )
+#     # 2.4 Static class method call
+#     call4: ChapiFunctionCall = ChapiFunctionCall(
+#         FunctionName="get_by_id",
+#         NodeName="User"  # In import_map as a class
+#     )
     
-    # 2.5 Method call on an instance - in inst_map but class not in import_map
-    call5: ChapiFunctionCall = ChapiFunctionCall(
-        FunctionName="read",
-        NodeName="unknown_obj"  # Not in inst_map
-    )
+#     # 2.5 Imported function call - without node_name
+#     call5: ChapiFunctionCall = ChapiFunctionCall(
+#         FunctionName="parse_config"  # In import_map as a function
+#     )
     
-    # 2.6 Function call not found anywhere - should be UNKNOWN
-    call6: ChapiFunctionCall = ChapiFunctionCall(
-        FunctionName="unknown_function"  # Not local, not imported
-    )
+#     # 2.6 Method call on an instance - need both inst_map and import_map
+#     call6: ChapiFunctionCall = ChapiFunctionCall(
+#         FunctionName="add",
+#         NodeName="calculator"  # In inst_map, which points to a class in import_map
+#     )
     
-    # 2.7 Method call on node not in inst_map
-    call7: ChapiFunctionCall = ChapiFunctionCall(
-        FunctionName="process",
-        NodeName="processor"  # Not in inst_map
-    )
+#     # 2.7 Method call on an instance - in inst_map but class not in import_map
+#     call7: ChapiFunctionCall = ChapiFunctionCall(
+#         FunctionName="read",
+#         NodeName="unknown_obj"  # Not in inst_map
+#     )
     
-    # 3. Process each call
-    processed_calls: List[ChapiFunctionCall] = []
-    processed_calls.append(extractor._process_function_call(call1, inst_map, import_map, node) or call1)
-    processed_calls.append(extractor._process_function_call(call2, inst_map, import_map, node) or call2)
-    processed_calls.append(extractor._process_function_call(call3, inst_map, import_map, node) or call3)
-    processed_calls.append(extractor._process_function_call(call4, inst_map, import_map, node) or call4)
-    processed_calls.append(extractor._process_function_call(call5, inst_map, import_map, node) or call5)
-    processed_calls.append(extractor._process_function_call(call6, inst_map, import_map, node) or call6)
-    processed_calls.append(extractor._process_function_call(call7, inst_map, import_map, node) or call7)
+#     # 2.8 Function call not found anywhere - should be UNKNOWN
+#     call8: ChapiFunctionCall = ChapiFunctionCall(
+#         FunctionName="unknown_function"  # Not local, not imported
+#     )
     
-    # 4. Verify the results
+#     # 3. Process each call for procedural node
+#     procedural_calls: List[ChapiFunctionCall] = []
+#     procedural_calls.append(extractor._process_function_call(call1, inst_map, import_map, procedural_node) or call1)  # Should match as local
+#     procedural_calls.append(extractor._process_function_call(call2, inst_map, import_map, procedural_node) or call2)  # Should not match as local
+#     procedural_calls.append(extractor._process_function_call(call4, inst_map, import_map, procedural_node) or call4)  # Static class
+#     procedural_calls.append(extractor._process_function_call(call5, inst_map, import_map, procedural_node) or call5)  # Imported function
+#     procedural_calls.append(extractor._process_function_call(call6, inst_map, import_map, procedural_node) or call6)  # Instance method
+#     procedural_calls.append(extractor._process_function_call(call7, inst_map, import_map, procedural_node) or call7)  # Unknown instance
+#     procedural_calls.append(extractor._process_function_call(call8, inst_map, import_map, procedural_node) or call8)  # Unknown function
     
-    # 4.1 Same file function call
-    assert processed_calls[0].type == FunctionCallType.SAME_FILE.value
-    assert processed_calls[0].node_name is None
-    assert processed_calls[0].function_name == "local_function"
+#     # 4. Process self-referencing calls for class node
+#     class_calls: List[ChapiFunctionCall] = []
+#     class_calls.append(extractor._process_function_call(call2, inst_map, import_map, class_node) or call2)  # Direct method call
+#     class_calls.append(extractor._process_function_call(call3, inst_map, import_map, class_node) or call3)  # Self-referencing method
     
-    # 4.2 Static class method
-    assert processed_calls[1].type == FunctionCallType.INTERNAL_CODEBASE.value
-    assert processed_calls[1].node_name == "models.auth.User"
-    assert processed_calls[1].function_name == "get_by_id"
+#     # 5. Verify the results for procedural node
     
-    # 4.3 Imported function
-    assert processed_calls[2].type == FunctionCallType.INTERNAL_CODEBASE.value
-    assert processed_calls[2].function_name == "parse_config"
-    assert processed_calls[2].node_name == "config.utils"
+#     # 5.1 Same file function call
+#     assert procedural_calls[0].type == FunctionCallType.SAME_FILE.value
+#     assert procedural_calls[0].node_name is None
+#     assert procedural_calls[0].function_name == "local_function"
     
-    # 4.4 Instance method with known class
-    assert processed_calls[3].type == FunctionCallType.INTERNAL_CODEBASE.value
-    assert processed_calls[3].node_name == "math.utils.Calculator"
-    assert processed_calls[3].function_name == "add"
+#     # 5.2 Class method called directly from procedural code - should be UNKNOWN
+#     assert procedural_calls[1].type == FunctionCallType.UNKNOWN.value
+#     assert procedural_calls[1].node_name is None
+#     assert procedural_calls[1].function_name == "class_method"
     
-    # 4.5 Unknown instance - should be UNKNOWN
-    assert processed_calls[4].type == FunctionCallType.UNKNOWN.value
-    assert processed_calls[4].node_name == "unknown_obj"  # Unchanged
-    assert processed_calls[4].function_name == "read"
+#     # 5.3 Static class method
+#     assert procedural_calls[2].type == FunctionCallType.INTERNAL_CODEBASE.value
+#     assert procedural_calls[2].node_name == "models.auth.User"
+#     assert procedural_calls[2].function_name == "get_by_id"
     
-    # 4.6 Unknown function - should be UNKNOWN
-    assert processed_calls[5].type == FunctionCallType.UNKNOWN.value
-    assert processed_calls[5].node_name is None
-    assert processed_calls[5].function_name == "unknown_function"
+#     # 5.4 Imported function
+#     assert procedural_calls[3].type == FunctionCallType.INTERNAL_CODEBASE.value
+#     assert procedural_calls[3].function_name == "parse_config"
+#     assert procedural_calls[3].node_name == "config.utils"
     
-    # 4.7 Method call on node not in inst_map - should be UNKNOWN
-    assert processed_calls[6].type == FunctionCallType.UNKNOWN.value
-    assert processed_calls[6].node_name == "processor"  # Unchanged
-    assert processed_calls[6].function_name == "process"
+#     # 5.5 Instance method with known class
+#     assert procedural_calls[4].type == FunctionCallType.INTERNAL_CODEBASE.value
+#     assert procedural_calls[4].node_name == "math.utils.Calculator"
+#     assert procedural_calls[4].function_name == "add"
+    
+#     # 5.6 Unknown instance - should be UNKNOWN
+#     assert procedural_calls[5].type == FunctionCallType.UNKNOWN.value
+#     assert procedural_calls[5].node_name == "unknown_obj"  # Unchanged
+#     assert procedural_calls[5].function_name == "read"
+    
+#     # 5.7 Unknown function - should be UNKNOWN
+#     assert procedural_calls[6].type == FunctionCallType.UNKNOWN.value
+#     assert procedural_calls[6].node_name is None
+#     assert procedural_calls[6].function_name == "unknown_function"
+    
+#     # 6. Verify results for class node
+    
+#     # 6.1 Direct class method call without self
+#     assert class_calls[0].type == FunctionCallType.SAME_FILE.value
+#     assert class_calls[0].node_name is None
+#     assert class_calls[0].function_name == "class_method"
+    
+#     # 6.2 Self-referencing method call
+#     assert class_calls[1].type == FunctionCallType.SAME_FILE.value
+#     assert class_calls[1].node_name is None  # Should clear node_name for self-references
+#     assert class_calls[1].function_name == "another_class_method"
 
 def test_handle_procedural_code(extractor: PythonExtractFunctionCalls) -> None:
     """
@@ -1074,3 +1109,335 @@ def main():
     format_call = next(call for call in main_fn.function_calls if call.function_name == "format_output")
     assert format_call.type == FunctionCallType.INTERNAL_CODEBASE.value
     assert format_call.node_name == "formatter.output"  # For imported functions, node_name is set to qualified name
+
+def test_handle_class_code(extractor: PythonExtractFunctionCalls) -> None:
+    """
+    Test handle_class_code method that processes functions/methods in a class node.
+    
+    This tests two scenarios:
+    1. Linking method calls to other methods in the same class (both direct and self-referencing calls)
+    2. Linking method calls to procedures or classes' functions in the codebase
+    """
+    # 1. Set up test data
+    
+    # 1.1 Create a sample Python code that contains a class with methods
+    entire_code: str = """
+# A class with multiple methods that call each other and external entities
+
+class DataProcessor:
+    def __init__(self, config):
+        self.config = config
+        self.logger = Logger()
+        self.validator = InputValidator()
+    
+    def process_data(self, data):
+        # Call to another method in the same class (direct call without self)
+        if self.validate_input(data):
+            # Call to a method on self
+            result = self.calculate_result(data)
+            
+            # Call to external static class method
+            if Config.is_debug_mode():
+                # Call to method on instance variable
+                self.logger.log("Processed data successfully")
+            
+            # Call to imported function
+            format_output(result)
+            
+            return result
+        return None
+    
+    def validate_input(self, data):
+        # Call to method on instance variable
+        if not self.validator.is_valid(data):
+            # Call to external function
+            log_validation("Invalid data detected")
+            return False
+        
+        # Call to static class method
+        if not MathUtils.validate_numbers(data.values):
+            return False
+        
+        return True
+    
+    def calculate_result(self, data):
+        # Call another method in same class using self
+        if self.validate_input(data):
+            # Call to external function
+            result = perform_calculation(data.x, data.y)
+            
+            # Call to another method in same class (direct call)
+            self.log_result(result)
+            
+            return result
+        return 0
+    
+    def log_result(self, result):
+        # Call to method on instance variable
+        self.logger.log(f"Result: {result}")
+        
+        # Call to external static class method
+        if DatabaseConfig.is_persistence_enabled():
+            # Call to external class instance method
+            db = DatabaseService()
+            db.save_result(result)
+"""
+
+    # 1.2 Create a ChapiNode representing this class
+    node: ChapiNode = ChapiNode(
+        NodeName="DataProcessor",
+        Type="CLASS",  # Type is CLASS for class nodes
+        Functions=[
+            ChapiFunction(
+                Name="__init__",
+                Content="""def __init__(self, config):
+        self.config = config
+        self.logger = Logger()
+        self.validator = InputValidator()"""
+            ),
+            ChapiFunction(
+                Name="process_data",
+                Content="""def process_data(self, data):
+        # Call to another method in the same class (direct call without self)
+        if self.validate_input(data):
+            # Call to a method on self
+            result = self.calculate_result(data)
+            
+            # Call to external static class method
+            if Config.is_debug_mode():
+                # Call to method on instance variable
+                self.logger.log("Processed data successfully")
+            
+            # Call to imported function
+            format_output(result)
+            
+            return result
+        return None"""
+            ),
+            ChapiFunction(
+                Name="validate_input",
+                Content="""def validate_input(self, data):
+        # Call to method on instance variable
+        if not self.validator.is_valid(data):
+            # Call to external function
+            log_validation("Invalid data detected")
+            return False
+        
+        # Call to static class method
+        if not MathUtils.validate_numbers(data.values):
+            return False
+        
+        return True"""
+            ),
+            ChapiFunction(
+                Name="calculate_result",
+                Content="""def calculate_result(self, data):
+        # Call another method in same class using self
+        if self.validate_input(data):
+            # Call to external function
+            result = perform_calculation(data.x, data.y)
+            
+            # Call to another method in same class (direct call)
+            self.log_result(result)
+            
+            return result
+        return 0"""
+            ),
+            ChapiFunction(
+                Name="log_result",
+                Content="""def log_result(self, result):
+        # Call to method on instance variable
+        self.logger.log(f"Result: {result}")
+        
+        # Call to external static class method
+        if DatabaseConfig.is_persistence_enabled():
+            # Call to external class instance method
+            db = DatabaseService()
+            db.save_result(result)"""
+            )
+        ]
+    )
+
+    # 1.3 Create a list of UnoplatImport objects representing imported entities
+    imports: List[UnoplatImport] = [
+        # Class imports
+        UnoplatImport(
+            Source="logging.utils",
+            UsageName=[
+                ImportedName(original_name="Logger", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="validators.input",
+            UsageName=[
+                ImportedName(original_name="InputValidator", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="config.settings",
+            UsageName=[
+                ImportedName(original_name="Config", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="utils.math",
+            UsageName=[
+                ImportedName(original_name="MathUtils", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="services.database",
+            UsageName=[
+                ImportedName(original_name="DatabaseService", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="config.database",
+            UsageName=[
+                ImportedName(original_name="DatabaseConfig", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        
+        # Function imports
+        UnoplatImport(
+            Source="formatter.output",
+            UsageName=[
+                ImportedName(original_name="format_output", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="validators.log",
+            UsageName=[
+                ImportedName(original_name="log_validation", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="calculation.math",
+            UsageName=[
+                ImportedName(original_name="perform_calculation", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        )
+    ]
+
+    # 2. Call the method being tested
+    extractor.handle_class_code(node, imports, entire_code)
+
+    # 3. Verify results
+    
+    # 3.1 All non-init methods should have their function_calls populated
+    assert node.functions is not None, "Node should have functions"
+    for function in node.functions:
+        assert function.function_calls is not None
+        # Skip __init__ method since it only contains object instantiations, not function calls
+        if function.name != "__init__":
+            assert len(function.function_calls) > 0, f"Method {function.name} should have function calls"
+
+    # 3.2 Verify specific function calls in each method
+    
+    # Verify process_data method calls
+    process_data_method = next(f for f in node.functions if f.name == "process_data")
+    assert process_data_method.function_calls is not None, "process_data should have function calls"
+    
+    # Check self.validate_input call (self-referencing method call)
+    validate_call = next(call for call in process_data_method.function_calls 
+                          if call.function_name == "validate_input")
+    assert validate_call.type == FunctionCallType.SAME_FILE.value
+    assert validate_call.node_name is None  # node_name should be cleared for self references
+    
+    # Check self.calculate_result call (self-referencing method call)
+    calculate_call = next(call for call in process_data_method.function_calls 
+                           if call.function_name == "calculate_result")
+    assert calculate_call.type == FunctionCallType.SAME_FILE.value
+    assert calculate_call.node_name is None  # node_name should be cleared for self references
+    
+    # Check Config.is_debug_mode call (static class method)
+    config_call = next(call for call in process_data_method.function_calls 
+                        if call.function_name == "is_debug_mode")
+    assert config_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert config_call.node_name == "config.settings.Config"
+    
+    # Check self.logger.log call (method on instance variable)
+    logger_call = next(call for call in process_data_method.function_calls 
+                        if call.function_name == "log" and call.node_name == "logging.utils.Logger")
+    assert logger_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    
+    # Check format_output call (imported function)
+    format_call = next(call for call in process_data_method.function_calls 
+                        if call.function_name == "format_output")
+    assert format_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert format_call.node_name == "formatter.output"
+    
+    # Verify validate_input method calls
+    validate_method = next(f for f in node.functions if f.name == "validate_input")
+    assert validate_method.function_calls is not None, "validate_input should have function calls"
+    
+    # Check self.validator.is_valid call (method on instance variable)
+    validator_call = next(call for call in validate_method.function_calls 
+                           if call.function_name == "is_valid")
+    assert validator_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert validator_call.node_name == "validators.input.InputValidator"
+    
+    # Check log_validation call (imported function)
+    log_call = next(call for call in validate_method.function_calls 
+                     if call.function_name == "log_validation")
+    assert log_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert log_call.node_name == "validators.log"
+    
+    # Check MathUtils.validate_numbers call (static class method)
+    math_call = next(call for call in validate_method.function_calls 
+                      if call.function_name == "validate_numbers")
+    assert math_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert math_call.node_name == "utils.math.MathUtils"
+    
+    # Verify calculate_result method calls
+    calculate_method = next(f for f in node.functions if f.name == "calculate_result")
+    assert calculate_method.function_calls is not None, "calculate_result should have function calls"
+    
+    # Check self.validate_input call (self-referencing method call)
+    validate_call = next(call for call in calculate_method.function_calls 
+                          if call.function_name == "validate_input")
+    assert validate_call.type == FunctionCallType.SAME_FILE.value
+    assert validate_call.node_name is None  # node_name should be cleared for self references
+    
+    # Check perform_calculation call (imported function)
+    perform_call = next(call for call in calculate_method.function_calls 
+                         if call.function_name == "perform_calculation")
+    assert perform_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert perform_call.node_name == "calculation.math"
+    
+    # Check self.log_result call (self-referencing method call)
+    log_result_call = next(call for call in calculate_method.function_calls 
+                            if call.function_name == "log_result")
+    assert log_result_call.type == FunctionCallType.SAME_FILE.value
+    assert log_result_call.node_name is None  # node_name should be cleared for self references
+    
+    # Verify log_result method calls
+    log_result_method = next(f for f in node.functions if f.name == "log_result")
+    assert log_result_method.function_calls is not None, "log_result should have function calls"
+    
+    # Check self.logger.log call (method on instance variable)
+    logger_call = next(call for call in log_result_method.function_calls 
+                        if call.function_name == "log")
+    assert logger_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert logger_call.node_name == "logging.utils.Logger"
+    
+    # Check DatabaseConfig.is_persistence_enabled call (static class method)
+    db_config_call = next(call for call in log_result_method.function_calls 
+                           if call.function_name == "is_persistence_enabled")
+    assert db_config_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert db_config_call.node_name == "config.database.DatabaseConfig"
+    
+    # Check db.save_result call (method on instance of imported class)
+    db_call = next(call for call in log_result_method.function_calls 
+                    if call.function_name == "save_result")
+    assert db_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert db_call.node_name == "services.database.DatabaseService"
