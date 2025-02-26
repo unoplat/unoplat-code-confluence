@@ -128,24 +128,26 @@ class PythonImportSegregationStrategy:
             ImportType.EXTERNAL: [],
             ImportType.LOCAL: []
         }
-
+    
         # Read and parse the file
-        file_content: str = self.file_reader.read_file(class_metadata.file_path) 
-        code_bytes: bytes = file_content.encode("utf8")
-        tree = self.parser.parse(code_bytes)
+        if class_metadata.file_path:
+            file_content: str = self.file_reader.read_file(class_metadata.file_path) 
+            code_bytes: bytes = file_content.encode("utf8")
+            tree = self.parser.parse(code_bytes)
 
         # Define query to capture from-imports with the given source_directory
         # Escape dots in source_directory for the regex pattern
         escaped_prefix = source_directory.replace(".", "\\.")
-        query = self.parser.language.query(
-            f"""
-            (
-              import_from_statement
-                 module_name: (dotted_name) @module
-                 (#match? @module "^{escaped_prefix}")
-            ) 
-            """
-        )
+        if self.parser.language:
+            query = self.parser.language.query(
+                f"""
+                (
+                import_from_statement
+                    module_name: (dotted_name) @module
+                    (#match? @module "^{escaped_prefix}")
+                ) 
+                """
+            )
 
         # Get matches
         matches = query.matches(tree.root_node)
