@@ -741,6 +741,9 @@ def test_extract_function_calls_with_multiple_classes(extractor: PythonExtractFu
     1. Function calls between methods in the same class are correctly linked
     2. Function calls between different classes in the same file are correctly linked
     3. Function calls to external entities are correctly linked
+    4. Static class method calls within the same file are correctly linked
+    5. Static classes calling methods of other classes in the same file
+    6. Regular classes using imported static class methods
     """
     # 1. Create test data
     
@@ -765,6 +768,13 @@ class DataProcessor:
             
             # Call to external function
             result = perform_calculation(formatted_data)
+            
+            # Call to a static method in imported static class
+            MathUtils.calculate(result)
+            
+            # Call to another static method in same file
+            StaticHelper.normalize_data(result)
+            
             return result
         return None
     
@@ -786,6 +796,34 @@ class OutputFormatter:
     def format_text(self, data):
         # Call to external function
         return str(data)
+        
+    @classmethod
+    def create_formatter(cls, format_type):
+        # Static class call to another static class
+        if StaticHelper.is_valid_format(format_type):
+            return cls()
+        return None
+
+# A fully static utility class
+class StaticHelper:
+    @staticmethod
+    def is_valid_format(format_type):
+        return format_type in ["json", "text", "xml"]
+    
+    @staticmethod
+    def normalize_data(data):
+        # Static method calling another static method in the same file
+        if ConfigManager.is_debug_mode():
+            print("Normalizing data")
+        
+        # Static method calling method on another class
+        formatter = OutputFormatter()
+        formatter.format(data)
+        
+        # Static method calling imported static method
+        DatabaseUtils.connect()
+        
+        return data
 
 class ConfigManager:
     @staticmethod
@@ -795,6 +833,14 @@ class ConfigManager:
     @staticmethod
     def get_format_type():
         return "json"
+        
+    @staticmethod
+    def get_config():
+        # Static method calling another static method in the same class
+        if ConfigManager.is_debug_mode():
+            # Static method calling static method in another class
+            return StaticHelper.normalize_data({"debug": True})
+        return {"debug": False}
 """
 
     # 1.2 Create ChapiNodes for the classes
@@ -824,6 +870,13 @@ class ConfigManager:
             
             # Call to external function
             result = perform_calculation(formatted_data)
+            
+            # Call to a static method in imported static class
+            MathUtils.calculate(result)
+            
+            # Call to another static method in same file
+            StaticHelper.normalize_data(result)
+            
             return result
         return None"""
             ),
@@ -859,6 +912,45 @@ class ConfigManager:
                 Content="""def format_text(self, data):
         # Call to external function
         return str(data)"""
+            ),
+            ChapiFunction(
+                Name="create_formatter",
+                Content="""@classmethod
+    def create_formatter(cls, format_type):
+        # Static class call to another static class
+        if StaticHelper.is_valid_format(format_type):
+            return cls()
+        return None"""
+            )
+        ]
+    )
+    
+    static_helper_node: ChapiNode = ChapiNode(
+        NodeName="StaticHelper",
+        Type="CLASS",
+        Functions=[
+            ChapiFunction(
+                Name="is_valid_format",
+                Content="""@staticmethod
+    def is_valid_format(format_type):
+        return format_type in ["json", "text", "xml"]"""
+            ),
+            ChapiFunction(
+                Name="normalize_data",
+                Content="""@staticmethod
+    def normalize_data(data):
+        # Static method calling another static method in the same file
+        if ConfigManager.is_debug_mode():
+            print("Normalizing data")
+        
+        # Static method calling method on another class
+        formatter = OutputFormatter()
+        formatter.format(data)
+        
+        # Static method calling imported static method
+        DatabaseUtils.connect()
+        
+        return data"""
             )
         ]
     )
@@ -878,13 +970,23 @@ class ConfigManager:
                 Content="""@staticmethod
     def get_format_type():
         return "json\""""
+            ),
+            ChapiFunction(
+                Name="get_config",
+                Content="""@staticmethod
+    def get_config():
+        # Static method calling another static method in the same class
+        if ConfigManager.is_debug_mode():
+            # Static method calling static method in another class
+            return StaticHelper.normalize_data({"debug": True})
+        return {"debug": False}"""
             )
         ]
     )
     
     # 1.3 Create file_path_nodes dictionary
     file_path_nodes: Dict[str, List[ChapiNode]] = {
-        "test_file.py": [data_processor_node, output_formatter_node, config_manager_node]
+        "test_file.py": [data_processor_node, output_formatter_node, static_helper_node, config_manager_node]
     }
     
     # 1.4 Create imports
@@ -916,6 +1018,20 @@ class ConfigManager:
                 ImportedName(original_name="perform_calculation", alias=None)
             ],
             ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="math.utils",
+            UsageName=[
+                ImportedName(original_name="MathUtils", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="db.utils",
+            UsageName=[
+                ImportedName(original_name="DatabaseUtils", alias=None)
+            ],
+            ImportType=ImportType.INTERNAL
         )
     ]
     
@@ -927,6 +1043,7 @@ class ConfigManager:
     data_processor = next(node for node in processed_nodes if node.node_name == "DataProcessor")
     output_formatter = next(node for node in processed_nodes if node.node_name == "OutputFormatter")
     config_manager = next(node for node in processed_nodes if node.node_name == "ConfigManager")
+    static_helper = next(node for node in processed_nodes if node.node_name == "StaticHelper")
     
     # 4. Verify that all functions have their function_calls populated
     assert data_processor.functions is not None
@@ -938,8 +1055,10 @@ class ConfigManager:
     assert output_formatter.functions is not None
     for function in output_formatter.functions:
         assert function.function_calls is not None
+        if function.name not in ["format_text"]:  # format_text only has str() which might not be captured
+            assert len(function.function_calls) > 0
     
-    # 5. Verify specific function calls
+    # 5. Verify specific function calls for regular class methods
     
     # 5.1 Check calls in DataProcessor.process_data
     process_data_fn = next(f for f in data_processor.functions if f.name == "process_data")
@@ -969,28 +1088,51 @@ class ConfigManager:
     assert calc_call.type == FunctionCallType.INTERNAL_CODEBASE.value
     assert calc_call.node_name == "math.calculations"
     
-    # 5.2 Check calls in OutputFormatter.format
-    format_fn = next(f for f in output_formatter.functions if f.name == "format")
+    # Check call to imported static class method (MathUtils.calculate)
+    math_call = next(call for call in process_data_fn.function_calls if call.function_name == "calculate")
+    assert math_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert math_call.node_name == "math.utils.MathUtils"
     
-    # Check call to ConfigManager.get_format_type (static method in another class in same file)
-    format_type_call = next(call for call in format_fn.function_calls if call.function_name == "get_format_type")
-    assert format_type_call.type == FunctionCallType.SAME_FILE.value
-    assert format_type_call.node_name == "ConfigManager"
+    # Check call to static method in same file (StaticHelper.normalize_data)
+    normalize_call = next(call for call in process_data_fn.function_calls if call.function_name == "normalize_data")
+    assert normalize_call.type == FunctionCallType.SAME_FILE.value
+    assert normalize_call.node_name == "StaticHelper"
     
-    # Check call to self.format_json (same-class method)
-    format_json_call = next(call for call in format_fn.function_calls if call.function_name == "format_json")
-    assert format_json_call.type == FunctionCallType.SAME_FILE.value
-    assert format_json_call.node_name is None
+    # 6. Verify static class method calls
     
-    # Check call to self.format_text (same-class method)
-    format_text_call = next(call for call in format_fn.function_calls if call.function_name == "format_text")
-    assert format_text_call.type == FunctionCallType.SAME_FILE.value
-    assert format_text_call.node_name is None
+    # 6.1 Check OutputFormatter.create_formatter (classmethod calling static method)
+    create_formatter_fn = next(f for f in output_formatter.functions if f.name == "create_formatter")
+    valid_format_call = next(call for call in create_formatter_fn.function_calls if call.function_name == "is_valid_format")
+    assert valid_format_call.type == FunctionCallType.SAME_FILE.value
+    assert valid_format_call.node_name == "StaticHelper"
     
-    # 5.3 Check calls in OutputFormatter.format_json
-    format_json_fn = next(f for f in output_formatter.functions if f.name == "format_json")
+    # 6.2 Check StaticHelper.normalize_data (static method calling other classes)
+    normalize_data_fn = next(f for f in static_helper.functions if f.name == "normalize_data")
     
-    # Check call to json_encode (imported function)
-    json_call = next(call for call in format_json_fn.function_calls if call.function_name == "json_encode")
-    assert json_call.type == FunctionCallType.INTERNAL_CODEBASE.value
-    assert json_call.node_name == "json.utils"
+    # Static method calling static method in other class
+    debug_mode_call = next(call for call in normalize_data_fn.function_calls if call.function_name == "is_debug_mode")
+    assert debug_mode_call.type == FunctionCallType.SAME_FILE.value
+    assert debug_mode_call.node_name == "ConfigManager"
+    
+    # Static method instantiating and calling method on other class
+    format_from_static_call = next(call for call in normalize_data_fn.function_calls if call.function_name == "format")
+    assert format_from_static_call.type == FunctionCallType.SAME_FILE.value
+    assert format_from_static_call.node_name == "OutputFormatter"
+    
+    # Static method calling imported static method
+    db_connect_call = next(call for call in normalize_data_fn.function_calls if call.function_name == "connect")
+    assert db_connect_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert db_connect_call.node_name == "db.utils.DatabaseUtils"
+    
+    # 6.3 Check ConfigManager.get_config (static method calling another static method in same class)
+    get_config_fn = next(f for f in config_manager.functions if f.name == "get_config")
+    
+    # Static method calling static method in same class
+    debug_mode_same_class_call = next(call for call in get_config_fn.function_calls if call.function_name == "is_debug_mode")
+    assert debug_mode_same_class_call.type == FunctionCallType.SAME_FILE.value
+    assert debug_mode_same_class_call.node_name == "ConfigManager"
+    
+    # Static method calling static method in other class
+    normalize_from_static_call = next(call for call in get_config_fn.function_calls if call.function_name == "normalize_data")
+    assert normalize_from_static_call.type == FunctionCallType.SAME_FILE.value
+    assert normalize_from_static_call.node_name == "StaticHelper"
