@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, cast
 
 import pytest
 
@@ -1047,14 +1047,16 @@ class ConfigManager:
     
     # 4. Verify that all functions have their function_calls populated
     assert data_processor.functions is not None
-    for function in data_processor.functions:
+    # We've verified functions is not None, safe to iterate
+    for function in data_processor.functions:  # type: ignore
         if function.name != "__init__":  # Skip __init__ as it only has instantiations
-            assert function.function_calls is not None
+            assert hasattr(function, 'function_calls') and function.function_calls is not None
             assert len(function.function_calls) > 0
     
     assert output_formatter.functions is not None
-    for function in output_formatter.functions:
-        assert function.function_calls is not None
+    # We've verified functions is not None, safe to iterate
+    for function in output_formatter.functions:  # type: ignore
+        assert hasattr(function, 'function_calls') and function.function_calls is not None
         if function.name not in ["format_text"]:  # format_text only has str() which might not be captured
             assert len(function.function_calls) > 0
     
@@ -1136,3 +1138,408 @@ class ConfigManager:
     normalize_from_static_call = next(call for call in get_config_fn.function_calls if call.function_name == "normalize_data")
     assert normalize_from_static_call.type == FunctionCallType.SAME_FILE.value
     assert normalize_from_static_call.node_name == "StaticHelper"
+
+def test_extract_function_calls_with_procedural_and_classes(extractor: PythonExtractFunctionCalls) -> None:
+    """
+    Test the extract_function_calls method with a file containing both procedural functions and multiple classes.
+    
+    This tests the end-to-end process for a mixed file structure, ensuring that:
+    1. Function calls within procedural code are correctly linked
+    2. Function calls from procedural code to class methods are correctly linked
+    3. Function calls from class methods to procedural functions are correctly linked
+    4. Function calls between different classes in the same file are correctly linked
+    5. Function calls to external or imported entities are correctly linked
+    6. Static method calls across different contexts are correctly handled
+    """
+    # 1. Create test data
+    
+    # 1.1 Create sample Python code with procedural functions and multiple classes
+    entire_code: str = """
+# Some utility functions
+
+def calculate_total(items):
+    # Procedural function calling another procedural function
+    result = sum(process_item(item) for item in items)
+    
+    # Procedural function instantiating and calling a class method
+    formatter = DataFormatter()
+    formatted = formatter.format(result)
+    
+    # Procedural function calling a static class method
+    if ConfigSettings.is_debug_enabled():
+        print(f"Calculated total: {formatted}")
+    
+    # Procedural function calling an imported function
+    return validate_result(formatted)
+
+def process_item(item):
+    # Procedural function calling a class method via instantiation
+    validator = InputValidator()
+    if validator.is_valid(item):
+        # Procedural function calling an imported static method
+        return MathHelper.compute_value(item)
+    return 0
+
+def get_config():
+    # Procedural function calling a static class method
+    return ConfigSettings.get_default_config()
+
+# Classes that interact with procedural functions and other classes
+
+class InputValidator:
+    def __init__(self):
+        # Class method calling procedural function
+        self.config = get_config()
+        self.logger = Logger()
+    
+    def is_valid(self, item):
+        # Class method calling static method
+        threshold = ConfigSettings.get_threshold()
+        
+        # Class method calling another class method in same file
+        formatter = DataFormatter()
+        item_str = formatter.format(item)
+        
+        # Class method calling an imported function
+        log_message(f"Validating item: {item_str}")
+        
+        # Class method calling procedural function in same file
+        processed = process_item(item)
+        
+        return processed > threshold
+
+class DataFormatter:
+    def format(self, data):
+        # Class method calling procedural function
+        if get_config()["format"] == "json":
+            return self._format_json(data)
+        return self._format_text(data)
+    
+    def _format_json(self, data):
+        # Class method calling imported function
+        return json_encode(data)
+    
+    def _format_text(self, data):
+        return str(data)
+    
+    @classmethod
+    def create_formatter(cls, format_type=None):
+        # Class method calling static method
+        config = ConfigSettings.get_default_config()
+        format_type = format_type or config["format"]
+        return cls()
+
+class ConfigSettings:
+    @staticmethod
+    def is_debug_enabled():
+        return True
+    
+    @staticmethod
+    def get_threshold():
+        return 5
+    
+    @staticmethod
+    def get_default_config():
+        # Static method calling procedural function
+        values = calculate_total([1, 2, 3])
+        return {
+            "format": "json",
+            "debug": ConfigSettings.is_debug_enabled(),
+            "base_value": values
+        }
+
+class Logger:
+    def log(self, message):
+        if ConfigSettings.is_debug_enabled():
+            print(message)
+"""
+
+    # 1.2 Create ChapiNode for procedural code
+    procedural_node: ChapiNode = ChapiNode(
+        NodeName="test_file",  # Using filename as node name for procedural node
+        Type="",  # Empty type indicates procedural
+        Functions=[
+            ChapiFunction(
+                Name="calculate_total",
+                Content="""def calculate_total(items):
+    # Procedural function calling another procedural function
+    result = sum(process_item(item) for item in items)
+    
+    # Procedural function instantiating and calling a class method
+    formatter = DataFormatter()
+    formatted = formatter.format(result)
+    
+    # Procedural function calling a static class method
+    if ConfigSettings.is_debug_enabled():
+        print(f"Calculated total: {formatted}")
+    
+    # Procedural function calling an imported function
+    return validate_result(formatted)"""
+            ),
+            ChapiFunction(
+                Name="process_item",
+                Content="""def process_item(item):
+    # Procedural function calling a class method via instantiation
+    validator = InputValidator()
+    if validator.is_valid(item):
+        # Procedural function calling an imported static method
+        return MathHelper.compute_value(item)
+    return 0"""
+            ),
+            ChapiFunction(
+                Name="get_config",
+                Content="""def get_config():
+    # Procedural function calling a static class method
+    return ConfigSettings.get_default_config()"""
+            )
+        ]
+    )
+    
+    # 1.3 Create ChapiNodes for the classes
+    input_validator_node: ChapiNode = ChapiNode(
+        NodeName="InputValidator",
+        Type="CLASS",
+        Functions=[
+            ChapiFunction(
+                Name="__init__",
+                Content="""def __init__(self):
+        # Class method calling procedural function
+        self.config = get_config()
+        self.logger = Logger()"""
+            ),
+            ChapiFunction(
+                Name="is_valid",
+                Content="""def is_valid(self, item):
+        # Class method calling static method
+        threshold = ConfigSettings.get_threshold()
+        
+        # Class method calling another class method in same file
+        formatter = DataFormatter()
+        item_str = formatter.format(item)
+        
+        # Class method calling an imported function
+        log_message(f"Validating item: {item_str}")
+        
+        # Class method calling procedural function in same file
+        processed = process_item(item)
+        
+        return processed > threshold"""
+            )
+        ]
+    )
+    
+    data_formatter_node: ChapiNode = ChapiNode(
+        NodeName="DataFormatter",
+        Type="CLASS",
+        Functions=[
+            ChapiFunction(
+                Name="format",
+                Content="""def format(self, data):
+        # Class method calling procedural function
+        if get_config()["format"] == "json":
+            return self._format_json(data)
+        return self._format_text(data)"""
+            ),
+            ChapiFunction(
+                Name="_format_json",
+                Content="""def _format_json(self, data):
+        # Class method calling imported function
+        return json_encode(data)"""
+            ),
+            ChapiFunction(
+                Name="_format_text",
+                Content="""def _format_text(self, data):
+        return str(data)"""
+            ),
+            ChapiFunction(
+                Name="create_formatter",
+                Content="""@classmethod
+    def create_formatter(cls, format_type=None):
+        # Class method calling static method
+        config = ConfigSettings.get_default_config()
+        format_type = format_type or config["format"]
+        return cls()"""
+            )
+        ]
+    )
+    
+    config_settings_node: ChapiNode = ChapiNode(
+        NodeName="ConfigSettings",
+        Type="CLASS",
+        Functions=[
+            ChapiFunction(
+                Name="is_debug_enabled",
+                Content="""@staticmethod
+    def is_debug_enabled():
+        return True"""
+            ),
+            ChapiFunction(
+                Name="get_threshold",
+                Content="""@staticmethod
+    def get_threshold():
+        return 5"""
+            ),
+            ChapiFunction(
+                Name="get_default_config",
+                Content="""@staticmethod
+    def get_default_config():
+        # Static method calling procedural function
+        values = calculate_total([1, 2, 3])
+        return {
+            "format": "json",
+            "debug": ConfigSettings.is_debug_enabled(),
+            "base_value": values
+        }"""
+            )
+        ]
+    )
+    
+    logger_node: ChapiNode = ChapiNode(
+        NodeName="Logger",
+        Type="CLASS",
+        Functions=[
+            ChapiFunction(
+                Name="log",
+                Content="""def log(self, message):
+        if ConfigSettings.is_debug_enabled():
+            print(message)"""
+            )
+        ]
+    )
+    
+    # 1.4 Create file_path_nodes dictionary
+    file_path_nodes: Dict[str, List[ChapiNode]] = {
+        "test_file.py": [procedural_node, input_validator_node, data_formatter_node, config_settings_node, logger_node]
+    }
+    
+    # 1.5 Create imports
+    imports: List[UnoplatImport] = [
+        UnoplatImport(
+            Source="data.validation",
+            UsageName=[ImportedName(original_name="validate_result")],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="utils.math",
+            UsageName=[ImportedName(original_name="MathHelper")],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="logging.utils",
+            UsageName=[ImportedName(original_name="log_message")],
+            ImportType=ImportType.INTERNAL
+        ),
+        UnoplatImport(
+            Source="json.encoder",
+            UsageName=[ImportedName(original_name="json_encode")],
+            ImportType=ImportType.INTERNAL
+        )
+    ]
+    
+    # 2. Call extract_function_calls method
+    result = extractor.extract_function_calls(file_path_nodes, imports, entire_code)
+    
+    # 3. Get updated nodes
+    processed_nodes = result["test_file.py"]
+    procedural = next(node for node in processed_nodes if not node.type or node.type == "")
+    input_validator = next(node for node in processed_nodes if node.node_name == "InputValidator")
+    data_formatter = next(node for node in processed_nodes if node.node_name == "DataFormatter")
+    config_settings = next(node for node in processed_nodes if node.node_name == "ConfigSettings")
+    
+    # 4. Verify that all functions have their function_calls populated
+    assert procedural.functions is not None
+    # We've verified functions is not None, safe to iterate
+    for function in procedural.functions:  # type: ignore
+        assert hasattr(function, 'function_calls') and function.function_calls is not None
+        assert len(function.function_calls) > 0
+    
+    assert input_validator.functions is not None
+    # We've verified functions is not None, safe to iterate
+    for function in input_validator.functions:  # type: ignore
+        if function.name != "__init__":  # Skip __init__ as it might have only instantiations
+            assert hasattr(function, 'function_calls') and function.function_calls is not None
+            assert len(function.function_calls) > 0
+    
+    # 5. Verify specific function calls from procedural functions
+    
+    # 5.1 Check calls in calculate_total
+    calc_total_fn = next(f for f in procedural.functions if f.name == "calculate_total")
+    
+    # Check call to process_item (procedural to procedural)
+    process_item_call = next(call for call in calc_total_fn.function_calls if call.function_name == "process_item")
+    assert process_item_call.type == FunctionCallType.SAME_FILE.value
+    assert process_item_call.node_name is None
+    
+    # Check call to formatter.format (procedural to class)
+    format_call = next(call for call in calc_total_fn.function_calls if call.function_name == "format")
+    assert format_call.type == FunctionCallType.SAME_FILE.value
+    assert format_call.node_name == "DataFormatter"
+    
+    # Check call to static method (procedural to static class method)
+    debug_call = next(call for call in calc_total_fn.function_calls if call.function_name == "is_debug_enabled")
+    assert debug_call.type == FunctionCallType.SAME_FILE.value
+    assert debug_call.node_name == "ConfigSettings"
+    
+    # Check call to imported function (procedural to imported)
+    validate_call = next(call for call in calc_total_fn.function_calls if call.function_name == "validate_result")
+    assert validate_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert validate_call.node_name == "data.validation"
+    
+    # 5.2 Check calls in process_item
+    process_item_fn = next(f for f in procedural.functions if f.name == "process_item")
+    
+    # Check call to validator.is_valid (procedural to class)
+    is_valid_call = next(call for call in process_item_fn.function_calls if call.function_name == "is_valid")
+    assert is_valid_call.type == FunctionCallType.SAME_FILE.value
+    assert is_valid_call.node_name == "InputValidator"
+    
+    # Check call to imported static method (procedural to imported static)
+    compute_call = next(call for call in process_item_fn.function_calls if call.function_name == "compute_value")
+    assert compute_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert compute_call.node_name == "utils.math.MathHelper"
+    
+    # 6. Verify specific function calls from class methods
+    
+    # 6.1 Check calls in InputValidator.is_valid
+    is_valid_fn = next(f for f in input_validator.functions if f.name == "is_valid")
+    
+    # Check call to static method (class to static class method)
+    threshold_call = next(call for call in is_valid_fn.function_calls if call.function_name == "get_threshold")
+    assert threshold_call.type == FunctionCallType.SAME_FILE.value
+    assert threshold_call.node_name == "ConfigSettings"
+    
+    # Check call to another class method (class to class)
+    format_call = next(call for call in is_valid_fn.function_calls if call.function_name == "format")
+    assert format_call.type == FunctionCallType.SAME_FILE.value
+    assert format_call.node_name == "DataFormatter"
+    
+    # Check call to imported function (class to imported)
+    log_call = next(call for call in is_valid_fn.function_calls if call.function_name == "log_message")
+    assert log_call.type == FunctionCallType.INTERNAL_CODEBASE.value
+    assert log_call.node_name == "logging.utils"
+    
+    # Check call to procedural function (class to procedural)
+    process_call = next(call for call in is_valid_fn.function_calls if call.function_name == "process_item")
+    assert process_call.type == FunctionCallType.SAME_FILE.value
+    assert process_call.node_name == "test_file"
+    
+    # 6.2 Check calls in DataFormatter.format
+    format_fn = next(f for f in data_formatter.functions if f.name == "format")
+    
+    # Check call to procedural function (class to procedural)
+    get_config_call = next(call for call in format_fn.function_calls if call.function_name == "get_config")
+    assert get_config_call.type == FunctionCallType.SAME_FILE.value
+    assert get_config_call.node_name == "test_file"
+    
+    # 7. Check cyclic dependency (ConfigSettings calling procedural that calls ConfigSettings)
+    config_fn = next(f for f in config_settings.functions if f.name == "get_default_config")
+    
+    # Check call from static method to procedural function
+    calc_call = next(call for call in config_fn.function_calls if call.function_name == "calculate_total")
+    assert calc_call.type == FunctionCallType.SAME_FILE.value
+    assert calc_call.node_name == "test_file"
+    
+    # Check self-referencing static method call
+    debug_call = next(call for call in config_fn.function_calls if call.function_name == "is_debug_enabled")
+    assert debug_call.type == FunctionCallType.SAME_FILE.value
+    assert debug_call.node_name == "ConfigSettings"
