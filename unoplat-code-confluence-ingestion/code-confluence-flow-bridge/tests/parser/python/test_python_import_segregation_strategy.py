@@ -91,25 +91,25 @@ class TestPythonImportSegregationStrategy:
         assert len(internal_imports) == 3, "Should find 3 internal imports"
         
         # Check specific imports and their usage names
-        chapi_import = next(
+        chapi_import: UnoplatImport = next(
             imp for imp in internal_imports 
             if imp.source == "src.code_confluence_flow_bridge.models.chapi.chapi_node"
         )
-        assert len(chapi_import.usage_names) == 1
-        assert chapi_import.usage_names[0].original_name == "ChapiNode"
-        assert chapi_import.usage_names[0].alias is None
+        assert len(chapi_import.usage_names) == 1 #type: ignore
+        assert chapi_import.usage_names[0].original_name == "ChapiNode" #type: ignore
+        assert chapi_import.usage_names[0].alias is None #type: ignore
         
         # Check import with multiple names and aliases
-        unoplat_import = next(
+        unoplat_import: UnoplatImport = next(
             imp for imp in internal_imports 
             if imp.source == "src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import"
         )
-        assert len(unoplat_import.usage_names) == 2
+        assert len(unoplat_import.usage_names) == 2 #type: ignore
         
         # Verify each imported name and its alias
         imported_names = {
             name.original_name: name.alias 
-            for name in unoplat_import.usage_names
+            for name in unoplat_import.usage_names #type: ignore
         }
         assert imported_names == {
             "ImportedName": None,

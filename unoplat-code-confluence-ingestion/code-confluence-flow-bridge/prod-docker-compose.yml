@@ -103,10 +103,10 @@ services:
       - "7474:7474"
       - "7687:7687"
     volumes:
-      - ${HOME}/neo4j/data:/data
-      - ${HOME}/neo4j/logs:/logs
-      - ${HOME}/neo4j/import:/var/lib/neo4j/import
-      - ${HOME}/neo4j/plugins:/plugins
+      - ${HOME}/neo4j_data:/data
+      - ${HOME}/neo4j_logs:/logs
+      - ${HOME}/neo4j_import:/var/lib/neo4j/import
+      - ${HOME}/neo4j_plugins:/plugins
     environment:
       NEO4J_AUTH: neo4j/password
       NEO4J_PLUGINS: '["apoc"]'
