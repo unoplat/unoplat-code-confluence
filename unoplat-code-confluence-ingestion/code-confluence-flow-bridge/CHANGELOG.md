@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.13.0...code-confluence-flow-bridge-v0.14.0) (2025-02-27)
+
+
+### Features
+
+* Add Python function call extraction and instantiation detection ([fe40aa1](https://github.com/unoplat/unoplat-code-confluence/commit/fe40aa1570432113f471f4cec1f1b1f8bbe81e4d))
+* included test coverage for static classes in same file and across codebase/external ([adce2e0](https://github.com/unoplat/unoplat-code-confluence/commit/adce2e06ec5d655a0cf82bc5beacbf083a712037))
+* support function calls for procedural node ([5134d37](https://github.com/unoplat/unoplat-code-confluence/commit/5134d3777dad6e7e6163ec46c1441d842856f450))
+* support function calls for single class node ([088b105](https://github.com/unoplat/unoplat-code-confluence/commit/088b105536a35db0f075fd99b8b12c5965165fa9))
+* support node with 1..n class nodes ([597d721](https://github.com/unoplat/unoplat-code-confluence/commit/597d721869e53de427c81ae77f73099b17463df0))
+* we now support nodes with procedural methods and 1..n classes ([dae64c6](https://github.com/unoplat/unoplat-code-confluence/commit/dae64c61a194b5a488e4543084d0ed73c7fb5bfe))
+
+
+### Bug Fixes
+
+* function call to extract function calls ([754b362](https://github.com/unoplat/unoplat-code-confluence/commit/754b36250e1dd2c2e3a889aa18eaa923f8cd0608))
+* updated right jar name ([167b47a](https://github.com/unoplat/unoplat-code-confluence/commit/167b47a4c5430a36486beea0779747bed124fe85))
+
 ## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.12.0...code-confluence-flow-bridge-v0.13.0) (2025-02-20)
 
 
