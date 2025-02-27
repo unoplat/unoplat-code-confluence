@@ -33,6 +33,21 @@ class TestPythonQualifiedNameStrategy:
             import_prefix=import_prefix
         )
 
-        assert qualified_name == "src.code_confluence_flow_bridge.confluence_git.GithubHelper"
+        assert qualified_name == "src.code_confluence_flow_bridge.confluence_git.github_helper.GithubHelper"
+
+    def test_python_node_dependency_processor(self, strategy: PythonQualifiedNameStrategy, import_prefix: str) -> None:
+        """Test qualified name generation for PythonNodeDependencyProcessor."""
+        node_name = "PythonNodeDependencyProcessor"
+        file_path = "/Users/jayghiya/.unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/python/python_node_dependency_processor.py"
+        node_type = "CLASS"
+
+        qualified_name = strategy.get_qualified_name(
+            node_name=node_name,
+            node_file_path=file_path,
+            node_type=node_type,
+            import_prefix=import_prefix
+        )
+
+        assert qualified_name == "src.code_confluence_flow_bridge.parser.python.python_node_dependency_processor.PythonNodeDependencyProcessor"
 
     
