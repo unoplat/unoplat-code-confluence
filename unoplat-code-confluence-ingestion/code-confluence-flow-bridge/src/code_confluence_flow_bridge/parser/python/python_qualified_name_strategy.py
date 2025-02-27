@@ -7,8 +7,8 @@ class PythonQualifiedNameStrategy:
         """Get qualified name for Python nodes.
 
         For Python, the qualified name follows the format:
-        package.subpackage.classname
-        where classname is the actual node_name rather than the filename
+        package.subpackage.filename.classname
+        where classname is the actual node_name
 
         Args:
             node_name: The actual name of the class/node
@@ -17,7 +17,8 @@ class PythonQualifiedNameStrategy:
             import_prefix: The prefix used for absolute imports (e.g., 'unoplat-code-confluence')
 
         Returns:
-            str: Qualified name in format package.subpackage.node_name
+            str: Qualified name in format package.subpackage.filename.node_name for CLASS types,
+                 or package.subpackage.filename for other types
         """
         # Find the position of import_prefix in the path
         prefix_pos = node_file_path.find(import_prefix)
@@ -33,11 +34,11 @@ class PythonQualifiedNameStrategy:
         # Split the path into parts and convert to package notation
         path_parts = path_without_ext.replace("/", ".").replace("\\", ".").split(".")
 
-        # Replace the last part (filename) with the actual node name for CLASS types
+        # For CLASS types, append the node name instead of replacing the filename
         if node_type == "CLASS":
-            path_parts[-1] = node_name
-
-        # Join the path parts
-        qualified_name = ".".join(path_parts)
+            qualified_name = ".".join(path_parts) + "." + node_name
+        else:
+            # Join the path parts
+            qualified_name = ".".join(path_parts)
 
         return qualified_name
