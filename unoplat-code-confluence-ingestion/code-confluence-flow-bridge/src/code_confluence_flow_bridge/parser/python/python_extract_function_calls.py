@@ -83,21 +83,41 @@ class PythonExtractFunctionCalls:
         """
         Extract function calls from the given function content using Tree-sitter parser.
         Updates nodes by linking function calls to their targets based on whether a node is procedural or a class.
+        
+        Args:
+            file_path_nodes: Dictionary mapping file paths to lists of ChapiNodes
+            imports: List of imports in the file
+            entire_code: The entire source code of the file
+            
+        Returns:
+            The updated file_path_nodes dictionary with function calls linked to their targets
         """
         # Process each node per file path
         for _, nodes in file_path_nodes.items():
             # Build a class nodes map for each file to handle cross-class calls
             class_nodes_map: Dict[str, ChapiNode] = {}
+            procedural_node: Optional[ChapiNode] = None
+            
+            # First pass: identify class nodes and procedural node
             for node in nodes:
                 if node.type == "CLASS" and node.node_name:
                     class_nodes_map[node.node_name] = node
+                elif not node.type or node.type == "" or node.type != "CLASS":
+                    # This is a procedural node
+                    procedural_node = node
             
             # Process each node in the file
             for node in nodes:
                 if not node.type or node.type == "" or node.type != "CLASS":
+                    # Process procedural node
                     self.handle_procedural_code(node, imports, entire_code, class_nodes_map)
                 elif node.type == "CLASS":
-                    self.handle_class_code(node, imports, entire_code, class_nodes_map)
+                    # Process class node with procedural node info if available
+                    context_map = class_nodes_map.copy()
+                    # If we have a procedural node, include it for cross-references
+                    if procedural_node and procedural_node.node_name:
+                        context_map["_procedural_"] = procedural_node
+                    self.handle_class_code(node, imports, entire_code, context_map)
         
         return file_path_nodes
 
@@ -311,6 +331,16 @@ class PythonExtractFunctionCalls:
 
         # Step 3: Check for direct calls to other classes in the same file
         if class_nodes_map and call.node_name:
+            # Special case for procedural node
+            if call.node_name == "_procedural_" and "_procedural_" in class_nodes_map:
+                procedural_node = class_nodes_map["_procedural_"]
+                if procedural_node.functions:
+                    for function in procedural_node.functions:
+                        if function.name == call.function_name:
+                            call.type = FunctionCallType.SAME_FILE.value
+                            call.node_name = procedural_node.node_name
+                            return call
+            
             # Direct class reference (ClassName.method_name())
             if call.node_name in class_nodes_map:
                 other_class_node = class_nodes_map[call.node_name]
@@ -331,14 +361,24 @@ class PythonExtractFunctionCalls:
                                 call.type = FunctionCallType.SAME_FILE.value
                                 call.node_name = class_name  # Update node_name to the class name
                                 return call
+                                
+        # Step 4: Check for calls to procedural functions in the same file (without class prefix)
+        if call.node_name is None and "_procedural_" in class_nodes_map:
+            procedural_node = class_nodes_map["_procedural_"]
+            if procedural_node.functions:
+                for function in procedural_node.functions:
+                    if function.name == call.function_name:
+                        call.type = FunctionCallType.SAME_FILE.value
+                        call.node_name = procedural_node.node_name
+                        return call
 
-        # Step 4: Check for static class methods directly in import_map
+        # Step 5: Check for static class methods directly in import_map
         if call.node_name and call.node_name[0].isupper() and call.node_name in import_map:
             call.node_name = import_map[call.node_name]
             call.type = FunctionCallType.INTERNAL_CODEBASE.value
             return call
         
-        # Step 5: Check if the function itself is imported (without a node_name)
+        # Step 6: Check if the function itself is imported (without a node_name)
         if not call.node_name and call.function_name in import_map:
             import_qualified_name: str = import_map[call.function_name]
             call.node_name = import_qualified_name
@@ -346,15 +386,15 @@ class PythonExtractFunctionCalls:
             
             return call
         
-        # Step 6: Check instance methods using inst_map and import_map
+        # Step 7: Check instance methods using inst_map and import_map
         if call.node_name and call.node_name in inst_map:
-            class_name: str = inst_map[call.node_name]
-            if class_name in import_map:
-                call.node_name = import_map[class_name]
+            class_qualified_name: str = inst_map[call.node_name]
+            if class_qualified_name in import_map:
+                call.node_name = import_map[class_qualified_name]
                 call.type = FunctionCallType.INTERNAL_CODEBASE.value
                 return call
         
-        # Step 7: If we reach here, we couldn't identify the call type
+        # Step 8: If we reach here, we couldn't identify the call type
         call.type = FunctionCallType.UNKNOWN.value
         return call
     
@@ -366,9 +406,7 @@ class PythonExtractFunctionCalls:
         """
         tree: Tree = self.parser.parse(bytes(file_source, "utf8"))
         
-        # Print the AST representation for debugging
-        print(tree.root_node)
-        
+        # Define the query to capture instantiations
         query_source = r"""
         ; 1. Simple assignment instantiation
         (assignment
