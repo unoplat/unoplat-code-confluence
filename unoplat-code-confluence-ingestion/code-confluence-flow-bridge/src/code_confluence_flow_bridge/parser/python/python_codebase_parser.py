@@ -33,6 +33,7 @@ from src.code_confluence_flow_bridge.parser.python.in_class_dependency.sort_func
 from src.code_confluence_flow_bridge.parser.python.node_variables.node_variables_parser import (
     NodeVariablesParser,
 )
+from src.code_confluence_flow_bridge.parser.python.python_extract_function_calls import PythonExtractFunctionCalls
 from src.code_confluence_flow_bridge.parser.python.python_extract_inheritance import (
     PythonExtractInheritance,
 )
@@ -69,6 +70,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         self.qualified_name_strategy = PythonQualifiedNameStrategy()
         self.code_confluence_tree_sitter = CodeConfluenceTreeSitter(language=ProgrammingLanguage.PYTHON)
         self.python_import_segregation_strategy = PythonImportSegregationStrategy(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
+        self.python_extract_function_calls = PythonExtractFunctionCalls(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
         self.sort_function_dependencies = SortFunctionDependencies()
         self.python_node_dependency_processor = PythonNodeDependencyProcessor()
         self.node_variables_parser = NodeVariablesParser(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
@@ -151,18 +153,11 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             )
             imports_dict[ImportType.INTERNAL] = final_internal_imports
 
-        # Todo: Add dependent nodes
+        
         if node.file_path:  # Type guard for linter
             node.package = self.package_naming_strategy.get_package_name(file_path=node.file_path, import_prefix=import_prefix)
 
-        # TODO: enable below when archguard fixes the formatting issues of code content - be it class or function
-        # node.fields = []
-        # if node is of type class do parse class variables and instance variables and add them to node.class_variables
-        # if node.type == "CLASS":
-        #     node.fields = self.node_variables_parser.parse_class_variables(node.content, node.functions)
-
-        # if node.functions:
-        #     self.python_function_calls.process_functions(node.functions)
+        
 
         return UnoplatChapiForgeNode.from_chapi_node(chapi_node=node, qualified_name=qualified_name, segregated_imports=imports_dict if imports_dict is not None else {})
 
@@ -180,12 +175,14 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         then processes dependencies for each node using that map.
         """
         # Phase 1: Preprocess nodes
-        preprocessed_file_path_nodes, preprocessed_qualified_name_dict = self.__preprocess_nodes(
+        preprocessed_result: Tuple[Dict[str, List[UnoplatChapiForgeNode]], Dict[str, UnoplatChapiForgeNode]] = self.__preprocess_nodes(
             json_data, 
             local_workspace_path, 
             source_directory, 
             codebase_name
         )
+        preprocessed_file_path_nodes: Dict[str, List[UnoplatChapiForgeNode]] = preprocessed_result[0]
+        preprocessed_qualified_name_dict = preprocessed_result[1]
 
         # Phase 2: Process dependencies using the map
         unoplat_package_dict: Dict[str, UnoplatPackage] = {}
@@ -195,13 +192,22 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             source_directory=source_directory
         ).replace(os.sep, ".")
 
-        for file_path, nodes in preprocessed_file_path_nodes.items():
+        for file_path, nodes in preprocessed_file_path_nodes.items():  # file_path: str, nodes: List[UnoplatChapiForgeNode] from unoplat_chapi_forge_node.py
             try:
                 # Process file-level data
                 content_of_file = ProgrammingFileReader.read_file(file_path)
                 global_variables: List[ClassGlobalFieldModel] = self.node_variables_parser.parse_global_variables(content_of_file)
                 dependent_classes: List[str] = self.python_node_dependency_processor.process_dependencies(nodes[0], preprocessed_qualified_name_dict)
-
+                
+                if nodes[0].segregated_imports:
+                    internal_imports: List[UnoplatImport] = nodes[0].segregated_imports[ImportType.INTERNAL] 
+                    # This call will update each function’s "function_calls" attribute
+                nodes = self.python_extract_function_calls.extract_function_calls(
+                    file_path_nodes={file_path: nodes},
+                    imports=internal_imports,
+                    entire_code=content_of_file
+                )[file_path]
+                 
                 # Process all nodes from file
                 for node in nodes:
                     sorted_functions: List[UnoplatChapiForgeFunction] = self.sort_function_dependencies.sort_function_dependencies(
@@ -215,7 +221,8 @@ class PythonCodebaseParser(CodebaseParserStrategy):
 
                     if node.node_name != nodes[0].node_name:
                         node.dependent_internal_classes = dependent_classes
-
+                    
+                    
                     # Build package structure using the desired root prefix
                     if node.package:
                         # If node.package starts with the desired prefix, collapse it into one token
