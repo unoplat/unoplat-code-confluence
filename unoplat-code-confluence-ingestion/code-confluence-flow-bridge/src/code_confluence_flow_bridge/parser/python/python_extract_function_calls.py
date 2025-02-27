@@ -4,6 +4,7 @@
 from src.code_confluence_flow_bridge.models.chapi.chapi_functioncall import ChapiFunctionCall
 from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode
 from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_function_call_type import FunctionCallType
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import UnoplatImport
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type import ImportType
@@ -79,7 +80,7 @@ class PythonExtractFunctionCalls:
         """
         self._handle_node_functions(node, imports, entire_code, class_nodes_map)
 
-    def extract_function_calls(self, file_path_nodes: dict[str, List[ChapiNode]], imports: List[UnoplatImport], entire_code: str) -> dict[str, List[ChapiNode]]:
+    def extract_function_calls(self, file_path_nodes: dict[str, List[UnoplatChapiForgeNode]], imports: List[UnoplatImport], entire_code: str) -> dict[str, List[UnoplatChapiForgeNode]]:
         """
         Extract function calls from the given function content using Tree-sitter parser.
         Updates nodes by linking function calls to their targets based on whether a node is procedural or a class.
