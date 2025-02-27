@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.14.0...code-confluence-flow-bridge-v0.14.1) (2025-02-27)
+
+
+### Bug Fixes
+
+* file name should not be removed otherwise we will not be able to match imports with actual file nodes ([b2536ae](https://github.com/unoplat/unoplat-code-confluence/commit/b2536ae4429c9b1c1e301a81a75903ad5097eac0))
+
 ## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.13.0...code-confluence-flow-bridge-v0.14.0) (2025-02-27)
 
 
