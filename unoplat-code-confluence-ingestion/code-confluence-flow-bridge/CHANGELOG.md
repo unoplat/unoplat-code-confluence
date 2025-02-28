@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.14.2...code-confluence-flow-bridge-v0.15.0) (2025-02-28)
+
+
+### Features
+
+* support nested functions linkage ([9c5e6c1](https://github.com/unoplat/unoplat-code-confluence/commit/9c5e6c1618fd484abcba14e8838054c74406ad1c))
+
 ## [0.14.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.14.1...code-confluence-flow-bridge-v0.14.2) (2025-02-28)
 
 
