@@ -1,30 +1,44 @@
 # Limitations and Resolutions
 
-This document provides detailed information about known limitations in code parsing and their possible resolutions for each supported programming language.
+This document tracks known limitations in code parsing capabilities and their resolution status across supported programming languages.
+
+## Status Legend
+
+| Status | Description |
+|--------|-------------|
+| ✅ RESOLVED | Issue has been fixed in our implementation and upstream |
+| 🟡 PARTIAL | Issue has been partially resolved or has a workaround |
+| 🔴 ACTIVE | Known limitation that is currently being addressed |
+| 📅 PLANNED | Issue is scheduled to be resolved in an upcoming release |
+| ⚪ UNPLANNED | Known limitation with no current plans for resolution |
 
 ## Python
 
-### Function Call Parsing
-**Limitation:**
-- Certain function calls are not detected, particularly:
-  - Method calls through class names.
+### Active Limitations
 
-Upstream Issue Tracking: [Issue](https://github.com/phodal/chapi/issues/33)
+| Feature | Status | Description | Impact | Workaround |
+|---------|--------|-------------|--------|------------|
+| Function Dependency Sorting | ⚪ UNPLANNED | Circular dependencies and recursive functions cannot be properly sorted as topological sort is used | May result in incomplete dependency graphs for codebases with circular references | Manual review may be required for circular dependencies |
+| Function Return Type Parsing | 📅 PLANNED | Return types are not being properly captured in certain cases | May result in incomplete type information in the code grammar | Manual annotation of return types may be required |
 
-### Function Return Type Parsing
-**Limitation:**
-- Return type is not captured properly in cases such as:
+### Resolved Limitations
 
-Upstream Issue Tracking: [Issue](https://github.com/phodal/chapi/issues/34)
+| Feature | Status | Resolution Date | Description | Resolution Details |
+|---------|--------|-----------------|-------------|-------------------|
+| Function Call Parsing | ✅ RESOLVED | Q2 2023 | Method calls through class names were not being detected | Fixed in our implementation and in upstream [Issue #33](https://github.com/phodal/chapi/issues/33) |
+| Class and Instance Variables | ✅ RESOLVED | Q3 2023 | Class variables and instance variables were only available per function, not per class/procedure | Fixed in our implementation and in upstream [Issue #32](https://github.com/phodal/chapi/issues/32). Previous POC using tree-sitter is no longer needed |
 
-### Function Dependency Sorting
-**Limitation:**
-- Circular dependencies/recursion will not work as topological sort is used
+## Recent Improvements
 
-### ClassVariables and Instance Variables 
-**Limitation:**
-- Currently class variables and instance variables are not available per class/procedure. They are available per function.
+Each release cycle, we actively work to resolve known limitations. Recent highlights include:
 
-Upstream Issue Tracking: [Issue](https://github.com/phodal/chapi/issues/32)
+- Complete resolution of variable scope detection issues
+- Enhanced method call detection through class names
 
-- We have a poc which uses tree sitter to capture this at node level which can be released post [issue](https://github.com/archguard/archguard/issues/159). 
+## Reporting New Limitations
+
+If you encounter a parsing issue not listed in this document, please report it through:
+1. GitHub Issues: [Create a new issue](https://github.com/unoplat/unoplat-code-confluence/issues)
+2. Community Discord: Join our [Discord channel](https://discord.com/channels/1131597983058755675/1169968780953260106)
+
+Please include sample code that demonstrates the limitation and the expected parsing behavior.
