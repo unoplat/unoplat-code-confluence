@@ -177,7 +177,7 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 | Figuring out dependent internal classes               | ✓    |        |                                                                                                                                                  |
 | Import Segregation                                    | ✓    |        | Currently only identifies internal procedures, classes, and others as unknown. External imports with links to dependencies in package manager metadata coming soon. |
 | Sorting functions within a class/procedure based on dependency | ✓    |        | Circular dependencies/recursion will not work as topological sort is used.                                                              |
-| Nested Functions                                      |      |        |                                                                                                                                                  |
+| Nested Functions                                      |  ✓    |        |                                                                                                                                                  |
 
 > **Note**: For detailed limitations and resolutions that we are working towards refer to [Limitations_Resolutions.md](Limitations_Resolutions.md)
 
