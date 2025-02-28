@@ -40,6 +40,7 @@ from src.code_confluence_flow_bridge.parser.python.python_extract_inheritance im
 from src.code_confluence_flow_bridge.parser.python.python_import_segregation_strategy import (
     PythonImportSegregationStrategy,
 )
+from src.code_confluence_flow_bridge.parser.python.python_link_nested_function import PythonLinkNestedFunction
 from src.code_confluence_flow_bridge.parser.python.python_node_dependency_processor import (
     PythonNodeDependencyProcessor,
 )
@@ -71,6 +72,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
         self.code_confluence_tree_sitter = CodeConfluenceTreeSitter(language=ProgrammingLanguage.PYTHON)
         self.python_import_segregation_strategy = PythonImportSegregationStrategy(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
         self.python_extract_function_calls = PythonExtractFunctionCalls(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
+        self.python_link_nested_function = PythonLinkNestedFunction(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
         self.sort_function_dependencies = SortFunctionDependencies()
         self.python_node_dependency_processor = PythonNodeDependencyProcessor()
         self.node_variables_parser = NodeVariablesParser(code_confluence_tree_sitter=self.code_confluence_tree_sitter)
@@ -208,8 +210,15 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                     entire_code=content_of_file
                 )[file_path]
                  
+                 
+                 
                 # Process all nodes from file
                 for node in nodes:
+                    self.python_link_nested_function.process_nested_functions(
+                        functions=node.functions,
+                        file_content=content_of_file
+                    )
+                    
                     sorted_functions: List[UnoplatChapiForgeFunction] = self.sort_function_dependencies.sort_function_dependencies(
                         functions=node.functions, 
                         node_type=node.type
