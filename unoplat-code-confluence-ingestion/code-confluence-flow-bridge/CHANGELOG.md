@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.14.1...code-confluence-flow-bridge-v0.14.2) (2025-02-28)
+
+
+### Bug Fixes
+
+* removed condition that was added by llm which can never be true for cross referencing procedural functions ([5175b80](https://github.com/unoplat/unoplat-code-confluence/commit/5175b80f961b9715443ce6f4813cd2e51a6c99ed))
+
 ## [0.14.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.14.0...code-confluence-flow-bridge-v0.14.1) (2025-02-27)
 
 
