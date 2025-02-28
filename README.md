@@ -197,11 +197,11 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 5. [Vipin Shreyas Kumar](https://github.com/vipinshreyaskumar)
 6. [Danswer](https://www.danswer.ai/)
 7. [Continue](https://www.continue.dev/)
-8. [OpenDevin](https://github.com/OpenDevin/OpenDevin)
-9. [Devon](https://github.com/entropy-research/Devon)
-10. [Apeksha](https://github.com/apekshamehta)
-11. [Argilla](https://argilla.io/)
-12. [Jeremy Howard](https://www.linkedin.com/in/howardjeremy)
+8. [Apeksha](https://github.com/apekshamehta)
+9. [Jeremy Howard](https://www.linkedin.com/in/howardjeremy)
+10. [Temporal](https://temporal.io)
+11. [Neo4j](https://neo4j.com)
+12. [FastApi](https://fastapi.tiangolo.com)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
