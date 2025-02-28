@@ -11,7 +11,7 @@
   <h3 align="center">The Universal Code Context Engine</h3>
 
   <p align="center">
-    Extract, understand, and provide precise code context across repositories and domains
+    Extract, understand, and provide precise code context across repositories tied through domains
     <br />
     <a href="https://unoplat.github.io/unoplat-code-confluence/docs/"><strong>Explore the docs »</strong></a>
     <br />
