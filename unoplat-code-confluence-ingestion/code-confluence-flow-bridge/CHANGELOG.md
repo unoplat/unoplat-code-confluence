@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.15.0...code-confluence-flow-bridge-v0.15.1) (2025-02-28)
+
+
+### Bug Fixes
+
+* added do linkage call in python codebase parser ([531abfa](https://github.com/unoplat/unoplat-code-confluence/commit/531abfaf6e07fe889fbd862c31059d279aa50c03))
+
 ## [0.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.14.2...code-confluence-flow-bridge-v0.15.0) (2025-02-28)
 
 
