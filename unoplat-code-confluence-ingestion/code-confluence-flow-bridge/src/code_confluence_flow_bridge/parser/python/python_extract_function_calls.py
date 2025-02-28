@@ -1,6 +1,7 @@
 # Standard Library
 # First Party
 
+from loguru import logger
 from src.code_confluence_flow_bridge.models.chapi.chapi_functioncall import ChapiFunctionCall
 from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode
 from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
@@ -332,15 +333,7 @@ class PythonExtractFunctionCalls:
 
         # Step 3: Check for direct calls to other classes in the same file
         if class_nodes_map and call.node_name:
-            # Special case for procedural node
-            if call.node_name == "_procedural_" and "_procedural_" in class_nodes_map:
-                procedural_node = class_nodes_map["_procedural_"]
-                if procedural_node.functions:
-                    for function in procedural_node.functions:
-                        if function.name == call.function_name:
-                            call.type = FunctionCallType.SAME_FILE.value
-                            call.node_name = procedural_node.node_name
-                            return call
+            
             
             # Direct class reference (ClassName.method_name())
             if call.node_name in class_nodes_map:
@@ -366,6 +359,7 @@ class PythonExtractFunctionCalls:
         # Step 4: Check for calls to procedural functions in the same file (without class prefix)
         if call.node_name is None and "_procedural_" in class_nodes_map:
             procedural_node = class_nodes_map["_procedural_"]
+            logger.info(f"Detected procedural call placeholder for function '{call.function_name}' using node map '_procedural_'.")
             if procedural_node.functions:
                 for function in procedural_node.functions:
                     if function.name == call.function_name:
