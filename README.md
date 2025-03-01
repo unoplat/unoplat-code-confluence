@@ -13,10 +13,10 @@
   <p align="center">
     Extract, understand, and provide precise code context across repositories tied through domains
     <br />
-    <a href="https://unoplat.github.io/unoplat-code-confluence/docs/"><strong>Explore the docs »</strong></a>
+    <a href="https://docs.unoplat.io"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://docs.unoplat.io/">Quick Start</a>
+    <a href="https://docs.unoplat.io/docs/category/quickstart">Quick Start</a>
     ·
     <a href="https://github.com/unoplat/unoplat-code-confluence/issues">Report Bug</a>
     ·
