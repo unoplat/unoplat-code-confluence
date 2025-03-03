@@ -96,11 +96,13 @@ tasks:
           --depth=20
 
   test:
-    desc: Run tests
+    desc: Run tests with coverage
     deps: [generate-test-prerequisites]
     dir: .
     cmds:
-      - uv run pytest tests/ -v
+      # Sync only the test dependencies group before running tests.
+      - uv sync --group test
+      - uv run pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v
 
   ci-test:
     desc: Run tests in CI mode using act command with additional environment variable
