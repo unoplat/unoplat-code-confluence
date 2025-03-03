@@ -99,6 +99,14 @@ jobs:
         env:
           GITHUB_PAT_TOKEN: ${{ github.token }} 
         run: |
-          uv sync
-          uv run pytest tests/ -v
+          uv sync --group test
+          uv run pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-${{ matrix.project }}
+          path: |
+            ${{ matrix.project }}/coverage_reports/
+          retention-days: 7
     
