@@ -1,0 +1,83 @@
+name: Docusaurus Build Check
+
+on:
+  pull_request:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - 'code-confluence/**'
+    branches:
+      - main
+
+jobs:
+  test-docusaurus-build:
+    name: Test Docusaurus Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: 'code-confluence/yarn.lock'
+
+      - name: Install dependencies
+        working-directory: code-confluence
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests
+        working-directory: code-confluence
+        run: |
+          if grep -q "\"test\":" package.json; then
+            yarn test
+          else
+            echo "No test script found in package.json, skipping tests"
+          fi
+
+      - name: Run ESLint
+        working-directory: code-confluence
+        run: |
+          if grep -q "\"lint\":" package.json; then
+            yarn lint
+          else
+            echo "No lint script found in package.json, skipping linting"
+          fi
+
+      - name: Build website
+        id: build
+        working-directory: code-confluence
+        run: |
+          yarn build
+          echo "build_status=success" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Check build status
+        if: steps.build.outputs.build_status != 'success'
+        run: |
+          echo "::error::Docusaurus build failed!"
+          exit 1
+
+      - name: Generate build summary
+        run: |
+          echo "## Docusaurus Build Results" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.build.outputs.build_status }}" == "success" ]; then
+            echo "✅ Build completed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload build artifacts
+        if: steps.build.outputs.build_status == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: docusaurus-build
+          path: code-confluence/build
+          retention-days: 7
+          if-no-files-found: error
