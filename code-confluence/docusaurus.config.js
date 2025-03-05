@@ -87,15 +87,15 @@ const config = {
           
         ],
       },
-      algolia: {
-        apiKey: '21acb3ae035a0a588a5377e5e9e06c3b',
-        indexName: 'unoplatio',
-        // Optional: see doc section below
-        appId: '0PYM5MWDAT', // Optional, if using App ID
-        contextualSearch: true,
-        // Optional: Algolia search parameters
-        searchParameters: {},
-      },  
+      // algolia: {
+      //   apiKey: '21acb3ae035a0a588a5377e5e9e06c3b',
+      //   indexName: 'unoplatio',
+      //   // Optional: see doc section below
+      //   appId: '0PYM5MWDAT', // Optional, if using App ID
+      //   contextualSearch: true,
+      //   // Optional: Algolia search parameters
+      //   searchParameters: {},
+      // },  
       // footer: {
       //   style: 'dark',
       //   links: [
