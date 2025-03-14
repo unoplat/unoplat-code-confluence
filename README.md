@@ -26,7 +26,6 @@
   <!-- PROJECT SHIELDS -->
   <p align="center">
     <img src="https://img.shields.io/badge/Status-ALPHA-orange" alt="Status" />
-    <img src="https://img.shields.io/badge/Python-Beta-blue" alt="Python" />
     <img src="https://img.shields.io/badge/License-AGPL%203.0-blue" alt="License" />
   </p>
   
