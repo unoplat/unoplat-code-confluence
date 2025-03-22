@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.10.0...unoplat-code-confluence-commons-v0.10.1) (2025-03-22)
+
+
+### Bug Fixes
+
+* make local path required column for codebase ([8af1718](https://github.com/unoplat/unoplat-code-confluence/commit/8af1718b80fc8c3296dcadb00616c8fa82585ebf))
+
 ## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.9.2...unoplat-code-confluence-commons-v0.10.0) (2025-01-21)
 
 
