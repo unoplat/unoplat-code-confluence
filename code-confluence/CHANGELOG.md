@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.8.3...code-confluence-docs-v0.9.0) (2025-03-22)
+
+
+### Features
+
+* mock update README for clarity and conciseness ([1acf240](https://github.com/unoplat/unoplat-code-confluence/commit/1acf2401077395b6781b0929d5a19d1d143ef40a))
+* mock update README for clarity and conciseness ([d7d4f88](https://github.com/unoplat/unoplat-code-confluence/commit/d7d4f88a80c844cc1c5b619e33d07180629eeeba))
+
 ## [0.8.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.8.2...code-confluence-docs-v0.8.3) (2025-02-19)
 
 
