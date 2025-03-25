@@ -102,10 +102,17 @@ jobs:
           uv sync --group test
           uv run pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
 
+      - name: Set sanitized project name
+        id: sanitize
+        run: |
+          # Replace slashes with hyphens and set as output
+          SANITIZED_NAME=$(echo "${{ matrix.project }}" | tr '/' '-')
+          echo "project_name=$SANITIZED_NAME" >> $GITHUB_OUTPUT
+
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-reports-${{ matrix.project }}
+          name: coverage-reports-${{ steps.sanitize.outputs.project_name }}
           path: |
             ${{ matrix.project }}/coverage_reports/
           retention-days: 7
