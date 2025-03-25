@@ -1,0 +1,752 @@
+{
+  "type": "module",
+  "start_byte": 1,
+  "end_byte": 354,
+  "text": "# Simple assignment\ncalculator = Calculator()\n\n# Tuple unpacking\nx, y = Point(), Vector()\n\n# Assignment with type annotation\ndata: DataClass = DataClass()\n\n# List with class instantiation\nitems = [Item()]\n\n# Dictionary with class instantiation\nmapping = {\"key\": Value()}\n\n# Conditional assignment\nresult = FirstOption() if condition else SecondOption()\n",
+  "children": [
+    {
+      "type": "comment",
+      "start_byte": 1,
+      "end_byte": 20,
+      "text": "# Simple assignment"
+    },
+    {
+      "type": "expression_statement",
+      "start_byte": 21,
+      "end_byte": 46,
+      "text": "calculator = Calculator()",
+      "children": [
+        {
+          "type": "assignment",
+          "start_byte": 21,
+          "end_byte": 46,
+          "text": "calculator = Calculator()",
+          "fields": {
+            "left": {
+              "type": "identifier",
+              "text": "calculator"
+            },
+            "right": {
+              "type": "call",
+              "text": "Calculator()"
+            }
+          },
+          "children": [
+            {
+              "type": "identifier",
+              "start_byte": 21,
+              "end_byte": 31,
+              "text": "calculator"
+            },
+            {
+              "type": "=",
+              "start_byte": 32,
+              "end_byte": 33,
+              "text": "="
+            },
+            {
+              "type": "call",
+              "start_byte": 34,
+              "end_byte": 46,
+              "text": "Calculator()",
+              "fields": {
+                "function": {
+                  "type": "identifier",
+                  "text": "Calculator"
+                }
+              },
+              "children": [
+                {
+                  "type": "identifier",
+                  "start_byte": 34,
+                  "end_byte": 44,
+                  "text": "Calculator"
+                },
+                {
+                  "type": "argument_list",
+                  "start_byte": 44,
+                  "end_byte": 46,
+                  "text": "()",
+                  "children": [
+                    {
+                      "type": "(",
+                      "start_byte": 44,
+                      "end_byte": 45,
+                      "text": "("
+                    },
+                    {
+                      "type": ")",
+                      "start_byte": 45,
+                      "end_byte": 46,
+                      "text": ")"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "start_byte": 48,
+      "end_byte": 65,
+      "text": "# Tuple unpacking"
+    },
+    {
+      "type": "expression_statement",
+      "start_byte": 66,
+      "end_byte": 90,
+      "text": "x, y = Point(), Vector()",
+      "children": [
+        {
+          "type": "assignment",
+          "start_byte": 66,
+          "end_byte": 90,
+          "text": "x, y = Point(), Vector()",
+          "fields": {
+            "left": {
+              "type": "pattern_list",
+              "text": "x, y"
+            },
+            "right": {
+              "type": "expression_list",
+              "text": "Point(), Vector()"
+            }
+          },
+          "children": [
+            {
+              "type": "pattern_list",
+              "start_byte": 66,
+              "end_byte": 70,
+              "text": "x, y",
+              "children": [
+                {
+                  "type": "identifier",
+                  "start_byte": 66,
+                  "end_byte": 67,
+                  "text": "x"
+                },
+                {
+                  "type": ",",
+                  "start_byte": 67,
+                  "end_byte": 68,
+                  "text": ","
+                },
+                {
+                  "type": "identifier",
+                  "start_byte": 69,
+                  "end_byte": 70,
+                  "text": "y"
+                }
+              ]
+            },
+            {
+              "type": "=",
+              "start_byte": 71,
+              "end_byte": 72,
+              "text": "="
+            },
+            {
+              "type": "expression_list",
+              "start_byte": 73,
+              "end_byte": 90,
+              "text": "Point(), Vector()",
+              "children": [
+                {
+                  "type": "call",
+                  "start_byte": 73,
+                  "end_byte": 80,
+                  "text": "Point()",
+                  "fields": {
+                    "function": {
+                      "type": "identifier",
+                      "text": "Point"
+                    }
+                  },
+                  "children": [
+                    {
+                      "type": "identifier",
+                      "start_byte": 73,
+                      "end_byte": 78,
+                      "text": "Point"
+                    },
+                    {
+                      "type": "argument_list",
+                      "start_byte": 78,
+                      "end_byte": 80,
+                      "text": "()",
+                      "children": [
+                        {
+                          "type": "(",
+                          "start_byte": 78,
+                          "end_byte": 79,
+                          "text": "("
+                        },
+                        {
+                          "type": ")",
+                          "start_byte": 79,
+                          "end_byte": 80,
+                          "text": ")"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": ",",
+                  "start_byte": 80,
+                  "end_byte": 81,
+                  "text": ","
+                },
+                {
+                  "type": "call",
+                  "start_byte": 82,
+                  "end_byte": 90,
+                  "text": "Vector()",
+                  "fields": {
+                    "function": {
+                      "type": "identifier",
+                      "text": "Vector"
+                    }
+                  },
+                  "children": [
+                    {
+                      "type": "identifier",
+                      "start_byte": 82,
+                      "end_byte": 88,
+                      "text": "Vector"
+                    },
+                    {
+                      "type": "argument_list",
+                      "start_byte": 88,
+                      "end_byte": 90,
+                      "text": "()",
+                      "children": [
+                        {
+                          "type": "(",
+                          "start_byte": 88,
+                          "end_byte": 89,
+                          "text": "("
+                        },
+                        {
+                          "type": ")",
+                          "start_byte": 89,
+                          "end_byte": 90,
+                          "text": ")"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "start_byte": 92,
+      "end_byte": 125,
+      "text": "# Assignment with type annotation"
+    },
+    {
+      "type": "expression_statement",
+      "start_byte": 126,
+      "end_byte": 155,
+      "text": "data: DataClass = DataClass()",
+      "children": [
+        {
+          "type": "assignment",
+          "start_byte": 126,
+          "end_byte": 155,
+          "text": "data: DataClass = DataClass()",
+          "fields": {
+            "left": {
+              "type": "identifier",
+              "text": "data"
+            },
+            "right": {
+              "type": "call",
+              "text": "DataClass()"
+            }
+          },
+          "children": [
+            {
+              "type": "identifier",
+              "start_byte": 126,
+              "end_byte": 130,
+              "text": "data"
+            },
+            {
+              "type": ":",
+              "start_byte": 130,
+              "end_byte": 131,
+              "text": ":"
+            },
+            {
+              "type": "type",
+              "start_byte": 132,
+              "end_byte": 141,
+              "text": "DataClass",
+              "children": [
+                {
+                  "type": "identifier",
+                  "start_byte": 132,
+                  "end_byte": 141,
+                  "text": "DataClass"
+                }
+              ]
+            },
+            {
+              "type": "=",
+              "start_byte": 142,
+              "end_byte": 143,
+              "text": "="
+            },
+            {
+              "type": "call",
+              "start_byte": 144,
+              "end_byte": 155,
+              "text": "DataClass()",
+              "fields": {
+                "function": {
+                  "type": "identifier",
+                  "text": "DataClass"
+                }
+              },
+              "children": [
+                {
+                  "type": "identifier",
+                  "start_byte": 144,
+                  "end_byte": 153,
+                  "text": "DataClass"
+                },
+                {
+                  "type": "argument_list",
+                  "start_byte": 153,
+                  "end_byte": 155,
+                  "text": "()",
+                  "children": [
+                    {
+                      "type": "(",
+                      "start_byte": 153,
+                      "end_byte": 154,
+                      "text": "("
+                    },
+                    {
+                      "type": ")",
+                      "start_byte": 154,
+                      "end_byte": 155,
+                      "text": ")"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "start_byte": 157,
+      "end_byte": 188,
+      "text": "# List with class instantiation"
+    },
+    {
+      "type": "expression_statement",
+      "start_byte": 189,
+      "end_byte": 205,
+      "text": "items = [Item()]",
+      "children": [
+        {
+          "type": "assignment",
+          "start_byte": 189,
+          "end_byte": 205,
+          "text": "items = [Item()]",
+          "fields": {
+            "left": {
+              "type": "identifier",
+              "text": "items"
+            },
+            "right": {
+              "type": "list",
+              "text": "[Item()]"
+            }
+          },
+          "children": [
+            {
+              "type": "identifier",
+              "start_byte": 189,
+              "end_byte": 194,
+              "text": "items"
+            },
+            {
+              "type": "=",
+              "start_byte": 195,
+              "end_byte": 196,
+              "text": "="
+            },
+            {
+              "type": "list",
+              "start_byte": 197,
+              "end_byte": 205,
+              "text": "[Item()]",
+              "children": [
+                {
+                  "type": "[",
+                  "start_byte": 197,
+                  "end_byte": 198,
+                  "text": "["
+                },
+                {
+                  "type": "call",
+                  "start_byte": 198,
+                  "end_byte": 204,
+                  "text": "Item()",
+                  "fields": {
+                    "function": {
+                      "type": "identifier",
+                      "text": "Item"
+                    }
+                  },
+                  "children": [
+                    {
+                      "type": "identifier",
+                      "start_byte": 198,
+                      "end_byte": 202,
+                      "text": "Item"
+                    },
+                    {
+                      "type": "argument_list",
+                      "start_byte": 202,
+                      "end_byte": 204,
+                      "text": "()",
+                      "children": [
+                        {
+                          "type": "(",
+                          "start_byte": 202,
+                          "end_byte": 203,
+                          "text": "("
+                        },
+                        {
+                          "type": ")",
+                          "start_byte": 203,
+                          "end_byte": 204,
+                          "text": ")"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "]",
+                  "start_byte": 204,
+                  "end_byte": 205,
+                  "text": "]"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "start_byte": 207,
+      "end_byte": 244,
+      "text": "# Dictionary with class instantiation"
+    },
+    {
+      "type": "expression_statement",
+      "start_byte": 245,
+      "end_byte": 271,
+      "text": "mapping = {\"key\": Value()}",
+      "children": [
+        {
+          "type": "assignment",
+          "start_byte": 245,
+          "end_byte": 271,
+          "text": "mapping = {\"key\": Value()}",
+          "fields": {
+            "left": {
+              "type": "identifier",
+              "text": "mapping"
+            },
+            "right": {
+              "type": "dictionary",
+              "text": "{\"key\": Value()}"
+            }
+          },
+          "children": [
+            {
+              "type": "identifier",
+              "start_byte": 245,
+              "end_byte": 252,
+              "text": "mapping"
+            },
+            {
+              "type": "=",
+              "start_byte": 253,
+              "end_byte": 254,
+              "text": "="
+            },
+            {
+              "type": "dictionary",
+              "start_byte": 255,
+              "end_byte": 271,
+              "text": "{\"key\": Value()}",
+              "children": [
+                {
+                  "type": "{",
+                  "start_byte": 255,
+                  "end_byte": 256,
+                  "text": "{"
+                },
+                {
+                  "type": "pair",
+                  "start_byte": 256,
+                  "end_byte": 270,
+                  "text": "\"key\": Value()",
+                  "children": [
+                    {
+                      "type": "string",
+                      "start_byte": 256,
+                      "end_byte": 261,
+                      "text": "\"key\"",
+                      "children": [
+                        {
+                          "type": "string_start",
+                          "start_byte": 256,
+                          "end_byte": 257,
+                          "text": "\""
+                        },
+                        {
+                          "type": "string_content",
+                          "start_byte": 257,
+                          "end_byte": 260,
+                          "text": "key"
+                        },
+                        {
+                          "type": "string_end",
+                          "start_byte": 260,
+                          "end_byte": 261,
+                          "text": "\""
+                        }
+                      ]
+                    },
+                    {
+                      "type": ":",
+                      "start_byte": 261,
+                      "end_byte": 262,
+                      "text": ":"
+                    },
+                    {
+                      "type": "call",
+                      "start_byte": 263,
+                      "end_byte": 270,
+                      "text": "Value()",
+                      "fields": {
+                        "function": {
+                          "type": "identifier",
+                          "text": "Value"
+                        }
+                      },
+                      "children": [
+                        {
+                          "type": "identifier",
+                          "start_byte": 263,
+                          "end_byte": 268,
+                          "text": "Value"
+                        },
+                        {
+                          "type": "argument_list",
+                          "start_byte": 268,
+                          "end_byte": 270,
+                          "text": "()",
+                          "children": [
+                            {
+                              "type": "(",
+                              "start_byte": 268,
+                              "end_byte": 269,
+                              "text": "("
+                            },
+                            {
+                              "type": ")",
+                              "start_byte": 269,
+                              "end_byte": 270,
+                              "text": ")"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "}",
+                  "start_byte": 270,
+                  "end_byte": 271,
+                  "text": "}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "start_byte": 273,
+      "end_byte": 297,
+      "text": "# Conditional assignment"
+    },
+    {
+      "type": "expression_statement",
+      "start_byte": 298,
+      "end_byte": 353,
+      "text": "result = FirstOption() if condition else SecondOption()",
+      "children": [
+        {
+          "type": "assignment",
+          "start_byte": 298,
+          "end_byte": 353,
+          "text": "result = FirstOption() if condition else SecondOption()",
+          "fields": {
+            "left": {
+              "type": "identifier",
+              "text": "result"
+            },
+            "right": {
+              "type": "conditional_expression",
+              "text": "FirstOption() if condition else SecondOption()"
+            }
+          },
+          "children": [
+            {
+              "type": "identifier",
+              "start_byte": 298,
+              "end_byte": 304,
+              "text": "result"
+            },
+            {
+              "type": "=",
+              "start_byte": 305,
+              "end_byte": 306,
+              "text": "="
+            },
+            {
+              "type": "conditional_expression",
+              "start_byte": 307,
+              "end_byte": 353,
+              "text": "FirstOption() if condition else SecondOption()",
+              "children": [
+                {
+                  "type": "call",
+                  "start_byte": 307,
+                  "end_byte": 320,
+                  "text": "FirstOption()",
+                  "fields": {
+                    "function": {
+                      "type": "identifier",
+                      "text": "FirstOption"
+                    }
+                  },
+                  "children": [
+                    {
+                      "type": "identifier",
+                      "start_byte": 307,
+                      "end_byte": 318,
+                      "text": "FirstOption"
+                    },
+                    {
+                      "type": "argument_list",
+                      "start_byte": 318,
+                      "end_byte": 320,
+                      "text": "()",
+                      "children": [
+                        {
+                          "type": "(",
+                          "start_byte": 318,
+                          "end_byte": 319,
+                          "text": "("
+                        },
+                        {
+                          "type": ")",
+                          "start_byte": 319,
+                          "end_byte": 320,
+                          "text": ")"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "if",
+                  "start_byte": 321,
+                  "end_byte": 323,
+                  "text": "if"
+                },
+                {
+                  "type": "identifier",
+                  "start_byte": 324,
+                  "end_byte": 333,
+                  "text": "condition"
+                },
+                {
+                  "type": "else",
+                  "start_byte": 334,
+                  "end_byte": 338,
+                  "text": "else"
+                },
+                {
+                  "type": "call",
+                  "start_byte": 339,
+                  "end_byte": 353,
+                  "text": "SecondOption()",
+                  "fields": {
+                    "function": {
+                      "type": "identifier",
+                      "text": "SecondOption"
+                    }
+                  },
+                  "children": [
+                    {
+                      "type": "identifier",
+                      "start_byte": 339,
+                      "end_byte": 351,
+                      "text": "SecondOption"
+                    },
+                    {
+                      "type": "argument_list",
+                      "start_byte": 351,
+                      "end_byte": 353,
+                      "text": "()",
+                      "children": [
+                        {
+                          "type": "(",
+                          "start_byte": 351,
+                          "end_byte": 352,
+                          "text": "("
+                        },
+                        {
+                          "type": ")",
+                          "start_byte": 352,
+                          "end_byte": 353,
+                          "text": ")"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

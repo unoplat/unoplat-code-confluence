@@ -41,7 +41,7 @@ const FeatureList = [
         <div className={styles.featurePoints}>
           <div className={styles.featurePoint}>
             <strong>🔄 Bottom-Up Summarization</strong>
-            <p>Hierarchical deterministic summarization from functions to entire codebases, ensuring precise and contextual understanding at every level.</p>
+            <p>Hierarchical deterministicsummarization from functions to entire codebases, ensuring precise and contextual understanding at every level.</p>
           </div>
           
           <div className={styles.featurePoint}>
@@ -181,7 +181,7 @@ export default function HomepageFeatures() {
   return (
     <div className={styles.lessWidth}>
       <section className={styles.advertise}>
-        <Heading as="h2" className={styles.paddingLeftRight}>Empower Your Code: From Static Syntax to Dynamic Dialogue.</Heading>
+        <Heading as="h2" className={styles.paddingLeftRight}> Transforming Code into Plain Language.</Heading>
         <p className={styles.paddingLeftRight}>
           Centralize your siloed codebases across your organization, empowering all stakeholders.
         </p>
