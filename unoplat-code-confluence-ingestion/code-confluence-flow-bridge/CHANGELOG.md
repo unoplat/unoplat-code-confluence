@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.15.1...code-confluence-flow-bridge-v0.16.0) (2025-03-25)
+
+
+### Features
+
+* update dependencies and add nested function detection ([17ceb7c](https://github.com/unoplat/unoplat-code-confluence/commit/17ceb7c0b176caf71da66b5ce0b0e45ef7e6a63e))
+* update dependencies and add nested function detection ([f5adfe2](https://github.com/unoplat/unoplat-code-confluence/commit/f5adfe2eff9efafc92dfd72d97025e52392d6777))
+
 ## [0.15.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.15.0...code-confluence-flow-bridge-v0.15.1) (2025-02-28)
 
 
