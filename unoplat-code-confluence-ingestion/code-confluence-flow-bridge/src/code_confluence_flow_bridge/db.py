@@ -13,7 +13,9 @@ DB_NAME = os.getenv("DB_NAME", "code_confluence")
 POSTGRES_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Create engine
-engine = create_engine(POSTGRES_URL, echo=True)
+# Read echo setting from environment variable, default to False
+DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
+engine = create_engine(POSTGRES_URL, echo=DB_ECHO)
 
 def get_session():
     """
