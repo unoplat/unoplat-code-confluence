@@ -21,12 +21,12 @@ from typing import Callable, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.concurrency import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 import httpx
 from loguru import logger
 from sqlmodel import Session, select
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
-from fastapi.middleware.cors import CORSMiddleware
 
 # Setup logging
 logger = setup_logging()
