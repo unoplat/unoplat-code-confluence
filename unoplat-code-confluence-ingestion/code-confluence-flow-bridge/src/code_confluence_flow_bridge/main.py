@@ -2,7 +2,7 @@ from src.code_confluence_flow_bridge.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
 from src.code_confluence_flow_bridge.models.credentials import Credentials
-from src.code_confluence_flow_bridge.models.github.github_repo import GitHubLicense, GitHubOwner, GitHubRepo, GitHubRepoSummary
+from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoSummary
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
