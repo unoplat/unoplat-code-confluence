@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.16.0...code-confluence-flow-bridge-v0.17.0) (2025-03-29)
+
+
+### Features
+
+* add PostgreSQL connection and session management ([55f122b](https://github.com/unoplat/unoplat-code-confluence/commit/55f122b3de809e6743b2cc10f938663126733f71))
+* add PostgreSQL connection and session management ([d3081b5](https://github.com/unoplat/unoplat-code-confluence/commit/d3081b53033b2f80b51780b59634aa269557951e))
+
 ## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.15.1...code-confluence-flow-bridge-v0.16.0) (2025-03-25)
 
 
