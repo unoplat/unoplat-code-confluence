@@ -115,7 +115,7 @@ jobs:
             const yaml = require('js-yaml');
             
             // Read the docker-compose file
-            const filePath = '${{ matrix.path }}/prod-docker-compose.yml';
+            const filePath = 'prod-docker-compose.yml';
             const fileContent = fs.readFileSync(filePath, 'utf8');
             const compose = yaml.load(fileContent);
             
