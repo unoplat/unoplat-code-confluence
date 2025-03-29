@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.17.0...code-confluence-flow-bridge-v0.18.0) (2025-03-29)
+
+
+### Features
+
+* add CORS middleware to FastAPI application ([fc9124f](https://github.com/unoplat/unoplat-code-confluence/commit/fc9124f858664c5e0be4df77a505cdb5dba3841a))
+* add database initialization and CORS configuration ([9dc2094](https://github.com/unoplat/unoplat-code-confluence/commit/9dc209451489a394a4bc4fa6ff1d3696446d8db1))
+* **db:** read echo setting from environment variable ([c7988c6](https://github.com/unoplat/unoplat-code-confluence/commit/c7988c67f4ccaf5b3842fc639c547e33f0c11dfd))
+
 ## [0.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.16.0...code-confluence-flow-bridge-v0.17.0) (2025-03-29)
 
 
