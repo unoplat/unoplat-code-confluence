@@ -11,20 +11,29 @@ from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+from src.code_confluence_flow_bridge.utility.password_utils import decrypt_token, encrypt_token
 
 import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, List, Optional
+from datetime import datetime, timezone
+from typing import Callable, Dict, List, Optional
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.concurrency import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+import httpx
 from loguru import logger
+from sqlmodel import Session, select
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
 
 # Setup logging
 logger = setup_logging()
+
+
+#setup supertokens
+
 
 
 async def get_temporal_client() -> Client:
@@ -82,13 +91,30 @@ async def lifespan(app: FastAPI):
     
     codebase_processing_activity = CodebaseProcessingActivity(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
     activities.append(codebase_processing_activity.process_codebase)
-
+    
+    # Create database tables during startup
+    create_db_and_tables()
+    
     asyncio.create_task(run_worker(activities=activities, client=app.state.temporal_client, activity_executor=app.state.activity_executor))
     yield
     await app.state.code_confluence_graph_ingestion.close()
 
 
+
 app = FastAPI(lifespan=lifespan)
+
+# Configure CORS
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],        # Allows all methods
+    allow_headers=["*"],        # Allows all headers
+)
 
 
 # Create background task for workflow completion
