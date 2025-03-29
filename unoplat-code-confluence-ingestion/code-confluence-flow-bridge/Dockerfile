@@ -3,7 +3,7 @@ FROM python:3.12-slim
 
 # Install Java and Git
 RUN apt-get update && \
-    apt-get install -y wget gnupg curl git && \
+    apt-get install -y wget gnupg curl git build-essential libpq-dev && \
     curl -s https://repos.azul.com/azul-repo.key | gpg --dearmor -o /usr/share/keyrings/azul.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" | \
     tee /etc/apt/sources.list.d/zulu.list && \
