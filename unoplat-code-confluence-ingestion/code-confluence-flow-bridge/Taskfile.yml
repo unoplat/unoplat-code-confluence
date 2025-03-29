@@ -34,6 +34,18 @@ tasks:
           --env NEO4J_dbms_security_procedures_unrestricted='*' 
           graphstack/dozerdb:5.25.1.0-alpha.1
 
+  start-dependencies:
+    desc: Start all dependencies using docker-compose
+    cmds:
+      - docker-compose -f local-dependencies-only-docker-compose.yml up -d
+      - echo "Waiting for services to be ready..."
+      - sleep 10  # Add a brief wait for services to initialize
+
+  stop-dependencies:
+    desc: Stop all dependencies and remove volumes
+    cmds:
+      - docker-compose -f local-dependencies-only-docker-compose.yml down --volumes
+
   sync:
     desc: Setup project with dependencies
     dir: .
@@ -52,12 +64,23 @@ tasks:
     dir: src/code_confluence_flow_bridge
     env:
       SCANNER_JAR_PATH: "{{.HOME}}/.unoplat/repositories/assets/scanner_cli-2.2.8-all.jar"
+      DB_HOST: "localhost"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_NAME: "code_confluence"
+      NEO4J_HOST: "localhost"
+      NEO4J_PORT: "7687"
+      NEO4J_USERNAME: "neo4j"
+      NEO4J_PASSWORD: "password"
+      TEMPORAL_SERVER_ADDRESS: "localhost:7233"
     cmds:
       - uv run fastapi dev
 
   dev:
-    desc: Install dependencies and run the application
+    desc: Install dependencies, start required services, and run the application
     cmds:
+      - task: start-dependencies
       - task: run-dev
 
   ensure-scanner-cli:
@@ -97,12 +120,13 @@ tasks:
 
   test:
     desc: Run tests with coverage
-    deps: [generate-test-prerequisites]
+    deps: [generate-test-prerequisites, start-dependencies]
     dir: .
     cmds:
       # Sync only the test dependencies group before running tests.
       - uv sync --group test
       - uv run pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v
+      - task: stop-dependencies
 
   ci-test:
     desc: Run tests in CI mode using act command with additional environment variable
