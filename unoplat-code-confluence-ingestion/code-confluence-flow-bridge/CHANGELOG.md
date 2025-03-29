@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.18.0...code-confluence-flow-bridge-v0.18.1) (2025-03-29)
+
+
+### Bug Fixes
+
+* update Dockerfile and clean up imports in main.py ([9cdf33d](https://github.com/unoplat/unoplat-code-confluence/commit/9cdf33d7f7c6012f23a616055b11822a916d260c))
+* update Dockerfile and clean up imports in main.py ([8e93f12](https://github.com/unoplat/unoplat-code-confluence/commit/8e93f123417ac89bcdfc14c01837bc75f304e5c1))
+
 ## [0.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.17.0...code-confluence-flow-bridge-v0.18.0) (2025-03-29)
 
 
