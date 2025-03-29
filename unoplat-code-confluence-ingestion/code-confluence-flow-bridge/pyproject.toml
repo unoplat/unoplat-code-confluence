@@ -21,6 +21,9 @@ dependencies = [
     "unoplat-code-confluence-commons",
     "packaging>=24.2",
     "validate-pyproject[all]>=0.23",
+    "sqlmodel>=0.0.24",
+    "psycopg2>=2.9.10",
+    "passlib[bcrypt]>=1.7.4",
 ] 
 
 [dependency-groups]
