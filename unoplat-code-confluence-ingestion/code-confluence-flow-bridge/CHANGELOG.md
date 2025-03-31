@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.18.1...code-confluence-flow-bridge-v0.19.0) (2025-03-31)
+
+
+### Features
+
+* **docker:** add PostgreSQL and Elasticsearch and Frontend related services ([db51f81](https://github.com/unoplat/unoplat-code-confluence/commit/db51f81269dd1a842782597dec274e6b80ecb683))
+* **docker:** add PostgreSQL and Elasticsearch and Frontend related services ([0fc7618](https://github.com/unoplat/unoplat-code-confluence/commit/0fc761826125c9ae5aa0c8a47cbd09ef4125129c))
+
 ## [0.18.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.18.0...code-confluence-flow-bridge-v0.18.1) (2025-03-29)
 
 
