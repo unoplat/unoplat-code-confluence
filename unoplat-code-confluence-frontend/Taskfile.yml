@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+
+tasks:
+  install:
+    desc: Install dependencies using yarn
+    cmds:
+      - yarn install
+    # Only run if package.json or yarn.lock have changed
+    sources:
+      - package.json
+      - yarn.lock
+    generates:
+      - node_modules/**/*
+
+  build:
+    desc: Build the application
+    deps: [install]
+    cmds:
+      - yarn build
+    sources:
+      - src/**/*
+      - public/**/*
+      - index.html
+      - vite.config.ts
+    generates:
+      - dist/**/*
+
+  dev:
+    desc: Start development environment
+    deps: [install]
+    cmds:
+      - yarn dev
+
+  docker:
+    desc: Build and run docker container locally
+    deps: [build]
+    cmds:
+      - docker build -t vite-app .
+      - docker run -p 3000:80 vite-app 

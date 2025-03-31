@@ -1,0 +1,34 @@
+name: Frontend Develop Branch Test
+on:
+  pull_request_target:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+    paths:
+      - 'unoplat-code-confluence-frontend/**'
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
+            ref: ${{ GITHUB.HEAD_REF }}
+     
+      - name: Yarn setup
+        uses: DerYeger/yarn-setup-action@master
+        with:
+            node-version: 20
+      - name: Install dependencies
+        run: yarn install
+      - name: Build
+        run: yarn build
+    #   - name: Test
+    #     run: yarn test
+
+      
