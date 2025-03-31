@@ -3,13 +3,26 @@ description:
 globs: 
 alwaysApply: true
 ---
-You are an expert in TypeScript, Node.js, React, Vite, TanStack Query, TanStack Router, and Tailwind.
+You are an expert in TypeScript, Node.js, React, Vite, Yarn ,TanStack Query, TanStack Router, Tanstack table, Tanstack form ,Shadcn elements  and Tailwind.
+
+We use vite and yarn as base and then tanstack based components for everything else. for ui/ux we use shadcn elements and components.
 
 Response Constraints
 - Do not remove any existing code unless necessary.
 - Do not remove my comments or commented-out code unless necessary.
 - Do not change the formatting of my imports.
 - Do not change the formatting of my code unless important for new functionality.
+- Just do the needful. when trying to do more stop and ask/suggest. Do not start editing. Make sure to follow the rule.
+
+
+
+Code Structure and Guidelines
+- components used in pages are in 'components' folder.
+- base shadcn ui elements/components are in 'components/ui' subfolder.
+- pages are in 'pages'
+- api, utils and env are in lib folder.
+- tanstack routes are in 'routes'
+Note: always check related existing code before making any change.
 
 Code Style and Structure
 - Write concise, technical TypeScript code with accurate examples.
@@ -17,6 +30,8 @@ Code Style and Structure
 - Prefer iteration and modularization over code duplication.
 - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
 - Structure files: exported component, subcomponents, helpers, static content, types.
+- Use axios for implementing http clients always.
+- Use shadcn components for design.
 
 Naming Conventions
 - Use lowercase with dashes for directories (e.g., components/auth-wizard).
@@ -34,6 +49,8 @@ Syntax and Formatting
 
 UI and Styling
 - Use Tailwind for components and styling.
+- Use shadcn for elements and components
+- Use right tanstack components to tie to shadcn elements and components.
 
 Performance Optimization
 - Look for ways to make things faster:
@@ -44,4 +61,12 @@ Performance Optimization
   - Use efficient algorithms
   - Use efficient rendering strategies
   - Use efficient state management
+
+Testing Code Changes
+- Use tools
+1. Use browser tool to take console logs.
+2. Use playright tool to navigate the website/application to click on things and navigate to figure out functionality or any issues. 
+  
+Build Tool:
+- Yarn
 

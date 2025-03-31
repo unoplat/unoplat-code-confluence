@@ -34,7 +34,12 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Render the app
+/*
+Rendering with createRoot:
+Using createRoot from react-dom/client is the modern way to attach your
+React application to a DOM element (here, an element with the ID "root"). 
+This is the entry point where your app is bootstrapped.
+*/
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
