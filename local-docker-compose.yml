@@ -30,17 +30,24 @@ services:
     volumes:
       - /var/lib/elasticsearch/data
   postgresql:
-    container_name: temporal-postgresql
+    image: bitnami/postgresql:latest
+    container_name: code-confluence-postgresql
     environment:
-      POSTGRES_PASSWORD: temporal
-      POSTGRES_USER: temporal
-    image: postgres:13
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=code_confluence
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/bitnami/postgresql
     networks:
       - temporal-network
-    expose:
-      - 5432
-    volumes:
-      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
   temporal:
     container_name: temporal
     depends_on:
@@ -49,8 +56,8 @@ services:
     environment:
       - DB=postgres12
       - DB_PORT=5432
-      - POSTGRES_USER=temporal
-      - POSTGRES_PWD=temporal
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=postgres
       - POSTGRES_SEEDS=postgresql
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
@@ -122,7 +129,7 @@ services:
   code-confluence-flow-bridge:
     container_name: code-confluence-flow-bridge
     build:
-      context: .
+      context: ./unoplat-code-confluence-ingestion/code-confluence-flow-bridge
       dockerfile: Dockerfile
     environment:
       - NEO4J_HOST=neo4j
@@ -131,6 +138,8 @@ services:
       - NEO4J_PASSWORD=password
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
       - SCANNER_JAR_PATH=/root/assets/scanner_cli-2.3.0-all.jar
+      - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
+      - DB_HOST=postgresql
     depends_on:
       temporal:
         condition: service_healthy
@@ -142,6 +151,17 @@ services:
       - temporal-network
     stdin_open: true
     tty: true
+  unoplat-code-confluence-frontend:
+    container_name: unoplat-code-confluence-frontend
+    build:
+      context: ./unoplat-code-confluence-frontend
+      dockerfile: Dockerfile
+    environment:
+      - VITE_API_BASE_URL=http://code-confluence-flow-bridge:8000
+    ports:
+      - "3000:80"
+    networks:
+      - temporal-network
 
 networks:
   temporal-network:
@@ -150,3 +170,8 @@ networks:
 # volumes:
 #   temporal-shared-data:  # Define the shared volume
 #     name: temporal-shared-data  # Optional: explicitly name the volume    
+volumes:
+  postgresql_data:
+    driver: local
+  elasticsearch_data:
+    driver: local  
