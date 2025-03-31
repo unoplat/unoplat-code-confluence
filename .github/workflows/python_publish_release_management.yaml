@@ -107,26 +107,26 @@ jobs:
       - name: Install js-yaml
         run: npm install js-yaml
 
-      - name: Modify prod docker compose file with right image and version      
-        uses: actions/github-script@v5
-        with:
-          script: |
-            const fs = require('fs');
-            const yaml = require('js-yaml');
+      # - name: Modify prod docker compose file with right image and version      
+      #   uses: actions/github-script@v5
+      #   with:
+      #     script: |
+      #       const fs = require('fs');
+      #       const yaml = require('js-yaml');
             
-            // Read the docker-compose file
-            const filePath = 'prod-docker-compose.yml';
-            const fileContent = fs.readFileSync(filePath, 'utf8');
-            const compose = yaml.load(fileContent);
+      #       // Read the docker-compose file
+      #       const filePath = 'prod-docker-compose.yml';
+      #       const fileContent = fs.readFileSync(filePath, 'utf8');
+      #       const compose = yaml.load(fileContent);
             
-            // Update the image for code-confluence-flow-bridge service
-            const newImage = `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ matrix.image_name }}:${{ matrix.version }}`;
-            compose.services['code-confluence-flow-bridge'].image = newImage;
+      #       // Update the image for code-confluence-flow-bridge service
+      #       const newImage = `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ matrix.image_name }}:${{ matrix.version }}`;
+      #       compose.services['code-confluence-flow-bridge'].image = newImage;
             
-            // Write back to file
-            fs.writeFileSync(filePath, yaml.dump(compose, { lineWidth: -1 }));
+      #       // Write back to file
+      #       fs.writeFileSync(filePath, yaml.dump(compose, { lineWidth: -1 }));
             
-            console.log(`Updated image to: ${newImage}`);
+      #       console.log(`Updated image to: ${newImage}`);
 
 
 
