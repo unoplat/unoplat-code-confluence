@@ -1,0 +1,256 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Comprehensive TanStack and Shadcn UI Reference Guide
+
+This comprehensive reference document provides detailed information about TanStack components and Shadcn UI, serving as a definitive resource for implementing functionality with these libraries. Each section includes a concise description, documentation links, and detailed explanations of sub-concepts and features.
+
+## TanStack Router
+
+TanStack Router is a fully-featured client-side JavaScript router for building React and Solid applications, providing a mature routing and navigation system with nested layouts and efficient data loading capabilities, all in a type-safe manner[1][2].
+
+**Documentation**: https://tanstack.com/router/latest/docs/framework/react/overview
+
+### Core Concepts
+
+#### Routing System
+- **File-based and Code-based Routing**: Supports both approaches simultaneously, giving you flexibility to choose what fits your project best[1]
+- **Type-Safe Path Handling**: Ensures route paths are correctly typed and validated at compile time
+- **Nested Layouts**: Supports complex layout nesting with full type safety
+
+#### Search Parameters
+- **First-class Citizen**: Search parameters are treated as a powerful state manager in your application[1]
+- **Type-Safe Parameters**: Fully typed search parameters that integrate seamlessly with TypeScript
+- **Complex Data Structures**: Supports deeper and more complex data structures while keeping them type-safe[1]
+- **Serialization/Deserialization**: Powerful parser/serializer for managing data in your search params[1]
+
+#### Data Loading
+- **Efficient Caching**: Light-weight built-in caching layer that works seamlessly with the Router[1]
+- **Declarative Dependencies**: Easy definition of data dependencies with configurations like context, beforeLoad, loaderDeps
+- **Integration with Data Libraries**: Designed to integrate with TanStack Query, SWR, Apollo, Relay, or custom data fetching solutions[1]
+- **Prefetching**: Support for prefetching data to improve user experience
+
+#### Route Context
+- **Inheritance**: Context defined at a route level is inherited by all child routes[1]
+- **Synchronous and Asynchronous**: Context can be built up both synchronously and asynchronously[1]
+- **Type Safety**: Fully type-safe and inferred at zero cost[1]
+
+#### Additional Features
+- **Framework Independence**: While not a traditional framework, it can be upgraded to a full-stack framework with other tools[1]
+- **TanStack Start Integration**: Being developed alongside TanStack Start, a full-stack framework built on top of TanStack Router[1][2]
+
+## TanStack Query
+
+TanStack Query (formerly React Query) is a robust library for managing server state in React applications, streamlining data fetching, caching, synchronization, and more[3].
+
+**Documentation**: https://tanstack.com/query/latest/docs/framework/react/overview
+
+### Core Concepts
+
+#### Queries
+- **Data Fetching**: Used to fetch and cache data from servers or APIs[3]
+- **Unique Identification**: Uses query keys to uniquely identify and cache data[3]
+- **Status Indicators**: Provides states like isLoading, isError, data for managing UI states[3]
+- **Query Keys**: Array-based identifiers used for caching and refetching logic[3]
+
+#### Mutations
+- **Data Modification**: Used for creating, updating, or deleting data on the server[3]
+- **Server State Updates**: Provides mechanisms to update the server state and local cache
+- **Optimistic Updates**: Support for optimistic UI updates before server confirmation
+
+#### Data Synchronization
+- **Background Refetching**: Automatic refetching of stale data
+- **Query Invalidation**: Mechanism to mark queries as stale and trigger refetches[3]
+- **Dependent Queries**: Support for queries that depend on other queries' data
+
+#### Caching and Performance
+- **Automatic Caching**: Built-in caching mechanism for optimal performance
+- **Garbage Collection**: Automatic cleanup of unused query data
+- **Deduplication**: Prevents duplicate requests for the same data
+
+#### Advanced Features
+- **Infinite Queries**: Support for paginated data with infinite scrolling
+- **Query Prefetching**: Preload data before it's needed
+- **Query Cancellation**: Cancel in-flight requests when components unmount
+
+## TanStack Table
+
+TanStack Table is a headless UI library for building powerful, flexible tables and datagrids in React, Vue, Solid, and Svelte applications.
+
+**Documentation**: https://tanstack.com/table/latest/docs/introduction
+
+### Core Concepts
+
+#### Table Structure
+- **Data Model**: Flexible data handling with support for various data structures
+- **Columns**: Define and customize columns with headers, accessors, and cell renderers
+- **Rows**: Automatic row generation from data with unique identifiers
+- **Headers**: Customizable header groups and column spanning
+
+#### Features
+- **Sorting**: Multi-column sorting with custom sort functions
+- **Filtering**: Global and column-specific filtering with custom filter functions
+- **Pagination**: Built-in pagination with configurable page sizes
+- **Row Selection**: Single and multi-row selection with customizable selection behavior
+- **Expanding**: Expandable rows for displaying additional details
+
+#### State Management
+- **Column Visibility**: Control which columns are visible
+- **Column Ordering**: Reorder columns by dragging
+- **Column Resizing**: Adjust column widths
+- **State Persistence**: Save and restore table state across sessions
+
+#### Performance
+- **Virtualization**: Efficient rendering of large datasets
+- **Memoization**: Optimized re-renders for better performance
+- **On-demand Calculations**: Compute values only when needed
+
+#### Customization
+- **Plugins**: Extend functionality with plugins
+- **Column Definitions**: Highly customizable column definitions
+- **Styling**: Framework-agnostic styling for complete design freedom
+
+## TanStack Form
+
+TanStack Form is a headless, type-safe form library for building high-performance forms in React, Vue, Solid, and Svelte applications.
+
+**Documentation**: https://tanstack.com/form/latest/docs/overview
+
+### Core Concepts
+
+#### Form Configuration
+- **Field Definitions**: Type-safe field declarations
+- **Default Values**: Set initial values for form fields
+- **Validation Schema**: Define validation rules for form data
+- **Form Options**: Configure form behavior and performance settings
+
+#### Field Management
+- **Field Registration**: Automatic and manual field registration
+- **Field Arrays**: Support for dynamic arrays of fields
+- **Field Groups**: Organize related fields together
+- **Conditional Fields**: Show/hide fields based on conditions
+
+#### Validation
+- **Schema Validation**: Integration with validation libraries
+- **Custom Validation**: Write custom validation logic
+- **Error Messages**: Customizable error display
+- **Field-level Validation**: Validate individual fields
+- **Form-level Validation**: Validate the entire form
+
+#### Form State
+- **Dirty Tracking**: Track modified fields
+- **Touched State**: Track which fields have been interacted with
+- **Error State**: Access validation errors
+- **Submission State**: Track form submission status
+
+#### Performance
+- **Minimal Re-renders**: Optimized to prevent unnecessary re-renders
+- **Tree Shaking**: Small bundle size through effective tree shaking
+- **Memoization**: Smart caching of form calculations
+
+## Shadcn UI
+
+Shadcn UI is a collection of reusable, accessible UI components for React applications built on Radix UI and Tailwind CSS.
+
+**Documentation**: https://ui.shadcn.com/docs
+
+### Core Concepts
+
+#### Installation and Setup
+- **CLI Setup**: Easy installation via CLI
+- **Manual Setup**: Step-by-step manual installation process
+- **Configuration**: Tailwind and project configuration
+- **Theming**: Customizable themes with light and dark mode support
+
+#### Component System
+- **Buttons**: Various button styles and variants
+- **Form Elements**: Input, select, checkbox, radio, etc.
+- **Dialog and Modals**: Interactive dialog components
+- **Navigation**: Tabs, menus, navigation bars
+- **Data Display**: Tables, cards, lists
+- **Feedback**: Alerts, toasts, progress indicators
+- **Layout**: Grid, box, flex containers
+
+#### Forms
+- **Form Components**: Specialized components for form building
+- **Form Validation**: Integration with form validation libraries
+- **Form Layout**: Consistent form styling and layout
+- **Accessibility**: ARIA-compliant form elements
+
+#### Design System
+- **Typography**: Text styles and hierarchies
+- **Colors**: Color system with semantic naming
+- **Spacing**: Consistent spacing system
+- **Shadows**: Elevation and depth
+- **Animations**: Transitions and motion
+
+#### Advanced Usage
+- **Component Customization**: Extending and modifying components
+- **Component Composition**: Building complex UIs from primitive components
+- **Responsive Design**: Mobile-first responsive components
+- **Integration with State Management**: Using with React state libraries
+
+## Integration Patterns
+
+### TanStack Router with Query
+- **Route Loaders with TanStack Query**: Fetch data in route loaders using TanStack Query
+- **Search Params with Query Keys**: Use search parameters to drive query keys
+- **Prefetching**: Prefetch data for routes before navigation
+
+### Shadcn UI with TanStack Table
+- **Styled Tables**: Use Shadcn UI styling with TanStack Table
+- **Pagination Components**: Integrate Shadcn pagination with TanStack Table
+- **Filter Components**: Build filter UIs with Shadcn components
+
+### TanStack Form with Shadcn UI
+- **Form Fields**: Use Shadcn UI components as form fields
+- **Form Layout**: Structure forms using Shadcn layout components
+- **Validation Display**: Show validation errors with Shadcn alert components
+
+## Implementation Guides
+
+### Setting Up a New Project
+- Starter template configurations
+- Recommended folder structure
+- Development environment setup
+
+### Performance Optimization
+- Code splitting strategies
+- Memoization patterns
+- Server-side rendering considerations
+
+### Testing Strategies
+- Component testing approaches
+- Integration testing methodologies
+- Mocking TanStack hooks
+
+This comprehensive reference guide should provide LLMs with the necessary context and knowledge to implement functionality related to TanStack components and Shadcn UI efficiently and effectively.
+
+Sources
+[1] Overview | TanStack Router React Docs https://tanstack.com/router/latest/docs/framework/react/overview
+[2] Introducing TanStack Router https://frontendmasters.com/blog/introducing-tanstack-router/
+[3] TanStack Query (Formerly React Query): The Basics https://spin.atomicobject.com/basics-tanstack-query/
+[4] GitHub - qiniu/TanStack.table: 🤖 Headless UI for building powerful tables & datagrids for TS/JS - React-Table, Vue-Table, Solid-Table, Svelte-Table https://github.com/qiniu/TanStack.table
+[5] TanStack Form 1.0: State management for forms with React, Angular, Vue & Co. https://www.heise.de/en/news/TanStack-Form-1-0-State-management-for-forms-with-React-Angular-Vue-Co-10303439.html
+[6] Complete Step by Step tutorial on shadcn UI https://dev.to/nnnirajn/complete-step-by-step-tutorials-on-shadcn-4dcb
+[7] Overview | TanStack Query React Docs https://tanstack.com/query/latest/docs/framework/react/overview
+[8] Tanstack Router for React - A Complete Guide https://blog.openreplay.com/tanstack-router-for-react--a-complete-guide/
+[9] TANStack Query: How It Changes the Way You Query APIs https://dev.to/codewithonye/tanstack-query-how-it-changes-the-way-you-query-apis-5fog
+[10] @ryniaubenpm/rerum-vitae-quo https://www.npmjs.com/package/@ryniaubenpm/rerum-vitae-quo
+[11] Introduction | TanStack Table Docs https://tanstack.com/table/latest/docs/introduction
+[12] Overview | TanStack Form Docs https://tanstack.com/form/latest/docs/overview
+[13] Introduction https://ui.shadcn.com/docs
+[14] TanStack Form: All-in-one Form Handling for React https://blog.openreplay.com/tanstack-form--all-in-one-form-handling-for-react/
+[15] Shadcn UI adoption guide: Overview, examples, and alternatives - LogRocket Blog https://blog.logrocket.com/shadcn-ui-adoption-guide/
+[16] A deep dive into mutations in TanStack Query - LogRocket Blog https://blog.logrocket.com/deep-dive-mutations-tanstack-query/
+[17] Introduction | TanStack Table Docs https://tanstack.com/table/v8/docs/introduction
+[18] Building a CRUD app with Shadcn UI and Refine | Refine https://refine.dev/blog/shadcn-ui/
+[19] Introduction to Tanstack Query and organizing code with queryOptions for maintainability https://newbeelearn.com/blog/tanstack-query-queryoptions/
+[20] @ryniaubenpm/quae-voluptatum-alias https://www.npmjs.com/package/@ryniaubenpm/quae-voluptatum-alias
+[21] Building interactive forms with TanStack Form - This Dot Labs https://www.thisdot.co/blog/building-interactive-forms-with-tanstack-form
+[22] Mastering Shadcn UI Components https://www.freecodecamp.org/news/mastering-shadcn-ui-components/
+[23] Queries | TanStack Query React Docs https://tanstack.com/query/v4/docs/framework/react/guides/queries
+[24] An Introduction to TanStack Table https://blog.scottlogic.com/2023/07/27/an-introduction-to-tanstack-table.html
