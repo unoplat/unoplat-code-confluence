@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.20.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.19.0...code-confluence-flow-bridge-v0.20.0) (2025-03-31)
+
+
+### Features
+
+* added git token acceptance and onboarding/settings screens ([9401425](https://github.com/unoplat/unoplat-code-confluence/commit/9401425ba0795805a6d634ee11a855008c08c2e8))
+* added git token acceptance and onboarding/settings screens ([114802d](https://github.com/unoplat/unoplat-code-confluence/commit/114802d8659171d9a192e2429409aa325b831be2))
+
 ## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.18.1...code-confluence-flow-bridge-v0.19.0) (2025-03-31)
 
 
