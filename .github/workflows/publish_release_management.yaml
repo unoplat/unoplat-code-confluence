@@ -1,0 +1,132 @@
+name: Merge with main branch
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  main-pr-merge:
+    if: github.event.pull_request.merged == true
+    permissions: write-all
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release_action_plan.outputs.releases_created }}
+      matrix: ${{ steps.create-matrix.outputs.matrix }}   # noqa: unknown-context
+    steps:
+    - name: Checkout our repository
+      uses: actions/checkout@v2
+      with:
+        ref: main
+
+    - name: Configure Git
+      run: |
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+    - name: Release Please
+      id: release_action_plan
+      uses: googleapis/release-please-action@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        config-file: .github/configuration/release-please-config.json
+        manifest-file: .github/configuration/release-please-manifest.json
+        include-component-in-tag: true
+        target-branch: main
+        
+    - name: Create matrix for release    
+      id: create-matrix
+      uses: actions/github-script@v5
+      with:
+        script: |
+          const allOutputs = ${{ toJson(steps.release_action_plan.outputs) }};
+          const pathsReleased = JSON.parse('${{ steps.release_action_plan.outputs.paths_released }}');
+          
+          console.log("Processing paths:", pathsReleased);
+          
+          const includeArray = pathsReleased.map((path) => {
+            if (!path.endsWith('code-confluence-flow-bridge') || !path.endsWith('unoplat-code-confluence-frontend')) {
+              console.log(`Skipping non-docker component: ${path}`);
+              return null;
+            }
+            
+            const name = allOutputs[`${path}--name`];
+            const tag_name = allOutputs[`${path}--tag_name`];
+            
+            const image_name = name.split(':')[0].trim();
+            const version = tag_name.split('-v')[1];
+            
+            console.log(`Processing docker component: ${path} -> ${image_name}:${version}`);
+            return { path, image_name, version };
+          }).filter(item => item !== null);
+          
+          console.log("Final Docker Matrix:", includeArray);
+          core.setOutput('matrix', JSON.stringify({ include: includeArray }));
+
+  release-docker-image:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: main-pr-merge
+    permissions: 
+      contents: read
+      packages: write
+    if: needs.main-pr-merge.outputs.release_created == 'true'
+    strategy:
+      matrix: ${{ fromJson(needs.main-pr-merge.outputs.matrix) }}  # noqa: unknown-context
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+          
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.path }}
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ matrix.version }}
+
+      - name: Install js-yaml
+        run: npm install js-yaml
+
+      # - name: Modify prod docker compose file with right image and version      
+      #   uses: actions/github-script@v5
+      #   with:
+      #     script: |
+      #       const fs = require('fs');
+      #       const yaml = require('js-yaml');
+            
+      #       // Read the docker-compose file
+      #       const filePath = 'prod-docker-compose.yml';
+      #       const fileContent = fs.readFileSync(filePath, 'utf8');
+      #       const compose = yaml.load(fileContent);
+            
+      #       // Update the image for code-confluence-flow-bridge service
+      #       const newImage = `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ matrix.image_name }}:${{ matrix.version }}`;
+      #       compose.services['code-confluence-flow-bridge'].image = newImage;
+            
+      #       // Write back to file
+      #       fs.writeFileSync(filePath, yaml.dump(compose, { lineWidth: -1 }));
+            
+      #       console.log(`Updated image to: ${newImage}`);
+
+
+
