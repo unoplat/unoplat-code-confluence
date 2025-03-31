@@ -46,7 +46,7 @@ jobs:
           console.log("Processing paths:", pathsReleased);
           
           const includeArray = pathsReleased.map((path) => {
-            if (!path.endsWith('code-confluence-flow-bridge')) {
+            if (!path.endsWith('code-confluence-flow-bridge') || !path.endsWith('unoplat-code-confluence-frontend')) {
               console.log(`Skipping non-docker component: ${path}`);
               return null;
             }
