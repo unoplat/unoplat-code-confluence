@@ -17,7 +17,7 @@ import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.concurrency import asynccontextmanager
@@ -40,7 +40,7 @@ async def get_temporal_client() -> Client:
     """Create and return a Temporal client instance."""
     # Connect to local temporal server
     # Read from env - TEMPORAL_SERVER_ADDRESS, default to localhost:7233
-    temporal_server = os.getenv("TEMPORAL_SERVER_ADDRESS", "localhost:7233")
+    temporal_server: str = os.getenv("TEMPORAL_SERVER_ADDRESS", "localhost:7233")
     temporal_client = await Client.connect(temporal_server)
     return temporal_client
 
