@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.2.0...unoplat-code-confluence-frontend-v1.3.0) (2025-04-01)
+
+
+### Features
+
+* enhance onboarding page and repository table ([af2767b](https://github.com/unoplat/unoplat-code-confluence/commit/af2767b5418571c74082e2529501188048cf2e21))
+* enhance onboarding page and repository table ([9e9e5b8](https://github.com/unoplat/unoplat-code-confluence/commit/9e9e5b85d40e0bca91cc121f8f3eed8722bcb23f))
+
 ## [1.2.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.1.0...unoplat-code-confluence-frontend-v1.2.0) (2025-04-01)
 
 
