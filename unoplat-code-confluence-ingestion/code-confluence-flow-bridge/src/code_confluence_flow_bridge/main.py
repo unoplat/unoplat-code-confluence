@@ -176,6 +176,26 @@ async def update_token(authorization: str = Header(...), session: Session = Depe
         logger.error(f"Failed to update token: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update authentication token")
 
+@app.delete("/delete-token", status_code=200)
+async def delete_token(session: Session = Depends(get_session)) -> Dict[str, str]:
+    try:
+        # Find existing credential
+        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        if credential is None:
+            raise HTTPException(status_code=404, detail="No token found to delete")
+        
+        # Delete the credential
+        session.delete(credential)
+        session.commit()
+        
+        return {"message": "Token deleted successfully."}
+    except HTTPException as http_ex:
+        # Re-raise HTTP exceptions directly
+        raise http_ex
+    except Exception as e:
+        logger.error(f"Failed to delete token: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to delete authentication token")
+
 @app.get("/repos", response_model=List[GitHubRepoSummary])
 async def get_repos(session: Session = Depends(get_session)) -> List[GitHubRepoSummary]:
     # Attempt to fetch the stored credentials from the database
