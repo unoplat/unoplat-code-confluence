@@ -7,7 +7,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
 import { submitGitHubToken, ApiError } from '../lib/api';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Dialog, DialogContent } from './ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 import { Github } from 'lucide-react';
 
 interface GitHubTokenPopupProps {
@@ -69,16 +69,6 @@ export default function GitHubTokenPopup({
     }
   });
 
-  // Function to skip token entry and proceed with public repositories
-  const handleSkipTokenEntry = (): void => {
-    setError(null);
-    localStorage.setItem('hasSubmittedToken', 'true');
-    onClose();
-    if (!isUpdate) {
-      navigate({ to: '/onboarding' });
-    }
-  };
-
   // Create a form using TanStack Form
   const form = useForm({
     defaultValues: {
@@ -101,6 +91,7 @@ export default function GitHubTokenPopup({
       if (!isOpen) onClose();
     }}>
       <DialogContent className="sm:max-w-md">
+        <DialogTitle className="sr-only">GitHub Authentication</DialogTitle>
         <div className="flex flex-col gap-6 items-center p-2">
           <div className="flex items-center gap-2 text-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -180,17 +171,6 @@ export default function GitHubTokenPopup({
                   </Button>
                 )}
               </form.Subscribe>
-              
-              {!isUpdate && (
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={handleSkipTokenEntry}
-                  className="w-full"
-                >
-                  Skip and view public repositories
-                </Button>
-              )}
             </div>
           </form>
           

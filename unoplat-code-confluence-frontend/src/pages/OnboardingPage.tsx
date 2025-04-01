@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   SortingState,
@@ -7,9 +7,11 @@ import {
 } from '@tanstack/react-table';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { AlertCircle } from 'lucide-react';
 import { fetchGitHubRepositories, submitRepositories, ApiError } from '../lib/api';
 import { useToast } from '../components/ui/use-toast';
 import { RepositoryTable } from '../components/RepositoryTable';
+import GitHubTokenPopup from '../components/GitHubTokenPopup';
 
 export default function OnboardingPage(): React.ReactElement {
   const { toast } = useToast();
@@ -20,8 +22,23 @@ export default function OnboardingPage(): React.ReactElement {
     pageSize: 10,
   });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  
+  // State to track if GitHub token is present
+  const [hasToken, setHasToken] = useState<boolean>(false);
+  const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
 
-  // Query for repositories
+  // Check for token on component mount and force token dialog if not present
+  useEffect(() => {
+    const tokenStatus = localStorage.getItem('hasSubmittedToken') === 'true';
+    setHasToken(tokenStatus);
+    
+    // If we don't have a token, show the token popup
+    if (!tokenStatus) {
+      setShowTokenPopup(true);
+    }
+  }, []);
+
+  // Query for repositories, only enabled when token is present
   const {
     data: repositories = [],
     isLoading,
@@ -30,7 +47,9 @@ export default function OnboardingPage(): React.ReactElement {
   } = useQuery({
     queryKey: ['repositories'],
     queryFn: fetchGitHubRepositories,
-    enabled: true, // Fetch automatically when component mounts
+    enabled: hasToken, // Only fetch when token is present
+    // Fallback to an empty array if the token is missing
+    placeholderData: hasToken ? undefined : [],
   });
 
   // Get appropriate error message based on error details
@@ -128,9 +147,12 @@ export default function OnboardingPage(): React.ReactElement {
     }
   };
 
-  // Route to token setup page
-  const goToTokenSetup = (): void => {
-    window.location.href = '/setup';
+  // Handle token submission success
+  const handleTokenSuccess = (): void => {
+    setHasToken(true);
+    setShowTokenPopup(false);
+    // Refetch repositories after token is submitted
+    refetch();
   };
 
   // Function to safely check if an error is an ApiError with the specified status
@@ -153,14 +175,42 @@ export default function OnboardingPage(): React.ReactElement {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* No Token Message */}
+          {!hasToken && !showTokenPopup && (
+            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-amber-400" aria-hidden="true" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-amber-800">GitHub Token Required</h3>
+                  <div className="mt-2 text-sm text-amber-700">
+                    <p>
+                      You need to provide a GitHub token to access your repositories.
+                    </p>
+                    <div className="mt-3">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowTokenPopup(true)}
+                        size="sm"
+                      >
+                        Set up GitHub Token
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Loading and Error States */}
-          {isLoading && (
+          {hasToken && isLoading && (
             <div className="flex justify-center py-6">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           )}
 
-          {error && (
+          {hasToken && error && (
             <div className="bg-destructive/10 border-l-4 border-destructive p-4 mb-4 rounded">
               <div className="flex flex-col">
                 <div className="ml-3">
@@ -184,7 +234,7 @@ export default function OnboardingPage(): React.ReactElement {
                     {isApiErrorWithStatus(404) && (
                       <Button
                         variant="default"
-                        onClick={goToTokenSetup}
+                        onClick={() => setShowTokenPopup(true)}
                         size="sm"
                       >
                         Set Up GitHub Token
@@ -196,62 +246,74 @@ export default function OnboardingPage(): React.ReactElement {
             </div>
           )}
 
-          {!isLoading && !error && repositories.length > 0 && (
+          {/* Only show repository table if we have a token */}
+          {hasToken ? (
             <>
-              {/* Use the RepositoryTable component */}
-              <RepositoryTable
-                repositories={repositories}
-                rowSelection={rowSelection}
-                onRowSelectionChange={setRowSelection}
-                globalFilter={globalFilter}
-                onGlobalFilterChange={setGlobalFilter}
-                pagination={pagination}
-                onPaginationChange={setPagination}
-                sorting={sorting}
-                onSortingChange={setSorting}
-              />
+              {!isLoading && !error && repositories.length > 0 && (
+                <>
+                  {/* Use the RepositoryTable component */}
+                  <RepositoryTable
+                    repositories={repositories}
+                    rowSelection={rowSelection}
+                    onRowSelectionChange={setRowSelection}
+                    globalFilter={globalFilter}
+                    onGlobalFilterChange={setGlobalFilter}
+                    pagination={pagination}
+                    onPaginationChange={setPagination}
+                    sorting={sorting}
+                    onSortingChange={setSorting}
+                  />
 
-              {/* Submit Button */}
-              <div className="mt-6 flex gap-2">
-                <Button
-                  onClick={handleSubmitSelections}
-                  disabled={Object.keys(rowSelection).length === 0}
-                >
-                  Submit Selected Repositories
-                </Button>
-              </div>
-            </>
-          )}
-
-          {!isLoading && !error && repositories.length === 0 && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-              <div className="flex">
-                <div className="ml-3">
-                  <p className="text-sm text-amber-700">
-                    No repositories found. This could be because your GitHub token doesn't have the necessary permissions.
-                  </p>
-                  <div className="mt-2 flex gap-2">
+                  {/* Submit Button */}
+                  <div className="mt-6 flex gap-2">
                     <Button
-                      variant="ghost"
-                      onClick={() => refetch()}
-                      size="sm"
+                      onClick={handleSubmitSelections}
+                      disabled={Object.keys(rowSelection).length === 0}
                     >
-                      Try refreshing
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={goToTokenSetup}
-                      size="sm"
-                    >
-                      Update GitHub Token
+                      Submit Selected Repositories
                     </Button>
                   </div>
+                </>
+              )}
+
+              {!isLoading && !error && repositories.length === 0 && (
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                  <div className="flex">
+                    <div className="ml-3">
+                      <p className="text-sm text-amber-700">
+                        No repositories found. This could be because your GitHub token doesn't have the necessary permissions.
+                      </p>
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          variant="ghost"
+                          onClick={() => refetch()}
+                          size="sm"
+                        >
+                          Try refreshing
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowTokenPopup(true)}
+                          size="sm"
+                        >
+                          Update GitHub Token
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
+            </>
+          ) : null}
         </CardContent>
       </Card>
+
+      {/* GitHub Token Popup */}
+      <GitHubTokenPopup
+        open={showTokenPopup}
+        onClose={() => setShowTokenPopup(false)}
+        onSuccess={handleTokenSuccess}
+      />
     </div>
   );
 } 
