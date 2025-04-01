@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
+import { FaGithubAlt } from "react-icons/fa";
 
 interface GitHubRepositoryTableProps {
   repositories: GitHubRepoSummary[];
@@ -80,7 +81,7 @@ const columns: ColumnDef<GitHubRepoSummary>[] = [
   },
   {
     accessorKey: 'private',
-    header: 'Private',
+    header: 'Visibility',
     cell: ({ row }) => (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -94,17 +95,23 @@ const columns: ColumnDef<GitHubRepoSummary>[] = [
     ),
   },
   {
-    id: 'actions',
-    header: 'Actions',
+    id: 'github_link',
+    header: () => (
+      <div className="text-center w-full">GitHub Link</div>
+    ),
     cell: ({ row }) => (
-      <a
-        href={row.original.git_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-primary hover:underline font-medium"
-      >
-        View on GitHub
-      </a>
+      <div className="flex justify-center w-full">
+        <a
+          href={row.original.git_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-primary/80"
+          aria-label="View on GitHub"
+          title="View on GitHub"
+        >
+          <FaGithubAlt className="w-5 h-5" />
+        </a>
+      </div>
     ),
   },
 ];
@@ -147,7 +154,7 @@ export function RepositoryTable({
       <div className="flex items-center mb-4">
         <Input
           type="text"
-          placeholder="Search repositories..."
+          placeholder="Search for repositories…"
           value={globalFilter ?? ""}
           onChange={(e): void => onGlobalFilterChange(e.target.value)}
           className="max-w-sm"
