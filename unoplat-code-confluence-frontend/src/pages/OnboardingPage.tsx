@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   SortingState,
@@ -27,6 +27,8 @@ export default function OnboardingPage(): React.ReactElement {
   const [hasToken, setHasToken] = useState<boolean>(false);
   const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   // Check for token on component mount and force token dialog if not present
   useEffect(() => {
     const tokenStatus = localStorage.getItem('hasSubmittedToken') === 'true';
@@ -51,6 +53,13 @@ export default function OnboardingPage(): React.ReactElement {
     // Fallback to an empty array if the token is missing
     placeholderData: hasToken ? undefined : [],
   });
+
+  // Focus the search input when repositories are loaded
+  useEffect(() => {
+    if (!isLoading && repositories.length > 0 && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isLoading, repositories]);
 
   // Get appropriate error message based on error details
   const getErrorMessage = (): { title: string; message: string; action: string } => {
@@ -262,6 +271,7 @@ export default function OnboardingPage(): React.ReactElement {
                     onPaginationChange={setPagination}
                     sorting={sorting}
                     onSortingChange={setSorting}
+                    searchInputRef={searchInputRef}
                   />
 
                   {/* Submit Button */}
