@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.21.0...code-confluence-flow-bridge-v0.21.1) (2025-04-01)
+
+
+### Bug Fixes
+
+* dummy commit for docker publish ([64a250a](https://github.com/unoplat/unoplat-code-confluence/commit/64a250a211438601ec956b4cf2f165360a59421c))
+* dummy commit for docker publish ([d7d005b](https://github.com/unoplat/unoplat-code-confluence/commit/d7d005bb12aba7b35bad6e0ec7cd44b471a74cd6))
+
 ## [0.21.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.20.0...code-confluence-flow-bridge-v0.21.0) (2025-04-01)
 
 
