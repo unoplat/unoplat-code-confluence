@@ -119,3 +119,17 @@ export const submitRepositories = async (repositoryNames: string[]): Promise<Api
     throw handleApiError(error);
   }
 };
+
+/**
+ * Delete GitHub PAT token from the backend
+ * 
+ * @returns Promise with the response data
+ */
+export const deleteGitHubToken = async (): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await apiClient.delete('/delete-token');
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
