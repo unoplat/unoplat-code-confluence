@@ -19,6 +19,7 @@ import { Checkbox } from './ui/checkbox';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { FaGithubAlt } from "react-icons/fa";
+import React from 'react';
 
 interface GitHubRepositoryTableProps {
   repositories: GitHubRepoSummary[];
@@ -30,6 +31,7 @@ interface GitHubRepositoryTableProps {
   onPaginationChange: OnChangeFn<PaginationState>;
   sorting: SortingState;
   onSortingChange: OnChangeFn<SortingState>;
+  searchInputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 // Define columns outside component for better performance
@@ -126,6 +128,7 @@ export function RepositoryTable({
   onPaginationChange,
   sorting,
   onSortingChange,
+  searchInputRef,
 }: GitHubRepositoryTableProps): React.ReactElement {
   
   const table = useReactTable({
@@ -153,6 +156,7 @@ export function RepositoryTable({
       {/* Search Input */}
       <div className="flex items-center mb-4">
         <Input
+          ref={searchInputRef}
           type="text"
           placeholder="Search for repositories…"
           value={globalFilter ?? ""}
