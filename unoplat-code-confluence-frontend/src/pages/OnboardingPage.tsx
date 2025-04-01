@@ -142,14 +142,14 @@ export default function OnboardingPage(): React.ReactElement {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">GitHub Repository Selection</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-6">Select GitHub Repositories for Ingestion</h1>
 
       {/* Repository List */}
       <Card>
         <CardHeader>
           <CardTitle>GitHub Repositories</CardTitle>
           <CardDescription>
-            Select repositories to ingest into our system.
+            Connect your GitHub repositories to Unoplat Code Confluence for deeper code insights. Search or scroll through your available repositories below and select the ones you want to ingest.
           </CardDescription>
         </CardHeader>
         <CardContent>
