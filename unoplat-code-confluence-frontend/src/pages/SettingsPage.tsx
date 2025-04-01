@@ -28,6 +28,7 @@ export default function SettingsPage(): React.ReactElement {
       setIsDeleting(true);
       await deleteGitHubToken();
       setShowDeleteDialog(false);
+      localStorage.setItem('hasSubmittedToken', 'false');
       toast({
         title: "Success",
         description: "Your GitHub token has been successfully removed",
