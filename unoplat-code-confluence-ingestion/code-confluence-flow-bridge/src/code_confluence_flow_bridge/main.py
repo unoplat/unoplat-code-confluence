@@ -217,7 +217,7 @@ async def get_repos(session: Session = Depends(get_session)) -> List[GitHubRepoS
             name=item.get("name"),
             owner_url=owner_data.get("html_url"),
             private=item.get("private"),
-            git_url=item.get("git_url"),
+            git_url=item.get("html_url"),
             owner_name=owner_data.get("login")
         )
         repos_list.append(repo_summary)
