@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.4.0...unoplat-code-confluence-frontend-v1.5.0) (2025-04-01)
+
+
+### Features
+
+* search focus post loading repos ([db4a929](https://github.com/unoplat/unoplat-code-confluence/commit/db4a929016551429a31b7781749978fb4c795c47))
+* search focus post loading repos ([d2904f7](https://github.com/unoplat/unoplat-code-confluence/commit/d2904f77a3eb3f9f85b1fa0868945d67506653e8))
+
 ## [1.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.3.0...unoplat-code-confluence-frontend-v1.4.0) (2025-04-01)
 
 
