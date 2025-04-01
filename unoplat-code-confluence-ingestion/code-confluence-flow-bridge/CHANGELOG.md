@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.21.1...code-confluence-flow-bridge-v0.22.0) (2025-04-01)
+
+
+### Features
+
+* added delete user endpoint ([54bcfd0](https://github.com/unoplat/unoplat-code-confluence/commit/54bcfd0d13af22ce2bc9e828355e77485d90f2f4))
+* added delete user endpoint ([768b2d1](https://github.com/unoplat/unoplat-code-confluence/commit/768b2d1314b5904ca72f3971cb8c0f6aff5ea889))
+
 ## [0.21.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.21.0...code-confluence-flow-bridge-v0.21.1) (2025-04-01)
 
 
