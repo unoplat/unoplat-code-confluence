@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.3.0...unoplat-code-confluence-frontend-v1.4.0) (2025-04-01)
+
+
+### Features
+
+* added delete token option and changes to github token auth ([2520757](https://github.com/unoplat/unoplat-code-confluence/commit/252075781258da63eb698e990dfe8e38fc6ff27c))
+* added delete token option and changes to github token auth ([821dea3](https://github.com/unoplat/unoplat-code-confluence/commit/821dea3a8a74217d30dd7b732c5fad1a65bc3539))
+
+
+### Bug Fixes
+
+* add a flag to false when user deletes the token ([3c6ee18](https://github.com/unoplat/unoplat-code-confluence/commit/3c6ee18725094bb7d3e9cbc1719f4961a6a6a43e))
+
 ## [1.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.2.0...unoplat-code-confluence-frontend-v1.3.0) (2025-04-01)
 
 
