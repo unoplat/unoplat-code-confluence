@@ -205,7 +205,7 @@ async def get_repos(session: Session = Depends(get_session)) -> List[GitHubRepoS
         response = await client.get("https://api.github.com/user/repos?visibility=all&per_page=100&page=1", headers=headers)
         if response.status_code != 200:
             logger.error(f"GitHub API error: {response.text}")
-            raise HTTPException(status_code=response.status_code, detail="GitHub API error: failed to fetch repositories")
+            raise HTTPException(status_code=500, detail=f"GitHub API error: failed to fetch repositories {response.text}")
         
         repos_data = response.json()
 
