@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.10.0...code-confluence-docs-v0.11.0) (2025-04-01)
+
+
+### Features
+
+* changed the url to custom domain of url ([b8fc6df](https://github.com/unoplat/unoplat-code-confluence/commit/b8fc6dfb597169fd1145df81d1ca587529ac498c))
+* Enhance homepage feature descriptions and update SVG illustrations ([42311f5](https://github.com/unoplat/unoplat-code-confluence/commit/42311f55992e91c6417662e27d8497cdcefa2ad3))
+* Enhance homepage feature descriptions and update SVG illustrations ([e780c43](https://github.com/unoplat/unoplat-code-confluence/commit/e780c43c32f3369add8751457bba082e25162ff6))
+* Enhance HomepageFeatures component with new features and modals ([9755836](https://github.com/unoplat/unoplat-code-confluence/commit/975583689e968a307173918c04f6e50c5e0c8a9e))
+* improved contact us responsiveness and basic layout ([5337d51](https://github.com/unoplat/unoplat-code-confluence/commit/5337d51bdbb51a34c2d4218498fb4bcf3e2055f8))
+* improved descriptions ([e4f99c1](https://github.com/unoplat/unoplat-code-confluence/commit/e4f99c1352fd470d0c895f89883929508f9a7ce5))
+* improved docs ([c4e80e3](https://github.com/unoplat/unoplat-code-confluence/commit/c4e80e3f60a18d7953d48b4f7b46778af008ebc3))
+* improved docs ([98c6095](https://github.com/unoplat/unoplat-code-confluence/commit/98c6095c510e49a0758471b44985d4ef110c2cad))
+* mock update README for clarity and conciseness ([1acf240](https://github.com/unoplat/unoplat-code-confluence/commit/1acf2401077395b6781b0929d5a19d1d143ef40a))
+* mock update README for clarity and conciseness ([d7d4f88](https://github.com/unoplat/unoplat-code-confluence/commit/d7d4f88a80c844cc1c5b619e33d07180629eeeba))
+* moved to rust based compiler speedy web compiler to become atleast 20x faster while building and deploying locally/server ([13c1767](https://github.com/unoplat/unoplat-code-confluence/commit/13c17672fc5bd178a4964522989439a08d9eb01b))
+* update dependencies and add nested function detection ([17ceb7c](https://github.com/unoplat/unoplat-code-confluence/commit/17ceb7c0b176caf71da66b5ce0b0e45ef7e6a63e))
+* update dependencies and add nested function detection ([f5adfe2](https://github.com/unoplat/unoplat-code-confluence/commit/f5adfe2eff9efafc92dfd72d97025e52392d6777))
+* updated documentation as per current release and included vision ([43545ab](https://github.com/unoplat/unoplat-code-confluence/commit/43545ab087343fde9565eee29d49a359503cd945))
+* updated docusaurus ([7ea056d](https://github.com/unoplat/unoplat-code-confluence/commit/7ea056dd1908e437fa62807a3a7a56bc1cebfd9c))
+
+
+### Bug Fixes
+
+* content ([55ccb77](https://github.com/unoplat/unoplat-code-confluence/commit/55ccb77aa4515e3ec8409b41c2d20fab1b498266))
+* content ([10fbfc5](https://github.com/unoplat/unoplat-code-confluence/commit/10fbfc5597583c9d188cca2781aa5d0ba5c054ba))
+* cta buttons alignment on mobile screen ([37f1713](https://github.com/unoplat/unoplat-code-confluence/commit/37f1713f4df2afb71bf06504369405014ea82f39))
+* cta buttons alignment on mobile screen ([38659ab](https://github.com/unoplat/unoplat-code-confluence/commit/38659ab71194e438bbc53fc7fe44a296aca6a9f1))
+* docs ([17e56c7](https://github.com/unoplat/unoplat-code-confluence/commit/17e56c7097100f1a1031bb4082a106b0bbd5999b))
+* docs ([c7aed15](https://github.com/unoplat/unoplat-code-confluence/commit/c7aed152e76751326ae9634bfc620c9d117dc93f))
+* fixed swc core ([f2710eb](https://github.com/unoplat/unoplat-code-confluence/commit/f2710ebe1b8a0dd183be9aa0c9d8265830f902d7))
+* fixed swc core ([a89aa3f](https://github.com/unoplat/unoplat-code-confluence/commit/a89aa3fff92714c1a0a91b085cb22b50156cd279))
+* move git clone to async operation to not block fix tests and fix browser url link in docs ([0f2a7ac](https://github.com/unoplat/unoplat-code-confluence/commit/0f2a7acc5bbfae2a9f5bafe061d936d60cba3929))
+* no base url for custom domain ([beb3757](https://github.com/unoplat/unoplat-code-confluence/commit/beb3757e189db0d1cb32ad77c12226d787aa7c49))
+* no base url for custom domain ([62649c6](https://github.com/unoplat/unoplat-code-confluence/commit/62649c627a469105243a90e66f7f3431fece87c5))
+* removed old changelog and updated package name of code confuence docs ([8ed9cc6](https://github.com/unoplat/unoplat-code-confluence/commit/8ed9cc6ece3f7696449b60d4d80137049adf15cc))
+* text for ingestion ([44dd0d6](https://github.com/unoplat/unoplat-code-confluence/commit/44dd0d64019802b9f3db5236143ab6c325d37596))
+
 ## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.9.0...code-confluence-docs-v0.10.0) (2025-03-25)
 
 
