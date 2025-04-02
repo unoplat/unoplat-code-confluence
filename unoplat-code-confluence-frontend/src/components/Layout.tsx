@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Link, Outlet } from '@tanstack/react-router';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, FileCode, Settings } from 'lucide-react';
+import { FileCheck, Settings } from 'lucide-react';
 import { Toaster } from './ui/toaster';
+import WorkflowIcon from '@/assets/workflow.svg';
 
 /**
  * Layout Component - Main Application Shell with Sidebar Navigation
@@ -45,7 +46,7 @@ export function Layout(): React.ReactElement {
         {/* App Title/Logo Section */}
         <div className="p-4 border-b border-border flex items-center justify-between">
           {!sidebarCollapsed && (
-            <h1 className="text-xl font-bold text-foreground">
+            <h1 className="font-sans text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               Unoplat Code Confluence
             </h1>
           )}
@@ -94,7 +95,7 @@ export function Layout(): React.ReactElement {
               ),
             }}
           >
-            <FileCode className={cn("h-5 w-5", sidebarCollapsed ? '' : 'mr-3')} />
+            <FileCheck className={cn("h-5 w-5", sidebarCollapsed ? '' : 'mr-3')} />
             {!sidebarCollapsed && 'GitHub Onboarding'}
           </Link>
           
@@ -107,7 +108,11 @@ export function Layout(): React.ReactElement {
               "text-foreground"
             )}
           >
-            <LayoutDashboard className={cn("h-5 w-5", sidebarCollapsed ? '' : 'mr-3')} />
+            <img 
+              src={WorkflowIcon} 
+              alt="Workflow" 
+              className={cn("h-5 w-5", sidebarCollapsed ? '' : 'mr-3')} 
+            />
             {!sidebarCollapsed && 'Ingestion Dashboard'}
           </a>
 
