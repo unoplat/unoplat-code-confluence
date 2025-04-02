@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import GitHubTokenPopup from '../components/GitHubTokenPopup';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -22,13 +23,15 @@ export default function SettingsPage(): React.ReactElement {
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const handleDeleteToken = async (): Promise<void> => {
     try {
       setIsDeleting(true);
       await deleteGitHubToken();
       setShowDeleteDialog(false);
-      localStorage.setItem('hasSubmittedToken', 'false');
+      // Invalidate and refetch the flag status
+      await queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] });
       toast({
         title: "Success",
         description: "Your GitHub token has been successfully removed",
@@ -73,7 +76,7 @@ export default function SettingsPage(): React.ReactElement {
               <div>
                 <h3 className="text-lg font-medium">GitHub Authentication</h3>
                 <p className="text-sm text-muted-foreground">
-                  Update or change your GitHub Personal Access Token.
+                  Update GitHub Personal Access Token.
                 </p>
               </div>
               <div className="flex items-center gap-2">

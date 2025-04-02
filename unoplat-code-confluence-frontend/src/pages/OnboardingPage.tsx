@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   SortingState,
   PaginationState,
@@ -8,7 +8,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { AlertCircle } from 'lucide-react';
-import { fetchGitHubRepositories, submitRepositories, ApiError } from '../lib/api';
+import { fetchGitHubRepositories, submitRepositories, ApiError, getFlagStatus, FlagResponse } from '../lib/api';
 import { useToast } from '../components/ui/use-toast';
 import { RepositoryTable } from '../components/RepositoryTable';
 import GitHubTokenPopup from '../components/GitHubTokenPopup';
@@ -22,23 +22,22 @@ export default function OnboardingPage(): React.ReactElement {
     pageSize: 10,
   });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  
-  // State to track if GitHub token is present
-  const [hasToken, setHasToken] = useState<boolean>(false);
   const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
-
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
-  // Check for token on component mount and force token dialog if not present
+  // Query for token status
+  const { data: tokenStatus } = useQuery<FlagResponse>({
+    queryKey: ['flags', 'isTokenSubmitted'],
+    queryFn: () => getFlagStatus('isTokenSubmitted'),
+  });
+
+  // Show token popup if no token is present
   useEffect(() => {
-    const tokenStatus = localStorage.getItem('hasSubmittedToken') === 'true';
-    setHasToken(tokenStatus);
-    
-    // If we don't have a token, show the token popup
-    if (!tokenStatus) {
+    if (tokenStatus && !tokenStatus.status) {
       setShowTokenPopup(true);
     }
-  }, []);
+  }, [tokenStatus]);
 
   // Query for repositories, only enabled when token is present
   const {
@@ -49,9 +48,9 @@ export default function OnboardingPage(): React.ReactElement {
   } = useQuery({
     queryKey: ['repositories'],
     queryFn: fetchGitHubRepositories,
-    enabled: hasToken, // Only fetch when token is present
+    enabled: tokenStatus?.status ?? false, // Only fetch when token is present
     // Fallback to an empty array if the token is missing
-    placeholderData: hasToken ? undefined : [],
+    placeholderData: tokenStatus?.status ? undefined : [],
   });
 
   // Focus the search input when repositories are loaded
@@ -157,11 +156,13 @@ export default function OnboardingPage(): React.ReactElement {
   };
 
   // Handle token submission success
-  const handleTokenSuccess = (): void => {
-    setHasToken(true);
+  const handleTokenSuccess = async (): Promise<void> => {
     setShowTokenPopup(false);
-    // Refetch repositories after token is submitted
-    refetch();
+    // Invalidate and refetch both queries
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] }),
+      queryClient.invalidateQueries({ queryKey: ['repositories'] })
+    ]);
   };
 
   // Function to safely check if an error is an ApiError with the specified status
@@ -185,7 +186,7 @@ export default function OnboardingPage(): React.ReactElement {
         </CardHeader>
         <CardContent>
           {/* No Token Message */}
-          {!hasToken && !showTokenPopup && (
+          {(!tokenStatus?.status && !showTokenPopup) && (
             <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -213,13 +214,13 @@ export default function OnboardingPage(): React.ReactElement {
           )}
 
           {/* Loading and Error States */}
-          {hasToken && isLoading && (
+          {tokenStatus?.status && isLoading && (
             <div className="flex justify-center py-6">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           )}
 
-          {hasToken && error && (
+          {tokenStatus?.status && error && (
             <div className="bg-destructive/10 border-l-4 border-destructive p-4 mb-4 rounded">
               <div className="flex flex-col">
                 <div className="ml-3">
@@ -256,7 +257,7 @@ export default function OnboardingPage(): React.ReactElement {
           )}
 
           {/* Only show repository table if we have a token */}
-          {hasToken ? (
+          {tokenStatus?.status ? (
             <>
               {!isLoading && !error && repositories.length > 0 && (
                 <>
