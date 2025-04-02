@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.23.0...code-confluence-flow-bridge-v0.24.0) (2025-04-02)
+
+
+### Features
+
+* support frontend flag management ([e93d9ce](https://github.com/unoplat/unoplat-code-confluence/commit/e93d9ce7b5b2352f938209f41a6d1e78d0c1714c))
+* support frontend flag management ([cd54ab9](https://github.com/unoplat/unoplat-code-confluence/commit/cd54ab9d92b6a368abe37d081faa277a1d7d9198))
+
 ## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.22.0...code-confluence-flow-bridge-v0.23.0) (2025-04-02)
 
 
