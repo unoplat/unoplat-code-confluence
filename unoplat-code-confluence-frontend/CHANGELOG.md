@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.6.0...unoplat-code-confluence-frontend-v1.6.1) (2025-04-02)
+
+
+### Bug Fixes
+
+* backend state managemnt to share state cross-device/sessions ([b43cfe9](https://github.com/unoplat/unoplat-code-confluence/commit/b43cfe9815f0d20212c771381b613c61c7614704))
+* backend state managemnt to share state cross-device/sessions ([9cef39c](https://github.com/unoplat/unoplat-code-confluence/commit/9cef39c0728671df3261d0edab27be54f7dc3330))
+
 ## [1.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.5.0...unoplat-code-confluence-frontend-v1.6.0) (2025-04-02)
 
 
