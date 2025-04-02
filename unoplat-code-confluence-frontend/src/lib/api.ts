@@ -133,3 +133,22 @@ export const deleteGitHubToken = async (): Promise<ApiResponse> => {
     throw handleApiError(error);
   }
 };
+
+/**
+ * Get flag status from the backend
+ * 
+ * @param flagName - Name of the flag to check
+ * @returns Promise with the flag status
+ */
+export interface FlagResponse {
+  status: boolean;
+}
+
+export const getFlagStatus = async (flagName: string): Promise<FlagResponse> => {
+  try {
+    const response: AxiosResponse<FlagResponse> = await apiClient.get(`/flags/${flagName}`);
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
