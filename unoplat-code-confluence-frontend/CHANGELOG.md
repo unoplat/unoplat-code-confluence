@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.5.0...unoplat-code-confluence-frontend-v1.6.0) (2025-04-02)
+
+
+### Features
+
+* enhanced app name typography and improved icons for sidebar navigation ([0c73525](https://github.com/unoplat/unoplat-code-confluence/commit/0c7352504814ffb3948b382a0159388f3c90fb8b))
+
 ## [1.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.4.0...unoplat-code-confluence-frontend-v1.5.0) (2025-04-01)
 
 
