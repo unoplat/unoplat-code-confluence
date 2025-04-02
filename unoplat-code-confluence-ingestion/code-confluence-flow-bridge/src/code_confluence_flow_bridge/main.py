@@ -2,6 +2,7 @@ from src.code_confluence_flow_bridge.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
 from src.code_confluence_flow_bridge.models.credentials import Credentials
+from src.code_confluence_flow_bridge.models.flags import Flag
 from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoSummary
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
@@ -17,7 +18,7 @@ import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.concurrency import asynccontextmanager
@@ -143,6 +144,18 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
         credential = Credentials(token_hash=encrypted_token, created_at=current_time)
         session.add(credential)
         
+        # Set the isTokenSubmitted flag to true
+        token_flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == "isTokenSubmitted")).first()
+        
+        if token_flag is None:
+            # Create the flag if it doesn't exist
+            token_flag = Flag(name="isTokenSubmitted", status=True)
+        else:
+            # Update existing flag
+            token_flag.status = True
+            
+        session.add(token_flag)
+        
         session.commit()
         session.refresh(credential)
         return {"message": "Token ingested successfully."}
@@ -169,6 +182,7 @@ async def update_token(authorization: str = Header(...), session: Session = Depe
         credential.token_hash = encrypted_token
         credential.updated_at = current_time
         session.add(credential)
+        
         session.commit()
         session.refresh(credential)
         return {"message": "Token updated successfully."}
@@ -186,6 +200,19 @@ async def delete_token(session: Session = Depends(get_session)) -> Dict[str, str
         
         # Delete the credential
         session.delete(credential)
+        
+        # Set the isTokenSubmitted flag to false
+        token_flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == "isTokenSubmitted")).first()
+        
+        if token_flag is None:
+            # Create the flag if it doesn't exist
+            token_flag = Flag(name="isTokenSubmitted", status=False)
+        else:
+            # Update existing flag
+            token_flag.status = False
+            
+        session.add(token_flag)
+        
         session.commit()
         
         return {"message": "Token deleted successfully."}
@@ -265,4 +292,88 @@ async def ingestion(repository: RepositorySettings, authorization: Optional[str]
     logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
 
     return {"workflow_id": workflow_handle.id, "run_id": workflow_handle.result_run_id}
+
+@app.get("/flags/{flag_name}", status_code=200)
+async def get_flag_status(flag_name: str, session: Session = Depends(get_session)) -> Dict[str, Any]:
+    """
+    Get the status of a specific flag by name.
+    
+    Args:
+        flag_name (str): The name of the flag to check
+        session (Session): Database session
+        
+    Returns:
+        Dict[str, Any]: Flag information including status
+    """
+    try:
+        flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == flag_name)).first()
+        if flag is None:
+            raise HTTPException(status_code=404, detail=f"Flag '{flag_name}' not found")
+        return {
+            "name": flag.name,
+            "status": flag.status,
+            "exists": True
+        }
+    except Exception as e:
+        logger.error(f"Failed to get flag status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get flag status for {flag_name}")
+
+@app.get("/flags", status_code=200)
+async def get_all_flags(session: Session = Depends(get_session)) -> List[Dict[str, Any]]:
+    """
+    Get the status of all available flags.
+    
+    Args:
+        session (Session): Database session
+        
+    Returns:
+        List[Dict[str, Any]]: List of flag information
+    """
+    try:
+        flags: Sequence[Flag] = session.exec(select(Flag)).all()
+        return [
+            {
+                "name": flag.name,
+                "status": flag.status
+            }
+            for flag in flags
+        ]
+    except Exception as e:
+        logger.error(f"Failed to get flags: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get flags")
+
+@app.put("/flags/{flag_name}", status_code=200)
+async def set_flag_status(flag_name: str, status: bool, session: Session = Depends(get_session)) -> Dict[str, Any]:
+    """
+    Set the status of a specific flag by name.
+    
+    Args:
+        flag_name (str): The name of the flag to set
+        status (bool): The status to set for the flag
+        session (Session): Database session
+        
+    Returns:
+        Dict[str, Any]: Updated flag information
+    """
+    try:
+        flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == flag_name)).first()
+        
+        if flag is None:
+            # Create the flag if it doesn't exist
+            flag = Flag(name=flag_name, status=status)
+        else:
+            # Update existing flag
+            flag.status = status
+            
+        session.add(flag)
+        session.commit()
+        session.refresh(flag)
+        
+        return {
+            "name": flag.name,
+            "status": flag.status
+        }
+    except Exception as e:
+        logger.error(f"Failed to set flag status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to set flag status for {flag_name}")
 
