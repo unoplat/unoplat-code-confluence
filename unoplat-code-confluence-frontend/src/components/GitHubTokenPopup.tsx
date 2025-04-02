@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
 import { submitGitHubToken, ApiError } from '../lib/api';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
@@ -29,30 +29,36 @@ export default function GitHubTokenPopup({
   onSuccess
 }: GitHubTokenPopupProps): React.ReactElement {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   // State for error notification
   const [error, setError] = useState<ApiError | null>(null);
 
   // Mutation for submitting the PAT token
   const tokenMutation = useMutation({
     mutationFn: submitGitHubToken,
-    onSuccess: () => {
+    onSuccess: async () => {
       // Clear any errors
       setError(null);
-      // Store token in localStorage
-      localStorage.setItem('hasSubmittedToken', 'true');
       
-      // Execute onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        // Redirect to the repository selection page if not in update mode
-        if (!isUpdate) {
-          navigate({ to: '/onboarding' });
+      try {
+        // Invalidate and refetch the flag status
+        await queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] });
+        
+        // Execute onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          // Redirect to the repository selection page if not in update mode
+          if (!isUpdate) {
+            navigate({ to: '/onboarding' });
+          }
         }
+        
+        // Close the dialog
+        onClose();
+      } catch (error) {
+        console.error('Error refreshing flag status:', error);
       }
-      
-      // Close the dialog
-      onClose();
     },
     onError: (error: unknown) => {
       console.error('Error submitting token:', error);
