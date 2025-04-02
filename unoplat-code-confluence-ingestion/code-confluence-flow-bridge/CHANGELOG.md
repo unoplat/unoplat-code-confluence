@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.22.0...code-confluence-flow-bridge-v0.23.0) (2025-04-02)
+
+
+### Features
+
+* enhanced app name typography and improved icons for sidebar navigation ([0c73525](https://github.com/unoplat/unoplat-code-confluence/commit/0c7352504814ffb3948b382a0159388f3c90fb8b))
+
+
+### Documentation
+
+* add llm docs for shadcn and tanstack ([cdba490](https://github.com/unoplat/unoplat-code-confluence/commit/cdba4909846eb8fddac65da7dad2fe15c732412a))
+
 ## [0.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.21.1...code-confluence-flow-bridge-v0.22.0) (2025-04-01)
 
 
