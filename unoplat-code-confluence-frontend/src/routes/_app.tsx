@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import GitHubTokenPopup from '../components/GitHubTokenPopup';
+import { getFlagStatus, FlagResponse } from '../lib/api';
 
 export const Route = createFileRoute('/_app')({
   component: AppComponent,
@@ -11,14 +13,21 @@ function AppComponent(): React.ReactElement {
   const navigate = useNavigate();
   const routerState = useRouterState();
   
+  // Query for token submission status
+  const { data: tokenStatus } = useQuery<FlagResponse>({
+    queryKey: ['flags', 'isTokenSubmitted'],
+    queryFn: () => getFlagStatus('isTokenSubmitted'),
+  });
+
+  // Show token popup if no token is present
   useEffect(() => {
-    // Check if token has been submitted before
-    const hasSubmittedToken = localStorage.getItem('hasSubmittedToken');
-    if (!hasSubmittedToken) {
+    if (tokenStatus && !tokenStatus.status) {
       setShowTokenPopup(true);
     }
-    
-    // If user is at root path '/', redirect to /onboarding
+  }, [tokenStatus]);
+
+  // Handle root path navigation
+  useEffect(() => {
     if (routerState.location.pathname === '/') {
       navigate({ to: '/onboarding' });
     }
