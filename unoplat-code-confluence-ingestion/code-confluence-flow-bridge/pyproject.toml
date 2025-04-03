@@ -24,6 +24,7 @@ dependencies = [
     "sqlmodel>=0.0.24",
     "psycopg2>=2.9.10",
     "passlib[bcrypt]>=1.7.4",
+    "gql[all]>=3.5.2",
 ] 
 
 [dependency-groups]
