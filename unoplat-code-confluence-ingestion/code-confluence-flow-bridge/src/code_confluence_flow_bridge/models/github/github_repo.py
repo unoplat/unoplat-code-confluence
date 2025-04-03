@@ -71,3 +71,9 @@ class GitHubRepoSummary(BaseModel):
     private: bool = Field(description="Whether the repository is private")
     git_url: str = Field(description="Git URL of the repository") 
     owner_name: str = Field(description="Login of the repository owner")
+    
+class PaginatedResponse(BaseModel):
+    items: List[GitHubRepoSummary]
+    per_page: int = Field(description="Number of items per page")
+    has_next: bool = Field(description="Whether there are more items to fetch")
+    next_cursor: Optional[str] = Field(default=None, description="Cursor for the next page of results")    

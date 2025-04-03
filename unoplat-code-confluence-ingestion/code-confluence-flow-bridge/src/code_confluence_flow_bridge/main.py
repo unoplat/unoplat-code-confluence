@@ -3,7 +3,7 @@ from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
 from src.code_confluence_flow_bridge.models.credentials import Credentials
 from src.code_confluence_flow_bridge.models.flags import Flag
-from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoSummary
+from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoSummary, PaginatedResponse
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
@@ -20,10 +20,13 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-import httpx
+
+# Add imports for gql
+from gql import Client as GQLClient, gql
+from gql.transport.aiohttp import AIOHTTPTransport
 from loguru import logger
 from sqlmodel import Session, select
 from temporalio.client import Client, WorkflowHandle
@@ -223,8 +226,15 @@ async def delete_token(session: Session = Depends(get_session)) -> Dict[str, str
         logger.error(f"Failed to delete token: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete authentication token")
 
-@app.get("/repos", response_model=List[GitHubRepoSummary])
-async def get_repos(session: Session = Depends(get_session)) -> List[GitHubRepoSummary]:
+
+
+@app.get("/repos", response_model=PaginatedResponse)
+async def get_repos(
+    per_page: int = Query(30, ge=1, le=100, description="Items per page"),
+    cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    search: Optional[str] = Query(None, description="Optional search query to filter repositories"),
+    session: Session = Depends(get_session)
+) -> PaginatedResponse:
     # Attempt to fetch the stored credentials from the database
     try:
         credential: Optional[Credentials] = session.exec(select(Credentials)).first()
@@ -242,34 +252,122 @@ async def get_repos(session: Session = Depends(get_session)) -> List[GitHubRepoS
         logger.error(f"Failed to decrypt token: {decrypt_error}")
         raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
     
-    # Fetch repositories from GitHub using the decrypted token
-    async with httpx.AsyncClient() as client:
-        headers: Dict[str, str] = {
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github+json",
-            "User-Agent": "Unoplat Code Confluence"
-        }
-        response = await client.get("https://api.github.com/user/repos?visibility=all&per_page=100&page=1", headers=headers)
-        if response.status_code != 200:
-            logger.error(f"GitHub API error: {response.text}")
-            raise HTTPException(status_code=500, detail=f"GitHub API error: failed to fetch repositories {response.text}")
-        
-        repos_data = response.json()
-
-    # Process and return the repository summaries
-    repos_list: List[GitHubRepoSummary] = []
-    for item in repos_data:
-        owner_data = item.get("owner", {})
-        repo_summary = GitHubRepoSummary(
-            name=item.get("name"),
-            owner_url=owner_data.get("html_url"),
-            private=item.get("private"),
-            git_url=item.get("html_url"),
-            owner_name=owner_data.get("login")
+    # Fetch repositories using GraphQL
+    try:
+        # Create a GraphQL client with proper authentication
+        transport = AIOHTTPTransport(
+            url="https://api.github.com/graphql",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "User-Agent": "Unoplat Code Confluence"
+            }
         )
-        repos_list.append(repo_summary)
         
-    return repos_list
+        async with GQLClient(
+            transport=transport,
+            fetch_schema_from_transport=False,
+        ) as client:
+            if search:
+                # Use the search query when search parameter is provided
+                query = gql(
+                    """
+                    query SearchRepositories($query: String!, $first: Int!, $after: String) {
+                        search(query: $query, type: REPOSITORY, first: $first, after: $after) {
+                            pageInfo {
+                                endCursor
+                                hasNextPage
+                            }
+                            nodes {
+                                ... on Repository {
+                                    name
+                                    isPrivate
+                                    url
+                                    owner {
+                                        login
+                                        url
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """
+                )
+                
+                # Execute the search query with variables
+                result = await client.execute(query, variable_values={
+                    "query": search,
+                    "first": per_page,
+                    "after": cursor
+                })
+                
+                # Process the search result
+                repos_data = result["search"]["nodes"]
+                has_next = result["search"]["pageInfo"]["hasNextPage"]
+                next_cursor = result["search"]["pageInfo"]["endCursor"]
+            else:
+                # Use the original viewer.repositories query when no search is provided
+                query = gql(
+                    """
+                    query GetRepositories($first: Int!, $after: String) {
+                        viewer {
+                            repositories(
+                                first: $first,
+                                affiliations: [OWNER, COLLABORATOR, ORGANIZATION_MEMBER],
+                                after: $after
+                            ) {
+                                pageInfo {
+                                    endCursor
+                                    hasNextPage
+                                }
+                                nodes {
+                                    name
+                                    isPrivate
+                                    url
+                                    owner {
+                                        login
+                                        url
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """
+                )
+                
+                # Execute the query with variables
+                result = await client.execute(query, variable_values={
+                    "first": per_page,
+                    "after": cursor
+                })
+                
+                # Process the result
+                repos_data = result["viewer"]["repositories"]["nodes"]
+                has_next = result["viewer"]["repositories"]["pageInfo"]["hasNextPage"]
+                next_cursor = result["viewer"]["repositories"]["pageInfo"]["endCursor"]
+            
+            # Convert to GitHubRepoSummary objects
+            repos_list: List[GitHubRepoSummary] = []
+            for item in repos_data:
+                repo_summary = GitHubRepoSummary(
+                    name=item["name"],
+                    owner_url=item["owner"]["url"],
+                    private=item["isPrivate"],
+                    git_url=item["url"],
+                    owner_name=item["owner"]["login"]
+                )
+                repos_list.append(repo_summary)
+            
+            # Return paginated response with cursor as metadata
+            return PaginatedResponse(
+                items=repos_list,
+                per_page=per_page,
+                has_next=has_next,
+                next_cursor=next_cursor
+            )
+            
+    except Exception as e:
+        logger.error(f"GraphQL Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch repositories: {str(e)}")
 
 @app.post("/start-ingestion", status_code=201)
 async def ingestion(repository: RepositorySettings, authorization: Optional[str] = Header(None)):
