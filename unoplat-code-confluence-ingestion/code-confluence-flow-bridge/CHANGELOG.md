@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.24.0...code-confluence-flow-bridge-v0.25.0) (2025-04-03)
+
+
+### Features
+
+* support server side filtering and pagination by switching to graphql based github apis ([318f96e](https://github.com/unoplat/unoplat-code-confluence/commit/318f96e39d99d061a4077947a1da356d09f45252))
+* support server side filtering and pagination by switching to graphql based github apis ([fe7f921](https://github.com/unoplat/unoplat-code-confluence/commit/fe7f9212ad04ca551e0ff78d26e0c83f69062a03))
+
 ## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.23.0...code-confluence-flow-bridge-v0.24.0) (2025-04-02)
 
 
