@@ -89,14 +89,41 @@ export const submitGitHubToken = async (token: string): Promise<ApiResponse> => 
   }
 };
 
+// Add the following interface above the fetchGitHubRepositories function
+export interface PaginatedResponse<T> {
+  items: T[];
+  per_page: number;
+  has_next: boolean;
+  next_cursor?: string;
+}
+
 /**
  * Fetch GitHub repositories from the backend
  * 
- * @returns Promise with array of GitHub repositories
+ * @param page - Page number for pagination
+ * @param perPage - Number of items per page
+ * @param search - Optional search term
+ * @param cursor - Optional cursor for pagination
+ * @returns Promise with paginated GitHub repositories
  */
-export const fetchGitHubRepositories = async (): Promise<GitHubRepoSummary[]> => {
+export const fetchGitHubRepositories = async (
+  page: number, 
+  perPage: number, 
+  search?: string, 
+  cursor?: string
+): Promise<PaginatedResponse<GitHubRepoSummary>> => {
   try {
-    const response: AxiosResponse<GitHubRepoSummary[]> = await apiClient.get('/repos');
+    const params: Record<string, string | number> = { page, per_page: perPage };
+    
+    if (search && search.trim() !== '') {
+      params.search = search.trim();
+    }
+    
+    if (cursor) {
+      params.cursor = cursor;
+    }
+    
+    const response: AxiosResponse<PaginatedResponse<GitHubRepoSummary>> = await apiClient.get('/repos', { params });
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);

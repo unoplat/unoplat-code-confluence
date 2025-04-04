@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   SortingState,
@@ -8,61 +8,91 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { AlertCircle } from 'lucide-react';
-import { fetchGitHubRepositories, submitRepositories, ApiError, getFlagStatus, FlagResponse } from '../lib/api';
+import { 
+  fetchGitHubRepositories, 
+  submitRepositories, 
+  ApiError, 
+  getFlagStatus, 
+  FlagResponse, 
+  PaginatedResponse 
+} from '../lib/api';
+import { GitHubRepoSummary } from '../types';
 import { useToast } from '../components/ui/use-toast';
-import { RepositoryTable } from '../components/RepositoryTable';
+import { RepositoryDataTable } from '../components/RepositoryDataTable';
 import GitHubTokenPopup from '../components/GitHubTokenPopup';
+import { useRouter } from '@tanstack/react-router';
+import type { OnChangeFn } from '@tanstack/react-table';
 
 export default function OnboardingPage(): React.ReactElement {
   const { toast } = useToast();
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState<string>('');
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const router = useRouter();
+  const urlSorting = (((router.state as any).search || {}) as { sorting?: SortingState }).sorting;
+  const [sorting, setSorting] = useState<SortingState>(urlSorting || []);
+  const urlPagination = (((router.state as any).search || {}) as { pagination?: PaginationState }).pagination;
+  const [pagination, setPagination] = useState<PaginationState>(urlPagination || { pageIndex: 0, pageSize: 10 });
+  const urlRowSelection = (((router.state as any).search || {}) as { rowSelection?: RowSelectionState }).rowSelection;
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>(urlRowSelection || {});
   const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [cursors, setCursors] = useState<Array<string | undefined>>([undefined]);
   const queryClient = useQueryClient();
-
+  
   // Query for token status
   const { data: tokenStatus } = useQuery<FlagResponse>({
     queryKey: ['flags', 'isTokenSubmitted'],
     queryFn: () => getFlagStatus('isTokenSubmitted'),
   });
 
-  // Show token popup if no token is present
   useEffect(() => {
     if (tokenStatus && !tokenStatus.status) {
       setShowTokenPopup(true);
     }
   }, [tokenStatus]);
+  
+  // Update cursors when page changes
+  useEffect(() => {
+    // Only save cursor for the current page if we don't already have it
+    if (pagination.pageIndex >= cursors.length - 1 && nextCursor) {
+      setCursors(prev => [...prev, nextCursor]);
+    }
+  }, [nextCursor, pagination.pageIndex, cursors.length]);
+
+  // Create empty data placeholder
+  const emptyRepoData: PaginatedResponse<GitHubRepoSummary> = {
+    items: [],
+    per_page: pagination.pageSize,
+    has_next: false,
+    next_cursor: undefined
+  };
 
   // Query for repositories, only enabled when token is present
   const {
-    data: repositories = [],
+    data: repoData,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ['repositories'],
-    queryFn: fetchGitHubRepositories,
-    enabled: tokenStatus?.status ?? false, // Only fetch when token is present
-    // Fallback to an empty array if the token is missing
-    placeholderData: tokenStatus?.status ? undefined : [],
+    queryKey: ['repositories', pagination.pageIndex, pagination.pageSize, sorting, cursors[pagination.pageIndex]],
+    queryFn: () => fetchGitHubRepositories(
+      pagination.pageIndex + 1, 
+      pagination.pageSize, 
+      undefined, 
+      cursors[pagination.pageIndex]
+    ),
+    enabled: tokenStatus?.status ?? false,
+    placeholderData: tokenStatus?.status ? undefined : emptyRepoData,
   });
 
-  // Focus the search input when repositories are loaded
+  // Update cursor on successful data fetch
   useEffect(() => {
-    if (!isLoading && repositories.length > 0 && searchInputRef.current) {
-      searchInputRef.current.focus();
+    if (repoData?.next_cursor) {
+      setNextCursor(repoData.next_cursor);
     }
-  }, [isLoading, repositories]);
+  }, [repoData]);
 
-  // Get appropriate error message based on error details
+  const repositoriesData: PaginatedResponse<GitHubRepoSummary> = repoData ?? emptyRepoData;
+
   const getErrorMessage = (): { title: string; message: string; action: string } => {
-    // Safely cast error to ApiError, ensuring it's actually an ApiError type
     if (!error) {
       return {
         title: 'Unknown Error',
@@ -70,12 +100,8 @@ export default function OnboardingPage(): React.ReactElement {
         action: 'Please try refreshing the page.'
       };
     }
-
-    // Check if error is an ApiError by checking for the isAxiosError property
     const apiError = error as unknown as ApiError;
     const isApiError = apiError && 'isAxiosError' in apiError;
-    
-    // If it's not an ApiError, provide a default error message
     if (!isApiError) {
       return {
         title: 'Error Fetching Repositories',
@@ -83,16 +109,11 @@ export default function OnboardingPage(): React.ReactElement {
         action: 'Please try refreshing the page.'
       };
     }
-    
     const statusCode = apiError.statusCode;
     const errorMessage = apiError.message || 'Unknown error occurred';
-    
-    // Default error info
     let title = 'Error Fetching Repositories';
     let message = 'We encountered an issue while trying to fetch your repositories.';
     let action = 'Please try refreshing the page.';
-    
-    // Handle specific error cases
     if (statusCode === 404) {
       title = 'GitHub Credentials Missing';
       message = 'We couldn\'t find your GitHub credentials in our system.';
@@ -100,7 +121,7 @@ export default function OnboardingPage(): React.ReactElement {
     } else if (statusCode === 401 || (errorMessage && errorMessage.includes('token'))) {
       title = 'Authentication Error';
       message = 'Your GitHub token may have expired or doesn\'t have the necessary permissions.';
-      action = 'Please update your GitHub toke from settings page with appropriate permissions.';
+      action = 'Please update your GitHub token from the settings page with appropriate permissions.';
     } else if (statusCode === 500) {
       if (errorMessage.includes('decryption')) {
         title = 'Token Decryption Error';
@@ -116,17 +137,14 @@ export default function OnboardingPage(): React.ReactElement {
         action = 'Please try again later. If the problem persists, contact support.';
       }
     }
-    
     return { title, message, action };
   };
 
-  // Function to handle submitting selected repositories
   const handleSubmitSelections = async (): Promise<void> => {
     try {
       const selectedRepoNames = Object.keys(rowSelection)
-        .map((idx) => repositories[parseInt(idx)]?.name)
-        .filter(Boolean);
-
+        .map((idx) => repositoriesData.items[parseInt(idx)]?.name)
+        .filter(Boolean) as string[];
       if (selectedRepoNames.length === 0) {
         toast({
           variant: "destructive",
@@ -135,15 +153,11 @@ export default function OnboardingPage(): React.ReactElement {
         });
         return;
       }
-
       await submitRepositories(selectedRepoNames);
-      
       toast({
         title: "Success",
         description: "Repositories submitted for ingestion successfully!"
       });
-      
-      // Navigate to dashboard
       window.location.href = '/dashboard';
     } catch (error) {
       console.error('Error submitting repositories:', error);
@@ -155,37 +169,85 @@ export default function OnboardingPage(): React.ReactElement {
     }
   };
 
-  // Handle token submission success
   const handleTokenSuccess = async (): Promise<void> => {
     setShowTokenPopup(false);
-    // Invalidate and refetch both queries
+    // Reset pagination and cursors when token is updated
+    setPagination({ pageIndex: 0, pageSize: 10 });
+    setCursors([undefined]);
+    setNextCursor(undefined);
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] }),
       queryClient.invalidateQueries({ queryKey: ['repositories'] })
     ]);
   };
 
-  // Function to safely check if an error is an ApiError with the specified status
   const isApiErrorWithStatus = (statusCode: number): boolean => {
     if (!error) return false;
     const apiError = error as unknown as ApiError;
     return 'isAxiosError' in apiError && apiError.statusCode === statusCode;
   };
 
+  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue): SortingState => {
+    const newValue = typeof updaterOrValue === 'function' ? updaterOrValue(sorting) : updaterOrValue;
+    setSorting(newValue);
+    const currentSearch = (router.state as any).search || {};
+    router.navigate({ search: { ...currentSearch, sorting: newValue } });
+    return newValue;
+  };
+
+  const handlePaginationChange: OnChangeFn<PaginationState> = (updaterOrValue): PaginationState => {
+    const newValue = typeof updaterOrValue === 'function' ? updaterOrValue(pagination) : updaterOrValue;
+    
+    // Check if page size has changed
+    const isPageSizeChanged = newValue.pageSize !== pagination.pageSize;
+    
+    // If page size changed, reset pagination state and cursors
+    if (isPageSizeChanged) {
+      // Reset cursors when page size changes
+      setCursors([undefined]);
+      setNextCursor(undefined);
+      
+      // Always go to first page when changing page size
+      const resetValue = { ...newValue, pageIndex: 0 };
+      setPagination(resetValue);
+      
+      // Invalidate queries to fetch with new page size
+      queryClient.invalidateQueries({ queryKey: ['repositories'] });
+      
+      // Update URL
+      const currentSearch = (router.state as any).search || {};
+      router.navigate({ search: { ...currentSearch, pagination: resetValue } });
+      
+      return resetValue;
+    } else {
+      // Regular pagination change (page navigation)
+      setPagination(newValue);
+      const currentSearch = (router.state as any).search || {};
+      router.navigate({ search: { ...currentSearch, pagination: newValue } });
+      return newValue;
+    }
+  };
+
+  const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue): RowSelectionState => {
+    const newValue = typeof updaterOrValue === 'function' ? updaterOrValue(rowSelection) : updaterOrValue;
+    setRowSelection(newValue);
+    const currentSearch = (router.state as any).search || {};
+    router.navigate({ search: { ...currentSearch, rowSelection: newValue } });
+    return newValue;
+  };
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold tracking-tight mb-6">Select GitHub Repositories for Ingestion</h1>
 
-      {/* Repository List */}
       <Card>
         <CardHeader>
           <CardTitle>GitHub Repositories</CardTitle>
           <CardDescription>
-            Connect your GitHub repositories to Unoplat Code Confluence for deeper code insights. Search or scroll through your available repositories below and select the ones you want to ingest.
+            Connect your GitHub repositories to Unoplat Code Confluence for deeper code insights. Scroll through your available repositories below and select the ones you want to ingest.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* No Token Message */}
           {(!tokenStatus?.status && !showTokenPopup) && (
             <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
               <div className="flex">
@@ -195,15 +257,9 @@ export default function OnboardingPage(): React.ReactElement {
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-amber-800">GitHub Token Required</h3>
                   <div className="mt-2 text-sm text-amber-700">
-                    <p>
-                      You need to provide a GitHub token to access your repositories.
-                    </p>
+                    <p>You need to provide a GitHub token to access your repositories.</p>
                     <div className="mt-3">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setShowTokenPopup(true)}
-                        size="sm"
-                      >
+                      <Button variant="outline" onClick={() => setShowTokenPopup(true)} size="sm">
                         Set up GitHub Token
                       </Button>
                     </div>
@@ -213,7 +269,6 @@ export default function OnboardingPage(): React.ReactElement {
             </div>
           )}
 
-          {/* Loading and Error States */}
           {tokenStatus?.status && isLoading && (
             <div className="flex justify-center py-6">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -224,29 +279,15 @@ export default function OnboardingPage(): React.ReactElement {
             <div className="bg-destructive/10 border-l-4 border-destructive p-4 mb-4 rounded">
               <div className="flex flex-col">
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-destructive">
-                    {getErrorMessage().title}
-                  </h3>
-                  <p className="text-sm text-destructive/90 mt-1">
-                    {getErrorMessage().message}
-                  </p>
-                  <p className="text-sm text-destructive/80 mt-2">
-                    {getErrorMessage().action}
-                  </p>
+                  <h3 className="text-sm font-medium text-destructive">{getErrorMessage().title}</h3>
+                  <p className="text-sm text-destructive/90 mt-1">{getErrorMessage().message}</p>
+                  <p className="text-sm text-destructive/80 mt-2">{getErrorMessage().action}</p>
                   <div className="mt-3 flex flex-row gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => refetch()}
-                      size="sm"
-                    >
+                    <Button variant="outline" onClick={() => refetch()} size="sm">
                       Try Again
                     </Button>
                     {isApiErrorWithStatus(404) && (
-                      <Button
-                        variant="default"
-                        onClick={() => setShowTokenPopup(true)}
-                        size="sm"
-                      >
+                      <Button variant="default" onClick={() => setShowTokenPopup(true)} size="sm">
                         Set Up GitHub Token
                       </Button>
                     )}
@@ -256,38 +297,27 @@ export default function OnboardingPage(): React.ReactElement {
             </div>
           )}
 
-          {/* Only show repository table if we have a token */}
-          {tokenStatus?.status ? (
+          {tokenStatus?.status && !isLoading && !error && (
             <>
-              {!isLoading && !error && repositories.length > 0 && (
+              {repositoriesData.items.length > 0 ? (
                 <>
-                  {/* Use the RepositoryTable component */}
-                  <RepositoryTable
-                    repositories={repositories}
+                  <RepositoryDataTable
+                    repositories={repositoriesData.items}
                     rowSelection={rowSelection}
-                    onRowSelectionChange={setRowSelection}
-                    globalFilter={globalFilter}
-                    onGlobalFilterChange={setGlobalFilter}
+                    onRowSelectionChange={handleRowSelectionChange}
                     pagination={pagination}
-                    onPaginationChange={setPagination}
+                    onPaginationChange={handlePaginationChange}
                     sorting={sorting}
-                    onSortingChange={setSorting}
-                    searchInputRef={searchInputRef}
+                    onSortingChange={handleSortingChange}
+                    pageCount={repositoriesData.has_next ? pagination.pageIndex + 2 : pagination.pageIndex + 1}
                   />
-
-                  {/* Submit Button */}
                   <div className="mt-6 flex gap-2">
-                    <Button
-                      onClick={handleSubmitSelections}
-                      disabled={Object.keys(rowSelection).length === 0}
-                    >
+                    <Button onClick={handleSubmitSelections} disabled={Object.keys(rowSelection).length === 0}>
                       Submit Selected Repositories
                     </Button>
                   </div>
                 </>
-              )}
-
-              {!isLoading && !error && repositories.length === 0 && (
+              ) : (
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
                   <div className="flex">
                     <div className="ml-3">
@@ -295,18 +325,10 @@ export default function OnboardingPage(): React.ReactElement {
                         No repositories found. This could be because your GitHub token doesn't have the necessary permissions.
                       </p>
                       <div className="mt-2 flex gap-2">
-                        <Button
-                          variant="ghost"
-                          onClick={() => refetch()}
-                          size="sm"
-                        >
+                        <Button variant="ghost" onClick={() => refetch()} size="sm">
                           Try refreshing
                         </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => setShowTokenPopup(true)}
-                          size="sm"
-                        >
+                        <Button variant="outline" onClick={() => setShowTokenPopup(true)} size="sm">
                           Update GitHub Token
                         </Button>
                       </div>
@@ -315,16 +337,11 @@ export default function OnboardingPage(): React.ReactElement {
                 </div>
               )}
             </>
-          ) : null}
+          )}
         </CardContent>
       </Card>
 
-      {/* GitHub Token Popup */}
-      <GitHubTokenPopup
-        open={showTokenPopup}
-        onClose={() => setShowTokenPopup(false)}
-        onSuccess={handleTokenSuccess}
-      />
+      <GitHubTokenPopup open={showTokenPopup} onClose={() => setShowTokenPopup(false)} onSuccess={handleTokenSuccess} />
     </div>
   );
-} 
+}
