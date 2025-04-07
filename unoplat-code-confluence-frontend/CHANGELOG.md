@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.6.1...unoplat-code-confluence-frontend-v1.7.0) (2025-04-07)
+
+
+### Features
+
+* update Radix UI components and add data table options ([c69b324](https://github.com/unoplat/unoplat-code-confluence/commit/c69b324df0766d1dfe6bb25d087dc66d3446e713))
+* update Radix UI components and add data table options ([a6853b2](https://github.com/unoplat/unoplat-code-confluence/commit/a6853b2ee15fa0cf8123b91e59461896120f731e))
+
 ## [1.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.6.0...unoplat-code-confluence-frontend-v1.6.1) (2025-04-02)
 
 
