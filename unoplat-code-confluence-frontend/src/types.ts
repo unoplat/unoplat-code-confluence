@@ -32,4 +32,9 @@ export interface IngestionJob {
   createdAt: string;
   updatedAt: string;
   error?: string;
+}
+
+export interface PaginationJson {
+  page: number;
+  perPage: number;
 } 

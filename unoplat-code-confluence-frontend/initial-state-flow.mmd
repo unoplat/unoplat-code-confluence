@@ -1,0 +1,19 @@
+flowchart TD
+    A[Start: Invoke useDataTableWithRouter Hook]
+    B[Receive Props: data, columns, pageCount, initialState]
+    C[Call useRouter() to get router instance]
+    D[Extract URL search parameters using URLSearchParams]
+    E[Compute pageIndex (page - 1) and pageSize from URL or initialState]
+    F[Construct pagination object {pageIndex, pageSize}]
+    G[Define updatePagination callback using router.navigate]
+    H[Configure useReactTable with data, columns, pagination, callbacks, and row model generators]
+    I[Return table instance]
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I 
