@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.25.0...code-confluence-flow-bridge-v0.26.0) (2025-04-08)
+
+
+### Features
+
+* migrate to dice ui data table + router  + query ([c961b7a](https://github.com/unoplat/unoplat-code-confluence/commit/c961b7a49d8a7f0448d76efc36764cc8fbcdd8d2))
+* migrate to dice ui data table + router  + query ([9eae225](https://github.com/unoplat/unoplat-code-confluence/commit/9eae2255881913201cad76cdb598fc84b3cf27b6))
+
 ## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.24.0...code-confluence-flow-bridge-v0.25.0) (2025-04-03)
 
 
