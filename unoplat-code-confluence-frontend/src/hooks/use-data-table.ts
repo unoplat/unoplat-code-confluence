@@ -1,169 +1,302 @@
-import { useReactTable } from '@tanstack/react-table';
-import type { 
-  ColumnDef, 
-  ColumnFiltersState, 
-  SortingState, 
-  VisibilityState, 
-  PaginationState, 
-  RowSelectionState,
-  OnChangeFn
-} from '@tanstack/react-table';
-import { useState } from 'react';
-import { useRouter } from '@tanstack/react-router';
+"use client";
 
-interface UseDataTableProps<TData> {
-  data: TData[];
-  columns: ColumnDef<TData, any>[];
-  pageCount: number;
-  initialState?: {
-    sorting?: SortingState;
-    pagination?: PaginationState;
-    columnFilters?: ColumnFiltersState;
-    columnVisibility?: VisibilityState;
-    rowSelection?: RowSelectionState;
+import {
+  type ColumnFiltersState,
+  type PaginationState,
+  type RowSelectionState,
+  type SortingState,
+  type TableOptions,
+  type TableState,
+  type Updater,
+  type VisibilityState,
+  getCoreRowModel,
+  getFacetedMinMaxValues,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import {
+  type Parser,
+  type UseQueryStateOptions,
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  useQueryState,
+  useQueryStates,
+} from "nuqs";
+import * as React from "react";
+
+import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { getSortingStateParser } from "@/lib/parsers";
+import type { ExtendedColumnSort } from "@/types/data-table";
+
+const PAGE_KEY = "page";
+const PER_PAGE_KEY = "perPage";
+const SORT_KEY = "sort";
+const ARRAY_SEPARATOR = ",";
+const DEBOUNCE_MS = 300;
+const THROTTLE_MS = 50;
+
+interface UseDataTableProps<TData>
+  extends Omit<
+      TableOptions<TData>,
+      | "state"
+      | "pageCount"
+      | "getCoreRowModel"
+      | "manualFiltering"
+      | "manualPagination"
+      | "manualSorting"
+    >,
+    Required<Pick<TableOptions<TData>, "pageCount">> {
+  initialState?: Omit<Partial<TableState>, "sorting"> & {
+    sorting?: ExtendedColumnSort<TData>[];
   };
-  manualPagination?: boolean;
-  manualFiltering?: boolean;
-  manualSorting?: boolean;
-  enableRowSelection?: boolean;
-  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
-  onPaginationChange?: OnChangeFn<PaginationState>;
-  onSortingChange?: OnChangeFn<SortingState>;
-  onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>;
-  getCoreRowModel: any;
-  getSortedRowModel?: any;
-  getPaginationRowModel?: any;
-  getFilteredRowModel?: any;
+  history?: "push" | "replace";
+  debounceMs?: number;
+  throttleMs?: number;
+  clearOnDefault?: boolean;
+  enableAdvancedFilter?: boolean;
+  scroll?: boolean;
+  shallow?: boolean;
+  startTransition?: React.TransitionStartFunction;
 }
 
-/**
- * Custom hook for managing data table state.
- * 
- * This hook provides a clean abstraction for TanStack Table that handles:
- * 1. State management for sorting, pagination, column filters, visibility and row selection
- * 2. Callback handling for state changes
- * 3. Proper initialization from initial state
- * 
- * Note: While this hook doesn't directly use TanStack Router for URL state,
- * the parent component can connect the onPaginationChange, onSortingChange, etc.
- * callbacks to router.navigate({ search: {...} }) to achieve URL-based persistence.
- * 
- * Example integration with TanStack Router in a parent component:
- * 
- * ```tsx
- * const router = useRouter();
- * 
- * const handlePaginationChange = (newPagination) => {
- *   router.navigate({
- *     search: {
- *       ...router.state.search,
- *       pagination: newPagination
- *     }
- *   });
- * };
- * ```
- */
-export function useDataTable<TData>({
-  data,
-  columns,
-  pageCount,
-  initialState,
-  manualPagination = false,
-  manualFiltering = false,
-  manualSorting = false,
-  enableRowSelection = false,
-  onRowSelectionChange,
-  onPaginationChange,
-  onSortingChange,
-  onColumnFiltersChange,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-}: UseDataTableProps<TData>) {
-  const router = useRouter();
-  const currentSearch = (router.state as any).search || {};
-  const urlSorting = (currentSearch.sorting as SortingState | undefined) || initialState?.sorting || [];
-  const [sorting, setSorting] = useState<SortingState>(urlSorting);
-  const urlPagination = (currentSearch.pagination as PaginationState | undefined) || initialState?.pagination || { pageIndex: 0, pageSize: 10 };
-  const [pagination, setPagination] = useState<PaginationState>(urlPagination);
-  const urlRowSelection = (currentSearch.rowSelection as RowSelectionState | undefined) || initialState?.rowSelection || {};
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>(urlRowSelection);
-  
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    initialState?.columnVisibility || {}
-  );
-  
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    initialState?.columnFilters || []
-  );
-
-  // Event handlers that call back to parent components
-  const handlePaginationChange: OnChangeFn<PaginationState> = (updaterOrValue): PaginationState => {
-    const newValue = typeof updaterOrValue === 'function' ? updaterOrValue(pagination) : updaterOrValue;
-    setPagination(newValue);
-    if (onPaginationChange) {
-      onPaginationChange(newValue);
-    }
-    return newValue;
-  };
-
-  const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue): SortingState => {
-    const newValue = typeof updaterOrValue === 'function' ? updaterOrValue(sorting) : updaterOrValue;
-    setSorting(newValue);
-    if (onSortingChange) {
-      onSortingChange(newValue);
-    }
-    return newValue;
-  };
-
-  const handleColumnFiltersChange: OnChangeFn<ColumnFiltersState> = (updaterOrValue) => {
-    setColumnFilters((prev) => {
-      const newValue = typeof updaterOrValue === 'function' ? updaterOrValue(prev) : updaterOrValue;
-      if (onColumnFiltersChange) {
-        onColumnFiltersChange(newValue);
-      }
-      return newValue;
-    });
-  };
-
-  const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue): RowSelectionState => {
-    const newValue = typeof updaterOrValue === 'function' ? updaterOrValue(rowSelection) : updaterOrValue;
-    setRowSelection(newValue);
-    if (onRowSelectionChange) {
-      onRowSelectionChange(newValue);
-    }
-    return newValue;
-  };
-
-  // Create table instance
-  const table = useReactTable({
-    data,
+export function useDataTable<TData>(props: UseDataTableProps<TData>) {
+  const {
     columns,
+    pageCount = -1,
+    initialState,
+    history = "replace",
+    debounceMs = DEBOUNCE_MS,
+    throttleMs = THROTTLE_MS,
+    clearOnDefault = false,
+    enableAdvancedFilter = false,
+    scroll = false,
+    shallow = true,
+    startTransition,
+    ...tableProps
+  } = props;
+
+  const queryStateOptions = React.useMemo<
+    Omit<UseQueryStateOptions<string>, "parse">
+  >(
+    () => ({
+      history,
+      scroll,
+      shallow,
+      throttleMs,
+      debounceMs,
+      clearOnDefault,
+      startTransition,
+    }),
+    [
+      history,
+      scroll,
+      shallow,
+      throttleMs,
+      debounceMs,
+      clearOnDefault,
+      startTransition,
+    ],
+  );
+
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
+    initialState?.rowSelection ?? {},
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>(initialState?.columnVisibility ?? {});
+
+  const [page, setPage] = useQueryState(
+    PAGE_KEY,
+    parseAsInteger.withOptions(queryStateOptions).withDefault(1),
+  );
+  const [perPage, setPerPage] = useQueryState(
+    PER_PAGE_KEY,
+    parseAsInteger
+      .withOptions(queryStateOptions)
+      .withDefault(initialState?.pagination?.pageSize ?? 10),
+  );
+
+  const pagination: PaginationState = React.useMemo(() => {
+    return {
+      pageIndex: page - 1, // zero-based index
+      pageSize: perPage,
+    };
+  }, [page, perPage]);
+  console.log('[useDataTable] Computed pagination:', pagination);
+  const searchString: string = `?page=${page}&perPage=${perPage}`;
+  console.log('[useDataTable] Computed searchString:', searchString);
+
+  const onPaginationChange = React.useCallback(
+    (updaterOrValue: Updater<PaginationState>) => {
+      console.log('[useDataTable] onPaginationChange called with:', updaterOrValue);
+      if (typeof updaterOrValue === "function") {
+        const newPagination = updaterOrValue(pagination);
+        console.log('[useDataTable] New pagination (functional):', newPagination);
+        void setPage(newPagination.pageIndex + 1);
+        void setPerPage(newPagination.pageSize);
+      } else {
+        console.log('[useDataTable] New pagination (value):', updaterOrValue);
+        void setPage(updaterOrValue.pageIndex + 1);
+        void setPerPage(updaterOrValue.pageSize);
+      }
+    },
+    [pagination, setPage, setPerPage],
+  );
+
+  const columnIds = React.useMemo(() => {
+    return new Set(
+      columns.map((column) => column.id).filter(Boolean) as string[],
+    );
+  }, [columns]);
+
+  const [sorting, setSorting] = useQueryState(
+    SORT_KEY,
+    getSortingStateParser<TData>(columnIds)
+      .withOptions(queryStateOptions)
+      .withDefault(initialState?.sorting ?? []),
+  );
+
+  const onSortingChange = React.useCallback(
+    (updaterOrValue: Updater<SortingState>) => {
+      if (typeof updaterOrValue === "function") {
+        const newSorting = updaterOrValue(sorting);
+        setSorting(newSorting as ExtendedColumnSort<TData>[]);
+      } else {
+        setSorting(updaterOrValue as ExtendedColumnSort<TData>[]);
+      }
+    },
+    [sorting, setSorting],
+  );
+
+  const filterableColumns = React.useMemo(() => {
+    if (enableAdvancedFilter) return [];
+
+    return columns.filter((column) => column.enableColumnFilter);
+  }, [columns, enableAdvancedFilter]);
+
+  const filterParsers = React.useMemo(() => {
+    if (enableAdvancedFilter) return {};
+
+    return filterableColumns.reduce<
+      Record<string, Parser<string> | Parser<string[]>>
+    >((acc, column) => {
+      if (column.meta?.options) {
+        acc[column.id ?? ""] = parseAsArrayOf(
+          parseAsString,
+          ARRAY_SEPARATOR,
+        ).withOptions(queryStateOptions);
+      } else {
+        acc[column.id ?? ""] = parseAsString.withOptions(queryStateOptions);
+      }
+      return acc;
+    }, {});
+  }, [filterableColumns, queryStateOptions, enableAdvancedFilter]);
+
+  const [filterValues, setFilterValues] = useQueryStates(filterParsers);
+
+  const debouncedSetFilterValues = useDebouncedCallback(
+    (values: typeof filterValues) => {
+      void setPage(1);
+      void setFilterValues(values);
+    },
+    debounceMs,
+  );
+
+  const initialColumnFilters: ColumnFiltersState = React.useMemo(() => {
+    if (enableAdvancedFilter) return [];
+
+    return Object.entries(filterValues).reduce<ColumnFiltersState>(
+      (filters, [key, value]) => {
+        if (value !== null) {
+          const processedValue = Array.isArray(value)
+            ? value
+            : typeof value === "string" && /[^a-zA-Z0-9]/.test(value)
+              ? value.split(/[^a-zA-Z0-9]+/).filter(Boolean)
+              : [value];
+
+          filters.push({
+            id: key,
+            value: processedValue,
+          });
+        }
+        return filters;
+      },
+      [],
+    );
+  }, [filterValues, enableAdvancedFilter]);
+
+  const [columnFilters, setColumnFilters] =
+    React.useState<ColumnFiltersState>(initialColumnFilters);
+
+  const onColumnFiltersChange = React.useCallback(
+    (updaterOrValue: Updater<ColumnFiltersState>) => {
+      if (enableAdvancedFilter) return;
+
+      setColumnFilters((prev) => {
+        const next =
+          typeof updaterOrValue === "function"
+            ? updaterOrValue(prev)
+            : updaterOrValue;
+
+        const filterUpdates = next.reduce<
+          Record<string, string | string[] | null>
+        >((acc, filter) => {
+          if (filterableColumns.find((column) => column.id === filter.id)) {
+            acc[filter.id] = filter.value as string | string[];
+          }
+          return acc;
+        }, {});
+
+        for (const prevFilter of prev) {
+          if (!next.some((filter) => filter.id === prevFilter.id)) {
+            filterUpdates[prevFilter.id] = null;
+          }
+        }
+
+        debouncedSetFilterValues(filterUpdates);
+        return next;
+      });
+    },
+    [debouncedSetFilterValues, filterableColumns, enableAdvancedFilter],
+  );
+
+  const table = useReactTable({
+    ...tableProps,
+    columns,
+    initialState,
     pageCount,
     state: {
-      sorting,
       pagination,
-      columnFilters,
+      sorting,
       columnVisibility,
       rowSelection,
+      columnFilters,
     },
-    manualPagination,
-    manualFiltering,
-    manualSorting,
-    enableRowSelection,
-    onRowSelectionChange: handleRowSelectionChange,
-    onPaginationChange: handlePaginationChange,
-    onSortingChange: handleSortingChange,
-    onColumnFiltersChange: handleColumnFiltersChange,
+    defaultColumn: {
+      ...tableProps.defaultColumn,
+      enableColumnFilter: false,
+    },
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
+    onPaginationChange,
+    onSortingChange,
+    onColumnFiltersChange,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel ? getSortedRowModel() : undefined,
-    getPaginationRowModel: getPaginationRowModel ? getPaginationRowModel() : undefined,
-    getFilteredRowModel: getFilteredRowModel ? getFilteredRowModel() : undefined,
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedMinMaxValues: getFacetedMinMaxValues(),
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
   });
 
-  return {
-    table,
-  };
-} 
+  return { table, shallow, debounceMs, throttleMs };
+}
