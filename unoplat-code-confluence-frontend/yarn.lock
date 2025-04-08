@@ -1701,6 +1701,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@standard-schema/spec@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@standard-schema/spec@npm:1.0.0"
+  checksum: 10c0/a1ab9a8bdc09b5b47aa8365d0e0ec40cc2df6437be02853696a0e377321653b0d3ac6f079a8c67d5ddbe9821025584b1fb71d9cc041a6666a96f1fadf2ece15f
+  languageName: node
+  linkType: hard
+
 "@tailwindcss/node@npm:4.0.17":
   version: 4.0.17
   resolution: "@tailwindcss/node@npm:4.0.17"
@@ -1868,6 +1875,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-devtools@npm:5.72.0":
+  version: 5.72.0
+  resolution: "@tanstack/query-devtools@npm:5.72.0"
+  checksum: 10c0/21287f2639efc754c2e9cee62e777e3cc239253f20004b0c05d86f40b05684c27ecc68767e3bfb3225549a5f29f7c422b68877baedbb1b9289931dec7171dda5
+  languageName: node
+  linkType: hard
+
 "@tanstack/react-form@npm:^1.1.2":
   version: 1.1.2
   resolution: "@tanstack/react-form@npm:1.1.2"
@@ -1886,6 +1900,18 @@ __metadata:
     vinxi:
       optional: true
   checksum: 10c0/523178e6801e1ee0db7c843b10a5eb744240b75f1e337b6696d13fd9b8f905af563393468bd1bc52eb67e6a2d2574c24b064f9f4a7c2f2ba634413184564ab4a
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query-devtools@npm:^5.72.0":
+  version: 5.72.0
+  resolution: "@tanstack/react-query-devtools@npm:5.72.0"
+  dependencies:
+    "@tanstack/query-devtools": "npm:5.72.0"
+  peerDependencies:
+    "@tanstack/react-query": ^5.72.0
+    react: ^18 || ^19
+  checksum: 10c0/e67bbe3822e4c97292aaff3b9a942d06db6bf3067d4c59596e289c67cfcf4b9a9b6091c31906c07afdd41abe0a4534aae9123a7da39600176ffe160c7b6bfb19
   languageName: node
   linkType: hard
 
@@ -2911,6 +2937,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"effect@npm:^3.14.6":
+  version: 3.14.6
+  resolution: "effect@npm:3.14.6"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    fast-check: "npm:^3.23.1"
+  checksum: 10c0/62f7f4e6d8ff62f283f37462449302da5a2329c20c757fc4df9dfba2293dc24dd6e47cc9bde4fdf0d93708acf031f69c77f5b758ae6ab574d61ee5e124940fd4
+  languageName: node
+  linkType: hard
+
 "electron-to-chromium@npm:^1.5.73":
   version: 1.5.123
   resolution: "electron-to-chromium@npm:1.5.123"
@@ -3246,6 +3282,15 @@ __metadata:
   version: 3.1.2
   resolution: "exponential-backoff@npm:3.1.2"
   checksum: 10c0/d9d3e1eafa21b78464297df91f1776f7fbaa3d5e3f7f0995648ca5b89c069d17055033817348d9f4a43d1c20b0eab84f75af6991751e839df53e4dfd6f22e844
+  languageName: node
+  linkType: hard
+
+"fast-check@npm:^3.23.1":
+  version: 3.23.2
+  resolution: "fast-check@npm:3.23.2"
+  dependencies:
+    pure-rand: "npm:^6.1.0"
+  checksum: 10c0/16fcff3c80321ee765e23c3aebd0f6427f175c9c6c1753104ec658970162365dc2d56bda046d815e8f2e90634c07ba7d6f0bcfd327fbd576d98c56a18a9765ed
   languageName: node
   linkType: hard
 
@@ -4726,6 +4771,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pure-rand@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "pure-rand@npm:6.1.0"
+  checksum: 10c0/1abe217897bf74dcb3a0c9aba3555fe975023147b48db540aa2faf507aee91c03bf54f6aef0eb2bf59cc259a16d06b28eca37f0dc426d94f4692aeff02fb0e65
+  languageName: node
+  linkType: hard
+
 "queue-microtask@npm:^1.2.2":
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
@@ -5530,6 +5582,7 @@ __metadata:
     "@tailwindcss/postcss": "npm:^4.0.17"
     "@tanstack/react-form": "npm:^1.1.2"
     "@tanstack/react-query": "npm:^5.69.0"
+    "@tanstack/react-query-devtools": "npm:^5.72.0"
     "@tanstack/react-router": "npm:^1.114.27"
     "@tanstack/react-router-devtools": "npm:^1.114.27"
     "@tanstack/react-table": "npm:^8.21.2"
@@ -5545,6 +5598,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     cmdk: "npm:^1.1.1"
     date-fns: "npm:^4.1.0"
+    effect: "npm:^3.14.6"
     eslint: "npm:^9.21.0"
     eslint-plugin-react-hooks: "npm:^5.1.0"
     eslint-plugin-react-refresh: "npm:^0.4.19"

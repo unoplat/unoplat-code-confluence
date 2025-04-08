@@ -1,5 +1,6 @@
 import { type Table as TanstackTable, flexRender } from "@tanstack/react-table";
 import type * as React from "react";
+import { useEffect } from "react";
 
 import { DataTablePagination } from "@/components/data-table-pagination";
 import {
@@ -12,19 +13,45 @@ import {
 } from "@/components/ui/table";
 import { getCommonPinningStyles } from "@/lib/data-table";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>;
   actionBar?: React.ReactNode;
+  showRowsPerPage?: boolean;
+  isLoading?: boolean;
 }
 
 export function DataTable<TData>({
   table,
   actionBar,
+  showRowsPerPage = false,
+  isLoading = false,
   children,
   className,
   ...props
 }: DataTableProps<TData>) {
+  console.log('[DataTable] Rendering with table state:', {
+    pageIndex: table.getState().pagination.pageIndex,
+    pageSize: table.getState().pagination.pageSize,
+    rowCount: table.getRowModel().rows.length,
+    canNextPage: table.getCanNextPage(),
+    canPreviousPage: table.getCanPreviousPage(),
+    isLoading
+  });
+  
+  console.log('DataTable props:', { showRowsPerPage, isLoading });
+  
+  // Log table state changes to track pagination updates
+  useEffect(() => {
+    console.log('[DataTable] Table pagination state changed:', {
+      pageIndex: table.getState().pagination.pageIndex,
+      pageSize: table.getState().pagination.pageSize,
+      canNextPage: table.getCanNextPage(),
+      canPreviousPage: table.getCanPreviousPage()
+    });
+  }, [table.getState().pagination]);
+  
   return (
     <div
       className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
@@ -83,7 +110,13 @@ export function DataTable<TData>({
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {isLoading ? (
+                    <div className="flex justify-center items-center h-full">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    "No results."
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -91,7 +124,7 @@ export function DataTable<TData>({
         </Table>
       </div>
       <div className="flex flex-col gap-2.5">
-        <DataTablePagination table={table} />
+        <DataTablePagination table={table} showRowsPerPage={showRowsPerPage} />
         {actionBar &&
           table.getFilteredSelectedRowModel().rows.length > 0 &&
           actionBar}
