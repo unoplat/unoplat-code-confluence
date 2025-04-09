@@ -3,11 +3,11 @@ import { useNavigate } from '@tanstack/react-router';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { submitGitHubToken, ApiError } from '../lib/api';
+import { submitGitHubToken, ApiError, getFlagStatus } from '../lib/api';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
 import { Github } from 'lucide-react';
 
 interface GitHubTokenPopupProps {
@@ -32,6 +32,15 @@ export default function GitHubTokenPopup({
   const queryClient = useQueryClient();
   // State for error notification
   const [error, setError] = useState<ApiError | null>(null);
+
+  // Fetch flag status
+  const { data: flagStatus } = useQuery({
+    queryKey: ['flags', 'isTokenSubmitted'],
+    queryFn: () => getFlagStatus('isTokenSubmitted')
+  });
+
+  // Determine if the popup should be open
+  const shouldOpen = open || (flagStatus && !flagStatus.status);
 
   // Mutation for submitting the PAT token
   const tokenMutation = useMutation({
@@ -93,11 +102,14 @@ export default function GitHubTokenPopup({
   });
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen: boolean): void => {
+    <Dialog open={shouldOpen} onOpenChange={(isOpen: boolean): void => {
       if (!isOpen) onClose();
     }}>
       <DialogContent className="sm:max-w-md">
-        <DialogTitle className="sr-only">GitHub Authentication</DialogTitle>
+        <DialogTitle className="text-xl font-semibold">GitHub Authentication</DialogTitle>
+        <DialogDescription className="sr-only">
+          Enter your GitHub Personal Access Token to authenticate with GitHub.
+        </DialogDescription>
         <div className="flex flex-col gap-6 items-center p-2">
           <div className="flex items-center gap-2 text-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -137,12 +149,12 @@ export default function GitHubTokenPopup({
               >
                 {(field): React.ReactElement => (
                   <div className="grid gap-1">
-                    <Label htmlFor={field.name} className="text-sm font-medium">
+                    <Label htmlFor={`github-${field.name}`} className="text-sm font-medium">
                       GitHub Personal Access Token (PAT)
                     </Label>
                     <Input
                       type="password"
-                      id={field.name}
+                      id={`github-${field.name}`}
                       name={field.name}
                       value={field.state.value}
                       onBlur={field.handleBlur}
