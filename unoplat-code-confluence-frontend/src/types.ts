@@ -38,3 +38,17 @@ export interface PaginationJson {
   page: number;
   perPage: number;
 } 
+
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  per_page: number;
+  has_next: boolean;
+  next_cursor?: string;
+}
+
+
+export interface FlagResponse {
+  status: boolean;
+  errorCode?: number;
+}

@@ -6,11 +6,11 @@ import { AlertCircle } from 'lucide-react';
 import { 
   submitRepositories, 
   getFlagStatus, 
-  FlagResponse, 
 } from '../lib/api';
 import { useToast } from '../components/ui/use-toast';
 import { RepositoryDataTable, type RepositoryDataTableRef } from '../components/custom/RepositoryDataTable';
 import GitHubTokenPopup from '../components/GitHubTokenPopup';
+import { FlagResponse } from '../types';
 
 export default function OnboardingPage(): React.ReactElement {
   console.log('[OnboardingPage] Rendering OnboardingPage component');
@@ -27,7 +27,7 @@ export default function OnboardingPage(): React.ReactElement {
   const { data: tokenStatus } = useQuery<FlagResponse>({
     queryKey: ['flags', 'isTokenSubmitted'],
     queryFn: () => {
-      console.log('[OnboardingPage] Fetching token status');
+      
       return getFlagStatus('isTokenSubmitted');
     },
   });
@@ -118,7 +118,7 @@ export default function OnboardingPage(): React.ReactElement {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {(!tokenStatus?.status && !showTokenPopup) && (
+          {(!tokenStatus?.status && !showTokenPopup && tokenStatus?.errorCode !== 503) && (
             <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -140,6 +140,22 @@ export default function OnboardingPage(): React.ReactElement {
                         Set up GitHub Token
                       </Button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tokenStatus?.errorCode === 503 && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Connection Error</h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>Could not connect to the server. Please refresh the page.</p>
                   </div>
                 </div>
               </div>
