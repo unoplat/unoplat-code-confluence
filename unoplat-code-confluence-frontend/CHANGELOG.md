@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.8.1...unoplat-code-confluence-frontend-v1.8.2) (2025-04-09)
+
+
+### Bug Fixes
+
+* github token popup ([2c3c99d](https://github.com/unoplat/unoplat-code-confluence/commit/2c3c99da6f1c6e8f47f62fdf65b3ecfff23c5885))
+* github token popup ([ea8d353](https://github.com/unoplat/unoplat-code-confluence/commit/ea8d353b1e549b4b0fc64608d99d469ffa8d66c8))
+
 ## [1.8.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.8.0...unoplat-code-confluence-frontend-v1.8.1) (2025-04-09)
 
 
