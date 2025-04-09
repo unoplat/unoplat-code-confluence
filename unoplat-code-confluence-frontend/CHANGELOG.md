@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.8.0...unoplat-code-confluence-frontend-v1.8.1) (2025-04-09)
+
+
+### Bug Fixes
+
+* fix docker file and remove unused file ([932980c](https://github.com/unoplat/unoplat-code-confluence/commit/932980c3760bb3529fa878bca46979042df90a95))
+* fix docker file and remove unused file ([1d0fa8f](https://github.com/unoplat/unoplat-code-confluence/commit/1d0fa8fee0cdf13b75e26fe0e8779e897e113fb6))
+
 ## [1.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.7.0...unoplat-code-confluence-frontend-v1.8.0) (2025-04-08)
 
 
