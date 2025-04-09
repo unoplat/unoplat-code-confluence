@@ -1,12 +1,12 @@
 from src.code_confluence_flow_bridge.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, RepositorySettings
-from src.code_confluence_flow_bridge.models.credentials import Credentials
-from src.code_confluence_flow_bridge.models.flags import Flag
 from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoSummary, PaginatedResponse
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
+from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
@@ -412,6 +412,9 @@ async def get_flag_status(flag_name: str, session: Session = Depends(get_session
             "status": flag.status,
             "exists": True
         }
+    except HTTPException as http_ex:
+        # Re-raise HTTP exceptions directly
+        raise http_ex
     except Exception as e:
         logger.error(f"Failed to get flag status: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get flag status for {flag_name}")
