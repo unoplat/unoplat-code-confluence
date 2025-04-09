@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import GitHubTokenPopup from '../components/GitHubTokenPopup';
-import { getFlagStatus, FlagResponse } from '../lib/api';
+import { getFlagStatus } from '../lib/api';
+import { FlagResponse } from '../types';
 
 export const Route = createFileRoute('/_app')({
   component: AppComponent,

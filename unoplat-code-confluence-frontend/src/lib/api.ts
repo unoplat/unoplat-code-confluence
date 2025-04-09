@@ -1,7 +1,9 @@
-import { FlagResponse } from './api';
 import { env } from './env';
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import { GitHubRepoSummary } from '../types';
+import { FlagResponse, GitHubRepoSummary, PaginatedResponse } from '../types';
+
+// Re-export types from '../types' for consumers
+export type { FlagResponse, GitHubRepoSummary, PaginatedResponse };
 
 /**
  * API Services
@@ -91,12 +93,7 @@ export const submitGitHubToken = async (token: string): Promise<ApiResponse> => 
 };
 
 // Add the following interface above the fetchGitHubRepositories function
-export interface PaginatedResponse<T> {
-  items: T[];
-  per_page: number;
-  has_next: boolean;
-  next_cursor?: string;
-}
+
 
 /**
  * Fetch GitHub repositories from the backend
@@ -131,6 +128,8 @@ export const fetchGitHubRepositories = async (
   }
 };
 
+
+
 /**
  * Submit selected repositories for ingestion
  * 
@@ -162,15 +161,6 @@ export const deleteGitHubToken = async (): Promise<ApiResponse> => {
   }
 };
 
-/**
- * Get flag status from the backend
- * 
- * @param flagName - Name of the flag to check
- * @returns Promise with the flag status
- */
-export interface FlagResponse {
-  status: boolean;
-}
 
 export const getFlagStatus = async (flagName: string): Promise<FlagResponse> => {
   try {
@@ -181,6 +171,10 @@ export const getFlagStatus = async (flagName: string): Promise<FlagResponse> => 
       const axiosError = error as AxiosError<ApiResponse>;
       if (axiosError.response?.status === 404) {
         return { status: false };
+      }
+      // Add errorCode for connection errors
+      if (!axiosError.response) {
+        return { status: true, errorCode: 503 };
       }
     }
 

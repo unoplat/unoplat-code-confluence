@@ -19,25 +19,37 @@ import {
 } from '../components/ui/alert-dialog';
 
 export default function SettingsPage(): React.ReactElement {
+  console.log('[SettingsPage] Rendering SettingsPage component');
+  
   const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  console.log('[SettingsPage] State:', { showTokenPopup, showDeleteDialog, isDeleting });
+  
   const handleDeleteToken = async (): Promise<void> => {
+    console.log('[SettingsPage] Starting token deletion');
     try {
       setIsDeleting(true);
+      console.log('[SettingsPage] Calling deleteGitHubToken API');
       await deleteGitHubToken();
+      
       setShowDeleteDialog(false);
+      console.log('[SettingsPage] Token deleted successfully, invalidating queries');
+      
       // Invalidate and refetch the flag status
       await queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] });
+      console.log('[SettingsPage] Queries invalidated');
+      
       toast({
         title: "Success",
         description: "Your GitHub token has been successfully removed",
         variant: "default",
       });
     } catch (error) {
+      console.error('[SettingsPage] Error deleting token:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to delete token",
@@ -82,7 +94,10 @@ export default function SettingsPage(): React.ReactElement {
               <div className="flex items-center gap-2">
                 <Button 
                   variant="outline" 
-                  onClick={() => setShowTokenPopup(true)}
+                  onClick={() => {
+                    console.log('[SettingsPage] Opening token management popup');
+                    setShowTokenPopup(true);
+                  }}
                   className="flex items-center gap-2"
                 >
                   <Github className="h-4 w-4" />
@@ -91,7 +106,10 @@ export default function SettingsPage(): React.ReactElement {
                 <Button 
                   variant="destructive" 
                   size="icon"
-                  onClick={() => setShowDeleteDialog(true)}
+                  onClick={() => {
+                    console.log('[SettingsPage] Opening delete token confirmation dialog');
+                    setShowDeleteDialog(true);
+                  }}
                   title="Delete GitHub Token"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -105,9 +123,13 @@ export default function SettingsPage(): React.ReactElement {
       {/* GitHub Token Popup */}
       <GitHubTokenPopup 
         open={showTokenPopup} 
-        onClose={() => setShowTokenPopup(false)}
+        onClose={() => {
+          console.log('[SettingsPage] Token popup closed');
+          setShowTokenPopup(false);
+        }}
         isUpdate={true}
         onSuccess={() => {
+          console.log('[SettingsPage] Token updated successfully');
           toast({
             title: "Success",
             description: "Token updated successfully!",
@@ -117,7 +139,10 @@ export default function SettingsPage(): React.ReactElement {
       />
 
       {/* Delete Token Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog open={showDeleteDialog} onOpenChange={(isOpen) => {
+        console.log('[SettingsPage] Delete dialog change:', isOpen);
+        setShowDeleteDialog(isOpen);
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete GitHub Token</AlertDialogTitle>
@@ -129,7 +154,10 @@ export default function SettingsPage(): React.ReactElement {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleDeleteToken}
+              onClick={() => {
+                console.log('[SettingsPage] Delete token confirmed');
+                handleDeleteToken();
+              }}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
