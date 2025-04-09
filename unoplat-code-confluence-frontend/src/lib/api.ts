@@ -1,3 +1,4 @@
+import { FlagResponse } from './api';
 import { env } from './env';
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { GitHubRepoSummary } from '../types';
@@ -176,6 +177,13 @@ export const getFlagStatus = async (flagName: string): Promise<FlagResponse> => 
     const response: AxiosResponse<FlagResponse> = await apiClient.get(`/flags/${flagName}`);
     return response.data;
   } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiResponse>;
+      if (axiosError.response?.status === 404) {
+        return { status: false };
+      }
+    }
+
     throw handleApiError(error);
   }
 };
