@@ -13,7 +13,7 @@ configs:
 
 services:
   elasticsearch:
-    container_name: temporal-elasticsearch
+    # container_name: temporal-elasticsearch
     environment:
       - cluster.routing.allocation.disk.threshold_enabled=true
       - cluster.routing.allocation.disk.watermark.low=512mb
@@ -31,7 +31,7 @@ services:
       - /var/lib/elasticsearch/data
   postgresql:
     image: bitnami/postgresql:latest
-    container_name: code-confluence-postgresql
+    # container_name: code-confluence-postgresql
     environment:
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=postgres
@@ -49,7 +49,7 @@ services:
       retries: 5
   
   temporal:
-    container_name: temporal
+    # container_name: temporal
     depends_on:
       - postgresql
       - elasticsearch
@@ -78,7 +78,7 @@ services:
       retries: 5
       start_period: 30s
   temporal-admin-tools:
-    container_name: temporal-admin-tools
+    # container_name: temporal-admin-tools
     depends_on:
       - temporal
     environment:
@@ -90,7 +90,7 @@ services:
     stdin_open: true
     tty: true
   temporal-ui:
-    container_name: temporal-ui
+    # container_name: temporal-ui
     depends_on:
       - temporal
     environment:
@@ -103,7 +103,7 @@ services:
     ports:
       - 8080:8080
   neo4j:
-    container_name: neo4j
+    # container_name: neo4j
     image: graphstack/dozerdb:5.25.1.0-alpha.1
     ports:
       - "7474:7474"
@@ -127,7 +127,7 @@ services:
       timeout: 5s
       retries: 5
   code-confluence-flow-bridge:
-    container_name: code-confluence-flow-bridge
+    # container_name: code-confluence-flow-bridge
     build:
       context: ./unoplat-code-confluence-ingestion/code-confluence-flow-bridge
       dockerfile: Dockerfile
@@ -152,7 +152,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-frontend:
-    container_name: unoplat-code-confluence-frontend
+    # container_name: unoplat-code-confluence-frontend
     build:
       context: ./unoplat-code-confluence-frontend
       dockerfile: Dockerfile
