@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.8.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.8.2...unoplat-code-confluence-frontend-v1.8.3) (2025-04-09)
+
+
+### Bug Fixes
+
+* regression fixes and toast notifications ([19efdfc](https://github.com/unoplat/unoplat-code-confluence/commit/19efdfc1e147ce0e5cdc90115e63daeb4f7f5db9))
+* regression fixes and toast notifications ([2c07b9f](https://github.com/unoplat/unoplat-code-confluence/commit/2c07b9f180c5b89a190e1c73c1488a4a83923a85))
+* remove unused import ([07e37ba](https://github.com/unoplat/unoplat-code-confluence/commit/07e37bac4f4be75150e6d6fda5e68e62d8e272c6))
+
 ## [1.8.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.8.1...unoplat-code-confluence-frontend-v1.8.2) (2025-04-09)
 
 
