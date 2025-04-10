@@ -82,15 +82,8 @@ export function getRepositoryDataTableColumns(): ColumnDef<GitHubRepoSummary>[] 
           {row.original.private ? 'Private' : 'Public'}
         </span>
       ),
-      meta: {
-        label: 'Visibility',
-        variant: 'select',
-        options: [
-          { label: 'Public', value: 'false' },
-          { label: 'Private', value: 'true' },
-        ],
-      },
       enableSorting: false,
+              
     },
   ];
 } 
