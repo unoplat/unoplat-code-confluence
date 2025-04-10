@@ -107,14 +107,14 @@ export const submitGitHubToken = async (token: string): Promise<ApiResponse> => 
 export const fetchGitHubRepositories = async (
   page: number, 
   perPage: number, 
-  search?: string, 
+  filterValues?: Record<string, string | string[] | null>, 
   cursor?: string
 ): Promise<PaginatedResponse<GitHubRepoSummary>> => {
   try {
     const params: Record<string, string | number> = { page, per_page: perPage };
     
-    if (search && search.trim() !== '') {
-      params.search = search.trim();
+    if (filterValues) {
+      params.filterValues = JSON.stringify(filterValues);
     }
     
     if (cursor) {
