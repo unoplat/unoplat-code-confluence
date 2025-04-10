@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.26.1...code-confluence-flow-bridge-v0.27.0) (2025-04-10)
+
+
+### Features
+
+* update repository filtering and pagination logic ([36dc786](https://github.com/unoplat/unoplat-code-confluence/commit/36dc78666d4074dc36f319674515a43670e8c3ea))
+* update repository filtering and pagination logic ([d14e59f](https://github.com/unoplat/unoplat-code-confluence/commit/d14e59fd465cf849d6c491a1fd854ddb4d403b65))
+
 ## [0.26.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.26.0...code-confluence-flow-bridge-v0.26.1) (2025-04-09)
 
 
