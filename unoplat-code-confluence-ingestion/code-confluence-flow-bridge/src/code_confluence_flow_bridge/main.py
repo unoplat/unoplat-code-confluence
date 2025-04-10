@@ -18,6 +18,7 @@ import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+import json
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
@@ -232,7 +233,7 @@ async def delete_token(session: Session = Depends(get_session)) -> Dict[str, str
 async def get_repos(
     per_page: int = Query(30, ge=1, le=100, description="Items per page"),
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
-    search: Optional[str] = Query(None, description="Optional search query to filter repositories"),
+    filterValues: Optional[str] = Query(None, description="Optional JSON filter values to filter repositories"),
     session: Session = Depends(get_session)
 ) -> PaginatedResponse:
     # Attempt to fetch the stored credentials from the database
@@ -244,13 +245,27 @@ async def get_repos(
     
     if not credential:
         raise HTTPException(status_code=404, detail="No credentials found")
-
+  
     # Attempt to decrypt the stored token
     try:
         token: str = decrypt_token(credential.token_hash)
     except Exception as decrypt_error:
         logger.error(f"Failed to decrypt token: {decrypt_error}")
         raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
+    
+    
+    # Parse filterValues if provided, and merge with the search parameter
+    filter_values_dict: dict = {}
+    if filterValues:
+        try:
+            filter_values_dict = json.loads(filterValues)
+        except Exception as e:
+            logger.error(f"Invalid JSON in filterValues: {e}")
+            raise HTTPException(status_code=400, detail="Invalid JSON in filterValues query parameter")
+    if "name" in filter_values_dict:
+        search_query = filter_values_dict["name"]
+    else:
+        search_query = None
     
     # Fetch repositories using GraphQL
     try:
@@ -267,7 +282,7 @@ async def get_repos(
             transport=transport,
             fetch_schema_from_transport=False,
         ) as client:
-            if search:
+            if search_query:
                 # Use the search query when search parameter is provided
                 query = gql(
                     """
@@ -295,7 +310,7 @@ async def get_repos(
                 
                 # Execute the search query with variables
                 result = await client.execute(query, variable_values={
-                    "query": search,
+                    "query": search_query,
                     "first": per_page,
                     "after": cursor
                 })
