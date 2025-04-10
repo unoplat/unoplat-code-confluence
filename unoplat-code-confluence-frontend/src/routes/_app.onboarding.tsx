@@ -1,34 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router';
 import OnboardingPage from '../pages/OnboardingPage';
-import { Schema as S } from 'effect'
+import { zodValidator, fallback } from '@tanstack/zod-adapter'
+import { z } from 'zod'
 
-const codeConfluenceSearchSchema = S.standardSchemaV1(
-  S.Struct({
-    pageIndex: S.Number.pipe(
-      S.optional,
-      S.withDefaults({
-        constructor: () => 1,
-        decoding: () => 1,
-      }),
-    ),
-    perPage: S.Number.pipe(
-      S.optional,
-      S.withDefaults({
-        constructor: () => 10,
-        decoding: () => 10,
-      }),
-    ),
-    searchTerm: S.String.pipe(
-      S.optional,
-      S.withDefaults({
-        constructor: () => '',
-        decoding: () => '',
-      }),
-    ),
-  }),
-)
+const codeConfluenceSearchSchema = z.object({
+  pageIndex: fallback(z.number(), 1).default(1),
+  perPage: fallback(z.number(), 10).default(10),
+  filterValues: fallback(
+    z.record(z.union([z.string(), z.array(z.string()), z.null()]))
+  , {}).default({}),
+});
+
 
 export const Route = createFileRoute('/_app/onboarding')({
   component: OnboardingPage,
-  validateSearch: codeConfluenceSearchSchema,
+  validateSearch: zodValidator(codeConfluenceSearchSchema),
 });
