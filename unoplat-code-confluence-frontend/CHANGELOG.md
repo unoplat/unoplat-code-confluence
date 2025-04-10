@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.8.3...unoplat-code-confluence-frontend-v1.9.0) (2025-04-10)
+
+
+### Features
+
+* update repository filtering and pagination logic ([36dc786](https://github.com/unoplat/unoplat-code-confluence/commit/36dc78666d4074dc36f319674515a43670e8c3ea))
+* update repository filtering and pagination logic ([d14e59f](https://github.com/unoplat/unoplat-code-confluence/commit/d14e59fd465cf849d6c491a1fd854ddb4d403b65))
+
 ## [1.8.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.8.2...unoplat-code-confluence-frontend-v1.8.3) (2025-04-09)
 
 
