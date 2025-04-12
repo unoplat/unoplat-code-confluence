@@ -156,32 +156,6 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 | GraphRag based Query Module                              |          |     |          |
 | SDK for integration                                      |          |     |          |
 
-### Code Grammar
-
-#### Python
-
-| Feature                                               | Beta | Stable | Limitations                                                                                                                                      |
-|-------------------------------------------------------|------|--------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| Package Parsing                                       | ✓    |        |                                                                                                                                                  |
-| Package Metadata Parsing - Poetry and PIP and UV      | ✓    |        |                                                                                                                                                  |
-| Inheritance                                           | ✓    |        |                                                                                                                                                  |
-| Function Parsing                                      | ✓    |        |                                                                                                                                                  |
-| Class Parsing                                         | ✓    |        |                                                                                                                                                  |
-| Procedural Code Parsing                               | ✓    |        |                                                                                                                                                  |
-| Global Variable Parsing                               | ✓    |        |                                                                                                                                                  |
-| Function Call Parsing                                 | ✓    |        | ~~Certain function calls are not detected.~~                                                                                                     |
-| Class Variables/Instance Variables Parsing            | ✓    |        | ~~Not available per class/procedure. But available per function across functions.~~                                                              |
-| Function Local Variable Parsing                       | ✓    |        |                                                                                                                                                  |
-| Function Return Type Parsing                          | ✓    |        | Return type is not captured properly.                                                                                                            |
-| Figuring out dependent internal classes               | ✓    |        |                                                                                                                                                  |
-| Import Segregation                                    | ✓    |        | Currently only identifies internal procedures, classes, and others as unknown. External imports with links to dependencies in package manager metadata coming soon. |
-| Sorting functions within a class/procedure based on dependency | ✓    |        | Circular dependencies/recursion will not work as topological sort is used.                                                              |
-| Nested Functions                                      |  ✓    |        |                                                                                                                                                  |
-
-> **Note**: For detailed limitations and resolutions that we are working towards refer to [Limitations_Resolutions.md](Limitations_Resolutions.md)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
 <!-- CREDITS SECTION -->
 ## Credits/heroes/supporters/Inspirations
 
@@ -242,6 +216,10 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
   <a href="https://x.com/unoplatio">
     <img src="https://img.shields.io/badge/Twitter-Follow%20us-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" alt="Twitter" />
   </a>
+  <br>
+  <a href="https://www.linkedin.com/company/unoplat/">
+    <img src="https://img.shields.io/badge/LinkedIn-Follow%20us-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+  </a>
 </div>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -249,7 +227,7 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 <!-- LICENSE SECTION -->
 ## License
 
-Unoplat-CodeConfluence is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.gnu.org/licenses/agpl-3.0.en.html). This strong copyleft license ensures that derivatives of this software remain open source and under the same license.
+Unoplat-CodeConfluence is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.gnu.org/licenses/agpl-3.0.en.html).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
