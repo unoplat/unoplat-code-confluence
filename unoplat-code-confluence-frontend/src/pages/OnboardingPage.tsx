@@ -108,7 +108,7 @@ export default function OnboardingPage(): React.ReactElement {
   console.log('[OnboardingPage] Rendering UI with tokenStatus:', tokenStatus?.status);
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Select GitHub Repositories for Ingestion</h1>
+      <h1 className="text-4xl font-extrabold tracking-tight mb-6 text-primary">Select GitHub Repositories for Ingestion</h1>
 
       <Card>
         <CardHeader>
@@ -181,6 +181,7 @@ export default function OnboardingPage(): React.ReactElement {
                 handleSubmitSelections();
               }}
               disabled={!hasSelection}
+              className="bg-primary hover:bg-primary/90 font-semibold px-6 py-2 text-base"
             >
               Submit
             </Button>

@@ -7,7 +7,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
 import { submitGitHubToken, ApiError, getFlagStatus } from '../lib/api';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription } from './ui/dialog';
 import { Github, X } from 'lucide-react';
 
 interface GitHubTokenPopupProps {
@@ -184,16 +184,15 @@ export default function GitHubTokenPopup({
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <DialogTitle className="text-xl font-semibold">GitHub Authentication</DialogTitle>
         <DialogDescription className="sr-only">
           Enter your GitHub Personal Access Token to authenticate with GitHub.
         </DialogDescription>
         <div className="flex flex-col gap-6 items-center p-2">
-          <div className="flex items-center gap-2 text-center">
+          <div className="flex items-center justify-center gap-3 w-full">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <Github className="h-5 w-5 text-primary" />
             </div>
-            <h1 className="text-xl font-semibold">GitHub Authentication</h1>
+            <h2 className="text-xl font-semibold">GitHub Authentication</h2>
           </div>
           
           {error && (

@@ -30,7 +30,7 @@ export function getRepositoryDataTableColumns(): ColumnDef<GitHubRepoSummary>[] 
             href={row.original.git_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline"
+            className="text-primary hover:underline font-semibold"
           >
             {row.original.name}
           </a>
@@ -54,7 +54,7 @@ export function getRepositoryDataTableColumns(): ColumnDef<GitHubRepoSummary>[] 
           href={row.original.owner_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline"
+          className="text-muted-foreground hover:text-primary hover:underline text-sm"
         >
           {row.original.owner_name}
         </a>
@@ -75,8 +75,8 @@ export function getRepositoryDataTableColumns(): ColumnDef<GitHubRepoSummary>[] 
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
             row.original.private
-              ? 'bg-destructive/10 text-destructive'
-              : 'bg-primary/10 text-primary'
+              ? 'bg-destructive text-destructive-foreground'
+              : 'bg-emerald-100 text-emerald-800'
           }`}
         >
           {row.original.private ? 'Private' : 'Public'}
