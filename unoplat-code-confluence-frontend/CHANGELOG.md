@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.9.0...unoplat-code-confluence-frontend-v1.10.0) (2025-04-13)
+
+
+### Features
+
+* enable boundary detection and automatically prefetch next page ([74a5062](https://github.com/unoplat/unoplat-code-confluence/commit/74a50628955877a87046cd97a40715b01173db3f))
+* focus on search automatically ([b51592e](https://github.com/unoplat/unoplat-code-confluence/commit/b51592e61fdad1957b2e7b9cf26469b561f60e01))
+
 ## [1.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.8.3...unoplat-code-confluence-frontend-v1.9.0) (2025-04-10)
 
 
