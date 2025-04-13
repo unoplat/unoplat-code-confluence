@@ -4,7 +4,7 @@
 // Import necessary React hooks.
 import  { useState, useEffect, forwardRef, useImperativeHandle, useMemo } from "react";
 // Import useQuery from TanStack Query.
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 // Import useRouter from TanStack Router.
 import { useRouter } from '@tanstack/react-router';
 
@@ -28,8 +28,11 @@ export interface RepositoryDataTableRef {
 
 // Main component implementation using forwardRef so methods can be exposed.
 export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenStatus: boolean; onSelectionChange?: (selectedRows: string[]) => void; }>(
+  
+
   ({ tokenStatus, onSelectionChange }, ref) => {
     console.log('[RepositoryDataTable] Component rendering, tokenStatus:', tokenStatus);
+    const queryClient = useQueryClient();
     
     // Get router instance to access URL info.
     const router = useRouter();
@@ -38,13 +41,12 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
     // Create a memoized object from the URL search parameters.
     // This converts the search string into an object so we can access 'page' and 'perPage'.
     const { pageIndex, perPage, filterValues } = OnboardingRoute.useSearch();
-    const jsonFilterValues = JSON.stringify(filterValues, null, 2)
-    console.log('[RepositoryDataTable] Parsed search params:', { pageIndex, perPage, jsonFilterValues });
+    
+    
 
     // Manage an array of pagination cursors. The initial cursor is undefined.
     const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
     console.log('[RepositoryDataTable] Current cursors array:', cursors);
-
     
     // Use TanStack Query to fetch repository data.
     const { data: repoData, isLoading, isFetching, status } = useQuery<PaginatedResponse<GitHubRepoSummary>>({
@@ -124,6 +126,29 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
       // Tell the table how to uniquely identify a row (here using the repository name).
       getRowId: (row: GitHubRepoSummary): string => row.name,
     });
+
+    // Prefetch the next page when getting close to it
+    useEffect(() => {
+      // Only prefetch if we have data, there's more data available, and we have a next cursor
+      if (repoData?.has_next && repoData?.next_cursor && tokenStatus) {
+        const nextPageIndex = pageIndex + 1;
+        
+        console.log('[RepositoryDataTable] Prefetching next page:', {
+          nextPageIndex,
+          nextCursor: repoData.next_cursor
+        });
+        
+        // Create a query key for the next page
+        const nextPageQueryKey = ['repositories', nextPageIndex, perPage, filterValues, repoData.next_cursor];
+        
+        // Only prefetch if we don't already have fresh data
+        queryClient.prefetchQuery({
+          queryKey: nextPageQueryKey,
+          queryFn: () => fetchGitHubRepositories(nextPageIndex, perPage, filterValues, repoData.next_cursor),
+          staleTime: 60 * 1000, // 1 minute - data stays fresh for 1 minute
+        });
+      }
+    }, [repoData, pageIndex, perPage, filterValues, queryClient, tokenStatus, cursors]);
 
     console.log('[RepositoryDataTable] Table instance created:', {
       rowCount: table.getRowModel().rows.length,
