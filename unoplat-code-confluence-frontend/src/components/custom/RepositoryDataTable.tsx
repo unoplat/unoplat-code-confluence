@@ -77,15 +77,11 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
     // If the API returns a next_cursor and the cursors array is not long enough,
     // add the new cursor to the state (to support further pages).
     useEffect(() => {
-      console.log('[RepositoryDataTable] Checking if we need to update cursors:', {
-        nextCursor: repoData?.next_cursor,
-        currentPage: pageIndex,
-        cursorsLength: cursors.length
-      });
+      
       
       if (repoData?.next_cursor) {
         // Update the cursor for the next page, creating a new array with the updated cursor
-        console.log('[RepositoryDataTable] Updating cursor for page', pageIndex);
+        
         setCursors(prev => {
           const newCursors = [...prev];
           // If we're on page N, we want to set the cursor for page N+1
@@ -159,16 +155,6 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
       canPreviousPage: table.getCanPreviousPage()
     });
 
-    // Log pagination actions
-    useEffect(() => {
-      // Track when pagination state changes in the table
-      console.log('[RepositoryDataTable] Table pagination state changed:', {
-        pageIndex: table.getState().pagination.pageIndex,
-        pageSize: table.getState().pagination.pageSize,
-        routerPage: pageIndex,
-        routerPerPage: perPage
-      });
-    }, [table.getState().pagination, pageIndex, perPage]);
 
     // Expose a method via the ref so a parent can call getSelectedRowNames.
     useImperativeHandle(ref, () => ({
