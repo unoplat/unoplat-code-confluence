@@ -81,15 +81,20 @@ function DataTableToolbarFilter<TData>({
       if (!columnMeta?.variant) return null;
 
       switch (columnMeta.variant) {
-        case "text":
+        case "text": {
+
+        const shouldAutoFocus: boolean = columnMeta.label === "Repository";
+
           return (
             <Input
               placeholder={columnMeta.placeholder ?? columnMeta.label}
               value={(column.getFilterValue() as string) ?? ""}
               onChange={(event) => column.setFilterValue(event.target.value)}
               className="h-8 w-40 lg:w-56"
+              autoFocus={shouldAutoFocus}
             />
           );
+        }
 
         case "number":
           return (
