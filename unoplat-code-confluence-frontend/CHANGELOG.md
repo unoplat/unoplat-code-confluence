@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.10.0...unoplat-code-confluence-frontend-v1.10.1) (2025-04-13)
+
+
+### Bug Fixes
+
+* fixed multiple titles in github token popup and improved overall design ([dd3d475](https://github.com/unoplat/unoplat-code-confluence/commit/dd3d47575f1d7364adfa948abf433a0685d4de14))
+* fixed multiple titles in github token popup and improved overall design ([8469fc6](https://github.com/unoplat/unoplat-code-confluence/commit/8469fc6ed6a2fd2c4978c4dd33a40e87b594cf02))
+
 ## [1.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.9.0...unoplat-code-confluence-frontend-v1.10.0) (2025-04-13)
 
 
