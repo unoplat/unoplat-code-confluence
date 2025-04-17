@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.27.0...code-confluence-flow-bridge-v0.28.0) (2025-04-17)
+
+
+### Features
+
+* add workflow status models and PostgreSQL DB setup ([63ac90b](https://github.com/unoplat/unoplat-code-confluence/commit/63ac90bcbdb5abf25d35c105763a9fdd8b7030d4))
+* add workflow status models and PostgreSQL DB setup ([0dab3bb](https://github.com/unoplat/unoplat-code-confluence/commit/0dab3bb3b650dc05282f8e067eec43b934ae4876))
+
+
+### Bug Fixes
+
+* update GitHub helper tests to use GitHubRepoRequestConfigurationf ([b945578](https://github.com/unoplat/unoplat-code-confluence/commit/b9455783afa9e5367823097452a076da07a8a0d3))
+
 ## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.26.1...code-confluence-flow-bridge-v0.27.0) (2025-04-10)
 
 
