@@ -15,26 +15,24 @@ export default function OnboardingPage(): React.ReactElement {
   const dataTableRef = useRef<RepositoryDataTableRef>(null);
   
   const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
-  
+  const hasAutoOpened = useRef<boolean>(false);
   
   console.log('[OnboardingPage] State: showTokenPopup =', showTokenPopup);
 
   const { data: tokenStatus } = useQuery<FlagResponse>({
     queryKey: ['flags', 'isTokenSubmitted'],
-    queryFn: () => {
-      
-      return getFlagStatus('isTokenSubmitted');
-    },
+    queryFn: (): Promise<FlagResponse> => getFlagStatus('isTokenSubmitted'),
   });
 
-  useEffect(() => {
-    console.log('[OnboardingPage] Token status updated:', tokenStatus);
-    if (tokenStatus && !tokenStatus.status) {
-      console.log('[OnboardingPage] Token not submitted, showing token popup');
+  // Auto-open popup on first load if token not submitted
+  useEffect((): void => {
+    if (tokenStatus && !tokenStatus.status && !hasAutoOpened.current) {
+      console.log('[OnboardingPage] Token status false, auto-opening token popup');
       setShowTokenPopup(true);
+      hasAutoOpened.current = true;
     }
   }, [tokenStatus]);
-  
+
   // Row-selection and submission functionality removed as it's no longer supported
 
   const handleTokenSuccess = async (): Promise<void> => {
