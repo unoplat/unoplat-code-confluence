@@ -1,0 +1,869 @@
+<html class="">
+              
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+      window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest', // Options: 'nest', 'remove', 'replace'
+      };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    
+<style>
+  * {
+    font-family: "Inter", sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+
+    
+<style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+</style>
+
+    
+<style>
+   :root {
+          /* Base colors */
+          --color-base: #ffffff;
+          --color-base-50: #f9fafb;
+          --color-base-100: #f3f4f6;
+          --color-base-200: #e5e7eb;
+          --color-base-300: #d1d5db;
+          --color-base-400: #9ca3af;
+          --color-base-500: #6b7280;
+          --color-base-600: #4b5563;  
+          --color-base-700: #374151;
+          --color-base-800: #1f2937;  
+          --color-base-900: #111827;
+          --color-base-content: #1f2937;
+
+          /* Primary colors */
+          --color-primary: #3b82f6;
+          --color-primary-50: #eff6ff;
+          --color-primary-100: #dbeafe;
+          --color-primary-200: #bfdbfe;
+          --color-primary-300: #93c5fd;
+          --color-primary-400: #60a5fa;
+          --color-primary-500: #3b82f6;
+          --color-primary-600: #2563eb;
+          --color-primary-700: #1d4ed8;
+          --color-primary-800: #1e40af;
+          --color-primary-900: #1e3a8a;
+          --color-primary-focus: #2563eb;
+          --color-primary-content: #ffffff;
+
+          /* Secondary colors */
+          --color-secondary: #8b5cf6;
+          --color-secondary-50: #f5f3ff;
+          --color-secondary-100: #ede9fe;
+          --color-secondary-200: #ddd6fe;
+          --color-secondary-300: #c4b5fd;
+          --color-secondary-400: #a78bfa;
+          --color-secondary-500: #8b5cf6;
+          --color-secondary-600: #7c3aed;
+          --color-secondary-700: #6d28d9;
+          --color-secondary-800: #5b21b6;
+          --color-secondary-900: #4c1d95;
+          --color-secondary-focus: #7c3aed;
+          --color-secondary-content: #ffffff;
+
+          /* Accent colors */
+          --color-accent: #f472b6;
+          --color-accent-50: #fdf2f8;
+          --color-accent-100: #fce7f3;
+          --color-accent-200: #fbcfe8;
+          --color-accent-300: #f9a8d4;
+          --color-accent-400: #f472b6;
+          --color-accent-500: #ec4899;
+          --color-accent-600: #db2777;
+          --color-accent-700: #be185d;
+          --color-accent-800: #9d174d;
+          --color-accent-900: #831843;
+          --color-accent-focus: #db2777;
+          --color-accent-content: #ffffff;
+
+          /* Neutral colors */
+          --color-neutral: #6b7280;
+          --color-neutral-50: #f5f7fa;
+          --color-neutral-100: #f3f4f6;
+          --color-neutral-200: #e5e7eb;
+          --color-neutral-300: #d1d5db;
+          --color-neutral-400: #9ca3af;
+          --color-neutral-500: #6b7280;
+          --color-neutral-600: #4b5563;
+          --color-neutral-700: #374151;
+          --color-neutral-800: #1f2937;
+          --color-neutral-900: #111827;
+          --color-neutral-focus: #4b5563;
+          --color-neutral-content: #ffffff;
+
+          /* Info colors */
+          --color-info: #3b82f6;
+          --color-info-50: #eff6ff;
+          --color-info-100: #dbeafe;
+          --color-info-200: #bfdbfe;
+          --color-info-300: #93c5fd;
+          --color-info-400: #60a5fa;
+          --color-info-500: #3b82f6;
+          --color-info-600: #2563eb;
+          --color-info-700: #1d4ed8;
+          --color-info-800: #1e40af;
+          --color-info-900: #1e3a8a;
+          --color-info-focus: #2563eb;
+          --color-info-content: #ffffff;
+
+          /* Success colors */
+          --color-success: #10b981;
+          --color-success-50: #ecfdf5;
+          --color-success-100: #d1fae5;
+          --color-success-200: #a7f3d0;
+          --color-success-300: #6ee7b7;
+          --color-success-400: #34d399;
+          --color-success-500: #10b981;
+          --color-success-600: #059669;
+          --color-success-700: #047857;
+          --color-success-800: #065f46;
+          --color-success-900: #064e3b;
+          --color-success-focus: #059669;
+          --color-success-content: #ffffff;
+
+          /* Warning colors */
+          --color-warning: #f59e0b;
+          --color-warning-50: #fffbeb;
+          --color-warning-100: #fef3c7;
+          --color-warning-200: #fde68a;
+          --color-warning-300: #fcd34d;
+          --color-warning-400: #fbbf24;
+          --color-warning-500: #f59e0b;
+          --color-warning-600: #d97706;
+          --color-warning-700: #b45309;
+          --color-warning-800: #92400e;
+          --color-warning-900: #78350f;
+          --color-warning-focus: #d97706;
+          --color-warning-content: #ffffff;
+
+          /* Error colors */
+          --color-error: #ef4444;
+          --color-error-50: #fef2f2;
+          --color-error-100: #fee2e2;
+          --color-error-200: #fecaca;
+          --color-error-300: #fca5a5;
+          --color-error-400: #f87171;
+          --color-error-500: #ef4444;
+          --color-error-600: #dc2626;
+          --color-error-700: #b91c1c;
+          --color-error-800: #991b1b;
+          --color-error-900: #7f1d1d;
+          --color-error-focus: #dc2626;
+          --color-error-content: #ffffff;
+
+          /* Interactive state colors */
+          --color-interactive-hover: #2563eb;
+          --color-interactive-active: #1d4ed8;
+          --color-interactive-disabled: #9ca3af;
+
+          /* Component-specific colors */
+          --color-form-border: #d1d5db;
+          --color-form-invalid: #ef4444;
+          --color-table-border: #e5e7eb;
+          --color-table-header: #f3f4f6;
+          --color-table-hover: #f9fafb;
+          --color-nav-border: #d1d5db;
+          --color-nav-active: #3b82f6;
+          --color-nav-active-bg: #eff6ff;
+          --color-nav-bg: #f9fafb;
+        }
+</style>
+
+    
+<style>
+/* Dark theme */
+        .dark {
+          /* Base colors */
+          --color-base: #1f2937;
+          --color-base-50: #111827;
+          --color-base-100: #1f2937;
+          --color-base-200: #374151;
+          --color-base-300: #4b5563;
+          --color-base-400: #6b7280;
+          --color-base-500: #9ca3af;
+          --color-base-600: #d1d5db;
+          --color-base-700: #e5e7eb;
+          --color-base-800: #f3f4f6;
+          --color-base-900: #f9fafb;
+          --color-base-content: #f9fafb;
+
+          /* Primary colors */
+          --color-primary: #60a5fa;
+          --color-primary-50: #1e3a8a;
+          --color-primary-100: #1e40af;
+          --color-primary-200: #1d4ed8;
+          --color-primary-300: #2563eb;
+          --color-primary-400: #3b82f6;
+          --color-primary-500: #60a5fa;
+          --color-primary-600: #93c5fd;
+          --color-primary-700: #bfdbfe;
+          --color-primary-800: #dbeafe;
+          --color-primary-900: #eff6ff;
+          --color-primary-focus: #3b82f6;
+          --color-primary-content: #1f2937;
+          
+          /* Interactive state colors */
+          --color-interactive-hover: #3b82f6;
+          --color-interactive-active: #93c5fd; /* Adjusted for better visibility */
+          --color-interactive-disabled: #4b5563;
+          --color-interactive-focus-ring: rgba(96, 165, 250, 0.5);
+          --color-interactive-selected: #1e40af;
+
+          /* Secondary colors */
+          --color-secondary: #a78bfa;
+          --color-secondary-50: #4c1d95;
+          --color-secondary-100: #5b21b6;
+          --color-secondary-200: #6d28d9;
+          --color-secondary-300: #7c3aed;
+          --color-secondary-400: #8b5cf6;
+          --color-secondary-500: #a78bfa;
+          --color-secondary-600: #c4b5fd;
+          --color-secondary-700: #ddd6fe;
+          --color-secondary-800: #ede9fe;
+          --color-secondary-900: #f5f3ff;
+          --color-secondary-focus: #8b5cf6;
+          --color-secondary-content: #1f2937;
+
+          /* Accent colors */
+          --color-accent: #f472b6;
+          --color-accent-50: #831843;
+          --color-accent-100: #9d174d;
+          --color-accent-200: #be185d;
+          --color-accent-300: #db2777;
+          --color-accent-400: #ec4899;
+          --color-accent-500: #f472b6;
+          --color-accent-600: #f9a8d4;
+          --color-accent-700: #fbcfe8;
+          --color-accent-800: #fce7f3;
+          --color-accent-900: #fdf2f8;
+          --color-accent-focus: #ec4899;
+          --color-accent-content: #1f2937;
+
+          /* Neutral colors */
+          --color-neutral: #9ca3af; /* Adjusted for dark mode */
+          --color-neutral-50: #111827; /* Darker shades */
+          --color-neutral-100: #1f2937;
+          --color-neutral-200: #374151;
+          --color-neutral-300: #4b5563;
+          --color-neutral-400: #6b7280;
+          --color-neutral-500: #9ca3af;
+          --color-neutral-600: #d1d5db; /* Lighter shades */
+          --color-neutral-700: #e5e7eb;
+          --color-neutral-800: #f3f4f6;
+          --color-neutral-900: #f9fafb;
+          --color-neutral-focus: #6b7280; /* Adjusted */
+          --color-neutral-content: #f9fafb; /* Should match base-content */
+
+          /* Form colors */
+          --color-form-focus: #60a5fa;
+          --color-form-border: #4b5563;
+          --color-form-disabled: #374151;
+          --color-form-valid: #34d399;
+          --color-form-invalid: #f87171;
+          --color-form-required: #fbbf24;
+          
+          /* Table colors */
+          --color-table-header-bg: #111827;
+          --color-table-row-hover: #374151; /* Darker hover for better contrast */
+          --color-table-row-selected: #1e40af;
+          --color-table-row-active: #2563eb;
+          --color-table-border: #374151;
+          --color-table-sorted: #1d4ed8;
+          
+          /* Navigation colors */
+          --color-nav-active: #60a5fa;
+          --color-nav-hover: #93c5fd; /* Lighter hover for links */
+          --color-nav-border: #374151;
+          --color-nav-bg: #1f2937;
+          --color-nav-active-bg: #1e40af;
+
+          /* Info colors */
+          --color-info: #60a5fa;
+          --color-info-50: #1e3a8a;
+          --color-info-100: #1e40af;
+          --color-info-200: #1d4ed8;
+          --color-info-300: #2563eb;
+          --color-info-400: #3b82f6;
+          --color-info-500: #60a5fa;
+          --color-info-600: #93c5fd;
+          --color-info-700: #bfdbfe;
+          --color-info-800: #dbeafe;
+          --color-info-900: #eff6ff;
+          --color-info-focus: #3b82f6;
+          --color-info-content: #1f2937;
+
+          /* Success colors */
+          --color-success: #34d399;
+          --color-success-50: #064e3b;
+          --color-success-100: #065f46;
+          --color-success-200: #047857;
+          --color-success-300: #059669;
+          --color-success-400: #10b981;
+          --color-success-500: #34d399;
+          --color-success-600: #6ee7b7;
+          --color-success-700: #a7f3d0;
+          --color-success-800: #d1fae5;
+          --color-success-900: #ecfdf5;
+          --color-success-focus: #10b981;
+          --color-success-content: #1f2937;
+
+          /* Warning colors */
+          --color-warning: #fbbf24;
+          --color-warning-50: #78350f;
+          --color-warning-100: #92400e;
+          --color-warning-200: #b45309;
+          --color-warning-300: #d97706;
+          --color-warning-400: #f59e0b;
+          --color-warning-500: #fbbf24;
+          --color-warning-600: #fcd34d;
+          --color-warning-700: #fde68a;
+          --color-warning-800: #fef3c7;
+          --color-warning-900: #fffbeb;
+          --color-warning-focus: #f59e0b;
+          --color-warning-content: #1f2937;
+
+          /* Error colors */
+          --color-error: #f87171;
+          --color-error-50: #7f1d1d;
+          --color-error-100: #991b1b;
+          --color-error-200: #b91c1c;
+          --color-error-300: #dc2626;
+          --color-error-400: #ef4444;
+          --color-error-500: #f87171;
+          --color-error-600: #fca5a5;
+          --color-error-700: #fecaca;
+          --color-error-800: #fee2e2;
+          --color-error-900: #fef2f2;
+          --color-error-focus: #ef4444;
+          --color-error-content: #1f2937;
+        }
+</style>
+
+    
+  <script>
+        tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                ...{"transparent":"transparent","current":"currentColor","black":"#000000","white":"#ffffff","gray":{"50":"#f5f7fa","100":"#f3f4f6","200":"#e5e7eb","300":"#d1d5db","400":"#9ca3af","500":"#6b7280","600":"#4b5563","700":"#374151","800":"#1f2937","900":"#111827"},"red":{"50":"#fef2f2","100":"#fee2e2","200":"#fecaca","300":"#fca5a5","400":"#f87171","500":"#ef4444","600":"#dc2626","700":"#b91c1c","800":"#991b1b","900":"#7f1d1d"},"yellow":{"50":"#fffbeb","100":"#fef3c7","200":"#fde68a","300":"#fcd34d","400":"#fbbf24","500":"#f59e0b","600":"#d97706","700":"#b45309","800":"#92400e","900":"#78350f"},"green":{"50":"#ecfdf5","100":"#d1fae5","200":"#a7f3d0","300":"#6ee7b7","400":"#34d399","500":"#10b981","600":"#059669","700":"#047857","800":"#065f46","900":"#064e3b"},"blue":{"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a"},"indigo":{"50":"#eef2ff","100":"#e0e7ff","200":"#c7d2fe","300":"#a5b4fc","400":"#818cf8","500":"#6366f1","600":"#4f46e5","700":"#4338ca","800":"#3730a3","900":"#312e81"},"purple":{"50":"#f5f3ff","100":"#ede9fe","200":"#ddd6fe","300":"#c4b5fd","400":"#a78bfa","500":"#8b5cf6","600":"#7c3aed","700":"#6d28d9","800":"#5b21b6","900":"#4c1d95"},"pink":{"50":"#fdf2f8","100":"#fce7f3","200":"#fbcfe8","300":"#f9a8d4","400":"#f472b6","500":"#ec4899","600":"#db2777","700":"#be185d","800":"#9d174d","900":"#831843"}},
+                ...{"primary":{"50":"var(--color-primary-50)","100":"var(--color-primary-100)","200":"var(--color-primary-200)","300":"var(--color-primary-300)","400":"var(--color-primary-400)","500":"var(--color-primary-500)","600":"var(--color-primary-600)","700":"var(--color-primary-700)","800":"var(--color-primary-800)","900":"var(--color-primary-900)","DEFAULT":"var(--color-primary)","focus":"var(--color-primary-focus)","content":"var(--color-primary-content)"},"secondary":{"50":"var(--color-secondary-50)","100":"var(--color-secondary-100)","200":"var(--color-secondary-200)","300":"var(--color-secondary-300)","400":"var(--color-secondary-400)","500":"var(--color-secondary-500)","600":"var(--color-secondary-600)","700":"var(--color-secondary-700)","800":"var(--color-secondary-800)","900":"var(--color-secondary-900)","DEFAULT":"var(--color-secondary)","focus":"var(--color-secondary-focus)","content":"var(--color-secondary-content)"},"accent":{"50":"var(--color-accent-50)","100":"var(--color-accent-100)","200":"var(--color-accent-200)","300":"var(--color-accent-300)","400":"var(--color-accent-400)","500":"var(--color-accent-500)","600":"var(--color-accent-600)","700":"var(--color-accent-700)","800":"var(--color-accent-800)","900":"var(--color-accent-900)","DEFAULT":"var(--color-accent)","focus":"var(--color-accent-focus)","content":"var(--color-accent-content)"},"neutral":{"50":"var(--color-neutral-50)","100":"var(--color-neutral-100)","200":"var(--color-neutral-200)","300":"var(--color-neutral-300)","400":"var(--color-neutral-400)","500":"var(--color-neutral-500)","600":"var(--color-neutral-600)","700":"var(--color-neutral-700)","800":"var(--color-neutral-800)","900":"var(--color-neutral-900)","DEFAULT":"var(--color-neutral)","focus":"var(--color-neutral-focus)","content":"var(--color-neutral-content)"},"info":{"50":"var(--color-info-50)","100":"var(--color-info-100)","200":"var(--color-info-200)","300":"var(--color-info-300)","400":"var(--color-info-400)","500":"var(--color-info-500)","600":"var(--color-info-600)","700":"var(--color-info-700)","800":"var(--color-info-800)","900":"var(--color-info-900)","DEFAULT":"var(--color-info)","focus":"var(--color-info-focus)","content":"var(--color-info-content)"},"success":{"50":"var(--color-success-50)","100":"var(--color-success-100)","200":"var(--color-success-200)","300":"var(--color-success-300)","400":"var(--color-success-400)","500":"var(--color-success-500)","600":"var(--color-success-600)","700":"var(--color-success-700)","800":"var(--color-success-800)","900":"var(--color-success-900)","DEFAULT":"var(--color-success)","focus":"var(--color-success-focus)","content":"var(--color-success-content)"},"warning":{"50":"var(--color-warning-50)","100":"var(--color-warning-100)","200":"var(--color-warning-200)","300":"var(--color-warning-300)","400":"var(--color-warning-400)","500":"var(--color-warning-500)","600":"var(--color-warning-600)","700":"var(--color-warning-700)","800":"var(--color-warning-800)","900":"var(--color-warning-900)","DEFAULT":"var(--color-warning)","focus":"var(--color-warning-focus)","content":"var(--color-warning-content)"},"error":{"50":"var(--color-error-50)","100":"var(--color-error-100)","200":"var(--color-error-200)","300":"var(--color-error-300)","400":"var(--color-error-400)","500":"var(--color-error-500)","600":"var(--color-error-600)","700":"var(--color-error-700)","800":"var(--color-error-800)","900":"var(--color-error-900)","DEFAULT":"var(--color-error)","focus":"var(--color-error-focus)","content":"var(--color-error-content)"},"danger":{"50":"var(--color-error-50)","100":"var(--color-error-100)","200":"var(--color-error-200)","300":"var(--color-error-300)","400":"var(--color-error-400)","500":"var(--color-error-500)","600":"var(--color-error-600)","700":"var(--color-error-700)","800":"var(--color-error-800)","900":"var(--color-error-900)","DEFAULT":"var(--color-error)","focus":"var(--color-error-focus)","content":"var(--color-error-content)"},"failure":{"50":"var(--color-error-50)","100":"var(--color-error-100)","200":"var(--color-error-200)","300":"var(--color-error-300)","400":"var(--color-error-400)","500":"var(--color-error-500)","600":"var(--color-error-600)","700":"var(--color-error-700)","800":"var(--color-error-800)","900":"var(--color-error-900)","DEFAULT":"var(--color-error)","focus":"var(--color-error-focus)","content":"var(--color-error-content)"}},
+                
+                // New color extensions for interactive states
+                "interactive": {
+                  "hover": "var(--color-interactive-hover)",
+                  "active": "var(--color-interactive-active)",
+                  "disabled": "var(--color-interactive-disabled)",
+                  "focus-ring": "var(--color-interactive-focus-ring)",
+                  "selected": "var(--color-interactive-selected)"
+                },
+                
+                // Form-specific colors
+                "form": {
+                  "focus": "var(--color-form-focus)",
+                  "border": "var(--color-form-border)",
+                  "disabled": "var(--color-form-disabled)",
+                  "valid": "var(--color-form-valid)",
+                  "invalid": "var(--color-form-invalid)",
+                  "required": "var(--color-form-required)"
+                },
+                
+                // Table-specific colors
+                "table": {
+                  "header": "var(--color-table-header-bg)",
+                  "hover": "var(--color-table-row-hover)",
+                  "selected": "var(--color-table-row-selected)",
+                  "active": "var(--color-table-row-active)",
+                  "border": "var(--color-table-border)",
+                  "sorted": "var(--color-table-sorted)"
+                },
+                
+                // Navigation-specific colors
+                "nav": {
+                  "active": "var(--color-nav-active)",
+                  "hover": "var(--color-nav-hover)",
+                  "border": "var(--color-nav-border)",
+                  "bg": "var(--color-nav-bg)",
+                  "active-bg": "var(--color-nav-active-bg)"
+                }
+                },
+              },
+            },
+            variants: {
+              extend: {
+                backgroundColor: ['active', 'group-hover', 'disabled', 'focus-visible', 'focus-within', 'selected'],
+                textColor: ['active', 'group-hover', 'disabled', 'focus-visible', 'focus-within', 'selected'],
+                borderColor: ['active', 'focus-visible', 'disabled', 'focus-within', 'valid', 'invalid'],
+                ringColor: ['focus-visible', 'focus-within'],
+                opacity: ['disabled', 'hover', 'active'],
+                cursor: ['disabled'],
+              },
+            },
+            plugins: [],
+          };
+  </script>
+
+</head>
+
+              <body class="h-full text-base-content">
+                <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header id="header" class="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="text-xl font-semibold text-gray-900">Code Confluence</div>
+                    <nav class="hidden md:flex space-x-8">
+                        <span  class="text-blue-600 font-medium cursor-pointer">Foundations</span>
+                        <span  class="text-gray-500 hover:text-gray-900 cursor-pointer">Components</span>
+                        <span  class="text-gray-500 hover:text-gray-900 cursor-pointer">Layout</span>
+                        <span  class="text-gray-500 hover:text-gray-900 cursor-pointer">Patterns</span>
+                        <span  class="text-gray-500 hover:text-gray-900 cursor-pointer">Resources</span>
+                    </nav>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 hover:text-gray-900">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-gray-900">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-gray-900">
+                        <i class="fa-brands fa-github"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Left Sidebar -->
+        <div class="flex gap-8">
+            <aside id="sidebar" class="hidden lg:block w-64 sticky top-24">
+                <nav class="space-y-1">
+                    <div class="pb-4">
+                        <h3 class="text-sm font-medium text-gray-500 uppercase">Foundations</h3>
+                        <div class="mt-2 space-y-1">
+                            <a href="foundations_colors.html#introduction" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Introduction</a>
+                            <a href="foundations_colors.html#colors" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Colors</a>
+                            <a href="#typography" class="block px-3 py-2 text-blue-600 bg-blue-50 rounded-md">Typography</a>
+                            <a href="#accessibility" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Accessibility</a>
+                        </div>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="flex-1 max-w-4xl">
+                <!-- Typography Section -->
+                <section id="typography" class="mb-16">
+                    <h1 class="text-4xl font-semibold text-gray-900 mb-6">Foundations - Typography</h1>
+                    <div class="prose max-w-none">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Typography</h2>
+                        <p class="text-gray-600 mb-6">Consistent typography is crucial for readability and a cohesive user experience. Our system primarily uses the Inter font family.</p>
+                    </div>
+
+                    <!-- Font Family -->
+                    <div id="font-family" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Font Family</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <p class="text-4xl font-semibold mb-2">Inter</p>
+                            <p class="text-gray-600">The primary typeface used across the UI for its clarity and legibility at various sizes.</p>
+                            <a href="https://fonts.google.com/specimen/Inter" class="text-sm text-blue-600 hover:underline" target="_blank">View on Google Fonts</a>
+                        </div>
+                    </div>
+
+                    <!-- Font Sizes -->
+                    <div id="font-sizes" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Font Sizes</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200 space-y-4">
+                            <div><p class="text-xs">text-xs (12px)</p><p class="text-xs text-gray-500">Use for captions, small labels</p></div>
+                            <div><p class="text-sm">text-sm (14px)</p><p class="text-sm text-gray-500">Use for body text, inputs, buttons</p></div>
+                            <div><p class="text-base">text-base (16px)</p><p class="text-base text-gray-500">Default body text size</p></div>
+                            <div><p class="text-lg">text-lg (18px)</p><p class="text-lg text-gray-500">Use for subtitles, larger body text</p></div>
+                            <div><p class="text-xl">text-xl (20px)</p><p class="text-xl text-gray-500">Use for secondary headings</p></div>
+                            <div><p class="text-2xl">text-2xl (24px)</p><p class="text-2xl text-gray-500">Use for primary headings</p></div>
+                            <div><p class="text-3xl">text-3xl (30px)</p><p class="text-3xl text-gray-500">Use for section titles</p></div>
+                            <div><p class="text-4xl">text-4xl (36px)</p><p class="text-4xl text-gray-500">Use for page titles</p></div>
+                        </div>
+                    </div>
+
+                    <!-- Font Weights -->
+                    <div id="font-weights" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Font Weights</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200 space-y-4">
+                            <div><p class="font-light">font-light (300)</p><p class="text-sm text-gray-500">Use sparingly for emphasis</p></div>
+                            <div><p class="font-normal">font-normal (400)</p><p class="text-sm text-gray-500">Default weight for body text</p></div>
+                            <div><p class="font-medium">font-medium (500)</p><p class="text-sm text-gray-500">Use for buttons, labels, tabs</p></div>
+                            <div><p class="font-semibold">font-semibold (600)</p><p class="text-sm text-gray-500">Use for headings, strong emphasis</p></div>
+                            <div><p class="font-bold">font-bold (700)</p><p class="text-sm text-gray-500">Use for major headings, high emphasis</p></div>
+                        </div>
+                    </div>
+
+                    <!-- Line Heights -->
+                    <div id="line-heights" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Line Heights</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200 space-y-4">
+                            <div><p class="leading-tight">leading-tight (1.25)</p><p class="text-sm text-gray-500">Use for headings</p></div>
+                            <div><p class="leading-snug">leading-snug (1.375)</p><p class="text-sm text-gray-500">Use for short text blocks</p></div>
+                            <div><p class="leading-normal">leading-normal (1.5)</p><p class="text-sm text-gray-500">Default line height for body text</p></div>
+                            <div><p class="leading-relaxed">leading-relaxed (1.625)</p><p class="text-sm text-gray-500">Use for longer text passages</p></div>
+                            <div><p class="leading-loose">leading-loose (2)</p><p class="text-sm text-gray-500">Use for wide text blocks</p></div>
+                        </div>
+                    </div>
+
+                    <!-- Font Usage Examples -->
+                    <div id="font-usage-examples" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Font Usage Examples</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200 space-y-6">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 uppercase mb-2">Page Title</h4>
+                                <p class="text-4xl font-semibold">User Management</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 uppercase mb-2">Section Title</h4>
+                                <p class="text-2xl font-semibold">Active Users</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 uppercase mb-2">Body Text</h4>
+                                <p class="text-base font-normal leading-relaxed">This is a paragraph of standard body text using the default font size and weight. It demonstrates the standard readability and spacing for longer content sections within the application interface.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 uppercase mb-2">Button Text</h4>
+                                <button class="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md">Submit Action</button>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 uppercase mb-2">Input Label</h4>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <input type="email" class="border border-gray-300 rounded-md px-3 py-2 w-full" placeholder="you@example.com" />
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500 uppercase mb-2">Caption Text</h4>
+                                <p class="text-xs text-gray-500">Last updated 5 minutes ago</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Component-Specific Typography -->
+                    <div id="component-typography" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Component-Specific Typography</h3>
+                        <p class="text-gray-600 mb-4">Specialized typography guidelines for complex UI components to ensure consistency across the application.</p>
+                    
+                        <!-- Table Typography -->
+                        <div id="table-typography" class="mb-6">
+                            <h4 class="text-base font-semibold text-gray-900 mb-3">Tables</h4>
+                            <div class="p-4 bg-white rounded-lg border border-gray-200">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="bg-gray-50 border-b border-gray-200">
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Element</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Typography</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Guidelines</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200">
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-800">Column Headers</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-gray-500">text-xs font-semibold uppercase tracking-wider</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">Use for all table headers with consistent uppercase styling for scannability</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-800">Row Data</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-gray-500">text-sm font-normal</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">Standard for all cell content; ensure consistent line height</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-800">Numeric Data</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-gray-500">text-sm font-medium tabular-nums</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">Use tabular numbers for consistent column alignment</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-800">Status Indicators</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-gray-500">text-xs font-medium</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">Compact text with semantic colors (success, warning, error)</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-800">Pagination</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-gray-500">text-xs or text-sm font-normal</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">Current page number should be emphasized with font-medium</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-800">Truncated Text</td>
+                                                <td class="px-4 py-3 font-mono text-xs text-gray-500">truncate max-w-{size}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">For constrained columns, use truncation with title attribute for full text</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Typography -->
+                        <div id="form-typography" class="mb-6">
+                            <h4 class="text-base font-semibold text-gray-900 mb-3">Forms</h4>
+                            <div class="p-4 bg-white rounded-lg border border-gray-200 space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Form Section Headings</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-base font-semibold text-gray-800">Personal Information</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-base font-semibold</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Multi-step Form Progress</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-xs font-medium uppercase tracking-wider text-blue-600">Step 2 of 4: Account Details</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-xs font-medium uppercase tracking-wider</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Field Labels</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <label class="text-sm font-medium text-gray-700">Email Address <span class="text-red-500">*</span></label>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm font-medium</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Helper Text</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-xs text-gray-500">Must be a valid company email address</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-xs text-gray-500</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Validation Error</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-xs text-red-600">This field is required</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-xs text-red-600</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Validation Success</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-xs text-green-600">Username is available</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-xs text-green-600</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Navigation Typography -->
+                        <div id="navigation-typography" class="mb-6">
+                            <h4 class="text-base font-semibold text-gray-900 mb-3">Navigation</h4>
+                            <div class="p-4 bg-white rounded-lg border border-gray-200">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Top-level Navigation Items</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-sm font-medium text-gray-800">Dashboard</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm font-medium</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Nested Navigation Items</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-sm font-normal text-gray-600 pl-2">- User Settings</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm font-normal</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Navigation Section Headers</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Management</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-xs font-medium uppercase tracking-wider</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Active Navigation Item</h5>
+                                        <div class="p-3 bg-blue-50 rounded-md">
+                                            <p class="text-sm font-medium text-blue-600">Users</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm font-medium text-blue-600</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Navigation Badges</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md flex items-center">
+                                            <p class="text-sm font-medium text-gray-700">Notifications</p>
+                                            <span class="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">8</span>
+                                            <p class="mt-1 text-xs text-gray-500 w-full">Badge class: text-xs font-medium</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Breadcrumbs</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <div class="flex items-center text-sm">
+                                                <span class="text-gray-500">Dashboard</span>
+                                                <span class="mx-1 text-gray-400">/</span>
+                                                <span class="text-gray-500">Users</span>
+                                                <span class="mx-1 text-gray-400">/</span>
+                                                <span class="font-medium text-gray-800">Settings</span>
+                                            </div>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm (current: font-medium)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Interactive States Typography -->
+                        <div id="interactive-typography" class="mb-6">
+                            <h4 class="text-base font-semibold text-gray-900 mb-3">Interactive States</h4>
+                            <div class="p-4 bg-white rounded-lg border border-gray-200">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Dropdown Option Text</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-sm text-gray-800">Option Label</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Selected Option</h5>
+                                        <div class="p-3 bg-blue-50 rounded-md">
+                                            <p class="text-sm font-medium text-gray-900">Selected Option</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm font-medium</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Disabled Text</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <p class="text-sm text-gray-400">Disabled Option</p>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm text-gray-400</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Hover Text State</h5>
+                                        <div class="p-3 bg-gray-100 rounded-md">
+                                            <p class="text-sm text-gray-900">Hover Option</p>
+                                            <p class="mt-1 text-xs text-gray-500">Same size, adjusted color/bg only</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Loading/Skeleton Text</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <div class="animate-pulse h-4 w-24 bg-gray-200 rounded"></div>
+                                            <p class="mt-3 text-xs text-gray-500">Use skeleton loaders of appropriate width</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-medium mb-2">Checkbox/Radio Labels</h5>
+                                        <div class="p-3 bg-gray-50 rounded-md">
+                                            <div class="flex items-center">
+                                                <div class="h-4 w-4 border border-gray-300 rounded mr-2"></div>
+                                                <span class="text-sm text-gray-700">Checkbox Label</span>
+                                            </div>
+                                            <p class="mt-1 text-xs text-gray-500">Class: text-sm</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Typography & Component Integration Guidelines -->
+                        <div id="typography-integration" class="mb-6">
+                            <h4 class="text-base font-semibold text-gray-900 mb-3">Typography & Component Integration</h4>
+                            <div class="p-4 bg-white rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-600 mb-3">When implementing typography within components, follow these general principles:</p>
+                                <ul class="text-sm text-gray-600 space-y-2 pl-5 list-disc">
+                                    <li>Maintain consistent text sizes within component categories (all buttons should use the same text size)</li>
+                                    <li>Use font weight rather than size to create hierarchy within similar elements</li>
+                                    <li>For data-dense interfaces like tables, use more compact typography (text-xs, text-sm)</li>
+                                    <li>Ensure proper spacing between text elements (labels and fields, headers and content)</li>
+                                    <li>Apply semantic colors based on the color system for interactive states</li>
+                                    <li>Maintain readable line length for multiline text (65-75 characters maximum)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Accessibility Section -->
+                <section id="accessibility" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Accessibility</h2>
+                    <div class="prose max-w-none">
+                        <p class="text-gray-600 mb-6">Accessibility is a core principle. Our foundations ensure that the UI is usable by everyone, regardless of ability.</p>
+                    </div>
+
+                    <!-- Color Contrast -->
+                    <div id="color-contrast" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Color Contrast</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <p class="mb-4 text-gray-600">We adhere to WCAG 2.1 AA guidelines for color contrast. All text and essential UI elements must have a minimum contrast ratio:</p>
+                            <ul class="list-disc pl-5 text-gray-600 space-y-2 mb-4">
+                                <li><strong>4.5:1</strong> for normal text (less than 18pt or 14pt bold)</li>
+                                <li><strong>3:1</strong> for large text (18pt or larger, or 14pt bold or larger)</li>
+                                <li><strong>3:1</strong> for graphical elements and user interface components</li>
+                            </ul>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-4 bg-white border border-green-500 rounded-lg">
+                                    <p class="text-green-800 text-lg font-semibold">Pass: 4.9:1</p>
+                                    <p class="text-sm text-green-700">Text on white background</p>
+                                </div>
+                                <div class="p-4 bg-red-100 border border-red-500 rounded-lg">
+                                    <p class="text-red-800 text-lg font-semibold">Fail: 2.5:1</p>
+                                    <p class="text-sm text-red-700">Light gray text on white</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keyboard Navigation -->
+                    <div id="keyboard-navigation" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Keyboard Navigation</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <p class="mb-4 text-gray-600">All interactive elements must be navigable and operable using only a keyboard.</p>
+                            <ul class="list-disc pl-5 text-gray-600 space-y-2 mb-4">
+                                <li>Logical focus order following the visual layout.</li>
+                                <li>Visible focus indicators (outlines) for all focusable elements. Use <code class="font-mono text-xs bg-gray-200 px-1 py-0.5 rounded">focus:ring</code> utilities.</li>
+                                <li>Standard key interactions (Enter/Space for buttons, Arrow keys for menus, etc.).</li>
+                            </ul>
+                            <button class="px-4 py-2 bg-blue-500 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2">Focusable Button</button>
+                        </div>
+                    </div>
+
+                    <!-- Screen Reader Support -->
+                    <div id="screen-reader-support" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Screen Reader Support</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <p class="mb-4 text-gray-600">Ensure content is understandable and navigable by screen readers.</p>
+                            <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                                <li>Use semantic HTML elements (<code class="font-mono text-xs bg-gray-200 px-1 py-0.5 rounded">&lt;nav&gt;</code>, <code class="font-mono text-xs bg-gray-200 px-1 py-0.5 rounded">&lt;button&gt;</code>, <code class="font-mono text-xs bg-gray-200 px-1 py-0.5 rounded">&lt;main&gt;</code>, etc.).</li>
+                                <li>Provide descriptive <code class="font-mono text-xs bg-gray-200 px-1 py-0.5 rounded">alt</code> text for all meaningful images.</li>
+                                <li>Use ARIA attributes when necessary to enhance semantics (e.g., <code class="font-mono text-xs bg-gray-200 px-1 py-0.5 rounded">aria-label</code>, <code class="font-mono text-xs bg-gray-200 px-1 py-0.5 rounded">aria-hidden</code>).</li>
+                                <li>Ensure form elements have associated labels.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+</div>
+              </body>
+            </html> 

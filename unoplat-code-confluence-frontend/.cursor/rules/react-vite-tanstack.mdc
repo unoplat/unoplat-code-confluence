@@ -62,10 +62,12 @@ Performance Optimization
   - Use efficient rendering strategies
   - Use efficient state management
 
-Testing Code Changes
+Testing and Implementing Code Changes
 - Use tools
 1. Use browser tool to take console logs.
 2. Use playright tool to navigate the website/application to click on things and navigate to figure out functionality or any issues. 
+3. Always Use documentation tool for getting examples and right documentation based on dependency version mentioned in [package.json](mdc:package.json).
+4. Use browsing web search tool to browse the web for more information as and when required.
   
 Build Tool:
 - Yarn

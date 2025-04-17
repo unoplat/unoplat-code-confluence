@@ -1,0 +1,2158 @@
+<html class="">
+              
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+      window.FontAwesomeConfig = {
+          autoReplaceSvg: 'nest', // Options: 'nest', 'remove', 'replace'
+      };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    
+<style>
+  * {
+    font-family: "Inter", sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+
+    
+<style>
+  .highlighted-section {
+    outline: 2px solid #3F20FB;
+    background-color: rgba(63, 32, 251, 0.1);
+  }
+
+  .edit-button {
+    position: absolute;
+    z-index: 1000;
+  }
+</style>
+
+    
+<style>
+   :root {
+          /* Base colors */
+          --color-base: #ffffff;
+          --color-base-50: #f9fafb;
+          --color-base-100: #f3f4f6;
+          --color-base-200: #e5e7eb;
+          --color-base-300: #d1d5db;
+          --color-base-400: #9ca3af;
+          --color-base-500: #6b7280;
+          --color-base-600: #4b5563;  
+          --color-base-700: #374151;
+          --color-base-800: #1f2937;  
+          --color-base-900: #111827;
+          --color-base-content: #1f2937;
+
+          /* Primary colors */
+          --color-primary: #3b82f6;
+          --color-primary-50: #eff6ff;
+          --color-primary-100: #dbeafe;
+          --color-primary-200: #bfdbfe;
+          --color-primary-300: #93c5fd;
+          --color-primary-400: #60a5fa;
+          --color-primary-500: #3b82f6;
+          --color-primary-600: #2563eb;
+          --color-primary-700: #1d4ed8;
+          --color-primary-800: #1e40af;
+          --color-primary-900: #1e3a8a;
+          --color-primary-focus: #2563eb;
+          --color-primary-content: #ffffff;
+
+          /* Secondary colors */
+          --color-secondary: #8b5cf6;
+          --color-secondary-50: #f5f3ff;
+          --color-secondary-100: #ede9fe;
+          --color-secondary-200: #ddd6fe;
+          --color-secondary-300: #c4b5fd;
+          --color-secondary-400: #a78bfa;
+          --color-secondary-500: #8b5cf6;
+          --color-secondary-600: #7c3aed;
+          --color-secondary-700: #6d28d9;
+          --color-secondary-800: #5b21b6;
+          --color-secondary-900: #4c1d95;
+          --color-secondary-focus: #7c3aed;
+          --color-secondary-content: #ffffff;
+
+          /* Accent colors */
+          --color-accent: #f472b6;
+          --color-accent-50: #fdf2f8;
+          --color-accent-100: #fce7f3;
+          --color-accent-200: #fbcfe8;
+          --color-accent-300: #f9a8d4;
+          --color-accent-400: #f472b6;
+          --color-accent-500: #ec4899;
+          --color-accent-600: #db2777;
+          --color-accent-700: #be185d;
+          --color-accent-800: #9d174d;
+          --color-accent-900: #831843;
+          --color-accent-focus: #db2777;
+          --color-accent-content: #ffffff;
+
+          /* Neutral colors */
+          --color-neutral: #6b7280;
+          --color-neutral-50: #f9fafb;
+          --color-neutral-100: #f3f4f6;
+          --color-neutral-200: #e5e7eb;
+          --color-neutral-300: #d1d5db;
+          --color-neutral-400: #9ca3af;
+          --color-neutral-500: #6b7280;
+          --color-neutral-600: #4b5563;
+          --color-neutral-700: #374151;
+          --color-neutral-800: #1f2937;
+          --color-neutral-900: #111827;
+          --color-neutral-focus: #4b5563;
+          --color-neutral-content: #ffffff;
+
+          /* Info colors */
+          --color-info: #3b82f6;
+          --color-info-50: #eff6ff;
+          --color-info-100: #dbeafe;
+          --color-info-200: #bfdbfe;
+          --color-info-300: #93c5fd;
+          --color-info-400: #60a5fa;
+          --color-info-500: #3b82f6;
+          --color-info-600: #2563eb;
+          --color-info-700: #1d4ed8;
+          --color-info-800: #1e40af;
+          --color-info-900: #1e3a8a;
+          --color-info-focus: #2563eb;
+          --color-info-content: #ffffff;
+
+          /* Success colors */
+          --color-success: #10b981;
+          --color-success-50: #ecfdf5;
+          --color-success-100: #d1fae5;
+          --color-success-200: #a7f3d0;
+          --color-success-300: #6ee7b7;
+          --color-success-400: #34d399;
+          --color-success-500: #10b981;
+          --color-success-600: #059669;
+          --color-success-700: #047857;
+          --color-success-800: #065f46;
+          --color-success-900: #064e3b;
+          --color-success-focus: #059669;
+          --color-success-content: #ffffff;
+
+          /* Warning colors */
+          --color-warning: #f59e0b;
+          --color-warning-50: #fffbeb;
+          --color-warning-100: #fef3c7;
+          --color-warning-200: #fde68a;
+          --color-warning-300: #fcd34d;
+          --color-warning-400: #fbbf24;
+          --color-warning-500: #f59e0b;
+          --color-warning-600: #d97706;
+          --color-warning-700: #b45309;
+          --color-warning-800: #92400e;
+          --color-warning-900: #78350f;
+          --color-warning-focus: #d97706;
+          --color-warning-content: #ffffff;
+
+          /* Error colors */
+          --color-error: #ef4444;
+          --color-error-50: #fef2f2;
+          --color-error-100: #fee2e2;
+          --color-error-200: #fecaca;
+          --color-error-300: #fca5a5;
+          --color-error-400: #f87171;
+          --color-error-500: #ef4444;
+          --color-error-600: #dc2626;
+          --color-error-700: #b91c1c;
+          --color-error-800: #991b1b;
+          --color-error-900: #7f1d1d;
+          --color-error-focus: #dc2626;
+          --color-error-content: #ffffff;
+        }
+</style>
+
+    
+<style>
+/* Dark theme */
+        .dark {
+          /* Base colors */
+          --color-base: #1f2937;
+          --color-base-50: #111827;
+          --color-base-100: #1f2937;
+          --color-base-200: #374151;
+          --color-base-300: #4b5563;
+          --color-base-400: #6b7280;
+          --color-base-500: #9ca3af;
+          --color-base-600: #d1d5db;
+          --color-base-700: #e5e7eb;
+          --color-base-800: #f3f4f6;
+          --color-base-900: #f9fafb;
+          --color-base-content: #f9fafb;
+
+          /* Primary colors */
+          --color-primary: #60a5fa;
+          --color-primary-50: #1e3a8a;
+          --color-primary-100: #1e40af;
+          --color-primary-200: #1d4ed8;
+          --color-primary-300: #2563eb;
+          --color-primary-400: #3b82f6;
+          --color-primary-500: #60a5fa;
+          --color-primary-600: #93c5fd;
+          --color-primary-700: #bfdbfe;
+          --color-primary-800: #dbeafe;
+          --color-primary-900: #eff6ff;
+          --color-primary-focus: #3b82f6;
+          --color-primary-content: #1f2937;
+
+          /* Secondary colors */
+          --color-secondary: #a78bfa;
+          --color-secondary-50: #4c1d95;
+          --color-secondary-100: #5b21b6;
+          --color-secondary-200: #6d28d9;
+          --color-secondary-300: #7c3aed;
+          --color-secondary-400: #8b5cf6;
+          --color-secondary-500: #a78bfa;
+          --color-secondary-600: #c4b5fd;
+          --color-secondary-700: #ddd6fe;
+          --color-secondary-800: #ede9fe;
+          --color-secondary-900: #f5f3ff;
+          --color-secondary-focus: #8b5cf6;
+          --color-secondary-content: #1f2937;
+
+          /* Accent colors */
+          --color-accent: #f472b6;
+          --color-accent-50: #831843;
+          --color-accent-100: #9d174d;
+          --color-accent-200: #be185d;
+          --color-accent-300: #db2777;
+          --color-accent-400: #ec4899;
+          --color-accent-500: #f472b6;
+          --color-accent-600: #f9a8d4;
+          --color-accent-700: #fbcfe8;
+          --color-accent-800: #fce7f3;
+          --color-accent-900: #fdf2f8;
+          --color-accent-focus: #ec4899;
+          --color-accent-content: #1f2937;
+
+          /* Neutral colors remain the same as light theme */
+
+          /* Info colors */
+          --color-info: #60a5fa;
+          --color-info-50: #1e3a8a;
+          --color-info-100: #1e40af;
+          --color-info-200: #1d4ed8;
+          --color-info-300: #2563eb;
+          --color-info-400: #3b82f6;
+          --color-info-500: #60a5fa;
+          --color-info-600: #93c5fd;
+          --color-info-700: #bfdbfe;
+          --color-info-800: #dbeafe;
+          --color-info-900: #eff6ff;
+          --color-info-focus: #3b82f6;
+          --color-info-content: #1f2937;
+
+          /* Success colors */
+          --color-success: #34d399;
+          --color-success-50: #064e3b;
+          --color-success-100: #065f46;
+          --color-success-200: #047857;
+          --color-success-300: #059669;
+          --color-success-400: #10b981;
+          --color-success-500: #34d399;
+          --color-success-600: #6ee7b7;
+          --color-success-700: #a7f3d0;
+          --color-success-800: #d1fae5;
+          --color-success-900: #ecfdf5;
+          --color-success-focus: #10b981;
+          --color-success-content: #1f2937;
+
+          /* Warning colors */
+          --color-warning: #fbbf24;
+          --color-warning-50: #78350f;
+          --color-warning-100: #92400e;
+          --color-warning-200: #b45309;
+          --color-warning-300: #d97706;
+          --color-warning-400: #f59e0b;
+          --color-warning-500: #fbbf24;
+          --color-warning-600: #fcd34d;
+          --color-warning-700: #fde68a;
+          --color-warning-800: #fef3c7;
+          --color-warning-900: #fffbeb;
+          --color-warning-focus: #f59e0b;
+          --color-warning-content: #1f2937;
+
+          /* Error colors */
+          --color-error: #f87171;
+          --color-error-50: #7f1d1d;
+          --color-error-100: #991b1b;
+          --color-error-200: #b91c1c;
+          --color-error-300: #dc2626;
+          --color-error-400: #ef4444;
+          --color-error-500: #f87171;
+          --color-error-600: #fca5a5;
+          --color-error-700: #fecaca;
+          --color-error-800: #fee2e2;
+          --color-error-900: #fef2f2;
+          --color-error-focus: #ef4444;
+          --color-error-content: #1f2937;
+        }
+</style>
+
+    
+  <script>
+        tailwind.config = {
+            theme: {
+              extend: {
+                colors: {
+                ...{"transparent":"transparent","current":"currentColor","black":"#000000","white":"#ffffff","gray":{"50":"#f9fafb","100":"#f3f4f6","200":"#e5e7eb","300":"#d1d5db","400":"#9ca3af","500":"#6b7280","600":"#4b5563","700":"#374151","800":"#1f2937","900":"#111827"},"red":{"50":"#fef2f2","100":"#fee2e2","200":"#fecaca","300":"#fca5a5","400":"#f87171","500":"#ef4444","600":"#dc2626","700":"#b91c1c","800":"#991b1b","900":"#7f1d1d"},"yellow":{"50":"#fffbeb","100":"#fef3c7","200":"#fde68a","300":"#fcd34d","400":"#fbbf24","500":"#f59e0b","600":"#d97706","700":"#b45309","800":"#92400e","900":"#78350f"},"green":{"50":"#ecfdf5","100":"#d1fae5","200":"#a7f3d0","300":"#6ee7b7","400":"#34d399","500":"#10b981","600":"#059669","700":"#047857","800":"#065f46","900":"#064e3b"},"blue":{"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a"},"indigo":{"50":"#eef2ff","100":"#e0e7ff","200":"#c7d2fe","300":"#a5b4fc","400":"#818cf8","500":"#6366f1","600":"#4f46e5","700":"#4338ca","800":"#3730a3","900":"#312e81"},"purple":{"50":"#f5f3ff","100":"#ede9fe","200":"#ddd6fe","300":"#c4b5fd","400":"#a78bfa","500":"#8b5cf6","600":"#7c3aed","700":"#6d28d9","800":"#5b21b6","900":"#4c1d95"},"pink":{"50":"#fdf2f8","100":"#fce7f3","200":"#fbcfe8","300":"#f9a8d4","400":"#f472b6","500":"#ec4899","600":"#db2777","700":"#be185d","800":"#9d174d","900":"#831843"}},
+                ...{"primary":{"50":"var(--color-primary-50)","100":"var(--color-primary-100)","200":"var(--color-primary-200)","300":"var(--color-primary-300)","400":"var(--color-primary-400)","500":"var(--color-primary-500)","600":"var(--color-primary-600)","700":"var(--color-primary-700)","800":"var(--color-primary-800)","900":"var(--color-primary-900)","DEFAULT":"var(--color-primary)","focus":"var(--color-primary-focus)","content":"var(--color-primary-content)"},"secondary":{"50":"var(--color-secondary-50)","100":"var(--color-secondary-100)","200":"var(--color-secondary-200)","300":"var(--color-secondary-300)","400":"var(--color-secondary-400)","500":"var(--color-secondary-500)","600":"var(--color-secondary-600)","700":"var(--color-secondary-700)","800":"var(--color-secondary-800)","900":"var(--color-secondary-900)","DEFAULT":"var(--color-secondary)","focus":"var(--color-secondary-focus)","content":"var(--color-secondary-content)"},"accent":{"50":"var(--color-accent-50)","100":"var(--color-accent-100)","200":"var(--color-accent-200)","300":"var(--color-accent-300)","400":"var(--color-accent-400)","500":"var(--color-accent-500)","600":"var(--color-accent-600)","700":"var(--color-accent-700)","800":"var(--color-accent-800)","900":"var(--color-accent-900)","DEFAULT":"var(--color-accent)","focus":"var(--color-accent-focus)","content":"var(--color-accent-content)"},"neutral":{"50":"var(--color-neutral-50)","100":"var(--color-neutral-100)","200":"var(--color-neutral-200)","300":"var(--color-neutral-300)","400":"var(--color-neutral-400)","500":"var(--color-neutral-500)","600":"var(--color-neutral-600)","700":"var(--color-neutral-700)","800":"var(--color-neutral-800)","900":"var(--color-neutral-900)","DEFAULT":"var(--color-neutral)","focus":"var(--color-neutral-focus)","content":"var(--color-neutral-content)"},"info":{"50":"var(--color-info-50)","100":"var(--color-info-100)","200":"var(--color-info-200)","300":"var(--color-info-300)","400":"var(--color-info-400)","500":"var(--color-info-500)","600":"var(--color-info-600)","700":"var(--color-info-700)","800":"var(--color-info-800)","900":"var(--color-info-900)","DEFAULT":"var(--color-info)","focus":"var(--color-info-focus)","content":"var(--color-info-content)"},"success":{"50":"var(--color-success-50)","100":"var(--color-success-100)","200":"var(--color-success-200)","300":"var(--color-success-300)","400":"var(--color-success-400)","500":"var(--color-success-500)","600":"var(--color-success-600)","700":"var(--color-success-700)","800":"var(--color-success-800)","900":"var(--color-success-900)","DEFAULT":"var(--color-success)","focus":"var(--color-success-focus)","content":"var(--color-success-content)"},"warning":{"50":"var(--color-warning-50)","100":"var(--color-warning-100)","200":"var(--color-warning-200)","300":"var(--color-warning-300)","400":"var(--color-warning-400)","500":"var(--color-warning-500)","600":"var(--color-warning-600)","700":"var(--color-warning-700)","800":"var(--color-warning-800)","900":"var(--color-warning-900)","DEFAULT":"var(--color-warning)","focus":"var(--color-warning-focus)","content":"var(--color-warning-content)"},"error":{"50":"var(--color-error-50)","100":"var(--color-error-100)","200":"var(--color-error-200)","300":"var(--color-error-300)","400":"var(--color-error-400)","500":"var(--color-error-500)","600":"var(--color-error-600)","700":"var(--color-error-700)","800":"var(--color-error-800)","900":"var(--color-error-900)","DEFAULT":"var(--color-error)","focus":"var(--color-error-focus)","content":"var(--color-error-content)"},"danger":{"50":"var(--color-error-50)","100":"var(--color-error-100)","200":"var(--color-error-200)","300":"var(--color-error-300)","400":"var(--color-error-400)","500":"var(--color-error-500)","600":"var(--color-error-600)","700":"var(--color-error-700)","800":"var(--color-error-800)","900":"var(--color-error-900)","DEFAULT":"var(--color-error)","focus":"var(--color-error-focus)","content":"var(--color-error-content)"},"failure":{"50":"var(--color-error-50)","100":"var(--color-error-100)","200":"var(--color-error-200)","300":"var(--color-error-300)","400":"var(--color-error-400)","500":"var(--color-error-500)","600":"var(--color-error-600)","700":"var(--color-error-700)","800":"var(--color-error-800)","900":"var(--color-error-900)","DEFAULT":"var(--color-error)","focus":"var(--color-error-focus)","content":"var(--color-error-content)"}},
+                },
+              },
+            },
+            variants: {
+              extend: {
+                backgroundColor: ['active', 'group-hover'],
+                textColor: ['active', 'group-hover'],
+              },
+            },
+            plugins: [],
+          };
+  </script>
+
+</head>
+
+              <body class="h-full text-base-content">
+                <div class="min-h-screen bg-gray-50">
+    <!-- Header remains exactly the same -->
+    <header id="header" class="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="text-xl font-semibold text-gray-900">Code Confluence</div>
+                    <nav class="hidden md:flex space-x-8">
+                        <span class="text-gray-500 hover:text-gray-900 cursor-pointer">Foundations</span>
+                        <span class="text-blue-600 font-medium cursor-pointer">Components</span>
+                        <span class="text-gray-500 hover:text-gray-900 cursor-pointer">Layout</span>
+                        <span class="text-gray-500 hover:text-gray-900 cursor-pointer">Patterns</span>
+                        <span class="text-gray-500 hover:text-gray-900 cursor-pointer">Resources</span>
+                    </nav>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-500 hover:text-gray-900">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-gray-900">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-gray-900">
+                        <i class="fa-brands fa-github"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="flex gap-8">
+            <!-- Left Sidebar -->
+            <aside id="sidebar" class="hidden lg:block w-64 sticky top-24">
+                <nav class="space-y-1">
+                    <div class="pb-4">
+                        <h3 class="text-sm font-medium text-gray-500 uppercase">Components</h3>
+                        <div class="mt-2 space-y-1">
+                            <a href="#buttons" class="block px-3 py-2 text-blue-600 bg-blue-50 rounded-md">Buttons</a>
+                            <a href="#inputs" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Input Fields</a>
+                            <a href="#tooltips" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Tooltips</a>
+                            <a href="#tables" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Tables</a>
+                            <a href="#form-structure" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Form Structure</a>
+                            <a href="#validation" class="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md">Form Validation</a>
+                        </div>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="flex-1 max-w-4xl">
+                <section id="components-intro" class="mb-16">
+                    <h1 class="text-4xl font-semibold text-gray-900 mb-6">Components</h1>
+                    <p class="text-gray-600 mb-8">Essential UI components with their states and variations for building consistent interfaces.</p>
+                </section>
+
+                <!-- Buttons Section -->
+                <section id="buttons" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Buttons</h2>
+                    
+                    <!-- Primary Buttons -->
+                    <div id="primary-buttons" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Primary Buttons</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <!-- Button Sizes -->
+                            <div class="mb-8">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Button Sizes</h4>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <button class="px-2 py-1 text-sm bg-[#3B82F6] text-white rounded-md hover:bg-[#2563EB] transition-colors">
+                                        Small
+                                    </button>
+                                    <button class="px-4 py-2 bg-[#3B82F6] text-white rounded-md hover:bg-[#2563EB] transition-colors">
+                                        Medium
+                                    </button>
+                                    <button class="px-6 py-3 text-lg bg-[#3B82F6] text-white rounded-md hover:bg-[#2563EB] transition-colors">
+                                        Large
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Button States -->
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Button States</h4>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <button class="px-4 py-2 bg-[#3B82F6] text-white rounded-md hover:bg-[#2563EB] active:bg-[#1E40AF] transition-colors">
+                                        Default Button
+                                    </button>
+                                    <button class="px-4 py-2 bg-[#2563EB] text-white rounded-md cursor-pointer">
+                                        Hover State
+                                    </button>
+                                    <button class="px-4 py-2 bg-[#1E40AF] text-white rounded-md cursor-pointer">
+                                        Active State
+                                    </button>
+                                    <button class="px-4 py-2 bg-[#D1D5DB] text-gray-500 rounded-md cursor-not-allowed" disabled>
+                                        Disabled State
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Icon Buttons -->
+                    <div id="icon-buttons" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Icon Buttons</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="flex flex-wrap gap-4 items-center">
+                                <button class="p-2 text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white rounded-md transition-colors">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                                <button class="p-2 text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white rounded-md transition-colors">
+                                    <i class="fa-solid fa-edit"></i>
+                                </button>
+                                <button class="p-2 text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white rounded-md transition-colors">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                                <button class="p-2 text-gray-400 cursor-not-allowed" disabled>
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Input Fields Section -->
+                <section id="inputs" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Input Fields</h2>
+
+                    <!-- Text Inputs -->
+                    <div id="text-inputs" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Text Inputs</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200 space-y-4">
+                            <div class="space-y-2">
+                                <input type="text" placeholder="Default state" class="w-full px-4 py-2 border border-gray-200 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <input type="text" placeholder="Focused state" class="w-full px-4 py-2 border border-blue-500 rounded-md ring-2 ring-blue-200 outline-none">
+                            </div>
+                            <div class="space-y-2">
+                                <input type="text" placeholder="Error state" class="w-full px-4 py-2 border border-red-500 rounded-md outline-none">
+                                <p class="text-sm text-red-500">This field is required</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Checkboxes -->
+                    <div id="checkboxes" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Checkboxes</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-4">
+                                <label class="flex items-center space-x-3 cursor-pointer">
+                                    <div class="relative">
+                                        <input type="checkbox" class="peer sr-only">
+                                        <div class="w-5 h-5 border-2 border-gray-300 rounded bg-white peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-all">
+                                            <svg class="w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden peer-checked:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                                                <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <span class="text-gray-700">Default state</span>
+                                </label>
+                                <label class="flex items-center space-x-3 cursor-pointer">
+                                    <div class="relative">
+                                        <input type="checkbox" checked class="peer sr-only">
+                                        <div class="w-5 h-5 border-2 border-blue-600 rounded bg-blue-600 transition-all">
+                                            <svg class="w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                                                <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <span class="text-gray-700">Checked state</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <div class="relative">
+                                        <input type="checkbox" disabled class="peer sr-only">
+                                        <div class="w-5 h-5 border-2 border-gray-200 rounded bg-gray-100">
+                                        </div>
+                                    </div>
+                                    <span class="text-gray-400">Disabled state</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <div class="relative">
+                                        <input type="checkbox" checked disabled class="peer sr-only">
+                                        <div class="w-5 h-5 border-2 border-gray-200 rounded bg-gray-200">
+                                            <svg class="w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#9CA3AF">
+                                                <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <span class="text-gray-400">Disabled checked state</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tooltips Section -->
+                <section id="tooltips" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Tooltips</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Tooltips provide additional context or information when users hover over or focus on an element. They should be concise, helpful, and non-essential.</p>
+                    </div>
+                    
+                    <!-- Tooltip Styles -->
+                    <div id="tooltip-styles" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Tooltip Styles</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <!-- Default Tooltip -->
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Default Tooltip</h4>
+                                    <div class="relative inline-block">
+                                        <button class="px-4 py-2 bg-[#3B82F6] text-white rounded-md">
+                                            Hover Me
+                                        </button>
+                                        <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded whitespace-nowrap">
+                                            Default tooltip
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-800"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 bg-gray-100 p-4 rounded-md">
+                                        <h5 class="text-xs font-medium mb-2">Styling Guidelines</h5>
+                                        <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                            <li>Background: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-gray-800</code></li>
+                                            <li>Text: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-white text-sm</code></li>
+                                            <li>Padding: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">px-3 py-2</code></li>
+                                            <li>Border radius: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">rounded</code></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <!-- Directional Tooltip -->
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Directional Variants</h4>
+                                    <div class="flex flex-wrap gap-4">
+                                        <!-- Top Tooltip -->
+                                        <div class="relative inline-block">
+                                            <button class="p-2 text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white rounded-md transition-colors">
+                                                <i class="fa-solid fa-arrow-up"></i>
+                                            </button>
+                                            <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded">
+                                                Top
+                                                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Right Tooltip -->
+                                        <div class="relative inline-block">
+                                            <button class="p-2 text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white rounded-md transition-colors">
+                                                <i class="fa-solid fa-arrow-right"></i>
+                                            </button>
+                                            <div class="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 bg-gray-800 text-white text-xs rounded">
+                                                Right
+                                                <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-800"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tooltip Usage -->
+                    <div id="tooltip-usage" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Usage Guidelines</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 text-sm font-medium">1</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-700"><span class="font-medium">Keep it brief:</span> Limit tooltip text to 1-2 short sentences.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 text-sm font-medium">2</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-700"><span class="font-medium">Don't hide essential information:</span> Tooltips should only provide additional context, not essential information.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 text-sm font-medium">3</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-700"><span class="font-medium">Show tooltips on hover and focus:</span> Ensure tooltips are accessible via both mouse and keyboard.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tables Section -->
+                <section id="tables" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Tables</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Tables present structured data in rows and columns, making information easy to scan, compare, and analyze. UnoPlat tables support complex data handling with sorting, filtering, and custom cell components.</p>
+                        
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Table Design Guidelines</h3>
+                        <div class="mt-6 space-y-6">
+                            <!-- Column Headers -->
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Column Headers</h4>
+                                <div class="overflow-hidden rounded-lg border border-gray-200">
+                                    <table class="w-full">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Name</th>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Status</th>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Role</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200">
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm text-gray-500" colspan="3">Table content...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-3 bg-gray-100 p-4 rounded-md">
+                                    <h5 class="text-xs font-medium mb-2">Header Styling</h5>
+                                    <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                        <li>Background: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-gray-50</code></li>
+                                        <li>Text style: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-sm font-medium text-gray-900</code></li>
+                                        <li>Alignment: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-left</code> (or text-right for numerical data)</li>
+                                        <li>Spacing: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">px-4 py-3</code></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Row States -->
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Row States</h4>
+                                <div class="overflow-hidden rounded-lg border border-gray-200">
+                                    <table class="w-full">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">State</th>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Description</th>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Styling</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200">
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-900">Default</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">Standard row appearance</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500"><code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-white</code></td>
+                                            </tr>
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-900">Hover</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">When user hovers over row</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500"><code class="text-xs bg-gray-200 px-1 py-0.5 rounded">hover:bg-gray-50</code></td>
+                                            </tr>
+                                            <tr class="bg-blue-50">
+                                                <td class="px-4 py-3 text-sm font-medium text-gray-900">Selected</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">When row is selected</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500"><code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-blue-50</code></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Cell Actions -->
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Cell Actions</h4>
+                                <div class="overflow-hidden rounded-lg border border-gray-200">
+                                    <table class="w-full">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Name</th>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Status</th>
+                                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200">
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-4 py-3 text-sm text-gray-900">John Doe</td>
+                                                <td class="px-4 py-3 text-sm text-gray-900">Active</td>
+                                                <td class="px-4 py-3 text-sm text-gray-900">
+                                                    <div class="flex space-x-2">
+                                                        <button class="p-1 text-blue-600 hover:text-blue-800">
+                                                            <i class="fa-solid fa-edit text-xs"></i>
+                                                        </button>
+                                                        <button class="p-1 text-red-600 hover:text-red-800">
+                                                            <i class="fa-solid fa-trash text-xs"></i>
+                                                        </button>
+                                                        <button class="p-1 text-gray-600 hover:text-gray-800">
+                                                            <i class="fa-solid fa-ellipsis-v text-xs"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-3 bg-gray-100 p-4 rounded-md">
+                                    <h5 class="text-xs font-medium mb-2">Action Button Styling</h5>
+                                    <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                        <li>Primary actions: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-blue-600 hover:text-blue-800</code></li>
+                                        <li>Destructive actions: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-red-600 hover:text-red-800</code></li>
+                                        <li>Secondary actions: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-gray-600 hover:text-gray-800</code></li>
+                                        <li>Group actions in <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">flex space-x-2</code> container</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Table Checkboxes -->
+                    <div id="table-checkboxes" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Table with Checkboxes</h3>
+                        <div class="overflow-hidden rounded-lg border border-gray-200">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="w-10 px-4 py-3">
+                                            <div class="relative">
+                                                <input type="checkbox" class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                            </div>
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Name</th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Status</th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Role</th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-900">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3">
+                                            <div class="relative">
+                                                <input type="checkbox" class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">John Doe</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Active</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Admin</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                            <button class="text-blue-600 hover:text-blue-800">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-blue-50 hover:bg-blue-100">
+                                        <td class="px-4 py-3">
+                                            <div class="relative">
+                                                <input type="checkbox" checked class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Jane Smith</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">Inactive</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">User</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                            <button class="text-blue-600 hover:text-blue-800">Edit</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Form Structure Section -->
+                <section id="form-structure" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Form Structure</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Forms are organized in consistent layouts to improve usability and understanding. This section provides guidelines for structuring forms, including nested and multi-step patterns.</p>
+                    </div>
+                    
+                    <!-- Basic Form Structure -->
+                    <div id="basic-form" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Form Structure</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <form class="space-y-6">
+                                <div>
+                                    <label for="example-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input type="email" id="example-email" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="you@example.com">
+                                </div>
+                                <div>
+                                    <label for="example-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <input type="password" id="example-password" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Submit</button>
+                                </div>
+                            </form>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Use consistent vertical spacing: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">space-y-6</code> between form groups</li>
+                                    <li>Place labels above inputs with <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-sm font-medium text-gray-700 mb-1</code></li>
+                                    <li>Set button positioning with <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">flex justify-end</code> or <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">flex justify-between</code> for multiple buttons</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Nested Form Structure -->
+                    <div id="nested-form" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Nested Form Structure</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <form class="space-y-8">
+                                <!-- Parent section -->
+                                <div>
+                                    <h4 class="text-base font-medium text-gray-900 mb-4">Repository Information</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="repo-name" class="block text-sm font-medium text-gray-700 mb-1">Repository Name</label>
+                                            <input type="text" id="repo-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        </div>
+                                        <div>
+                                            <label for="repo-url" class="block text-sm font-medium text-gray-700 mb-1">Repository URL</label>
+                                            <input type="url" id="repo-url" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Child section -->
+                                <div class="pt-4 border-t border-gray-200">
+                                    <h4 class="text-base font-medium text-gray-900 mb-4">Access Settings</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="access-level" class="block text-sm font-medium text-gray-700 mb-1">Access Level</label>
+                                            <select id="access-level" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                                <option>Public</option>
+                                                <option>Private</option>
+                                                <option>Selected Users</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Nested content based on selection -->
+                                        <div class="ml-6 pl-4 border-l-2 border-blue-200">
+                                            <h5 class="text-sm font-medium text-gray-700 mb-3">User Selection</h5>
+                                            <div class="space-y-2">
+                                                <div class="flex items-center">
+                                                    <input id="user1" type="checkbox" class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                                    <label for="user1" class="ml-2 block text-sm text-gray-700">John Doe</label>
+                                                </div>
+                                                <div class="flex items-center">
+                                                    <input id="user2" type="checkbox" class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                                    <label for="user2" class="ml-2 block text-sm text-gray-700">Jane Smith</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end">
+                                    <button type="button" class="mr-3 inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Cancel</button>
+                                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Save</button>
+                                </div>
+                            </form>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Nested Form Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Use section headings: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-base font-medium text-gray-900 mb-4</code></li>
+                                    <li>Separate sections with borders: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">pt-4 border-t border-gray-200</code></li>
+                                    <li>Indent nested content: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">ml-6 pl-4 border-l-2 border-blue-200</code></li>
+                                    <li>Use visual hierarchy through spacing and typography</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Multi-Step Form Structure -->
+                    <div id="multi-step-form" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Multi-Step Form Structure</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <nav aria-label="Progress" class="mb-8">
+                                <ol role="list" class="space-y-4 md:flex md:space-x-8 md:space-y-0">
+                                    <li class="md:flex-1">
+                                        <div class="flex flex-col border-l-4 border-blue-600 py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
+                                            <span class="text-sm font-medium text-blue-600">Step 1</span>
+                                            <span class="text-sm font-medium">Basic Information</span>
+                                        </div>
+                                    </li>
+                                    <li class="md:flex-1">
+                                        <div class="flex flex-col border-l-4 border-gray-300 py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
+                                            <span class="text-sm font-medium text-gray-500">Step 2</span>
+                                            <span class="text-sm font-medium">Advanced Settings</span>
+                                        </div>
+                                    </li>
+                                    <li class="md:flex-1">
+                                        <div class="flex flex-col border-l-4 border-gray-300 py-2 pl-4 md:border-l-0 md:border-t-4 md:pb-0 md:pl-0 md:pt-4">
+                                            <span class="text-sm font-medium text-gray-500">Step 3</span>
+                                            <span class="text-sm font-medium">Review & Submit</span>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </nav>
+                            
+                            <form class="space-y-6">
+                                <div>
+                                    <label for="project-name" class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                                    <input type="text" id="project-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="project-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <textarea id="project-description" rows="3" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                </div>
+                                
+                                <div class="flex justify-between">
+                                    <button type="button" class="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Cancel</button>
+                                    <button type="button" class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Next Step</button>
+                                </div>
+                            </form>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Multi-step Form Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Use progress indicators: Horizontal for desktop, vertical for mobile</li>
+                                    <li>Active step: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">border-blue-600 text-blue-600</code></li>
+                                    <li>Inactive step: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">border-gray-300 text-gray-500</code></li>
+                                    <li>Provide clear navigation buttons with descriptive labels</li>
+                                    <li>Maintain consistent button placement across steps</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Form Validation Section -->
+                <section id="validation" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Form Validation</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Form validation provides feedback to users about the correctness of their input. This section covers validation patterns and visual indicators to guide users through form completion.</p>
+                    </div>
+                    
+                    <!-- Inline Validation -->
+                    <div id="inline-validation" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Inline Validation</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-6">
+                                <!-- Valid Input Example -->
+                                <div>
+                                    <label for="valid-email" class="block text-sm font-medium text-gray-700 mb-1">Email (Valid)</label>
+                                    <div class="relative">
+                                        <input type="email" id="valid-email" value="user@example.com" class="block w-full rounded-md border-green-500 pr-10 shadow-sm focus:border-green-500 focus:ring-green-500">
+                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                            <svg class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <p class="mt-1 text-sm text-green-600">Email is valid</p>
+                                </div>
+                                
+                                <!-- Invalid Input Example -->
+                                <div>
+                                    <label for="invalid-email" class="block text-sm font-medium text-gray-700 mb-1">Email (Invalid)</label>
+                                    <div class="relative">
+                                        <input type="email" id="invalid-email" value="invalid-email" class="block w-full rounded-md border-red-500 pr-10 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                            <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <p class="mt-1 text-sm text-red-600">Please enter a valid email address</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Inline Validation Styling</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Valid input: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">border-green-500 focus:border-green-500 focus:ring-green-500</code></li>
+                                    <li>Invalid input: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">border-red-500 focus:border-red-500 focus:ring-red-500</code></li>
+                                    <li>Validation message: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">mt-1 text-sm text-red-600</code></li>
+                                    <li>Include validation icons for clear visual indication</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Validation Timing -->
+                    <div id="validation-timing" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Validation Timing</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-6">
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 text-sm font-medium">1</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">On Blur Validation</p>
+                                        <p class="text-sm text-gray-500">Validate when a field loses focus. This gives users time to complete their input before showing errors.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 text-sm font-medium">2</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Immediate Validation</p>
+                                        <p class="text-sm text-gray-500">Show success states as soon as valid input is detected. For errors, prefer to wait until blur to avoid interrupting the user.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 text-sm font-medium">3</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Submit Validation</p>
+                                        <p class="text-sm text-gray-500">Always validate upon form submission and prevent submission if errors exist. Highlight all fields with errors.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form-Level Validation -->
+                    <div id="form-level-validation" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Form-Level Validation</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="mb-6 rounded-md bg-red-50 p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414-1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-red-800">There were 2 errors with your submission</h3>
+                                        <div class="mt-2 text-sm text-red-700">
+                                            <ul role="list" class="list-disc pl-5 space-y-1">
+                                                <li>Your password must be at least 8 characters</li>
+                                                <li>Your password must include at least one number</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form class="space-y-6">
+                                <!-- Form fields here -->
+                                <div>
+                                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                    <input type="text" id="username" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <input type="password" id="password" class="block w-full rounded-md border-red-500 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                    <p class="mt-1 text-sm text-red-600">Password must be at least 8 characters</p>
+                                </div>
+                                
+                                <div class="flex justify-end">
+                                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Create Account</button>
+                                </div>
+                            </form>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Form-Level Validation Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Error Summary: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-red-50 p-4</code> with <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-red-800</code> heading</li>
+                                    <li>List all errors in a summary at the top of the form</li>
+                                    <li>Link error messages to corresponding fields when possible</li>
+                                    <li>Maintain individual field error states and messages</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Modals/Dialogs Section -->
+                <section id="modals" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Modals & Dialogs</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Modals and dialogs present focused content that requires user attention or interaction. They appear above the main interface, requiring resolution before continuing.</p>
+                    </div>
+                    
+                    <!-- Basic Modal -->
+                    <div id="basic-modal" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Modal</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <!-- Modal Example -->
+                            <div class="relative bg-white shadow-lg rounded-lg max-w-lg mx-auto">
+                                <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                                    <h3 class="text-lg font-medium text-gray-900">Modal Title</h3>
+                                    <button class="text-gray-400 hover:text-gray-500">
+                                        <i class="fa-solid fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="p-6">
+                                    <p class="text-gray-600">Modal content goes here. This can include text, forms, or other components depending on the purpose of the dialog.</p>
+                                </div>
+                                <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-3 rounded-b-lg">
+                                    <button class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                                    <button class="px-4 py-2 bg-blue-600 rounded-md text-sm font-medium text-white hover:bg-blue-700">Confirm</button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Modal Structure</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Header: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">p-4 border-b border-gray-200</code></li>
+                                    <li>Content area: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">p-6</code></li>
+                                    <li>Footer: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">px-4 py-3 bg-gray-50</code></li>
+                                    <li>Rounded corners: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">rounded-lg</code></li>
+                                    <li>Shadow: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">shadow-lg</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Authentication Modal -->
+                    <div id="auth-modal" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Authentication Modal</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <!-- Auth Modal Example -->
+                            <div class="relative bg-white shadow-lg rounded-lg max-w-md mx-auto">
+                                <div class="p-6">
+                                    <div class="text-center mb-4">
+                                        <h3 class="text-lg font-medium text-gray-900 mb-1">GitHub Authentication</h3>
+                                        <p class="text-sm text-gray-500">Enter your GitHub Personal Access Token (PAT)</p>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="pat-token" class="block text-sm font-medium text-gray-700 mb-1">Personal Access Token</label>
+                                            <input type="password" id="pat-token" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="ghp_xxxxxxxxxxxx">
+                                            <p class="mt-1 text-xs text-gray-500">Your token will be securely stored and used only for repository access.</p>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input id="remember-token" type="checkbox" class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                            <label for="remember-token" class="ml-2 block text-sm text-gray-700">Remember this token</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="px-6 py-4 bg-gray-50 flex justify-between rounded-b-lg">
+                                    <button class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                                    <button class="px-4 py-2 bg-blue-600 rounded-md text-sm font-medium text-white hover:bg-blue-700">Authenticate</button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Authentication Modal Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Clear instructions about required credentials</li>
+                                    <li>Secure input fields (password type) for tokens</li>
+                                    <li>Information about token security and storage</li>
+                                    <li>Option to remember credentials when appropriate</li>
+                                    <li>Cancel and authenticate actions clearly labeled</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirmation Dialog -->
+                    <div id="confirmation-dialog" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Confirmation Dialog</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <!-- Confirmation Dialog Example -->
+                            <div class="relative bg-white shadow-lg rounded-lg max-w-sm mx-auto">
+                                <div class="p-6">
+                                    <div class="flex items-center mb-4">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                            <i class="fa-solid fa-exclamation-triangle text-red-600"></i>
+                                        </div>
+                                        <h3 class="ml-3 text-lg font-medium text-gray-900">Delete Repository</h3>
+                                    </div>
+                                    <p class="text-gray-600 mb-4">Are you sure you want to delete this repository? This action cannot be undone.</p>
+                                    <div class="mt-5 flex justify-end space-x-3">
+                                        <button class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                                        <button class="px-4 py-2 bg-red-600 rounded-md text-sm font-medium text-white hover:bg-red-700">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Confirmation Dialog Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Use clear, direct language about the action and its consequences</li>
+                                    <li>For destructive actions, use red color and warning icons</li>
+                                    <li>Provide "Cancel" option as the secondary action</li>
+                                    <li>Primary action button should reflect the action (e.g., "Delete")</li>
+                                    <li>Keep dialog focused and concise</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Status Indicators & Badges Section -->
+                <section id="status-indicators" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Status Indicators & Badges</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Status indicators and badges provide visual cues about states, quantities, or categories. They help users quickly understand the status of items or actions.</p>
+                    </div>
+                    
+                    <!-- Status Badges -->
+                    <div id="status-badges" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Status Badges</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Semantic Status Badges</h4>
+                                    <div class="flex flex-wrap gap-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Active
+                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            Pending
+                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            Failed
+                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            Info
+                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            Inactive
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Badges with Icons</h4>
+                                    <div class="flex flex-wrap gap-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+                                                <circle cx="4" cy="4" r="3" />
+                                            </svg>
+                                            Active
+                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <i class="fa-solid fa-exclamation-circle text-red-500 mr-1.5 text-xs"></i>
+                                            Error
+                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <i class="fa-solid fa-info-circle text-blue-500 mr-1.5 text-xs"></i>
+                                            Information
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Status Badge Styling</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Base styling: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium</code></li>
+                                    <li>Success status: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-green-100 text-green-800</code></li>
+                                    <li>Warning status: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-yellow-100 text-yellow-800</code></li>
+                                    <li>Error status: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-red-100 text-red-800</code></li>
+                                    <li>Info status: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-blue-100 text-blue-800</code></li>
+                                    <li>Neutral status: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-gray-100 text-gray-800</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notification Badges -->
+                    <div id="notification-badges" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Notification Badges</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-6">
+                                <!-- Notification Counter Badges -->
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Counter Badges</h4>
+                                    <div class="flex flex-wrap gap-8">
+                                        <div class="relative inline-block">
+                                            <button class="p-2 text-gray-500 rounded-full hover:bg-gray-100">
+                                                <i class="fa-solid fa-bell text-xl"></i>
+                                            </button>
+                                            <span class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                                3
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="relative inline-block">
+                                            <button class="p-2 text-gray-700">
+                                                Messages
+                                            </button>
+                                            <span class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 inline-flex items-center justify-center w-4 h-4 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                                8
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="relative inline-block">
+                                            <button class="p-2 text-gray-700 flex items-center gap-2">
+                                                <span>Notifications</span>
+                                                <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-blue-600 rounded-full">
+                                                    New
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Notification Badge Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Positioned with transform: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2</code></li>
+                                    <li>Use high contrast colors: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-white bg-red-600</code></li>
+                                    <li>Keep text bold and concise: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-xs font-bold</code></li>
+                                    <li>For large numbers (>99), consider using "99+" format</li>
+                                    <li>Ensure badges are accessible with appropriate aria labels</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Tags -->
+                    <div id="category-tags" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Category & Tag Indicators</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Repository Tags</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-md text-sm font-medium bg-indigo-100 text-indigo-800">
+                                            Frontend
+                                        </span>
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-md text-sm font-medium bg-green-100 text-green-800">
+                                            Node.js
+                                        </span>
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">
+                                            JavaScript
+                                        </span>
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-md text-sm font-medium bg-purple-100 text-purple-800">
+                                            React
+                                        </span>
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800">
+                                            TypeScript
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Removable Tags</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-md text-sm font-medium bg-indigo-100 text-indigo-800">
+                                            Frontend
+                                            <button class="ml-1.5 inline-flex items-center justify-center text-indigo-400 hover:text-indigo-600">
+                                                <i class="fa-solid fa-times text-xs"></i>
+                                            </button>
+                                        </span>
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-md text-sm font-medium bg-green-100 text-green-800">
+                                            Node.js
+                                            <button class="ml-1.5 inline-flex items-center justify-center text-green-400 hover:text-green-600">
+                                                <i class="fa-solid fa-times text-xs"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Category Tag Styling</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Base styling: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">inline-flex items-center px-3 py-0.5 rounded-md text-sm font-medium</code></li>
+                                    <li>Use color variations to indicate different categories</li>
+                                    <li>For removable tags, add a button with hover state</li>
+                                    <li>Maintain consistent styling across the application</li>
+                                    <li>Ensure sufficient contrast between text and background colors</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Cards & Panels Section -->
+                <section id="cards" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Cards & Panels</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Cards and panels provide a flexible container for displaying content with a consistent visual style. They serve as a foundation for displaying repository information, metadata, and activity timelines.</p>
+                    </div>
+                    
+                    <!-- Repository Cards -->
+                    <div id="repository-cards" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Repository Cards</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <!-- Repository Card Example -->
+                            <div class="max-w-md mx-auto bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                                <div class="p-5">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-gray-900 mb-1">
+                                                project-name
+                                            </h4>
+                                            <p class="text-sm text-gray-500 mb-3">organization/project-name</p>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                TypeScript
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="text-sm text-gray-600 mb-4">
+                                        Repository description goes here. This can be a brief explanation of the project's purpose and functionality.
+                                    </p>
+                                    
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                            <div class="flex items-center">
+                                                <i class="fa-solid fa-code-branch mr-1"></i>
+                                                <span>15</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <i class="fa-solid fa-star mr-1"></i>
+                                                <span>42</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <i class="fa-solid fa-circle text-green-500 text-xs mr-1"></i>
+                                                <span>Public</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs text-gray-500">Updated 3 days ago</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="px-5 py-3 bg-gray-50 border-t border-gray-200 flex justify-between">
+                                    <div class="flex -space-x-2">
+                                        <img class="h-7 w-7 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/men/1.jpg" alt="Contributor">
+                                        <img class="h-7 w-7 rounded-full ring-2 ring-white" src="https://randomuser.me/api/portraits/women/2.jpg" alt="Contributor">
+                                        <div class="h-7 w-7 rounded-full ring-2 ring-white bg-gray-200 flex items-center justify-center text-xs text-gray-500">+3</div>
+                                    </div>
+                                    <div>
+                                        <button class="text-gray-500 hover:text-gray-700">
+                                            <i class="fa-solid fa-ellipsis-v"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Repository Card Structure</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Card container: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-white rounded-lg border border-gray-200 shadow-sm</code></li>
+                                    <li>Card header: Repository name, organization, and tags</li>
+                                    <li>Card body: Description and metadata</li>
+                                    <li>Card footer: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-gray-50 border-t border-gray-200</code> with contributors and actions</li>
+                                    <li>Consistent spacing and typography throughout</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card Grid/List Views -->
+                    <div id="card-views" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Card Grid & List Views</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Grid View (Card Layout)</h4>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <!-- First card (simplified) -->
+                                        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                                            <div class="p-4">
+                                                <h5 class="text-base font-semibold text-gray-900 mb-1">project-one</h5>
+                                                <p class="text-xs text-gray-500 mb-2">organization/project-one</p>
+                                                <div class="flex items-center text-xs text-gray-500">
+                                                    <i class="fa-solid fa-circle text-green-500 text-xs mr-1"></i>
+                                                    <span>Public</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Second card (simplified) -->
+                                        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                                            <div class="p-4">
+                                                <h5 class="text-base font-semibold text-gray-900 mb-1">project-two</h5>
+                                                <p class="text-xs text-gray-500 mb-2">organization/project-two</p>
+                                                <div class="flex items-center text-xs text-gray-500">
+                                                    <i class="fa-solid fa-circle text-red-500 text-xs mr-1"></i>
+                                                    <span>Private</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">List View</h4>
+                                    <div class="space-y-2">
+                                        <!-- First list item -->
+                                        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden px-4 py-3">
+                                            <div class="flex justify-between items-center">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="flex-shrink-0">
+                                                        <i class="fa-solid fa-book text-gray-400"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="text-sm font-medium text-gray-900">project-one</h5>
+                                                        <p class="text-xs text-gray-500">organization/project-one</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center space-x-4">
+                                                    <span class="text-xs text-gray-500">Updated 2d ago</span>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        Public
+                                                    </span>
+                                                    <button class="text-gray-400 hover:text-gray-500">
+                                                        <i class="fa-solid fa-ellipsis-v"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Second list item -->
+                                        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden px-4 py-3">
+                                            <div class="flex justify-between items-center">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="flex-shrink-0">
+                                                        <i class="fa-solid fa-book text-gray-400"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="text-sm font-medium text-gray-900">project-two</h5>
+                                                        <p class="text-xs text-gray-500">organization/project-two</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center space-x-4">
+                                                    <span class="text-xs text-gray-500">Updated 5d ago</span>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        Private
+                                                    </span>
+                                                    <button class="text-gray-400 hover:text-gray-500">
+                                                        <i class="fa-solid fa-ellipsis-v"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">View Mode Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Grid View: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">grid grid-cols-{n} gap-4</code> where n is the number of columns</li>
+                                    <li>List View: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">space-y-2</code> with horizontally arranged content</li>
+                                    <li>Both views should maintain consistent styling</li>
+                                    <li>Offer consistent action options across view modes</li>
+                                    <li>Ensure responsive adaptation for different screen sizes</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline Cards -->
+                    <div id="timeline-cards" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Activity Timeline</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="flow-root">
+                                <ul role="list" class="-mb-8">
+                                    <li>
+                                        <div class="relative pb-8">
+                                            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                            <div class="relative flex items-start space-x-3">
+                                                <div class="relative">
+                                                    <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                                                        <i class="fa-solid fa-code-branch text-white"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="min-w-0 flex-1 py-1.5">
+                                                    <div class="text-sm text-gray-500">
+                                                        <span class="font-medium text-gray-900">Jane Smith</span> created a new branch
+                                                        <span class="font-medium text-gray-900">feature/search</span>
+                                                        <span class="whitespace-nowrap">1h ago</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="relative pb-8">
+                                            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                            <div class="relative flex items-start space-x-3">
+                                                <div class="relative">
+                                                    <div class="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                                        <i class="fa-solid fa-code-pull-request text-white"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="min-w-0 flex-1 py-1.5">
+                                                    <div class="text-sm text-gray-500">
+                                                        <span class="font-medium text-gray-900">John Doe</span> merged pull request 
+                                                        <span class="font-medium text-gray-900">#42: Add user authentication</span>
+                                                        <span class="whitespace-nowrap">3h ago</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="relative">
+                                            <div class="relative flex items-start space-x-3">
+                                                <div class="relative">
+                                                    <div class="h-10 w-10 rounded-full bg-purple-500 flex items-center justify-center ring-8 ring-white">
+                                                        <i class="fa-solid fa-tag text-white"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="min-w-0 flex-1 py-1.5">
+                                                    <div class="text-sm text-gray-500">
+                                                        <span class="font-medium text-gray-900">System</span> created a new release
+                                                        <span class="font-medium text-gray-900">v1.2.0</span>
+                                                        <span class="whitespace-nowrap">1d ago</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Timeline Pattern Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Vertical timeline with connecting line: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200</code></li>
+                                    <li>Color-coded icons based on action type</li>
+                                    <li>Consistent spacing and alignment of timeline items</li>
+                                    <li>Include timestamp information in a consistent format</li>
+                                    <li>Format names and important references with <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">font-medium text-gray-900</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Navigation Components -->
+                <section id="navigation-components" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Navigation Components</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Navigation components provide consistent patterns for users to move through the application. These components establish hierarchy and relationships between different sections.</p>
+                    </div>
+                    
+                    <!-- Sidebar Navigation -->
+                    <div id="sidebar-navigation" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Sidebar Navigation</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Collapsible Sidebar</h4>
+                                    <!-- Sidebar Demo -->
+                                    <div class="w-60 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                        <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                                            <h5 class="text-base font-medium text-gray-900">Dashboard</h5>
+                                            <button class="text-gray-500 hover:text-gray-700">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </button>
+                                        </div>
+                                        <div class="py-2">
+                                            <!-- Top Level Nav Item -->
+                                            <a href="#" class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50">
+                                                <i class="fa-solid fa-home mr-3 text-gray-500"></i>
+                                                <span>Overview</span>
+                                            </a>
+                                            
+                                            <!-- Active Nav Item -->
+                                            <a href="#" class="flex items-center px-4 py-2 bg-blue-50 text-blue-700">
+                                                <i class="fa-solid fa-code-branch mr-3 text-blue-600"></i>
+                                                <span>Repositories</span>
+                                            </a>
+                                            
+                                            <!-- Nav Section -->
+                                            <div class="mt-2 pt-2 border-t border-gray-100">
+                                                <h6 class="px-4 py-1 text-xs font-medium text-gray-500 uppercase tracking-wider">Management</h6>
+                                                
+                                                <!-- Expandable Nav Section -->
+                                                <div>
+                                                    <button class="w-full flex items-center justify-between px-4 py-2 text-gray-600 hover:bg-gray-50">
+                                                        <div class="flex items-center">
+                                                            <i class="fa-solid fa-gear mr-3 text-gray-500"></i>
+                                                            <span>Settings</span>
+                                                        </div>
+                                                        <i class="fa-solid fa-chevron-down text-xs text-gray-500"></i>
+                                                    </button>
+                                                    
+                                                    <!-- Expanded Subnav -->
+                                                    <div class="ml-8 pl-4 border-l border-gray-100">
+                                                        <a href="#" class="flex items-center px-2 py-2 text-sm text-gray-600 hover:text-gray-900">
+                                                            General
+                                                        </a>
+                                                        <a href="#" class="flex items-center px-2 py-2 text-sm text-blue-700 font-medium">
+                                                            Permissions
+                                                        </a>
+                                                        <a href="#" class="flex items-center px-2 py-2 text-sm text-gray-600 hover:text-gray-900">
+                                                            Integrations
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Collapsed State</h4>
+                                    <!-- Collapsed Sidebar Demo -->
+                                    <div class="w-16 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                        <div class="py-3 border-b border-gray-200 flex items-center justify-center">
+                                            <button class="text-gray-500 hover:text-gray-700">
+                                                <i class="fa-solid fa-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                        <div class="py-2">
+                                            <a href="#" class="flex items-center justify-center py-3 text-gray-600 hover:bg-gray-50" title="Overview">
+                                                <i class="fa-solid fa-home text-gray-500"></i>
+                                            </a>
+                                            <a href="#" class="flex items-center justify-center py-3 bg-blue-50 text-blue-700" title="Repositories">
+                                                <i class="fa-solid fa-code-branch text-blue-600"></i>
+                                            </a>
+                                            <a href="#" class="flex items-center justify-center py-3 text-gray-600 hover:bg-gray-50" title="Settings">
+                                                <i class="fa-solid fa-gear text-gray-500"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Sidebar Navigation Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Standard sidebar: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">w-60 bg-white border border-gray-200 rounded-lg shadow-sm</code></li>
+                                    <li>Collapsed sidebar: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">w-16</code> with centered icons</li>
+                                    <li>Active state: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-blue-50 text-blue-700</code></li>
+                                    <li>Section headers: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-xs font-medium text-gray-500 uppercase tracking-wider</code></li>
+                                    <li>Nested navigation: Use indentation and borders <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">ml-8 pl-4 border-l border-gray-100</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Breadcrumbs -->
+                    <div id="breadcrumbs" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Breadcrumbs</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <!-- Breadcrumbs Demo -->
+                            <nav class="flex" aria-label="Breadcrumb">
+                                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                                    <li class="inline-flex items-center">
+                                        <a href="#" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                                            <i class="fa-solid fa-home mr-2 text-gray-500"></i>
+                                            Home
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <div class="flex items-center">
+                                            <i class="fa-solid fa-chevron-right text-gray-400 mx-2 text-xs"></i>
+                                            <a href="#" class="text-sm font-medium text-gray-700 hover:text-blue-600">Repositories</a>
+                                        </div>
+                                    </li>
+                                    <li aria-current="page">
+                                        <div class="flex items-center">
+                                            <i class="fa-solid fa-chevron-right text-gray-400 mx-2 text-xs"></i>
+                                            <span class="text-sm font-medium text-gray-500">Project Name</span>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </nav>
+                            
+                            <div class="mt-8">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Mobile Responsive Breadcrumbs</h4>
+                                <nav class="flex" aria-label="Breadcrumb">
+                                    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                                        <li class="inline-flex items-center">
+                                            <a href="#" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                                                <i class="fa-solid fa-home text-gray-500"></i>
+                                                <span class="hidden md:inline-block md:ml-2">Home</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <div class="flex items-center">
+                                                <i class="fa-solid fa-chevron-right text-gray-400 mx-1 md:mx-2 text-xs"></i>
+                                                <a href="#" class="text-sm font-medium text-gray-700 hover:text-blue-600">
+                                                    <span class="hidden md:inline-block">Repositories</span>
+                                                    <span class="inline-block md:hidden">Repos</span>
+                                                </a>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="flex items-center">
+                                                <i class="fa-solid fa-chevron-right text-gray-400 mx-1 md:mx-2 text-xs"></i>
+                                                <span class="text-sm font-medium text-gray-500 truncate max-w-24 md:max-w-none">Project with Very Long Name</span>
+                                            </div>
+                                        </li>
+                                    </ol>
+                                </nav>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Breadcrumb Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Structure: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">inline-flex items-center space-x-1 md:space-x-3</code></li>
+                                    <li>Separator: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">fa-chevron-right text-gray-400 mx-2 text-xs</code></li>
+                                    <li>Links: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-sm font-medium text-gray-700 hover:text-blue-600</code></li>
+                                    <li>Current page: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">text-sm font-medium text-gray-500</code> (non-clickable)</li>
+                                    <li>For mobile: Hide full text or truncate with <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">truncate max-w-24</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div id="pagination" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Pagination</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <!-- Standard Pagination -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Previous
+                                    </a>
+                                    <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Next
+                                    </a>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">97</span> results
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Previous</span>
+                                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                                            </a>
+                                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                1
+                                            </a>
+                                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-700">
+                                                2
+                                            </a>
+                                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                3
+                                            </a>
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                                ...
+                                            </span>
+                                            <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                10
+                                            </a>
+                                            <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <span class="sr-only">Next</span>
+                                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                                            </a>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Simple Pagination</h4>
+                                <div class="flex justify-center">
+                                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Previous</span>
+                                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                                        </a>
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                            Page 2 of 10
+                                        </span>
+                                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Next</span>
+                                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                                        </a>
+                                    </nav>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Pagination Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Container: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">inline-flex rounded-md shadow-sm -space-x-px</code></li>
+                                    <li>Page links: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">px-4 py-2 border border-gray-300 bg-white text-sm font-medium</code></li>
+                                    <li>Current page: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-blue-50 text-blue-700</code></li>
+                                    <li>Include a summary showing "x to y of z results" when space allows</li>
+                                    <li>For mobile, simplify to just Previous/Next buttons</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Notification Components -->
+                <section id="notification-components" class="mb-16">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Notification Components</h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-gray-200 mb-8">
+                        <p class="text-gray-600 mb-6">Notification components provide feedback to users about system events, updates, and status changes. These components should be informative yet unobtrusive.</p>
+                    </div>
+                    
+                    <!-- Toast Notifications -->
+                    <div id="toast-notifications" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Toast Notifications</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-4">
+                                <!-- Success Toast -->
+                                <div class="max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto border-l-4 border-green-500">
+                                    <div class="p-4">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fa-solid fa-check-circle text-green-500"></i>
+                                            </div>
+                                            <div class="ml-3 w-0 flex-1 pt-0.5">
+                                                <p class="text-sm font-medium text-gray-900">Repository created successfully</p>
+                                                <p class="mt-1 text-sm text-gray-500">You can now push your code to this repository.</p>
+                                            </div>
+                                            <div class="ml-4 flex-shrink-0 flex">
+                                                <button class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500">
+                                                    <span class="sr-only">Close</span>
+                                                    <i class="fa-solid fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Error Toast -->
+                                <div class="max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto border-l-4 border-red-500">
+                                    <div class="p-4">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fa-solid fa-exclamation-circle text-red-500"></i>
+                                            </div>
+                                            <div class="ml-3 w-0 flex-1 pt-0.5">
+                                                <p class="text-sm font-medium text-gray-900">Authentication failed</p>
+                                                <p class="mt-1 text-sm text-gray-500">Please check your Personal Access Token and try again.</p>
+                                            </div>
+                                            <div class="ml-4 flex-shrink-0 flex">
+                                                <button class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500">
+                                                    <span class="sr-only">Close</span>
+                                                    <i class="fa-solid fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Info Toast with Action -->
+                                <div class="max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto border-l-4 border-blue-500">
+                                    <div class="p-4">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <i class="fa-solid fa-info-circle text-blue-500"></i>
+                                            </div>
+                                            <div class="ml-3 w-0 flex-1 pt-0.5">
+                                                <p class="text-sm font-medium text-gray-900">New version available</p>
+                                                <p class="mt-1 text-sm text-gray-500">Version 2.0 of the application is now available.</p>
+                                                <div class="mt-3 flex space-x-3">
+                                                    <button class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">Update now</button>
+                                                    <button class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium">Later</button>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4 flex-shrink-0 flex">
+                                                <button class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500">
+                                                    <span class="sr-only">Close</span>
+                                                    <i class="fa-solid fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Toast Notification Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Container: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto</code></li>
+                                    <li>Color indicator: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">border-l-4 border-{color}-500</code></li>
+                                    <li>Include icon, title, message, and close button</li>
+                                    <li>For actionable notifications, include clear buttons</li>
+                                    <li>Auto-dismiss non-critical notifications after 5-7 seconds</li>
+                                    <li>Position in top-right or bottom-right of viewport</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Alert Banners -->
+                    <div id="alert-banners" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Alert Banners</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="space-y-4">
+                                <!-- Info Alert -->
+                                <div class="rounded-md bg-blue-50 p-4">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fa-solid fa-info-circle text-blue-400"></i>
+                                        </div>
+                                        <div class="ml-3 flex-1 md:flex md:justify-between">
+                                            <p class="text-sm text-blue-700">
+                                                A new software update is available. See what's new in version 2.0.
+                                            </p>
+                                            <p class="mt-3 text-sm md:mt-0 md:ml-6">
+                                                <a href="#" class="whitespace-nowrap font-medium text-blue-700 hover:text-blue-600">
+                                                    Details <span aria-hidden="true">&rarr;</span>
+                                                </a>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Warning Alert -->
+                                <div class="rounded-md bg-yellow-50 p-4">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fa-solid fa-exclamation-triangle text-yellow-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-yellow-800">Attention needed</h3>
+                                            <div class="mt-2 text-sm text-yellow-700">
+                                                <p>
+                                                    Your account is currently in read-only mode. Contact your administrator for access.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Error Alert with List -->
+                                <div class="rounded-md bg-red-50 p-4">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fa-solid fa-exclamation-circle text-red-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-red-800">There were 2 errors with your submission</h3>
+                                            <div class="mt-2 text-sm text-red-700">
+                                                <ul role="list" class="list-disc pl-5 space-y-1">
+                                                    <li>Repository name must only contain alphanumeric characters</li>
+                                                    <li>You don't have permission to create private repositories</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Dismissible Success Alert -->
+                                <div class="rounded-md bg-green-50 p-4">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fa-solid fa-check-circle text-green-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-green-800">
+                                                Successfully uploaded repository data
+                                            </p>
+                                        </div>
+                                        <div class="ml-auto pl-3">
+                                            <div class="-mx-1.5 -my-1.5">
+                                                <button class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100">
+                                                    <span class="sr-only">Dismiss</span>
+                                                    <i class="fa-solid fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 bg-gray-100 p-4 rounded-md">
+                                <h5 class="text-xs font-medium mb-2">Alert Banner Guidelines</h5>
+                                <ul class="text-xs space-y-1 text-gray-600 list-disc pl-4">
+                                    <li>Container: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">rounded-md bg-{color}-50 p-4</code></li>
+                                    <li>Info alerts: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-blue-50 text-blue-700</code></li>
+                                    <li>Warning alerts: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-yellow-50 text-yellow-800</code></li>
+                                    <li>Error alerts: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-red-50 text-red-800</code></li>
+                                    <li>Success alerts: <code class="text-xs bg-gray-200 px-1 py-0.5 rounded">bg-green-50 text-green-800</code></li>
+                                    <li>Include appropriate icon, clear message, and action if needed</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notification Center -->
+                    <div id="notification-center" class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Notification Center</h3>
+                        <div class="p-6 bg-white rounded-lg border border-gray-200">
+                            <div class="max-w-md mx-auto bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                                <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                                    <h4 class="text-base font-medium text-gray-900">Notifications</h4>
+                                    <div class="flex space-x-3">
+                                        <button class="text-sm text-blue-600 hover:text-blue-500">Mark all as read</button>
+                                    </div>
+                                </div>
+                                <div class="divide-y divide-gray-200">
+                                    <!-- Unread Notification -->
+                                    <div class="p-4 bg-blue-50">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <i class="fa-solid fa-code-branch text-blue-600"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">Pull request merged</p>
+                                                <p class="text-sm text-gray-500">Your PR #42 was merged into main</p>
+                                                <p class="mt-1 text-xs text-gray-400">10 minutes ago</p>
+                                            </div>
+                                            <div class="ml-auto flex items-center">
+                                                <div class="h-2 w-2 bg-blue-600 rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Read Notification -->
+                                    <div class="p-4">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <i class="fa-solid fa-user-plus text-purple-600"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-sm font-medium text-gray-900">New contributor</p>
+                                                <p class="text-sm text-gray-500">John Doe was added as a contributor</p>
+                                                <p class="mt-1 text-xs text-gray-400">2 hours ago</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Actionable Notification -->
+                                    <div class="p-4">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                                <i class="fa-solid fa-exclamation-triangle text-red-600"></i>
+                                            </div>
+                                            <div class="ml-3">
+</body>
+</html>
+          
