@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 # First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
+from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 
 # Use the example config file path
 TEST_CONFIG_PATH = Path(__file__).parent.parent/"test_data"/ "example_config.json"
@@ -64,13 +65,34 @@ def github_pat_token():
         
     return token
 
+def repository_settings_to_github_request(settings: RepositorySettings) -> GitHubRepoRequestConfiguration:
+    """Convert RepositorySettings to GitHubRepoRequestConfiguration for test compatibility."""
+    # Extract organization and repo name from git_url
+    # Supports: https://github.com/org/repo(.git) or git@github.com:org/repo(.git)
+    git_url = settings.git_url
+    if git_url.startswith("git@"):
+        repo_path = git_url.split("github.com:")[-1]
+    else:
+        repo_path = git_url.split("github.com/")[-1]
+    repo_path = repo_path.replace(".git", "")
+    parts = repo_path.split("/")
+    if len(parts) < 2:
+        raise ValueError(f"Invalid git_url: {git_url}")
+    org, repo = parts[0], parts[1]
+    return GitHubRepoRequestConfiguration(
+        repository_name=repo,
+        repository_git_url=git_url,
+        repository_owner_name=org,
+        repository_metadata=settings.codebases,
+    )
+
 class TestGithubHelper:
     
     @pytest.mark.asyncio  # Mark test as async
-    async def test_clone_repository(self, github_helper: GithubHelper, settings: RepositorySettings, github_pat_token: str):
+    async def test_clone_repository(self, github_helper: GithubHelper, settings: RepositorySettings, github_pat_token: str) -> None:
         """Test cloning a real repository using example_config.json"""
-        # Clone repository - now with await
-        repo = await github_helper.clone_repository(settings, github_token=github_pat_token)
+        repo_request: GitHubRepoRequestConfiguration = repository_settings_to_github_request(settings)
+        repo = await github_helper.clone_repository(repo_request, github_token=github_pat_token)
         
         # Basic repository assertions
         assert repo is not None
@@ -121,10 +143,10 @@ class TestGithubHelper:
         assert len(repo.readme) > 0
 
     @pytest.mark.asyncio  # Mark test as async
-    async def test_clone_nested_repository(self, github_helper: GithubHelper, nested_settings: RepositorySettings, github_pat_token: str):
+    async def test_clone_nested_repository(self, github_helper: GithubHelper, nested_settings: RepositorySettings, github_pat_token: str) -> None:
         """Test cloning a repository with nested package structure using nested_package_git_config.json"""
-        # Clone repository - now with await
-        repo = await github_helper.clone_repository(nested_settings, github_token=github_pat_token)
+        repo_request: GitHubRepoRequestConfiguration = repository_settings_to_github_request(nested_settings)
+        repo = await github_helper.clone_repository(repo_request, github_token=github_pat_token)
         
         # Basic repository assertions
         assert repo is not None
