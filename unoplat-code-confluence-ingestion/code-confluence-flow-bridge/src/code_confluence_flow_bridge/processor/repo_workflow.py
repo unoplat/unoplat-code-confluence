@@ -1,4 +1,4 @@
-from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
+
 
 from datetime import timedelta
 
@@ -12,7 +12,8 @@ with workflow.unsafe.imports_passed_through():
 
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
-    from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
+    from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
+    from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 
 
 @workflow.defn(name="repo-activity-workflow")
@@ -22,22 +23,21 @@ class RepoWorkflow:
     """
 
     @workflow.run
-    async def run(self, repository_settings: RepositorySettings, github_token: str) -> UnoplatGitRepository:
+    async def run(self, repo_request: GitHubRepoRequestConfiguration, github_token: str) -> UnoplatGitRepository:
         """
         Execute the repository activity workflow
 
         Args:
-            repository_settings: Repository configuration
-            app_settings: Application settings including GitHub token
+            repo_request: GitHub repository request configuration
+            github_token: GitHub token
 
         Returns:
             RepoActivityResult containing the processing outcome
         """
-        workflow.logger.info(f"Starting repository workflow for {repository_settings.git_url}")
+        workflow.logger.info(f"Starting repository workflow for {repo_request.repository_git_url}")
 
-        # 1. First executes a git activity
         workflow.logger.info("Executing git activity to process repository")
-        git_repo_metadata: UnoplatGitRepository = await workflow.execute_activity(activity=GitActivity.process_git_activity, args=(repository_settings, github_token), start_to_close_timeout=timedelta(minutes=10))
+        git_repo_metadata: UnoplatGitRepository = await workflow.execute_activity(activity=GitActivity.process_git_activity, args=(repo_request, github_token), start_to_close_timeout=timedelta(minutes=10))
 
         # 2. Then insert the git repo into the graph db
         workflow.logger.info("Inserting git repository metadata into graph database")
@@ -51,5 +51,5 @@ class RepoWorkflow:
                 CodebaseChildWorkflow.run, args=[parent_child_clone_metadata.repository_qualified_name, codebase_qualified_name, unoplat_codebase.local_path,unoplat_codebase.source_directory, unoplat_codebase.package_manager_metadata], id=f"codebase-child-workflow-{codebase_qualified_name}", parent_close_policy=ParentClosePolicy.ABANDON
             )
 
-        workflow.logger.info(f"Repository workflow completed successfully for {repository_settings.git_url}")
+        workflow.logger.info(f"Repository workflow completed successfully for {repo_request.repository_git_url}")
         return git_repo_metadata
