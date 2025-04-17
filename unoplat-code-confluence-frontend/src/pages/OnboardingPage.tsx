@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { AlertCircle } from 'lucide-react';
-import { 
-  submitRepositories, 
-  getFlagStatus, 
-} from '../lib/api';
-import { useToast } from '../components/ui/use-toast';
+import { getFlagStatus } from '../lib/api';
 import { RepositoryDataTable, type RepositoryDataTableRef } from '../components/custom/RepositoryDataTable';
 import GitHubTokenPopup from '../components/GitHubTokenPopup';
 import { FlagResponse } from '../types';
@@ -15,12 +11,11 @@ import { FlagResponse } from '../types';
 export default function OnboardingPage(): React.ReactElement {
   console.log('[OnboardingPage] Rendering OnboardingPage component');
   
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const dataTableRef = useRef<RepositoryDataTableRef>(null);
   
   const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
-  const [hasSelection, setHasSelection] = useState<boolean>(false);
+  
   
   console.log('[OnboardingPage] State: showTokenPopup =', showTokenPopup);
 
@@ -40,59 +35,7 @@ export default function OnboardingPage(): React.ReactElement {
     }
   }, [tokenStatus]);
   
-  // Set up an interval to check selection status
-  useEffect(() => {
-    if (!tokenStatus?.status) return;
-    
-    const checkSelection = (): void => {
-      const count = dataTableRef.current?.getSelectedRowNames().length ?? 0;
-      setHasSelection(count > 0);
-    };
-    
-    // Check initially
-    checkSelection();
-    
-    // Set up interval to periodically check
-    const intervalId = setInterval(checkSelection, 300);
-    
-    return () => clearInterval(intervalId);
-  }, [tokenStatus?.status]);
-
-  const handleSubmitSelections = async (): Promise<void> => {
-    try {
-      const selectedRepoNames = dataTableRef.current?.getSelectedRowNames() ?? [];
-      console.log('[OnboardingPage] Submitting repositories:', selectedRepoNames);
-      
-      if (selectedRepoNames.length === 0) {
-        console.log('[OnboardingPage] No repositories selected, showing error toast');
-        toast({
-          variant: "destructive",
-          title: "Selection Required",
-          description: "Please select at least one repository to continue."
-        });
-        return;
-      }
-      
-      console.log('[OnboardingPage] Calling submitRepositories API');
-      await submitRepositories(selectedRepoNames);
-      
-      console.log('[OnboardingPage] Repositories submitted successfully, showing success toast');
-      toast({
-        title: "Success",
-        description: "Repositories submitted for ingestion successfully!"
-      });
-      
-      console.log('[OnboardingPage] Navigating to dashboard');
-      window.location.href = '/dashboard';
-    } catch (error) {
-      console.error('[OnboardingPage] Error submitting repositories:', error);
-      toast({
-        variant: "destructive",
-        title: "Submission Failed",
-        description: "Failed to submit repositories for ingestion."
-      });
-    }
-  };
+  // Row-selection and submission functionality removed as it's no longer supported
 
   const handleTokenSuccess = async (): Promise<void> => {
     console.log('[OnboardingPage] Token submitted successfully, hiding popup');
@@ -169,24 +112,6 @@ export default function OnboardingPage(): React.ReactElement {
             />
           )}
         </CardContent>
-        
-        {tokenStatus?.status && (
-          <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-4">
-            <div className="text-sm text-muted-foreground">
-              {hasSelection ? 'Ready to submit your selection' : 'Select repositories to continue'}
-            </div>
-            <Button 
-              onClick={() => {
-                console.log('[OnboardingPage] "Submit Selected Repositories" button clicked');
-                handleSubmitSelections();
-              }}
-              disabled={!hasSelection}
-              className="bg-primary hover:bg-primary/90 font-semibold px-6 py-2 text-base"
-            >
-              Submit
-            </Button>
-          </CardFooter>
-        )}
       </Card>
 
       <GitHubTokenPopup 

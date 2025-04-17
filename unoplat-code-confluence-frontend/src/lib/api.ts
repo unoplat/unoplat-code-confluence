@@ -1,6 +1,6 @@
 import { env } from './env';
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import { FlagResponse, GitHubRepoSummary, PaginatedResponse } from '../types';
+import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration } from '../types';
 
 // Re-export types from '../types' for consumers
 export type { FlagResponse, GitHubRepoSummary, PaginatedResponse };
@@ -133,14 +133,12 @@ export const fetchGitHubRepositories = async (
 /**
  * Submit selected repositories for ingestion
  * 
- * @param repositoryNames - Array of repository names to ingest
+ * @param repositoryConfig - Repository configuration payload
  * @returns Promise with the response data
  */
-export const submitRepositories = async (repositoryNames: string[]): Promise<ApiResponse> => {
+export const submitRepositoryConfig = async (repositoryConfig: GitHubRepoRequestConfiguration): Promise<ApiResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> = await apiClient.post('/ingest-repos', {
-      repositories: repositoryNames
-    });
+    const response: AxiosResponse<ApiResponse> = await apiClient.post('/start-ingestion', repositoryConfig);
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
@@ -178,6 +176,61 @@ export const getFlagStatus = async (flagName: string): Promise<FlagResponse> => 
       }
     }
 
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Create repository data (configuration) in the backend
+ * @param config - Repository configuration payload
+ * @returns Promise with the response data
+ */
+export const createRepositoryData = async (
+  config: GitHubRepoRequestConfiguration
+): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await apiClient.post('/repository-data', config);
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Update repository data (configuration) in the backend
+ * @param config - Repository configuration payload
+ * @returns Promise with the response data
+ */
+export const updateRepositoryData = async (
+  config: GitHubRepoRequestConfiguration
+): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await apiClient.put('/repository-data', config);
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Get repository configuration from the backend
+ * @param repositoryName - The name of the repository
+ * @returns Promise with the repository configuration or null if not found
+ */
+export const getRepositoryConfig = async (
+  repositoryName: string,
+  ownerName: string
+): Promise<GitHubRepoResponseConfiguration | null> => {
+  try {
+    const response: AxiosResponse<GitHubRepoResponseConfiguration> = await apiClient.get('/repository-data', {
+      params: { repository_name: repositoryName, repository_owner_name: ownerName },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    // If it's a 404 error, return null instead of throwing an error
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    }
     throw handleApiError(error);
   }
 };

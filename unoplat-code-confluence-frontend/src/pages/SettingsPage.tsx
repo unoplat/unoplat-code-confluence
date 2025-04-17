@@ -43,18 +43,10 @@ export default function SettingsPage(): React.ReactElement {
       await queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] });
       console.log('[SettingsPage] Queries invalidated');
       
-      toast({
-        title: "Success",
-        description: "Your GitHub token has been successfully removed",
-        variant: "default",
-      });
+      toast.success("Your GitHub token has been successfully removed");
     } catch (error) {
       console.error('[SettingsPage] Error deleting token:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete token",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to delete token");
     } finally {
       setIsDeleting(false);
     }
@@ -130,10 +122,8 @@ export default function SettingsPage(): React.ReactElement {
         isUpdate={true}
         onSuccess={() => {
           console.log('[SettingsPage] Token updated successfully');
-          toast({
-            title: "Success",
-            description: "Token updated successfully!",
-            variant: "default",
+          toast.success("Token updated successfully!", {
+            description: "Success",
           });
         }}
       />
