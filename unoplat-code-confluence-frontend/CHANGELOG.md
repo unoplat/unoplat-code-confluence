@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.10.1...unoplat-code-confluence-frontend-v1.11.0) (2025-04-17)
+
+
+### Features
+
+* **api:** add repository config CRUD endpoints and types ([886a90c](https://github.com/unoplat/unoplat-code-confluence/commit/886a90c77424f0ed49d86493ce833afcdbffd190))
+* **api:** add repository config CRUD endpoints and types ([c412180](https://github.com/unoplat/unoplat-code-confluence/commit/c412180a357b7ac8645fe2e50017e99120761ac3))
+
 ## [1.10.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.10.0...unoplat-code-confluence-frontend-v1.10.1) (2025-04-13)
 
 
