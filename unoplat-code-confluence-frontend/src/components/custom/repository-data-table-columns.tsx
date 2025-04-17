@@ -2,23 +2,17 @@ import React from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { GitHubRepoSummary } from '../../types';
 import { DataTableColumnHeader } from '../data-table-column-header';
-import { Checkbox } from '../ui/checkbox';
+import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '../ui/dropdown-menu';
+import { Ellipsis } from 'lucide-react';
 
-export function getRepositoryDataTableColumns(): ColumnDef<GitHubRepoSummary>[] {
+export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: React.Dispatch<React.SetStateAction<{ row: import('@tanstack/react-table').Row<GitHubRepoSummary>; variant: string } | null>> }): ColumnDef<GitHubRepoSummary>[] {
   return [
-    {
-      id: 'select',
-      header: (): React.ReactNode => null,
-      cell: ({ row }): React.ReactNode => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value: boolean): void => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
     {
       accessorKey: 'name',
       header: ({ column }): React.ReactNode => (
@@ -83,7 +77,40 @@ export function getRepositoryDataTableColumns(): ColumnDef<GitHubRepoSummary>[] 
         </span>
       ),
       enableSorting: false,
-              
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }): React.ReactNode => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Open menu"
+              className="p-0 data-[state=open]:bg-muted"
+            >
+              <Ellipsis className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="bottom"
+            align="start"
+            sideOffset={6}
+            className="min-w-fit"
+          >
+            <DropdownMenuItem
+              className="capitalize"
+              onSelect={() => setRowAction({ row, variant: 'ingest' })}
+            >
+              Ingest Repo
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      size: 40,
     },
   ];
 } 
