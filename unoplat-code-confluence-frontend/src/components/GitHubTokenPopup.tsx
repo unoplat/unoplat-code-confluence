@@ -35,6 +35,7 @@ export default function GitHubTokenPopup({
   const [error, setError] = useState<ApiError | null>(null);
   const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(open);
+  const [isSuccessful, setIsSuccessful] = useState<boolean>(false);
   
   // Track the flag status to determine if dialog should be shown
   const { data: flagStatus } = useQuery({
@@ -49,15 +50,18 @@ export default function GitHubTokenPopup({
   useEffect(() => {
     console.log('[GitHubTokenPopup] Open prop changed:', open);
     setIsOpen(open);
+    if (!open) {
+      setIsSuccessful(false);
+    }
   }, [open]);
 
   // Auto-open dialog when token is not submitted
   useEffect(() => {
-    if (flagStatus && !flagStatus.status) {
+    if (flagStatus && !flagStatus.status && !formSubmitted && !isSuccessful) {
       console.log('[GitHubTokenPopup] Token not submitted, opening dialog');
       setIsOpen(true);
     }
-  }, [flagStatus]);
+  }, [flagStatus, formSubmitted, isSuccessful]);
 
   // Create form instance
   const form = useForm({
@@ -97,6 +101,8 @@ export default function GitHubTokenPopup({
       setError(null);
       form.reset();
       setFormSubmitted(false);
+      setIsSuccessful(true);
+
       
       try {
         console.log('[GitHubTokenPopup] Invalidating token status query');
@@ -115,11 +121,13 @@ export default function GitHubTokenPopup({
       } catch (error) {
         console.error('[GitHubTokenPopup] Error refreshing flag status:', error);
         setFormSubmitted(false);
+        setIsSuccessful(false);
       }
     },
     onError: (error: unknown) => {
       console.error('[GitHubTokenPopup] Mutation error:', error);
       setFormSubmitted(false);
+      setIsSuccessful(false);
       
       if ((error as ApiError).message) {
         console.log('[GitHubTokenPopup] Setting API error:', (error as ApiError).message);
@@ -142,6 +150,7 @@ export default function GitHubTokenPopup({
       if (!formSubmitted) {
         setError(null);
         form.reset();
+        setIsSuccessful(false);
       }
     }
   }, [isOpen, form, formSubmitted]);
