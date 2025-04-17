@@ -4,7 +4,8 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository i
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata, RepositorySettings
+from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
+from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 
 import os
 import asyncio  # NEW: Import asyncio to run blocking calls in a thread
@@ -21,7 +22,7 @@ from temporalio import activity
 
 class GithubHelper:
     # works with - vhttps://github.com/organization/repository,https://github.com/organization/repository.git,git@github.com:organization/repository.git
-    async def clone_repository(self, repository_settings: RepositorySettings, github_token: str) -> UnoplatGitRepository:
+    async def clone_repository(self, repo_request: GitHubRepoRequestConfiguration, github_token: str) -> UnoplatGitRepository:
         """
         Clone the repository asynchronously and return repository details.
         Works with URL formats:
@@ -34,7 +35,7 @@ class GithubHelper:
         github_client: Github = Github(auth=auth)
 
         # Get repository URL from settings and prepare repo_path and repo_name
-        repo_url: str = repository_settings.git_url
+        repo_url: str = repo_request.repository_git_url
         if repo_url.startswith("git@"):
             # Handle SSH format: git@github.com:org/repo.git
             repo_path: str = repo_url.split("github.com:")[-1]
@@ -80,9 +81,9 @@ class GithubHelper:
             except Exception:
                 readme_content = None
 
-            # Create UnoplatCodebase objects for each codebase config
+            # Create UnoplatCodebase objects for each codebase config in repository_metadata
             codebases: List[UnoplatCodebase] = []
-            for codebase_config in repository_settings.codebases:  # type: CodebaseConfig
+            for codebase_config in repo_request.repository_metadata:
                 # First build path with codebase_folder
                 local_path = repo_path
                 if codebase_config.codebase_folder and codebase_config.codebase_folder != ".":
