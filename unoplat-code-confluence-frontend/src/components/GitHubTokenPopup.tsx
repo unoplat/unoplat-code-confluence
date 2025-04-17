@@ -9,6 +9,7 @@ import { submitGitHubToken, ApiError, getFlagStatus } from '../lib/api';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogDescription } from './ui/dialog';
 import { Github, X } from 'lucide-react';
+import type { FlagResponse } from '../types';
 
 interface GitHubTokenPopupProps {
   open: boolean;
@@ -34,32 +35,22 @@ export default function GitHubTokenPopup({
   const queryClient = useQueryClient();
   const [error, setError] = useState<ApiError | null>(null);
   const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
-  const [isOpen, setIsOpen] = useState<boolean>(open);
   const [isSuccessful, setIsSuccessful] = useState<boolean>(false);
   
   // Track the flag status to determine if dialog should be shown
-  const { data: flagStatus } = useQuery({
+  const { data: flagStatus } = useQuery<FlagResponse>({
     queryKey: ['flags', 'isTokenSubmitted'],
-    queryFn: () => {
+    queryFn: (): Promise<FlagResponse> => {
       console.log('[GitHubTokenPopup] Fetching token flag status');
       return getFlagStatus('isTokenSubmitted');
     }
   });
 
-  // Update our internal open state when props change
-  useEffect(() => {
-    console.log('[GitHubTokenPopup] Open prop changed:', open);
-    setIsOpen(open);
-    if (!open) {
-      setIsSuccessful(false);
-    }
-  }, [open]);
-
-  // Auto-open dialog when token is not submitted
+  // Auto-open dialog when token is not submitted (let parent control open prop)
   useEffect(() => {
     if (flagStatus && !flagStatus.status && !formSubmitted && !isSuccessful) {
-      console.log('[GitHubTokenPopup] Token not submitted, opening dialog');
-      setIsOpen(true);
+      console.log('[GitHubTokenPopup] Token not submitted, should open dialog (parent should control)');
+      // Parent should set open=true
     }
   }, [flagStatus, formSubmitted, isSuccessful]);
 
@@ -71,7 +62,7 @@ export default function GitHubTokenPopup({
     onSubmit: async ({ value }): Promise<void> => {
       console.log('[GitHubTokenPopup] Form submitted with value length:', value.patToken ? value.patToken.length : 0);
       
-      const token = value.patToken.trim();
+      const token: string = value.patToken.trim();
       if (!token) {
         console.log('[GitHubTokenPopup] Token is empty, showing error');
         setError({
@@ -96,13 +87,12 @@ export default function GitHubTokenPopup({
   
   const tokenMutation = useMutation({
     mutationFn: submitGitHubToken,
-    onSuccess: async () => {
+    onSuccess: async (): Promise<void> => {
       console.log('[GitHubTokenPopup] Mutation successful, clearing error and resetting form');
       setError(null);
       form.reset();
       setFormSubmitted(false);
       setIsSuccessful(true);
-
       
       try {
         console.log('[GitHubTokenPopup] Invalidating token status query');
@@ -111,20 +101,20 @@ export default function GitHubTokenPopup({
         if (onSuccess) {
           console.log('[GitHubTokenPopup] Calling onSuccess callback');
           onSuccess();
-        } else if (!isUpdate) {
+        }
+        // Always close dialog after success
+        onClose();
+        if (!isUpdate && !onSuccess) {
           console.log('[GitHubTokenPopup] Navigating to /onboarding');
           navigate({ to: '/onboarding' });
         }
-        
-        console.log('[GitHubTokenPopup] Closing dialog');
-        handleClose();
       } catch (error) {
         console.error('[GitHubTokenPopup] Error refreshing flag status:', error);
         setFormSubmitted(false);
         setIsSuccessful(false);
       }
     },
-    onError: (error: unknown) => {
+    onError: (error: unknown): void => {
       console.error('[GitHubTokenPopup] Mutation error:', error);
       setFormSubmitted(false);
       setIsSuccessful(false);
@@ -144,7 +134,7 @@ export default function GitHubTokenPopup({
 
   // Reset form when dialog opens
   useEffect(() => {
-    if (isOpen) {
+    if (open) {
       console.log('[GitHubTokenPopup] Dialog opened, initializing form');
       // Only reset if not currently submitting
       if (!formSubmitted) {
@@ -153,27 +143,23 @@ export default function GitHubTokenPopup({
         setIsSuccessful(false);
       }
     }
-  }, [isOpen, form, formSubmitted]);
+  }, [open, form, formSubmitted]);
 
   // Handle dialog closing
   const handleClose = (): void => {
     console.log('[GitHubTokenPopup] handleClose called');
-    
     // Reset form state
     setError(null);
     form.reset();
     setFormSubmitted(false);
-    
-    // Update internal state
-    setIsOpen(false);
-    
+    setIsSuccessful(false);
     // Notify parent
     onClose();
   };
 
   return (
     <Dialog 
-      open={isOpen} 
+      open={open} 
       onOpenChange={(open: boolean): void => {
         console.log('[GitHubTokenPopup] Dialog onOpenChange:', open);
         if (!open) {
@@ -217,7 +203,7 @@ export default function GitHubTokenPopup({
           )}
 
           <form
-            onSubmit={(e): void => {
+            onSubmit={(e: React.FormEvent<HTMLFormElement>): void => {
               console.log('[GitHubTokenPopup] Form onSubmit event triggered');
               e.preventDefault();
               e.stopPropagation();
@@ -230,7 +216,7 @@ export default function GitHubTokenPopup({
                 name="patToken"
                 validators={{
                   onChange: ({ value }): string | undefined => {
-                    const result = value.trim() === '' ? 'A GitHub token is required' : undefined;
+                    const result: string | undefined = value.trim() === '' ? 'A GitHub token is required' : undefined;
                     console.log('[GitHubTokenPopup] Field validation:', result ? 'invalid' : 'valid');
                     return result;
                   },
@@ -247,7 +233,7 @@ export default function GitHubTokenPopup({
                       name={field.name}
                       value={field.state.value}
                       onBlur={field.handleBlur}
-                      onChange={(e): void => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
                         console.log('[GitHubTokenPopup] Input changed');
                         field.handleChange(e.target.value);
                         // Clear the error state when user types
@@ -274,9 +260,10 @@ export default function GitHubTokenPopup({
             </div>
             <div className="flex flex-col gap-2">
               <form.Subscribe
-                selector={(state) => [state.canSubmit, state.isSubmitting, tokenMutation.isPending, formSubmitted]}
+                selector={(state) => [state.canSubmit, state.isSubmitting, tokenMutation.isPending, formSubmitted] as [boolean, boolean, boolean, boolean]}
               >
-                {([canSubmit, isSubmitting, isMutating, isFormSubmitted]): React.ReactElement => {
+                {(tuple): React.ReactElement => {
+                  const [canSubmit, isSubmitting, isMutating, isFormSubmitted] = tuple as [boolean, boolean, boolean, boolean];
                   console.log('[GitHubTokenPopup] Button state:', { canSubmit, isSubmitting, isMutating, isFormSubmitted });
                   
                   return (
