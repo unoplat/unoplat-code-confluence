@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.28.0...code-confluence-flow-bridge-v0.29.0) (2025-04-21)
+
+
+### Features
+
+* **settings:** sidebar perfection ([c4bc34b](https://github.com/unoplat/unoplat-code-confluence/commit/c4bc34b6cce9dae065364e213960c57c612bbb68))
+
+
+### Bug Fixes
+
+* github token close properly ([dab6b78](https://github.com/unoplat/unoplat-code-confluence/commit/dab6b78368e522f05b7a6de6db346b85b5c098b1))
+
 ## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.27.0...code-confluence-flow-bridge-v0.28.0) (2025-04-17)
 
 

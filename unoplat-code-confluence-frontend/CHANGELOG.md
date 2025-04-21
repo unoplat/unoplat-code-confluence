@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.11.0...unoplat-code-confluence-frontend-v1.12.0) (2025-04-21)
+
+
+### Features
+
+* **settings:** sidebar perfection ([c4bc34b](https://github.com/unoplat/unoplat-code-confluence/commit/c4bc34b6cce9dae065364e213960c57c612bbb68))
+
+
+### Bug Fixes
+
+* github token close properly ([dab6b78](https://github.com/unoplat/unoplat-code-confluence/commit/dab6b78368e522f05b7a6de6db346b85b5c098b1))
+* github token close properly ([cd8fc79](https://github.com/unoplat/unoplat-code-confluence/commit/cd8fc7990ca06f878597dc716d245cf3592fe427))
+
 ## [1.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.10.1...unoplat-code-confluence-frontend-v1.11.0) (2025-04-17)
 
 
