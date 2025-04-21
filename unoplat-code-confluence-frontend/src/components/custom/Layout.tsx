@@ -53,6 +53,12 @@ function hasGetTitle(context: unknown): context is { getTitle: () => string } {
 export function Layout(): React.ReactElement {
   const { matches, pathname } = useRouterState({ select: (s) => ({ matches: s.matches, pathname: s.location.pathname }) });
 
+  // Debug logs
+  // eslint-disable-next-line no-console
+  console.log('Layout matches:', matches);
+  // eslint-disable-next-line no-console
+  console.log('Layout pathname:', pathname);
+
   // Only include matches with a getTitle function in their context
   const crumbs = matches
     .filter((match) => hasGetTitle(match.context))
@@ -62,6 +68,10 @@ export function Layout(): React.ReactElement {
       isLast: idx === arr.length - 1,
     }));
 
+  // Debug logs
+  // eslint-disable-next-line no-console
+  console.log('Layout crumbs:', crumbs);
+
   // Deduplicate by title+path (in case of double-matches)
   const breadcrumbs = crumbs.filter(
     (crumb, idx, arr) =>
@@ -69,6 +79,10 @@ export function Layout(): React.ReactElement {
         (c) => c.title === crumb.title && c.path === crumb.path
       ) === idx
   );
+
+  // Debug logs
+  // eslint-disable-next-line no-console
+  console.log('Layout breadcrumbs:', breadcrumbs);
 
   // Find the category for the current path
   let currentCategory: string | null = null;
@@ -78,6 +92,10 @@ export function Layout(): React.ReactElement {
       break;
     }
   }
+
+  // Debug logs
+  // eslint-disable-next-line no-console
+  console.log('Layout currentCategory:', currentCategory);
 
   return (
       <div className="flex flex-col h-screen">
