@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.12.0...unoplat-code-confluence-frontend-v1.13.0) (2025-04-21)
+
+
+### Features
+
+* **codebase:** add removable codebase forms when creating config ([0d0f4d9](https://github.com/unoplat/unoplat-code-confluence/commit/0d0f4d95bf114f5470fa5b2b2a01aac046648e4d))
+* **codebase:** add removable codebase forms when creating config ([bd4d7f2](https://github.com/unoplat/unoplat-code-confluence/commit/bd4d7f20e18c6197df967f31e1b66e78ae39e612))
+
 ## [1.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.11.0...unoplat-code-confluence-frontend-v1.12.0) (2025-04-21)
 
 
