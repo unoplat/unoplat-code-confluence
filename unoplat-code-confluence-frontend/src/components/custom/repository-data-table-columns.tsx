@@ -29,7 +29,7 @@ export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: 
             href={row.original.git_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:underline font-semibold"
+            className="text-sm font-normal text-primary hover:underline"
           >
             {row.original.name}
           </a>
@@ -54,7 +54,7 @@ export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: 
           href={row.original.owner_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-muted-foreground hover:text-primary hover:underline text-sm"
+          className="text-sm font-normal text-muted-foreground hover:text-primary hover:underline"
         >
           {row.original.owner_name}
         </a>

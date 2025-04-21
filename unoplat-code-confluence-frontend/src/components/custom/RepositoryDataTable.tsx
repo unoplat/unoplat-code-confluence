@@ -160,13 +160,15 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
     // 4️⃣ Render DataTable and dialog
     return (
       <>
-        <DataTable
-          table={table}
-          actionBar={null}
-          isLoading={isFetching && !isPlaceholderData}
-        >
-          <DataTableToolbar table={table} />
-        </DataTable>
+        <div className="w-full max-w-7xl mx-auto px-4">
+          <DataTable
+            table={table}
+            actionBar={null}
+            isLoading={isFetching && !isPlaceholderData}
+          >
+            <DataTableToolbar table={table} />
+          </DataTable>
+        </div>
 
         {/* Repository Configuration Dialog for per-row ingest */}
         {rowAction?.variant === 'ingest' && (
