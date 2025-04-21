@@ -96,6 +96,13 @@ export function AppSidebar(): React.ReactElement {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="Developer Mode">
+                        <Link to="/settings/developer" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
+                          <span className="text-sm font-medium">Developer Mode</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   </SidebarMenu>
                 </SidebarGroupContent>
               </CollapsibleContent>

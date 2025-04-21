@@ -13,8 +13,10 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as AppImport } from './routes/_app'
 import { Route as AppIndexImport } from './routes/_app.index'
+import { Route as SettingsDeveloperImport } from './routes/settings.developer'
 import { Route as AppSettingsImport } from './routes/_app.settings'
 import { Route as AppOnboardingImport } from './routes/_app.onboarding'
+import { Route as AppDeveloperImport } from './routes/_app.developer'
 
 // Create/Update Routes
 
@@ -29,6 +31,12 @@ const AppIndexRoute = AppIndexImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 
+const SettingsDeveloperRoute = SettingsDeveloperImport.update({
+  id: '/settings/developer',
+  path: '/settings/developer',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const AppSettingsRoute = AppSettingsImport.update({
   id: '/settings',
   path: '/settings',
@@ -38,6 +46,12 @@ const AppSettingsRoute = AppSettingsImport.update({
 const AppOnboardingRoute = AppOnboardingImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => AppRoute,
+} as any)
+
+const AppDeveloperRoute = AppDeveloperImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -51,6 +65,13 @@ declare module '@tanstack/react-router' {
       fullPath: ''
       preLoaderRoute: typeof AppImport
       parentRoute: typeof rootRoute
+    }
+    '/_app/developer': {
+      id: '/_app/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof AppDeveloperImport
+      parentRoute: typeof AppImport
     }
     '/_app/onboarding': {
       id: '/_app/onboarding'
@@ -66,6 +87,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsImport
       parentRoute: typeof AppImport
     }
+    '/settings/developer': {
+      id: '/settings/developer'
+      path: '/settings/developer'
+      fullPath: '/settings/developer'
+      preLoaderRoute: typeof SettingsDeveloperImport
+      parentRoute: typeof rootRoute
+    }
     '/_app/': {
       id: '/_app/'
       path: '/'
@@ -79,12 +107,14 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface AppRouteChildren {
+  AppDeveloperRoute: typeof AppDeveloperRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDeveloperRoute: AppDeveloperRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
@@ -94,40 +124,61 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 export interface FileRoutesByFullPath {
   '': typeof AppRouteWithChildren
+  '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRoute
   '/settings': typeof AppSettingsRoute
+  '/settings/developer': typeof SettingsDeveloperRoute
   '/': typeof AppIndexRoute
 }
 
 export interface FileRoutesByTo {
+  '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRoute
   '/settings': typeof AppSettingsRoute
+  '/settings/developer': typeof SettingsDeveloperRoute
   '/': typeof AppIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_app': typeof AppRouteWithChildren
+  '/_app/developer': typeof AppDeveloperRoute
   '/_app/onboarding': typeof AppOnboardingRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/settings/developer': typeof SettingsDeveloperRoute
   '/_app/': typeof AppIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/onboarding' | '/settings' | '/'
+  fullPaths:
+    | ''
+    | '/developer'
+    | '/onboarding'
+    | '/settings'
+    | '/settings/developer'
+    | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/onboarding' | '/settings' | '/'
-  id: '__root__' | '/_app' | '/_app/onboarding' | '/_app/settings' | '/_app/'
+  to: '/developer' | '/onboarding' | '/settings' | '/settings/developer' | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/developer'
+    | '/_app/onboarding'
+    | '/_app/settings'
+    | '/settings/developer'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  SettingsDeveloperRoute: typeof SettingsDeveloperRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  SettingsDeveloperRoute: SettingsDeveloperRoute,
 }
 
 export const routeTree = rootRoute
@@ -140,16 +191,22 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/_app"
+        "/_app",
+        "/settings/developer"
       ]
     },
     "/_app": {
       "filePath": "_app.tsx",
       "children": [
+        "/_app/developer",
         "/_app/onboarding",
         "/_app/settings",
         "/_app/"
       ]
+    },
+    "/_app/developer": {
+      "filePath": "_app.developer.tsx",
+      "parent": "/_app"
     },
     "/_app/onboarding": {
       "filePath": "_app.onboarding.tsx",
@@ -158,6 +215,9 @@ export const routeTree = rootRoute
     "/_app/settings": {
       "filePath": "_app.settings.tsx",
       "parent": "/_app"
+    },
+    "/settings/developer": {
+      "filePath": "settings.developer.tsx"
     },
     "/_app/": {
       "filePath": "_app.index.tsx",
