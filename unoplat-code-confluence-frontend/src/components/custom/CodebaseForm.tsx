@@ -1,12 +1,13 @@
 "use client";
 
 import { z } from "zod";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, TrashIcon } from "lucide-react";
 import React from "react";
 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 // Extend the Zod schema to include nested structures if needed
 export const CodebaseSchema = z.object({
@@ -43,12 +44,14 @@ export interface CodebaseFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parentForm: any;
   disabled?: boolean;
+  onRemove?: () => void;
 }
 
 export function CodebaseForm({
   index,
   parentForm,
   disabled = false,
+  onRemove,
 }: CodebaseFormProps): React.ReactElement {
   // Helper to create field name with proper type
   const getFieldName = <K extends keyof Codebase>(fieldName: K): string => 
@@ -91,8 +94,6 @@ export function CodebaseForm({
 
   return (
     <div className="space-y-4 p-4 border rounded-md relative">
-      {/* Delete button is currently disabled and hidden as per requirements */}
-      {/*
       {onRemove && (
         <Button
           variant="ghost"
@@ -104,7 +105,6 @@ export function CodebaseForm({
           <TrashIcon className="h-4 w-4 text-destructive" />
         </Button>
       )}
-      */}
 
       <parentForm.Field
         name={getFieldName("codebase_folder")}
