@@ -288,38 +288,43 @@ export function RepositoryConfigDialog({
           form.handleSubmit();
         }}>
           <div className="py-4 space-y-6">
-            <form.Field 
-              name="codebases" 
+            <form.Field
+              name="codebases"
               mode="array"
             >
-              {(field) => (
-                <>
-                  {field.state.value.map((_, index: number) => (
-                    <CodebaseForm
-                      key={index}
-                      index={index}
-                      parentForm={form}
-                      disabled={existingCodebases.length > 0}
-                    />
-                  ))}
-                  {/* Hide Add Codebase button if editing existing config */}
-                  {existingCodebases.length === 0 && (
-                    <div className="flex justify-center mt-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        aria-label="Add Codebase"
-                        className="flex items-center justify-center bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
-                        onClick={() => field.pushValue(defaultCodebase)}
-                      >
-                        <PlusIcon className="mr-2 h-4 w-4" />
-                        Add Codebase
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
+              {(field) => {
+                const isCreating = existingCodebases.length === 0;
+                const allowRemove = isCreating && field.state.value.length > 1;
+                return (
+                  <>
+                    {field.state.value.map((_, index: number) => (
+                      <CodebaseForm
+                        key={index}
+                        index={index}
+                        parentForm={form}
+                        disabled={!isCreating}
+                        onRemove={allowRemove ? () => field.removeValue(index) : undefined}
+                      />
+                    ))}
+                    {/* Hide Add Codebase button if editing existing config */}
+                    {existingCodebases.length === 0 && (
+                      <div className="flex justify-center mt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          aria-label="Add Codebase"
+                          className="flex items-center justify-center bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
+                          onClick={() => field.pushValue(defaultCodebase)}
+                        >
+                          <PlusIcon className="mr-2 h-4 w-4" />
+                          Add Codebase
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                );
+              }}
             </form.Field>
           </div>
 
