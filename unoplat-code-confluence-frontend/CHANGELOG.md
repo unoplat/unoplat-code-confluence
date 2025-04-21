@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.14.0...unoplat-code-confluence-frontend-v1.15.0) (2025-04-21)
+
+
+### Features
+
+* **sidebar:** add collapsible groups for workspace and settings ([2e4232d](https://github.com/unoplat/unoplat-code-confluence/commit/2e4232dea3c200182e5caf5cec3aefb97869cf8d))
+* **sidebar:** add collapsible groups for workspace and settings ([9f18826](https://github.com/unoplat/unoplat-code-confluence/commit/9f18826085a9baef3c7ea88147ba3d61dac203f2))
+
 ## [1.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.13.0...unoplat-code-confluence-frontend-v1.14.0) (2025-04-21)
 
 
