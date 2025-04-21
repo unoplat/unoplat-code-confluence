@@ -35,6 +35,12 @@ import { Home, Github, BookOpen } from 'lucide-react'
  * while keeping the rest of the Layout (like the header) intact.
  */
 
+// Map category titles to their base paths
+const categoryMap: Record<string, string[]> = {
+  'Workspace Setup': ['/onboarding'],
+  'Settings': ['/settings'],
+};
+
 // Type guard for context with getTitle
 function hasGetTitle(context: unknown): context is { getTitle: () => string } {
   return (
@@ -45,14 +51,14 @@ function hasGetTitle(context: unknown): context is { getTitle: () => string } {
 }
 
 export function Layout(): React.ReactElement {
-  const matches = useRouterState({ select: (s) => s.matches });
+  const { matches, pathname } = useRouterState({ select: (s) => ({ matches: s.matches, pathname: s.location.pathname }) });
 
   // Only include matches with a getTitle function in their context
   const crumbs = matches
     .filter((match) => hasGetTitle(match.context))
-    .map(({ pathname, context }, idx, arr) => ({
+    .map(({ pathname: matchPathname, context }, idx, arr) => ({
       title: (context as { getTitle: () => string }).getTitle(),
-      path: pathname,
+      path: matchPathname,
       isLast: idx === arr.length - 1,
     }));
 
@@ -63,6 +69,15 @@ export function Layout(): React.ReactElement {
         (c) => c.title === crumb.title && c.path === crumb.path
       ) === idx
   );
+
+  // Find the category for the current path
+  let currentCategory: string | null = null;
+  for (const category in categoryMap) {
+    if (categoryMap[category].some(basePath => pathname.startsWith(basePath))) {
+      currentCategory = category;
+      break;
+    }
+  }
 
   return (
       <div className="flex flex-col h-screen">
@@ -78,19 +93,32 @@ export function Layout(): React.ReactElement {
                     <Breadcrumb>
                       <BreadcrumbList>
                         <BreadcrumbItem>
-                          <Link to="/onboarding" className="inline-flex items-center align-middle text-sm font-medium">
+                          <Link to="/" className="inline-flex items-center align-middle text-sm font-medium">
                             <Home size={18} aria-label="Home" />
                           </Link>
                         </BreadcrumbItem>
-                        {breadcrumbs.length > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+                        {/* Render category crumb if exists */}
+                        {currentCategory && (
+                          <>
+                            <BreadcrumbSeparator className="hidden md:block" />
+                            <BreadcrumbItem>
+                              <BreadcrumbPage className="text-sm font-medium">{currentCategory}</BreadcrumbPage>
+                            </BreadcrumbItem>
+                          </>
+                        )}
+                        {/* Render route crumbs */}
+                        {breadcrumbs.length > 0 && !currentCategory && <BreadcrumbSeparator className="hidden md:block" />}
                         {breadcrumbs.map((crumb) => (
-                          <BreadcrumbItem key={crumb.path}>
-                            {crumb.isLast ? (
-                              <BreadcrumbPage className="text-sm font-medium">{crumb.title}</BreadcrumbPage>
-                            ) : (
-                              <Link to={crumb.path} className="text-sm font-medium">{crumb.title}</Link>
-                            )}
-                          </BreadcrumbItem>
+                         <React.Fragment key={crumb.path}> 
+                           <BreadcrumbSeparator className="hidden md:block" />
+                           <BreadcrumbItem >
+                             {crumb.isLast ? (
+                               <BreadcrumbPage className="text-sm font-medium">{crumb.title}</BreadcrumbPage>
+                             ) : (
+                               <Link to={crumb.path} className="text-sm font-medium">{crumb.title}</Link>
+                             )}
+                           </BreadcrumbItem>
+                         </React.Fragment>
                         ))}
                       </BreadcrumbList>
                     </Breadcrumb>
