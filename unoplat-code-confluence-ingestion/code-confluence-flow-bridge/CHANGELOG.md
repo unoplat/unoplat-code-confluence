@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.29.0...code-confluence-flow-bridge-v0.29.1) (2025-04-21)
+
+
+### Bug Fixes
+
+* uv lock for flow-bridge ([ccc1a9e](https://github.com/unoplat/unoplat-code-confluence/commit/ccc1a9e62a106276eac57e245356a1070629bb54))
+* uv lock for flow-bridge ([fcdf838](https://github.com/unoplat/unoplat-code-confluence/commit/fcdf8388974a8683fbbf979de344e0498c57299b))
+
 ## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.28.0...code-confluence-flow-bridge-v0.29.0) (2025-04-21)
 
 
