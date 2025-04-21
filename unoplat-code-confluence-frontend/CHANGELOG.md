@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.15.0...unoplat-code-confluence-frontend-v1.16.0) (2025-04-21)
+
+
+### Features
+
+* **developer:** add developer mode route and state management ([69432db](https://github.com/unoplat/unoplat-code-confluence/commit/69432db2bdf528153dd084d6557341195838499a))
+* **sidebar:** add Unoplat Connect collapsible group with social links ([ba24b58](https://github.com/unoplat/unoplat-code-confluence/commit/ba24b580802f3f077449c9855534bc5bde953a56))
+* **sidebar:** add Unoplat Connect collapsible group with social links ([70749d6](https://github.com/unoplat/unoplat-code-confluence/commit/70749d6a74795188fdafaf359a94370b59c503ce))
+
 ## [1.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.14.0...unoplat-code-confluence-frontend-v1.15.0) (2025-04-21)
 
 
