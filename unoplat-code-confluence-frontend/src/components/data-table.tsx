@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/table";
 import { getCommonPinningStyles } from "@/lib/data-table";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>;
@@ -30,7 +29,7 @@ export function DataTable<TData>({
   children,
   className,
   ...props
-}: DataTableProps<TData>) {
+}: DataTableProps<TData>): React.ReactElement {
   console.log('[DataTable] Rendering with table state:', {
     pageIndex: table.getState().pagination.pageIndex,
     pageSize: table.getState().pagination.pageSize,
@@ -54,11 +53,11 @@ export function DataTable<TData>({
   
   return (
     <div
-      className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
+      className={cn("flex w-full flex-col gap-2.5 overflow-auto border border-gray-200 dark:border-gray-700", className)}
       {...props}
     >
       {children}
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -83,7 +82,18 @@ export function DataTable<TData>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              // Only skeletonize the rows, not the whole table
+              Array.from({ length: 10 }).map((_, i) => (
+                <TableRow key={i} className="hover:bg-transparent">
+                  {table.getAllColumns().map((_column, j) => (
+                    <TableCell key={j}>
+                      <div className="h-6 w-full animate-pulse bg-muted rounded" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -110,13 +120,7 @@ export function DataTable<TData>({
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  {isLoading ? (
-                    <div className="flex justify-center items-center h-full">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    </div>
-                  ) : (
-                    "No results."
-                  )}
+                  {"No results."}
                 </TableCell>
               </TableRow>
             )}
@@ -124,7 +128,8 @@ export function DataTable<TData>({
         </Table>
       </div>
       <div className="flex flex-col gap-2.5">
-        <DataTablePagination table={table} showRowsPerPage={showRowsPerPage} />
+        {/* To enable - showRowsPerPage={showRowsPerPage} */}
+        <DataTablePagination table={table}  />
         {actionBar &&
           table.getFilteredSelectedRowModel().rows.length > 0 &&
           actionBar}

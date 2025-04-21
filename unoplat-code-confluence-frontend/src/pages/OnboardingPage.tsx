@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useRef, useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { AlertCircle } from 'lucide-react';
-import { getFlagStatus } from '../lib/api';
 import { RepositoryDataTable, type RepositoryDataTableRef } from '../components/custom/RepositoryDataTable';
-import GitHubTokenPopup from '../components/GitHubTokenPopup';
-import { FlagResponse } from '../types';
+import GitHubTokenPopup from '../components/custom/GitHubTokenPopup';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useAuthData } from '@/hooks/use-auth-data';
 
 export default function OnboardingPage(): React.ReactElement {
   console.log('[OnboardingPage] Rendering OnboardingPage component');
@@ -14,54 +14,51 @@ export default function OnboardingPage(): React.ReactElement {
   const queryClient = useQueryClient();
   const dataTableRef = useRef<RepositoryDataTableRef>(null);
   
-  const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
-  
+  // Use useAuthData hook to fetch token status and user data
+  const { tokenQuery } = useAuthData();
+  // Local control for token popup open/close
+  const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
+  // Track whether we've auto-opened already to avoid re-opening on manual close
+  const autoOpenRef = useRef<boolean>(false);
+  // Auto-open the popup once when token status is known and no token exists
+  useEffect(() => {
+    if (
+      !autoOpenRef.current &&
+      tokenQuery.isSuccess &&
+      !tokenQuery.data?.status &&
+      tokenQuery.data.errorCode !== 503
+    ) {
+      autoOpenRef.current = true;
+      setIsPopupOpen(true);
+    }
+  }, [tokenQuery.isSuccess, tokenQuery.data?.status, tokenQuery.data?.errorCode]);
+  const showTokenPopup = isPopupOpen;
   
   console.log('[OnboardingPage] State: showTokenPopup =', showTokenPopup);
 
-  const { data: tokenStatus } = useQuery<FlagResponse>({
-    queryKey: ['flags', 'isTokenSubmitted'],
-    queryFn: () => {
-      
-      return getFlagStatus('isTokenSubmitted');
-    },
-  });
-
-  useEffect(() => {
-    console.log('[OnboardingPage] Token status updated:', tokenStatus);
-    if (tokenStatus && !tokenStatus.status) {
-      console.log('[OnboardingPage] Token not submitted, showing token popup');
-      setShowTokenPopup(true);
-    }
-  }, [tokenStatus]);
-  
-  // Row-selection and submission functionality removed as it's no longer supported
+  // Use Zustand store for auth state
+  const tokenStatus = useAuthStore((state) => state.tokenStatus);
 
   const handleTokenSuccess = async (): Promise<void> => {
-    console.log('[OnboardingPage] Token submitted successfully, hiding popup');
-    setShowTokenPopup(false);
+    console.log('[OnboardingPage] Token submitted successfully');
     
-    console.log('[OnboardingPage] Invalidating queries after token submission');
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] }),
-      queryClient.invalidateQueries({ queryKey: ['repositories'] })
-    ]);
+    console.log('[OnboardingPage] Invalidating repositories query after token submission');
+    // Since token status is now handled by Zustand, we only need to invalidate repositories
+    await queryClient.invalidateQueries({ queryKey: ['repositories'] });
   };
 
   console.log('[OnboardingPage] Rendering UI with tokenStatus:', tokenStatus?.status);
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-4xl font-extrabold tracking-tight mb-6 text-primary">Select GitHub Repositories for Ingestion</h1>
-
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>GitHub Repositories</CardTitle>
           <CardDescription>
-            Connect your GitHub repositories to Unoplat Code Confluence for deeper code insights. Scroll through your available repositories below and select the ones you want to ingest.
+          Connect your GitHub repositories to Unoplat Code Confluence to unlock deeper code insights. Browse the repositories below, click "Ingest Repo" in the row actions, fill in the required details, and submit to begin ingestion.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {(!tokenStatus?.status && !showTokenPopup && tokenStatus?.errorCode !== 503) && (
+          {tokenStatus && !tokenStatus.status && !showTokenPopup && tokenStatus.errorCode !== 503 && (
             <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -76,7 +73,7 @@ export default function OnboardingPage(): React.ReactElement {
                         variant="outline" 
                         onClick={() => {
                           console.log('[OnboardingPage] "Set up GitHub Token" button clicked');
-                          setShowTokenPopup(true);
+                          setIsPopupOpen(true);
                         }} 
                         size="sm"
                       >
@@ -115,12 +112,15 @@ export default function OnboardingPage(): React.ReactElement {
       </Card>
 
       <GitHubTokenPopup 
-        open={showTokenPopup} 
+        open={showTokenPopup}
         onClose={() => {
           console.log('[OnboardingPage] Token popup closed');
-          setShowTokenPopup(false);
-        }} 
-        onSuccess={handleTokenSuccess} 
+          setIsPopupOpen(false);
+        }}
+        onSuccess={async () => {
+          await handleTokenSuccess();
+          setIsPopupOpen(false);
+        }}
       />
     </div>
   );
