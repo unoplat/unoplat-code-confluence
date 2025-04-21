@@ -10,13 +10,18 @@ import {
   DropdownMenuItem,
 } from '../ui/dropdown-menu';
 import { Ellipsis } from 'lucide-react';
+import { TfiGithub } from 'react-icons/tfi';
+import { GrUserPolice } from 'react-icons/gr';
+import { FaTripadvisor } from 'react-icons/fa';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { TouchInteraction01Icon } from '@hugeicons/core-free-icons';
 
 export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: React.Dispatch<React.SetStateAction<{ row: import('@tanstack/react-table').Row<GitHubRepoSummary>; variant: string } | null>> }): ColumnDef<GitHubRepoSummary>[] {
   return [
     {
       accessorKey: 'name',
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader column={column} title="Repository" />
+        <DataTableColumnHeader column={column} title="Repository" icon={<TfiGithub />} />
       ),
       cell: ({ row }): React.ReactNode => (
         <div className="flex items-center">
@@ -34,6 +39,7 @@ export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: 
         label: 'Repository',
         placeholder: 'Search repository...',
         variant: 'text',
+        shortcut: 's',
       },
       enableSorting: false,
       enableColumnFilter: true,
@@ -41,7 +47,7 @@ export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: 
     {
       accessorKey: 'owner_name',
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader column={column} title="Owner" />
+        <DataTableColumnHeader column={column} title="Owner" icon={<GrUserPolice />} />
       ),
       cell: ({ row }): React.ReactNode => (
         <a
@@ -63,7 +69,7 @@ export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: 
     {
       accessorKey: 'private',
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader column={column} title="Visibility" />
+        <DataTableColumnHeader column={column} title="Visibility" icon={<FaTripadvisor />} />
       ),
       cell: ({ row }): React.ReactNode => (
         <span
@@ -80,7 +86,9 @@ export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: 
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: ({ column }): React.ReactNode => (
+        <DataTableColumnHeader column={column} title="Actions" icon={<HugeiconsIcon icon={TouchInteraction01Icon} />} />
+      ),
       cell: ({ row }): React.ReactNode => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

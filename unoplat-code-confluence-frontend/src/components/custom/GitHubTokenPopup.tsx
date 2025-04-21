@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { submitGitHubToken, ApiError, getFlagStatus } from '../lib/api';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Dialog, DialogContent, DialogDescription } from './ui/dialog';
+import { submitGitHubToken, ApiError, ApiResponse } from '../../lib/api';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Dialog, DialogContent, DialogDescription } from '../ui/dialog';
 import { Github, X } from 'lucide-react';
-import type { FlagResponse } from '../types';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 interface GitHubTokenPopupProps {
   open: boolean;
@@ -37,22 +37,17 @@ export default function GitHubTokenPopup({
   const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
   const [isSuccessful, setIsSuccessful] = useState<boolean>(false);
   
-  // Track the flag status to determine if dialog should be shown
-  const { data: flagStatus } = useQuery<FlagResponse>({
-    queryKey: ['flags', 'isTokenSubmitted'],
-    queryFn: (): Promise<FlagResponse> => {
-      console.log('[GitHubTokenPopup] Fetching token flag status');
-      return getFlagStatus('isTokenSubmitted');
-    }
-  });
+  // Use Zustand store for token status
+  const tokenStatus = useAuthStore((state) => state.tokenStatus);
+  
 
   // Auto-open dialog when token is not submitted (let parent control open prop)
   useEffect(() => {
-    if (flagStatus && !flagStatus.status && !formSubmitted && !isSuccessful) {
+    if (tokenStatus && !tokenStatus.status && !formSubmitted && !isSuccessful) {
       console.log('[GitHubTokenPopup] Token not submitted, should open dialog (parent should control)');
       // Parent should set open=true
     }
-  }, [flagStatus, formSubmitted, isSuccessful]);
+  }, [tokenStatus, formSubmitted, isSuccessful]);
 
   // Create form instance
   const form = useForm({
@@ -85,7 +80,7 @@ export default function GitHubTokenPopup({
     },
   });
   
-  const tokenMutation = useMutation({
+  const tokenMutation = useMutation<ApiResponse, ApiError, string>({
     mutationFn: submitGitHubToken,
     onSuccess: async (): Promise<void> => {
       console.log('[GitHubTokenPopup] Mutation successful, clearing error and resetting form');
@@ -95,21 +90,26 @@ export default function GitHubTokenPopup({
       setIsSuccessful(true);
       
       try {
-        console.log('[GitHubTokenPopup] Invalidating token status query');
+        console.log('[GitHubTokenPopup] Fetching updated token status');
+        // Invalidate the token query to refresh the token status
         await queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] });
+        // Also invalidate user data since token has changed
+        await queryClient.invalidateQueries({ queryKey: ['githubUser'] });
         
         if (onSuccess) {
           console.log('[GitHubTokenPopup] Calling onSuccess callback');
           onSuccess();
         }
+        
         // Always close dialog after success
         onClose();
+        
         if (!isUpdate && !onSuccess) {
           console.log('[GitHubTokenPopup] Navigating to /onboarding');
           navigate({ to: '/onboarding' });
         }
       } catch (error) {
-        console.error('[GitHubTokenPopup] Error refreshing flag status:', error);
+        console.error('[GitHubTokenPopup] Error fetching token status:', error);
         setFormSubmitted(false);
         setIsSuccessful(false);
       }

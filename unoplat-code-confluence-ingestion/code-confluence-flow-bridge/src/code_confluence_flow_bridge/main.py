@@ -1,3 +1,4 @@
+import httpx
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 
@@ -624,3 +625,41 @@ async def get_repository_data(
         repository_metadata=codebases,
     )
 
+@app.get("/user-details", status_code=200)
+async def get_user_details(session: Session = Depends(get_session)) -> Dict[str, Optional[str]]:
+    """
+    Fetch authenticated GitHub user's name, avatar URL, and email.
+    """
+    # Fetch stored GitHub token from database
+    credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+    if not credential:
+        raise HTTPException(status_code=404, detail="No credentials found")
+    token = decrypt_token(credential.token_hash)
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+    async with httpx.AsyncClient() as client:
+        # Primary user info
+        user_resp = await client.get("https://api.github.com/user", headers=headers)
+        if user_resp.status_code != 200:
+            raise HTTPException(status_code=user_resp.status_code, detail="Failed to fetch user info")
+        user_data = user_resp.json()
+
+        # Determine email: use public email or fetch primary email via separate endpoint
+        email = user_data.get("email")
+        if not email:
+            emails_resp = await client.get("https://api.github.com/user/emails", headers=headers)
+            if emails_resp.status_code == 200:
+                emails = emails_resp.json()
+                primary = next((e["email"] for e in emails if e.get("primary") and e.get("verified")), None)
+                email = primary
+
+    return {
+        "name": user_data.get("name"),
+        "avatar_url": user_data.get("avatar_url"),
+        "email": email,
+    }
