@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import GitHubTokenPopup from '../components/GitHubTokenPopup';
-import { getFlagStatus } from '../lib/api';
-import { FlagResponse } from '../types';
+import GitHubTokenPopup from '../components/custom/GitHubTokenPopup';
+import { useAuthStore } from '../stores/useAuthStore';
+import { useAuthData } from '@/hooks/use-auth-data';
 
 export const Route = createFileRoute('/_app')({
   component: AppComponent,
@@ -14,16 +13,18 @@ function AppComponent(): React.ReactElement {
   const navigate = useNavigate();
   const routerState = useRouterState();
   
-  // Query for token submission status
-  const { data: tokenStatus } = useQuery<FlagResponse>({
-    queryKey: ['flags', 'isTokenSubmitted'],
-    queryFn: () => getFlagStatus('isTokenSubmitted'),
-  });
+  // Use useAuthData hook which manages both querying and updating the Zustand store
+  const { tokenQuery } = useAuthData();
+  
+  // Get tokenStatus from the store (which is updated by useAuthData)
+  const tokenStatus = useAuthStore(state => state.tokenStatus);
 
   // Show token popup if no token is present
   useEffect(() => {
-    if (tokenStatus && !tokenStatus.status) {
+    if (tokenStatus && !tokenStatus.status && tokenStatus.errorCode !== 503) {
       setShowTokenPopup(true);
+    } else {
+      setShowTokenPopup(false);
     }
   }, [tokenStatus]);
 
@@ -38,7 +39,11 @@ function AppComponent(): React.ReactElement {
     <>
       <GitHubTokenPopup 
         open={showTokenPopup} 
-        onClose={() => setShowTokenPopup(false)} 
+        onClose={() => {
+          setShowTokenPopup(false);
+          // Refresh token status query when popup is closed
+          tokenQuery.refetch();
+        }} 
       />
       <Outlet />
     </>

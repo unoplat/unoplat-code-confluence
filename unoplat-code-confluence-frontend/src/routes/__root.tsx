@@ -1,6 +1,6 @@
 import React from 'react'
 import { createRootRoute, redirect } from '@tanstack/react-router'
-import { Layout } from '../components/Layout'
+import { Layout } from '../components/custom/Layout'
 
 // Import the styles
 import '../styles/app.css'
@@ -35,12 +35,11 @@ export const Route = createRootRoute({
   beforeLoad: ({ location }) => {
     // Redirect from / to /onboarding
     if (location.pathname === '/') {
-      throw redirect({
-        to: '/onboarding',
-        replace: true
-      })
+      throw redirect({ to: '/onboarding', replace: true });
     }
-  }
+    // Provide a breadcrumb title via context
+    return { getTitle: () => 'Dashboard' };
+  },
 })
 
 // The main component rendered by the root route

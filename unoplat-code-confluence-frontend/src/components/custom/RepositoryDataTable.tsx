@@ -4,7 +4,7 @@
 // Import necessary React hooks.
 import  { useState, useEffect, forwardRef, useImperativeHandle, useMemo } from "react";
 // Import useQuery from TanStack Query.
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 // Import useRouter from TanStack Router.
 // import { useRouter } from '@tanstack/react-router';
 
@@ -22,7 +22,7 @@ import { Route as OnboardingRoute } from "../../routes/_app.onboarding";
 import { DataTableToolbar } from "../data-table-toolbar";
 
 // Import the repository configuration dialog
-import { RepositoryConfigDialog, type RepositoryConfig } from "./RepositoryConfigDialog";
+import { RepositoryConfigDialog } from "./RepositoryConfigDialog";
 
 // Define the ref interface so parent components can, for example, retrieve selected row names.
 export interface RepositoryDataTableRef {
@@ -37,21 +37,39 @@ export interface RowAction<T> {
 // Main component implementation using forwardRef so methods can be exposed.
 export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenStatus: boolean }>(
   function RepositoryDataTableFn({ tokenStatus }, ref) {
+    
     const queryClient = useQueryClient();
     const { pageIndex, perPage, filterValues } = OnboardingRoute.useSearch();
 
     // 1️⃣ Track the current row action in state
     const [rowAction, setRowAction] = useState<RowAction<GitHubRepoSummary> | null>(null);
-    const [repositoryConfigs, setRepositoryConfigs] = useState<Record<string, RepositoryConfig>>({});
-
     // Manage an array of pagination cursors. The initial cursor is undefined.
     const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
 
     // Use TanStack Query to fetch repository data.
-    const { data: repoData, isFetching } = useQuery<PaginatedResponse<GitHubRepoSummary>>({
-      queryKey: ['repositories', pageIndex, perPage, filterValues, cursors[pageIndex - 1]],
-      queryFn: () => fetchGitHubRepositories(pageIndex, perPage, filterValues, cursors[pageIndex - 1]),
+    const {
+      data: repoData,
+      isFetching,
+      isPlaceholderData,
+    } = useQuery<PaginatedResponse<GitHubRepoSummary>>({
+      queryKey: [
+        'repositories',
+        pageIndex,
+        perPage,
+        filterValues,
+        cursors[pageIndex - 1],
+      ],
+      queryFn: () =>
+        fetchGitHubRepositories(
+          pageIndex,
+          perPage,
+          filterValues,
+          cursors[pageIndex - 1],
+        ),
       enabled: tokenStatus,
+      placeholderData: keepPreviousData,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnMount: false,
     });
 
     useEffect(() => {
@@ -87,26 +105,52 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
       getRowId: (row: GitHubRepoSummary): string => row.name,
     });
 
-    // Prefetch the next page when getting close to it
+    // Prefetch two pages ahead
     useEffect(() => {
-      if (repoData?.has_next && repoData?.next_cursor && tokenStatus) {
-        const nextPageIndex = pageIndex + 1;
-        const nextPageQueryKey = ['repositories', nextPageIndex, perPage, filterValues, repoData.next_cursor];
-        queryClient.prefetchQuery({
-          queryKey: nextPageQueryKey,
-          queryFn: () => fetchGitHubRepositories(nextPageIndex, perPage, filterValues, repoData.next_cursor),
-        });
-      }
-    }, [repoData, pageIndex, perPage, filterValues, queryClient, tokenStatus, cursors]);
+      if (!tokenStatus || !repoData?.has_next || !repoData.next_cursor) return;
 
-    // Handle saving repository configuration
-    function handleSaveConfig(config: RepositoryConfig): void {
-      setRepositoryConfigs(prev => ({
-        ...prev,
-        [config.repositoryName]: config,
-      }));
-      setRowAction(null);
-    }
+      // Prefetch page+1
+      const cursor1: string = repoData.next_cursor;
+      const pageToPrefetch1: number = pageIndex + 1;
+      queryClient.prefetchQuery({
+        queryKey: ['repositories', pageToPrefetch1, perPage, filterValues, cursor1],
+        queryFn: () =>
+          fetchGitHubRepositories(
+            pageToPrefetch1,
+            perPage,
+            filterValues,
+            cursor1,
+          ),
+      });
+
+      // Also fetch page+1 data to obtain its cursor, then prefetch page+2
+      fetchGitHubRepositories(
+        pageToPrefetch1,
+        perPage,
+        filterValues,
+        cursor1,
+      )
+        .then((nextPageData: PaginatedResponse<GitHubRepoSummary>) => {
+          if (nextPageData.next_cursor) {
+            const cursor2: string = nextPageData.next_cursor;
+            const pageToPrefetch2: number = pageIndex + 2;
+            queryClient.prefetchQuery({
+              queryKey: ['repositories', pageToPrefetch2, perPage, filterValues, cursor2],
+              queryFn: () =>
+                fetchGitHubRepositories(
+                  pageToPrefetch2,
+                  perPage,
+                  filterValues,
+                  cursor2,
+                ),
+            });
+          }
+        })
+        .catch(() => {
+          // ignore prefetch errors
+        });
+    }, [repoData, pageIndex, perPage, filterValues, queryClient, tokenStatus]);
+
 
     // Expose a method via the ref for compatibility (returns empty array, as no selection)
     useImperativeHandle(ref, () => ({
@@ -116,10 +160,10 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
     // 4️⃣ Render DataTable and dialog
     return (
       <>
-        <DataTable 
-          table={table} 
+        <DataTable
+          table={table}
           actionBar={null}
-          isLoading={isFetching}
+          isLoading={isFetching && !isPlaceholderData}
         >
           <DataTableToolbar table={table} />
         </DataTable>
@@ -134,8 +178,6 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
                 setRowAction(null);
               }
             }}
-            onSave={handleSaveConfig}
-            existingConfig={repositoryConfigs[rowAction.row.original.name]}
             repositoryGitUrl={rowAction.row.original.git_url}
             repositoryOwnerName={rowAction.row.original.owner_name}
           />
