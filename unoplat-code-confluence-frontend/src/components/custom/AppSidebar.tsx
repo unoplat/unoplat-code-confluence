@@ -18,7 +18,7 @@ import {
   CollapsibleContent
 } from '../ui/collapsible'
 import { Link } from '@tanstack/react-router'
-import { FileCheck, Settings, ChevronRight, LifeBuoy } from 'lucide-react'
+import { FileCheck, Settings, ChevronRight, LifeBuoy, Handshake } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { NavUser } from './NavUser'
 
@@ -96,6 +96,13 @@ export function AppSidebar(): React.ReactElement {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="Developer Mode">
+                        <Link to="/settings/developer" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
+                          <span className="text-sm font-medium">Developer Mode</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   </SidebarMenu>
                 </SidebarGroupContent>
               </CollapsibleContent>
@@ -138,6 +145,51 @@ export function AppSidebar(): React.ReactElement {
                           className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
                         >
                           <span className="text-sm font-medium">Report an Issue</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+          {/* Unoplat Connect Group */}
+          <Collapsible defaultOpen className="group/collapsible">
+            <SidebarGroup>
+              <SidebarGroupLabel
+                asChild
+                className="text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer group-data-[collapsible=icon]:!opacity-100 group-data-[collapsible=icon]:!mt-0"
+              >
+                <CollapsibleTrigger className="flex w-full items-center font-semibold group-data-[collapsible=icon]:justify-center">
+                  <Handshake className="h-4 w-4" aria-hidden />
+                  <span className="ml-2 group-data-[collapsible=icon]:hidden">Unoplat Connect</span>
+                  <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" aria-hidden />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="LinkedIn: Dive into our latest updates">
+                        <a
+                          href="https://www.linkedin.com/company/unoplat"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">LinkedIn</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="X/Twitter: Follow us for real-time insights">
+                        <a
+                          href="https://x.com/unoplatio"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">X / Twitter</span>
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
