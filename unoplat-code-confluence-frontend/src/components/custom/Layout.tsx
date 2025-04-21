@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useRouterState, Link } from '@tanstack/react-router';
 import { Toaster } from '../ui/toaster';
-import { SidebarInset,SidebarProvider, SidebarTrigger } from '../ui/sidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '../ui/sidebar';
 import { AppSidebar } from '@/components/custom/AppSidebar';
 import {
   Breadcrumb,
@@ -11,6 +11,7 @@ import {
   BreadcrumbSeparator,
 } from '../ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
+import { Home, Github, BookOpen } from 'lucide-react'
 
 /**
  * Layout Component - Main Application Shell with Sidebar Navigation
@@ -50,7 +51,7 @@ export function Layout(): React.ReactElement {
   const crumbs = matches
     .filter((match) => hasGetTitle(match.context))
     .map(({ pathname, context }, idx, arr) => ({
-      title: context.getTitle(),
+      title: (context as { getTitle: () => string }).getTitle(),
       path: pathname,
       isLast: idx === arr.length - 1,
     }));
@@ -70,27 +71,50 @@ export function Layout(): React.ReactElement {
             <AppSidebar />
             <SidebarInset>
               <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                <div className="flex items-center gap-2 px-4">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      {breadcrumbs.map((crumb) => (
-                        <React.Fragment key={crumb.path}>
-                          <BreadcrumbItem>
+                <div className="flex items-center justify-between px-4 w-full">
+                  <div className="flex items-center gap-2">
+                    <SidebarTrigger className="-ml-1" />
+                    <Separator orientation="vertical" className="mr-2 h-4" />
+                    <Breadcrumb>
+                      <BreadcrumbList>
+                        <BreadcrumbItem>
+                          <Link to="/onboarding" className="inline-flex items-center align-middle text-sm font-medium">
+                            <Home size={18} aria-label="Home" />
+                          </Link>
+                        </BreadcrumbItem>
+                        {breadcrumbs.length > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+                        {breadcrumbs.map((crumb) => (
+                          <BreadcrumbItem key={crumb.path}>
                             {crumb.isLast ? (
-                              <BreadcrumbPage>{crumb.title}</BreadcrumbPage>
+                              <BreadcrumbPage className="text-sm font-medium">{crumb.title}</BreadcrumbPage>
                             ) : (
-                              <Link to={crumb.path}>{crumb.title}</Link>
+                              <Link to={crumb.path} className="text-sm font-medium">{crumb.title}</Link>
                             )}
                           </BreadcrumbItem>
-                          {!crumb.isLast && (
-                            <BreadcrumbSeparator className="hidden md:block" />
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </BreadcrumbList>
-                  </Breadcrumb>
+                        ))}
+                      </BreadcrumbList>
+                    </Breadcrumb>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <a
+                      href="https://github.com/unoplat/unoplat-code-confluence"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+                    >
+                      <Github size={18} />
+                      <span>GitHub</span>
+                    </a>
+                    <a
+                      href="https://docs.unoplat.io"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+                    >
+                      <BookOpen size={18} />
+                      <span>Docs</span>
+                    </a>
+                  </div>
                 </div>
               </header>
               <div className="flex flex-1 flex-col gap-4 p-4 pt-0">

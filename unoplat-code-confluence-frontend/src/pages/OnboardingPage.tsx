@@ -49,11 +49,11 @@ export default function OnboardingPage(): React.ReactElement {
 
   console.log('[OnboardingPage] Rendering UI with tokenStatus:', tokenStatus?.status);
   return (
-    <div className="space-y-6">
+    <div className="container py-6 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>GitHub Repositories</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-semibold">GitHub Repositories</CardTitle>
+          <CardDescription className="text-base font-normal">
           Connect your GitHub repositories to Unoplat Code Confluence to unlock deeper code insights. Browse the repositories below, click "Ingest Repo" in the row actions, fill in the required details, and submit to begin ingestion.
           </CardDescription>
         </CardHeader>
@@ -65,9 +65,9 @@ export default function OnboardingPage(): React.ReactElement {
                   <AlertCircle className="h-5 w-5 text-amber-400" aria-hidden="true" />
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-amber-800">GitHub Token Required</h3>
+                  <h3 className="text-xl font-semibold text-amber-800">GitHub Token Required</h3>
                   <div className="mt-2 text-sm text-amber-700">
-                    <p>You need to provide a GitHub token to access your repositories.</p>
+                    <p className="text-base font-normal">You need to provide a GitHub token to access your repositories.</p>
                     <div className="mt-3">
                       <Button 
                         variant="outline" 
@@ -93,9 +93,9 @@ export default function OnboardingPage(): React.ReactElement {
                   <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Connection Error</h3>
+                  <h3 className="text-xl font-semibold text-red-800">Connection Error</h3>
                   <div className="mt-2 text-sm text-red-700">
-                    <p>Could not connect to the server. Please refresh the page.</p>
+                    <p className="text-base font-normal">Could not connect to the server. Please refresh the page.</p>
                   </div>
                 </div>
               </div>

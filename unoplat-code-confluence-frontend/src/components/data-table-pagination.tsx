@@ -3,9 +3,9 @@ import {
   ChevronLeft,
   ChevronRight,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ChevronsLeft,
+  // ChevronsLeft,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ChevronsRight,
+  // ChevronsRight,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -66,15 +66,15 @@ export function DataTablePagination<TData>({
     });
   };
 
-  const handleFirstPage = () => {
-    console.log('[DataTablePagination] First page button clicked');
-    table.setPageIndex(0);
-  };
+  // const handleFirstPage = () => {
+  //   console.log('[DataTablePagination] First page button clicked');
+  //   table.setPageIndex(0);
+  // };
 
-  const handleLastPage = () => {
-    console.log('[DataTablePagination] Last page button clicked');
-    table.setPageIndex(table.getPageCount() - 1);
-  };
+  // const handleLastPage = () => {
+  //   console.log('[DataTablePagination] Last page button clicked');
+  //   table.setPageIndex(table.getPageCount() - 1);
+  // };
 
   const handlePageSizeChange = (value: string) => {
     console.log('[DataTablePagination] Page size change:', value);
@@ -90,8 +90,8 @@ export function DataTablePagination<TData>({
       {...props}
     >
       <div className="flex-1 whitespace-nowrap text-muted-foreground text-sm">
-        {table.getFilteredSelectedRowModel().rows.length} of{" "}
-        {table.getFilteredRowModel().rows.length} row(s) selected.
+        {/* {table.getFilteredSelectedRowModel().rows.length} of{" "}
+        {table.getFilteredRowModel().rows.length} row(s) selected. */}
       </div>
       <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
         {showRowsPerPage && (
@@ -119,7 +119,7 @@ export function DataTablePagination<TData>({
           {/* {table.getPageCount()} */}
         </div>
         <div className="flex items-center space-x-2">
-          <Button
+          {/* <Button
             aria-label="Go to first page"
             variant="outline"
             size="icon"
@@ -128,7 +128,7 @@ export function DataTablePagination<TData>({
             disabled={true}
           >
             <ChevronsLeft />
-          </Button>
+          </Button> */}
           <Button
             aria-label="Go to previous page"
             variant="outline"
@@ -147,7 +147,7 @@ export function DataTablePagination<TData>({
           >
             <ChevronRight />
           </Button>
-          <Button
+          {/* <Button
             aria-label="Go to last page"
             variant="outline"
             size="icon"
@@ -156,7 +156,7 @@ export function DataTablePagination<TData>({
             disabled={true}
           >
             <ChevronsRight />
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>
