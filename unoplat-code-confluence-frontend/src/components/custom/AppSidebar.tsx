@@ -48,7 +48,7 @@ export function AppSidebar(): React.ReactElement {
             <SidebarMenuButton asChild tooltip="GitHub Onboarding">
               <Link to="/onboarding" className="flex w-full items-center gap-3 rounded-md px-4 py-2">
                 <FileCheck />
-                <span>Onboarding</span>
+                <span className="text-sm font-medium">Onboarding</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -57,7 +57,7 @@ export function AppSidebar(): React.ReactElement {
             <SidebarMenuButton asChild tooltip="Settings">
               <Link to="/settings" className="flex w-full items-center gap-3 rounded-md px-4 py-2">
                 <Settings />
-                <span>Settings</span>
+                <span className="text-sm font-medium">Settings</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
