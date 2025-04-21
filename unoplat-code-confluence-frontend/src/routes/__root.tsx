@@ -37,8 +37,8 @@ export const Route = createRootRoute({
     if (location.pathname === '/') {
       throw redirect({ to: '/onboarding', replace: true });
     }
-    // Provide a breadcrumb title via context
-    return { getTitle: () => 'Dashboard' };
+    // No title needed from root as Layout adds Home icon
+    return {}; // Return empty object or context without getTitle
   },
 })
 
