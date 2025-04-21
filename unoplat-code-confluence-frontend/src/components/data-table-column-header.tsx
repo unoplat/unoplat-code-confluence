@@ -22,27 +22,35 @@ interface DataTableColumnHeaderProps<TData, TValue>
   extends React.ComponentProps<typeof DropdownMenuTrigger> {
   column: Column<TData, TValue>;
   title: string;
+  icon?: React.ReactNode;
 }
 
 export function DataTableColumnHeader<TData, TValue>({
   column,
   title,
+  icon,
   className,
   ...props
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort() && !column.getCanHide()) {
-    return <div className={cn(className)}>{title}</div>;
+    return (
+      <div className={cn("flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate [&_svg]:h-4 [&_svg]:w-4", className)}>
+        {icon && <span className="shrink-0">{icon}</span>}
+        {title}
+      </div>
+    );
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          "-ml-1.5 flex h-8 items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring data-[state=open]:bg-accent [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground",
+          "-ml-1.5 flex h-8 items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring data-[state=open]:bg-accent text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground",
           className,
         )}
         {...props}
       >
+        {icon && <span className="shrink-0">{icon}</span>}
         {title}
         {column.getCanSort() &&
           (column.getIsSorted() === "desc" ? (

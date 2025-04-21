@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import GitHubTokenPopup from '../components/GitHubTokenPopup';
+import GitHubTokenPopup from '../components/custom/GitHubTokenPopup';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Github, ExternalLink, Trash2 } from 'lucide-react';
+import { Github, Trash2 } from 'lucide-react';
 import { deleteGitHubToken } from '../lib/api';
 import { useToast } from '../components/ui/use-toast';
 import {
@@ -53,83 +52,66 @@ export default function SettingsPage(): React.ReactElement {
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-2 sm:px-6">
       <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-      
-      <Card>
-        <CardContent className="space-y-6 pt-6">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium">GitHub Repositories</h3>
-                <p className="text-sm text-muted-foreground">
-                  Add or manage GitHub repositories for ingestion.
-                </p>
-              </div>
-              <Button asChild variant="outline">
-                <Link to="/onboarding" className="flex items-center gap-2">
-                  <span>Go to Onboarding</span>
-                  <ExternalLink className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-2 pt-2 border-t">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium">GitHub Authentication</h3>
-                <p className="text-sm text-muted-foreground">
-                  Update GitHub Personal Access Token.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    console.log('[SettingsPage] Opening token management popup');
-                    setShowTokenPopup(true);
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <Github className="h-4 w-4" />
-                  <span>Manage Token</span>
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  size="icon"
-                  onClick={() => {
-                    console.log('[SettingsPage] Opening delete token confirmation dialog');
-                    setShowDeleteDialog(true);
-                  }}
-                  title="Delete GitHub Token"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+      <div className="flex flex-col gap-6">
+        <Card className="shadow-sm max-w-4xl mx-auto">
+          <CardContent className="w-full space-y-6 pt-6">
+            <div className="space-y-2 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-medium">GitHub Authentication</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Update GitHub Personal Access Token.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 sm:self-start">
+                  <Button 
+                    variant="outline" 
+                    onClick={(): void => {
+                      console.log('[SettingsPage] Opening token management popup');
+                      setShowTokenPopup(true);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Github className="h-4 w-4" />
+                    <span>Manage Token</span>
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    size="icon"
+                    onClick={(): void => {
+                      console.log('[SettingsPage] Opening delete token confirmation dialog');
+                      setShowDeleteDialog(true);
+                    }}
+                    title="Delete GitHub Token"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      
+          </CardContent>
+        </Card>
+        {/* Add more Card sections here if needed for future settings */}
+      </div>
       {/* GitHub Token Popup */}
       <GitHubTokenPopup 
         open={showTokenPopup} 
-        onClose={() => {
+        onClose={(): void => {
           console.log('[SettingsPage] Token popup closed');
           setShowTokenPopup(false);
         }}
         isUpdate={true}
-        onSuccess={() => {
+        onSuccess={(): void => {
           console.log('[SettingsPage] Token updated successfully');
           toast.success("Token updated successfully!", {
             description: "Success",
           });
         }}
       />
-
       {/* Delete Token Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={(isOpen) => {
+      <AlertDialog open={showDeleteDialog} onOpenChange={(isOpen: boolean): void => {
         console.log('[SettingsPage] Delete dialog change:', isOpen);
         setShowDeleteDialog(isOpen);
       }}>
@@ -144,7 +126,7 @@ export default function SettingsPage(): React.ReactElement {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => {
+              onClick={(): void => {
                 console.log('[SettingsPage] Delete token confirmed');
                 handleDeleteToken();
               }}
@@ -158,4 +140,4 @@ export default function SettingsPage(): React.ReactElement {
       </AlertDialog>
     </div>
   );
-} 
+}

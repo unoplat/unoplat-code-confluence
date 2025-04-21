@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
 import { PlusIcon } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { updateRepositoryData, getRepositoryConfig, submitRepositoryConfig } from '../../lib/api';
+import { getRepositoryConfig, submitRepositoryConfig } from '../../lib/api';
 import type { GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, CodebaseRepoConfig, ApiResponse } from '../../types';
 import React from 'react';
 import axios from 'axios';
@@ -39,8 +39,6 @@ interface RepositoryConfigDialogProps {
   repositoryOwnerName: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (config: RepositoryConfig) => void;
-  existingConfig?: RepositoryConfig;
 }
 
 export function RepositoryConfigDialog({
@@ -49,8 +47,6 @@ export function RepositoryConfigDialog({
   repositoryOwnerName,
   isOpen,
   onOpenChange,
-  onSave,
-  existingConfig,
 }: RepositoryConfigDialogProps): React.ReactElement {
   const queryClient = useQueryClient(); 
   
@@ -133,20 +129,16 @@ export function RepositoryConfigDialog({
     },
   });
   
-  // Mutation for update
+  // Disable update functionality until backend supports it
+  /*
   const updateMutation = useMutation<ApiResponse, Error, GitHubRepoRequestConfiguration>({
     mutationFn: updateRepositoryData,
     onSuccess: () => {
       // Invalidate all repository configurations to force a refetch
       queryClient.invalidateQueries({ queryKey: ["repository-config"] });
-      
       // Also invalidate the specific repository config
-      queryClient.invalidateQueries({ 
-        queryKey: ["repository-config", repositoryName] 
-      });
-      
+      queryClient.invalidateQueries({ queryKey: ["repository-config", repositoryName] });
       toast.success(`Successfully updated repository configuration for ${repositoryName}`);
-      
       // Close the dialog and reset the form
       handleDialogOpenChange(false);
       form.reset();
@@ -156,6 +148,7 @@ export function RepositoryConfigDialog({
       toast.error(`Failed to update repository configuration: ${error.message}`);
     },
   });
+  */
 
   // Initialize form with TanStack Form
   const form = useForm({
@@ -179,23 +172,23 @@ export function RepositoryConfigDialog({
         };
 
         // Check if we're updating or creating
-        const hasExistingConfig = existingConfig || (loadedConfig && loadedConfig.repository_metadata && loadedConfig.repository_metadata.length > 0);
+        // const hasExistingConfig = existingConfig || (loadedConfig && loadedConfig.repository_metadata && loadedConfig.repository_metadata.length > 0);
         
-        if (hasExistingConfig) {
-          console.log('[RepositoryConfigDialog] Calling update mutation');
-          await updateMutation.mutateAsync(payload);
-        } else {
+        // if (hasExistingConfig) {
+        //   console.log('[RepositoryConfigDialog] Calling update mutation');
+        //   await updateMutation.mutateAsync(payload);
+        // } else {
           console.log('[RepositoryConfigDialog] Calling create mutation');
           await createMutation.mutateAsync(payload);
-        }
+        // }
         
         // Call the onSave callback if provided
-        onSave({
-          repositoryName: value.repositoryName,
-          repositoryGitUrl: repositoryGitUrl,
-          repositoryOwnerName: repositoryOwnerName,
-          codebases: value.codebases,
-        });
+        // onSave({
+        //   repositoryName: value.repositoryName,
+        //   repositoryGitUrl: repositoryGitUrl,
+        //   repositoryOwnerName: repositoryOwnerName,
+        //   codebases: value.codebases,
+        // });
         
         // Dialog will close in the mutation's onSuccess handler
       } catch (error) {

@@ -197,20 +197,21 @@ export const createRepositoryData = async (
 };
 
 /**
+ * Commented as of now
  * Update repository data (configuration) in the backend
  * @param config - Repository configuration payload
  * @returns Promise with the response data
  */
-export const updateRepositoryData = async (
-  config: GitHubRepoRequestConfiguration
-): Promise<ApiResponse> => {
-  try {
-    const response: AxiosResponse<ApiResponse> = await apiClient.put('/repository-data', config);
-    return response.data;
-  } catch (error: unknown) {
-    throw handleApiError(error);
-  }
-};
+// export const updateRepositoryData = async (
+//   config: GitHubRepoRequestConfiguration
+// ): Promise<ApiResponse> => {
+//   try {
+//     const response: AxiosResponse<ApiResponse> = await apiClient.put('/repository-data', config);
+//     return response.data;
+//   } catch (error: unknown) {
+//     throw handleApiError(error);
+//   }
+// };
 
 /**
  * Get repository configuration from the backend
@@ -234,3 +235,23 @@ export const getRepositoryConfig = async (
     throw handleApiError(error);
   }
 };
+
+/**
+ * GitHub user type response
+ */
+export interface GitHubUser {
+  login: string;
+  name: string | null;
+  avatar_url: string;
+  /** User email address (nullable) */
+  email?: string | null;
+}
+
+/**
+ * Fetch the authenticated GitHub user using the stored PAT token
+ */
+export async function fetchGitHubUser(): Promise<GitHubUser> {
+  // Get the token from backend
+  const response: AxiosResponse<GitHubUser> = await apiClient.get('/user-details');
+  return response.data;
+}
