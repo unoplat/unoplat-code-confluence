@@ -15,5 +15,5 @@ const codeConfluenceSearchSchema = z.object({
 export const Route = createFileRoute('/_app/onboarding')({
   component: OnboardingPage,
   validateSearch: zodValidator(codeConfluenceSearchSchema),
-  beforeLoad: () => ({ getTitle: () => 'Onboarding' }),
+  beforeLoad: () => ({ getTitle: () => 'Github Onboarding' }),
 });
