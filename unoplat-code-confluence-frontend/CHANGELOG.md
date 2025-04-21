@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.13.0...unoplat-code-confluence-frontend-v1.14.0) (2025-04-21)
+
+
+### Features
+
+* **settings:** use mutation isPending state for delete token UI ([2272f28](https://github.com/unoplat/unoplat-code-confluence/commit/2272f28ac1a486dc43ef07fbd43b1387a35bc5d2))
+* **settings:** use mutation isPending state for delete token UI ([3f50dcb](https://github.com/unoplat/unoplat-code-confluence/commit/3f50dcbbe3eed2898aba0061e75205bd8001e5bf))
+
 ## [1.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.12.0...unoplat-code-confluence-frontend-v1.13.0) (2025-04-21)
 
 
