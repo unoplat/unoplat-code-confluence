@@ -6,6 +6,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Packag
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.utils.requirements_utils import RequirementsUtils
 from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import SetupParser
+from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 import os
 from typing import Dict, Optional
@@ -65,7 +66,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 programming_language_version=programming_language_version,
                 project_version=poetry_data.get("version"),
                 description=poetry_data.get("description"),
-                authors=poetry_data.get("authors"),
+                authors=normalize_authors(poetry_data.get("authors")),
                 entry_points=self._get_entry_points(poetry_data.get("scripts", {})),
                 license=poetry_data.get("license"),
                 homepage=poetry_data.get("homepage"),
