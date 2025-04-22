@@ -2,12 +2,14 @@
 
 import { z } from "zod";
 import { InfoIcon, TrashIcon } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 // Extend the Zod schema to include nested structures if needed
 export const CodebaseSchema = z.object({
@@ -53,6 +55,8 @@ export function CodebaseForm({
   disabled = false,
   onRemove,
 }: CodebaseFormProps): React.ReactElement {
+  const [isRootRepo, setIsRootRepo] = useState<boolean>(false);
+  
   // Helper to create field name with proper type
   const getFieldName = <K extends keyof Codebase>(fieldName: K): string => 
     `codebases[${index}].${fieldName}`;
@@ -92,6 +96,18 @@ export function CodebaseForm({
     </div>
   );
 
+  // Handle root repository checkbox change
+  const handleRootRepoChange = (checked: boolean, field: FieldState) => {
+    setIsRootRepo(checked);
+    if (checked) {
+      // Set value to "." when it's a root repository
+      field.handleChange(".");
+    } else {
+      // Clear the field when unchecked
+      field.handleChange("");
+    }
+  };
+
   return (
     <div className="space-y-4 p-4 border rounded-md relative">
       {onRemove && (
@@ -112,21 +128,46 @@ export function CodebaseForm({
           onChange: ({ value }: { value: string }) => !value ? "Codebase folder is required" : undefined
         }}
       >
-        {(field: FieldState) => renderField(
-          field,
-          "Codebase Folder",
-          "The relative path to the codebase folder within the repository",
-          `codebase_folder_${index}`,
-          <Input
-            id={`codebase_folder_${index}`}
-            placeholder="e.g., unoplat-code-confluence-ingestion/code-confluence-flow-bridge"
-            value={field.state.value}
-            onBlur={field.handleBlur}
-            onChange={(e) => field.handleChange(e.target.value)}
-            className={field.state.meta.errors.length > 0 ? "border-destructive" : ""}
-            disabled={disabled}
-            readOnly={disabled}
-          />
+        {(field: FieldState) => (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id={`is_root_repo_${index}`}
+                checked={isRootRepo}
+                onCheckedChange={(checked) => handleRootRepoChange(checked as boolean, field)}
+                disabled={disabled}
+              />
+              <Label 
+                htmlFor={`is_root_repo_${index}`}
+                className="cursor-pointer text-sm font-medium"
+              >
+                No subdirectory: Codebase lives in the repository root.
+              </Label>
+            </div>
+            
+            {!isRootRepo && renderField(
+              field,
+              "Codebase Folder",
+              "The relative path to the codebase folder within the repository",
+              `codebase_folder_${index}`,
+              <Input
+                id={`codebase_folder_${index}`}
+                placeholder="e.g., unoplat-code-confluence-ingestion/code-confluence-flow-bridge"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className={field.state.meta.errors.length > 0 ? "border-destructive" : ""}
+                disabled={disabled}
+                readOnly={disabled}
+              />
+            )}
+            
+            {isRootRepo && (
+              <div className="text-sm text-muted-foreground italic">
+                Using repository root as codebase folder (".")
+              </div>
+            )}
+          </div>
         )}
       </parentForm.Field>
 
