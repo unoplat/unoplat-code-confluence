@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.17.0...unoplat-code-confluence-frontend-v1.18.0) (2025-04-22)
+
+
+### Features
+
+* **codebaseform:** add root repository checkbox for codebase folder ([6f3e7b4](https://github.com/unoplat/unoplat-code-confluence/commit/6f3e7b45b7770b31dea23a8c83b38ad4e2bc2363))
+* **codebaseform:** add root repository checkbox for codebase folder ([a84d733](https://github.com/unoplat/unoplat-code-confluence/commit/a84d7336688b55c82d3aeed6f5d4675494598b84))
+
 ## [1.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.16.1...unoplat-code-confluence-frontend-v1.17.0) (2025-04-22)
 
 
