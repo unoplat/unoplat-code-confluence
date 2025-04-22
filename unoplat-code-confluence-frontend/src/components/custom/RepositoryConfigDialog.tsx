@@ -249,7 +249,7 @@ export function RepositoryConfigDialog({
   if (isLoadingConfig) {
     return (
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Loading configuration...</DialogTitle>
           </DialogHeader>
@@ -263,7 +263,7 @@ export function RepositoryConfigDialog({
   if (isErrorConfig && errorConfig instanceof Error && !(axios.isAxiosError(errorConfig) && errorConfig.response?.status === 404)) {
     return (
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Error loading configuration</DialogTitle>
           </DialogHeader>
@@ -275,10 +275,10 @@ export function RepositoryConfigDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent aria-describedby="repo-config-desc" className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configure Repository: {repositoryName}</DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="repo-config-desc">
             Configure one or more codebases for this repository. Each codebase represents a separate project within the repository.
           </DialogDescription>
         </DialogHeader>
