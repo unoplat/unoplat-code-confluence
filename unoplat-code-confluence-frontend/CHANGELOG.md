@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.16.1...unoplat-code-confluence-frontend-v1.17.0) (2025-04-22)
+
+
+### Features
+
+* **ui:** improve and update dependencies ([8591e0c](https://github.com/unoplat/unoplat-code-confluence/commit/8591e0c1acc6f0d714d00e2b3aa21b2fa90f04f5))
+* **ui:** improve and update dependencies ([c3c5b64](https://github.com/unoplat/unoplat-code-confluence/commit/c3c5b64ff3ecf3ebb3f14b48867f6a7a077c9263))
+
 ## [1.16.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.16.0...unoplat-code-confluence-frontend-v1.16.1) (2025-04-22)
 
 
