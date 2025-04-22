@@ -11,6 +11,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
     ProgrammingLanguage
 )
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
+from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 # Constants
 TEST_DATA_DIR = Path(__file__).parent.parent.parent / "test_data"
@@ -199,3 +200,47 @@ def test_process_metadata_with_optional_sections(
     
     # Confirm empty dependencies when no requirements found
     assert len(package_metadata.dependencies) == 0
+
+def test_normalize_authors_poetry():
+    poetry_authors = ["Test Author <test@example.com>", "Another Author <another@example.com>"]
+    result = normalize_authors(poetry_authors)
+    assert result == poetry_authors
+
+def test_normalize_authors_pep621():
+    pep621_authors = [
+        {"name": "Test Author", "email": "test@example.com"},
+        {"name": "Another Author", "email": "another@example.com"},
+        {"name": "No Email"},
+        {"email": "only@example.com"}
+    ]
+    result = normalize_authors(pep621_authors)
+    assert result == [
+        "Test Author <test@example.com>",
+        "Another Author <another@example.com>",
+        "No Email",
+        "<only@example.com>"
+    ]
+
+def test_process_metadata_authors_format_all_required_sections(
+    tmp_path: Path,
+    mock_poetry_strategy: PythonPoetryStrategy,
+    mock_pyproject_all_required: str,
+    mock_metadata: ProgrammingLanguageMetadata
+):
+    writepyproject(mock_pyproject_all_required, tmp_path)
+    package_metadata = mock_poetry_strategy.process_metadata(str(tmp_path), mock_metadata)
+    assert package_metadata.authors is not None
+    for author in package_metadata.authors:
+        assert "<" in author and ">" in author
+
+def test_process_metadata_authors_format_unoplat(
+    tmp_path: Path,
+    mock_poetry_strategy: PythonPoetryStrategy,
+    mock_pyproject_unoplat: str,
+    mock_metadata: ProgrammingLanguageMetadata
+):
+    writepyproject(mock_pyproject_unoplat, tmp_path)
+    package_metadata = mock_poetry_strategy.process_metadata(str(tmp_path), mock_metadata)
+    assert package_metadata.authors is not None
+    for author in package_metadata.authors:
+        assert "<" in author and ">" in author

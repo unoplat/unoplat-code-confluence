@@ -29,8 +29,8 @@ class ProgrammingLanguageMetadata(BaseModel):
 
 
 class CodebaseConfig(BaseModel):
-    codebase_folder: str
-    root_package: Optional[str] = None
+    codebase_folder: Optional[str] = None
+    root_package: str
     programming_language_metadata: ProgrammingLanguageMetadata
 
 
