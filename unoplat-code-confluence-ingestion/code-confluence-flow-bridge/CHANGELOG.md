@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.29.1...code-confluence-flow-bridge-v0.30.0) (2025-04-22)
+
+
+### Features
+
+* **author-utils:** add normalize_authors to unify author formats ([54c2123](https://github.com/unoplat/unoplat-code-confluence/commit/54c212318cfb89608a32bebe3c13fd08077e64ae))
+* **author-utils:** add normalize_authors to unify author formats ([7aa2a72](https://github.com/unoplat/unoplat-code-confluence/commit/7aa2a7246f31ebcd0e659b10a56482b4c96aa8ab))
+
 ## [0.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.29.0...code-confluence-flow-bridge-v0.29.1) (2025-04-21)
 
 
