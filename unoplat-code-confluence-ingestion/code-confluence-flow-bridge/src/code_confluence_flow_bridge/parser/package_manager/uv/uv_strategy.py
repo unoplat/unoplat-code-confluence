@@ -5,6 +5,7 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependen
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
+from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 from pathlib import Path
 import tomllib
@@ -142,7 +143,7 @@ class UvStrategy(PackageManagerStrategy):
             programming_language_version=project_data.get("requires-python"),
             project_version=project_data.get("version"),
             description=project_data.get("description"),
-            authors=project_data.get("authors", []),
+            authors=normalize_authors(project_data.get("authors", [])),
             license=project_data.get("license"),
             entry_points=self._parse_entry_points(project_data),
             homepage=project_data.get("homepage"),

@@ -9,6 +9,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
     PackageManagerType
 )
 from src.code_confluence_flow_bridge.parser.package_manager.uv.uv_strategy import UvStrategy
+from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 # Constants
 TEST_DATA_DIR = Path(__file__).parent.parent.parent / "test_data"
@@ -144,4 +145,32 @@ def test_version_constraint_parsing(uv_strategy: UvStrategy):
     
     # Exact version
     version = uv_strategy._parse_version_constraint("==1.0.0")
-    assert version.specifier == "==1.0.0" 
+    assert version.specifier == "==1.0.0"
+
+def test_normalize_authors_pep621_uv():
+    pep621_authors = [
+        {"name": "Test Author", "email": "test@example.com"},
+        {"name": "Another Author", "email": "another@example.com"},
+        {"name": "No Email"},
+        {"email": "only@example.com"}
+    ]
+    result = normalize_authors(pep621_authors)
+    assert result == [
+        "Test Author <test@example.com>",
+        "Another Author <another@example.com>",
+        "No Email",
+        "<only@example.com>"
+    ]
+
+def test_process_metadata_authors_format_uv(uv_strategy: UvStrategy, pyproject_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+    # Patch the pyproject.toml to add authors in PEP 621 format
+    pyproject_path = pyproject_dir / "pyproject.toml"
+    content = pyproject_path.read_text()
+    content = content.replace(
+        '[project]',
+        '[project]\nauthors = [\n    { name = "Test Author", email = "test@example.com" },\n    { name = "Another Author", email = "another@example.com" }\n]\n'
+    )
+    pyproject_path.write_text(content)
+    metadata = uv_strategy.process_metadata(str(pyproject_dir), mock_metadata)
+    assert metadata.authors is not None
+    assert metadata.authors == ["Test Author <test@example.com>", "Another Author <another@example.com>"] 
