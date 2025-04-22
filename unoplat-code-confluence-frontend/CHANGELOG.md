@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.16.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.16.0...unoplat-code-confluence-frontend-v1.16.1) (2025-04-22)
+
+
+### Bug Fixes
+
+* **app:** skip global token popup on onboarding page ([994e9a5](https://github.com/unoplat/unoplat-code-confluence/commit/994e9a53838a69577c068b4623688769785ce4fd))
+* **app:** skip global token popup on onboarding page ([77cca60](https://github.com/unoplat/unoplat-code-confluence/commit/77cca60792a18f592b36f4a811b5ac50e4c29edc))
+
 ## [1.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.15.0...unoplat-code-confluence-frontend-v1.16.0) (2025-04-21)
 
 
