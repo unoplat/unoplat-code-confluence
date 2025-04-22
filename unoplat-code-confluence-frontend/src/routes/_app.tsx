@@ -21,12 +21,17 @@ function AppComponent(): React.ReactElement {
 
   // Show token popup if no token is present
   useEffect(() => {
+    // Skip the global popup when on the onboarding page (handled locally in OnboardingPage)
+    if (routerState.location.pathname === '/onboarding') {
+      setShowTokenPopup(false);
+      return;
+    }
     if (tokenStatus && !tokenStatus.status && tokenStatus.errorCode !== 503) {
       setShowTokenPopup(true);
     } else {
       setShowTokenPopup(false);
     }
-  }, [tokenStatus]);
+  }, [tokenStatus, routerState.location.pathname]);
 
   // Handle root path navigation
   useEffect(() => {
