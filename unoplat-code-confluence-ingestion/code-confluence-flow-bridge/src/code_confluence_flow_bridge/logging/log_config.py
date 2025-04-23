@@ -13,7 +13,7 @@ class LogConfig:
     def make_logger_config(log_path: str = "logs") -> Dict[str, Any]:
         """Return logger configuration"""
         # Use environment variable LOG_LEVEL to control logging level, default is "INFO"
-        log_level: str = os.getenv("LOG_LEVEL", "DEBUG")
+        log_level: str = os.getenv("LOG_LEVEL", "INFO")
         return {
             "handlers": [
                 {
