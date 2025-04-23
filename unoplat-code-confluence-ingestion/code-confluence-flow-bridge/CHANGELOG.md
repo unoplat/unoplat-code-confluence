@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.31.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.31.0...code-confluence-flow-bridge-v0.31.1) (2025-04-23)
+
+
+### Bug Fixes
+
+* **logging:** set default log level to INFO from DEBUG ([242f883](https://github.com/unoplat/unoplat-code-confluence/commit/242f883d9642eac86bd8f91ec31b91f9389ec036))
+* **logging:** set default log level to INFO from DEBUG ([cd0219d](https://github.com/unoplat/unoplat-code-confluence/commit/cd0219d9047a878462505522068ac036a2b68380))
+
 ## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.30.0...code-confluence-flow-bridge-v0.31.0) (2025-04-23)
 
 
