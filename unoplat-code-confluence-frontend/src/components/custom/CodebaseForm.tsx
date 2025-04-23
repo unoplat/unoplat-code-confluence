@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { InfoIcon, TrashIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,10 +56,25 @@ export function CodebaseForm({
   onRemove,
 }: CodebaseFormProps): React.ReactElement {
   const [isRootRepo, setIsRootRepo] = useState<boolean>(false);
+  const [isRootRepoLocked, setIsRootRepoLocked] = useState<boolean>(false);
   
   // Helper to create field name with proper type
   const getFieldName = <K extends keyof Codebase>(fieldName: K): string => 
     `codebases[${index}].${fieldName}`;
+
+  // Effect to initialize isRootRepo and isRootRepoLocked from field value
+  useEffect(() => {
+    // Get the current value of codebase_folder from parentForm
+    const codebaseFolderValue: string = parentForm.getFieldValue(getFieldName("codebase_folder"));
+    if (codebaseFolderValue === ".") {
+      setIsRootRepo(true);
+      setIsRootRepoLocked(true);
+    } else {
+      setIsRootRepo(false);
+      setIsRootRepoLocked(false);
+    }
+  // Only run on mount and when index/parentForm changes
+  }, [index, parentForm]);
 
   // Function to render a field with common components
   const renderField = (
@@ -97,16 +112,14 @@ export function CodebaseForm({
   );
 
   // Handle root repository checkbox change
-  const handleRootRepoChange = (checked: boolean, field: FieldState) => {
+  function handleRootRepoChange(checked: boolean, field: FieldState): void {
     setIsRootRepo(checked);
     if (checked) {
-      // Set value to "." when it's a root repository
       field.handleChange(".");
     } else {
-      // Clear the field when unchecked
       field.handleChange("");
     }
-  };
+  }
 
   return (
     <div className="space-y-4 p-4 border rounded-md relative">
@@ -135,7 +148,7 @@ export function CodebaseForm({
                 id={`is_root_repo_${index}`}
                 checked={isRootRepo}
                 onCheckedChange={(checked) => handleRootRepoChange(checked as boolean, field)}
-                disabled={disabled}
+                disabled={disabled || isRootRepoLocked}
               />
               <Label 
                 htmlFor={`is_root_repo_${index}`}
@@ -145,7 +158,7 @@ export function CodebaseForm({
               </Label>
             </div>
             
-            {!isRootRepo && renderField(
+            {!isRootRepo && !isRootRepoLocked && renderField(
               field,
               "Codebase Folder",
               "The relative path to the codebase folder within the repository",
