@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.11.0...unoplat-code-confluence-commons-v0.11.1) (2025-04-23)
+
+
+### Bug Fixes
+
+* add py.typed marker and update mypy config ([b25420c](https://github.com/unoplat/unoplat-code-confluence/commit/b25420c5e3d3ecc70fb6a7eddf98a2c371db0688))
+* add py.typed marker and update mypy config ([a13212d](https://github.com/unoplat/unoplat-code-confluence/commit/a13212d4e20d5bda05dbddab7722d962282cb5c7))
+
 ## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.10.1...unoplat-code-confluence-commons-v0.11.0) (2025-04-01)
 
 
