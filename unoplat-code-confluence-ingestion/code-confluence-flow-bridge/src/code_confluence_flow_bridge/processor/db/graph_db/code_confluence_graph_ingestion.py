@@ -69,7 +69,7 @@ class CodeConfluenceGraphIngestion:
                     raise ApplicationError(message=f"Failed to create repository node: {qualified_name}", type="REPOSITORY_CREATION_ERROR", details=[{"repository": qualified_name}])
 
                 repo_node = repo_results[0]
-                logger.success(f"Created repository node: {qualified_name}")
+                logger.debug(f"Created repository node: {qualified_name}")
 
                 # Create codebase nodes and establish relationships
                 for codebase in git_repo.codebases:
@@ -88,7 +88,7 @@ class CodeConfluenceGraphIngestion:
                     await repo_node.codebases.connect(codebase_node)
                     await codebase_node.git_repository.connect(repo_node)
 
-                logger.success(f"Successfully ingested repository {qualified_name}")
+                logger.debug(f"Successfully ingested repository {qualified_name}")
                 return parent_child_clone_metadata
 
         except Exception as e:
@@ -136,7 +136,7 @@ class CodeConfluenceGraphIngestion:
                 # Connect metadata to codebase
                 await codebase_node.package_manager_metadata.connect(metadata_node)
 
-                logger.success(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
+                logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
 
         except Exception as e:
             error_msg = f"Failed to insert package manager metadata for {codebase_qualified_name}"
@@ -210,7 +210,7 @@ class CodeConfluenceGraphIngestion:
                     await parent_node.sub_packages.connect(package_node)
                     await package_node.sub_packages.connect(parent_node)
 
-                logger.success(f"Created package node: {pkg_name}")
+                logger.debug(f"Created package node: {pkg_name}")
 
                 # Process all classes in this package
                 if current_pkg.nodes:
@@ -279,7 +279,7 @@ class CodeConfluenceGraphIngestion:
         # Connect the class node to its package
         await package_node.classes.connect(class_node)
         await class_node.package.connect(package_node)
-        logger.success(f"Created class node: {getattr(node, 'node_name', 'UnnamedClass')}")
+        logger.debug(f"Created class node: {getattr(node, 'node_name', 'UnnamedClass')}")
 
         # Process functions of the class node, if any
         if node.functions:
@@ -334,7 +334,7 @@ class CodeConfluenceGraphIngestion:
 
         # Connect relationship on one side only
         await class_node.functions.connect(function_node)
-        logger.success(f"Created function node: {func_name}")
+        logger.debug(f"Created function node: {func_name}")
         return function_node
     
     def __serialize_import(self, imp):
