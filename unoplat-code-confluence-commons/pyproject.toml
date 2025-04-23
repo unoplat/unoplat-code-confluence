@@ -4,6 +4,7 @@ version = "0.11.0"
 description = "this will hold common operations/models required across code confluence ingestion and query utilities"
 authors = ["JayGhiya <ghiya6548@gmail.com>"]
 readme = "README.md"
+include = ["unoplat_code_confluence_commons/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -25,3 +26,7 @@ testpaths = ["tests"]
 check_untyped_defs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module               = ["neomodel.*"]
+ignore_missing_imports = true
