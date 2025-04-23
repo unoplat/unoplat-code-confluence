@@ -15,9 +15,8 @@ from pydantic import BaseModel, Field
 class ChapiNode(BaseModel):
     """Represents a node in the code structure (class, function, etc.)."""
     
-    node_name: Optional[str] = Field(
-        default=None, 
-        alias="NodeName", 
+    node_name: str = Field(
+        alias="NodeName",
         description="name of the class, method, function, etc."
     )
     type: Optional[str] = Field(default=None, alias="Type")
