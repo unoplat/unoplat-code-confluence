@@ -10,6 +10,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Enviro
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
 
+import json
 from typing import Any, List, Tuple, Union
 
 from loguru import logger
@@ -326,9 +327,13 @@ class CodeConfluenceGraphIngestion:
                 type="FUNCTION_CREATION_ERROR"
             )
         function_node: CodeConfluenceInternalFunction = function_results[0]
-        # Connect the function node to its parent class
+        # Check relationship to avoid duplicates
+        if await class_node.functions.is_connected(function_node):
+            logger.debug(f"Function {func_name} already connected to class {class_node.qualified_name}")
+            return function_node
+
+        # Connect relationship on one side only
         await class_node.functions.connect(function_node)
-        await function_node.confluence_class.connect(class_node)
         logger.success(f"Created function node: {func_name}")
         return function_node
     
