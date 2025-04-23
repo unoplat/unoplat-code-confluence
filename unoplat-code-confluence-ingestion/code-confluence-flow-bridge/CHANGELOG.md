@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.30.0...code-confluence-flow-bridge-v0.31.0) (2025-04-23)
+
+
+### Features
+
+* improve function-class connection and add debug logging ([2abe131](https://github.com/unoplat/unoplat-code-confluence/commit/2abe1311d90bfe7b2d5190e4cc28dbbadf2d58e0))
+* improve function-class connection and add debug logging ([ced3e85](https://github.com/unoplat/unoplat-code-confluence/commit/ced3e857caba9d64ead78e3472ba72e2813a092f))
+
+
+### Bug Fixes
+
+* **logging:** change success logs to debug for ingestion steps ([da4b40a](https://github.com/unoplat/unoplat-code-confluence/commit/da4b40adc19f5774279d70dfffb7397941fd172e))
+
 ## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.29.1...code-confluence-flow-bridge-v0.30.0) (2025-04-22)
 
 
