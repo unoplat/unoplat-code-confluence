@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.18.1...unoplat-code-confluence-frontend-v1.19.0) (2025-04-23)
+
+
+### Features
+
+* **codebaseform:** lock root repo checkbox when folder is "." ([2e30bfa](https://github.com/unoplat/unoplat-code-confluence/commit/2e30bfa39201cb1c70961ac1cd375920e6ab3852))
+* **codebaseform:** lock root repo checkbox when folder is "." ([f205f0f](https://github.com/unoplat/unoplat-code-confluence/commit/f205f0f2bbf064665bb7b520edf8517e5294c7e3))
+
 ## [1.18.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.18.0...unoplat-code-confluence-frontend-v1.18.1) (2025-04-23)
 
 
