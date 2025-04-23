@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.18.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.18.0...unoplat-code-confluence-frontend-v1.18.1) (2025-04-23)
+
+
+### Bug Fixes
+
+* **app:** remove GitHubTokenPopup and update tooltip dependency ([cb3cc86](https://github.com/unoplat/unoplat-code-confluence/commit/cb3cc86654b1a455a70f438d35facc671c3ca01e))
+* **app:** remove GitHubTokenPopup and update tooltip dependency ([6d843a5](https://github.com/unoplat/unoplat-code-confluence/commit/6d843a50df39f03cb119e4e68615a58981b945de))
+
 ## [1.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.17.0...unoplat-code-confluence-frontend-v1.18.0) (2025-04-22)
 
 
