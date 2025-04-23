@@ -148,7 +148,8 @@ class TestCodeConfluenceGraphIngestion:
         codebase_dict = {
             "qualified_name": codebase_qualified_name,
             "name": "test_codebase",
-            "readme": "# Test Codebase"
+            "readme": "# Test Codebase",
+            "local_path": "/tmp/test-codebase",
         }
         
         codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
