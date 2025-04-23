@@ -58,10 +58,12 @@ from src.code_confluence_flow_bridge.parser.tree_sitter.code_confluence_tree_sit
 )
 
 import os
+import json
 from typing import Dict, List, Tuple
 
 # Third Party
 from loguru import logger
+from pydantic import ValidationError
 
 
 class PythonCodebaseParser(CodebaseParserStrategy):
@@ -99,24 +101,36 @@ class PythonCodebaseParser(CodebaseParserStrategy):
 
                 qualified_names_dict[unoplat_node.qualified_name] = unoplat_node
 
+            except ValidationError as ve:
+                logger.error(f"ValidationError while building qualified name map: {ve}")
+                try:
+                    logger.error(f"Offending item: {json.dumps(item, indent=2)[:1000]}")
+                except Exception:
+                    logger.error("Offending item could not be serialized for logging.")
+                continue
             except Exception as e:
                 logger.error(f"Error building qualified name map: {e}")
 
-        # Add debug logging for final map
-        logger.debug("Qualified names in dict:")
-        for qname in qualified_names_dict.keys():
-            logger.debug(f"  {qname}")
+        
 
         return file_path_nodes, qualified_names_dict
     
     def __get_import_prefix(self, local_workspace_path: str, source_directory: str):
-        return os.path.relpath(
+        import_prefix = os.path.relpath(
             local_workspace_path,  # From workspace path
             source_directory      # To source root
         )
+        logger.debug(f"Computed import prefix: {import_prefix} (from '{local_workspace_path}' to '{source_directory}')")
+        return import_prefix
+        
     
     
-    def __common_node_processing(self, node: ChapiNode, local_workspace_path: str, source_directory: str):
+    def __common_node_processing(
+        self,
+        node: ChapiNode,
+        local_workspace_path: str,
+        source_directory: str
+    ) -> UnoplatChapiForgeNode:
         """Process common node attributes and imports.
         
         Args:
@@ -124,45 +138,94 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             local_workspace_path: Path like /Users/user/projects/myproject/src/code_confluence_flow_bridge
             source_directory: Path like /Users/user/projects/myproject
         """
-        if node.node_name == "default":
-            node.node_name = os.path.basename(node.file_path).split(".")[0] if node.file_path else "unknown"
+        logger.debug(f"Starting __common_node_processing for node: {getattr(node, 'node_name', None)} (file_path={getattr(node, 'file_path', None)})")
+        qualified_name: str = "unknown"
+        try:
+            if node.node_name == "default":
+                logger.debug(f"Node name is 'default', attempting to set from file_path: {node.file_path}")
+                node.node_name = os.path.basename(node.file_path).split(".")[0] if node.file_path else "unknown"
+                logger.debug(f"Node name set to: {node.node_name}")
+            
+            if not node.node_name:
+                try:
+                    logger.error(f"JSON item missing 'node_name': {node.model_dump_json(indent=2)}")
+                except Exception:
+                    logger.error("JSON item missing 'node_name' could not be serialized for logging.")
+            
+            # Fail fast when we still don't have both a node name and a file path
+            if not node.node_name or not node.file_path:
+                raise ValueError(
+                    f"Cannot build qualified name: node_name={node.node_name!r}, file_path={node.file_path!r}"
+                )
 
-        # Get the import prefix by finding the path from workspace to source root
-        import_prefix = self.__get_import_prefix(local_workspace_path=local_workspace_path, source_directory=source_directory)
-        
-        
-        if node.node_name and node.file_path:  # Type guard for linter
-            qualified_name = self.qualified_name_strategy.get_qualified_name(
-                node_name=node.node_name, 
-                node_file_path=node.file_path, 
-                node_type=node.type,
-                import_prefix=import_prefix
+            # Get the import prefix by finding the path from workspace to source root
+            import_prefix = self.__get_import_prefix(
+                local_workspace_path=local_workspace_path,
+                source_directory=source_directory
             )
-        
-        import_prefix_directory = import_prefix.replace(os.sep, ".")
-        
-        # segregating imports
-        imports_dict: Dict[ImportType, List[UnoplatImport]] = self.python_import_segregation_strategy.process_imports(
-            source_directory=import_prefix_directory,  # Now correctly "src.code_confluence_flow_bridge"
-            class_metadata=node
+            logger.debug(f"Import prefix computed: {import_prefix}")
+
+            if node.node_name and node.file_path:  # Type guard for linter
+                logger.debug(
+                    f"Attempting to get qualified name with node_name={node.node_name}, node_file_path={node.file_path}, node_type={node.type}, import_prefix={import_prefix}"
+                )
+                qualified_name = self.qualified_name_strategy.get_qualified_name(
+                    node_name=node.node_name, 
+                    node_file_path=node.file_path, 
+                    node_type=node.type,
+                    import_prefix=import_prefix
+                )
+                logger.debug(f"Qualified name formed: {qualified_name}")
+            else:
+                logger.warning(
+                    f"Cannot form qualified name: node_name={node.node_name}, node_file_path={node.file_path}"
+                )
+
+            import_prefix_directory = import_prefix.replace(os.sep, ".")
+            logger.debug(f"Import prefix directory for import segregation: {import_prefix_directory}")
+
+            # segregating imports
+            imports_dict: Dict[ImportType, List[UnoplatImport]] = self.python_import_segregation_strategy.process_imports(
+                source_directory=import_prefix_directory,  # Now correctly "src.code_confluence_flow_bridge"
+                class_metadata=node
+            )
+            logger.debug(f"Imports segregated: {{ {', '.join(f'{k.value}: {[str(i) for i in v]}' for k, v in imports_dict.items())} }}")
+
+            # Extracting inheritance
+            if imports_dict and ImportType.INTERNAL in imports_dict:
+                logger.debug(f"Extracting inheritance for node: {node.node_name}")
+                final_internal_imports = self.python_extract_inheritance.extract_inheritance(
+                    node, 
+                    imports_dict[ImportType.INTERNAL]
+                )
+                imports_dict[ImportType.INTERNAL] = final_internal_imports
+                logger.debug(f"Final internal imports after inheritance extraction: {[str(i) for i in final_internal_imports]}")
+
+            if node.file_path:  # Type guard for linter
+                logger.debug(f"Attempting to get package name for file_path={node.file_path}, import_prefix={import_prefix}")
+                node.package = self.package_naming_strategy.get_package_name(
+                    file_path=node.file_path,
+                    import_prefix=import_prefix
+                )
+                logger.debug(f"Package name set to: {node.package}")
+
+        except Exception as e:
+            logger.error(f"Exception in __common_node_processing: {e}", exc_info=True)
+            try:
+                logger.error(f"Offending node JSON: {node.model_dump_json(indent=2)[:1000]}")
+            except Exception:
+                pass
+
+        logger.debug(
+            f"Returning UnoplatChapiForgeNode with qualified_name={qualified_name}, node_name={node.node_name}, file_path={node.file_path}, package={getattr(node, 'package', None)}"
+        )
+        return UnoplatChapiForgeNode.from_chapi_node(
+            chapi_node=node,
+            qualified_name=qualified_name,
+            segregated_imports=imports_dict if 'imports_dict' in locals() and imports_dict is not None else {}
         )
 
-        # Extracting inheritance
-        if imports_dict and ImportType.INTERNAL in imports_dict:
-            final_internal_imports = self.python_extract_inheritance.extract_inheritance(
-                node, 
-                imports_dict[ImportType.INTERNAL]
-            )
-            imports_dict[ImportType.INTERNAL] = final_internal_imports
-
-        
-        if node.file_path:  # Type guard for linter
-            node.package = self.package_naming_strategy.get_package_name(file_path=node.file_path, import_prefix=import_prefix)
-
-        
-
-        return UnoplatChapiForgeNode.from_chapi_node(chapi_node=node, qualified_name=qualified_name, segregated_imports=imports_dict if imports_dict is not None else {})
-
+#TODO: remove unused argument
     def parse_codebase(
         self, 
         codebase_name: str, 
@@ -203,7 +266,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 
                 if nodes[0].segregated_imports:
                     internal_imports: List[UnoplatImport] = nodes[0].segregated_imports[ImportType.INTERNAL] 
-                    # This call will update each function’s "function_calls" attribute
+                    # This call will update each function's "function_calls" attribute
                 nodes = self.python_extract_function_calls.extract_function_calls(
                     file_path_nodes={file_path: nodes},
                     imports=internal_imports,
