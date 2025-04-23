@@ -1,4 +1,4 @@
-version: "3.5"
+version: "3.8"
 
 # Add default config
 configs:
@@ -20,15 +20,21 @@ services:
       - cluster.routing.allocation.disk.watermark.high=256mb
       - cluster.routing.allocation.disk.watermark.flood_stage=128mb
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms256m -Xmx256m
-      - xpack.security.enabled=false
-    image: elasticsearch:7.17.27
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m
+    image: opensearchproject/opensearch:2.14.0
     networks:
       - temporal-network
     expose:
       - 9200
     volumes:
-      - /var/lib/elasticsearch/data
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   postgresql:
     image: bitnami/postgresql:latest
     # container_name: code-confluence-postgresql
@@ -51,8 +57,11 @@ services:
   temporal:
     # container_name: temporal
     depends_on:
-      - postgresql
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+      
     environment:
       - DB=postgres12
       - DB_PORT=5432
@@ -62,6 +71,7 @@ services:
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
+      # - SKIP_SCHEMA_SETUP=false
       - TEMPORAL_CLI_ADDRESS=temporal:7233
     image: temporalio/auto-setup:1.26.2
     networks:
@@ -153,11 +163,15 @@ services:
     tty: true
   unoplat-code-confluence-frontend:
     # container_name: unoplat-code-confluence-frontend
+    depends_on:
+      - code-confluence-flow-bridge
     build:
       context: ./unoplat-code-confluence-frontend
       dockerfile: Dockerfile
     environment:
       - VITE_API_BASE_URL=http://code-confluence-flow-bridge:8000
+      - VITE_WORKFLOW_ORCHESTRATOR_URL=http://temporal-ui:8080
+      - VITE_KNOWLEDGE_GRAPH_URL=http://neo4j:7474
     ports:
       - "3000:80"
     networks:
@@ -174,4 +188,4 @@ volumes:
   postgresql_data:
     driver: local
   elasticsearch_data:
-    driver: local  
+    driver: local 
