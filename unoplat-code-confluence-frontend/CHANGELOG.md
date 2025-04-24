@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.19.0...unoplat-code-confluence-frontend-v1.19.1) (2025-04-24)
+
+
+### Bug Fixes
+
+* **env:** update default backend service URLs ([510165d](https://github.com/unoplat/unoplat-code-confluence/commit/510165df15d7155764764cc67a421ba3f7e66604))
+* **env:** update default backend service URLs ([421d79e](https://github.com/unoplat/unoplat-code-confluence/commit/421d79e640270a840e829a6162106acecb4f90de))
+
 ## [1.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.18.1...unoplat-code-confluence-frontend-v1.19.0) (2025-04-23)
 
 
