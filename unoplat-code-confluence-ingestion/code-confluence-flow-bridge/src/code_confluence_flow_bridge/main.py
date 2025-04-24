@@ -1,4 +1,3 @@
-import httpx
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 
@@ -41,6 +40,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Add imports for gql
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
+import httpx
 from loguru import logger
 from sqlmodel import Session, select
 from temporalio.client import Client, WorkflowHandle

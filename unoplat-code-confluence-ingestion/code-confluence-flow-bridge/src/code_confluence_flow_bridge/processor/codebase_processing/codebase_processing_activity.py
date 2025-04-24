@@ -1,4 +1,3 @@
-import os
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
@@ -6,9 +5,11 @@ from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterP
 from src.code_confluence_flow_bridge.processor.archguard.arc_guard_handler import ArchGuardHandler
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
+import os
 import json
 from typing import List, Optional
 
+from loguru import logger
 from temporalio import activity
 
 
@@ -18,7 +19,7 @@ class CodebaseProcessingActivity:
     def __init__(self, code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
         self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
 
-    @activity.defn  
+    @activity.defn
     async def process_codebase(
         self,
         local_workspace_path: str,
@@ -40,8 +41,9 @@ class CodebaseProcessingActivity:
         Returns:
             UnoplatCodebase: Parsed codebase data
         """
-        activity.logger.info(f"Starting codebase processing for {codebase_qualified_name}")
-        activity.logger.info(f"Programming language metadata: {programming_language_metadata.language.value}")
+        log = logger.bind(codebase_qualified_name=codebase_qualified_name)
+        log.info("Starting codebase processing")
+        log.info("Programming language metadata: {}", programming_language_metadata.language.value)
         
         linter_parser = LinterParser()
         lint_result = linter_parser.lint_codebase(
@@ -51,13 +53,22 @@ class CodebaseProcessingActivity:
         )
         
         if not lint_result:
-            activity.logger.exception("Linting process completed with warnings")
+            log.exception("Linting process completed with warnings")
 
         # 2. Generate AST using ArchGuard
         jar_env: str = os.getenv("SCANNER_JAR_PATH", "/app/jars/scanner_cli-2.2.8-all.jar")
         if jar_env:
             scanner_jar_path: str = jar_env
         
+        log.debug(
+            "Initializing ArchGuardHandler with args: jar_path='{}', language='{}', codebase_path='{}', codebase_name='{}', output_path='{}', extension='{}'",
+            scanner_jar_path,
+            programming_language_metadata.language.value,
+            local_workspace_path,
+            codebase_qualified_name,
+            local_workspace_path,
+            ".py"
+        )
         arch_guard = ArchGuardHandler(
             jar_path=scanner_jar_path,
             language=programming_language_metadata.language.value,
@@ -84,5 +95,5 @@ class CodebaseProcessingActivity:
         
         await self.code_confluence_graph_ingestion.insert_code_confluence_package(codebase_qualified_name=codebase_qualified_name, packages=list_packages)
 
-        activity.logger.info(f"Completed codebase processing for {codebase_qualified_name}")
+        log.info("Completed codebase processing")
         

@@ -4,6 +4,7 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
+from loguru import logger
 
 
 class ConfluenceGitGraph:
@@ -13,7 +14,9 @@ class ConfluenceGitGraph:
 
     def __init__(self, code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
         self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
-        activity.logger.info("Initialized ConfluenceGitGraph with CodeConfluenceGraphIngestion")
+        logger.debug(
+            "Initialized ConfluenceGitGraph with CodeConfluenceGraphIngestion"
+        )
 
     @activity.defn
     async def insert_git_repo_into_graph_db(self, git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
@@ -28,14 +31,24 @@ class ConfluenceGitGraph:
         """
         try:
             info = activity.info()
-            activity.logger.info("Starting graph db insertion", extra={"workflow_id": info.workflow_id, "activity_id": info.activity_id, "repository": git_repo.repository_url})
-
+            logger.debug(
+                "Starting graph db insertion for repo: {} | workflow_id={} | activity_id={}",
+                git_repo.repository_url, info.workflow_id, info.activity_id
+            )
+            
             parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
-
-            activity.logger.info("Successfully inserted git repo into graph db", extra={"workflow_id": info.workflow_id, "activity_id": info.activity_id, "repository": git_repo.repository_url})
+            
+            logger.debug(
+                "Successfully inserted git repo into graph db: {} | workflow_id={} | activity_id={}",
+                git_repo.repository_url, info.workflow_id, info.activity_id
+            )
             return parent_child_clone_metadata
 
         except Exception as e:
+            info = activity.info()
             error_msg = f"Failed to insert git repo into graph db: {git_repo.repository_url}"
-            activity.logger.error(error_msg, extra={"workflow_id": activity.info().workflow_id, "activity_id": activity.info().activity_id, "error": str(e), "repository": git_repo.repository_url})
+            logger.debug(
+                "{} | workflow_id={} | activity_id={} | error={}",
+                error_msg, info.workflow_id, info.activity_id, str(e)
+            )
             raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")
