@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.11.0...code-confluence-docs-v0.12.0) (2025-04-24)
+
+
+### Features
+
+* **docs:** updated docs , images, logo and consolidate duplicate dependencies in yarn.lock ([d07fed2](https://github.com/unoplat/unoplat-code-confluence/commit/d07fed2d8657cdee35bfb09c0055006325412701))
+* **docs:** updated docs , images, logo and consolidate duplicate dependencies in yarn.lock ([594e8f2](https://github.com/unoplat/unoplat-code-confluence/commit/594e8f2dcb567fb7718a17c7b87c347459dab9cf))
+
+
+### Bug Fixes
+
+* **docs:** update GitHub PAT token image reference ([856516b](https://github.com/unoplat/unoplat-code-confluence/commit/856516bd95ef12f8c48cce3393d439af909722fe))
+
 ## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.10.0...code-confluence-docs-v0.11.0) (2025-04-01)
 
 
