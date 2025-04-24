@@ -13,8 +13,8 @@ function HomepageHeader() {
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner, styles.blackText)}>
       <div className="container">
-        <Svg role="img" />
-        <Heading as="h1" className="hero__title">
+        {/* <Svg role="img" /> */}
+        <Heading as="h1" className="hero__title gradient-text">
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>

@@ -9,10 +9,10 @@ import React from 'react';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Code confluence',
-  tagline: 'Powered by Unoplat Technologies',
+  title: 'Code Confluence',
+  tagline: 'Powered by ',
   customFields: {
-    taglineImage: 'img/unoplat_logo.svg',
+    taglineImage: 'img/Unoplat_Logo.svg',
   },
   favicon: 'img/favicon.ico',
 
@@ -67,7 +67,7 @@ const config = {
         title: '                ',
         logo: {
           alt: 'Code Confluence',
-          src: 'img/confluence_logo.svg',
+          src: 'img/Unoplat_Logo.svg',
         },
         items: [
           {
