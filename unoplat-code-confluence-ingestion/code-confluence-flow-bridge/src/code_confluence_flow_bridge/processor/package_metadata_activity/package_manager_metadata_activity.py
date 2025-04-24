@@ -29,23 +29,23 @@ class PackageMetadataActivity:
         """
         try:
             info = activity.info()
-            logger.info(
-                "Processing package metadata",
-                extra={
-                    "temporal_workflow_id": info.workflow_id,
-                    "temporal_activity_id": info.activity_id,
-                    "codebase_path": local_path,
-                    "programming_language": programming_language_metadata.language.value,
-                    "language_version": programming_language_metadata.language_version,
-                    "package_manager": programming_language_metadata.package_manager.value,
-                },
+            logger.debug(
+                "Processing package metadata | workflow_id={} | activity_id={} | codebase_path={} | programming_language={} | language_version={} | package_manager={}",
+                info.workflow_id, info.activity_id, local_path, programming_language_metadata.language.value, programming_language_metadata.language_version, programming_language_metadata.package_manager.value
             )
 
             package_metadata = self.package_manager_parser.parse_package_metadata(local_workspace_path=local_path, programming_language_metadata=programming_language_metadata)
 
-            logger.info("Successfully processed package metadata", extra={"temporal_workflow_id": info.workflow_id, "temporal_activity_id": info.activity_id, "codebase_path": local_path, "status": "success"})
+            logger.debug(
+                "Successfully processed package metadata | workflow_id={} | activity_id={} | codebase_path={} | status=success",
+                info.workflow_id, info.activity_id, local_path
+            )
             return package_metadata
 
         except Exception as e:
-            logger.error("Failed to process package metadata", extra={"temporal_workflow_id": activity.info().workflow_id, "temporal_activity_id": activity.info().activity_id, "error_type": type(e).__name__, "error_details": str(e), "codebase_path": local_path, "status": "error"})
+            info = activity.info()
+            logger.debug(
+                "Failed to process package metadata | workflow_id={} | activity_id={} | codebase_path={} | error_type={} | error_details={} | status=error",
+                info.workflow_id, info.activity_id, local_path, type(e).__name__, str(e)
+            )
             raise ApplicationError(message=f"Failed to process package metadata for {local_path}", type="PACKAGE_METADATA_ERROR")
