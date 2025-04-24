@@ -4,6 +4,7 @@ from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepo
 
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
+from loguru import logger
 
 
 class GitActivity:
@@ -13,7 +14,7 @@ class GitActivity:
 
     def __init__(self):
         self.github_helper = GithubHelper()
-        activity.logger.info("Initialized GitActivity with GithubHelper")
+        logger.debug("Initialized GitActivity with GithubHelper")
 
     @activity.defn
     async def process_git_activity(self, repo_request: GitHubRepoRequestConfiguration, github_token: str) -> UnoplatGitRepository:
@@ -26,13 +27,23 @@ class GitActivity:
         try:
             # Get activity info for context
             info = activity.info()
-            activity.logger.info("Starting git activity processing", extra={"temporal_workflow_id": info.workflow_id, "temporal_activity_id": info.activity_id, "temporal_attempt": info.attempt, "git_url": repo_request.repository_git_url})
+            logger.debug(
+                "Starting git activity processing | workflow_id={} | activity_id={} | attempt={} | git_url={}",
+                info.workflow_id, info.activity_id, info.attempt, repo_request.repository_git_url
+            )
 
             activity_data = await self.github_helper.clone_repository(repo_request, github_token)
 
-            activity.logger.info("Successfully processed git activity", extra={"temporal_workflow_id": info.workflow_id, "temporal_activity_id": info.activity_id, "git_url": repo_request.repository_git_url, "status": "success"})
+            logger.debug(
+                "Successfully processed git activity | workflow_id={} | activity_id={} | git_url={} | status=success",
+                info.workflow_id, info.activity_id, repo_request.repository_git_url
+            )
             return activity_data
 
         except Exception as e:
-            activity.logger.error("Failed to process git activity", extra={"temporal_workflow_id": activity.info().workflow_id, "temporal_activity_id": activity.info().activity_id, "error_type": type(e).__name__, "error_details": str(e), "git_url": repo_request.repository_git_url, "status": "error"})
+            info = activity.info()
+            logger.debug(
+                "Failed to process git activity | workflow_id={} | activity_id={} | git_url={} | error_type={} | error_details={} | status=error",
+                info.workflow_id, info.activity_id, repo_request.repository_git_url, type(e).__name__, str(e)
+            )
             raise ApplicationError(message="Failed to process git activity", type="GIT_ACTIVITY_ERROR", details=[{"repository": repo_request.repository_git_url, "error": str(e)}])
