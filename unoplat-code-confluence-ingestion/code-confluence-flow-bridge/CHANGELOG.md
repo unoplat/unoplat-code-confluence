@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.32.0...code-confluence-flow-bridge-v0.32.1) (2025-04-24)
+
+
+### Bug Fixes
+
+* update frontend image and flow-bridge version ([f927f0c](https://github.com/unoplat/unoplat-code-confluence/commit/f927f0c60331c9bd3853c04b36728e9a7dc1a279))
+* update frontend image and flow-bridge version ([2c91515](https://github.com/unoplat/unoplat-code-confluence/commit/2c91515128f5e4767a3334a63b9490f1c0de93a9))
+
 ## [0.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.31.1...code-confluence-flow-bridge-v0.32.0) (2025-04-24)
 
 
