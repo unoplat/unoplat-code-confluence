@@ -55,7 +55,7 @@ Follow these steps to set up Code Confluence:
 - When prompted, enter a GitHub PAT with read access to the repositories you want to ingest.
 - This is required for Code Confluence to clone and analyze your repositories.
 
-![Enter GitHub PAT Token](../../static/pat_Token.png)
+![Enter GitHub PAT Token](../../static/github_pat_token.png)
 
 :::tip Getting a GitHub PAT
 If you don't have a GitHub PAT:
