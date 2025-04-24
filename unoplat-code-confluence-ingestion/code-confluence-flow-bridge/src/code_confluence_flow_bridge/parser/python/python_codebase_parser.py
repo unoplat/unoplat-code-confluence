@@ -91,8 +91,8 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 unoplat_node: UnoplatChapiForgeNode = self.__common_node_processing(node, local_workspace_path, source_directory)
 
                 # Add debug logging
-                logger.debug(f"Processing node: {node.node_name}")
-                logger.debug(f"Qualified name: {unoplat_node.qualified_name}")
+                logger.debug("Processing node: {}", node.node_name)
+                logger.debug("Qualified name: {}", unoplat_node.qualified_name)
 
                 if unoplat_node.file_path not in file_path_nodes:
                     file_path_nodes[unoplat_node.file_path] = [unoplat_node]  # type: ignore
@@ -102,14 +102,14 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 qualified_names_dict[unoplat_node.qualified_name] = unoplat_node
 
             except ValidationError as ve:
-                logger.error(f"ValidationError while building qualified name map: {ve}")
+                logger.error("ValidationError while building qualified name map: {}", ve)
                 try:
-                    logger.error(f"Offending item: {json.dumps(item, indent=2)[:1000]}")
+                    logger.error("Offending item: {}", json.dumps(item, indent=2)[:1000])
                 except Exception:
                     logger.error("Offending item could not be serialized for logging.")
                 continue
             except Exception as e:
-                logger.error(f"Error building qualified name map: {e}")
+                logger.error("Error building qualified name map: {}", e)
 
         
 
@@ -120,7 +120,7 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             local_workspace_path,  # From workspace path
             source_directory      # To source root
         )
-        logger.debug(f"Computed import prefix: {import_prefix} (from '{local_workspace_path}' to '{source_directory}')")
+        logger.debug("Computed import prefix: {} (from '{}' to '{}')", import_prefix, local_workspace_path, source_directory)
         return import_prefix
         
     
@@ -138,17 +138,17 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             local_workspace_path: Path like /Users/user/projects/myproject/src/code_confluence_flow_bridge
             source_directory: Path like /Users/user/projects/myproject
         """
-        logger.debug(f"Starting __common_node_processing for node: {getattr(node, 'node_name', None)} (file_path={getattr(node, 'file_path', None)})")
+        logger.debug("Starting __common_node_processing for node: {} (file_path={})", getattr(node, 'node_name', None), getattr(node, 'file_path', None))
         qualified_name: str = "unknown"
         try:
             if node.node_name == "default":
-                logger.debug(f"Node name is 'default', attempting to set from file_path: {node.file_path}")
+                logger.debug("Node name is 'default', attempting to set from file_path: {}", node.file_path)
                 node.node_name = os.path.basename(node.file_path).split(".")[0] if node.file_path else "unknown"
-                logger.debug(f"Node name set to: {node.node_name}")
+                logger.debug("Node name set to: {}", node.node_name)
             
             if not node.node_name:
                 try:
-                    logger.error(f"JSON item missing 'node_name': {node.model_dump_json(indent=2)}")
+                    logger.error("JSON item missing 'node_name': {}", node.model_dump_json(indent=2))
                 except Exception:
                     logger.error("JSON item missing 'node_name' could not be serialized for logging.")
             
@@ -163,11 +163,12 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 local_workspace_path=local_workspace_path,
                 source_directory=source_directory
             )
-            logger.debug(f"Import prefix computed: {import_prefix}")
+            logger.debug("Import prefix computed: {}", import_prefix)
 
             if node.node_name and node.file_path:  # Type guard for linter
                 logger.debug(
-                    f"Attempting to get qualified name with node_name={node.node_name}, node_file_path={node.file_path}, node_type={node.type}, import_prefix={import_prefix}"
+                    "Attempting to get qualified name with node_name={}, node_file_path={}, node_type={}, import_prefix={}",
+                    node.node_name, node.file_path, node.type, import_prefix
                 )
                 qualified_name = self.qualified_name_strategy.get_qualified_name(
                     node_name=node.node_name, 
@@ -175,25 +176,25 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                     node_type=node.type,
                     import_prefix=import_prefix
                 )
-                logger.debug(f"Qualified name formed: {qualified_name}")
+                logger.debug("Qualified name formed: {}", qualified_name)
             else:
                 logger.warning(
-                    f"Cannot form qualified name: node_name={node.node_name}, node_file_path={node.file_path}"
+                    "Cannot form qualified name: node_name={}, node_file_path={}", node.node_name, node.file_path
                 )
 
             import_prefix_directory = import_prefix.replace(os.sep, ".")
-            logger.debug(f"Import prefix directory for import segregation: {import_prefix_directory}")
+            logger.debug("Import prefix directory for import segregation: {}", import_prefix_directory)
 
             # segregating imports
             imports_dict: Dict[ImportType, List[UnoplatImport]] = self.python_import_segregation_strategy.process_imports(
                 source_directory=import_prefix_directory,  # Now correctly "src.code_confluence_flow_bridge"
                 class_metadata=node
             )
-            logger.debug(f"Imports segregated: {{ {', '.join(f'{k.value}: {[str(i) for i in v]}' for k, v in imports_dict.items())} }}")
+            logger.debug("Imports segregated: {{ {} }}", ', '.join(f'{k.value}: {[str(i) for i in v]}' for k, v in imports_dict.items()))
 
             # Extracting inheritance
             if imports_dict and ImportType.INTERNAL in imports_dict:
-                logger.debug(f"Extracting inheritance for node: {node.node_name}")
+                logger.debug("Extracting inheritance for node: {}", node.node_name)
                 final_internal_imports = self.python_extract_inheritance.extract_inheritance(
                     node, 
                     imports_dict[ImportType.INTERNAL]
