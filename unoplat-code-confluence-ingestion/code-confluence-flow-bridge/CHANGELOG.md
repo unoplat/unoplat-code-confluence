@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.31.1...code-confluence-flow-bridge-v0.32.0) (2025-04-24)
+
+
+### Features
+
+* **logging:** standardize and enhance logging details ([b1cf05b](https://github.com/unoplat/unoplat-code-confluence/commit/b1cf05b0f97cc7d5be56a4de57a8dc6c6d8b2436))
+* **logging:** standardize and enhance logging details ([74cebaf](https://github.com/unoplat/unoplat-code-confluence/commit/74cebaf475f11e1a6273e0e694989cb27c995a7a))
+
 ## [0.31.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.31.0...code-confluence-flow-bridge-v0.31.1) (2025-04-23)
 
 
