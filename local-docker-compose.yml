@@ -150,10 +150,10 @@ services:
       - SCANNER_JAR_PATH=/root/assets/scanner_cli-2.3.0-all.jar
       - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
       - DB_HOST=postgresql
+      - TEMPORAL_DEBUG=true
+      - LOG_LEVEL=DEBUG
     depends_on:
       temporal:
-        condition: service_healthy
-      neo4j:
         condition: service_healthy
     ports:
       - "8000:8000"
