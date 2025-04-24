@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.19.1...unoplat-code-confluence-frontend-v1.19.2) (2025-04-24)
+
+
+### Bug Fixes
+
+* **env:** update default API URLs to localhost ([d165f18](https://github.com/unoplat/unoplat-code-confluence/commit/d165f18d2f826770938ffadbebe4a1fff39040be))
+* **env:** update default API URLs to localhost ([ff8c8df](https://github.com/unoplat/unoplat-code-confluence/commit/ff8c8df149ed4de4d97809ef50e51b130607e307))
+
 ## [1.19.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.19.0...unoplat-code-confluence-frontend-v1.19.1) (2025-04-24)
 
 

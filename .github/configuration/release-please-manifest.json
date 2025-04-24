@@ -2,5 +2,5 @@
   "unoplat-code-confluence-commons": "0.11.1",
   "code-confluence": "0.11.0",
   "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": "0.32.0",
-  "unoplat-code-confluence-frontend": "1.19.1"
+  "unoplat-code-confluence-frontend": "1.19.2"
 }
