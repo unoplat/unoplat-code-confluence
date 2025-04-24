@@ -28,6 +28,16 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+/* Tailwind-like gradient text styles */
+.gradient-text {
+  background: linear-gradient(to right, #4f46e5, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
 .hero__title {
   text-align: center;
   margin-bottom: 0.5em;
