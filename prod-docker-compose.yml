@@ -13,25 +13,29 @@ configs:
 
 services:
   elasticsearch:
-    container_name: temporal-elasticsearch
     environment:
       - cluster.routing.allocation.disk.threshold_enabled=true
       - cluster.routing.allocation.disk.watermark.low=512mb
       - cluster.routing.allocation.disk.watermark.high=256mb
       - cluster.routing.allocation.disk.watermark.flood_stage=128mb
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms256m -Xmx256m
-      - xpack.security.enabled=false
-    image: elasticsearch:7.17.27
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m
+    image: opensearchproject/opensearch:2.14.0
     networks:
       - temporal-network
     expose:
       - 9200
     volumes:
-      - /var/lib/elasticsearch/data
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   postgresql:
     image: bitnami/postgresql:latest
-    container_name: code-confluence-postgresql
     environment:
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=postgres
@@ -48,17 +52,17 @@ services:
       timeout: 5s
       retries: 5
   temporal:
-    container_name: temporal
     depends_on:
-      - postgresql
-      - elasticsearch
+      postgresql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     environment:
       - DB=postgres12
       - DB_PORT=5432
-      - POSTGRES_USER=temporal
-      - POSTGRES_PWD=temporal
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=postgres
       - POSTGRES_SEEDS=postgresql
-      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
@@ -78,7 +82,6 @@ services:
       retries: 5
       start_period: 30s
   temporal-admin-tools:
-    container_name: temporal-admin-tools
     depends_on:
       - temporal
     environment:
@@ -90,7 +93,6 @@ services:
     stdin_open: true
     tty: true
   temporal-ui:
-    container_name: temporal-ui
     depends_on:
       - temporal
     environment:
@@ -103,7 +105,6 @@ services:
     ports:
       - 8080:8080
   neo4j:
-    container_name: neo4j
     image: graphstack/dozerdb:5.25.1.0-alpha.1
     ports:
       - "7474:7474"
@@ -127,7 +128,6 @@ services:
       timeout: 5s
       retries: 5
   code-confluence-flow-bridge:
-    container_name: code-confluence-flow-bridge
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
@@ -137,7 +137,9 @@ services:
       - SCANNER_JAR_PATH=/root/assets/scanner_cli-2.3.0-all.jar
       - DB_HOST=postgresql
       - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.15.1
+      - TEMPORAL_DEBUG=false
+      - LOG_LEVEL=DEBUG
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.32.0
     depends_on:
       temporal:
         condition: service_healthy
@@ -150,14 +152,17 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-frontend:
-    container_name: unoplat-code-confluence-frontend
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:0.1.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.19.0
     environment:
       - VITE_API_BASE_URL=http://code-confluence-flow-bridge:8000
+      - VITE_WORKFLOW_ORCHESTRATOR_URL=http://temporal-ui:8080
+      - VITE_KNOWLEDGE_GRAPH_URL=http://neo4j:7474
     ports:
       - "3000:80"
     networks:
       - temporal-network  
+    depends_on:
+      - code-confluence-flow-bridge
 
 networks:
   temporal-network:
