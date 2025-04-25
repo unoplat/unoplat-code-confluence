@@ -25,5 +25,5 @@ export const env: Env = {
    */
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
   workflowOrchestratorUrl: import.meta.env.VITE_WORKFLOW_ORCHESTRATOR_URL || 'http://localhost:8080',
-  knowledgeGraphUrl: import.meta.env.VITE_KNOWLEDGE_GRAPH_URL || 'http://localhost:7687',
+  knowledgeGraphUrl: import.meta.env.VITE_KNOWLEDGE_GRAPH_URL || 'http://localhost:7474',
 }; 
