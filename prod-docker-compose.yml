@@ -152,7 +152,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.19.2
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.19.3
     environment:
       - VITE_API_BASE_URL=http://code-confluence-flow-bridge:8000
       - VITE_WORKFLOW_ORCHESTRATOR_URL=http://temporal-ui:8080
