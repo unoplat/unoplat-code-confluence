@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.19.2...unoplat-code-confluence-frontend-v1.19.3) (2025-04-25)
+
+
+### Bug Fixes
+
+* **env:** update default knowledgeGraphUrl port to 7474 ([968ebd0](https://github.com/unoplat/unoplat-code-confluence/commit/968ebd00cd8de6b8fe9a7f67c4504354103799b3))
+* **env:** update default knowledgeGraphUrl port to 7474 ([9e2337a](https://github.com/unoplat/unoplat-code-confluence/commit/9e2337a653861461bf43b59d7b355704e8bdb43a))
+
 ## [1.19.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.19.1...unoplat-code-confluence-frontend-v1.19.2) (2025-04-24)
 
 
