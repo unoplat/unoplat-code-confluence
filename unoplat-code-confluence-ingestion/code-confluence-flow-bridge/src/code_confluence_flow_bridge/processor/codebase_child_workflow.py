@@ -33,7 +33,10 @@ class  CodebaseChildWorkflow:
     ) -> None:
         """Execute the codebase workflow"""
         # Seed ContextVar and bind Loguru logger with trace_id
-        log = seed_and_bind_logger_from_trace_id(trace_id)
+        info = workflow.info()
+        workflow_id = info.workflow_id
+        workflow_run_id = info.run_id
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id)
 
         log.info(f"Starting codebase workflow for {codebase_qualified_name}")
 

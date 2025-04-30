@@ -1,11 +1,11 @@
+from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
+from loguru import logger
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
-from loguru import logger
-from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
 
 
 class ConfluenceGitGraph:
@@ -31,19 +31,22 @@ class ConfluenceGitGraph:
             ParentChildCloneMetadata containing the qualified name of the git repository and the codebase qualified names
         """
         # Bind a Loguru logger with the provided trace_id
-        log = seed_and_bind_logger_from_trace_id(trace_id)
+        info: activity.Info = activity.info()
+        workflow_id = info.workflow_id
+        workflow_run_id = info.workflow_run_id
+        activity_id = info.activity_id
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id)
         try:
-            info = activity.info()
             log.debug(
-                "Starting graph db insertion for repo: {} | workflow_id={} | activity_id={}",
-                git_repo.repository_url, info.workflow_id, info.activity_id
+                "Starting graph db insertion for repo: {} ",
+                git_repo.repository_url
             )
             
             parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
             
             log.debug(
-                "Successfully inserted git repo into graph db: {} | workflow_id={} | activity_id={}",
-                git_repo.repository_url, info.workflow_id, info.activity_id
+                "Successfully inserted git repo into graph db: {} ",
+                git_repo.repository_url
             )
             return parent_child_clone_metadata
 
@@ -51,7 +54,7 @@ class ConfluenceGitGraph:
             info = activity.info()
             error_msg = f"Failed to insert git repo into graph db: {git_repo.repository_url}"
             log.debug(
-                "{} | workflow_id={} | activity_id={} | error={}",
-                error_msg, info.workflow_id, info.activity_id, str(e)
+                "{} | error={}",
+                error_msg, str(e)
             )
             raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR")

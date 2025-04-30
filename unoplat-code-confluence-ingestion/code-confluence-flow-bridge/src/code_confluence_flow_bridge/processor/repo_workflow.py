@@ -2,16 +2,13 @@ from temporalio import workflow
 from temporalio.workflow import ParentClosePolicy
 
 with workflow.unsafe.imports_passed_through():
+    from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
     from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
     from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
     from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 
-    from loguru import logger
-    from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-
     from datetime import timedelta
 
-    
 
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
@@ -38,7 +35,10 @@ class RepoWorkflow:
             RepoActivityResult containing the processing outcome
         """
         # Seed the ContextVar and bind a Loguru logger with trace_id
-        log = seed_and_bind_logger_from_trace_id(trace_id)
+        info: workflow.Info = workflow.info()
+        workflow_id = info.workflow_id
+        workflow_run_id = info.run_id
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id)
 
         log.info(f"Starting repository workflow for {repo_request.repository_git_url}")
 

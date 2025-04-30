@@ -42,8 +42,11 @@ class CodebaseProcessingActivity:
         Returns:
             UnoplatCodebase: Parsed codebase data
         """
-        # Seed ContextVar and bind Loguru logger with trace_id
-        log = seed_and_bind_logger_from_trace_id(trace_id)
+        info : activity.Info = activity.info()
+        workflow_id = info.workflow_id
+        workflow_run_id = info.workflow_run_id
+        activity_id = info.activity_id
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id)
         
         log.info("Starting codebase processing")
         log.info("Programming language metadata: {}", programming_language_metadata.language.value)
@@ -102,11 +105,11 @@ class CodebaseProcessingActivity:
             programming_language_metadata=programming_language_metadata
         )
         
-        log.info("Parsed {} packages from codebase", len(list_packages))
+        log.debug("Parsed {} packages from codebase", len(list_packages))
         
         await self.code_confluence_graph_ingestion.insert_code_confluence_package(codebase_qualified_name=codebase_qualified_name, packages=list_packages)
 
-        log.info("Inserted {} packages into graph DB", len(list_packages))
+        log.debug("Inserted {} packages into graph DB", len(list_packages))
 
-        log.info("Completed codebase processing successfully")
+        log.success("Completed codebase processing successfully")
         

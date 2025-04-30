@@ -1,5 +1,5 @@
 # deps.py
-from src.code_confluence_flow_bridge.logging.trace_utils import bind_logger, build_trace_id, trace_id_var
+from src.code_confluence_flow_bridge.logging.trace_utils import bind_trace_id_logger, build_trace_id, trace_id_var
 
 from typing import TYPE_CHECKING
 
@@ -24,5 +24,5 @@ async def trace_dependency(request: Request) -> "Logger":
     trace_id = build_trace_id(repo, owner)
     trace_id_var.set(trace_id)                 # <-- key line
 
-    request.state.logger = bind_logger(trace_id)
+    request.state.logger = bind_trace_id_logger(trace_id)
     return request.state.logger                # value is optionally injectable
