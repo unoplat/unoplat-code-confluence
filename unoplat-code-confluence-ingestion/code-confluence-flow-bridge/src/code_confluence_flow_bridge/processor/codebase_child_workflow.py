@@ -1,16 +1,16 @@
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
+    from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
     from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
     from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguage, ProgrammingLanguageMetadata
+    from src.code_confluence_flow_bridge.processor.activity_retries_config import ActivityRetriesConfig
     from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
     from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
     from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
 
-    from loguru import logger
-    from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-
     from datetime import timedelta
+
 
     
     
@@ -45,11 +45,11 @@ class  CodebaseChildWorkflow:
         programming_language_metadata = ProgrammingLanguageMetadata(language=ProgrammingLanguage(package_manager_metadata.programming_language.lower()), package_manager=PackageManagerType(package_manager_metadata.package_manager.lower()), language_version=package_manager_metadata.programming_language_version)
 
         log.info("Parsing package metadata")
-        parsed_metadata: UnoplatPackageManagerMetadata = await workflow.execute_activity(activity=PackageMetadataActivity.get_package_metadata, args=[source_directory, programming_language_metadata, trace_id], start_to_close_timeout=timedelta(minutes=10))
+        parsed_metadata: UnoplatPackageManagerMetadata = await workflow.execute_activity(activity=PackageMetadataActivity.get_package_metadata, args=[source_directory, programming_language_metadata, trace_id], start_to_close_timeout=timedelta(minutes=10), retry_policy=ActivityRetriesConfig.DEFAULT)
 
         # 2. Ingest package metadata into graph
         log.info("Ingesting package metadata into graph")
-        await workflow.execute_activity(activity=PackageManagerMetadataIngestion.insert_package_manager_metadata, args=[codebase_qualified_name, parsed_metadata, trace_id], start_to_close_timeout=timedelta(minutes=10))
+        await workflow.execute_activity(activity=PackageManagerMetadataIngestion.insert_package_manager_metadata, args=[codebase_qualified_name, parsed_metadata, trace_id], start_to_close_timeout=timedelta(minutes=10), retry_policy=ActivityRetriesConfig.DEFAULT)
         
         programming_language_metadata.language_version = parsed_metadata.programming_language_version
          
@@ -75,8 +75,9 @@ class  CodebaseChildWorkflow:
                 programming_language_metadata,
                 trace_id,
             ],
-            start_to_close_timeout=timedelta(minutes=30)
-        )
+            start_to_close_timeout=timedelta(minutes=30),
+            retry_policy=ActivityRetriesConfig.DEFAULT        
+            )
 
         log.info(f"Codebase workflow completed successfully for {codebase_qualified_name}")
         

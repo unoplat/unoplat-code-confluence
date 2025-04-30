@@ -3,6 +3,7 @@ from temporalio.workflow import ParentClosePolicy
 
 with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
+    from src.code_confluence_flow_bridge.processor.activity_retries_config import ActivityRetriesConfig
     from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
     from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
     from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
@@ -43,11 +44,11 @@ class RepoWorkflow:
         log.info(f"Starting repository workflow for {repo_request.repository_git_url}")
 
         log.info("Executing git activity to process repository")
-        git_repo_metadata: UnoplatGitRepository = await workflow.execute_activity(activity=GitActivity.process_git_activity, args=(repo_request, github_token,trace_id), start_to_close_timeout=timedelta(minutes=10))
+        git_repo_metadata: UnoplatGitRepository = await workflow.execute_activity(activity=GitActivity.process_git_activity, args=(repo_request, github_token,trace_id), start_to_close_timeout=timedelta(minutes=10), retry_policy=ActivityRetriesConfig.DEFAULT)
 
         # 2. Then insert the git repo into the graph db
         log.info("Inserting git repository metadata into graph database")
-        parent_child_clone_metadata: ParentChildCloneMetadata = await workflow.execute_activity(activity=ConfluenceGitGraph.insert_git_repo_into_graph_db, args=(git_repo_metadata, trace_id), start_to_close_timeout=timedelta(minutes=10))
+        parent_child_clone_metadata: ParentChildCloneMetadata = await workflow.execute_activity(activity=ConfluenceGitGraph.insert_git_repo_into_graph_db, args=(git_repo_metadata, trace_id), start_to_close_timeout=timedelta(minutes=10), retry_policy=ActivityRetriesConfig.DEFAULT)
 
         # 3. Then spawns child workflows for each codebase
         log.info(f"Spawning {len(git_repo_metadata.codebases)} child workflows for codebases")
