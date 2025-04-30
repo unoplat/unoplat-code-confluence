@@ -1,3 +1,4 @@
+from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
@@ -9,7 +10,6 @@ import os
 import json
 from typing import List, Optional
 
-from loguru import logger
 from temporalio import activity
 
 
@@ -28,6 +28,7 @@ class CodebaseProcessingActivity:
         codebase_qualified_name: str,
         dependencies: Optional[List[str]],
         programming_language_metadata: ProgrammingLanguageMetadata,
+        trace_id: str,
     ) -> None:
         """
         Process codebase through linting, AST generation, and parsing.
@@ -41,7 +42,9 @@ class CodebaseProcessingActivity:
         Returns:
             UnoplatCodebase: Parsed codebase data
         """
-        log = logger.bind(codebase_qualified_name=codebase_qualified_name)
+        # Seed ContextVar and bind Loguru logger with trace_id
+        log = seed_and_bind_logger_from_trace_id(trace_id)
+        
         log.info("Starting codebase processing")
         log.info("Programming language metadata: {}", programming_language_metadata.language.value)
         
@@ -53,7 +56,9 @@ class CodebaseProcessingActivity:
         )
         
         if not lint_result:
-            log.exception("Linting process completed with warnings")
+            log.warning("Linting completed with warnings")
+        else:
+            log.info("Linting completed successfully")
 
         # 2. Generate AST using ArchGuard
         jar_env: str = os.getenv("SCANNER_JAR_PATH", "/app/jars/scanner_cli-2.2.8-all.jar")
@@ -80,9 +85,13 @@ class CodebaseProcessingActivity:
         
         chapi_json_path = arch_guard.run_scan()
 
+        log.info("ArchGuard scan completed, JSON path: {}", chapi_json_path)
+
         # 3. Parse the codebase using CodebaseParser
         with open(chapi_json_path, 'r') as f:
             json_data = json.load(f)
+
+        log.debug("Loaded AST JSON data, size {} bytes", len(json_data))
 
         parser = CodebaseParser()
         list_packages: List[UnoplatPackage] = parser.parse_codebase(
@@ -93,7 +102,11 @@ class CodebaseProcessingActivity:
             programming_language_metadata=programming_language_metadata
         )
         
+        log.info("Parsed {} packages from codebase", len(list_packages))
+        
         await self.code_confluence_graph_ingestion.insert_code_confluence_package(codebase_qualified_name=codebase_qualified_name, packages=list_packages)
 
-        log.info("Completed codebase processing")
+        log.info("Inserted {} packages into graph DB", len(list_packages))
+
+        log.info("Completed codebase processing successfully")
         

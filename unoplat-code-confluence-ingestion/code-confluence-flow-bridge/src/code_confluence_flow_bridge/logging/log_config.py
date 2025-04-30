@@ -1,58 +1,74 @@
-import os  # already imported, used for reading environment variables
+from src.code_confluence_flow_bridge.logging.loguru_oltp_handler import OTLPHandler
+from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
+
+import os
 import sys
-from pathlib import Path
-from typing import Any, Dict
+from typing import TYPE_CHECKING
 
 from loguru import logger
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry.sdk._logs import LoggerProvider
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 
+if TYPE_CHECKING:
+    from loguru import Logger
 
-class LogConfig:
-    """Logging configuration to be set for the server"""
+_OTEL_PROVIDER: LoggerProvider | None = None
 
-    @staticmethod
-    def make_logger_config(log_path: str = "logs") -> Dict[str, Any]:
-        """Return logger configuration"""
-        # Use environment variable LOG_LEVEL to control logging level, default is "INFO"
-        log_level: str = os.getenv("LOG_LEVEL", "DEBUG")
-        return {
-            "handlers": [
-                {
-                    "sink": sys.stdout,
-                    "format": "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-                    "colorize": True,
-                    "level": log_level,
-                },
-                {
-                    "sink": f"{log_path}/code_confluence_api.log",
-                    "format": "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
-                    "rotation": "500 MB",
-                    "retention": "10 days",
-                    "compression": "zip",
-                    "level": log_level,
-                    "enqueue": True,
-                },
-            ],
-            "extra": {"app_name": "code-confluence-flow-bridge"},
-        }
+def setup_logging(
+    service_name: str,
+    app_name: str,
+    log_level: str | None = None,
+    otlp_endpoint: str | None = None
+) -> "Logger":
+    """
+    Configure Loguru to send structured logs to SigNoz via OpenTelemetry.
+    """
+    global _OTEL_PROVIDER
+    if _OTEL_PROVIDER is None:
+        # Initialize the OTel LoggerProvider once
+        endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://signoz-otel-collector:4317")
+        _OTEL_PROVIDER = LoggerProvider()
+        exporter = OTLPLogExporter(endpoint=endpoint, insecure=True)
+        _OTEL_PROVIDER.add_log_record_processor(BatchLogRecordProcessor(exporter))
+        set_logger_provider(_OTEL_PROVIDER)
 
+    log_level = log_level or os.getenv("LOG_LEVEL", "DEBUG")
+    otlp_endpoint = otlp_endpoint or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
 
-def setup_logging():
-    """Configure logging for the application"""
-    # Create logs directory
-    log_path = Path("logs")
-    log_path.mkdir(exist_ok=True)
+    # Build OTLPHandler util
+    otlp_handler = OTLPHandler(
+        service_name=service_name,
+        exporter=OTLPLogExporter(endpoint=otlp_endpoint, insecure=True)
+    )
 
-    # Remove default logger
-    logger.remove()
+    # Pretty console format
+    log_format = (
+        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+        "<level>{level: <8}</level> | "
+        "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
+        "{extra[app_name]} | "
+        "{message}"
+    )
 
-    # Configure logger with our settings
-    config = LogConfig.make_logger_config(str(log_path))
-
-    # Add handlers
-    for handler in config["handlers"]:
-        logger.add(**handler)
-
-    # Set extra attributes
-    logger.configure(extra=config["extra"])
+    # Configure both console and OTLP sinks
+    logger.configure(  # type: ignore
+        handlers=[
+            {  # type: ignore
+                "sink": sys.stdout,
+                "format": log_format,
+                "level": log_level,
+                "colorize": True,
+            },
+            {  # type: ignore
+                "sink": otlp_handler.sink,
+                "level": log_level,
+                "serialize": False,
+            },
+        ],
+        extra={"app_name": app_name},
+        patcher=lambda record: record["extra"].update({"trace_id": trace_id_var.get()})
+    )
 
     return logger

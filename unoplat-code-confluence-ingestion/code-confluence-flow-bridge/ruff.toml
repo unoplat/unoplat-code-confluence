@@ -31,7 +31,7 @@ force-to-top = ["os","sys"]
 force-sort-within-sections = true
 combine-as-imports = true
 from-first = true
-section-order = ["first-party", "local-folder","future", "standard-library", "third-party"]
+section-order = ["future","first-party", "local-folder", "standard-library", "third-party"]
 lines-between-types = 2
 
 
