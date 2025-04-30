@@ -17,9 +17,9 @@ def build_trace_id(repo: str | None, owner: str | None) -> str:
 
 def bind_logger(trace_id: str) -> "Logger":
     """
-    Return a Loguru logger with .extra.trace_id already set.
+    Return a Loguru logger with .extra.app_trace_id already set.
     """
-    return logger.bind(trace_id=trace_id)
+    return logger.bind(app_trace_id=trace_id)
 
 # ---------------- Context helpers ---------------- #
 def seed_trace_id(trace_id: str) -> None:
@@ -46,7 +46,7 @@ def seed_trace_id_from_headers(headers: Mapping[str, Any]) -> Optional[str]:
 # Helper: seed ContextVar and return bound logger in one step
 def seed_and_bind_logger_from_trace_id(trace_id: str) -> "Logger":
     """
-    Seed the ContextVar and return a bound Loguru Logger for the given trace_id.
+    Seed the ContextVar and return a bound Loguru Logger with .extra.app_trace_id set.
     """
     seed_trace_id(trace_id)
     return bind_logger(trace_id)

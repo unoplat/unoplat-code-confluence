@@ -68,7 +68,9 @@ def setup_logging(
             },
         ],
         extra={"app_name": app_name},
-        patcher=lambda record: record["extra"].update({"trace_id": trace_id_var.get()})
+        patcher=lambda record: record["extra"].update(
+            {"app_trace_id": trace_id_var.get()}
+        ) if trace_id_var.get() else None
     )
 
     return logger
