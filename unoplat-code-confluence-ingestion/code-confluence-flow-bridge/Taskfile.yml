@@ -74,6 +74,10 @@ tasks:
       NEO4J_USERNAME: "neo4j"
       NEO4J_PASSWORD: "password"
       TEMPORAL_SERVER_ADDRESS: "localhost:7233"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "localhost:4317"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "code-confluence-flow-bridge"
+      OTEL_PROPAGATORS: "tracecontext,baggage"
     cmds:
       - uv run fastapi dev
 

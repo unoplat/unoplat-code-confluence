@@ -1,0 +1,39 @@
+# otel-collector-config.yaml
+# This is the *static* collector config: receivers → processors → exporters → pipelines
+
+receivers:
+  # Accept OTLP over gRPC and HTTP
+  otlp:
+    protocols:
+      grpc: {}
+      http: {}
+
+processors:
+  # Batch & send in bulks
+  batch: {}
+
+exporters:
+  # Send logs to ClickHouse (SigNoz)
+  clickhouselogsexporter:
+    dsn: tcp://clickhouse:9000
+  # Send traces to ClickHouse (SigNoz)
+  clickhousetraces:
+    dsn: tcp://clickhouse:9000
+  # Send metrics to ClickHouse (SigNoz)
+  clickhousemetricswrite:
+    dsn: tcp://clickhouse:9000
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [clickhouselogsexporter]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [clickhousetraces]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [clickhousemetricswrite]

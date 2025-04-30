@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
+from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 
 # Build parent workflow status only
@@ -24,6 +27,7 @@ from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+from src.code_confluence_flow_bridge.utility.deps import trace_dependency
 from src.code_confluence_flow_bridge.utility.password_utils import decrypt_token, encrypt_token
 
 import os
@@ -47,7 +51,7 @@ from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
 
 # Setup logging
-logger = setup_logging()
+logger = setup_logging(service_name="code-confluence-flow-bridge", app_name="unoplat-code-confluence")
 
 
 #setup supertokens
@@ -81,14 +85,15 @@ async def start_workflow(
     temporal_client: Client,
     repo_request: GitHubRepoRequestConfiguration,
     github_token: str,
-    workflow_id: str
+    workflow_id: str,
+    trace_id: str,
 ) -> WorkflowHandle:
     """
     Start a Temporal workflow for the given repository request and workflow id.
     """
     workflow_handle: WorkflowHandle = await temporal_client.start_workflow(
         RepoWorkflow.run,
-        args=(repo_request, github_token),
+        args=(repo_request, github_token, trace_id),
         id=workflow_id,
         task_queue="unoplat-code-confluence-repository-context-ingestion"
     )
@@ -413,7 +418,8 @@ async def get_repos(
 @app.post("/start-ingestion", status_code=201)
 async def ingestion(
     repo_request: GitHubRepoRequestConfiguration,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    request_logger: "Logger" = Depends(trace_dependency) # type: ignore
 ) -> dict[str, str]:
     """
     Start the ingestion workflow for the entire repository using the GitHub token from the database.
@@ -425,7 +431,7 @@ async def ingestion(
     try:
         credential: Optional[Credentials] = session.exec(select(Credentials)).first()
     except Exception as db_error:
-        logger.error(f"Database error while fetching credentials: {db_error}")
+        request_logger.error(f"Database error while fetching credentials: {db_error}")
         raise HTTPException(status_code=500, detail="Database error while fetching credentials")
 
     if not credential:
@@ -435,16 +441,22 @@ async def ingestion(
     try:
         github_token: str = decrypt_token(credential.token_hash)
     except Exception as decrypt_error:
-        logger.error(f"Failed to decrypt token: {decrypt_error}")
+        request_logger.error(f"Failed to decrypt token: {decrypt_error}")
         raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
-    
+
+    # Fetch the trace-id that `trace_dependency` already set
+    trace_id = trace_id_var.get()
+    if not trace_id:
+        raise HTTPException(500, "trace_id not set by dependency")
+
     # Construct a workflow_id and start the Temporal workflow
     workflow_id: str = f"{repo_request.repository_name}__{repo_request.repository_owner_name}"
     workflow_handle: WorkflowHandle = await start_workflow(
-        app.state.temporal_client,
-        repo_request,
-        github_token,
-        workflow_id
+        temporal_client=app.state.temporal_client,
+        repo_request=repo_request,
+        github_token=github_token,
+        workflow_id=f"ingest-{trace_id}",
+        trace_id=trace_id,
     )
     # Schedule background monitoring immediately after starting the workflow
     asyncio.create_task(monitor_workflow(workflow_handle))
@@ -453,13 +465,12 @@ async def ingestion(
 
     # Ingest repository data into the database (composite key)
     existing: RepositoryData | None = session.get(
-        RepositoryData, 
+        RepositoryData,
         (repo_request.repository_name, repo_request.repository_owner_name)
     )
     if existing:
         raise HTTPException(status_code=409, detail="Repository data already exists for this name and owner.")
 
-    
     now: datetime = datetime.now(timezone.utc)
     workflow_run: WorkflowRun = WorkflowRun(
         workflowRunId=run_id,
@@ -489,7 +500,7 @@ async def ingestion(
     session.commit()
     session.refresh(db_obj)
 
-    logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
+    request_logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
     return {
         "workflow_id": workflow_handle.id or "none",
         "run_id": run_id
