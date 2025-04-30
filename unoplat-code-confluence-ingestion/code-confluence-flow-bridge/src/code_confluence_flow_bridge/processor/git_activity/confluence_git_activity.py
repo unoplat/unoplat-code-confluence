@@ -29,28 +29,31 @@ class GitActivity:
             UnoplatGitRepository containing processed git activity data
         """
         # Bind Loguru logger with the passed trace_id
-        log = seed_and_bind_logger_from_trace_id(trace_id)
+        info: activity.Info = activity.info()
+        workflow_id = info.workflow_id
+        workflow_run_id = info.workflow_run_id
+        activity_id = info.activity_id
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id)
 
         try:
             # Get activity info for context
-            info = activity.info()
             log.debug(
-                "Starting git activity processing | workflow_id={} | activity_id={} | attempt={} | git_url={}",
-                info.workflow_id, info.activity_id, info.attempt, repo_request.repository_git_url
+                "Starting git activity processing | attempt={} | git_url={} ",
+                info.attempt, repo_request.repository_git_url
             )
 
             activity_data = await self.github_helper.clone_repository(repo_request, github_token)
 
             log.debug(
-                "Successfully processed git activity | workflow_id={} | activity_id={} | git_url={} | status=success",
-                info.workflow_id, info.activity_id, repo_request.repository_git_url
+                "Successfully processed git activity | git_url={} | status=success",
+                repo_request.repository_git_url
             )
             return activity_data
 
         except Exception as e:
             info = activity.info()
             log.debug(
-                "Failed to process git activity | workflow_id={} | activity_id={} | git_url={} | error_type={} | error_details={} | status=error",
-                info.workflow_id, info.activity_id, repo_request.repository_git_url, type(e).__name__, str(e)
+                "Failed to process git activity | git_url={} | error_type={} | error_details={} | status=error",
+                repo_request.repository_git_url, type(e).__name__, str(e)
             )
             raise ApplicationError(message="Failed to process git activity", type="GIT_ACTIVITY_ERROR", details=[{"repository": repo_request.repository_git_url, "error": str(e)}])
