@@ -34,8 +34,7 @@ class ConfluenceGitGraph:
         info: activity.Info = activity.info()
         workflow_id = info.workflow_id
         workflow_run_id = info.workflow_run_id
-        activity_id = info.activity_id
-        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id)
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id="insert_git_repo_into_graph_db")
         try:
             log.debug(
                 "Starting graph db insertion for repo: {} ",
@@ -51,7 +50,6 @@ class ConfluenceGitGraph:
             return parent_child_clone_metadata
 
         except Exception as e:
-            info = activity.info()
             error_msg = f"Failed to insert git repo into graph db: {git_repo.repository_url}"
             log.debug(
                 "{} | error={}",

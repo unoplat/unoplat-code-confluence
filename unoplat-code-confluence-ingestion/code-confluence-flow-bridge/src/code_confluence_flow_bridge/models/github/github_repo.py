@@ -1,7 +1,6 @@
 from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
 
 from datetime import datetime
-from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -83,50 +82,31 @@ class PaginatedResponse(BaseModel):
     next_cursor: Optional[str] = Field(default=None, description="Cursor for the next page of results")    
 
 
-class CompletedStage(BaseModel):
-    stageName: str = Field(description="Name of the completed stage.")
-    status: str = Field(description="The status of this stage (e.g. 'Completed', 'Failed').")
+# Error report model for detailed error context
+class ErrorReport(BaseModel):
+    """
+    Detailed error report capturing context of failure.
+    """
+    activity_name: Optional[str] = Field(default=None, description="The activity within the workflow where the error occurred")
+    error_message: str = Field(..., description="Error message")
+    stack_trace: Optional[str] = Field(default=None, description="Stack trace of the error, if available")
+    overall_error: Optional[str] = Field(default=None,description="Overall error message")
     
-
-class WorkflowStatusEnum(str, Enum):
-    """Enum for workflow/job status with string value and description."""
-    SUBMITTED = "submitted"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ERROR = "error"
-
-    @property
-    def description(self) -> str:
-        descriptions: dict["WorkflowStatusEnum", str] = {
-            WorkflowStatusEnum.SUBMITTED: "Workflow has been submitted and is awaiting processing.",
-            WorkflowStatusEnum.IN_PROGRESS: "Workflow is currently in progress.",
-            WorkflowStatusEnum.COMPLETED: "Workflow has completed successfully.",
-            WorkflowStatusEnum.ERROR: "Workflow encountered an error.",
-        }
-        return descriptions[self]
-
 
 class WorkflowRun(BaseModel):
     workflowRunId: str = Field(description="Unique identifier for this specific run instance of the workflow.")
-    status: WorkflowStatusEnum = Field(description="Overall job status.")
     started_at: datetime = Field(description="Timestamp when the workflow run started")
-    currentStage: Optional[str] = Field(default=None, description="The stage currently in progress.")
-    completedStages: List[CompletedStage] = Field(default_factory=list, description="List of stages that have been completed along with metadata.")
-    totalStages: Optional[int] = Field(default=None, description="The total number of defined stages for the workflow.")
-
+    
 class WorkflowStatus(BaseModel):
     workflowId: str = Field(description="Unique identifier for the workflow (remains constant across execution runs).")
     workflowRuns: List[WorkflowRun] = Field(description="Multiple run instances for this workflow.")
 
 class CodebaseStatus(BaseModel):
-    codebaseName: str = Field(description="The name of the codebase.")
+    root_package: str = Field(description="The name of the codebase.")
     workflows: List[WorkflowStatus] = Field(description="List of workflows under this codebase.")
 
 class CodebaseStatusList(BaseModel):
     codebases: List[CodebaseStatus] = Field(description="List of codebases each with multiple workflows.")
-
-class CodebaseRepoConfig(CodebaseConfig):
-    status: Optional[CodebaseStatusList] = Field(default=None, description="Status of the repository workflows (optional, returned in GET)")
 
 class GitHubRepoRequestConfiguration(BaseModel):
     """Configuration for a GitHub repository, including codebase config and status."""
@@ -139,9 +119,8 @@ class GitHubRepoResponseConfiguration(BaseModel):
     """Configuration for a GitHub repository, including codebase config and status."""
     repository_name: str = Field(description="The name of the repository (primary key)")
     repository_owner_name: str = Field(description="The name of the repository owner")
-    repository_workflow_status: Optional[WorkflowStatus] = Field(default=None, description="The status of the repository workflows")
-    repository_metadata: List[CodebaseRepoConfig] = Field(description="List of codebase configurations for the repository")
+    repository_metadata: List[CodebaseConfig] = Field(description="List of codebase configurations for the repository")
     
-    
-    
-    
+class GithubRepoStatus(BaseModel):
+    repository_workflow_status: Optional[WorkflowStatus] = Field(default=None, description="The status of the repository workflows")    
+    status: Optional[CodebaseStatusList] = Field(default=None, description="Status of the repository workflows (optional, returned in GET)")

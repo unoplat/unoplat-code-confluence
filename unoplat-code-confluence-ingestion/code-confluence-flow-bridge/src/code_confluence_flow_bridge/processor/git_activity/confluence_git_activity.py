@@ -32,8 +32,7 @@ class GitActivity:
         info: activity.Info = activity.info()
         workflow_id = info.workflow_id
         workflow_run_id = info.workflow_run_id
-        activity_id = info.activity_id
-        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id)
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id="process_git_activity")
 
         try:
             # Get activity info for context
@@ -51,8 +50,7 @@ class GitActivity:
             return activity_data
 
         except Exception as e:
-            info = activity.info()
-            log.debug(
+            log.error(
                 "Failed to process git activity | git_url={} | error_type={} | error_details={} | status=error",
                 repo_request.repository_git_url, type(e).__name__, str(e)
             )

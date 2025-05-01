@@ -6,21 +6,20 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Enviro
 
 # Build parent workflow status only
 from src.code_confluence_flow_bridge.models.github.github_repo import (
-    CodebaseRepoConfig,
+    CodebaseConfig,
     GitHubRepoRequestConfiguration,
     GitHubRepoResponseConfiguration,
     GitHubRepoSummary,
     PaginatedResponse,
-    WorkflowRun,
-    WorkflowStatus,
-    WorkflowStatusEnum,
 )
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
 from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
+from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import RepositoryData
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
@@ -115,6 +114,12 @@ async def lifespan(app: FastAPI):
     activities: List[Callable] = []
     git_activity = GitActivity()
     activities.append(git_activity.process_git_activity)
+    
+    parent_workflow_db_activity = ParentWorkflowDbActivity()
+    activities.append(parent_workflow_db_activity.update_repository_workflow_status)
+    
+    child_workflow_db_activity = ChildWorkflowDbActivity()
+    activities.append(child_workflow_db_activity.update_codebase_workflow_status)
 
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)
@@ -449,8 +454,7 @@ async def ingestion(
     if not trace_id:
         raise HTTPException(500, "trace_id not set by dependency")
 
-    # Construct a workflow_id and start the Temporal workflow
-    workflow_id: str = f"{repo_request.repository_name}__{repo_request.repository_owner_name}"
+    # Start the Temporal workflow
     workflow_handle: WorkflowHandle = await start_workflow(
         temporal_client=app.state.temporal_client,
         repo_request=repo_request,
@@ -463,7 +467,7 @@ async def ingestion(
     # Extract the run_id for response and status tracking
     run_id: str = workflow_handle.result_run_id or "none"
 
-    # Ingest repository data into the database (composite key)
+    # Ingest repository metadata into the database (composite key)
     existing: RepositoryData | None = session.get(
         RepositoryData,
         (repo_request.repository_name, repo_request.repository_owner_name)
@@ -471,34 +475,7 @@ async def ingestion(
     if existing:
         raise HTTPException(status_code=409, detail="Repository data already exists for this name and owner.")
 
-    now: datetime = datetime.now(timezone.utc)
-    workflow_run: WorkflowRun = WorkflowRun(
-        workflowRunId=run_id,
-        status=WorkflowStatusEnum.SUBMITTED,
-        started_at=now,
-        currentStage=None,
-        completedStages=[],
-        totalStages=None,
-    )
-    workflow_status: WorkflowStatus = WorkflowStatus(
-        workflowId=workflow_id,
-        workflowRuns=[workflow_run],
-    )
-
-    # after building your WorkflowStatus instance:
-    workflow_status_dict: dict[str, Any] = workflow_status.model_dump(mode="json")
-
-    db_obj = RepositoryData(
-        repository_name=repo_request.repository_name,
-        repository_owner_name=repo_request.repository_owner_name,
-        repository_workflow_status=workflow_status_dict,
-        repository_metadata=[
-            codebase.model_dump(mode="json") for codebase in repo_request.repository_metadata
-        ],
-    )
-    session.add(db_obj)
-    session.commit()
-    session.refresh(db_obj)
+    
 
     request_logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
     return {
@@ -628,11 +605,10 @@ async def get_repository_data(
             detail=f"Repository data not found for {repository_name}/{repository_owner_name}"
         )
 
-    codebases = [CodebaseRepoConfig.model_validate(c) for c in db_obj.repository_metadata]
+    codebases = [CodebaseConfig.model_validate(c) for c in db_obj.repository_metadata]
     return GitHubRepoResponseConfiguration(
         repository_name=db_obj.repository_name,
         repository_owner_name=db_obj.repository_owner_name,
-        repository_workflow_status=db_obj.repository_workflow_status,
         repository_metadata=codebases,
     )
 
