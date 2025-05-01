@@ -45,7 +45,8 @@ from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 import httpx
 from loguru import logger
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
 
@@ -134,7 +135,7 @@ async def lifespan(app: FastAPI):
     activities.append(codebase_processing_activity.process_codebase)
     
     # Create database tables during startup
-    create_db_and_tables()
+    await create_db_and_tables()
     
     asyncio.create_task(run_worker(activities=activities, client=app.state.temporal_client, activity_executor=app.state.activity_executor))
     yield
@@ -166,7 +167,7 @@ async def monitor_workflow(workflow_handle: WorkflowHandle):
     
 
 @app.post("/ingest-token", status_code=201)
-async def ingest_token(authorization: str = Header(...), session: Session = Depends(get_session)) -> Dict[str, str]:
+async def ingest_token(authorization: str = Header(...), session: AsyncSession = Depends(get_session)) -> Dict[str, str]:
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid Authorization header")
     token: str = authorization[7:].strip()  # Remove 'Bearer '
@@ -176,7 +177,8 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
         encrypted_token: str = encrypt_token(token)
         current_time: datetime = datetime.now(timezone.utc)
         
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
         
         if credential is not None:
             raise HTTPException(status_code=409, detail="Token already ingested. Use update-token to update it.")
@@ -185,7 +187,8 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
         session.add(credential)
         
         # Set the isTokenSubmitted flag to true
-        token_flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == "isTokenSubmitted")).first()
+        flag_result = await session.execute(select(Flag).where(Flag.name == "isTokenSubmitted"))
+        token_flag: Optional[Flag] = flag_result.scalar_one_or_none()
         
         if token_flag is None:
             # Create the flag if it doesn't exist
@@ -196,8 +199,9 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
             
         session.add(token_flag)
         
-        session.commit()
-        session.refresh(credential)
+        await session.commit()
+        await session.refresh(credential)
+        
         return {"message": "Token ingested successfully."}
     except HTTPException as http_ex:
         # Re-raise HTTP exceptions directly
@@ -207,7 +211,7 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
         raise HTTPException(status_code=500, detail="Failed to process authentication token")
 
 @app.put("/update-token", status_code=200)
-async def update_token(authorization: str = Header(...), session: Session = Depends(get_session)) -> Dict[str, str]:
+async def update_token(authorization: str = Header(...), session: AsyncSession = Depends(get_session)) -> Dict[str, str]:
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid Authorization header")
     token: str = authorization[7:].strip()
@@ -215,7 +219,8 @@ async def update_token(authorization: str = Header(...), session: Session = Depe
         encrypted_token: str = encrypt_token(token)
         current_time: datetime = datetime.now(timezone.utc)
         
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
             raise HTTPException(status_code=404, detail="No token found to update")
         
@@ -223,26 +228,27 @@ async def update_token(authorization: str = Header(...), session: Session = Depe
         credential.updated_at = current_time
         session.add(credential)
         
-        session.commit()
-        session.refresh(credential)
+        await session.commit()
+        await session.refresh(credential)
         return {"message": "Token updated successfully."}
     except Exception as e:
         logger.error(f"Failed to update token: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update authentication token")
 
 @app.delete("/delete-token", status_code=200)
-async def delete_token(session: Session = Depends(get_session)) -> Dict[str, str]:
+async def delete_token(session: AsyncSession = Depends(get_session)) -> Dict[str, str]:
     try:
         # Find existing credential
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
             raise HTTPException(status_code=404, detail="No token found to delete")
         
-        # Delete the credential
-        session.delete(credential)
+        await session.delete(credential)
         
         # Set the isTokenSubmitted flag to false
-        token_flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == "isTokenSubmitted")).first()
+        flag_result = await session.execute(select(Flag).where(Flag.name == "isTokenSubmitted"))
+        token_flag: Optional[Flag] = flag_result.scalar_one_or_none()
         
         if token_flag is None:
             # Create the flag if it doesn't exist
@@ -253,7 +259,7 @@ async def delete_token(session: Session = Depends(get_session)) -> Dict[str, str
             
         session.add(token_flag)
         
-        session.commit()
+        await session.commit()
         
         return {"message": "Token deleted successfully."}
     except HTTPException as http_ex:
@@ -270,11 +276,12 @@ async def get_repos(
     per_page: int = Query(30, ge=1, le=100, description="Items per page"),
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
     filterValues: Optional[str] = Query(None, description="Optional JSON filter values to filter repositories"),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ) -> PaginatedResponse:
     # Attempt to fetch the stored credentials from the database
     try:
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
     except Exception as db_error:
         logger.error(f"Database error while fetching credentials: {db_error}")
         raise HTTPException(status_code=500, detail="Database error while fetching credentials")
@@ -352,9 +359,9 @@ async def get_repos(
                 })
                 
                 # Process the search result
-                repos_data = result["search"]["nodes"]
-                has_next = result["search"]["pageInfo"]["hasNextPage"]
-                next_cursor = result["search"]["pageInfo"]["endCursor"]
+                repos_data = result["search"]["nodes"] #type: ignore
+                has_next = result["search"]["pageInfo"]["hasNextPage"] #type: ignore
+                next_cursor = result["search"]["pageInfo"]["endCursor"] #type: ignore
             else:
                 # Use the original viewer.repositories query when no search is provided
                 query = gql(
@@ -392,9 +399,9 @@ async def get_repos(
                 })
                 
                 # Process the result
-                repos_data = result["viewer"]["repositories"]["nodes"]
-                has_next = result["viewer"]["repositories"]["pageInfo"]["hasNextPage"]
-                next_cursor = result["viewer"]["repositories"]["pageInfo"]["endCursor"]
+                repos_data = result["viewer"]["repositories"]["nodes"] #type: ignore
+                has_next = result["viewer"]["repositories"]["pageInfo"]["hasNextPage"] #type: ignore
+                next_cursor = result["viewer"]["repositories"]["pageInfo"]["endCursor"] #type: ignore
             
             # Convert to GitHubRepoSummary objects
             repos_list: List[GitHubRepoSummary] = []
@@ -423,7 +430,7 @@ async def get_repos(
 @app.post("/start-ingestion", status_code=201)
 async def ingestion(
     repo_request: GitHubRepoRequestConfiguration,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
     request_logger: "Logger" = Depends(trace_dependency) # type: ignore
 ) -> dict[str, str]:
     """
@@ -434,7 +441,8 @@ async def ingestion(
     """
     # Attempt to fetch the stored credentials from the database
     try:
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
     except Exception as db_error:
         request_logger.error(f"Database error while fetching credentials: {db_error}")
         raise HTTPException(status_code=500, detail="Database error while fetching credentials")
@@ -468,7 +476,7 @@ async def ingestion(
     run_id: str = workflow_handle.result_run_id or "none"
 
     # Ingest repository metadata into the database (composite key)
-    existing: RepositoryData | None = session.get(
+    existing: RepositoryData | None = await session.get(
         RepositoryData,
         (repo_request.repository_name, repo_request.repository_owner_name)
     )
@@ -484,7 +492,7 @@ async def ingestion(
     }
 
 @app.get("/flags/{flag_name}", status_code=200)
-async def get_flag_status(flag_name: str, session: Session = Depends(get_session)) -> Dict[str, Any]:
+async def get_flag_status(flag_name: str, session: AsyncSession = Depends(get_session)) -> Dict[str, Any]:
     """
     Get the status of a specific flag by name.
     
@@ -496,7 +504,8 @@ async def get_flag_status(flag_name: str, session: Session = Depends(get_session
         Dict[str, Any]: Flag information including status
     """
     try:
-        flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == flag_name)).first()
+        result = await session.execute(select(Flag).where(Flag.name == flag_name))
+        flag: Optional[Flag] = result.scalar_one_or_none()
         if flag is None:
             raise HTTPException(status_code=404, detail=f"Flag '{flag_name}' not found")
         return {
@@ -512,7 +521,7 @@ async def get_flag_status(flag_name: str, session: Session = Depends(get_session
         raise HTTPException(status_code=500, detail=f"Failed to get flag status for {flag_name}")
 
 @app.get("/flags", status_code=200)
-async def get_all_flags(session: Session = Depends(get_session)) -> List[Dict[str, Any]]:
+async def get_all_flags(session: AsyncSession = Depends(get_session)) -> List[Dict[str, Any]]:
     """
     Get the status of all available flags.
     
@@ -523,7 +532,8 @@ async def get_all_flags(session: Session = Depends(get_session)) -> List[Dict[st
         List[Dict[str, Any]]: List of flag information
     """
     try:
-        flags: Sequence[Flag] = session.exec(select(Flag)).all()
+        result = await session.execute(select(Flag))
+        flags: Sequence[Flag] = result.scalars().all()
         return [
             {
                 "name": flag.name,
@@ -536,7 +546,7 @@ async def get_all_flags(session: Session = Depends(get_session)) -> List[Dict[st
         raise HTTPException(status_code=500, detail="Failed to get flags")
 
 @app.put("/flags/{flag_name}", status_code=200)
-async def set_flag_status(flag_name: str, status: bool, session: Session = Depends(get_session)) -> Dict[str, Any]:
+async def set_flag_status(flag_name: str, status: bool, session: AsyncSession = Depends(get_session)) -> Dict[str, Any]:
     """
     Set the status of a specific flag by name.
     
@@ -549,7 +559,8 @@ async def set_flag_status(flag_name: str, status: bool, session: Session = Depen
         Dict[str, Any]: Updated flag information
     """
     try:
-        flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == flag_name)).first()
+        result = await session.execute(select(Flag).where(Flag.name == flag_name))
+        flag: Optional[Flag] = result.scalar_one_or_none()
         
         if flag is None:
             # Create the flag if it doesn't exist
@@ -559,8 +570,8 @@ async def set_flag_status(flag_name: str, status: bool, session: Session = Depen
             flag.status = status
             
         session.add(flag)
-        session.commit()
-        session.refresh(flag)
+        await session.commit()
+        await session.refresh(flag)
         
         return {
             "name": flag.name,
@@ -593,10 +604,10 @@ async def set_flag_status(flag_name: str, status: bool, session: Session = Depen
 async def get_repository_data(
     repository_name: str = Query(..., description="The name of the repository"),
     repository_owner_name: str = Query(..., description="The name of the repository owner"),
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> GitHubRepoResponseConfiguration:
     # pass both parts of the composite key as a tuple
-    db_obj: RepositoryData | None = session.get(
+    db_obj: RepositoryData | None = await session.get(
         RepositoryData, (repository_name, repository_owner_name)
     )
     if not db_obj:
@@ -613,12 +624,13 @@ async def get_repository_data(
     )
 
 @app.get("/user-details", status_code=200)
-async def get_user_details(session: Session = Depends(get_session)) -> Dict[str, Optional[str]]:
+async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict[str, Optional[str]]:
     """
     Fetch authenticated GitHub user's name, avatar URL, and email.
     """
     # Fetch stored GitHub token from database
-    credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+    result = await session.execute(select(Credentials))
+    credential: Optional[Credentials] = result.scalars().first()
     if not credential:
         raise HTTPException(status_code=404, detail="No credentials found")
     token = decrypt_token(credential.token_hash)
