@@ -34,8 +34,8 @@ class ParentWorkflowDbActivity:
         """
         log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, "update_repository_workflow_status")
         try:
-            with get_session_cm() as session:
-                repo_data = session.get(RepositoryData, (repository_name, repository_owner_name))
+            async with get_session_cm() as session:
+                repo_data = await session.get(RepositoryData, (repository_name, repository_owner_name))
                 now = datetime.now(timezone.utc)
                 workflow_run = WorkflowRun(workflowRunId=workflow_run_id, started_at=now)
                 if not repo_data:
@@ -52,7 +52,7 @@ class ParentWorkflowDbActivity:
                         repository_metadata=[config.model_dump(mode="json") for config in repository_metadata]
                     )
                     session.add(new_data)
-                    session.commit()
+                    await session.commit()
                     log.success(f"Created repository data for {repository_name}/{repository_owner_name}")
                     return
 
@@ -72,7 +72,7 @@ class ParentWorkflowDbActivity:
 
                 repo_data.repository_workflow_status = current_status.model_dump(mode="json")
                 session.add(repo_data)
-                session.commit()
+                await session.commit()
                 log.success(f"Updated repository workflow status for {repository_name}/{repository_owner_name}")
         except Exception as e:
             log.error(f"Failed to update repository workflow status: {e}")

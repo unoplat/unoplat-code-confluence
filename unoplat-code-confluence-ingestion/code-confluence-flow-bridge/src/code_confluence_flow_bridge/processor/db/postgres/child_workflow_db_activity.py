@@ -42,9 +42,9 @@ class ChildWorkflowDbActivity:
         log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, "update_codebase_workflow_status")
         
         try:
-            with get_session_cm() as session:
+            async with get_session_cm() as session:
                 # Get the repository data from the database
-                repository_data: Optional[RepositoryData] = session.get(
+                repository_data: Optional[RepositoryData] = await session.get(
                     RepositoryData,
                     (repository_name, repository_owner_name)
                 )
@@ -99,7 +99,7 @@ class ChildWorkflowDbActivity:
                 # Update the repository data
                 repository_data.repository_workflow_status = current_status.model_dump(mode="json")
                 session.add(repository_data)
-                session.commit()
+                await session.commit()
                 log.success(f"Updated codebase workflow status for {repository_name}/{repository_owner_name}/{codebase_name}")
         except Exception as e:
             log.error(f"Failed to update codebase workflow status: {e}")
