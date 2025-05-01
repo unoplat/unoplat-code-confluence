@@ -1,4 +1,5 @@
 import os
+from contextlib import contextmanager
 
 from sqlmodel import Session, SQLModel, create_engine
 
@@ -17,15 +18,21 @@ POSTGRES_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NA
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 engine = create_engine(POSTGRES_URL, echo=DB_ECHO)
 
+
 def get_session():
-    """
-    Create and yield a database session.
-    
-    Returns:
-        Session: SQLModel session object
-    """
+    """Yield a database session using a context manager."""
     with Session(engine) as session:
         yield session
+
+
+@contextmanager
+def get_session_cm():
+    """Context manager for database session (original logic)."""
+    session = Session(engine)
+    try:
+        yield session
+    finally:
+        session.close()
 
 def create_db_and_tables():
     """Create database tables from SQLModel models."""
