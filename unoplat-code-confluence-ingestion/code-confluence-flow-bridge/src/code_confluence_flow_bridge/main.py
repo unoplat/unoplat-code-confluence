@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
+from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, ProgrammingLanguageMetadata
 
 # Build parent workflow status only
 from src.code_confluence_flow_bridge.models.github.github_repo import (
@@ -12,19 +12,20 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoSummary,
     PaginatedResponse,
 )
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
-from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
 from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
 from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import RepositoryData
+from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import Repository
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
+from src.code_confluence_flow_bridge.processor.parent_workflow_interceptor import ParentWorkflowStatusInterceptor
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 from src.code_confluence_flow_bridge.utility.deps import trace_dependency
 from src.code_confluence_flow_bridge.utility.password_utils import decrypt_token, encrypt_token
@@ -34,18 +35,17 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
-from typing import Any, Callable, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence, cast
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-
-# Add imports for gql
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 import httpx
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import QueryableAttribute, selectinload
 from sqlmodel import select
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
@@ -76,7 +76,14 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
         client: Temporal client
         activity_executor: Thread pool executor for activities
     """
-    worker = Worker(client, task_queue="unoplat-code-confluence-repository-context-ingestion", workflows=[RepoWorkflow, CodebaseChildWorkflow], activities=activities, activity_executor=activity_executor)
+    worker = Worker(
+        client,
+        task_queue="unoplat-code-confluence-repository-context-ingestion",
+        workflows=[RepoWorkflow, CodebaseChildWorkflow],
+        activities=activities,
+        activity_executor=activity_executor,
+        interceptors=[ParentWorkflowStatusInterceptor()],
+    )
 
     await worker.run()
 
@@ -91,9 +98,14 @@ async def start_workflow(
     """
     Start a Temporal workflow for the given repository request and workflow id.
     """
+    envelope = RepoWorkflowRunEnvelope(
+        repo_request=repo_request,
+        github_token=github_token,
+        trace_id=trace_id
+    )
     workflow_handle: WorkflowHandle = await temporal_client.start_workflow(
         RepoWorkflow.run,
-        args=(repo_request, github_token, trace_id),
+        arg=envelope,
         id=workflow_id,
         task_queue="unoplat-code-confluence-repository-context-ingestion"
     )
@@ -116,11 +128,11 @@ async def lifespan(app: FastAPI):
     git_activity = GitActivity()
     activities.append(git_activity.process_git_activity)
     
-    parent_workflow_db_activity = ParentWorkflowDbActivity()
+    parent_workflow_db_activity: ParentWorkflowDbActivity = ParentWorkflowDbActivity()
     activities.append(parent_workflow_db_activity.update_repository_workflow_status)
     
-    child_workflow_db_activity = ChildWorkflowDbActivity()
-    activities.append(child_workflow_db_activity.update_codebase_workflow_status)
+    # child_workflow_db_activity = ChildWorkflowDbActivity()
+    # activities.append(child_workflow_db_activity.update_codebase_workflow_status)
 
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)
@@ -474,15 +486,6 @@ async def ingestion(
     asyncio.create_task(monitor_workflow(workflow_handle))
     # Extract the run_id for response and status tracking
     run_id: str = workflow_handle.result_run_id or "none"
-
-    # Ingest repository metadata into the database (composite key)
-    existing: RepositoryData | None = await session.get(
-        RepositoryData,
-        (repo_request.repository_name, repo_request.repository_owner_name)
-    )
-    if existing:
-        raise HTTPException(status_code=409, detail="Repository data already exists for this name and owner.")
-
     
 
     request_logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
@@ -606,9 +609,15 @@ async def get_repository_data(
     repository_owner_name: str = Query(..., description="The name of the repository owner"),
     session: AsyncSession = Depends(get_session),
 ) -> GitHubRepoResponseConfiguration:
-    # pass both parts of the composite key as a tuple
-    db_obj: RepositoryData | None = await session.get(
-        RepositoryData, (repository_name, repository_owner_name)
+    # fetch repository record with its codebase configs
+    db_obj: Repository | None = await session.get(
+        Repository,
+        (repository_name, repository_owner_name),
+        options=[
+            selectinload(
+                cast(QueryableAttribute[Any], Repository.configs)
+            )
+        ]
     )
     if not db_obj:
         raise HTTPException(
@@ -616,12 +625,32 @@ async def get_repository_data(
             detail=f"Repository data not found for {repository_name}/{repository_owner_name}"
         )
 
-    codebases = [CodebaseConfig.model_validate(c) for c in db_obj.repository_metadata]
-    return GitHubRepoResponseConfiguration(
-        repository_name=db_obj.repository_name,
-        repository_owner_name=db_obj.repository_owner_name,
-        repository_metadata=codebases,
-    )
+    # Map database CodebaseConfig entries to Pydantic models
+    try:
+        codebases = [
+            CodebaseConfig(
+                codebase_folder=config.source_directory,
+                root_package=config.root_package,
+                programming_language_metadata=ProgrammingLanguageMetadata(
+                    language=config.programming_language_metadata["language"],
+                    package_manager=config.programming_language_metadata["package_manager"],
+                    language_version=config.programming_language_metadata.get("language_version"),
+                ),
+            )
+            for config in db_obj.configs
+        ]
+        
+        return GitHubRepoResponseConfiguration(
+            repository_name=db_obj.repository_name,
+            repository_owner_name=db_obj.repository_owner_name,
+            repository_metadata=codebases,
+        )
+    except Exception as e:
+        logger.error(f"Error mapping repository data: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing repository data for {repository_name}/{repository_owner_name}"
+        )
 
 @app.get("/user-details", status_code=200)
 async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict[str, Optional[str]]:

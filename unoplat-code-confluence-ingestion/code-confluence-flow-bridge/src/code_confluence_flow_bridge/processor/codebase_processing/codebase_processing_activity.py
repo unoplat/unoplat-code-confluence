@@ -1,6 +1,6 @@
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import CodebaseProcessingActivityEnvelope
 from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
 from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
 from src.code_confluence_flow_bridge.processor.archguard.arc_guard_handler import ArchGuardHandler
@@ -8,7 +8,7 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 
 import os
 import json
-from typing import List, Optional
+from typing import List
 
 from temporalio import activity
 
@@ -22,26 +22,24 @@ class CodebaseProcessingActivity:
     @activity.defn
     async def process_codebase(
         self,
-        local_workspace_path: str,
-        source_directory: str,
-        repository_qualified_name: str,
-        codebase_qualified_name: str,
-        dependencies: Optional[List[str]],
-        programming_language_metadata: ProgrammingLanguageMetadata,
-        trace_id: str,
+        envelope: CodebaseProcessingActivityEnvelope,
     ) -> None:
         """
         Process codebase through linting, AST generation, and parsing.
 
         Args:
-            local_workspace_path: Path to the local workspace
-            codebase_name: Name of the codebase
-            dependencies: List of project dependencies
-            programming_language_metadata: Metadata about the programming language
+            envelope: CodebaseProcessingActivityEnvelope containing parameters
 
         Returns:
             UnoplatCodebase: Parsed codebase data
         """
+        # Extract parameters from envelope
+        local_workspace_path = envelope.local_workspace_path
+        source_directory = envelope.source_directory
+        codebase_qualified_name = envelope.codebase_qualified_name
+        programming_language_metadata = envelope.programming_language_metadata
+        trace_id = envelope.trace_id
+        
         info : activity.Info = activity.info()
         workflow_id = info.workflow_id
         workflow_run_id = info.workflow_run_id

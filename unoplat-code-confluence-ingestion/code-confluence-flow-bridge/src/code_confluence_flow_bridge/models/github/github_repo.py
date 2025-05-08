@@ -1,6 +1,7 @@
 from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
 
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -81,6 +82,17 @@ class PaginatedResponse(BaseModel):
     has_next: bool = Field(description="Whether there are more items to fetch")
     next_cursor: Optional[str] = Field(default=None, description="Cursor for the next page of results")    
 
+class IssueStatus(str, Enum):
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+    
+
+
+class IssueTracking(BaseModel):
+    issue_id: Optional[str] = Field(default=None, description="Issue ID associated with the error")
+    issue_url: Optional[str] = Field(default=None, description="Issue URL associated with the error")
+    issue_status: Optional[IssueStatus] = Field(default=None, description="Issue status associated with the error")
+    
 
 # Error report model for detailed error context
 class ErrorReport(BaseModel):
@@ -90,16 +102,28 @@ class ErrorReport(BaseModel):
     activity_name: Optional[str] = Field(default=None, description="The activity within the workflow where the error occurred")
     error_message: str = Field(..., description="Error message")
     stack_trace: Optional[str] = Field(default=None, description="Stack trace of the error, if available")
-    overall_error: Optional[str] = Field(default=None,description="Overall error message")
+    metadata: Optional[dict] = Field(default=None, description="Metadata associated with the error")
+    issue_id: Optional[str] = Field(default=None, description="Issue ID associated with the error")
     
 
+class JobStatus(str, Enum):
+    SUBMITTED = "SUBMITTED"
+    RUNNING = "RUNNING"
+    FAILED = "FAILED"
+    TIMED_OUT = "TIMED_OUT"
+    COMPLETED = "COMPLETED"
+    RETRYING = "RETRYING"
+
 class WorkflowRun(BaseModel):
-    workflowRunId: str = Field(description="Unique identifier for this specific run instance of the workflow.")
+    codebase_workflow_run_id: str = Field(description="Unique identifier for this specific run instance of the workflow.")
     started_at: datetime = Field(description="Timestamp when the workflow run started")
-    
+    status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED.")
+    completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")
+    error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
+            
 class WorkflowStatus(BaseModel):
-    workflowId: str = Field(description="Unique identifier for the workflow (remains constant across execution runs).")
-    workflowRuns: List[WorkflowRun] = Field(description="Multiple run instances for this workflow.")
+    codebase_workflow_id: str = Field(description="Unique identifier for the workflow (remains constant across execution runs).")
+    codebase_workflow_runs: List[WorkflowRun] = Field(description="Multiple run instances for this workflow.")
 
 class CodebaseStatus(BaseModel):
     root_package: str = Field(description="The name of the codebase.")
@@ -122,5 +146,12 @@ class GitHubRepoResponseConfiguration(BaseModel):
     repository_metadata: List[CodebaseConfig] = Field(description="List of codebase configurations for the repository")
     
 class GithubRepoStatus(BaseModel):
-    repository_workflow_status: Optional[WorkflowStatus] = Field(default=None, description="The status of the repository workflows")    
-    status: Optional[CodebaseStatusList] = Field(default=None, description="Status of the repository workflows (optional, returned in GET)")
+    repository_name: str = Field(description="The name of the repository (primary key)")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    repository_workflow_run_id: str = Field( description="The run ID of the repository workflow")
+    repository_workflow_id: str = Field(description="The ID of the repository workflow")
+    started_at: datetime = Field(description="Timestamp when the workflow run started")
+    status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED.")
+    error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
+    completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")    
+    codebase_status_list: Optional[CodebaseStatusList] = Field(default=None, description="Status of the repository workflows (optional, returned in GET)")

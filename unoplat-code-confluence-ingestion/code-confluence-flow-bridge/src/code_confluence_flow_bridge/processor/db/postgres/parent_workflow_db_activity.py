@@ -1,79 +1,130 @@
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-from src.code_confluence_flow_bridge.models.github.github_repo import CodebaseConfig, GithubRepoStatus, WorkflowRun, WorkflowStatus
+from src.code_confluence_flow_bridge.models.github.github_repo import ErrorReport, JobStatus
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import ParentWorkflowDbActivityEnvelope
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import RepositoryData
+from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import (
+    CodebaseConfig as DBCodebaseConfig,
+    Repository,
+    RepositoryWorkflowRun,
+)
 
 from datetime import datetime, timezone
-from typing import List
+from typing import Optional
 
+from sqlalchemy.ext.asyncio import AsyncSession
 from temporalio import activity
 
 
 class ParentWorkflowDbActivity:
     """Activity for database operations related to parent workflow status tracking."""
 
-    @activity.defn
+    @activity.defn(name="update-repository-workflow-status")
     async def update_repository_workflow_status(
         self,
-        repository_name: str,
-        repository_owner_name: str,
-        workflow_id: str,
-        workflow_run_id: str,
-        trace_id: str,
-        repository_metadata: List[CodebaseConfig]
+        envelope: ParentWorkflowDbActivityEnvelope
     ) -> None:
         """Update the repository with parent workflow status information.
 
         Args:
-            repository_name: Name of the repository
-            repository_owner_name: Name of the repository owner
-            workflow_id: ID of the parent workflow
-            workflow_run_id: Run ID of the parent workflow
-            trace_id: Trace ID for logging
-            repository_metadata: Metadata for the repository
+            envelope: Envelope containing all necessary parameters for updating repository workflow status
         """
+        # Extract parameters from envelope
+        repository_name: str = envelope.repository_name
+        repository_owner_name: str = envelope.repository_owner_name
+        workflow_id: str = envelope.workflow_id
+        workflow_run_id: str = envelope.workflow_run_id
+        trace_id: str = envelope.trace_id
+        status: JobStatus = JobStatus(envelope.status)  # Convert string to JobStatus enum
+        error_report: Optional[ErrorReport] = envelope.error_report
+        
         log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, "update_repository_workflow_status")
         try:
             async with get_session_cm() as session:
-                repo_data = await session.get(RepositoryData, (repository_name, repository_owner_name))
+                # First check if repository exists, if not create it
+                _ = await self._get_or_create_repository(session, repository_name, repository_owner_name)
+            
+                # Upsert codebase configurations
+                for cm in envelope.repository_metadata:
+                    existing_config = await session.get(DBCodebaseConfig, (repository_name, repository_owner_name, cm.root_package))
+                    source_directory = cm.codebase_folder or cm.root_package
+                    plm = cm.programming_language_metadata.model_dump()
+                    if not existing_config:
+                        config = DBCodebaseConfig(
+                            repository_name=repository_name,
+                            repository_owner_name=repository_owner_name,
+                            root_package=cm.root_package,
+                            source_directory=source_directory,
+                            programming_language_metadata=plm,
+                        )
+                        session.add(config)
+                        await session.commit()
+                        await session.refresh(config)
+                    else:
+                        existing_config.source_directory = source_directory
+                        existing_config.programming_language_metadata = plm
+                        session.add(existing_config)
+                        await session.commit()
+                        await session.refresh(existing_config)
+            
+                # Then check if workflow run exists
+                workflow_run = await self._get_workflow_run(session, repository_name, repository_owner_name, workflow_run_id)
+                
                 now = datetime.now(timezone.utc)
-                workflow_run = WorkflowRun(workflowRunId=workflow_run_id, started_at=now)
-                if not repo_data:
-                    # Initial insert
-                    parent_status = WorkflowStatus(workflowId=workflow_id, workflowRuns=[workflow_run])
-                    github_status = GithubRepoStatus(
-                        repository_workflow_status=parent_status,
-                        status=None
-                    )
-                    new_data = RepositoryData(
+                if not workflow_run:
+                    # Create a new workflow run
+                    workflow_run = RepositoryWorkflowRun(
                         repository_name=repository_name,
                         repository_owner_name=repository_owner_name,
-                        repository_workflow_status=github_status.model_dump(mode="json"),
-                        repository_metadata=[config.model_dump(mode="json") for config in repository_metadata]
+                        repository_workflow_run_id=workflow_run_id,
+                        repository_workflow_id=workflow_id,
+                        status=status.value,
+                        error_report=error_report.model_dump() if error_report else None,
+                        started_at=now
                     )
-                    session.add(new_data)
+                    # if status == JobStatus.COMPLETED:
+                    #     workflow_run.completed_at = now
+                    
+                    # Add and commit the new workflow run
+                    session.add(workflow_run)
                     await session.commit()
-                    log.success(f"Created repository data for {repository_name}/{repository_owner_name}")
-                    return
-
-                # Update existing record
-                current_status_data = repo_data.repository_workflow_status
-                try:
-                    current_status = GithubRepoStatus.model_validate(current_status_data)
-                except Exception as e:
-                    log.error(f"Failed to parse repository workflow status: {e}")
-                    raise ValueError(f"Failed to parse repository workflow status: {e}")
-
-                if not current_status.repository_workflow_status:
-                    parent_status = WorkflowStatus(workflowId=workflow_id, workflowRuns=[workflow_run])
-                    current_status.repository_workflow_status = parent_status
+                    await session.refresh(workflow_run)
+                    log.success(f"Created workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}")
                 else:
-                    current_status.repository_workflow_status.workflowRuns.append(workflow_run)
-
-                repo_data.repository_workflow_status = current_status.model_dump(mode="json")
-                session.add(repo_data)
-                await session.commit()
-                log.success(f"Updated repository workflow status for {repository_name}/{repository_owner_name}")
+                    # Update existing workflow run
+                    workflow_run.status = status.value
+                    
+                    if error_report:
+                        workflow_run.error_report = error_report.model_dump()
+                    
+                    if status == JobStatus.COMPLETED:
+                        workflow_run.completed_at = now
+                    
+                    # Add and commit the updated workflow run
+                    session.add(workflow_run)
+                    await session.commit()
+                    await session.refresh(workflow_run)
+                    log.success(f"Updated workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}")
+                    
         except Exception as e:
             log.error(f"Failed to update repository workflow status: {e}")
             raise
+        
+    async def _get_or_create_repository(self, session: AsyncSession, repository_name: str, repository_owner_name: str) -> Repository:
+        """Get or create a repository record."""
+        repository = await session.get(Repository, (repository_name, repository_owner_name))
+        
+        if not repository:
+            # Create a new repository
+            repository = Repository(
+                repository_name=repository_name,
+                repository_owner_name=repository_owner_name
+            )
+            session.add(repository)
+            await session.commit()
+            await session.refresh(repository)
+            
+        return repository
+        
+    async def _get_workflow_run(self, session: AsyncSession, repository_name: str, repository_owner_name: str, workflow_run_id: str) -> Optional[RepositoryWorkflowRun]:
+        """Get a workflow run by its keys."""
+        return await session.get(RepositoryWorkflowRun, (repository_name, repository_owner_name, workflow_run_id))

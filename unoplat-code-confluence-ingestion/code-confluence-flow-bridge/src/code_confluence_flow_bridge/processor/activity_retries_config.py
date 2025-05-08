@@ -9,10 +9,10 @@ class ActivityRetriesConfig:
     """Collection of reusable Temporal retry policies."""
 
     DEFAULT: RetryPolicy = RetryPolicy(
-        maximum_attempts=3,
-        initial_interval=timedelta(seconds=1),
+        maximum_attempts=20,
+        initial_interval=timedelta(seconds=3),
         backoff_coefficient=2.0,
-        maximum_interval=timedelta(seconds=10),
+        maximum_interval=timedelta(seconds=60),
     )
 
     @staticmethod
