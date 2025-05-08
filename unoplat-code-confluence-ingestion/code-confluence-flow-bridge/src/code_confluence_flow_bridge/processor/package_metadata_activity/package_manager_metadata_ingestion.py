@@ -1,5 +1,5 @@
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import PackageManagerMetadataIngestionEnvelope
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
 from temporalio import activity
@@ -15,7 +15,7 @@ class PackageManagerMetadataIngestion:
         self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
 
     @activity.defn
-    async def insert_package_manager_metadata(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata, trace_id: str) -> None:
+    async def insert_package_manager_metadata(self, envelope: PackageManagerMetadataIngestionEnvelope) -> None:
         """
         Insert package manager metadata into graph database
 
@@ -23,8 +23,12 @@ class PackageManagerMetadataIngestion:
             codebase_qualified_name: Qualified name of the codebase
             package_manager_metadata: Package manager metadata to insert
         """
+        # Extract parameters from envelope
+        codebase_qualified_name = envelope.codebase_qualified_name
+        package_manager_metadata = envelope.package_manager_metadata
+        trace_id = envelope.trace_id
+        
         # Bind Loguru logger with the passed trace_id
-
         log = seed_and_bind_logger_from_trace_id(trace_id, activity.info().workflow_id, activity.info().workflow_run_id, activity.info().activity_id)
         try:
             log.debug(

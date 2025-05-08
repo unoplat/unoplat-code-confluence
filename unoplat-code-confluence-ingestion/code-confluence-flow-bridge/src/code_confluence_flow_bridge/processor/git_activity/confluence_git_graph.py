@@ -1,6 +1,6 @@
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import ConfluenceGitGraphEnvelope
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
 from loguru import logger
@@ -20,16 +20,22 @@ class ConfluenceGitGraph:
         )
 
     @activity.defn
-    async def insert_git_repo_into_graph_db(self, git_repo: UnoplatGitRepository, trace_id: str) -> ParentChildCloneMetadata:
+    async def insert_git_repo_into_graph_db(self, envelope: "ConfluenceGitGraphEnvelope") -> ParentChildCloneMetadata:
         """
         Insert a git repository into the graph database
 
         Args:
-            git_repo: UnoplatGitRepository containing git repository data
+            envelope: ConfluenceGitGraphEnvelope containing git repository data and trace id
 
         Returns:
             ParentChildCloneMetadata containing the qualified name of the git repository and the codebase qualified names
         """
+        # Use envelope model
+        
+        # Extract parameters from envelope
+        git_repo = envelope.git_repo
+        trace_id = envelope.trace_id
+        
         # Bind a Loguru logger with the provided trace_id
         info: activity.Info = activity.info()
         workflow_id = info.workflow_id

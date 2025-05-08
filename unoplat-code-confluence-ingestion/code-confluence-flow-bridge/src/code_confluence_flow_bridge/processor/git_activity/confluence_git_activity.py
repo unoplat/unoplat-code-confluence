@@ -1,7 +1,7 @@
 from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
-from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import GitActivityEnvelope
 
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
@@ -18,9 +18,7 @@ class GitActivity:
     @activity.defn
     async def process_git_activity(
         self,
-        repo_request: GitHubRepoRequestConfiguration,
-        github_token: str,
-        trace_id: str,
+        envelope: GitActivityEnvelope,
     ) -> UnoplatGitRepository:
         """
         Process Git activity using GithubHelper
@@ -28,6 +26,11 @@ class GitActivity:
         Returns:
             UnoplatGitRepository containing processed git activity data
         """
+        # Extract parameters from envelope
+        repo_request = envelope.repo_request
+        github_token = envelope.github_token
+        trace_id = envelope.trace_id
+
         # Bind Loguru logger with the passed trace_id
         info: activity.Info = activity.info()
         workflow_id = info.workflow_id

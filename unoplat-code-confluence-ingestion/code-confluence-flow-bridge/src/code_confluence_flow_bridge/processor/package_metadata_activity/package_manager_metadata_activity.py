@@ -4,7 +4,7 @@
 # First Party
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import PackageMetadataActivityEnvelope
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_parser import PackageManagerParser
 
 from temporalio import activity
@@ -16,7 +16,7 @@ class PackageMetadataActivity:
         self.package_manager_parser = PackageManagerParser()
 
     @activity.defn
-    def get_package_metadata(self, local_path: str, programming_language_metadata: ProgrammingLanguageMetadata, trace_id: str) -> UnoplatPackageManagerMetadata:
+    def get_package_metadata(self, envelope: PackageMetadataActivityEnvelope) -> UnoplatPackageManagerMetadata:
         """
         Process package manager specific metadata
 
@@ -27,6 +27,11 @@ class PackageMetadataActivity:
         Returns:
             UnoplatPackageManagerMetadata: Processed package manager metadata
         """
+        # Extract parameters from envelope
+        local_path = envelope.local_path
+        programming_language_metadata = envelope.programming_language_metadata
+        trace_id = envelope.trace_id
+        
         # Bind Loguru logger with the passed trace_id
         info = activity.info()
         log = seed_and_bind_logger_from_trace_id(trace_id, info.workflow_id, info.workflow_run_id, info.activity_id)
