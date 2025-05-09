@@ -1,5 +1,6 @@
 from temporalio import workflow
 from temporalio.client import WorkflowFailureError
+from temporalio.exceptions import ActivityError, ApplicationError
 from temporalio.workflow import ChildWorkflowHandle, ParentClosePolicy
 
 with workflow.unsafe.imports_passed_through():
@@ -48,13 +49,15 @@ class RepoWorkflow:
         trace_id = envelope.trace_id
         # Seed the ContextVar and bind a Loguru logger with trace_id
         info: workflow.Info = workflow.info()
-        workflow_id = info.workflow_id
-        workflow_run_id = info.run_id
-        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id)
+        workflow_id: str = info.workflow_id
+        workflow_run_id: str = info.run_id
+        log = seed_and_bind_logger_from_trace_id(
+            trace_id=trace_id, 
+            workflow_id=workflow_id, 
+            workflow_run_id=workflow_run_id
+        )
       
         try:
-            
-
             log.info(f"Starting repository workflow for {repo_request.repository_git_url}")
             #TODO: insert into postgres regarding the workflow status with repo and owner composite key obtained by splitting the trace id 
 
@@ -144,7 +147,18 @@ class RepoWorkflow:
 
             log.info(f"Repository workflow completed successfully for {repo_request.repository_git_url}")
             return git_repo_metadata
-        except WorkflowFailureError as wf:
-            parent_inner: BaseException = wf.cause
-            log.error("Parent workflow failed | error_message={} | stack_trace={}", str(parent_inner), parent_inner.__traceback__)
+        except ActivityError as e:
+            if e.cause is not None and isinstance(e.cause, ApplicationError):
+                error_type: ApplicationError = e.cause
+                log.error(
+                    "Parent workflow failed | error_type={} | error_message={} | details={} | non_retryable={} | stack_trace={}",
+                    error_type.type,
+                    str(error_type),
+                    error_type.details,
+                    error_type.non_retryable,
+                    error_type.__traceback__
+                )
+                raise e
+            else:
+                log.error("Parent workflow failed | error_message={} | stack_trace={}", str(e), e.__traceback__)
             raise

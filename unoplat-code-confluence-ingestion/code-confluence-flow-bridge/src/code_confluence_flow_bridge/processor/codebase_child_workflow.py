@@ -19,7 +19,7 @@ with workflow.unsafe.imports_passed_through():
 
 
 @workflow.defn(name="child-codebase-workflow")
-class  CodebaseChildWorkflow:
+class CodebaseChildWorkflow:
 
     @workflow.run
     async def run(
@@ -40,9 +40,14 @@ class  CodebaseChildWorkflow:
         
         # Seed ContextVar and bind Loguru logger with trace_id
         info = workflow.info()
-        workflow_id = info.workflow_id
-        workflow_run_id = info.run_id
-        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id)
+        workflow_id: str = info.workflow_id
+        workflow_run_id: str = info.run_id
+        log = seed_and_bind_logger_from_trace_id(
+            trace_id=trace_id,
+            workflow_id=workflow_id,
+            workflow_run_id=workflow_run_id,
+            codebase_local_path=local_path
+        )
 
         log.info(f"Starting codebase workflow for {codebase_qualified_name}")
         

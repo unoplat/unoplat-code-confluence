@@ -2,6 +2,8 @@ from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_lo
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import PackageManagerMetadataIngestionEnvelope
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
+import traceback
+
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
@@ -29,7 +31,18 @@ class PackageManagerMetadataIngestion:
         trace_id = envelope.trace_id
         
         # Bind Loguru logger with the passed trace_id
-        log = seed_and_bind_logger_from_trace_id(trace_id, activity.info().workflow_id, activity.info().workflow_run_id, activity.info().activity_id)
+        info = activity.info()
+        workflow_id: str = info.workflow_id
+        workflow_run_id: str = info.workflow_run_id
+        activity_id: str = info.activity_id
+        activity_name: str = info.activity_type
+        log = seed_and_bind_logger_from_trace_id(
+            trace_id=trace_id,
+            workflow_id=workflow_id,
+            workflow_run_id=workflow_run_id,
+            activity_id=activity_id,
+            activity_name=activity_name
+        )
         try:
             log.debug(
                 "Starting package manager metadata ingestion | codebase_name={} | programming_language={} | package_manager={}",
@@ -44,8 +57,29 @@ class PackageManagerMetadataIngestion:
             )
 
         except Exception as e:
-            log.debug(
+            if isinstance(e, ApplicationError):
+                # Re-raise ApplicationError as is since it already contains detailed error info
+                raise
+                
+            log.error(
                 "Failed to ingest package manager metadata | codebase_name={} | error_type={} | error_details={} | status=error",
                 codebase_qualified_name, type(e).__name__, str(e)
             )
-            raise ApplicationError(message=f"Failed to ingest package manager metadata for {codebase_qualified_name}", type="PACKAGE_METADATA_INGESTION_ERROR")
+            
+            # Capture the traceback string
+            tb_str = traceback.format_exc()
+            
+            raise ApplicationError(
+                message=f"Failed to ingest package manager metadata for {codebase_qualified_name}", 
+                type="PACKAGE_METADATA_INGESTION_ERROR",
+                details=[
+                    {"codebase": codebase_qualified_name},
+                    {"error": str(e)},
+                    {"error_type": type(e).__name__},
+                    {"traceback": tb_str},
+                    {"workflow_id": workflow_id},
+                    {"workflow_run_id": workflow_run_id},
+                    {"activity_name": activity_name},
+                    {"activity_id": activity_id},
+                ]
+            )

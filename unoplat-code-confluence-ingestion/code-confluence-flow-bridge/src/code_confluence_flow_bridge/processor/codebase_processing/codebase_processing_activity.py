@@ -8,9 +8,11 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 
 import os
 import json
+import traceback
 from typing import List
 
 from temporalio import activity
+from temporalio.exceptions import ApplicationError
 
 
 class CodebaseProcessingActivity:
@@ -44,7 +46,8 @@ class CodebaseProcessingActivity:
         workflow_id = info.workflow_id
         workflow_run_id = info.workflow_run_id
         activity_id = info.activity_id
-        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id)
+        activity_name = info.activity_type
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id, activity_name)
         
         log.info("Starting codebase processing")
         log.info("Programming language metadata: {}", programming_language_metadata.language.value)
@@ -111,3 +114,58 @@ class CodebaseProcessingActivity:
 
         log.success("Completed codebase processing successfully")
         
+        return None
+        
+    @activity.defn
+    async def process_codebase_with_error_handling(
+        self,
+        envelope: CodebaseProcessingActivityEnvelope,
+    ) -> None:
+        """
+        Process codebase with proper error handling.
+        
+        Args:
+            envelope: CodebaseProcessingActivityEnvelope containing parameters
+        """
+        # Extract parameters from envelope
+        local_workspace_path = envelope.local_workspace_path
+        codebase_qualified_name = envelope.codebase_qualified_name
+        trace_id = envelope.trace_id
+        
+        info : activity.Info = activity.info()
+        workflow_id = info.workflow_id
+        workflow_run_id = info.workflow_run_id
+        activity_id = info.activity_id
+        activity_name = info.activity_type
+        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id, activity_name)
+        
+        try:
+            await self.process_codebase(envelope)
+        except Exception as e:
+            if isinstance(e, ApplicationError):
+                # Re-raise ApplicationError as is since it already contains detailed error info
+                raise
+                
+            log.error(
+                "Failed to process codebase | codebase_name={} | error_type={} | error_details={} | status=error",
+                codebase_qualified_name, type(e).__name__, str(e)
+            )
+            
+            # Capture the traceback string
+            tb_str = traceback.format_exc()
+            
+            raise ApplicationError(
+                message=f"Failed to process codebase {codebase_qualified_name}", 
+                type="CODEBASE_PROCESSING_ERROR",
+                details=[
+                    {"codebase": codebase_qualified_name},
+                    {"local_path": local_workspace_path},
+                    {"error": str(e)},
+                    {"error_type": type(e).__name__},
+                    {"traceback": tb_str},
+                    {"workflow_id": info.workflow_id.get("")},
+                    {"workflow_run_id": info.workflow_run_id.get("")},
+                    {"activity_name": info.activity_type.get("")},
+                    {"activity_id": info.activity_id.get("")},
+                ]
+            )

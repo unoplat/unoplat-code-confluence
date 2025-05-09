@@ -99,7 +99,6 @@ class ErrorReport(BaseModel):
     """
     Detailed error report capturing context of failure.
     """
-    activity_name: Optional[str] = Field(default=None, description="The activity within the workflow where the error occurred")
     error_message: str = Field(..., description="Error message")
     stack_trace: Optional[str] = Field(default=None, description="Stack trace of the error, if available")
     metadata: Optional[dict] = Field(default=None, description="Metadata associated with the error")
