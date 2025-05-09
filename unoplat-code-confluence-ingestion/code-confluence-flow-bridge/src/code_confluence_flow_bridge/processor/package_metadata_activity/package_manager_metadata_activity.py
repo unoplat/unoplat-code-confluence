@@ -1,11 +1,9 @@
-# Standard Library
-
-# Third Party
-# First Party
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import PackageMetadataActivityEnvelope
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_parser import PackageManagerParser
+
+import traceback
 
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
@@ -34,7 +32,17 @@ class PackageMetadataActivity:
         
         # Bind Loguru logger with the passed trace_id
         info = activity.info()
-        log = seed_and_bind_logger_from_trace_id(trace_id, info.workflow_id, info.workflow_run_id, info.activity_id)
+        workflow_id: str = info.workflow_id
+        workflow_run_id: str = info.workflow_run_id
+        activity_id: str = info.activity_id
+        activity_name: str = info.activity_type
+        log = seed_and_bind_logger_from_trace_id(
+            trace_id=trace_id,
+            workflow_id=workflow_id,
+            workflow_run_id=workflow_run_id,
+            activity_id=activity_id,
+            activity_name=activity_name
+        )
         try:
             log.debug(
                 "Processing package metadata | codebase_path={} | programming_language={} | language_version={} | package_manager={}",
@@ -50,8 +58,29 @@ class PackageMetadataActivity:
             return package_metadata
 
         except Exception as e:
-            log.debug(
+            if isinstance(e, ApplicationError):
+                # Re-raise ApplicationError as is since it already contains detailed error info
+                raise
+                
+            log.error(
                 "Failed to process package metadata | codebase_path={} | error_type={} | error_details={} | status=error",
                 local_path, type(e).__name__, str(e)
             )
-            raise ApplicationError(message=f"Failed to process package metadata for {local_path}", type="PACKAGE_METADATA_ERROR")
+            
+            # Capture the traceback string
+            tb_str = traceback.format_exc()
+            
+            raise ApplicationError(
+                message=f"Failed to process package metadata for {local_path}", 
+                type="PACKAGE_METADATA_ERROR",
+                details=[
+                    {"codebase_path": local_path},
+                    {"error": str(e)},
+                    {"error_type": type(e).__name__},
+                    {"traceback": tb_str},
+                    {"workflow_id": workflow_id.get("")},
+                    {"workflow_run_id": workflow_run_id.get("")},
+                    {"activity_name": activity_name.get("")},
+                    {"activity_id": activity_id.get("")},
+                ]
+            )

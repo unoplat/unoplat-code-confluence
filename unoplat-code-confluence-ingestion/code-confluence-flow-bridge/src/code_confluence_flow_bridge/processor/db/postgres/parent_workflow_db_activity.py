@@ -37,7 +37,13 @@ class ParentWorkflowDbActivity:
         status: JobStatus = JobStatus(envelope.status)  # Convert string to JobStatus enum
         error_report: Optional[ErrorReport] = envelope.error_report
         
-        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, "update_repository_workflow_status")
+        activity_id: str = "update_repository_workflow_status"
+        log = seed_and_bind_logger_from_trace_id(
+            trace_id=trace_id,
+            workflow_id=workflow_id,
+            workflow_run_id=workflow_run_id,
+            activity_id=activity_id
+        )
         try:
             async with get_session_cm() as session:
                 # First check if repository exists, if not create it
