@@ -144,10 +144,22 @@ class GitHubRepoResponseConfiguration(BaseModel):
     repository_owner_name: str = Field(description="The name of the repository owner")
     repository_metadata: List[CodebaseConfig] = Field(description="List of codebase configurations for the repository")
     
+class CodebaseCurrentStatus(BaseModel):
+    """Model for current status of a single codebase workflow run."""
+    root_package: str = Field(description="The name of the root package")
+    codebase_workflow_run_id: str = Field(description="The run ID of the codebase workflow")
+    codebase_workflow_id: str = Field(description="The ID of the codebase workflow")
+    status: JobStatus = Field(description="Status of the workflow run")
+    started_at: datetime = Field(description="Timestamp when the workflow run started")
+    completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")
+    error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
+
+
 class GithubRepoStatus(BaseModel):
+    """Model for current status of a repository workflow run and its associated codebase runs."""
     repository_name: str = Field(description="The name of the repository (primary key)")
     repository_owner_name: str = Field(description="The name of the repository owner")
-    repository_workflow_run_id: str = Field( description="The run ID of the repository workflow")
+    repository_workflow_run_id: str = Field(description="The run ID of the repository workflow")
     repository_workflow_id: str = Field(description="The ID of the repository workflow")
     started_at: datetime = Field(description="Timestamp when the workflow run started")
     status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED.")
