@@ -166,3 +166,18 @@ class GithubRepoStatus(BaseModel):
     error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
     completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")    
     codebase_status_list: Optional[CodebaseStatusList] = Field(default=None, description="Status of the repository workflows (optional, returned in GET)")
+
+
+class ParentWorkflowJobResponse(BaseModel):
+    """Response model for parent workflow job data API."""
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    repository_workflow_run_id: str = Field(description="The run ID of the repository workflow")
+    status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING.")
+    started_at: datetime = Field(description="Timestamp when the workflow run started")
+    completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")
+
+
+class ParentWorkflowJobListResponse(BaseModel):
+    """Response model containing a list of parent workflow job data."""
+    jobs: List[ParentWorkflowJobResponse] = Field(description="List of parent workflow jobs")

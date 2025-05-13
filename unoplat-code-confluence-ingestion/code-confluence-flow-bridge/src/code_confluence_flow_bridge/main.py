@@ -1,16 +1,16 @@
-from __future__ import annotations
-
+# Local application imports
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, ProgrammingLanguageMetadata
-
-# Build parent workflow status only
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseConfig,
     GitHubRepoRequestConfiguration,
     GitHubRepoResponseConfiguration,
     GitHubRepoSummary,
+    JobStatus,
     PaginatedResponse,
+    ParentWorkflowJobListResponse,
+    ParentWorkflowJobResponse,
 )
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
@@ -22,7 +22,7 @@ from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Cr
 from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
 from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import Repository
+from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import Repository, RepositoryWorkflowRun
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
@@ -35,19 +35,22 @@ from src.code_confluence_flow_bridge.utility.password_utils import decrypt_token
 import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+
+# Standard library imports
 from datetime import datetime, timezone
 import json
 from typing import Any, Callable, Dict, List, Optional, Sequence, cast
 
+# Third-party imports
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 import httpx
-from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import QueryableAttribute, selectinload
+from sqlalchemy.orm.attributes import QueryableAttribute
 from sqlmodel import select
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
@@ -201,7 +204,7 @@ async def ingest_token(authorization: str = Header(...), session: AsyncSession =
         session.add(credential)
         
         # Set the isTokenSubmitted flag to true
-        flag_result = await session.execute(select(Flag).where(Flag.name == "isTokenSubmitted"))
+        flag_result = await session.execute(select(Flag).where(Flag.name == "isTokenSubmitted")) #type: ignore
         token_flag: Optional[Flag] = flag_result.scalar_one_or_none()
         
         if token_flag is None:
@@ -564,7 +567,7 @@ async def set_flag_status(flag_name: str, status: bool, session: AsyncSession = 
         Dict[str, Any]: Updated flag information
     """
     try:
-        result = await session.execute(select(Flag).where(Flag.name == flag_name))
+        result = await session.execute(select(Flag).where(Flag.name == flag_name)) 
         flag: Optional[Flag] = result.scalar_one_or_none()
         
         if flag is None:
@@ -652,6 +655,43 @@ async def get_repository_data(
         raise HTTPException(
             status_code=500,
             detail=f"Error processing repository data for {repository_name}/{repository_owner_name}"
+        )
+
+@app.get(
+    "/parent-workflow-jobs",
+    response_model=ParentWorkflowJobListResponse,
+    description="Get all parent workflow jobs data without pagination"
+)
+async def get_parent_workflow_jobs(session: AsyncSession = Depends(get_session)) -> ParentWorkflowJobListResponse:
+    """Get all parent workflow jobs data without pagination.
+    
+    Returns job information for all parent workflows (RepositoryWorkflowRun).
+    Includes repository_name, repository_owner_name, repository_workflow_run_id, status, started_at, completed_at.
+    """
+    try:
+        # Query to get all parent workflow jobs (RepositoryWorkflowRun records)
+        query = select(RepositoryWorkflowRun)
+        result = await session.execute(query)
+        workflow_runs = result.scalars().all()
+        
+        # Transform the database records to the response model format
+        jobs = [
+            ParentWorkflowJobResponse(
+                repository_name=run.repository_name,
+                repository_owner_name=run.repository_owner_name,
+                repository_workflow_run_id=run.repository_workflow_run_id,
+                status=JobStatus(run.status),
+                started_at=run.started_at,
+                completed_at=run.completed_at
+            ) for run in workflow_runs
+        ]
+        
+        return ParentWorkflowJobListResponse(jobs=jobs)
+    except Exception as e:
+        logger.error(f"Error retrieving parent workflow jobs: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving parent workflow jobs: {str(e)}"
         )
 
 @app.get("/user-details", status_code=200)
