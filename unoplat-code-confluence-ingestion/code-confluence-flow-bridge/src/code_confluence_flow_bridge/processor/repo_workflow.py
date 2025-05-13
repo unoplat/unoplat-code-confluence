@@ -95,6 +95,7 @@ class RepoWorkflow:
             child_handles: list[ChildWorkflowHandle] = []
 
             for index, (codebase_qualified_name, unoplat_codebase) in enumerate(zip(parent_child_clone_metadata.codebase_qualified_names, git_repo_metadata.codebases)):
+                root_package = repo_request.repository_metadata[index].root_package
                 log.info(f"Starting child workflow for codebase: {codebase_qualified_name}")
                 log.debug(
                     "Child workflow args: repository_qualified_name='{}', codebase_qualified_name='{}', local_path='{}', source_directory='{}', package_manager_metadata={} ",
@@ -105,7 +106,7 @@ class RepoWorkflow:
                     unoplat_codebase.package_manager_metadata
                 )
                 # Generate a unique workflow ID for the child workflow
-                child_workflow_id = f"codebase-child-workflow-{codebase_qualified_name}"
+                child_workflow_id = f"codebase-child-workflow_{codebase_qualified_name}_{root_package}"
                 try:
                     # Create CodebaseChildWorkflowEnvelope
                     child_workflow_envelope = CodebaseChildWorkflowEnvelope(
@@ -115,7 +116,8 @@ class RepoWorkflow:
                         source_directory=unoplat_codebase.source_directory,
                         package_manager_metadata=unoplat_codebase.package_manager_metadata,
                         trace_id=trace_id,
-                        root_package=repo_request.repository_metadata[index].root_package
+                        root_package=root_package,
+                        parent_workflow_run_id=workflow_run_id
                     )
                     child_handle: ChildWorkflowHandle = await workflow.start_child_workflow(
                         CodebaseChildWorkflow.run,

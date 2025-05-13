@@ -57,10 +57,6 @@ class PackageManagerMetadataIngestion:
             )
 
         except Exception as e:
-            if isinstance(e, ApplicationError):
-                # Re-raise ApplicationError as is since it already contains detailed error info
-                raise
-                
             log.error(
                 "Failed to ingest package manager metadata | codebase_name={} | error_type={} | error_details={} | status=error",
                 codebase_qualified_name, type(e).__name__, str(e)
@@ -70,16 +66,14 @@ class PackageManagerMetadataIngestion:
             tb_str = traceback.format_exc()
             
             raise ApplicationError(
-                message=f"Failed to ingest package manager metadata for {codebase_qualified_name}", 
-                type="PACKAGE_METADATA_INGESTION_ERROR",
-                details=[
-                    {"codebase": codebase_qualified_name},
-                    {"error": str(e)},
-                    {"error_type": type(e).__name__},
-                    {"traceback": tb_str},
-                    {"workflow_id": workflow_id},
-                    {"workflow_run_id": workflow_run_id},
-                    {"activity_name": activity_name},
-                    {"activity_id": activity_id},
-                ]
+                f"Failed to ingest package manager metadata for {codebase_qualified_name}",
+                {"codebase": codebase_qualified_name},
+                {"error": str(e)},
+                {"error_type": type(e).__name__},
+                {"traceback": tb_str},
+                {"workflow_id": workflow_id},
+                {"workflow_run_id": workflow_run_id},
+                {"activity_name": activity_name},
+                {"activity_id": activity_id},
+                type="PACKAGE_METADATA_INGESTION_ERROR"
             )

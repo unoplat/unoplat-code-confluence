@@ -3,7 +3,7 @@ from src.code_confluence_flow_bridge.models.github.github_repo import ErrorRepor
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import ParentWorkflowDbActivityEnvelope
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
 from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import (
-    CodebaseConfig as DBCodebaseConfig,
+    CodebaseConfig,
     Repository,
     RepositoryWorkflowRun,
 )
@@ -45,17 +45,20 @@ class ParentWorkflowDbActivity:
             activity_id=activity_id
         )
         try:
+            log.debug(
+                "Starting update repository workflow status | repository={}/{} | workflow_run_id={} | status={} | error_report_present={}",
+                repository_name, repository_owner_name, workflow_run_id, status.value, bool(error_report)
+            )
             async with get_session_cm() as session:
                 # First check if repository exists, if not create it
                 _ = await self._get_or_create_repository(session, repository_name, repository_owner_name)
             
-                # Upsert codebase configurations
                 for cm in envelope.repository_metadata:
-                    existing_config = await session.get(DBCodebaseConfig, (repository_name, repository_owner_name, cm.root_package))
+                    existing_config = await session.get(CodebaseConfig, (repository_name, repository_owner_name, cm.root_package))
                     source_directory = cm.codebase_folder or cm.root_package
                     plm = cm.programming_language_metadata.model_dump()
                     if not existing_config:
-                        config = DBCodebaseConfig(
+                        config = CodebaseConfig(
                             repository_name=repository_name,
                             repository_owner_name=repository_owner_name,
                             root_package=cm.root_package,
@@ -66,6 +69,7 @@ class ParentWorkflowDbActivity:
                         await session.commit()
                         await session.refresh(config)
                     else:
+                        #Todo: Revisit this later
                         existing_config.source_directory = source_directory
                         existing_config.programming_language_metadata = plm
                         session.add(existing_config)
@@ -87,14 +91,18 @@ class ParentWorkflowDbActivity:
                         error_report=error_report.model_dump() if error_report else None,
                         started_at=now
                     )
-                    # if status == JobStatus.COMPLETED:
-                    #     workflow_run.completed_at = now
+                    if status == JobStatus.COMPLETED:
+                        workflow_run.completed_at = now
                     
                     # Add and commit the new workflow run
                     session.add(workflow_run)
                     await session.commit()
                     await session.refresh(workflow_run)
                     log.success(f"Created workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}")
+                    log.debug(
+                        "Created workflow run: {} for {}/{}",
+                        workflow_run_id, repository_name, repository_owner_name
+                    )
                 else:
                     # Update existing workflow run
                     workflow_run.status = status.value
@@ -110,6 +118,10 @@ class ParentWorkflowDbActivity:
                     await session.commit()
                     await session.refresh(workflow_run)
                     log.success(f"Updated workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}")
+                    log.debug(
+                        "Updated workflow run: {} for {}/{} with status={}",
+                        workflow_run_id, repository_name, repository_owner_name, status.value
+                    )
                     
         except Exception as e:
             log.error(f"Failed to update repository workflow status: {e}")

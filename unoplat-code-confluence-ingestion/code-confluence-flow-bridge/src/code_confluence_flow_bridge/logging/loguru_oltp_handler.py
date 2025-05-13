@@ -1,3 +1,4 @@
+import os
 import sys
 import atexit
 import queue
@@ -72,8 +73,14 @@ class OTLPHandler:
         # Register shutdown handlers only once
         if len(self._instances) == 1:
             atexit.register(self._shutdown_all_handlers)
-            signal.signal(signal.SIGINT, self._signal_handler)
-            signal.signal(signal.SIGTERM, self._signal_handler)
+            if not os.getenv("RUN_RELOAD"):
+                for sig in (signal.SIGINT, signal.SIGTERM):
+                    prev = signal.getsignal(sig)
+                    def _chained(signum, frame, prev=prev):
+                        self._signal_handler(signum, frame)
+                        if callable(prev):
+                            prev(signum, frame)
+                    signal.signal(sig, _chained)
 
     def _get_trace_context(self) -> tuple:
         """Get the current trace context."""
@@ -167,7 +174,9 @@ class OTLPHandler:
         """Handle termination signals."""
         print("\nShutting down logger...", file=sys.stderr)
         cls._shutdown_all_handlers()
-        sys.exit(0)
+        # Do **not** call sys.exit() here; let the hosting framework
+        # (e.g. Uvicorn/Starlette) finish its own graceful shutdown.
+        return
 
     def _process_queue(self) -> None:
         """Process logs from the queue until shutdown."""

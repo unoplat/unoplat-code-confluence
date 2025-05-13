@@ -58,10 +58,6 @@ class PackageMetadataActivity:
             return package_metadata
 
         except Exception as e:
-            if isinstance(e, ApplicationError):
-                # Re-raise ApplicationError as is since it already contains detailed error info
-                raise
-                
             log.error(
                 "Failed to process package metadata | codebase_path={} | error_type={} | error_details={} | status=error",
                 local_path, type(e).__name__, str(e)
@@ -71,16 +67,14 @@ class PackageMetadataActivity:
             tb_str = traceback.format_exc()
             
             raise ApplicationError(
-                message=f"Failed to process package metadata for {local_path}", 
-                type="PACKAGE_METADATA_ERROR",
-                details=[
-                    {"codebase_path": local_path},
-                    {"error": str(e)},
-                    {"error_type": type(e).__name__},
-                    {"traceback": tb_str},
-                    {"workflow_id": workflow_id.get("")},
-                    {"workflow_run_id": workflow_run_id.get("")},
-                    {"activity_name": activity_name.get("")},
-                    {"activity_id": activity_id.get("")},
-                ]
+                f"Failed to process package metadata for {local_path}",
+                {"codebase_path": local_path},
+                {"error": str(e)},
+                {"error_type": type(e).__name__},
+                {"traceback": tb_str},
+                {"workflow_id": workflow_id},
+                {"workflow_run_id": workflow_run_id},
+                {"activity_name": activity_name},
+                {"activity_id": activity_id},
+                type="PACKAGE_METADATA_ERROR"
             )

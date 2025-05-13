@@ -56,10 +56,7 @@ class GitActivity:
             )
 
             activity_data = await self.github_helper.clone_repository(repo_request, github_token)
-            # BUG_START: artificial bug for testing error reporting
-            # This will raise a ZeroDivisionError to simulate a failure
-            _ = 1 / 0
-            # BUG_END: end of artificial bug block
+            
 
             log.debug(
                 "Successfully processed git activity | git_url={} | status=success",

@@ -11,7 +11,7 @@ class ActivityRetriesConfig:
     """Collection of reusable Temporal retry policies."""
 
     # Default retry values configurable via environment variables
-    DEFAULT_MAX_ATTEMPTS = int(os.getenv("ACTIVITY_RETRY_MAX_ATTEMPTS", "2"))
+    DEFAULT_MAX_ATTEMPTS = int(os.getenv("ACTIVITY_RETRY_MAX_ATTEMPTS", "4"))
     DEFAULT_INITIAL_INTERVAL_S = float(os.getenv("ACTIVITY_RETRY_INITIAL_INTERVAL_S", "3"))
     DEFAULT_BACKOFF_COEFFICIENT = float(os.getenv("ACTIVITY_RETRY_BACKOFF_COEFFICIENT", "2.0"))
     DEFAULT_MAX_INTERVAL_S = float(os.getenv("ACTIVITY_RETRY_MAX_INTERVAL_S", "60"))
