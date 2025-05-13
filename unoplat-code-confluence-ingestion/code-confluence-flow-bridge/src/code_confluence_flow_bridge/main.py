@@ -4,13 +4,19 @@ from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseConfig,
+    CodebaseStatus,
+    CodebaseStatusList,
+    ErrorReport,
     GitHubRepoRequestConfiguration,
     GitHubRepoResponseConfiguration,
+    GithubRepoStatus,
     GitHubRepoSummary,
     JobStatus,
     PaginatedResponse,
     ParentWorkflowJobListResponse,
     ParentWorkflowJobResponse,
+    WorkflowRun,
+    WorkflowStatus,
 )
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
@@ -22,7 +28,7 @@ from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Cr
 from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
 from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import Repository, RepositoryWorkflowRun
+from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import CodebaseWorkflowRun, Repository, RepositoryWorkflowRun
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
@@ -39,7 +45,7 @@ from concurrent.futures import ThreadPoolExecutor
 # Standard library imports
 from datetime import datetime, timezone
 import json
-from typing import Any, Callable, Dict, List, Optional, Sequence, cast
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, cast
 
 # Third-party imports
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
@@ -605,86 +611,106 @@ async def set_flag_status(flag_name: str, status: bool, session: AsyncSession = 
 #     session.refresh(db_obj)
 #     return {"message": "Repository data updated successfully."}
 
-# @app.get(
-#     "/repository-status",
-#     response_model=GithubRepoStatus,
-# )
-# async def get_repository_status(
-#     repository_name: str = Query(..., description="The name of the repository"),
-#     repository_owner_name: str = Query(..., description="The name of the repository owner"),
-#     workflow_run_id: Optional[str] = Query(None, description="Optional workflow run ID to fetch specific status"),
-#     session: AsyncSession = Depends(get_session),
-# ) -> GithubRepoStatus:
-#     """
-#     Get the current status of a repository workflow run and its associated codebase runs.
-#     If workflow_run_id is provided, fetch that specific run, otherwise fetch the latest running workflow.
-#     """
-#     try:
-#         # Build base query for repository workflow run
-#         stmt = select(RepositoryWorkflowRun).where(
-#             RepositoryWorkflowRun.repository_name == repository_name,
-#             RepositoryWorkflowRun.repository_owner_name == repository_owner_name,
-#         )
+@app.get(
+    "/repository-status",
+    response_model=GithubRepoStatus,
+)
+async def get_repository_status(
+    repository_name: str = Query(..., description="The name of the repository"),
+    repository_owner_name: str = Query(..., description="The name of the repository owner"),
+    workflow_run_id: str = Query(..., description="The workflow run ID to fetch status for"),
+    session: AsyncSession = Depends(get_session),
+) -> GithubRepoStatus:
+    """
+    Get the current status of a repository workflow run and its associated codebase runs.
+    """
+    try:
+        # Build base query for repository workflow run
+        stmt = select(RepositoryWorkflowRun).where(
+            RepositoryWorkflowRun.repository_name == repository_name,
+            RepositoryWorkflowRun.repository_owner_name == repository_owner_name,
+            RepositoryWorkflowRun.repository_workflow_run_id == workflow_run_id
+        )
         
-#         # If specific workflow_run_id provided, use it, otherwise get latest RUNNING workflow
-#         if workflow_run_id:
-#             stmt = stmt.where(RepositoryWorkflowRun.repository_workflow_run_id == workflow_run_id)
-#         else:
-#             stmt = stmt.where(RepositoryWorkflowRun.status == JobStatus.RUNNING.value)
+        parent_run = (await session.execute(stmt)).scalar_one_or_none()
+        if not parent_run:
+            error_msg = f"Workflow run {workflow_run_id} not found for {repository_name}/{repository_owner_name}"
+            raise HTTPException(status_code=404, detail=error_msg)
         
-#         # Order by latest started_at and get the first one
-#         stmt = stmt.order_by(desc(RepositoryWorkflowRun.started_at)).limit(1)
+        # Fetch all codebase workflow runs associated with this parent run
+        cb_stmt = select(CodebaseWorkflowRun).where(
+            CodebaseWorkflowRun.repository_name == repository_name,
+            CodebaseWorkflowRun.repository_owner_name == repository_owner_name,
+            CodebaseWorkflowRun.repository_workflow_run_id == parent_run.repository_workflow_run_id,
+        )
+        codebase_runs = (await session.execute(cb_stmt)).scalars().all()
         
-#         parent_run = (await session.execute(stmt)).scalar_one_or_none()
-#         if not parent_run:
-#             if workflow_run_id:
-#                 error_msg = f"Workflow run {workflow_run_id} not found for {repository_name}/{repository_owner_name}"
-#             else:
-#                 error_msg = f"No running workflow found for {repository_name}/{repository_owner_name}"
-#             raise HTTPException(status_code=404, detail=error_msg)
+        # Group codebase runs by root_package
+        codebase_data: Dict[str, List[Tuple[str, WorkflowRun]]] = {}
+        for run in codebase_runs:
+            root_package = run.root_package
+            if root_package not in codebase_data:
+                codebase_data[root_package] = []
+                
+            error_report = ErrorReport(**run.error_report) if run.error_report else None
+            
+            # Create WorkflowRun object for this codebase run
+            workflow_run = WorkflowRun(
+                codebase_workflow_run_id=run.codebase_workflow_run_id,
+                status=JobStatus(run.status),
+                started_at=run.started_at,
+                completed_at=run.completed_at,
+                error_report=error_report
+            )
+            
+            # Add to the list of runs for this codebase
+            codebase_data[root_package].append((run.codebase_workflow_id, workflow_run))
         
-#         # Fetch all codebase workflow runs associated with this parent run
-#         cb_stmt = select(CodebaseWorkflowRun).where(
-#             CodebaseWorkflowRun.repository_name == repository_name,
-#             CodebaseWorkflowRun.repository_owner_name == repository_owner_name,
-#             CodebaseWorkflowRun.repository_workflow_run_id == parent_run.repository_workflow_run_id,
-#         )
-#         codebase_runs = (await session.execute(cb_stmt)).scalars().all()
+        # Now organize workflow runs by workflow ID
+        codebases: List[CodebaseStatus] = []
+        for root_package, runs in codebase_data.items():
+            # Group workflow runs by workflow ID
+            workflow_map: Dict[str, List[WorkflowRun]] = {}
+            for workflow_id, wf_run in runs:
+                if workflow_id not in workflow_map:
+                    workflow_map[workflow_id] = []
+                workflow_map[workflow_id].append(wf_run)
+            
+            # Create WorkflowStatus objects for each workflow ID
+            workflows: List[WorkflowStatus] = []
+            for workflow_id, workflow_runs in workflow_map.items():
+                workflows.append(WorkflowStatus(
+                    codebase_workflow_id=workflow_id,
+                    codebase_workflow_runs=workflow_runs
+                ))
+            
+            # Create CodebaseStatus for this root package
+            codebases.append(CodebaseStatus(
+                root_package=root_package,
+                workflows=workflows
+            ))
         
-#         # Map to Pydantic models
-#         codebase_statuses = []
-#         for run in codebase_runs:
-#             error_report = ErrorReport(**run.error_report) if run.error_report else None
-#             codebase_statuses.append(
-#                 CodebaseCurrentStatus(
-#                     root_package=run.root_package,
-#                     codebase_workflow_run_id=run.codebase_workflow_run_id,
-#                     codebase_workflow_id=run.codebase_workflow_id,
-#                     status=JobStatus(run.status),
-#                     started_at=run.started_at,
-#                     completed_at=run.completed_at,
-#                     error_report=error_report,
-#                 )
-#             )
+        # Create CodebaseStatusList with all codebase statuses
+        codebase_status_list: Optional[CodebaseStatusList] = CodebaseStatusList(codebases=codebases) if codebases else None
         
-#         # Create parent repository status object
-#         return GithubRepoStatus(
-#             repository_name=parent_run.repository_name,
-#             repository_owner_name=parent_run.repository_owner_name,
-#             repository_workflow_run_id=parent_run.repository_workflow_run_id,
-#             repository_workflow_id=parent_run.repository_workflow_id,
-#             status=JobStatus(parent_run.status),
-#             started_at=parent_run.started_at,
-#             completed_at=parent_run.completed_at,
-#             error_report=ErrorReport(**parent_run.error_report) if parent_run.error_report else None,
-#             codebase_statuses=codebase_statuses,
-#         )
-#     except Exception as e:
-#         logger.error(f"Error retrieving repository status: {str(e)}")
-#         raise HTTPException(
-#             status_code=500,
-#             detail=f"Error retrieving repository status: {str(e)}"
-#         )
+        # Create parent repository status object
+        return GithubRepoStatus(
+            repository_name=parent_run.repository_name,
+            repository_owner_name=parent_run.repository_owner_name,
+            repository_workflow_run_id=parent_run.repository_workflow_run_id,
+            repository_workflow_id=parent_run.repository_workflow_id,
+            status=JobStatus(parent_run.status),
+            started_at=parent_run.started_at,
+            completed_at=parent_run.completed_at,
+            error_report=ErrorReport(**parent_run.error_report) if parent_run.error_report else None,
+            codebase_status_list=codebase_status_list
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving repository status: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving repository status: {str(e)}"
+        )
 
 @app.get(
     "/repository-data",
