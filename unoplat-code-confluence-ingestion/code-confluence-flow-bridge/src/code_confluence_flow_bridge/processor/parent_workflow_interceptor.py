@@ -293,7 +293,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                         workflow_run_id=parent_workflow_run_id,
                         trace_id=child_trace_id,
                         status=JobStatus.FAILED.value,
-                        error_report=child_error_report
+                        error_report=None
                     )
                     await workflow.execute_activity(
                         activity=ParentWorkflowDbActivity.update_repository_workflow_status,
