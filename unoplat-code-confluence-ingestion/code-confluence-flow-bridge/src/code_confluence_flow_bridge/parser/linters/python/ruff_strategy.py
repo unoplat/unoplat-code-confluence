@@ -1,15 +1,13 @@
 from src.code_confluence_flow_bridge.parser.linters.linter_strategy import LinterStrategy
 
 import os
-from ast import List
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from loguru import logger
 import tomlkit
-
 
 
 class RuffStrategy(LinterStrategy):
@@ -158,12 +156,12 @@ class RuffStrategy(LinterStrategy):
             logger.error(f"Error handling pyproject.toml: {e}")
             return False
     
-    def lint_codebase(self, local_workspace_path: str, dependencies: Optional[List], programming_language_version: str) -> bool:
+    def lint_codebase(self, local_workspace_path: str, dependencies: Optional[List[str]], programming_language_version: str) -> bool:
         """Run Ruff linter on Python codebase.
 
         Args:
             local_workspace_path (str): Path to Python codebase
-            dependencies (List): List of project dependencies
+            dependencies (List[str]): List of project dependencies
             programming_language_version (str): Python version specifier
 
         Returns:

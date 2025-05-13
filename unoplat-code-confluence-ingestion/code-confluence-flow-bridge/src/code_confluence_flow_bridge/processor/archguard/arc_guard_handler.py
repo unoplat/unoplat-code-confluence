@@ -1,7 +1,6 @@
 # Standard Library
 import os
 import subprocess
-from typing import Optional
 
 # Third Party
 from loguru import logger
