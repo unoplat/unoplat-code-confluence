@@ -1,6 +1,4 @@
-# Standard Library
-
-# Third Party
+from src.code_confluence_flow_bridge.logging.trace_utils import activity_id_var, activity_name_var, workflow_id_var, workflow_run_id_var
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_function import UnoplatChapiForgeFunction
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
@@ -10,7 +8,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Enviro
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
 
-import json
+import traceback
 from typing import Any, List, Tuple, Union
 
 from loguru import logger
@@ -66,7 +64,7 @@ class CodeConfluenceGraphIngestion:
 
                 repo_results = await CodeConfluenceGitRepository.create_or_update(repo_dict)
                 if not repo_results:
-                    raise ApplicationError(message=f"Failed to create repository node: {qualified_name}", type="REPOSITORY_CREATION_ERROR", details=[{"repository": qualified_name}])
+                    raise ApplicationError(f"Failed to create repository node: {qualified_name}", {"repository": qualified_name}, type="REPOSITORY_CREATION_ERROR")
 
                 repo_node = repo_results[0]
                 logger.debug(f"Created repository node: {qualified_name}")
@@ -80,7 +78,16 @@ class CodeConfluenceGraphIngestion:
 
                     codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
                     if not codebase_results:
-                        raise ApplicationError(message=f"Failed to create codebase node: {codebase.name}", type="CODEBASE_CREATION_ERROR", details=[{"repository": qualified_name, "codebase": codebase.name}])
+                        raise ApplicationError(
+                            f"Failed to create codebase node: {codebase.name}",
+                            {"repository": qualified_name},
+                            {"codebase": codebase.name},
+                            {"workflow_id": workflow_id_var.get("")},
+                            {"workflow_run_id": workflow_run_id_var.get("")},
+                            {"activity_name": activity_name_var.get("")},
+                            {"activity_id": activity_id_var.get("")},
+                            type="CODEBASE_CREATION_ERROR"
+                        )
 
                     codebase_node = codebase_results[0]
 
@@ -92,9 +99,25 @@ class CodeConfluenceGraphIngestion:
                 return parent_child_clone_metadata
 
         except Exception as e:
+            # Capture detailed error information
             error_msg = f"Failed to insert repository {qualified_name}"
-            logger.error(f"{error_msg}: {str(e)}")
-            raise ApplicationError(message=error_msg, type="GRAPH_INGESTION_ERROR") from e
+            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)} | status=failed")
+            
+            # Capture the traceback string
+            tb_str = traceback.format_exc()
+            
+            raise ApplicationError(
+                error_msg,
+                {"repository": qualified_name},
+                {"error": str(e)},
+                {"error_type": type(e).__name__},
+                {"traceback": tb_str},
+                {"workflow_id": workflow_id_var.get("")},
+                {"workflow_run_id": workflow_run_id_var.get("")},
+                {"activity_name": activity_name_var.get("")},
+                {"activity_id": activity_id_var.get("")},
+                type="GRAPH_INGESTION_ERROR"
+            ) from e
 
     async def insert_code_confluence_codebase_package_manager_metadata(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
         """
@@ -110,7 +133,7 @@ class CodeConfluenceGraphIngestion:
                 try:
                     codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)
                 except CodeConfluenceCodebase.DoesNotExist:
-                    raise ApplicationError(message=f"Codebase not found: {codebase_qualified_name}", type="CODEBASE_NOT_FOUND")
+                    raise ApplicationError(f"Codebase not found: {codebase_qualified_name}", type="CODEBASE_NOT_FOUND")
 
                 # Create package manager metadata node
                 metadata_dict = {
@@ -129,7 +152,7 @@ class CodeConfluenceGraphIngestion:
 
                 metadata_results = await CodeConfluencePackageManagerMetadata.create_or_update(metadata_dict)
                 if not metadata_results:
-                    raise ApplicationError(message=f"Failed to create package manager metadata for {codebase_qualified_name}", type="METADATA_CREATION_ERROR")
+                    raise ApplicationError(f"Failed to create package manager metadata for {codebase_qualified_name}", type="METADATA_CREATION_ERROR")
 
                 metadata_node: CodeConfluencePackageManagerMetadata = metadata_results[0]
 
@@ -139,11 +162,25 @@ class CodeConfluenceGraphIngestion:
                 logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
 
         except Exception as e:
+            # Capture detailed error information
             error_msg = f"Failed to insert package manager metadata for {codebase_qualified_name}"
-            logger.error(f"{error_msg}: {str(e)}")
-            raise ApplicationError(message=error_msg, type="PACKAGE_METADATA_ERROR")
-
-
+            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)} | status=failed")
+            
+            # Capture the traceback string
+            tb_str = traceback.format_exc()
+            
+            raise ApplicationError(
+                error_msg,
+                {"codebase": codebase_qualified_name},
+                {"error": str(e)},
+                {"error_type": type(e).__name__},
+                {"traceback": tb_str},
+                {"workflow_id": workflow_id_var.get("")},
+                {"workflow_run_id": workflow_run_id_var.get("")},
+                {"activity_name": activity_name_var.get("")},
+                {"activity_id": activity_id_var.get("")},
+                type="PACKAGE_METADATA_ERROR"
+            )
 
 
     #todo: we need to ingest packages into the graph database
@@ -164,7 +201,7 @@ class CodeConfluenceGraphIngestion:
             )
         except CodeConfluenceCodebase.DoesNotExist as e:
             raise ApplicationError(
-                message=f"Codebase not found: {codebase_qualified_name}",
+                f"Codebase not found: {codebase_qualified_name}",
                 type="CODEBASE_NOT_FOUND"
             ) from e
 
@@ -197,7 +234,7 @@ class CodeConfluenceGraphIngestion:
                 package_results = await CodeConfluencePackage.create_or_update(package_dict)
                 if not package_results:
                     raise ApplicationError(
-                        message=f"Failed to create package node: {pkg_name}",
+                        f"Failed to create package node: {pkg_name}",
                         type="PACKAGE_CREATION_ERROR"
                     )
                 package_node: CodeConfluencePackage = package_results[0]

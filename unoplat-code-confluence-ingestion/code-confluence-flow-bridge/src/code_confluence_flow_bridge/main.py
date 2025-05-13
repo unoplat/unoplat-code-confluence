@@ -605,6 +605,87 @@ async def set_flag_status(flag_name: str, status: bool, session: AsyncSession = 
 #     session.refresh(db_obj)
 #     return {"message": "Repository data updated successfully."}
 
+# @app.get(
+#     "/repository-status",
+#     response_model=GithubRepoStatus,
+# )
+# async def get_repository_status(
+#     repository_name: str = Query(..., description="The name of the repository"),
+#     repository_owner_name: str = Query(..., description="The name of the repository owner"),
+#     workflow_run_id: Optional[str] = Query(None, description="Optional workflow run ID to fetch specific status"),
+#     session: AsyncSession = Depends(get_session),
+# ) -> GithubRepoStatus:
+#     """
+#     Get the current status of a repository workflow run and its associated codebase runs.
+#     If workflow_run_id is provided, fetch that specific run, otherwise fetch the latest running workflow.
+#     """
+#     try:
+#         # Build base query for repository workflow run
+#         stmt = select(RepositoryWorkflowRun).where(
+#             RepositoryWorkflowRun.repository_name == repository_name,
+#             RepositoryWorkflowRun.repository_owner_name == repository_owner_name,
+#         )
+        
+#         # If specific workflow_run_id provided, use it, otherwise get latest RUNNING workflow
+#         if workflow_run_id:
+#             stmt = stmt.where(RepositoryWorkflowRun.repository_workflow_run_id == workflow_run_id)
+#         else:
+#             stmt = stmt.where(RepositoryWorkflowRun.status == JobStatus.RUNNING.value)
+        
+#         # Order by latest started_at and get the first one
+#         stmt = stmt.order_by(desc(RepositoryWorkflowRun.started_at)).limit(1)
+        
+#         parent_run = (await session.execute(stmt)).scalar_one_or_none()
+#         if not parent_run:
+#             if workflow_run_id:
+#                 error_msg = f"Workflow run {workflow_run_id} not found for {repository_name}/{repository_owner_name}"
+#             else:
+#                 error_msg = f"No running workflow found for {repository_name}/{repository_owner_name}"
+#             raise HTTPException(status_code=404, detail=error_msg)
+        
+#         # Fetch all codebase workflow runs associated with this parent run
+#         cb_stmt = select(CodebaseWorkflowRun).where(
+#             CodebaseWorkflowRun.repository_name == repository_name,
+#             CodebaseWorkflowRun.repository_owner_name == repository_owner_name,
+#             CodebaseWorkflowRun.repository_workflow_run_id == parent_run.repository_workflow_run_id,
+#         )
+#         codebase_runs = (await session.execute(cb_stmt)).scalars().all()
+        
+#         # Map to Pydantic models
+#         codebase_statuses = []
+#         for run in codebase_runs:
+#             error_report = ErrorReport(**run.error_report) if run.error_report else None
+#             codebase_statuses.append(
+#                 CodebaseCurrentStatus(
+#                     root_package=run.root_package,
+#                     codebase_workflow_run_id=run.codebase_workflow_run_id,
+#                     codebase_workflow_id=run.codebase_workflow_id,
+#                     status=JobStatus(run.status),
+#                     started_at=run.started_at,
+#                     completed_at=run.completed_at,
+#                     error_report=error_report,
+#                 )
+#             )
+        
+#         # Create parent repository status object
+#         return GithubRepoStatus(
+#             repository_name=parent_run.repository_name,
+#             repository_owner_name=parent_run.repository_owner_name,
+#             repository_workflow_run_id=parent_run.repository_workflow_run_id,
+#             repository_workflow_id=parent_run.repository_workflow_id,
+#             status=JobStatus(parent_run.status),
+#             started_at=parent_run.started_at,
+#             completed_at=parent_run.completed_at,
+#             error_report=ErrorReport(**parent_run.error_report) if parent_run.error_report else None,
+#             codebase_statuses=codebase_statuses,
+#         )
+#     except Exception as e:
+#         logger.error(f"Error retrieving repository status: {str(e)}")
+#         raise HTTPException(
+#             status_code=500,
+#             detail=f"Error retrieving repository status: {str(e)}"
+#         )
+
 @app.get(
     "/repository-data",
     response_model=GitHubRepoResponseConfiguration,

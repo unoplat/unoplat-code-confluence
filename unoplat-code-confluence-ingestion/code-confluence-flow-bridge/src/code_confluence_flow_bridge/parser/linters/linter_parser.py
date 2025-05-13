@@ -5,8 +5,6 @@ from src.code_confluence_flow_bridge.parser.linters.linter_factory import Linter
 
 from typing import List, Optional
 
-from temporalio import activity
-
 
 class LinterParser:
     def lint_codebase(
