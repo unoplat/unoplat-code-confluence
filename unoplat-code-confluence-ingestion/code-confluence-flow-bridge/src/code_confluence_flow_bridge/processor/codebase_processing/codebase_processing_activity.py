@@ -155,17 +155,15 @@ class CodebaseProcessingActivity:
             tb_str = traceback.format_exc()
             
             raise ApplicationError(
-                message=f"Failed to process codebase {codebase_qualified_name}", 
-                type="CODEBASE_PROCESSING_ERROR",
-                details=[
-                    {"codebase": codebase_qualified_name},
-                    {"local_path": local_workspace_path},
-                    {"error": str(e)},
-                    {"error_type": type(e).__name__},
-                    {"traceback": tb_str},
-                    {"workflow_id": info.workflow_id.get("")},
-                    {"workflow_run_id": info.workflow_run_id.get("")},
-                    {"activity_name": info.activity_type.get("")},
-                    {"activity_id": info.activity_id.get("")},
-                ]
+                f"Failed to process codebase {codebase_qualified_name}",
+                {"codebase": codebase_qualified_name},
+                {"local_path": local_workspace_path},
+                {"error": str(e)},
+                {"error_type": type(e).__name__},
+                {"traceback": tb_str},
+                {"workflow_id": info.workflow_id},
+                {"workflow_run_id": info.workflow_run_id},
+                {"activity_name": info.activity_type},
+                {"activity_id": info.activity_id},
+                type="CODEBASE_PROCESSING_ERROR"
             )

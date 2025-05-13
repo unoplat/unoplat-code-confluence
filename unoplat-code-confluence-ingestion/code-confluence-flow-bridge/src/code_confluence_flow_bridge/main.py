@@ -13,9 +13,11 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     PaginatedResponse,
 )
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
+from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
 from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
@@ -82,7 +84,7 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
         workflows=[RepoWorkflow, CodebaseChildWorkflow],
         activities=activities,
         activity_executor=activity_executor,
-        interceptors=[ParentWorkflowStatusInterceptor()],
+        interceptors=[ParentWorkflowStatusInterceptor(),ActivityStatusInterceptor()],
     )
 
     await worker.run()
@@ -131,8 +133,8 @@ async def lifespan(app: FastAPI):
     parent_workflow_db_activity: ParentWorkflowDbActivity = ParentWorkflowDbActivity()
     activities.append(parent_workflow_db_activity.update_repository_workflow_status)
     
-    # child_workflow_db_activity = ChildWorkflowDbActivity()
-    # activities.append(child_workflow_db_activity.update_codebase_workflow_status)
+    child_workflow_db_activity = ChildWorkflowDbActivity()
+    activities.append(child_workflow_db_activity.update_codebase_workflow_status)
 
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)

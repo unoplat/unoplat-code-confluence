@@ -50,11 +50,13 @@ def bind_logger(trace_id: str, workflow_id: str, workflow_run_id: str, activity_
     Returns:
         Logger: A Loguru logger instance with appropriate context variables bound
     """
-    log_context = {
-        "app_trace_id": trace_id ,
-        "workflow_id": workflow_id,
-        "workflow_run_id": workflow_run_id
-    }
+    log_context = {}
+    if trace_id:
+        log_context["app_trace_id"] = trace_id
+    if workflow_id:
+        log_context["workflow_id"] = workflow_id
+    if workflow_run_id:
+        log_context["workflow_run_id"] = workflow_run_id
     
     if activity_id:
         log_context["activity_id"] = activity_id
@@ -87,9 +89,12 @@ def seed_ids(trace_id: str, workflow_id: str, workflow_run_id: str, activity_id:
     Returns:
         None
     """
-    trace_id_var.set(trace_id)
-    workflow_id_var.set(workflow_id)
-    workflow_run_id_var.set(workflow_run_id)
+    if trace_id:
+        trace_id_var.set(trace_id)
+    if workflow_id:
+        workflow_id_var.set(workflow_id)
+    if workflow_run_id:
+        workflow_run_id_var.set(workflow_run_id)
     if activity_id:
         activity_id_var.set(activity_id)
     if activity_name:
@@ -99,7 +104,9 @@ def seed_ids(trace_id: str, workflow_id: str, workflow_run_id: str, activity_id:
 
 # ---------------------------------------------------------------
 # Helper: seed ContextVar and return bound logger in one step
-def seed_and_bind_logger_from_trace_id(trace_id: str, workflow_id: str, workflow_run_id: str, activity_id: Optional[str] = None, activity_name: Optional[str] = None, codebase_local_path: Optional[str] = None) -> "Logger":
+def seed_and_bind_logger_from_trace_id(trace_id: Optional[str] = None, workflow_id: Optional[str] = None, 
+                                      workflow_run_id: Optional[str] = None, activity_id: Optional[str] = None, 
+                                      activity_name: Optional[str] = None, codebase_local_path: Optional[str] = None) -> "Logger":
     """
     Initialize context variables and create a bound logger in a single operation.
 
@@ -117,5 +124,5 @@ def seed_and_bind_logger_from_trace_id(trace_id: str, workflow_id: str, workflow
     Returns:
         Logger: A Loguru logger instance with appropriate context variables bound
     """
-    seed_ids(trace_id, workflow_id, workflow_run_id, activity_id, activity_name,codebase_local_path)
-    return bind_logger(trace_id, workflow_id, workflow_run_id, activity_id, activity_name,codebase_local_path)
+    seed_ids(trace_id, workflow_id, workflow_run_id, activity_id, activity_name,codebase_local_path) # type: ignore
+    return bind_logger(trace_id, workflow_id, workflow_run_id, activity_id, activity_name,codebase_local_path) # type: ignore
