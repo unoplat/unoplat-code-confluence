@@ -7,10 +7,14 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseStatus,
     CodebaseStatusList,
     ErrorReport,
+    GithubIssueSubmissionRequest,
     GitHubRepoRequestConfiguration,
     GitHubRepoResponseConfiguration,
     GithubRepoStatus,
     GitHubRepoSummary,
+    IssueStatus,
+    IssueTracking,
+    IssueType,
     JobStatus,
     PaginatedResponse,
     ParentWorkflowJobListResponse,
@@ -45,12 +49,14 @@ from concurrent.futures import ThreadPoolExecutor
 # Standard library imports
 from datetime import datetime, timezone
 import json
+import traceback
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, cast
 
 # Third-party imports
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from github import Github
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 import httpx
@@ -828,6 +834,7 @@ async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict
 
         # Determine email: use public email or fetch primary email via separate endpoint
         email = user_data.get("email")
+
         if not email:
             emails_resp = await client.get("https://api.github.com/user/emails", headers=headers)
             if emails_resp.status_code == 200:
@@ -840,3 +847,148 @@ async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict
         "avatar_url": user_data.get("avatar_url"),
         "email": email,
     }
+
+
+@app.post("/code-confluence/issues", response_model=IssueTracking)
+async def create_github_issue(request: GithubIssueSubmissionRequest, session: AsyncSession = Depends(get_session)):
+    """
+    Create a GitHub issue based on error information and track it in the database.
+    
+    This endpoint creates a GitHub issue using the provided error information and then updates 
+    either the codebase workflow run or repository workflow run record with the issue details.
+    """
+    try:
+        # Get GitHub token from credentials
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
+        if not credential:
+            raise HTTPException(status_code=404, detail="No GitHub credentials found")
+        token = decrypt_token(credential.token_hash)
+        
+        # Create GitHub issue
+        
+        # Create issue title and body from error information
+        title = f"Error: {request.error_message_body[:50]}..." if len(request.error_message_body) > 50 else f"Error: {request.error_message_body}"
+        body = f"## Error Details\n\n{request.error_message_body}\n\n"
+        
+        # Add workflow context information to the issue body
+        body += f"## Workflow Information\n\n"
+        body += f"- Repository: {request.repository_owner_name}/{request.repository_name}\n"
+        
+        
+        
+        if request.root_package:
+            body += f"- Root Package: {request.root_package}\n"
+        
+        # Build the GitHub API request data
+        github_issue_data = {
+            "title": title,
+            "body": body,
+            # Assignees and labels could be added here if needed
+            # "assignees": [],
+            "labels": ["bug", "automated"]
+        }
+        
+        # Create GitHub issue using PyGithub
+        try:
+            # Initialize GitHub client with token
+            g = Github(token)
+            
+            # Get the repository
+            repo = g.get_repo("unoplat/unoplat-code-confluence")
+            
+            # Create the issue
+            labels = github_issue_data["labels"]
+            github_issue = repo.create_issue(
+                title=title,
+                body=body,
+                labels=labels #type: ignore
+            )
+        except Exception as e:
+            logger.error(f"GitHub API error: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to create GitHub issue: {str(e)}"
+            )
+        
+        # Create issue tracking record
+        issue_tracking = IssueTracking(
+            issue_id=str(github_issue.id), 
+            issue_url=github_issue.html_url,
+            issue_status=IssueStatus.OPEN
+        )
+        
+        # Prepare issue tracking data for database using IssueTracking model
+        issue_tracking_full = IssueTracking(
+            issue_id=issue_tracking.issue_id,
+            issue_number=github_issue.number,
+            issue_url=issue_tracking.issue_url,
+            issue_status=issue_tracking.issue_status,
+            created_at=datetime.now(timezone.utc).isoformat()
+        )
+        issue_data = issue_tracking_full.model_dump()  # or use .json() if the DB expects a JSON string
+        
+        # Save to appropriate table based on issue type
+        if request.error_type == IssueType.CODEBASE and request.codebase_workflow_run_id:
+            # Update codebase workflow run with issue tracking
+            condition = (
+                (CodebaseWorkflowRun.repository_name == request.repository_name)
+                & (CodebaseWorkflowRun.repository_owner_name == request.repository_owner_name)
+                & (CodebaseWorkflowRun.root_package == request.root_package)
+                & (CodebaseWorkflowRun.codebase_workflow_run_id == request.codebase_workflow_run_id)
+            )  # type: ignore
+            codebase_run_query = select(CodebaseWorkflowRun).where(condition)
+            codebase_run_result = await session.execute(codebase_run_query)
+            codebase_run = codebase_run_result.scalar_one_or_none()
+            
+            if not codebase_run:
+                raise HTTPException(status_code=404, 
+                                   detail=f"Codebase workflow run {request.codebase_workflow_run_id} not found")
+            
+            codebase_run.issue_tracking = issue_data
+        
+        else:  # repository workflow run
+            # Update repository workflow run with issue tracking
+            condition = (
+                (RepositoryWorkflowRun.repository_name == request.repository_name)
+                & (RepositoryWorkflowRun.repository_owner_name == request.repository_owner_name)
+                & (RepositoryWorkflowRun.repository_workflow_run_id == request.parent_workflow_run_id)
+            )  # type: ignore
+            repo_run_query = select(RepositoryWorkflowRun).where(condition)
+            repo_run_result = await session.execute(repo_run_query)
+            repo_run = repo_run_result.scalar_one_or_none()
+            
+            if not repo_run:
+                raise HTTPException(status_code=404, 
+                               detail=f"Repository workflow run {request.parent_workflow_run_id} not found")
+            
+            repo_run.issue_tracking = issue_data
+        
+        await session.commit()
+        return issue_tracking_full
+            
+    except Exception as e:
+        logger.error(f"Error creating GitHub issue: {str(e)}")
+        # Follow standardized error handling pattern from memories
+        workflow_context = {
+            "workflow_id": request.parent_workflow_run_id,
+            "repository": f"{request.repository_owner_name}/{request.repository_name}"
+        }
+        if request.error_type == IssueType.CODEBASE and request.codebase_workflow_run_id:
+            workflow_context["codebase_workflow_run_id"] = request.codebase_workflow_run_id
+            if request.root_package:
+                workflow_context["root_package"] = request.root_package
+            
+        error_context = {
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+            "workflow_context": workflow_context
+        }
+        
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "Error creating GitHub issue. Please try after some time.",
+                "error_context": error_context
+            }
+        )

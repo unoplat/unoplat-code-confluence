@@ -150,6 +150,38 @@ export const submitRepositoryConfig = async (repositoryConfig: GitHubRepoRequest
  * 
  * @returns Promise with the response data
  */
+/**
+ * Update GitHub PAT token in the backend
+ * 
+ * @param token - GitHub Personal Access Token
+ * @returns Promise with the response data
+ */
+export const updateGitHubToken = async (token: string): Promise<ApiResponse> => {
+  try {
+    // Pass null as data and override Content-Type header
+    const response: AxiosResponse<ApiResponse> = await apiClient.put('/update-token', null, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': undefined, // Prevent sending default Content-Type
+      },
+    });
+
+    return response.data;
+  } catch (error: unknown) {
+    const apiError = handleApiError(error);
+    
+    // If we have a valid response from the server, return it
+    // This might occur for non-2xx status codes that still carry a meaningful API response body
+    if (apiError.isAxiosError && apiError.statusCode && apiError.details && typeof apiError.details === 'object' && apiError.details !== null && 'success' in apiError.details) {
+      // Attempt to cast details to ApiResponse if it looks like one
+      return apiError.details as ApiResponse;
+    }
+    
+    // Otherwise, throw the standardized error object for further handling upstream
+    throw apiError;
+  }
+};
+
 export const deleteGitHubToken = async (): Promise<ApiResponse> => {
   try {
     const response: AxiosResponse<ApiResponse> = await apiClient.delete('/delete-token');
