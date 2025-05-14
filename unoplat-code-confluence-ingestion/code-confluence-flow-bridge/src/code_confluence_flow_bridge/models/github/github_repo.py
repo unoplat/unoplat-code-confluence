@@ -90,9 +90,10 @@ class IssueStatus(str, Enum):
 
 class IssueTracking(BaseModel):
     issue_id: Optional[str] = Field(default=None, description="Issue ID associated with the error")
+    issue_number: Optional[int] = Field(default=None, description="Issue number in the GitHub repository")
     issue_url: Optional[str] = Field(default=None, description="Issue URL associated with the error")
     issue_status: Optional[IssueStatus] = Field(default=None, description="Issue status associated with the error")
-    
+    created_at: Optional[str] = Field(default=None, description="Timestamp when the issue was created")
 
 # Error report model for detailed error context
 class ErrorReport(BaseModel):
@@ -102,7 +103,7 @@ class ErrorReport(BaseModel):
     error_message: str = Field(..., description="Error message")
     stack_trace: Optional[str] = Field(default=None, description="Stack trace of the error, if available")
     metadata: Optional[dict] = Field(default=None, description="Metadata associated with the error")
-    issue_id: Optional[str] = Field(default=None, description="Issue ID associated with the error")
+    
     
 
 class JobStatus(str, Enum):
@@ -181,3 +182,19 @@ class ParentWorkflowJobResponse(BaseModel):
 class ParentWorkflowJobListResponse(BaseModel):
     """Response model containing a list of parent workflow job data."""
     jobs: List[ParentWorkflowJobResponse] = Field(description="List of parent workflow jobs")
+    
+class IssueType(str, Enum):    
+    REPOSITORY = "REPOSITORY"
+    CODEBASE = "CODEBASE"
+    
+    
+class GithubIssueSubmissionRequest(BaseModel):
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    parent_workflow_run_id: str = Field(description="The run ID of the parent workflow")
+    error_type: IssueType = Field(description="Type of error")
+    root_package: Optional[str] = Field(default=None, description="Root package of the codebase")
+    codebase_workflow_run_id: Optional[str] = Field(default=None, description="The run ID of the codebase workflow")
+    error_message_body: str = Field(description="Error message")
+    
+    

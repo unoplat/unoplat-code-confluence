@@ -5,7 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@tanstack/react-form';
-import { submitGitHubToken, ApiError, ApiResponse } from '../../lib/api';
+import { submitGitHubToken, updateGitHubToken, ApiError, ApiResponse } from '../../lib/api';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Dialog, DialogContent, DialogDescription } from '../ui/dialog';
 import { Github, X } from 'lucide-react';
@@ -81,7 +81,7 @@ export default function GitHubTokenPopup({
   });
   
   const tokenMutation = useMutation<ApiResponse, ApiError, string>({
-    mutationFn: submitGitHubToken,
+    mutationFn: (token: string) => isUpdate ? updateGitHubToken(token) : submitGitHubToken(token),
     onSuccess: async (): Promise<void> => {
       console.log('[GitHubTokenPopup] Mutation successful, clearing error and resetting form');
       setError(null);

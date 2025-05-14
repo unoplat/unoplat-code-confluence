@@ -93,6 +93,11 @@ class RepositoryWorkflowRun(SQLModel, table=True):
         sa_column=Column(JSONB),
         description="Error report if the workflow run failed"
     )
+    issue_tracking: Optional[Dict[str, Any]] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="GitHub issue tracking info for this repository workflow run"
+    )
     
     started_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), nullable=False), 
@@ -163,6 +168,11 @@ class CodebaseWorkflowRun(SQLModel, table=True):
         default=None,
         sa_column=Column(JSONB),
         description="Error report if the workflow run failed"
+    )
+    issue_tracking: Optional[Dict[str, Any]] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="GitHub issue tracking info for this codebase workflow run"
     )
     
     started_at: datetime = Field(
