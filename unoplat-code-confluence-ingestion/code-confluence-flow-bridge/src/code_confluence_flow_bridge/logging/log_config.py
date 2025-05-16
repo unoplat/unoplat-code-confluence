@@ -10,7 +10,7 @@ from src.code_confluence_flow_bridge.logging.trace_utils import (
 
 import os
 import sys
-from typing import TYPE_CHECKING, List, Dict, Any, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from loguru import logger
 from opentelemetry._logs import set_logger_provider
@@ -20,7 +20,6 @@ from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 
 if TYPE_CHECKING:
     from loguru import Logger
-    from loguru._handler import HandlerConfig
 
 _OTEL_PROVIDER: Optional[LoggerProvider] = None
 
@@ -39,17 +38,19 @@ def setup_logging(
     log_level = log_level or os.getenv("LOG_LEVEL", "DEBUG")
     otlp_endpoint = otlp_endpoint or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
     
-    # Build handlers list
-    handlers: List["HandlerConfig"] = [
+    # Pretty console format
+    log_format = (
+        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+        "<level>{level: <8}</level> | "
+        "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
+        "{extra[app_name]} | "
+        "{message}"
+    )
+    
+    handlers: List[Dict[str, Any]] = [
         {
             "sink": sys.stdout,
-            "format": (
-                "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
-                "<level>{level: <8}</level> | "
-                "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
-                "{extra[app_name]} | "
-                "{message}"
-            ),
+            "format": log_format,
             "level": log_level,
             "colorize": True,
         }
@@ -78,7 +79,7 @@ def setup_logging(
 
     # Configure logger
     logger.configure(
-        handlers=handlers,
+        handlers=handlers,  # type: ignore
         extra={"app_name": app_name},
         patcher=lambda record: record["extra"].update({
             "app_trace_id": trace_id_var.get(""),
