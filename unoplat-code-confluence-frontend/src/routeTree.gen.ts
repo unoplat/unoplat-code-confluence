@@ -15,6 +15,7 @@ import { Route as AppImport } from './routes/_app'
 import { Route as AppIndexImport } from './routes/_app.index'
 import { Route as SettingsDeveloperImport } from './routes/settings.developer'
 import { Route as AppSettingsImport } from './routes/_app.settings'
+import { Route as AppRepositoryManagementImport } from './routes/_app.repositoryManagement'
 import { Route as AppOnboardingImport } from './routes/_app.onboarding'
 import { Route as AppDeveloperImport } from './routes/_app.developer'
 
@@ -40,6 +41,12 @@ const SettingsDeveloperRoute = SettingsDeveloperImport.update({
 const AppSettingsRoute = AppSettingsImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+
+const AppRepositoryManagementRoute = AppRepositoryManagementImport.update({
+  id: '/repositoryManagement',
+  path: '/repositoryManagement',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -80,6 +87,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingImport
       parentRoute: typeof AppImport
     }
+    '/_app/repositoryManagement': {
+      id: '/_app/repositoryManagement'
+      path: '/repositoryManagement'
+      fullPath: '/repositoryManagement'
+      preLoaderRoute: typeof AppRepositoryManagementImport
+      parentRoute: typeof AppImport
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -109,6 +123,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppDeveloperRoute: typeof AppDeveloperRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
+  AppRepositoryManagementRoute: typeof AppRepositoryManagementRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -116,6 +131,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDeveloperRoute: AppDeveloperRoute,
   AppOnboardingRoute: AppOnboardingRoute,
+  AppRepositoryManagementRoute: AppRepositoryManagementRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
 }
@@ -126,6 +142,7 @@ export interface FileRoutesByFullPath {
   '': typeof AppRouteWithChildren
   '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRoute
+  '/repositoryManagement': typeof AppRepositoryManagementRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/': typeof AppIndexRoute
@@ -134,6 +151,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRoute
+  '/repositoryManagement': typeof AppRepositoryManagementRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/': typeof AppIndexRoute
@@ -144,6 +162,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/developer': typeof AppDeveloperRoute
   '/_app/onboarding': typeof AppOnboardingRoute
+  '/_app/repositoryManagement': typeof AppRepositoryManagementRoute
   '/_app/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/_app/': typeof AppIndexRoute
@@ -155,16 +174,24 @@ export interface FileRouteTypes {
     | ''
     | '/developer'
     | '/onboarding'
+    | '/repositoryManagement'
     | '/settings'
     | '/settings/developer'
     | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/developer' | '/onboarding' | '/settings' | '/settings/developer' | '/'
+  to:
+    | '/developer'
+    | '/onboarding'
+    | '/repositoryManagement'
+    | '/settings'
+    | '/settings/developer'
+    | '/'
   id:
     | '__root__'
     | '/_app'
     | '/_app/developer'
     | '/_app/onboarding'
+    | '/_app/repositoryManagement'
     | '/_app/settings'
     | '/settings/developer'
     | '/_app/'
@@ -200,6 +227,7 @@ export const routeTree = rootRoute
       "children": [
         "/_app/developer",
         "/_app/onboarding",
+        "/_app/repositoryManagement",
         "/_app/settings",
         "/_app/"
       ]
@@ -210,6 +238,10 @@ export const routeTree = rootRoute
     },
     "/_app/onboarding": {
       "filePath": "_app.onboarding.tsx",
+      "parent": "/_app"
+    },
+    "/_app/repositoryManagement": {
+      "filePath": "_app.repositoryManagement.tsx",
       "parent": "/_app"
     },
     "/_app/settings": {

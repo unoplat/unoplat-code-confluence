@@ -37,7 +37,7 @@ import { Home, Github, BookOpen } from 'lucide-react'
 
 // Map category titles to their base paths
 const categoryMap: Record<string, string[]> = {
-  'Workspace Setup': ['/onboarding'],
+  'Workspace': ['/onboarding', '/repositoryManagement'],
   'Settings': ['/settings'],
 };
 
