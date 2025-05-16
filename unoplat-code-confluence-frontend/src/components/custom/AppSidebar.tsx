@@ -18,7 +18,7 @@ import {
   CollapsibleContent
 } from '../ui/collapsible'
 import { Link } from '@tanstack/react-router'
-import { FileCheck, Settings, ChevronRight, LifeBuoy, Handshake } from 'lucide-react'
+import { Settings, ChevronRight, LifeBuoy, Handshake, FolderKanban } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { NavUser } from './NavUser'
 
@@ -45,16 +45,16 @@ export function AppSidebar(): React.ReactElement {
       </SidebarHeader>
       <SidebarContent>
         <div className="px-2 space-y-1">
-          {/* Workspace Setup Group */}
-          <Collapsible className="group/collapsible">
+          {/* Workspace Group */}
+          <Collapsible className="group/collapsible" defaultOpen>
             <SidebarGroup>
               <SidebarGroupLabel
                 asChild
                 className="text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer group-data-[collapsible=icon]:!opacity-100 group-data-[collapsible=icon]:!mt-0"
               >
                 <CollapsibleTrigger className="flex w-full items-center font-semibold group-data-[collapsible=icon]:justify-center">
-                  <FileCheck className="h-4 w-4" aria-hidden />
-                  <span className="ml-2 group-data-[collapsible=icon]:hidden">Workspace Setup</span>
+                  <FolderKanban className="h-4 w-4" aria-hidden />
+                  <span className="ml-2 group-data-[collapsible=icon]:hidden">Workspace</span>
                   <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" aria-hidden />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
@@ -65,6 +65,13 @@ export function AppSidebar(): React.ReactElement {
                       <SidebarMenuButton asChild tooltip="GitHub Onboarding">
                         <Link to="/onboarding" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
                           <span className="text-sm font-medium">GitHub Onboarding</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="Repository Management">
+                        <Link to="/repositoryManagement" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
+                          <span className="text-sm font-medium">Repository Management</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
