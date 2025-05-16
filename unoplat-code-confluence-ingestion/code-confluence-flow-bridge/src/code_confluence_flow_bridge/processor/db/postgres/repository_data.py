@@ -51,7 +51,13 @@ class CodebaseConfig(SQLModel, table=True):
     
     # Relationships
     repository: Repository = Relationship(back_populates="configs")
-    workflow_runs: List["CodebaseWorkflowRun"] = Relationship(back_populates="codebase_config")
+    workflow_runs: List["CodebaseWorkflowRun"] = Relationship(
+        back_populates="codebase_config",
+        sa_relationship_kwargs={
+            "viewonly": True,
+            "overlaps": "repository_workflow_run,workflow_runs",
+        },
+    )
 
 
 class RepositoryWorkflowRun(SQLModel, table=True):
@@ -111,7 +117,13 @@ class RepositoryWorkflowRun(SQLModel, table=True):
     
     # Relationships
     repository: Repository = Relationship(back_populates="workflow_runs")
-    codebase_workflow_runs: List["CodebaseWorkflowRun"] = Relationship(back_populates="repository_workflow_run")
+    codebase_workflow_runs: List["CodebaseWorkflowRun"] = Relationship(
+        back_populates="repository_workflow_run",
+        sa_relationship_kwargs={
+            "viewonly": True,
+            "overlaps": "codebase_config,workflow_runs",
+        },
+    )
 
 
 class CodebaseWorkflowRun(SQLModel, table=True):

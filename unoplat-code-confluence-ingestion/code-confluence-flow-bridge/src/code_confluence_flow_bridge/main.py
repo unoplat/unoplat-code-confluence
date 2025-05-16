@@ -666,7 +666,8 @@ async def get_repository_status(
                 status=JobStatus(run.status),
                 started_at=run.started_at,
                 completed_at=run.completed_at,
-                error_report=error_report
+                error_report=error_report,
+                issue_tracking=IssueTracking(**run.issue_tracking) if run.issue_tracking else None
             )
             
             # Add to the list of runs for this codebase
@@ -705,6 +706,7 @@ async def get_repository_status(
             repository_owner_name=parent_run.repository_owner_name,
             repository_workflow_run_id=parent_run.repository_workflow_run_id,
             repository_workflow_id=parent_run.repository_workflow_id,
+            issue_tracking=IssueTracking(**parent_run.issue_tracking) if parent_run.issue_tracking else None,
             status=JobStatus(parent_run.status),
             started_at=parent_run.started_at,
             completed_at=parent_run.completed_at,

@@ -120,6 +120,10 @@ class WorkflowRun(BaseModel):
     status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED.")
     completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")
     error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
+    issue_tracking: Optional[IssueTracking] = Field(
+        default=None,
+        description="GitHub issue tracking info for the workflow run"
+    )
             
 class WorkflowStatus(BaseModel):
     codebase_workflow_id: str = Field(description="Unique identifier for the workflow (remains constant across execution runs).")
@@ -154,7 +158,10 @@ class CodebaseCurrentStatus(BaseModel):
     started_at: datetime = Field(description="Timestamp when the workflow run started")
     completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")
     error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
-
+    issue_tracking: Optional[IssueTracking] = Field(
+        default=None,
+        description="GitHub issue tracking info for the workflow run"
+    )
 
 class GithubRepoStatus(BaseModel):
     """Model for current status of a repository workflow run and its associated codebase runs."""
@@ -165,6 +172,10 @@ class GithubRepoStatus(BaseModel):
     started_at: datetime = Field(description="Timestamp when the workflow run started")
     status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED.")
     error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
+    issue_tracking: Optional[IssueTracking] = Field(
+        default=None,
+        description="GitHub issue tracking info for the repository workflow run"
+    )
     completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")    
     codebase_status_list: Optional[CodebaseStatusList] = Field(default=None, description="Status of the repository workflows (optional, returned in GET)")
 
