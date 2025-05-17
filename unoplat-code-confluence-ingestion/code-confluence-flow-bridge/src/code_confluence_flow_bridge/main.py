@@ -1,53 +1,74 @@
+# Local application imports
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
-
-# Build parent workflow status only
+from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
+from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.models.github.github_repo import (
-    CodebaseRepoConfig,
+    CodebaseConfig,
+    CodebaseStatus,
+    CodebaseStatusList,
+    ErrorReport,
+    GithubIssueSubmissionRequest,
     GitHubRepoRequestConfiguration,
     GitHubRepoResponseConfiguration,
+    GithubRepoStatus,
     GitHubRepoSummary,
+    IssueStatus,
+    IssueTracking,
+    IssueType,
+    JobStatus,
     PaginatedResponse,
+    ParentWorkflowJobListResponse,
+    ParentWorkflowJobResponse,
     WorkflowRun,
     WorkflowStatus,
-    WorkflowStatusEnum,
 )
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
+from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
 from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_and_tables, get_session
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import RepositoryData
+from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
+from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import CodebaseWorkflowRun, Repository, RepositoryWorkflowRun
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
+from src.code_confluence_flow_bridge.processor.parent_workflow_interceptor import ParentWorkflowStatusInterceptor
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+from src.code_confluence_flow_bridge.utility.deps import trace_dependency
 from src.code_confluence_flow_bridge.utility.password_utils import decrypt_token, encrypt_token
 
 import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+
+# Standard library imports
 from datetime import datetime, timezone
 import json
-from typing import Any, Callable, Dict, List, Optional, Sequence
+import traceback
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, cast
 
+# Third-party imports
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-
-# Add imports for gql
+from github import Github
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 import httpx
-from loguru import logger
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import QueryableAttribute, selectinload
+from sqlalchemy.orm.attributes import QueryableAttribute
+from sqlmodel import select
 from temporalio.client import Client, WorkflowHandle
 from temporalio.worker import Worker
 
 # Setup logging
-logger = setup_logging()
+logger = setup_logging(service_name="code-confluence-flow-bridge", app_name="unoplat-code-confluence")
 
 
 #setup supertokens
@@ -72,7 +93,14 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
         client: Temporal client
         activity_executor: Thread pool executor for activities
     """
-    worker = Worker(client, task_queue="unoplat-code-confluence-repository-context-ingestion", workflows=[RepoWorkflow, CodebaseChildWorkflow], activities=activities, activity_executor=activity_executor)
+    worker = Worker(
+        client,
+        task_queue="unoplat-code-confluence-repository-context-ingestion",
+        workflows=[RepoWorkflow, CodebaseChildWorkflow],
+        activities=activities,
+        activity_executor=activity_executor,
+        interceptors=[ParentWorkflowStatusInterceptor(),ActivityStatusInterceptor()],
+    )
 
     await worker.run()
 
@@ -81,14 +109,20 @@ async def start_workflow(
     temporal_client: Client,
     repo_request: GitHubRepoRequestConfiguration,
     github_token: str,
-    workflow_id: str
+    workflow_id: str,
+    trace_id: str,
 ) -> WorkflowHandle:
     """
     Start a Temporal workflow for the given repository request and workflow id.
     """
+    envelope = RepoWorkflowRunEnvelope(
+        repo_request=repo_request,
+        github_token=github_token,
+        trace_id=trace_id
+    )
     workflow_handle: WorkflowHandle = await temporal_client.start_workflow(
         RepoWorkflow.run,
-        args=(repo_request, github_token),
+        arg=envelope,
         id=workflow_id,
         task_queue="unoplat-code-confluence-repository-context-ingestion"
     )
@@ -110,6 +144,12 @@ async def lifespan(app: FastAPI):
     activities: List[Callable] = []
     git_activity = GitActivity()
     activities.append(git_activity.process_git_activity)
+    
+    parent_workflow_db_activity: ParentWorkflowDbActivity = ParentWorkflowDbActivity()
+    activities.append(parent_workflow_db_activity.update_repository_workflow_status)
+    
+    child_workflow_db_activity = ChildWorkflowDbActivity()
+    activities.append(child_workflow_db_activity.update_codebase_workflow_status)
 
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)
@@ -124,7 +164,7 @@ async def lifespan(app: FastAPI):
     activities.append(codebase_processing_activity.process_codebase)
     
     # Create database tables during startup
-    create_db_and_tables()
+    await create_db_and_tables()
     
     asyncio.create_task(run_worker(activities=activities, client=app.state.temporal_client, activity_executor=app.state.activity_executor))
     yield
@@ -156,7 +196,7 @@ async def monitor_workflow(workflow_handle: WorkflowHandle):
     
 
 @app.post("/ingest-token", status_code=201)
-async def ingest_token(authorization: str = Header(...), session: Session = Depends(get_session)) -> Dict[str, str]:
+async def ingest_token(authorization: str = Header(...), session: AsyncSession = Depends(get_session)) -> Dict[str, str]:
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid Authorization header")
     token: str = authorization[7:].strip()  # Remove 'Bearer '
@@ -166,7 +206,8 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
         encrypted_token: str = encrypt_token(token)
         current_time: datetime = datetime.now(timezone.utc)
         
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
         
         if credential is not None:
             raise HTTPException(status_code=409, detail="Token already ingested. Use update-token to update it.")
@@ -175,7 +216,8 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
         session.add(credential)
         
         # Set the isTokenSubmitted flag to true
-        token_flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == "isTokenSubmitted")).first()
+        flag_result = await session.execute(select(Flag).where(Flag.name == "isTokenSubmitted")) #type: ignore
+        token_flag: Optional[Flag] = flag_result.scalar_one_or_none()
         
         if token_flag is None:
             # Create the flag if it doesn't exist
@@ -186,8 +228,9 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
             
         session.add(token_flag)
         
-        session.commit()
-        session.refresh(credential)
+        await session.commit()
+        await session.refresh(credential)
+        
         return {"message": "Token ingested successfully."}
     except HTTPException as http_ex:
         # Re-raise HTTP exceptions directly
@@ -197,7 +240,7 @@ async def ingest_token(authorization: str = Header(...), session: Session = Depe
         raise HTTPException(status_code=500, detail="Failed to process authentication token")
 
 @app.put("/update-token", status_code=200)
-async def update_token(authorization: str = Header(...), session: Session = Depends(get_session)) -> Dict[str, str]:
+async def update_token(authorization: str = Header(...), session: AsyncSession = Depends(get_session)) -> Dict[str, str]:
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid Authorization header")
     token: str = authorization[7:].strip()
@@ -205,7 +248,8 @@ async def update_token(authorization: str = Header(...), session: Session = Depe
         encrypted_token: str = encrypt_token(token)
         current_time: datetime = datetime.now(timezone.utc)
         
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
             raise HTTPException(status_code=404, detail="No token found to update")
         
@@ -213,26 +257,27 @@ async def update_token(authorization: str = Header(...), session: Session = Depe
         credential.updated_at = current_time
         session.add(credential)
         
-        session.commit()
-        session.refresh(credential)
+        await session.commit()
+        await session.refresh(credential)
         return {"message": "Token updated successfully."}
     except Exception as e:
         logger.error(f"Failed to update token: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to update authentication token")
 
 @app.delete("/delete-token", status_code=200)
-async def delete_token(session: Session = Depends(get_session)) -> Dict[str, str]:
+async def delete_token(session: AsyncSession = Depends(get_session)) -> Dict[str, str]:
     try:
         # Find existing credential
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
             raise HTTPException(status_code=404, detail="No token found to delete")
         
-        # Delete the credential
-        session.delete(credential)
+        await session.delete(credential)
         
         # Set the isTokenSubmitted flag to false
-        token_flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == "isTokenSubmitted")).first()
+        flag_result = await session.execute(select(Flag).where(Flag.name == "isTokenSubmitted"))
+        token_flag: Optional[Flag] = flag_result.scalar_one_or_none()
         
         if token_flag is None:
             # Create the flag if it doesn't exist
@@ -243,7 +288,7 @@ async def delete_token(session: Session = Depends(get_session)) -> Dict[str, str
             
         session.add(token_flag)
         
-        session.commit()
+        await session.commit()
         
         return {"message": "Token deleted successfully."}
     except HTTPException as http_ex:
@@ -260,11 +305,12 @@ async def get_repos(
     per_page: int = Query(30, ge=1, le=100, description="Items per page"),
     cursor: Optional[str] = Query(None, description="Pagination cursor"),
     filterValues: Optional[str] = Query(None, description="Optional JSON filter values to filter repositories"),
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ) -> PaginatedResponse:
     # Attempt to fetch the stored credentials from the database
     try:
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
     except Exception as db_error:
         logger.error(f"Database error while fetching credentials: {db_error}")
         raise HTTPException(status_code=500, detail="Database error while fetching credentials")
@@ -342,9 +388,9 @@ async def get_repos(
                 })
                 
                 # Process the search result
-                repos_data = result["search"]["nodes"]
-                has_next = result["search"]["pageInfo"]["hasNextPage"]
-                next_cursor = result["search"]["pageInfo"]["endCursor"]
+                repos_data = result["search"]["nodes"] #type: ignore
+                has_next = result["search"]["pageInfo"]["hasNextPage"] #type: ignore
+                next_cursor = result["search"]["pageInfo"]["endCursor"] #type: ignore
             else:
                 # Use the original viewer.repositories query when no search is provided
                 query = gql(
@@ -382,9 +428,9 @@ async def get_repos(
                 })
                 
                 # Process the result
-                repos_data = result["viewer"]["repositories"]["nodes"]
-                has_next = result["viewer"]["repositories"]["pageInfo"]["hasNextPage"]
-                next_cursor = result["viewer"]["repositories"]["pageInfo"]["endCursor"]
+                repos_data = result["viewer"]["repositories"]["nodes"] #type: ignore
+                has_next = result["viewer"]["repositories"]["pageInfo"]["hasNextPage"] #type: ignore
+                next_cursor = result["viewer"]["repositories"]["pageInfo"]["endCursor"] #type: ignore
             
             # Convert to GitHubRepoSummary objects
             repos_list: List[GitHubRepoSummary] = []
@@ -413,7 +459,8 @@ async def get_repos(
 @app.post("/start-ingestion", status_code=201)
 async def ingestion(
     repo_request: GitHubRepoRequestConfiguration,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    request_logger: "Logger" = Depends(trace_dependency) # type: ignore
 ) -> dict[str, str]:
     """
     Start the ingestion workflow for the entire repository using the GitHub token from the database.
@@ -423,9 +470,10 @@ async def ingestion(
     """
     # Attempt to fetch the stored credentials from the database
     try:
-        credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
     except Exception as db_error:
-        logger.error(f"Database error while fetching credentials: {db_error}")
+        request_logger.error(f"Database error while fetching credentials: {db_error}")
         raise HTTPException(status_code=500, detail="Database error while fetching credentials")
 
     if not credential:
@@ -435,68 +483,36 @@ async def ingestion(
     try:
         github_token: str = decrypt_token(credential.token_hash)
     except Exception as decrypt_error:
-        logger.error(f"Failed to decrypt token: {decrypt_error}")
+        request_logger.error(f"Failed to decrypt token: {decrypt_error}")
         raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
-    
-    # Construct a workflow_id and start the Temporal workflow
-    workflow_id: str = f"{repo_request.repository_name}__{repo_request.repository_owner_name}"
+
+    # Fetch the trace-id that `trace_dependency` already set
+    trace_id = trace_id_var.get()
+    if not trace_id:
+        raise HTTPException(500, "trace_id not set by dependency")
+
+    # Start the Temporal workflow
     workflow_handle: WorkflowHandle = await start_workflow(
-        app.state.temporal_client,
-        repo_request,
-        github_token,
-        workflow_id
+        temporal_client=app.state.temporal_client,
+        repo_request=repo_request,
+        github_token=github_token,
+        workflow_id=f"ingest-{trace_id}",
+        trace_id=trace_id,
     )
     # Schedule background monitoring immediately after starting the workflow
     asyncio.create_task(monitor_workflow(workflow_handle))
     # Extract the run_id for response and status tracking
     run_id: str = workflow_handle.result_run_id or "none"
-
-    # Ingest repository data into the database (composite key)
-    existing: RepositoryData | None = session.get(
-        RepositoryData, 
-        (repo_request.repository_name, repo_request.repository_owner_name)
-    )
-    if existing:
-        raise HTTPException(status_code=409, detail="Repository data already exists for this name and owner.")
-
     
-    now: datetime = datetime.now(timezone.utc)
-    workflow_run: WorkflowRun = WorkflowRun(
-        workflowRunId=run_id,
-        status=WorkflowStatusEnum.SUBMITTED,
-        started_at=now,
-        currentStage=None,
-        completedStages=[],
-        totalStages=None,
-    )
-    workflow_status: WorkflowStatus = WorkflowStatus(
-        workflowId=workflow_id,
-        workflowRuns=[workflow_run],
-    )
 
-    # after building your WorkflowStatus instance:
-    workflow_status_dict: dict[str, Any] = workflow_status.model_dump(mode="json")
-
-    db_obj = RepositoryData(
-        repository_name=repo_request.repository_name,
-        repository_owner_name=repo_request.repository_owner_name,
-        repository_workflow_status=workflow_status_dict,
-        repository_metadata=[
-            codebase.model_dump(mode="json") for codebase in repo_request.repository_metadata
-        ],
-    )
-    session.add(db_obj)
-    session.commit()
-    session.refresh(db_obj)
-
-    logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
+    request_logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
     return {
         "workflow_id": workflow_handle.id or "none",
         "run_id": run_id
     }
 
 @app.get("/flags/{flag_name}", status_code=200)
-async def get_flag_status(flag_name: str, session: Session = Depends(get_session)) -> Dict[str, Any]:
+async def get_flag_status(flag_name: str, session: AsyncSession = Depends(get_session)) -> Dict[str, Any]:
     """
     Get the status of a specific flag by name.
     
@@ -508,7 +524,8 @@ async def get_flag_status(flag_name: str, session: Session = Depends(get_session
         Dict[str, Any]: Flag information including status
     """
     try:
-        flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == flag_name)).first()
+        result = await session.execute(select(Flag).where(Flag.name == flag_name))
+        flag: Optional[Flag] = result.scalar_one_or_none()
         if flag is None:
             raise HTTPException(status_code=404, detail=f"Flag '{flag_name}' not found")
         return {
@@ -524,7 +541,7 @@ async def get_flag_status(flag_name: str, session: Session = Depends(get_session
         raise HTTPException(status_code=500, detail=f"Failed to get flag status for {flag_name}")
 
 @app.get("/flags", status_code=200)
-async def get_all_flags(session: Session = Depends(get_session)) -> List[Dict[str, Any]]:
+async def get_all_flags(session: AsyncSession = Depends(get_session)) -> List[Dict[str, Any]]:
     """
     Get the status of all available flags.
     
@@ -535,7 +552,8 @@ async def get_all_flags(session: Session = Depends(get_session)) -> List[Dict[st
         List[Dict[str, Any]]: List of flag information
     """
     try:
-        flags: Sequence[Flag] = session.exec(select(Flag)).all()
+        result = await session.execute(select(Flag))
+        flags: Sequence[Flag] = result.scalars().all()
         return [
             {
                 "name": flag.name,
@@ -548,7 +566,7 @@ async def get_all_flags(session: Session = Depends(get_session)) -> List[Dict[st
         raise HTTPException(status_code=500, detail="Failed to get flags")
 
 @app.put("/flags/{flag_name}", status_code=200)
-async def set_flag_status(flag_name: str, status: bool, session: Session = Depends(get_session)) -> Dict[str, Any]:
+async def set_flag_status(flag_name: str, status: bool, session: AsyncSession = Depends(get_session)) -> Dict[str, Any]:
     """
     Set the status of a specific flag by name.
     
@@ -561,7 +579,8 @@ async def set_flag_status(flag_name: str, status: bool, session: Session = Depen
         Dict[str, Any]: Updated flag information
     """
     try:
-        flag: Optional[Flag] = session.exec(select(Flag).where(Flag.name == flag_name)).first()
+        result = await session.execute(select(Flag).where(Flag.name == flag_name)) 
+        flag: Optional[Flag] = result.scalar_one_or_none()
         
         if flag is None:
             # Create the flag if it doesn't exist
@@ -571,8 +590,8 @@ async def set_flag_status(flag_name: str, status: bool, session: Session = Depen
             flag.status = status
             
         session.add(flag)
-        session.commit()
-        session.refresh(flag)
+        await session.commit()
+        await session.refresh(flag)
         
         return {
             "name": flag.name,
@@ -599,17 +618,126 @@ async def set_flag_status(flag_name: str, status: bool, session: Session = Depen
 #     return {"message": "Repository data updated successfully."}
 
 @app.get(
+    "/repository-status",
+    response_model=GithubRepoStatus,
+)
+async def get_repository_status(
+    repository_name: str = Query(..., description="The name of the repository"),
+    repository_owner_name: str = Query(..., description="The name of the repository owner"),
+    workflow_run_id: str = Query(..., description="The workflow run ID to fetch status for"),
+    session: AsyncSession = Depends(get_session),
+) -> GithubRepoStatus:
+    """
+    Get the current status of a repository workflow run and its associated codebase runs.
+    """
+    try:
+        # Build base query for repository workflow run
+        stmt = select(RepositoryWorkflowRun).where(
+            RepositoryWorkflowRun.repository_name == repository_name,
+            RepositoryWorkflowRun.repository_owner_name == repository_owner_name,
+            RepositoryWorkflowRun.repository_workflow_run_id == workflow_run_id
+        )
+        
+        parent_run = (await session.execute(stmt)).scalar_one_or_none()
+        if not parent_run:
+            error_msg = f"Workflow run {workflow_run_id} not found for {repository_name}/{repository_owner_name}"
+            raise HTTPException(status_code=404, detail=error_msg)
+        
+        # Fetch all codebase workflow runs associated with this parent run
+        cb_stmt = select(CodebaseWorkflowRun).where(
+            CodebaseWorkflowRun.repository_name == repository_name,
+            CodebaseWorkflowRun.repository_owner_name == repository_owner_name,
+            CodebaseWorkflowRun.repository_workflow_run_id == parent_run.repository_workflow_run_id,
+        )
+        codebase_runs = (await session.execute(cb_stmt)).scalars().all()
+        
+        # Group codebase runs by root_package
+        codebase_data: Dict[str, List[Tuple[str, WorkflowRun]]] = {}
+        for run in codebase_runs:
+            root_package = run.root_package
+            if root_package not in codebase_data:
+                codebase_data[root_package] = []
+                
+            error_report = ErrorReport(**run.error_report) if run.error_report else None
+            
+            # Create WorkflowRun object for this codebase run
+            workflow_run = WorkflowRun(
+                codebase_workflow_run_id=run.codebase_workflow_run_id,
+                status=JobStatus(run.status),
+                started_at=run.started_at,
+                completed_at=run.completed_at,
+                error_report=error_report,
+                issue_tracking=IssueTracking(**run.issue_tracking) if run.issue_tracking else None
+            )
+            
+            # Add to the list of runs for this codebase
+            codebase_data[root_package].append((run.codebase_workflow_id, workflow_run))
+        
+        # Now organize workflow runs by workflow ID
+        codebases: List[CodebaseStatus] = []
+        for root_package, runs in codebase_data.items():
+            # Group workflow runs by workflow ID
+            workflow_map: Dict[str, List[WorkflowRun]] = {}
+            for workflow_id, wf_run in runs:
+                if workflow_id not in workflow_map:
+                    workflow_map[workflow_id] = []
+                workflow_map[workflow_id].append(wf_run)
+            
+            # Create WorkflowStatus objects for each workflow ID
+            workflows: List[WorkflowStatus] = []
+            for workflow_id, workflow_runs in workflow_map.items():
+                workflows.append(WorkflowStatus(
+                    codebase_workflow_id=workflow_id,
+                    codebase_workflow_runs=workflow_runs
+                ))
+            
+            # Create CodebaseStatus for this root package
+            codebases.append(CodebaseStatus(
+                root_package=root_package,
+                workflows=workflows
+            ))
+        
+        # Create CodebaseStatusList with all codebase statuses
+        codebase_status_list: Optional[CodebaseStatusList] = CodebaseStatusList(codebases=codebases) if codebases else None
+        
+        # Create parent repository status object
+        return GithubRepoStatus(
+            repository_name=parent_run.repository_name,
+            repository_owner_name=parent_run.repository_owner_name,
+            repository_workflow_run_id=parent_run.repository_workflow_run_id,
+            repository_workflow_id=parent_run.repository_workflow_id,
+            issue_tracking=IssueTracking(**parent_run.issue_tracking) if parent_run.issue_tracking else None,
+            status=JobStatus(parent_run.status),
+            started_at=parent_run.started_at,
+            completed_at=parent_run.completed_at,
+            error_report=ErrorReport(**parent_run.error_report) if parent_run.error_report else None,
+            codebase_status_list=codebase_status_list
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving repository status: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving repository status: {str(e)}"
+        )
+
+@app.get(
     "/repository-data",
     response_model=GitHubRepoResponseConfiguration,
 )
 async def get_repository_data(
     repository_name: str = Query(..., description="The name of the repository"),
     repository_owner_name: str = Query(..., description="The name of the repository owner"),
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> GitHubRepoResponseConfiguration:
-    # pass both parts of the composite key as a tuple
-    db_obj: RepositoryData | None = session.get(
-        RepositoryData, (repository_name, repository_owner_name)
+    # fetch repository record with its codebase configs
+    db_obj: Repository | None = await session.get(
+        Repository,
+        (repository_name, repository_owner_name),
+        options=[
+            selectinload(
+                cast(QueryableAttribute[Any], Repository.configs)
+            )
+        ]
     )
     if not db_obj:
         raise HTTPException(
@@ -617,21 +745,78 @@ async def get_repository_data(
             detail=f"Repository data not found for {repository_name}/{repository_owner_name}"
         )
 
-    codebases = [CodebaseRepoConfig.model_validate(c) for c in db_obj.repository_metadata]
-    return GitHubRepoResponseConfiguration(
-        repository_name=db_obj.repository_name,
-        repository_owner_name=db_obj.repository_owner_name,
-        repository_workflow_status=db_obj.repository_workflow_status,
-        repository_metadata=codebases,
-    )
+    # Map database CodebaseConfig entries to Pydantic models
+    try:
+        codebases = [
+            CodebaseConfig(
+                codebase_folder=config.source_directory,
+                root_package=config.root_package,
+                programming_language_metadata=ProgrammingLanguageMetadata(
+                    language=config.programming_language_metadata["language"],
+                    package_manager=config.programming_language_metadata["package_manager"],
+                    language_version=config.programming_language_metadata.get("language_version"),
+                ),
+            )
+            for config in db_obj.configs
+        ]
+        
+        return GitHubRepoResponseConfiguration(
+            repository_name=db_obj.repository_name,
+            repository_owner_name=db_obj.repository_owner_name,
+            repository_metadata=codebases,
+        )
+    except Exception as e:
+        logger.error(f"Error mapping repository data: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing repository data for {repository_name}/{repository_owner_name}"
+        )
+
+@app.get(
+    "/parent-workflow-jobs",
+    response_model=ParentWorkflowJobListResponse,
+    description="Get all parent workflow jobs data without pagination"
+)
+async def get_parent_workflow_jobs(session: AsyncSession = Depends(get_session)) -> ParentWorkflowJobListResponse:
+    """Get all parent workflow jobs data without pagination.
+    
+    Returns job information for all parent workflows (RepositoryWorkflowRun).
+    Includes repository_name, repository_owner_name, repository_workflow_run_id, status, started_at, completed_at.
+    """
+    try:
+        # Query to get all parent workflow jobs (RepositoryWorkflowRun records)
+        query = select(RepositoryWorkflowRun)
+        result = await session.execute(query)
+        workflow_runs = result.scalars().all()
+        
+        # Transform the database records to the response model format
+        jobs = [
+            ParentWorkflowJobResponse(
+                repository_name=run.repository_name,
+                repository_owner_name=run.repository_owner_name,
+                repository_workflow_run_id=run.repository_workflow_run_id,
+                status=JobStatus(run.status),
+                started_at=run.started_at,
+                completed_at=run.completed_at
+            ) for run in workflow_runs
+        ]
+        
+        return ParentWorkflowJobListResponse(jobs=jobs)
+    except Exception as e:
+        logger.error(f"Error retrieving parent workflow jobs: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving parent workflow jobs: {str(e)}"
+        )
 
 @app.get("/user-details", status_code=200)
-async def get_user_details(session: Session = Depends(get_session)) -> Dict[str, Optional[str]]:
+async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict[str, Optional[str]]:
     """
     Fetch authenticated GitHub user's name, avatar URL, and email.
     """
     # Fetch stored GitHub token from database
-    credential: Optional[Credentials] = session.exec(select(Credentials)).first()
+    result = await session.execute(select(Credentials))
+    credential: Optional[Credentials] = result.scalars().first()
     if not credential:
         raise HTTPException(status_code=404, detail="No credentials found")
     token = decrypt_token(credential.token_hash)
@@ -651,6 +836,7 @@ async def get_user_details(session: Session = Depends(get_session)) -> Dict[str,
 
         # Determine email: use public email or fetch primary email via separate endpoint
         email = user_data.get("email")
+
         if not email:
             emails_resp = await client.get("https://api.github.com/user/emails", headers=headers)
             if emails_resp.status_code == 200:
@@ -663,3 +849,148 @@ async def get_user_details(session: Session = Depends(get_session)) -> Dict[str,
         "avatar_url": user_data.get("avatar_url"),
         "email": email,
     }
+
+
+@app.post("/code-confluence/issues", response_model=IssueTracking)
+async def create_github_issue(request: GithubIssueSubmissionRequest, session: AsyncSession = Depends(get_session)):
+    """
+    Create a GitHub issue based on error information and track it in the database.
+    
+    This endpoint creates a GitHub issue using the provided error information and then updates 
+    either the codebase workflow run or repository workflow run record with the issue details.
+    """
+    try:
+        # Get GitHub token from credentials
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
+        if not credential:
+            raise HTTPException(status_code=404, detail="No GitHub credentials found")
+        token = decrypt_token(credential.token_hash)
+        
+        # Create GitHub issue
+        
+        # Create issue title and body from error information
+        title = f"Error: {request.error_message_body[:50]}..." if len(request.error_message_body) > 50 else f"Error: {request.error_message_body}"
+        body = f"## Error Details\n\n{request.error_message_body}\n\n"
+        
+        # Add workflow context information to the issue body
+        body += f"## Workflow Information\n\n"
+        body += f"- Repository: {request.repository_owner_name}/{request.repository_name}\n"
+        
+        
+        
+        if request.root_package:
+            body += f"- Root Package: {request.root_package}\n"
+        
+        # Build the GitHub API request data
+        github_issue_data = {
+            "title": title,
+            "body": body,
+            # Assignees and labels could be added here if needed
+            # "assignees": [],
+            "labels": ["bug", "automated"]
+        }
+        
+        # Create GitHub issue using PyGithub
+        try:
+            # Initialize GitHub client with token
+            g = Github(token)
+            
+            # Get the repository
+            repo = g.get_repo("unoplat/unoplat-code-confluence")
+            
+            # Create the issue
+            labels = github_issue_data["labels"]
+            github_issue = repo.create_issue(
+                title=title,
+                body=body,
+                labels=labels #type: ignore
+            )
+        except Exception as e:
+            logger.error(f"GitHub API error: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to create GitHub issue: {str(e)}"
+            )
+        
+        # Create issue tracking record
+        issue_tracking = IssueTracking(
+            issue_id=str(github_issue.id), 
+            issue_url=github_issue.html_url,
+            issue_status=IssueStatus.OPEN
+        )
+        
+        # Prepare issue tracking data for database using IssueTracking model
+        issue_tracking_full = IssueTracking(
+            issue_id=issue_tracking.issue_id,
+            issue_number=github_issue.number,
+            issue_url=issue_tracking.issue_url,
+            issue_status=issue_tracking.issue_status,
+            created_at=datetime.now(timezone.utc).isoformat()
+        )
+        issue_data = issue_tracking_full.model_dump()  # or use .json() if the DB expects a JSON string
+        
+        # Save to appropriate table based on issue type
+        if request.error_type == IssueType.CODEBASE and request.codebase_workflow_run_id:
+            # Update codebase workflow run with issue tracking
+            condition = (
+                (CodebaseWorkflowRun.repository_name == request.repository_name)
+                & (CodebaseWorkflowRun.repository_owner_name == request.repository_owner_name)
+                & (CodebaseWorkflowRun.root_package == request.root_package)
+                & (CodebaseWorkflowRun.codebase_workflow_run_id == request.codebase_workflow_run_id)
+            )  # type: ignore
+            codebase_run_query = select(CodebaseWorkflowRun).where(condition)
+            codebase_run_result = await session.execute(codebase_run_query)
+            codebase_run = codebase_run_result.scalar_one_or_none()
+            
+            if not codebase_run:
+                raise HTTPException(status_code=404, 
+                                   detail=f"Codebase workflow run {request.codebase_workflow_run_id} not found")
+            
+            codebase_run.issue_tracking = issue_data
+        
+        else:  # repository workflow run
+            # Update repository workflow run with issue tracking
+            condition = (
+                (RepositoryWorkflowRun.repository_name == request.repository_name)
+                & (RepositoryWorkflowRun.repository_owner_name == request.repository_owner_name)
+                & (RepositoryWorkflowRun.repository_workflow_run_id == request.parent_workflow_run_id)
+            )  # type: ignore
+            repo_run_query = select(RepositoryWorkflowRun).where(condition)
+            repo_run_result = await session.execute(repo_run_query)
+            repo_run = repo_run_result.scalar_one_or_none()
+            
+            if not repo_run:
+                raise HTTPException(status_code=404, 
+                               detail=f"Repository workflow run {request.parent_workflow_run_id} not found")
+            
+            repo_run.issue_tracking = issue_data
+        
+        await session.commit()
+        return issue_tracking_full
+            
+    except Exception as e:
+        logger.error(f"Error creating GitHub issue: {str(e)}")
+        # Follow standardized error handling pattern from memories
+        workflow_context = {
+            "workflow_id": request.parent_workflow_run_id,
+            "repository": f"{request.repository_owner_name}/{request.repository_name}"
+        }
+        if request.error_type == IssueType.CODEBASE and request.codebase_workflow_run_id:
+            workflow_context["codebase_workflow_run_id"] = request.codebase_workflow_run_id
+            if request.root_package:
+                workflow_context["root_package"] = request.root_package
+            
+        error_context = {
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+            "workflow_context": workflow_context
+        }
+        
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "Error creating GitHub issue. Please try after some time.",
+                "error_context": error_context
+            }
+        )

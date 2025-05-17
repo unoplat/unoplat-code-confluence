@@ -1,23 +1,20 @@
-# Standard Library
+
+from src.code_confluence_flow_bridge.logging.trace_utils import activity_id_var, activity_name_var, workflow_id_var, workflow_run_id_var
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-
-# First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 
 import os
 import asyncio  # NEW: Import asyncio to run blocking calls in a thread
+import traceback
 from typing import Any, Dict, List
 
-# Third Party
 from git import Repo
 from github import Auth, Github
 from loguru import logger
-
-# NEW: Add Temporal activity based logging import
-from temporalio import activity
+from temporalio.exceptions import ApplicationError
 
 
 class GithubHelper:
@@ -45,7 +42,14 @@ class GithubHelper:
         repo_path = repo_path.replace(".git", "")
         repo_name: str = repo_path.split("/")[-1]
 
+        # Bind Loguru logger with the passed trace_id
+        
+
         try:
+            logger.debug(
+                "Processing git repository | git_url={} | repo_name={} | status=started",
+                repo_url, repo_name
+            )
             # Get repository object asynchronously (blocking network call wrapped in thread)
             github_repo = await asyncio.to_thread(github_client.get_repo, repo_path)
 
@@ -59,9 +63,11 @@ class GithubHelper:
             if not os.path.exists(repo_path):
                 await asyncio.to_thread(Repo.clone_from, repo_url, repo_path)
 
-            # Activity-based and pass-through logging
-            activity.logger.info(f"[Temporal] Repository is available at local path: {repo_path}")
-            logger.info(f"[Temporal-Python @Web] Repository is available at local path: {repo_path}")
+            # Log repository path
+            logger.info(
+                "Repository cloned successfully | repo_path={} | status=success",
+                repo_path
+            )
 
             # Build repo metadata
             repo_metadata: Dict[str, Any] = {
@@ -72,6 +78,8 @@ class GithubHelper:
                 "updated_at": str(github_repo.updated_at),
                 "language": github_repo.language,
             }
+            
+            
 
             # Get README content asynchronously (if available)
             try:
@@ -102,9 +110,11 @@ class GithubHelper:
                     if codebase_config.programming_language_metadata.language.value == "python":
                         raise Exception("Root package should be specified for python codebases")
 
-                # Log the computed local path for the codebase (activity-based and pass-through)
-                activity.logger.info(f"[Temporal] Codebase local path computed as: {local_path}")
-                logger.info(f"[Temporal-Python @Web] Codebase local path computed as: {local_path}")
+                # Log the computed local path for the codebase
+                logger.info(
+                    "Codebase local path computed | local_path={} | status=success",
+                    local_path
+                )
 
                 programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
                 # Verify the path exists asynchronously
@@ -134,4 +144,22 @@ class GithubHelper:
             )
 
         except Exception as e:
-            raise Exception(f"Failed to clone repository: {str(e)}")
+            logger.error(
+                "Failed to clone repository | git_url={} | error={} | status=failed",
+                repo_url, str(e)
+            )
+            # Capture the traceback string
+            tb_str = traceback.format_exc()
+            
+            raise ApplicationError(
+                f"Failed to clone repository: {str(e)}",
+                {"repository": repo_url},
+                {"error": str(e)},
+                {"error_type": type(e).__name__},
+                {"traceback": tb_str},
+                {"workflow_id": workflow_id_var.get("")},
+                {"workflow_run_id": workflow_run_id_var.get("")},
+                {"activity_name": activity_name_var.get("")},
+                {"activity_id": activity_id_var.get("")},
+                type="GithubHelperError"
+            )

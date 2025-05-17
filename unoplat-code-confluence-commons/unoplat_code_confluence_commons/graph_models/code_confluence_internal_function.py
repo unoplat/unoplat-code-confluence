@@ -2,9 +2,7 @@ from neomodel import (
     StringProperty,
     IntegerProperty,
     JSONProperty,
-    UniqueIdProperty,
     AsyncRelationshipTo,
-    AsyncRelationshipFrom,
     AsyncRelationship,
     AsyncZeroOrMore,
     AsyncOne

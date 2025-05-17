@@ -48,12 +48,15 @@ class UvStrategy(PackageManagerStrategy):
         Raises:
             ValueError: If pyproject.toml exists but cannot be parsed
         """
-        pyproject_path = Path(local_workspace_path) / "pyproject.toml"
-
-        if not pyproject_path.exists():
-            return UnoplatPackageManagerMetadata(programming_language="python", package_manager="uv")
-
+        
         try:
+            
+            pyproject_path = Path(local_workspace_path) / "pyproject.toml"
+            
+
+            if not pyproject_path.exists():
+                return UnoplatPackageManagerMetadata(programming_language="python", package_manager="uv")
+           
             with open(pyproject_path, "rb") as f:
                 pyproject_data = tomllib.load(f)
         except Exception as e:

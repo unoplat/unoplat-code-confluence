@@ -5,7 +5,7 @@ from typing import List, Optional
 class LinterStrategy(ABC):
     
     @abstractmethod
-    def lint_codebase(self, local_workspace_path: str, dependencies: Optional[List], programming_language_version: str) -> bool:
+    def lint_codebase(self, local_workspace_path: str, dependencies: Optional[List[str]], programming_language_version: str) -> bool:
         """
         Run linting on the codebase and return results
 

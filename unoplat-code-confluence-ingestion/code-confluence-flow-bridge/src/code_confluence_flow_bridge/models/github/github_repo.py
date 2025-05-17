@@ -82,51 +82,59 @@ class PaginatedResponse(BaseModel):
     has_next: bool = Field(description="Whether there are more items to fetch")
     next_cursor: Optional[str] = Field(default=None, description="Cursor for the next page of results")    
 
-
-class CompletedStage(BaseModel):
-    stageName: str = Field(description="Name of the completed stage.")
-    status: str = Field(description="The status of this stage (e.g. 'Completed', 'Failed').")
+class IssueStatus(str, Enum):
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
     
 
-class WorkflowStatusEnum(str, Enum):
-    """Enum for workflow/job status with string value and description."""
-    SUBMITTED = "submitted"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ERROR = "error"
 
-    @property
-    def description(self) -> str:
-        descriptions: dict["WorkflowStatusEnum", str] = {
-            WorkflowStatusEnum.SUBMITTED: "Workflow has been submitted and is awaiting processing.",
-            WorkflowStatusEnum.IN_PROGRESS: "Workflow is currently in progress.",
-            WorkflowStatusEnum.COMPLETED: "Workflow has completed successfully.",
-            WorkflowStatusEnum.ERROR: "Workflow encountered an error.",
-        }
-        return descriptions[self]
+class IssueTracking(BaseModel):
+    issue_id: Optional[str] = Field(default=None, description="Issue ID associated with the error")
+    issue_number: Optional[int] = Field(default=None, description="Issue number in the GitHub repository")
+    issue_url: Optional[str] = Field(default=None, description="Issue URL associated with the error")
+    issue_status: Optional[IssueStatus] = Field(default=None, description="Issue status associated with the error")
+    created_at: Optional[str] = Field(default=None, description="Timestamp when the issue was created")
 
+# Error report model for detailed error context
+class ErrorReport(BaseModel):
+    """
+    Detailed error report capturing context of failure.
+    """
+    error_message: str = Field(..., description="Error message")
+    stack_trace: Optional[str] = Field(default=None, description="Stack trace of the error, if available")
+    metadata: Optional[dict] = Field(default=None, description="Metadata associated with the error")
+    
+    
+
+class JobStatus(str, Enum):
+    SUBMITTED = "SUBMITTED"
+    RUNNING = "RUNNING"
+    FAILED = "FAILED"
+    TIMED_OUT = "TIMED_OUT"
+    COMPLETED = "COMPLETED"
+    RETRYING = "RETRYING"
 
 class WorkflowRun(BaseModel):
-    workflowRunId: str = Field(description="Unique identifier for this specific run instance of the workflow.")
-    status: WorkflowStatusEnum = Field(description="Overall job status.")
+    codebase_workflow_run_id: str = Field(description="Unique identifier for this specific run instance of the workflow.")
     started_at: datetime = Field(description="Timestamp when the workflow run started")
-    currentStage: Optional[str] = Field(default=None, description="The stage currently in progress.")
-    completedStages: List[CompletedStage] = Field(default_factory=list, description="List of stages that have been completed along with metadata.")
-    totalStages: Optional[int] = Field(default=None, description="The total number of defined stages for the workflow.")
-
+    status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED.")
+    completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")
+    error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
+    issue_tracking: Optional[IssueTracking] = Field(
+        default=None,
+        description="GitHub issue tracking info for the workflow run"
+    )
+            
 class WorkflowStatus(BaseModel):
-    workflowId: str = Field(description="Unique identifier for the workflow (remains constant across execution runs).")
-    workflowRuns: List[WorkflowRun] = Field(description="Multiple run instances for this workflow.")
+    codebase_workflow_id: str = Field(description="Unique identifier for the workflow (remains constant across execution runs).")
+    codebase_workflow_runs: List[WorkflowRun] = Field(description="Multiple run instances for this workflow.")
 
 class CodebaseStatus(BaseModel):
-    codebaseName: str = Field(description="The name of the codebase.")
+    root_package: str = Field(description="The name of the codebase.")
     workflows: List[WorkflowStatus] = Field(description="List of workflows under this codebase.")
 
 class CodebaseStatusList(BaseModel):
     codebases: List[CodebaseStatus] = Field(description="List of codebases each with multiple workflows.")
-
-class CodebaseRepoConfig(CodebaseConfig):
-    status: Optional[CodebaseStatusList] = Field(default=None, description="Status of the repository workflows (optional, returned in GET)")
 
 class GitHubRepoRequestConfiguration(BaseModel):
     """Configuration for a GitHub repository, including codebase config and status."""
@@ -139,9 +147,65 @@ class GitHubRepoResponseConfiguration(BaseModel):
     """Configuration for a GitHub repository, including codebase config and status."""
     repository_name: str = Field(description="The name of the repository (primary key)")
     repository_owner_name: str = Field(description="The name of the repository owner")
-    repository_workflow_status: Optional[WorkflowStatus] = Field(default=None, description="The status of the repository workflows")
-    repository_metadata: List[CodebaseRepoConfig] = Field(description="List of codebase configurations for the repository")
+    repository_metadata: List[CodebaseConfig] = Field(description="List of codebase configurations for the repository")
+    
+class CodebaseCurrentStatus(BaseModel):
+    """Model for current status of a single codebase workflow run."""
+    root_package: str = Field(description="The name of the root package")
+    codebase_workflow_run_id: str = Field(description="The run ID of the codebase workflow")
+    codebase_workflow_id: str = Field(description="The ID of the codebase workflow")
+    status: JobStatus = Field(description="Status of the workflow run")
+    started_at: datetime = Field(description="Timestamp when the workflow run started")
+    completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")
+    error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
+    issue_tracking: Optional[IssueTracking] = Field(
+        default=None,
+        description="GitHub issue tracking info for the workflow run"
+    )
+
+class GithubRepoStatus(BaseModel):
+    """Model for current status of a repository workflow run and its associated codebase runs."""
+    repository_name: str = Field(description="The name of the repository (primary key)")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    repository_workflow_run_id: str = Field(description="The run ID of the repository workflow")
+    repository_workflow_id: str = Field(description="The ID of the repository workflow")
+    started_at: datetime = Field(description="Timestamp when the workflow run started")
+    status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED.")
+    error_report: Optional[ErrorReport] = Field(default=None, description="Error report if the workflow run failed")
+    issue_tracking: Optional[IssueTracking] = Field(
+        default=None,
+        description="GitHub issue tracking info for the repository workflow run"
+    )
+    completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")    
+    codebase_status_list: Optional[CodebaseStatusList] = Field(default=None, description="Status of the repository workflows (optional, returned in GET)")
+
+
+class ParentWorkflowJobResponse(BaseModel):
+    """Response model for parent workflow job data API."""
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    repository_workflow_run_id: str = Field(description="The run ID of the repository workflow")
+    status: JobStatus = Field(description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING.")
+    started_at: datetime = Field(description="Timestamp when the workflow run started")
+    completed_at: Optional[datetime] = Field(default=None, description="Timestamp when the workflow run completed")
+
+
+class ParentWorkflowJobListResponse(BaseModel):
+    """Response model containing a list of parent workflow job data."""
+    jobs: List[ParentWorkflowJobResponse] = Field(description="List of parent workflow jobs")
+    
+class IssueType(str, Enum):    
+    REPOSITORY = "REPOSITORY"
+    CODEBASE = "CODEBASE"
     
     
+class GithubIssueSubmissionRequest(BaseModel):
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    parent_workflow_run_id: str = Field(description="The run ID of the parent workflow")
+    error_type: IssueType = Field(description="Type of error")
+    root_package: Optional[str] = Field(default=None, description="Root package of the codebase")
+    codebase_workflow_run_id: Optional[str] = Field(default=None, description="The run ID of the codebase workflow")
+    error_message_body: str = Field(description="Error message")
     
     

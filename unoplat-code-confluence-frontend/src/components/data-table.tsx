@@ -57,7 +57,7 @@ export function DataTable<TData>({
       {...props}
     >
       {children}
-      <div className="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600">
+      <div className="overflow-auto rounded-md border border-gray-300 dark:border-gray-600">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
