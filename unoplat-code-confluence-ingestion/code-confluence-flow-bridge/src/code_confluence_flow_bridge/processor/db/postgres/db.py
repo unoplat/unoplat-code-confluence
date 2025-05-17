@@ -1,6 +1,8 @@
 import os
+from contextlib import asynccontextmanager
 
-from sqlmodel import Session, SQLModel, create_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlmodel import SQLModel
 
 # PostgreSQL connection settings - read from environment variables
 DB_USER = os.getenv("DB_USER", "postgres")
@@ -10,23 +12,30 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "code_confluence")
 
 # Construct PostgreSQL connection string
-POSTGRES_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+POSTGRES_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-# Create engine
-# Read echo setting from environment variable, default to False
+# Create async engine
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
-engine = create_engine(POSTGRES_URL, echo=DB_ECHO)
+async_engine = create_async_engine(POSTGRES_URL, echo=DB_ECHO)
 
-def get_session():
-    """
-    Create and yield a database session.
-    
-    Returns:
-        Session: SQLModel session object
-    """
-    with Session(engine) as session:
+# Create AsyncSession factory
+AsyncSessionLocal = async_sessionmaker(bind=async_engine, expire_on_commit=False)
+
+
+async def get_session():
+    """Yield a database session using a context manager."""
+    async with AsyncSessionLocal() as session:
         yield session
 
-def create_db_and_tables():
-    """Create database tables from SQLModel models."""
-    SQLModel.metadata.create_all(engine) 
+
+@asynccontextmanager
+async def get_session_cm():
+    """Async context manager for database session."""
+    async with AsyncSessionLocal() as session:
+        yield session
+
+
+async def create_db_and_tables():
+    """Asynchronously create database tables."""
+    async with async_engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)

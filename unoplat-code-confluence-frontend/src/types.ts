@@ -101,24 +101,11 @@ export interface CodebaseStatusSchema {
   codebases: CodebaseStatus[];
 }
 
-export interface CodebaseStatus {
-  codebaseName: string;
-  workflows: WorkflowStatus[];
-}
-
 export interface WorkflowStatus {
   workflowId: string;
   workflowRuns: WorkflowRun[];
 }
 
-export interface WorkflowRun {
-  workflowRunId: string;
-  status: string;
-  started_at: string;
-  currentStage?: string | null;
-  completedStages: CompletedStage[];
-  totalStages?: number | null;
-}
 
 export interface CompletedStage {
   stageName: string;
@@ -130,4 +117,123 @@ export interface ApiResponse {
   success: boolean;
   message?: string;
   error?: string;
+}
+
+// Job submission types
+
+// Job status enum for parent workflow and repository status
+export type JobStatus = 'SUBMITTED' | 'RUNNING' | 'FAILED' | 'TIMED_OUT' | 'COMPLETED' | 'RETRYING';
+
+// Parent workflow job response from API
+export interface ParentWorkflowJobResponse {
+  repository_name: string;
+  repository_owner_name: string;
+  repository_workflow_run_id: string;
+  status: JobStatus;
+  started_at: string;
+  completed_at?: string | null;
+}
+
+// Parent workflow jobs list response
+export interface ParentWorkflowJobListResponse {
+  jobs: ParentWorkflowJobResponse[];
+}
+
+// Issue tracking types
+export type IssueStatus = 'OPEN' | 'CLOSED';
+
+export interface IssueTracking {
+  issue_id?: string | null;
+  issue_number?: number | null;
+  issue_url?: string | null;
+  issue_status?: IssueStatus | null;
+  created_at?: string | null;
+}
+
+export type IssueType = 'REPOSITORY' | 'CODEBASE';
+
+// ===================================
+// ERROR REPORT TYPES
+// ===================================
+
+/**
+ * Backend-aligned error report type that exactly matches the API schema
+ */
+export interface ApiErrorReport {
+  error_message: string;
+  stack_trace?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+/**
+ * Enhanced UI error report that combines API data with UI-specific fields
+ */
+export interface UiErrorReport extends ApiErrorReport {
+  // UI-specific fields
+  error_type: IssueType;
+  error_traceback?: string; // Alias for stack_trace for backward compatibility
+  issue_tracking?: IssueTracking;
+  
+  // Repository context
+  repository_name: string;
+  repository_owner_name: string;
+  parent_workflow_run_id: string;
+  
+  // Optional workflow context
+  workflow_id?: string;
+  workflow_run_id?: string;
+  activity_id?: string;
+  activity_name?: string;
+}
+
+// WorkflowRun model from backend
+export interface WorkflowRun {
+  codebase_workflow_run_id: string;
+  started_at: string;
+  status: JobStatus;
+  completed_at?: string | null;
+  error_report?: ApiErrorReport | null;
+  issue_tracking?: IssueTracking | null;
+}
+
+// Flattened codebase run for table display
+export interface FlattenedCodebaseRun {
+  root_package: string,
+  codebase_workflow_run_id: string;
+  codebase_status: JobStatus;
+  codebase_started_at: string;
+  codebase_completed_at?: string | null;
+  codebase_error_report?: UiErrorReport | null;
+  codebase_issue_tracking?: IssueTracking | null;
+}
+
+// WorkflowStatus model from backend
+export interface WorkflowStatus {
+  codebase_workflow_id: string;
+  codebase_workflow_runs: WorkflowRun[];
+}
+
+// CodebaseStatus model from backend
+export interface CodebaseStatus {
+  root_package: string;
+  workflows: WorkflowStatus[];
+}
+
+// CodebaseStatusList model from backend
+export interface CodebaseStatusList {
+  codebases: CodebaseStatus[];
+}
+
+// GithubRepoStatus model from backend
+export interface GithubRepoStatus {
+  repository_name: string;
+  repository_owner_name: string;
+  repository_workflow_run_id: string;
+  repository_workflow_id: string;
+  started_at: string;
+  status: JobStatus;
+  error_report?: UiErrorReport | null;
+  issue_tracking?: IssueTracking | null;
+  completed_at?: string | null;
+  codebase_status_list?: CodebaseStatusList;
 }

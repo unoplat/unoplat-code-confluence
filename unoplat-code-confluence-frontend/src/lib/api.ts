@@ -150,6 +150,38 @@ export const submitRepositoryConfig = async (repositoryConfig: GitHubRepoRequest
  * 
  * @returns Promise with the response data
  */
+/**
+ * Update GitHub PAT token in the backend
+ * 
+ * @param token - GitHub Personal Access Token
+ * @returns Promise with the response data
+ */
+export const updateGitHubToken = async (token: string): Promise<ApiResponse> => {
+  try {
+    // Pass null as data and override Content-Type header
+    const response: AxiosResponse<ApiResponse> = await apiClient.put('/update-token', null, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': undefined, // Prevent sending default Content-Type
+      },
+    });
+
+    return response.data;
+  } catch (error: unknown) {
+    const apiError = handleApiError(error);
+    
+    // If we have a valid response from the server, return it
+    // This might occur for non-2xx status codes that still carry a meaningful API response body
+    if (apiError.isAxiosError && apiError.statusCode && apiError.details && typeof apiError.details === 'object' && apiError.details !== null && 'success' in apiError.details) {
+      // Attempt to cast details to ApiResponse if it looks like one
+      return apiError.details as ApiResponse;
+    }
+    
+    // Otherwise, throw the standardized error object for further handling upstream
+    throw apiError;
+  }
+};
+
 export const deleteGitHubToken = async (): Promise<ApiResponse> => {
   try {
     const response: AxiosResponse<ApiResponse> = await apiClient.delete('/delete-token');
@@ -255,3 +287,91 @@ export async function fetchGitHubUser(): Promise<GitHubUser> {
   const response: AxiosResponse<GitHubUser> = await apiClient.get('/user-details');
   return response.data;
 }
+
+/**
+ * Fetch all parent workflow jobs
+ * 
+ * @returns Promise with the parent workflow jobs list response
+ */
+export const getParentWorkflowJobs = async (): Promise<import('../types').ParentWorkflowJobListResponse> => {
+  console.log('[API] getParentWorkflowJobs called');
+  try {
+    const response: AxiosResponse<import('../types').ParentWorkflowJobListResponse> = await apiClient.get('/parent-workflow-jobs');
+    console.log('[API] getParentWorkflowJobs response data:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Get repository status for a specific workflow run
+ * 
+ * @param repositoryName - The name of the repository
+ * @param repositoryOwnerName - The name of the repository owner
+ * @param workflowRunId - The workflow run ID to fetch status for
+ * @returns Promise with the repository status response
+ */
+export const getRepositoryStatus = async (
+  repositoryName: string,
+  repositoryOwnerName: string,
+  workflowRunId: string
+): Promise<import('../types').GithubRepoStatus> => {
+  console.log('[API] getRepositoryStatus called with params:', { repositoryName, repositoryOwnerName, workflowRunId });
+  try {
+    const params = {
+      repository_name: repositoryName,
+      repository_owner_name: repositoryOwnerName,
+      workflow_run_id: workflowRunId
+    };
+    console.log('[API] getRepositoryStatus params:', params);
+    const response: AxiosResponse<import('../types').GithubRepoStatus> = await apiClient.get('/repository-status', { params });
+    console.log('[API] getRepositoryStatus response data:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * GitHub Issue submission request interface based on API schema
+ */
+export interface GithubIssueSubmissionRequest {
+  repository_name: string;
+  repository_owner_name: string;
+  parent_workflow_run_id: string;
+  error_type: string;
+  root_package?: string | null;
+  codebase_workflow_run_id?: string | null;
+  error_message_body: string;
+}
+
+/**
+ * Issue tracking response interface based on API schema
+ */
+export interface IssueTracking {
+  issue_id?: string | null;
+  issue_number?: number | null;
+  issue_url?: string | null;
+  issue_status?: string | null;
+  created_at?: string | null;
+}
+
+/**
+ * Submit feedback for a workflow error to create a GitHub issue
+ * 
+ * @param requestData - GitHub issue submission data
+ * @returns Promise with the issue tracking response
+ */
+export const submitFeedback = async (
+  requestData: GithubIssueSubmissionRequest
+): Promise<IssueTracking> => {
+  console.log('[API] submitFeedback request data:', requestData);
+  try {
+    const response: AxiosResponse<IssueTracking> = await apiClient.post('/code-confluence/issues', requestData);
+    console.log('[API] submitFeedback response data:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};

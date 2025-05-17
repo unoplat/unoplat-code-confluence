@@ -25,6 +25,13 @@ dependencies = [
     "psycopg2>=2.9.10",
     "passlib[bcrypt]>=1.7.4",
     "gql[all]>=3.5.2",
+    "opentelemetry-api>=1.32.1",
+    "opentelemetry-sdk>=1.32.1",
+    "opentelemetry-exporter-otlp>=1.32.1",
+    "grpcio>=1.71.0",
+    "opentelemetry-instrumentation-logging>=0.53b1",
+    "asyncpg>=0.27.0",
+    "greenlet>=3.1.1",
 ] 
 
 [dependency-groups]
@@ -42,5 +49,3 @@ unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-co
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-
-
