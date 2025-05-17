@@ -143,6 +143,7 @@ export function getJobStatusDataTableColumns({
         );
       },
       enableSorting: false,
+      
     },
     {
       accessorKey: 'codebase_completed_at',
@@ -172,6 +173,8 @@ export function getJobStatusDataTableColumns({
         );
       },
       enableSorting: false,
+      enableHiding: true,
+      
     },
   ];
 
@@ -211,7 +214,7 @@ export function getJobStatusDataTableColumns({
             variant="outline"
             size="sm"
             onClick={() => onSubmitFeedback(row.original)}
-            className="text-xs"
+            className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-800 text-xs"
           >
             Submit Feedback
           </Button>

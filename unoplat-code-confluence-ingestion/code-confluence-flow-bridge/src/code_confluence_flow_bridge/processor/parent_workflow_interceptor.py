@@ -176,7 +176,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             child_envelope: CodebaseChildWorkflowEnvelope = input.args[0]
             child_trace_id: str = child_envelope.trace_id
             #root package is present in the workflow_id
-            root_package: str = workflow_id.split("_")[-1]
+            root_package: str = workflow_id.split("|")[-1]
             parent_workflow_run_id: str = child_envelope.parent_workflow_run_id #type: ignore
             
             # Parse repository_name and repository_owner_name from trace_id

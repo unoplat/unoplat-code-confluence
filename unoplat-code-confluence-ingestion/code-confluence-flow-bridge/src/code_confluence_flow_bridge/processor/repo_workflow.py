@@ -106,7 +106,7 @@ class RepoWorkflow:
                     unoplat_codebase.package_manager_metadata
                 )
                 # Generate a unique workflow ID for the child workflow
-                child_workflow_id = f"codebase-child-workflow_{codebase_qualified_name}_{root_package}"
+                child_workflow_id = f"codebase-child-workflow_{codebase_qualified_name}|{root_package}"
                 try:
                     # Create CodebaseChildWorkflowEnvelope
                     child_workflow_envelope = CodebaseChildWorkflowEnvelope(

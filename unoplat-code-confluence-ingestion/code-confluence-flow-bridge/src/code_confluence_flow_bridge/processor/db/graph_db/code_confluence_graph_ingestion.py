@@ -64,7 +64,15 @@ class CodeConfluenceGraphIngestion:
 
                 repo_results = await CodeConfluenceGitRepository.create_or_update(repo_dict)
                 if not repo_results:
-                    raise ApplicationError(f"Failed to create repository node: {qualified_name}", {"repository": qualified_name}, type="REPOSITORY_CREATION_ERROR")
+                    raise ApplicationError(
+                        f"Failed to create repository node: {qualified_name}", 
+                        {"repository": qualified_name}, 
+                        {"workflow_id": workflow_id_var.get("")},
+                        {"workflow_run_id": workflow_run_id_var.get("")},
+                        {"activity_name": activity_name_var.get("")},
+                        {"activity_id": activity_id_var.get("")},
+                        type="REPOSITORY_CREATION_ERROR"
+                    )
 
                 repo_node = repo_results[0]
                 logger.debug(f"Created repository node: {qualified_name}")
@@ -133,7 +141,15 @@ class CodeConfluenceGraphIngestion:
                 try:
                     codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)
                 except CodeConfluenceCodebase.DoesNotExist:
-                    raise ApplicationError(f"Codebase not found: {codebase_qualified_name}", type="CODEBASE_NOT_FOUND")
+                    raise ApplicationError(
+                        f"Codebase not found: {codebase_qualified_name}", 
+                        {"codebase": codebase_qualified_name},
+                        {"workflow_id": workflow_id_var.get("")},
+                        {"workflow_run_id": workflow_run_id_var.get("")},
+                        {"activity_name": activity_name_var.get("")},
+                        {"activity_id": activity_id_var.get("")},
+                        type="CODEBASE_NOT_FOUND"
+                    )
 
                 # Create package manager metadata node
                 metadata_dict = {
@@ -152,7 +168,15 @@ class CodeConfluenceGraphIngestion:
 
                 metadata_results = await CodeConfluencePackageManagerMetadata.create_or_update(metadata_dict)
                 if not metadata_results:
-                    raise ApplicationError(f"Failed to create package manager metadata for {codebase_qualified_name}", type="METADATA_CREATION_ERROR")
+                    raise ApplicationError(
+                        f"Failed to create package manager metadata for {codebase_qualified_name}", 
+                        {"codebase": codebase_qualified_name},
+                        {"workflow_id": workflow_id_var.get("")},
+                        {"workflow_run_id": workflow_run_id_var.get("")},
+                        {"activity_name": activity_name_var.get("")},
+                        {"activity_id": activity_id_var.get("")},
+                        type="METADATA_CREATION_ERROR"
+                    )
 
                 metadata_node: CodeConfluencePackageManagerMetadata = metadata_results[0]
 
@@ -235,6 +259,12 @@ class CodeConfluenceGraphIngestion:
                 if not package_results:
                     raise ApplicationError(
                         f"Failed to create package node: {pkg_name}",
+                        {"package": pkg_name},
+                        {"codebase": codebase_qualified_name},
+                        {"workflow_id": workflow_id_var.get("")},
+                        {"workflow_run_id": workflow_run_id_var.get("")},
+                        {"activity_name": activity_name_var.get("")},
+                        {"activity_id": activity_id_var.get("")},
                         type="PACKAGE_CREATION_ERROR"
                     )
                 package_node: CodeConfluencePackage = package_results[0]

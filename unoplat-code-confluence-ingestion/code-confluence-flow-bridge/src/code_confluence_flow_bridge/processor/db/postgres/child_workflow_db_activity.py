@@ -53,14 +53,12 @@ class ChildWorkflowDbActivity:
                     log.error(error_msg)
                     raise ApplicationError(
                         error_msg,
+                        {"workflow_id": workflow_id},
+                        {"workflow_run_id": workflow_run_id},
+                        {"activity_id": activity_id},
+                        {"activity_name": "update_codebase_workflow_status"},
                         type="ParentWorkflowRunNotFound",
-                        non_retryable=True,
-                        details={
-                            "workflow_id": workflow_id,
-                            "workflow_run_id": workflow_run_id,
-                            "activity_id": activity_id,
-                            "activity_name": "update_codebase_workflow_status"
-                        }
+                        non_retryable=True
                     )
                 
                 # Check if codebase config exists
@@ -70,14 +68,12 @@ class ChildWorkflowDbActivity:
                     log.error(error_msg)
                     raise ApplicationError(
                         error_msg,
+                        {"workflow_id": workflow_id},
+                        {"workflow_run_id": workflow_run_id},
+                        {"activity_id": activity_id},
+                        {"activity_name": "update_codebase_workflow_status"},
                         type="CodebaseConfigNotFound",
-                        non_retryable=True,
-                        details={
-                            "workflow_id": workflow_id,
-                            "workflow_run_id": workflow_run_id,
-                            "activity_id": activity_id,
-                            "activity_name": "update_codebase_workflow_status"
-                        }
+                        non_retryable=True
                     )
                 
                 # Check if workflow run exists
@@ -127,15 +123,13 @@ class ChildWorkflowDbActivity:
             log.error(error_msg)
             raise ApplicationError(
                 error_msg,
+                {"workflow_id": workflow_id},
+                {"workflow_run_id": workflow_run_id},
+                {"activity_id": activity_id},
+                {"activity_name": "update_codebase_workflow_status"},
+                {"error": str(e)},
                 type="CodebaseStatusUpdateError",
-                non_retryable=False,  # Allow retries
-                details={
-                    "workflow_id": workflow_id,
-                    "workflow_run_id": workflow_run_id,
-                    "activity_id": activity_id,
-                    "activity_name": "update_codebase_workflow_status",
-                    "error": str(e)
-                }
+                non_retryable=False  # Allow retries
             )
     
     async def _get_parent_workflow_run(self, session: AsyncSession, repository_name: str, repository_owner_name: str, workflow_run_id: str) -> Optional[RepositoryWorkflowRun]:

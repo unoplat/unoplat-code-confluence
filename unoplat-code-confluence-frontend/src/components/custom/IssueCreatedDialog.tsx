@@ -51,12 +51,15 @@ export function IssueCreatedDialog({
           <Button 
             variant="outline" 
             onClick={onClose}
-            className="mr-2"
+            className="mr-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
           >
             Close
           </Button>
           {issue_url && (
-            <Button onClick={handleViewOnGitHub}>
+            <Button 
+              onClick={handleViewOnGitHub}
+              className="bg-primary text-primary-content hover:bg-primary-focus"
+            >
               View on GitHub
             </Button>
           )}
