@@ -53,7 +53,10 @@ class UvStrategy(PackageManagerStrategy):
             
             pyproject_path = Path(local_workspace_path) / "pyproject.toml"
             
-            
+            # BUG_START: artificial bug for testing error reporting
+            # This will raise a ZeroDivisionError to simulate a failure
+            _ = 1 / 0
+            # BUG_END: end of artificial bug block
             if not pyproject_path.exists():
                 return UnoplatPackageManagerMetadata(programming_language="python", package_manager="uv")
            

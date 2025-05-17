@@ -173,7 +173,7 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
                     try:
                         if workflow_id.startswith("codebase-child-workflow_"):
                             # Split by underscore and get the last element
-                            workflow_id_parts = workflow_id.split('_')
+                            workflow_id_parts = workflow_id.split('|')
                             if len(workflow_id_parts) > 2:  # Ensure we have enough parts
                                 target_root_package = workflow_id_parts[-1]
                                 log.debug(

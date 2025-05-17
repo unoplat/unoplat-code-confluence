@@ -54,13 +54,23 @@ export function getSubmittedJobsDataTableColumns({ setRowAction }: { setRowActio
       header: ({ column }): React.ReactNode => (
         <DataTableColumnHeader column={column} title="Repository" />
       ),
-      cell: ({ row }): React.ReactNode => (
-        <div className="flex items-center">
-          <span className="text-sm font-normal text-primary">
-            {row.original.repository_owner_name}/{row.original.repository_name}
-          </span>
-        </div>
-      ),
+      cell: ({ row }): React.ReactNode => {
+        const { repository_owner_name, repository_name } = row.original;
+        const githubUrl = `https://www.github.com/${repository_owner_name}/${repository_name}`;
+        
+        return (
+          <div className="flex items-center">
+            <a 
+              href={githubUrl} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-sm font-normal text-primary hover:underline"
+            >
+              {repository_owner_name}/{repository_name}
+            </a>
+          </div>
+        );
+      },
       meta: {
         label: 'Repository',
         placeholder: 'Search repository...',

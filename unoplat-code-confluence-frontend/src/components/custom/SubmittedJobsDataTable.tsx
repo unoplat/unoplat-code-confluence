@@ -64,7 +64,7 @@ export function SubmittedJobsDataTable(): React.ReactElement {
     queryKey: ['parentWorkflowJobs'],
     queryFn: fetchParentWorkflowJobs,
     staleTime: 1000 * 60 * 1, // 1 minute
-    refetchInterval: 1000 * 30, // Refetch every 30 seconds for active jobs
+    refetchInterval: 1000 * 5, // Refetch every 5 seconds for active jobs
   });
   
   

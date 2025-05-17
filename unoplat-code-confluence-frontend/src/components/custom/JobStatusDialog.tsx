@@ -277,8 +277,8 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="mt-2" 
                           onClick={handleSubmitRepositoryFeedback}
+                          className="mt-2 font-medium bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-800"
                         >
                           Submit Repository Feedback
                         </Button>
@@ -313,9 +313,9 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
           
           <DialogFooter>
             <Button 
-              variant="secondary"
+              variant="outline"
               onClick={() => onOpenChange(false)}
-              className="font-medium"
+              className="font-medium border border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Close
             </Button>
