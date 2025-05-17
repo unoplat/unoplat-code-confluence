@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.20.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.19.3...unoplat-code-confluence-frontend-v1.20.0) (2025-05-17)
+
+
+### Features
+
+* **issue-tracking:** add GitHub issue creation endpoint ([eaa7147](https://github.com/unoplat/unoplat-code-confluence/commit/eaa71471008c90fbe14f91a62704c4719d506cb3))
+* **job-status-table:** add job status data table columns component ([42ae4a1](https://github.com/unoplat/unoplat-code-confluence/commit/42ae4a18522cfafeaf3f84f0a2553b6868ad9230))
+* refactor GitHub repo models and add child workflow DB activity ([ee07cb3](https://github.com/unoplat/unoplat-code-confluence/commit/ee07cb3c72e8a36d96d46f888c231ea85fb1777d))
+
+
+### Bug Fixes
+
+* **db:** enhance error context and improve UI button styles ([d4d8003](https://github.com/unoplat/unoplat-code-confluence/commit/d4d8003636766df29005ca897e43e4c374a1a17b))
+
 ## [1.19.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.19.2...unoplat-code-confluence-frontend-v1.19.3) (2025-04-25)
 
 
