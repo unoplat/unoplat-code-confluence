@@ -139,7 +139,7 @@ services:
       - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
       - TEMPORAL_DEBUG=false
       - LOG_LEVEL=DEBUG
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.32.0
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.33.0
     depends_on:
       temporal:
         condition: service_healthy
@@ -152,7 +152,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.19.3
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.20.0
     environment:
       - VITE_API_BASE_URL=http://code-confluence-flow-bridge:8000
       - VITE_WORKFLOW_ORCHESTRATOR_URL=http://temporal-ui:8080
