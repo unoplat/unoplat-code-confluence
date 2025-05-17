@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.11.1...unoplat-code-confluence-commons-v0.12.0) (2025-05-17)
+
+
+### Features
+
+* **perf:** use async session methods and update dependencies ([d6a9711](https://github.com/unoplat/unoplat-code-confluence/commit/d6a97119097330779d9f1d0f8b9649ef1ed42d13))
+
 ## [0.11.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.11.0...unoplat-code-confluence-commons-v0.11.1) (2025-04-23)
 
 

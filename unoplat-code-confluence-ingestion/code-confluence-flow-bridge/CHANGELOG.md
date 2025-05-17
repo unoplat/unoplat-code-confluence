@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.32.1...code-confluence-flow-bridge-v0.33.0) (2025-05-17)
+
+
+### Features
+
+* add OpenTelemetry dependencies and improve logging ([1cd5d64](https://github.com/unoplat/unoplat-code-confluence/commit/1cd5d6496552320a364e45dd017b93536cb163a5))
+* **api:** add endpoint to fetch all parent workflow jobs ([80e5629](https://github.com/unoplat/unoplat-code-confluence/commit/80e562974cc563b87ec6e0e95e1337a988fa993c))
+* **api:** add endpoint to fetch repository workflow run ([cfffa4c](https://github.com/unoplat/unoplat-code-confluence/commit/cfffa4c1efe6585d6291f66432195a8fbbb392d9))
+* **errorhandling:** enhance logger context with activity_name and improve error handling ([90fc7e2](https://github.com/unoplat/unoplat-code-confluence/commit/90fc7e26684040e8e78c8b990667d5e6c66ff300))
+* **github:** add issue_tracking field to workflow run models ([bae3dce](https://github.com/unoplat/unoplat-code-confluence/commit/bae3dce1fda2565be40c7f47d21050bdd4a4b5b0))
+* improve logging context and workflow child handling ([e859e6d](https://github.com/unoplat/unoplat-code-confluence/commit/e859e6d06048e8aa8c9c61f2f3941d77f686ee10))
+* improve repository data handling and refactor codebase workflow ([80d0d0a](https://github.com/unoplat/unoplat-code-confluence/commit/80d0d0ad68f69015d534c3ba487e4c0fc229a6a1))
+* **issue-tracking:** add GitHub issue creation endpoint ([eaa7147](https://github.com/unoplat/unoplat-code-confluence/commit/eaa71471008c90fbe14f91a62704c4719d506cb3))
+* **job-status-table:** add job status data table columns component ([42ae4a1](https://github.com/unoplat/unoplat-code-confluence/commit/42ae4a18522cfafeaf3f84f0a2553b6868ad9230))
+* **logging:** enhance logger context with workflow and activity IDs ([d8e11d2](https://github.com/unoplat/unoplat-code-confluence/commit/d8e11d27917b82bd94f50acf9aaa532b1a882f62))
+* **perf:** use async session methods and update dependencies ([d6a9711](https://github.com/unoplat/unoplat-code-confluence/commit/d6a97119097330779d9f1d0f8b9649ef1ed42d13))
+* refactor GitHub repo models and add child workflow DB activity ([ee07cb3](https://github.com/unoplat/unoplat-code-confluence/commit/ee07cb3c72e8a36d96d46f888c231ea85fb1777d))
+* **workflow:** add retry policies to critical activities ([7669523](https://github.com/unoplat/unoplat-code-confluence/commit/766952382859fb7f48b4443440db8d39e7f234da))
+
+
+### Bug Fixes
+
+* **db:** enhance error context and improve UI button styles ([d4d8003](https://github.com/unoplat/unoplat-code-confluence/commit/d4d8003636766df29005ca897e43e4c374a1a17b))
+* **db:** handle empty repository metadata and preserve failed status ([02fd624](https://github.com/unoplat/unoplat-code-confluence/commit/02fd624d536836cd3110539156553d21f5ca4b19))
+* **logging:** unify trace_id key to app_trace_id in logging context ([095af97](https://github.com/unoplat/unoplat-code-confluence/commit/095af97c631c5b15523113af5a40c9b6caddcc5a))
+* **parent_workflow_interceptor:** clear error_report on parent failure ([1a2e773](https://github.com/unoplat/unoplat-code-confluence/commit/1a2e773bf417d754ff40995fe51796b64727dc2f))
+* **parser:** remove artificial bug causing ZeroDivisionError ([6c7097b](https://github.com/unoplat/unoplat-code-confluence/commit/6c7097b7a97183fba6b0835b88918dd10812cbb2))
+* **parser:** remove artificial bug causing ZeroDivisionError ([0c07083](https://github.com/unoplat/unoplat-code-confluence/commit/0c070830016337beb60603ecdb4f5a09bc5393ea))
+* **parser:** remove artificial bug causing ZeroDivisionError ([1eeb568](https://github.com/unoplat/unoplat-code-confluence/commit/1eeb568ae13a3f3ea5c5c4b6c89cd833402d33c0))
+
 ## [0.32.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.32.0...code-confluence-flow-bridge-v0.32.1) (2025-04-24)
 
 
