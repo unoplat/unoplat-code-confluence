@@ -44,3 +44,10 @@ class CodeConfluenceClass(BaseNode):
     
     # relation to package
     package = AsyncRelationshipTo(".code_confluence_package.CodeConfluencePackage", "PART_OF_PACKAGE",model=ContainsRelationship,cardinality=AsyncOne)
+    
+    file = AsyncRelationshipTo(
+        '.code_confluence_file.CodeConfluenceFile',
+        'PART_OF_FILE',
+        model=ContainsRelationship,
+        cardinality=AsyncOne,
+    )

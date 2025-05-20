@@ -37,9 +37,16 @@ class CodeConfluencePackage(BaseNode):
         cardinality=AsyncOne
     )
     
-    classes = AsyncRelationshipTo(
-        '.code_confluence_class.CodeConfluenceClass',
-        'CONTAINS_CLASS',
+    files = AsyncRelationshipTo(
+        '.code_confluence_file.CodeConfluenceFile',
+        'CONTAINS_FILE',
         model=ContainsRelationship,
-        cardinality=AsyncZeroOrMore
+        cardinality=AsyncZeroOrMore,
     )
+    
+    # classes = AsyncRelationshipTo(
+    #     '.code_confluence_class.CodeConfluenceClass',
+    #     'CONTAINS_CLASS',
+    #     model=ContainsRelationship,
+    #     cardinality=AsyncZeroOrMore
+    # )
