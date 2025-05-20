@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.33.0...code-confluence-flow-bridge-v0.33.1) (2025-05-20)
+
+
+### Documentation
+
+* **rules:** add think-tool-usage rule for reasoning workflow ([1058a7a](https://github.com/unoplat/unoplat-code-confluence/commit/1058a7a91ca97c7f5fd03f1dc4d2d23551936ea8))
+
 ## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.32.1...code-confluence-flow-bridge-v0.33.0) (2025-05-17)
 
 
