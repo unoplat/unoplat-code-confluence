@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.14.0...unoplat-code-confluence-commons-v0.14.1) (2025-05-20)
+
+
+### Bug Fixes
+
+* comments and test clarity ([4207033](https://github.com/unoplat/unoplat-code-confluence/commit/42070332ea93de1dac820c5888a9a8689d716e25))
+* comments and test clarity ([fabf26c](https://github.com/unoplat/unoplat-code-confluence/commit/fabf26c976c368c0929ae24ec74151840edf80c2))
+
 ## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.13.0...unoplat-code-confluence-commons-v0.14.0) (2025-05-20)
 
 
