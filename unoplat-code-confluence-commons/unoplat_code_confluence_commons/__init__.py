@@ -13,7 +13,8 @@ from .graph_models import (
     CodeConfluencePackageManagerMetadata,
     BaseNode,
     ContainsRelationship,
-    AnnotatedRelationship
+    AnnotatedRelationship,
+    CodeConfluenceFile
 )
 
 __all__ = [
@@ -26,5 +27,6 @@ __all__ = [
     'CodeConfluencePackageManagerMetadata',
     'BaseNode',
     'ContainsRelationship',
-    'AnnotatedRelationship'
+    'AnnotatedRelationship',
+    'CodeConfluenceFile'
 ]
