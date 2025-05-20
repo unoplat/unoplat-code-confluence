@@ -112,7 +112,6 @@ async def test_complete_hierarchy() -> None:
     
     # Create file
     file: CodeConfluenceFile = await CodeConfluenceFile(
-        qualified_name="org/repo/main/package/path.py",
         file_path="/test/path.py",
         content="# Test file content",
         checksum="abcdef123456"
@@ -177,7 +176,6 @@ async def test_complete_hierarchy() -> None:
     class_file = await found_class.file.all()
     assert len(class_file) == 1
     assert class_file[0].file_path == "/test/path.py"
-    assert class_file[0].qualified_name == found_file.qualified_name
     
     # Verify function in class
     class_functions: List[CodeConfluenceInternalFunction] = await found_class.functions.all()
