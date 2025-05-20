@@ -1,10 +1,8 @@
-import asyncio
 from typing import AsyncGenerator, Generator, List
 
 import pytest
 from neomodel import config, adb, install_all_labels
 from testcontainers.neo4j import Neo4jContainer
-from asyncio import get_event_loop_policy
 
 from unoplat_code_confluence_commons.graph_models import (
     CodeConfluenceGitRepository,
@@ -12,7 +10,8 @@ from unoplat_code_confluence_commons.graph_models import (
     CodeConfluencePackage,
     CodeConfluenceClass,
     CodeConfluenceInternalFunction,
-    CodeConfluencePackageManagerMetadata
+    CodeConfluencePackageManagerMetadata,
+    CodeConfluenceFile
 )
 
 
@@ -65,7 +64,8 @@ async def test_git_repository_codebase_relationship() -> None:
     
     codebase: CodeConfluenceCodebase = await CodeConfluenceCodebase(
         qualified_name="org/repo/main",
-        name="main-codebase"
+        name="main-codebase",
+        local_path="/test/repo/path"
     ).save()
     
     metadata: CodeConfluencePackageManagerMetadata = await CodeConfluencePackageManagerMetadata(
@@ -89,23 +89,36 @@ async def test_git_repository_codebase_relationship() -> None:
 
 @pytest.mark.asyncio(scope="session")
 async def test_complete_hierarchy() -> None:
-    """Test creating a complete hierarchy from repo to function."""
+    """Test creating a complete hierarchy from repo to function with the new package -> file -> node structure."""
+    # Create repository
     repo: CodeConfluenceGitRepository = await CodeConfluenceGitRepository(
         qualified_name="github.com/org/repo2",
         repository_url="https://github.com/org/repo2",
         repository_name="test-repo-2"
     ).save()
     
+    # Create codebase
     codebase: CodeConfluenceCodebase = await CodeConfluenceCodebase(
         qualified_name="org/repo/main",
-        name="main-codebase"
+        name="main-codebase",
+        local_path="/test/repo/path"
     ).save()
     
+    # Create package
     package: CodeConfluencePackage = await CodeConfluencePackage(
         qualified_name="org/repo/main/package",
         name="test_package"
     ).save()
     
+    # Create file
+    file: CodeConfluenceFile = await CodeConfluenceFile(
+        qualified_name="org/repo/main/package/path.py",
+        file_path="/test/path.py",
+        content="# Test file content",
+        checksum="abcdef123456"
+    ).save()
+    
+    # Create class
     class_node: CodeConfluenceClass = await CodeConfluenceClass(
         qualified_name="org/repo/main/package/TestClass",
         name="TestClass",
@@ -113,6 +126,7 @@ async def test_complete_hierarchy() -> None:
         line_number=1
     ).save()
     
+    # Create function
     function: CodeConfluenceInternalFunction = await CodeConfluenceInternalFunction(
         qualified_name="org/repo/main/package/TestClass/test_function",
         name="test_function",
@@ -122,30 +136,66 @@ async def test_complete_hierarchy() -> None:
         docstring="Test function"
     ).save()
     
+    # Connect nodes according to new hierarchy: repo -> codebase -> package -> file -> class -> function
     await repo.codebases.connect(codebase)
     await codebase.packages.connect(package)
-    await package.classes.connect(class_node)
-    await class_node.functions.connect(function)
+    await package.files.connect(file)  # Package contains file
+    await file.nodes.connect(class_node)  # File contains class node
+    await class_node.file.connect(file)  # Class belongs to file (bidirectional)
+    await class_node.functions.connect(function)  # Class contains function
     
+    # Verify repository and connections
     found_repo = await CodeConfluenceGitRepository.nodes.get_or_none(repository_name="test-repo-2")
     assert found_repo is not None
     
+    # Verify codebase connections
     repo_codebases: List[CodeConfluenceCodebase] = await found_repo.codebases.all()
     assert len(repo_codebases) == 1
     found_codebase: CodeConfluenceCodebase = repo_codebases[0]
     assert found_codebase.name == "main-codebase"
     
+    # Verify package connections
     codebase_packages: List[CodeConfluencePackage] = await found_codebase.packages.all()
     assert len(codebase_packages) == 1
     found_package: CodeConfluencePackage = codebase_packages[0]
     assert found_package.name == "test_package"
     
-    package_classes: List[CodeConfluenceClass] = await found_package.classes.all()
-    assert len(package_classes) == 1
-    found_class: CodeConfluenceClass = package_classes[0]
+    # Verify file connections 
+    package_files: List[CodeConfluenceFile] = await found_package.files.all()
+    assert len(package_files) == 1
+    found_file: CodeConfluenceFile = package_files[0]
+    assert found_file.file_path == "/test/path.py"
+    
+    # Verify bidirectional relationship between file and class
+    # 1. File -> Class
+    file_classes = await found_file.nodes.all()
+    assert len(file_classes) == 1
+    found_class: CodeConfluenceClass = file_classes[0]
     assert found_class.name == "TestClass"
     
+    # 2. Class -> File
+    class_file = await found_class.file.all()
+    assert len(class_file) == 1
+    assert class_file[0].file_path == "/test/path.py"
+    assert class_file[0].qualified_name == found_file.qualified_name
+    
+    # Verify function in class
     class_functions: List[CodeConfluenceInternalFunction] = await found_class.functions.all()
     assert len(class_functions) == 1
     found_function: CodeConfluenceInternalFunction = class_functions[0]
-    assert found_function.name == "test_function" 
+    assert found_function.name == "test_function"
+    
+    # Test traversal from repo all the way to function
+    # repo -> codebase -> package -> file -> class -> function
+    # Need to await each step in the chain
+    codebases = await found_repo.codebases.all()
+    codebase = codebases[0]
+    packages = await codebase.packages.all()
+    package = packages[0]
+    files = await package.files.all()
+    file = files[0]
+    nodes = await file.nodes.all()
+    node = nodes[0]
+    functions = await node.functions.all()
+    function = functions[0]
+    assert function.name == "test_function" 
