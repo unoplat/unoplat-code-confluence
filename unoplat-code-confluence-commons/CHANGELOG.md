@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.12.0...unoplat-code-confluence-commons-v0.13.0) (2025-05-20)
+
+
+### Features
+
+* **graph-models:** add CodeConfluenceFile node and link to classes ([527456f](https://github.com/unoplat/unoplat-code-confluence/commit/527456f2d66a7b670d4024ca535b5824725a00ac))
+* **graph-models:** add CodeConfluenceFile node and link to classes ([2208f33](https://github.com/unoplat/unoplat-code-confluence/commit/2208f33da8da3b4d9f56330a6f3c6a9785b2f5dc))
+
 ## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.11.1...unoplat-code-confluence-commons-v0.12.0) (2025-05-17)
 
 
