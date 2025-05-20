@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.13.0...unoplat-code-confluence-commons-v0.14.0) (2025-05-20)
+
+
+### Features
+
+* export CodeConfluenceFile in package __init__.py ([a6f5ca1](https://github.com/unoplat/unoplat-code-confluence/commit/a6f5ca12d97e3d753da71f0dd68d510d43324e1d))
+* export CodeConfluenceFile in package __init__.py ([c10c49b](https://github.com/unoplat/unoplat-code-confluence/commit/c10c49b879b1c90b36572de649851b40d46c3cdf))
+
 ## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.12.0...unoplat-code-confluence-commons-v0.13.0) (2025-05-20)
 
 
