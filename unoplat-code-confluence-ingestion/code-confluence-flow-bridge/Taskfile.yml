@@ -51,7 +51,21 @@ tasks:
     dir: .
     cmds:
       - uv sync
-  
+
+  update-package:
+    desc: Update a specific package to the latest allowed version using uv (usage - task update-package PACKAGE=package_name)
+    vars:
+      PACKAGE: '{{.PACKAGE}}'
+    requires:
+      vars: [PACKAGE]
+    cmds:
+      - uv lock --upgrade-package {{.PACKAGE}}
+
+  update-all-packages:
+    desc: Update all packages to the latest allowed versions using uv
+    cmds:
+      - uv lock --upgrade
+
   run-client:
     desc: run client to submit request to code confluence flow code-confluence-flow-bridge
     dir: ../../unoplat-code-confluence-cli
