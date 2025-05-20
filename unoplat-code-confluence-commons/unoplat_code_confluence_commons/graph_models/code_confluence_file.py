@@ -1,10 +1,10 @@
 # new imports (top of the file, after existing neomodel import list)
-from neomodel import StringProperty, AsyncRelationshipTo, AsyncRelationship, AsyncOne, AsyncZeroOrMore
+from neomodel import AsyncStructuredNode, StringProperty, AsyncRelationshipTo, AsyncRelationship, AsyncOne, AsyncZeroOrMore
 
 from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship
 
 # ⬇️  insert just above class `CodeConfluencePackage`
-class CodeConfluenceFile(BaseNode):
+class CodeConfluenceFile(AsyncStructuredNode):
     """
     Graph node representing a single source file.
 
