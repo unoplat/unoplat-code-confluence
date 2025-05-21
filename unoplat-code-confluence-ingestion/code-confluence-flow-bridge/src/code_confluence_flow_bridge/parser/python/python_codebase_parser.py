@@ -9,6 +9,9 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_func
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import (
     UnoplatChapiForgeNode,
 )
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_file import (
+    UnoplatFile,
+)
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import (
     UnoplatImport,
 )
@@ -111,7 +114,11 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             except Exception as e:
                 logger.error("Error building qualified name map: {}", e)
 
-        
+        # # ============== BEGIN DEBUG CODE (REMOVE AFTER TESTING) ==============
+        # # Add debug logging for file_path_nodes count
+        # logger.info(f"Total number of file_path_nodes after preprocessing: {len(file_path_nodes)}")
+        # logger.debug(f"File paths processed: {list(file_path_nodes.keys())}")
+        # # ============== END DEBUG CODE (REMOVE AFTER TESTING) ===============
 
         return file_path_nodes, qualified_names_dict
     
@@ -226,7 +233,6 @@ class PythonCodebaseParser(CodebaseParserStrategy):
             segregated_imports=imports_dict if 'imports_dict' in locals() and imports_dict is not None else {}
         )
 
-#TODO: remove unused argument
     def parse_codebase(
         self, 
         codebase_name: str, 
@@ -265,6 +271,17 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 global_variables: List[ClassGlobalFieldModel] = self.node_variables_parser.parse_global_variables(content_of_file)
                 dependent_classes: List[str] = self.python_node_dependency_processor.process_dependencies(nodes[0], preprocessed_qualified_name_dict)
                 
+                # Create a file object to track file metadata
+                file_obj = UnoplatFile(
+                    file_path=file_path,
+                    content=content_of_file,
+                    nodes=[]  # Will populate with nodes later
+                )
+                
+                # # ============== BEGIN DEBUG CODE (REMOVE AFTER TESTING) ==============
+                # logger.debug(f"Created UnoplatFile object for: {file_path}")
+                # # ============== END DEBUG CODE (REMOVE AFTER TESTING) ==============
+                
                 if nodes[0].segregated_imports:
                     internal_imports: List[UnoplatImport] = nodes[0].segregated_imports[ImportType.INTERNAL] 
                     # This call will update each function's "function_calls" attribute
@@ -273,8 +290,6 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                     imports=internal_imports,
                     entire_code=content_of_file
                 )[file_path]
-                 
-                 
                  
                 # Process all nodes from file
                 for node in nodes:
@@ -295,6 +310,8 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                     if node.node_name != nodes[0].node_name:
                         node.dependent_internal_classes = dependent_classes
                     
+                    # Add node to file object
+                    file_obj.nodes.append(node)
                     
                     # Build package structure using the desired root prefix
                     if node.package:
@@ -319,10 +336,14 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                                 current_package[full_package_name] = UnoplatPackage(name=full_package_name)
                                 
                             if i == len(package_parts) - 1:
-                                # Add node under file_path key
-                                if file_path not in current_package[full_package_name].nodes:
-                                    current_package[full_package_name].nodes[file_path] = []
-                                current_package[full_package_name].nodes[file_path].append(node)
+                                # Check if this file already exists in the package's files dictionary
+                                # If it does, use the existing file object instead of the new one
+                                if file_path in current_package[full_package_name].files:
+                                    # Reuse the existing file object
+                                    file_obj = current_package[full_package_name].files[file_path]
+                                else:
+                                    # Add the new file object to the files dictionary
+                                    current_package[full_package_name].files[file_path] = file_obj
                             else:
                                 current_package = current_package[full_package_name].sub_packages  # type: ignore
                                 
@@ -330,5 +351,46 @@ class PythonCodebaseParser(CodebaseParserStrategy):
                 logger.error(f"Error processing node dependencies: {e}")
         
         packages: List[UnoplatPackage] = list(unoplat_package_dict.values()) if unoplat_package_dict else []
+        
+        # ============== BEGIN DEBUG CODE (REMOVE AFTER TESTING) ==============
+        # Count total files across all packages
+        # total_files = 0
+        # file_paths = set()
+        # package_file_counts = {}  # Dictionary to track files per package
+        
+        # def count_files_recursive(pkg_list, parent_path=""):
+        #     nonlocal total_files, file_paths, package_file_counts
+        #     for pkg in pkg_list:
+        #         current_path = f"{parent_path}.{pkg.name}" if parent_path else pkg.name
+                
+        #         # Initialize count for this package
+        #         if current_path not in package_file_counts:
+        #             package_file_counts[current_path] = 0
+                    
+        #         if pkg.files:
+        #             pkg_file_count = 0
+        #             for file_path in pkg.files.keys():
+        #                 if file_path not in file_paths:
+        #                     file_paths.add(file_path)
+        #                     total_files += 1
+        #                     pkg_file_count += 1
+                    
+        #             # Update count for this package
+        #             package_file_counts[current_path] = pkg_file_count
+        #             logger.debug(f"Package '{current_path}' contains {pkg_file_count} files")
+                    
+        #         if pkg.sub_packages:
+        #             count_files_recursive(pkg.sub_packages.values(), current_path)
+        
+        # count_files_recursive(packages)
+        
+        # Log file counts per package
+        # logger.info(f"File counts per package:")
+        # for pkg_name, count in package_file_counts.items():
+        #     logger.info(f"  - {pkg_name}: {count} files")
+            
+        # logger.info(f"Total number of unique UnoplatFile objects created: {total_files}")
+        # logger.debug(f"Unique file paths: {list(file_paths)}")
+        # ============== END DEBUG CODE (REMOVE AFTER TESTING) ==============
         
         return packages

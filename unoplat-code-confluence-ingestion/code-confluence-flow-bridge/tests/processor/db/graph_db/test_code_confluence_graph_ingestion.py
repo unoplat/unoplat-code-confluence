@@ -7,6 +7,8 @@ from typing import AsyncGenerator
 from pydantic_core import ValidationError
 import pytest
 from loguru import logger
+from neomodel import AsyncNodeSet, db as neomodel_db  # Import neomodel db for cypher queries
+from neomodel.async_.core import adb
 from testcontainers.neo4j import Neo4jContainer
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
 from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import CodeConfluenceGitRepository
@@ -57,7 +59,7 @@ def env_settings(neo4j_container: Neo4jContainer) -> EnvironmentSettings:
     
     return EnvironmentSettings(
         NEO4J_HOST=neo4j_container.get_container_host_ip(),
-        NEO4J_PORT=neo4j_port,  # Use the mapped port instead of default
+        NEO4J_PORT=int(neo4j_port),  # Convert to int to fix type error
         NEO4J_USERNAME="neo4j",
         NEO4J_PASSWORD=SecretStr(NEO4J_PASSWORD),
         NEO4J_MAX_CONNECTION_LIFETIME=3600,
@@ -198,3 +200,109 @@ class TestCodeConfluenceGraphIngestion:
         assert metadata_node.authors == package_metadata.authors
         assert metadata_node.entry_points == package_metadata.entry_points
         assert metadata_node.dependencies["requests"]["version"]["minimum_version"] == "2.0.0"
+
+    @pytest.mark.asyncio
+    async def test_insert_code_confluence_package(self, graph_ingestion: CodeConfluenceGraphIngestion):
+        """Test inserting package with files and nodes into the graph database."""
+        # First create a codebase node to link packages to
+        codebase_qualified_name = "test_org_test-repo_test_codebase_for_packages"
+        codebase_dict = {
+            "qualified_name": codebase_qualified_name,
+            "name": "test_codebase",
+            "readme": "# Test Codebase",
+            "local_path": "/tmp/test-codebase",
+        }
+        
+        codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
+        assert len(codebase_results) == 1
+        created_codebase = codebase_results[0]
+        
+        # Import required classes
+        from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
+        from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_file import UnoplatFile
+        from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
+        from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
+        from unoplat_code_confluence_commons.graph_models.code_confluence_package import CodeConfluencePackage
+        from unoplat_code_confluence_commons.graph_models.code_confluence_file import CodeConfluenceFile
+        from unoplat_code_confluence_commons.graph_models.code_confluence_class import CodeConfluenceClass
+        
+        # Create a sample node with proper parameters
+        sample_node = UnoplatChapiForgeNode(
+            NodeName="TestClass", #type:ignore
+            # Omitting Position to avoid lint errors
+        )
+        
+        # Create a sample file with the node
+        sample_file = UnoplatFile(
+            file_path="/tmp/test-codebase/src/test_module/test_file.py",
+            content="class TestClass:\n    pass",
+            nodes=[sample_node]
+        )
+        
+        # Create a sample package with the file
+        sample_package = UnoplatPackage(
+            name="test_module",
+            files={
+                "/tmp/test-codebase/src/test_module/test_file.py": sample_file
+            }
+        )
+        
+        # Insert the package into the graph database
+        await graph_ingestion.insert_code_confluence_package(
+            codebase_qualified_name=codebase_qualified_name,
+            packages=[sample_package]
+        )
+        
+        # Verify package node was created and linked to codebase
+        retrieved_codebase: CodeConfluenceCodebase = await CodeConfluenceCodebase.nodes.get(
+            qualified_name=codebase_qualified_name
+        )
+        
+        # Get packages related to the codebase - using cypher query instead of direct relationship access
+        # This avoids the AsyncRelationshipTo.all() lint error
+        query = f"MATCH (c:CodeConfluenceCodebase {{qualified_name: $qualified_name}})-[:CONTAINS_PACKAGE]->(p:CodeConfluencePackage) RETURN p"
+        results, _ =  await adb.cypher_query(
+            query, {"qualified_name": codebase_qualified_name}, resolve_objects=True
+        )
+        package_nodes = [row[0] for row in results]
+        assert len(package_nodes) > 0
+        
+        # Find our specific package
+        package_node = None
+        for pkg in package_nodes:
+            if pkg.name == sample_package.name:
+                package_node = pkg
+                break
+        
+        assert package_node is not None
+        assert package_node.qualified_name == f"{codebase_qualified_name}.{sample_package.name}"
+        
+        # Verify file node was created and linked to package
+        file_path = "/tmp/test-codebase/src/test_module/test_file.py"
+        file_nodes = await AsyncNodeSet(CodeConfluenceFile).filter(
+            file_path=file_path
+        ).all()
+        assert len(file_nodes) > 0
+        file_node = file_nodes[0]
+        
+        # Get package related to file - using cypher query
+        query = f"MATCH (f:CodeConfluenceFile {{file_path: $file_path}})-[:PART_OF_PACKAGE]->(p:CodeConfluencePackage) RETURN p"
+        results, _ =  await adb.cypher_query(
+            query, {"file_path": file_path}, resolve_objects=True
+        )
+        file_packages = [row[0] for row in results]
+        assert len(file_packages) > 0
+        file_package = file_packages[0]
+        assert file_package.qualified_name == package_node.qualified_name
+        
+        # Verify class node was created and linked to file
+        # Since we're using CodeConfluenceClass instead of a generic CodeConfluenceNode
+        # Filter class nodes by qualified_name instead of name
+        class_nodes = await AsyncNodeSet(CodeConfluenceClass).filter(
+            qualified_name__contains="TestClass"  # Using qualified_name for filtering
+        ).all()
+        assert len(class_nodes) > 0
+        class_node = class_nodes[0]
+        
+        # Verify class node properties
+        assert "TestClass" in class_node.qualified_name  # Check qualified_name instead of name
