@@ -9,6 +9,7 @@ import pytest
 # First Party
 from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_chapi_forge_node import UnoplatChapiForgeNode
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_file import UnoplatFile
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
 from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata, ProgrammingLanguage
 from src.code_confluence_flow_bridge.parser.python.python_codebase_parser import PythonCodebaseParser
@@ -110,7 +111,20 @@ class TestPythonCodebaseParser:
 
         # Verify packages were created
         assert len(packages) > 0
+        
+        # Check if packages have files
+        for package in packages:
+            if package.files:
+                # Verify that files contain nodes
+                for file_path, file_obj in package.files.items():
+                    assert isinstance(file_obj, UnoplatFile)
+                    # If file has nodes, verify their structure
+                    if file_obj.nodes:
+                        for node in file_obj.nodes:
+                            assert hasattr(node, 'node_name')
+                            
 
+        # Uncomment and adapt the following code if you have specific packages to test
         # # Check package structure
         # models_package = next(
         #     pkg for pkg in packages 
@@ -119,19 +133,23 @@ class TestPythonCodebaseParser:
         # assert models_package is not None
 
         # utils_package = next(
-        #     pkg for pkg in packages 
-        #     if pkg.name == "src.code_confluence_flow_bridge.utils"
+        #     (pkg for pkg in packages 
+        #     if pkg.name == "src.code_confluence_flow_bridge.utils"),
+        #     None
         # )
         # assert utils_package is not None
-
-        # # Check nodes in packages
-        # class_nodes = models_package.nodes["/workspace/src/code_confluence_flow_bridge/models/my_class.py"]
+        # 
+        # # Check nodes in files within packages
+        # models_file_path = "/workspace/src/code_confluence_flow_bridge/models/my_class.py"
+        # assert models_file_path in models_package.files
+        # class_nodes = models_package.files[models_file_path].nodes
         # assert len(class_nodes) == 1
         # assert class_nodes[0].node_name == "MyClass"
         # assert class_nodes[0].type == "CLASS"
-
-        # function_nodes = utils_package.nodes["/workspace/src/code_confluence_flow_bridge/utils/helpers.py"]
+        # 
+        # utils_file_path = "/workspace/src/code_confluence_flow_bridge/utils/helpers.py"
+        # assert utils_file_path in utils_package.files
+        # function_nodes = utils_package.files[utils_file_path].nodes
         # assert len(function_nodes) == 1
         # assert function_nodes[0].node_name == "helper_function"
         # assert function_nodes[0].type == "FUNCTION"
-
