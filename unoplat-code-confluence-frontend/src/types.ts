@@ -237,3 +237,13 @@ export interface GithubRepoStatus {
   completed_at?: string | null;
   codebase_status_list?: CodebaseStatusList;
 }
+
+// Dictionary mapping programming languages to their supported package managers
+export const LANGUAGE_PACKAGE_MANAGERS: Record<string, string[]> = {
+  python: ['auto-detect', 'uv', 'pip', 'poetry'],
+  // Add more languages as needed
+  javascript: ['auto-detect', 'npm', 'yarn', 'pnpm'],
+  typescript: ['auto-detect', 'npm', 'yarn', 'pnpm'],
+  java: ['auto-detect', 'maven', 'gradle'],
+  rust: ['auto-detect', 'cargo']
+};

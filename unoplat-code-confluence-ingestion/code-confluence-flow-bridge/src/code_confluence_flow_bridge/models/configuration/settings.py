@@ -15,6 +15,7 @@ class PackageManagerType(str, Enum):
     POETRY = "poetry"
     PIP = "pip"
     UV = "uv"
+    AUTO_DETECT = "auto-detect"
 
 
 class DatabaseType(str, Enum):
@@ -24,7 +25,7 @@ class DatabaseType(str, Enum):
 # Configuration Models (BaseModel for JSON config)
 class ProgrammingLanguageMetadata(BaseModel):
     language: ProgrammingLanguage
-    package_manager: PackageManagerType
+    package_manager: Optional[PackageManagerType] = None
     language_version: Optional[str] = None
 
 
