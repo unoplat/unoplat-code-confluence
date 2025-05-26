@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.12.0...code-confluence-docs-v0.13.0) (2025-05-26)
+
+
+### Features
+
+* **package-manager:** add automatic package manager detection ([0aa88bd](https://github.com/unoplat/unoplat-code-confluence/commit/0aa88bd65d46c1a3df35c6bf02d769c2a5548585))
+* **package-manager:** add automatic package manager detection ([470b352](https://github.com/unoplat/unoplat-code-confluence/commit/470b3528206208a730f63b537ca252220991e0b7))
+
 ## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.11.0...code-confluence-docs-v0.12.0) (2025-04-24)
 
 
