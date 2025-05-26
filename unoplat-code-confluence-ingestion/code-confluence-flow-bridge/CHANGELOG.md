@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.34.0...code-confluence-flow-bridge-v0.35.0) (2025-05-26)
+
+
+### Features
+
+* **package-manager:** add automatic package manager detection ([0aa88bd](https://github.com/unoplat/unoplat-code-confluence/commit/0aa88bd65d46c1a3df35c6bf02d769c2a5548585))
+* **parser:** improve package manager metadata handling and license parsing ([62bc9ce](https://github.com/unoplat/unoplat-code-confluence/commit/62bc9ce286f5d4610e4ce837febfe4b11cc8a57c))
+
 ## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.33.1...code-confluence-flow-bridge-v0.34.0) (2025-05-26)
 
 
