@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { LANGUAGE_PACKAGE_MANAGERS } from "../../types";
 
 // Extend the Zod schema to include nested structures if needed
 export const CodebaseSchema = z.object({
@@ -57,6 +58,7 @@ export function CodebaseForm({
 }: CodebaseFormProps): React.ReactElement {
   const [isRootRepo, setIsRootRepo] = useState<boolean>(false);
   const [isRootRepoLocked, setIsRootRepoLocked] = useState<boolean>(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('python'); // Default to python
   
   // Helper to create field name with proper type
   const getFieldName = <K extends keyof Codebase>(fieldName: K): string => 
@@ -72,6 +74,12 @@ export function CodebaseForm({
     } else {
       setIsRootRepo(false);
       setIsRootRepoLocked(false);
+    }
+
+    // Set the selected language
+    const languageValue: string = parentForm.getFieldValue(getFieldName("programming_language_metadata") + '.language');
+    if (languageValue) {
+      setSelectedLanguage(languageValue);
     }
   // Only run on mount and when index/parentForm changes
   }, [index, parentForm]);
@@ -262,9 +270,21 @@ export function CodebaseForm({
               <SelectValue placeholder="Select package manager" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="uv">uv</SelectItem>
-              <SelectItem value="pip">pip</SelectItem>
-              <SelectItem value="poetry">poetry</SelectItem>
+              {selectedLanguage && LANGUAGE_PACKAGE_MANAGERS[selectedLanguage] ? (
+                LANGUAGE_PACKAGE_MANAGERS[selectedLanguage].map((packageManager) => (
+                  <SelectItem key={packageManager} value={packageManager}>
+                    {packageManager === 'auto-detect' ? 'Auto-detect' : packageManager}
+                  </SelectItem>
+                ))
+              ) : (
+                // Fallback to default options if language not found in dictionary
+                <>
+                  <SelectItem value="auto-detect">Auto-detect</SelectItem>
+                  <SelectItem value="uv">uv</SelectItem>
+                  <SelectItem value="pip">pip</SelectItem>
+                  <SelectItem value="poetry">poetry</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         )}

@@ -1,11 +1,9 @@
-# Standard Library
-# First Party
+
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-# Third Party
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class UnoplatPackageManagerMetadata(BaseModel):
@@ -17,7 +15,32 @@ class UnoplatPackageManagerMetadata(BaseModel):
     project_version: Optional[str] = Field(default=None, description="The version of the project")
     description: Optional[str] = Field(default=None, description="The description of the project")
     authors: Optional[List[str]] = Field(default=None, description="The authors of the project")
-    license: Optional[str] = Field(default=None, description="The license of the project")
+    license: Optional[Dict[str, Any]] = Field(default=None, description="The license of the project")
+    
+    @field_validator('license', mode='before')
+    @classmethod
+    def validate_license(cls, value: Any) -> Optional[Dict[str, Any]]:
+        """Validate and normalize license field which can be a string or a dict.
+        
+        Args:
+            value: License value which can be a string like "MIT" or a dict like {"text": "MIT License"}
+            
+        Returns:
+            Normalized license dictionary or None if not provided
+        """
+        if value is None:
+            return None
+        
+        # If it's already a dict, return it as is
+        if isinstance(value, dict):
+            return value
+        
+        # If it's a string, convert it to a dict with 'text' key
+        if isinstance(value, str):
+            return {"text": value}
+        
+        # For any other type, convert to string and store as 'text'
+        return {"text": str(value)}
     entry_points: Dict[str, str] = Field(default_factory=dict, description="Dictionary of script names to their entry points. Example: {'cli': 'package.module:main', 'serve': 'uvicorn app:main'}")
     # New fields for additional metadata
     homepage: Optional[str] = Field(default=None, description="The homepage URL of the project")
