@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.33.1...code-confluence-flow-bridge-v0.34.0) (2025-05-26)
+
+
+### Features
+
+* updated schema to have intermediate file node while coming in from package and then to individual class/procedural nodes. ([2e66110](https://github.com/unoplat/unoplat-code-confluence/commit/2e661103729426104d0dafb8a33fbd659ae6f3ed))
+* updated schema to have intermediate file node while coming in from package and then to individual class/procedural nodes. ([df0add2](https://github.com/unoplat/unoplat-code-confluence/commit/df0add2354876e1d0a07ab98401c2ef239e36065))
+
 ## [0.33.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.33.0...code-confluence-flow-bridge-v0.33.1) (2025-05-20)
 
 
