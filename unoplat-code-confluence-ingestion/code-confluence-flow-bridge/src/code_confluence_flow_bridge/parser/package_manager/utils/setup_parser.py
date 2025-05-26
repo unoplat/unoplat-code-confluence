@@ -161,7 +161,12 @@ class SetupParser:
             metadata.authors = authors
 
         if "license" in setup_args:
-            metadata.license = setup_args["license"]
+            # Convert string license to dict format to match UnoplatPackageManagerMetadata expectations
+            license_value = setup_args["license"]
+            if isinstance(license_value, str):
+                metadata.license = {"text": license_value}
+            else:
+                metadata.license = license_value
 
         if "python_requires" in setup_args:
             version_str = setup_args["python_requires"]

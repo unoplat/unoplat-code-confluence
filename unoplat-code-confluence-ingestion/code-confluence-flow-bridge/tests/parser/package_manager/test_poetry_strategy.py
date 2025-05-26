@@ -94,7 +94,7 @@ def test_process_metadata_all_required_sections(
     assert package_metadata.programming_language_version == ">=3.9,<4.0"
 
     # Test additional metadata fields
-    assert package_metadata.license == "MIT"
+    assert package_metadata.license == {"text": "MIT"}
     assert package_metadata.homepage == "https://example.com"
     assert package_metadata.repository == "https://github.com/example/test_package"
     assert package_metadata.documentation == "https://docs.example.com"

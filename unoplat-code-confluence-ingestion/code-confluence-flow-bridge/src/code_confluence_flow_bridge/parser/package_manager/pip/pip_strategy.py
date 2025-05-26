@@ -3,7 +3,7 @@
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
 from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
+from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import SetupParser
 
@@ -240,7 +240,7 @@ class PipStrategy(PackageManagerStrategy):
 
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information."""
-        return UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=metadata.package_manager, programming_language_version=metadata.language_version)
+        return UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.PIP.value, programming_language_version=metadata.language_version)
 
     def _find_requirement_files(self, workspace: Path) -> List[Path]:
         """Find all requirement files in the workspace, matching any of the REQUIREMENT_PATTERNS."""
