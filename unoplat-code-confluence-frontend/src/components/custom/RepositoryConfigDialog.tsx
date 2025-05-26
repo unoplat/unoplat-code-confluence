@@ -65,7 +65,7 @@ export function RepositoryConfigDialog({
     root_package: "",
     programming_language_metadata: {
       language: "python",
-      package_manager: "uv",
+      package_manager: "auto-detect",
     }
   };
 
@@ -96,7 +96,7 @@ export function RepositoryConfigDialog({
           root_package: item.root_package || "",
           programming_language_metadata: {
             language: item.programming_language_metadata.language || "python",
-            package_manager: item.programming_language_metadata.package_manager || "uv",
+            package_manager: item.programming_language_metadata.package_manager || "auto-detect",
           }
         };
         return codebase;
