@@ -44,12 +44,25 @@ class PackageMetadataActivity:
             activity_name=activity_name
         )
         try:
+            # Handle the case when package_manager is None or AUTO_DETECT
+            package_manager_value = "auto-detect" if programming_language_metadata.package_manager is None or \
+                                    programming_language_metadata.package_manager.value == "auto-detect" else \
+                                    programming_language_metadata.package_manager.value
+            
             log.debug(
                 "Processing package metadata | codebase_path={} | programming_language={} | language_version={} | package_manager={}",
-                local_path, programming_language_metadata.language.value, programming_language_metadata.language_version, programming_language_metadata.package_manager.value
+                local_path, programming_language_metadata.language.value, programming_language_metadata.language_version, package_manager_value
             )
 
             package_metadata = self.package_manager_parser.parse_package_metadata(local_workspace_path=local_path, programming_language_metadata=programming_language_metadata)
+
+            # Log additional information if package manager was auto-detected
+            if (programming_language_metadata.package_manager is None or 
+                programming_language_metadata.package_manager.value == "auto-detect") and package_metadata.package_manager:
+                log.info(
+                    "Successfully auto-detected package manager: {} | codebase_path={} | workflow_id={} | workflow_run_id={}",
+                    package_metadata.package_manager, local_path, workflow_id, workflow_run_id
+                )
 
             log.debug(
                 "Successfully processed package metadata | codebase_path={} | status=success",
