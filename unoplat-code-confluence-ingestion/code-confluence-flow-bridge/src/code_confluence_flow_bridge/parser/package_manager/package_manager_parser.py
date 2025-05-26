@@ -1,16 +1,20 @@
 # Standard Library
-import traceback
+# First Party
+from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.registry import detect_manager
+from src.code_confluence_flow_bridge.parser.package_manager.package_manager_factory import (
+    PackageManagerStrategyFactory,
+    UnsupportedPackageManagerError,
+)
+
 from pathlib import Path
+import traceback
 
 # Third Party
 from loguru import logger
 from temporalio.exceptions import ApplicationError
 
-# First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata, PackageManagerType
-from src.code_confluence_flow_bridge.parser.package_manager.package_manager_factory import PackageManagerStrategyFactory, UnsupportedPackageManagerError
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.registry import detect_manager
 # No need to import trace_utils as logger already has context
 
 

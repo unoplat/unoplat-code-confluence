@@ -68,7 +68,7 @@ def test_setup_py_parsing(pip_strategy: PipStrategy, requirements_dir: Path, moc
     assert metadata.package_name == "test-package"
     assert metadata.project_version == "1.0.0"
     assert metadata.description == "Test package for setup.py parsing"
-    assert metadata.license == "MIT"
+    assert metadata.license == {"text": "MIT"}
     assert metadata.authors and "Test Author <test@example.com>" in metadata.authors
     
     # Check programming language metadata

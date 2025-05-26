@@ -62,7 +62,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 dependencies=dependencies,
                 package_name=poetry_data.get("name"),
                 programming_language=metadata.language.value,
-                package_manager=metadata.package_manager,
+                package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value,
                 programming_language_version=programming_language_version,
                 project_version=poetry_data.get("version"),
                 description=poetry_data.get("description"),
@@ -129,7 +129,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
 
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information"""
-        return UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=metadata.package_manager)
+        return UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value)
 
     def _parse_dependencies(self, deps_dict: Dict, group: Optional[str] = None) -> Dict[str, UnoplatProjectDependency]:
         dependencies = {}
