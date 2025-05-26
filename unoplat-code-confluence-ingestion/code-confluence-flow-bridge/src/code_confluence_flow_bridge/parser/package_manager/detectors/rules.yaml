@@ -1,0 +1,30 @@
+python:
+  - manager: uv
+    signatures:
+      - uv.lock
+      - file: pyproject.toml
+        contains: "[tool.uv]"
+
+  - manager: poetry
+    signatures:
+      - poetry.lock
+      - file: pyproject.toml
+        contains: "[tool.poetry]"
+
+  - manager: pip
+    signatures:
+      - requirements.txt
+      - glob: "requirements-*.txt"
+      - setup.py  # Check for traditional setup.py files
+
+# Add support for additional languages as needed
+# javascript:
+#   - manager: pnpm
+#     signatures:
+#       - pnpm-lock.yaml
+#   - manager: yarn
+#     signatures:
+#       - yarn.lock
+#   - manager: npm
+#     signatures:
+#       - package-lock.json

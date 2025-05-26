@@ -16,6 +16,13 @@ class PackageManagerStrategyFactory:
         (ProgrammingLanguage.PYTHON, PackageManagerType.PIP): PipStrategy,
         (ProgrammingLanguage.PYTHON, PackageManagerType.UV): UvStrategy,
     }
+    
+    # Map string names to PackageManagerType enum values
+    _manager_name_to_type: Dict[str, PackageManagerType] = {
+        "poetry": PackageManagerType.POETRY,
+        "pip": PackageManagerType.PIP,
+        "uv": PackageManagerType.UV,
+    }
 
     @classmethod
     def get_strategy(cls, programming_language: ProgrammingLanguage, package_manager_type: PackageManagerType) -> PackageManagerStrategy:
@@ -23,7 +30,8 @@ class PackageManagerStrategyFactory:
         Get appropriate package manager strategy based on programming language and package manager
 
         Args:
-            metadata: Programming language metadata from config
+            programming_language: Programming language enum value
+            package_manager_type: Package manager type enum value
 
         Returns:
             PackageManagerStrategy: Appropriate strategy instance
@@ -37,6 +45,27 @@ class PackageManagerStrategyFactory:
             raise UnsupportedPackageManagerError(f"Unsupported combination - Language: {programming_language}, " f"Package Manager: {package_manager_type}")
 
         return cls._strategies[key]()
+        
+    @classmethod
+    def get_strategy_from_name(cls, programming_language: ProgrammingLanguage, package_manager_name: str) -> PackageManagerStrategy:
+        """
+        Get strategy from detected package manager name
+        
+        Args:
+            programming_language: Programming language enum value
+            package_manager_name: Package manager name as string (from detection)
+            
+        Returns:
+            PackageManagerStrategy: Appropriate strategy instance
+            
+        Raises:
+            UnsupportedPackageManagerError: If package manager name is not supported
+        """
+        if package_manager_name not in cls._manager_name_to_type:
+            raise UnsupportedPackageManagerError(f"Unsupported package manager name: {package_manager_name}")
+        
+        package_manager_type = cls._manager_name_to_type[package_manager_name]
+        return cls.get_strategy(programming_language, package_manager_type)
 
 
 class UnsupportedPackageManagerError(Exception):
