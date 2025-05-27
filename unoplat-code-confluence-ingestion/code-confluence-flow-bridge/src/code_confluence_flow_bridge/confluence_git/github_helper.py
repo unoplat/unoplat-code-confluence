@@ -7,7 +7,6 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Progra
 from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 
 import os
-import asyncio  # NEW: Import asyncio to run blocking calls in a thread
 import traceback
 from typing import Any, Dict, List
 
@@ -19,9 +18,9 @@ from temporalio.exceptions import ApplicationError
 
 class GithubHelper:
     # works with - vhttps://github.com/organization/repository,https://github.com/organization/repository.git,git@github.com:organization/repository.git
-    async def clone_repository(self, repo_request: GitHubRepoRequestConfiguration, github_token: str) -> UnoplatGitRepository:
+     def clone_repository(self, repo_request: GitHubRepoRequestConfiguration, github_token: str) -> UnoplatGitRepository:
         """
-        Clone the repository asynchronously and return repository details.
+        Clone the repository and return repository details.
         Works with URL formats:
         - https://github.com/organization/repository
         - https://github.com/organization/repository.git
@@ -50,8 +49,8 @@ class GithubHelper:
                 "Processing git repository | git_url={} | repo_name={} | status=started",
                 repo_url, repo_name
             )
-            # Get repository object asynchronously (blocking network call wrapped in thread)
-            github_repo = await asyncio.to_thread(github_client.get_repo, repo_path)
+            # Get repository object
+            github_repo = github_client.get_repo(repo_path)
 
             # Create local directory if it doesn't exist
             local_path: str = os.path.join(os.path.expanduser("~"), ".unoplat", "repositories")
@@ -59,9 +58,9 @@ class GithubHelper:
             # Reassign repo_path to the local clone path
             repo_path = os.path.join(local_path, repo_name)
 
-            # Clone repository asynchronously if not already cloned
+            # Clone repository if not already cloned
             if not os.path.exists(repo_path):
-                await asyncio.to_thread(Repo.clone_from, repo_url, repo_path)
+                Repo.clone_from(repo_url, repo_path)
 
             # Log repository path
             logger.info(
@@ -81,11 +80,9 @@ class GithubHelper:
             
             
 
-            # Get README content asynchronously (if available)
+            # Get README content (if available)
             try:
-                readme_content: str | None = await asyncio.to_thread(
-                    lambda: github_repo.get_readme().decoded_content.decode("utf-8")
-                )
+                readme_content: str | None = github_repo.get_readme().decoded_content.decode("utf-8")
             except Exception:
                 readme_content = None
 
@@ -117,8 +114,8 @@ class GithubHelper:
                 )
 
                 programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
-                # Verify the path exists asynchronously
-                if not await asyncio.to_thread(os.path.exists, local_path):
+                # Verify the path exists
+                if not os.path.exists(local_path):
                     raise Exception(f"Codebase path not found: {local_path}")
 
                 codebase = UnoplatCodebase(
