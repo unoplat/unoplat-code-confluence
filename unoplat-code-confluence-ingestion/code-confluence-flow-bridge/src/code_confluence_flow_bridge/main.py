@@ -1,4 +1,4 @@
-# Local application imports
+
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, ProgrammingLanguageMetadata
@@ -45,14 +45,11 @@ from src.code_confluence_flow_bridge.utility.password_utils import decrypt_token
 import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-
-# Standard library imports
 from datetime import datetime, timezone
 import json
 import traceback
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, cast
 
-# Third-party imports
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -60,12 +57,14 @@ from github import Github
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 import httpx
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import QueryableAttribute, selectinload
 from sqlalchemy.orm.attributes import QueryableAttribute
 from sqlmodel import select
 from temporalio.client import Client, WorkflowHandle
-from temporalio.worker import Worker
+from temporalio.exceptions import ApplicationError
+from temporalio.worker import PollerBehaviorAutoscaling, Worker
 
 # Setup logging
 logger = setup_logging(service_name="code-confluence-flow-bridge", app_name="unoplat-code-confluence")
@@ -84,7 +83,7 @@ async def get_temporal_client() -> Client:
     return temporal_client
 
 
-async def run_worker(activities: List[Callable], client: Client, activity_executor: ThreadPoolExecutor) -> None:
+async def run_worker(activities: List[Callable], client: Client, activity_executor: ThreadPoolExecutor, env_settings: EnvironmentSettings) -> None:
     """
     Run the Temporal worker with given activities
 
@@ -92,17 +91,118 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
         activities: List of activity functions
         client: Temporal client
         activity_executor: Thread pool executor for activities
+        env_settings: Environment settings containing Temporal worker configuration
     """
-    worker = Worker(
-        client,
-        task_queue="unoplat-code-confluence-repository-context-ingestion",
-        workflows=[RepoWorkflow, CodebaseChildWorkflow],
-        activities=activities,
-        activity_executor=activity_executor,
-        interceptors=[ParentWorkflowStatusInterceptor(),ActivityStatusInterceptor()],
-    )
-
-    await worker.run()
+    try:
+        # Worker configuration parameters
+        worker_params = {
+            "client": client,
+            "task_queue": "unoplat-code-confluence-repository-context-ingestion",
+            "workflows": [RepoWorkflow, CodebaseChildWorkflow],
+            "activities": activities,
+            "activity_executor": activity_executor,
+            "interceptors": [ParentWorkflowStatusInterceptor(), ActivityStatusInterceptor()],
+            "max_concurrent_activities": env_settings.temporal_max_concurrent_activities,
+        }
+        
+        # Configure poller behaviors based on settings
+        if env_settings.temporal_enable_poller_autoscaling:
+            # Configure workflow task poller behavior with autoscaling
+            workflow_poller = PollerBehaviorAutoscaling(
+                minimum=env_settings.temporal_workflow_poller_min,
+                initial=env_settings.temporal_workflow_poller_initial,
+                maximum=env_settings.temporal_workflow_poller_max
+            )
+            worker_params["workflow_task_poller_behavior"] = workflow_poller
+            
+            # Configure activity task poller behavior with autoscaling
+            activity_poller = PollerBehaviorAutoscaling(
+                minimum=env_settings.temporal_activity_poller_min,
+                initial=env_settings.temporal_activity_poller_initial,
+                maximum=env_settings.temporal_activity_poller_max
+            )
+            worker_params["activity_task_poller_behavior"] = activity_poller
+            
+            # Log autoscaling configuration
+            logger.info(
+                f"Starting Temporal worker with autoscaling pollers enabled. "
+                f"Workflow poller: min={env_settings.temporal_workflow_poller_min}, "
+                f"initial={env_settings.temporal_workflow_poller_initial}, "
+                f"max={env_settings.temporal_workflow_poller_max}. "
+                f"Activity poller: min={env_settings.temporal_activity_poller_min}, "
+                f"initial={env_settings.temporal_activity_poller_initial}, "
+                f"max={env_settings.temporal_activity_poller_max}"
+            )
+        else:
+            # Use traditional fixed polling configuration
+            worker_params["max_concurrent_activity_task_polls"] = env_settings.temporal_max_concurrent_activity_task_polls
+            
+            # Log standard configuration
+            logger.info(
+                f"Starting Temporal worker with max_concurrent_activities={env_settings.temporal_max_concurrent_activities}, "
+                f"max_concurrent_activity_task_polls={env_settings.temporal_max_concurrent_activity_task_polls}"
+            )
+        
+        # Create and run the worker with explicit parameters for better type safety
+        # Create the worker with client as positional argument and other parameters as keyword arguments
+        if env_settings.temporal_enable_poller_autoscaling:
+            # Initialize with autoscaling poller behaviors
+            worker = Worker(
+                client,  # Client must be passed as a positional argument
+                task_queue="unoplat-code-confluence-repository-context-ingestion",
+                workflows=[RepoWorkflow, CodebaseChildWorkflow],
+                activities=activities,
+                activity_executor=activity_executor,
+                interceptors=[ParentWorkflowStatusInterceptor(), ActivityStatusInterceptor()],
+                max_concurrent_activities=env_settings.temporal_max_concurrent_activities,
+                # Configure poller behaviors with autoscaling
+                workflow_task_poller_behavior=PollerBehaviorAutoscaling(
+                    minimum=env_settings.temporal_workflow_poller_min,
+                    initial=env_settings.temporal_workflow_poller_initial,
+                    maximum=env_settings.temporal_workflow_poller_max
+                ),
+                activity_task_poller_behavior=PollerBehaviorAutoscaling(
+                    minimum=env_settings.temporal_activity_poller_min,
+                    initial=env_settings.temporal_activity_poller_initial,
+                    maximum=env_settings.temporal_activity_poller_max
+                )
+            )
+        else:
+            # Initialize with traditional fixed polling configuration
+            worker = Worker(
+                client,  # Client must be passed as a positional argument
+                task_queue="unoplat-code-confluence-repository-context-ingestion",
+                workflows=[RepoWorkflow, CodebaseChildWorkflow],
+                activities=activities,
+                activity_executor=activity_executor,
+                interceptors=[ParentWorkflowStatusInterceptor(), ActivityStatusInterceptor()],
+                max_concurrent_activities=env_settings.temporal_max_concurrent_activities,
+                max_concurrent_activity_task_polls=env_settings.temporal_max_concurrent_activity_task_polls
+            )
+        
+        # Run the worker
+        await worker.run()
+        
+    except Exception as e:
+        # Follow established error handling pattern in the codebase
+        error_context = {
+            "workflow_id": "worker_initialization",  # No specific workflow ID for worker initialization
+            "activity_name": "run_worker",
+            "error_details": str(e),
+            "traceback": traceback.format_exc()
+        }
+        
+        logger.error(
+            f"Failed to start Temporal worker: {str(e)}", 
+            extra={"error_context": error_context}
+        )
+        
+        # TODO: fix this exception this should be standard exception as worker exceptions should be application error
+        error_message = f"Failed to start Temporal worker: {str(e)}"
+        raise ApplicationError(
+            error_message,
+            type="WORKER_INITIALIZATION_ERROR"
+        ) from e
 
 
 async def start_workflow(
@@ -138,7 +238,11 @@ async def lifespan(app: FastAPI):
     app.state.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=app.state.code_confluence_env)
     await app.state.code_confluence_graph_ingestion.initialize()
 
-    app.state.activity_executor = ThreadPoolExecutor()
+    # Calculate thread pool size based on Temporal best practice: one thread per activity slot plus a buffer
+    # This ensures we have enough threads to handle all concurrent activities plus overhead
+    pool_size = app.state.code_confluence_env.temporal_max_concurrent_activities + 4
+    app.state.activity_executor = ThreadPoolExecutor(max_workers=pool_size)
+    logger.info(f"Initialized activity executor with {pool_size} threads (max_concurrent_activities={app.state.code_confluence_env.temporal_max_concurrent_activities} + 4 buffer threads)")
 
     # Define activities
     activities: List[Callable] = []
@@ -166,7 +270,12 @@ async def lifespan(app: FastAPI):
     # Create database tables during startup
     await create_db_and_tables()
     
-    asyncio.create_task(run_worker(activities=activities, client=app.state.temporal_client, activity_executor=app.state.activity_executor))
+    asyncio.create_task(run_worker(
+        activities=activities, 
+        client=app.state.temporal_client, 
+        activity_executor=app.state.activity_executor,
+        env_settings=app.state.code_confluence_env
+    ))
     yield
     await app.state.code_confluence_graph_ingestion.close()
 
