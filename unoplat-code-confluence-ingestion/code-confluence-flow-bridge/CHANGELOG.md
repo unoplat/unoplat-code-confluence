@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.35.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.35.0...code-confluence-flow-bridge-v0.35.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* make process_git_activity synchronous in git activity processor ([cc9e0d7](https://github.com/unoplat/unoplat-code-confluence/commit/cc9e0d76004d38bbe1f39c32726e0088a940390f))
+* per for temporal ([376ef08](https://github.com/unoplat/unoplat-code-confluence/commit/376ef08d8fdd1a40b520e553010470eda50cf405))
+
 ## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.34.0...code-confluence-flow-bridge-v0.35.0) (2025-05-26)
 
 
