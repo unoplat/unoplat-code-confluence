@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.21.0...unoplat-code-confluence-frontend-v1.21.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* change default package_manager to auto-detect ([bfb393b](https://github.com/unoplat/unoplat-code-confluence/commit/bfb393bef674493eab2d5ed292c9f301e09ef0cd))
+
 ## [1.21.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.20.0...unoplat-code-confluence-frontend-v1.21.0) (2025-05-26)
 
 
