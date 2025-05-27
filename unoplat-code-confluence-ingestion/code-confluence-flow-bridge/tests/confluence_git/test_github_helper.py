@@ -88,11 +88,10 @@ def repository_settings_to_github_request(settings: RepositorySettings) -> GitHu
 
 class TestGithubHelper:
     
-    @pytest.mark.asyncio  # Mark test as async
-    async def test_clone_repository(self, github_helper: GithubHelper, settings: RepositorySettings, github_pat_token: str) -> None:
+    def test_clone_repository(self, github_helper: GithubHelper, settings: RepositorySettings, github_pat_token: str) -> None:
         """Test cloning a real repository using example_config.json"""
         repo_request: GitHubRepoRequestConfiguration = repository_settings_to_github_request(settings)
-        repo = await github_helper.clone_repository(repo_request, github_token=github_pat_token)
+        repo = github_helper.clone_repository(repo_request, github_token=github_pat_token)
         
         # Basic repository assertions
         assert repo is not None
@@ -142,11 +141,10 @@ class TestGithubHelper:
         assert repo.readme is not None
         assert len(repo.readme) > 0
 
-    @pytest.mark.asyncio  # Mark test as async
-    async def test_clone_nested_repository(self, github_helper: GithubHelper, nested_settings: RepositorySettings, github_pat_token: str) -> None:
+    def test_clone_nested_repository(self, github_helper: GithubHelper, nested_settings: RepositorySettings, github_pat_token: str) -> None:
         """Test cloning a repository with nested package structure using nested_package_git_config.json"""
         repo_request: GitHubRepoRequestConfiguration = repository_settings_to_github_request(nested_settings)
-        repo = await github_helper.clone_repository(repo_request, github_token=github_pat_token)
+        repo = github_helper.clone_repository(repo_request, github_token=github_pat_token)
         
         # Basic repository assertions
         assert repo is not None
