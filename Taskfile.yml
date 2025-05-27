@@ -1,0 +1,55 @@
+version: '3'
+
+tasks:
+  launch-all-mcp:
+    desc: Launch all MCP tools in background
+    cmds:
+      - task: launch-browser-tools-bg
+      - task: launch-think-mcp-bg
+      - echo "All MCP tools launched in background. Use 'task stop-all-mcp' to stop them."
+
+  launch-browser-tools:
+    desc: Launch browser tools MCP server (foreground)
+    cmds:
+      - npx @agentdeskai/browser-tools-server@latest
+
+  launch-browser-tools-bg:
+    desc: Launch browser tools MCP server in background
+    cmds:
+      - sh -c "npx @agentdeskai/browser-tools-server@latest > /tmp/browser-tools-server.log 2>&1 &"
+      - echo "Browser tools server started on port 3025 (logs at /tmp/browser-tools-server.log)"
+
+  stop-browser-tools:
+    desc: Stop browser tools MCP server
+    cmds:
+      - sh -c "kill $(lsof -ti:3025) || echo 'Browser tools server not running'"
+
+  launch-think-mcp:
+    desc: Launch think MCP server (foreground)
+    dir: /Users/jayghiya/Documents/unoplat/mcp-tools/think-mcp-server
+    cmds:
+      - npm install
+      - npm run build
+      - npm start
+
+  launch-think-mcp-bg:
+    desc: Launch think MCP server in background
+    dir: /Users/jayghiya/Documents/unoplat/mcp-tools/think-mcp-server
+    cmds:
+      - npm install
+      - npm run build
+      - sh -c "npm start > /tmp/think-mcp-server.log 2>&1 &"
+      - echo "Think MCP server started (logs at /tmp/think-mcp-server.log)"
+
+  stop-think-mcp:
+    desc: Stop think MCP server
+    cmds:
+      # Using pkill to find and kill the think-mcp-server process
+      - sh -c "pkill -f 'node.*think-mcp-server' || echo 'Think MCP server not running'"
+
+  stop-all-mcp:
+    desc: Stop all MCP tools
+    cmds:
+      - task: stop-browser-tools
+      - task: stop-think-mcp
+      - echo "All MCP tools stopped"

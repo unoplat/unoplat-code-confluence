@@ -60,6 +60,8 @@ export function CodebaseForm({
   const [isRootRepoLocked, setIsRootRepoLocked] = useState<boolean>(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('python'); // Default to python
   
+  
+
   // Helper to create field name with proper type
   const getFieldName = <K extends keyof Codebase>(fieldName: K): string => 
     `codebases[${index}].${fieldName}`;
@@ -280,9 +282,9 @@ export function CodebaseForm({
                 // Fallback to default options if language not found in dictionary
                 <>
                   <SelectItem value="auto-detect">Auto-detect</SelectItem>
-                  <SelectItem value="uv">uv</SelectItem>
                   <SelectItem value="pip">pip</SelectItem>
                   <SelectItem value="poetry">poetry</SelectItem>
+                  <SelectItem value="uv">uv</SelectItem>
                 </>
               )}
             </SelectContent>
