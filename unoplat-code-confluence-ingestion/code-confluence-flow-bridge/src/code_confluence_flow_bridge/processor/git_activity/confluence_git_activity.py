@@ -18,7 +18,7 @@ class GitActivity:
         self.github_helper = GithubHelper()
 
     @activity.defn
-    async def process_git_activity(
+    def process_git_activity(
         self,
         envelope: GitActivityEnvelope,
     ) -> UnoplatGitRepository:
@@ -55,7 +55,7 @@ class GitActivity:
                 info.attempt, repo_request.repository_git_url
             )
 
-            activity_data = await self.github_helper.clone_repository(repo_request, github_token)
+            activity_data = self.github_helper.clone_repository(repo_request, github_token)
             
 
             log.debug(
