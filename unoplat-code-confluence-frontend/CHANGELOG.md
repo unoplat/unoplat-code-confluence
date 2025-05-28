@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.23.0...unoplat-code-confluence-frontend-v1.23.1) (2025-05-28)
+
+
+### Bug Fixes
+
+* remove unused React import from ModeToggle component ([acbabda](https://github.com/unoplat/unoplat-code-confluence/commit/acbabda735bbfab1ce7d91cafedf30e345a0d14f))
+* remove unused React import from ModeToggle component ([b90c677](https://github.com/unoplat/unoplat-code-confluence/commit/b90c677a84f02ba9e73e2e3f57847a4ebda78d18))
+
 ## [1.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.22.0...unoplat-code-confluence-frontend-v1.23.0) (2025-05-28)
 
 
