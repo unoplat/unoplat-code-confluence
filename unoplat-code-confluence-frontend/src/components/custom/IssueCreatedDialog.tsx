@@ -35,15 +35,15 @@ export function IssueCreatedDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
-            <Check className="h-6 w-6 text-green-600" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
+            <Check className="h-6 w-6 text-primary" />
           </div>
           <DialogTitle className="text-center text-lg font-semibold">
             Issue created #{issue_number}
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-4 text-center">
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Your issue has been successfully created and is being tracked.
           </p>
         </div>
@@ -51,14 +51,14 @@ export function IssueCreatedDialog({
           <Button 
             variant="outline" 
             onClick={onClose}
-            className="mr-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="mr-2"
           >
             Close
           </Button>
           {issue_url && (
             <Button 
+              variant="default"
               onClick={handleViewOnGitHub}
-              className="bg-primary text-primary-content hover:bg-primary-focus"
             >
               View on GitHub
             </Button>

@@ -2,19 +2,44 @@
 
 import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+const avatarVariants = cva(
+  "relative flex shrink-0 overflow-hidden",
+  {
+    variants: {
+      size: {
+        sm: "h-8 w-8",
+        default: "h-10 w-10",
+        lg: "h-12 w-12",
+        xl: "h-16 w-16",
+        "2xl": "h-20 w-20",
+      },
+      shape: {
+        circle: "rounded-full",
+        square: "rounded-md",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+      shape: "circle",
+    },
+  }
+)
+
+export interface AvatarProps
+  extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>,
+    VariantProps<typeof avatarVariants> {}
+
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, ...props }, ref) => (
+  AvatarProps
+>(({ className, size, shape, ...props }, ref) => (
   <AvatarPrimitive.Root
     ref={ref}
-    className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
-      className
-    )}
+    className={cn(avatarVariants({ size, shape }), className)}
     {...props}
   />
 ))
@@ -39,7 +64,7 @@ const AvatarFallback = React.forwardRef<
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-muted",
+      "flex h-full w-full items-center justify-center bg-muted [&[data-shape=circle]]:rounded-full [&[data-shape=square]]:rounded-md",
       className
     )}
     {...props}

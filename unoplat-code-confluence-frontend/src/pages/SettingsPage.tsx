@@ -62,23 +62,24 @@ export default function SettingsPage(): React.ReactElement {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6">
-        <Card className="shadow-sm rounded-none border-x-0">
-          <CardHeader className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between space-x-4">
-              <div className="space-y-1">
-                <CardTitle>GitHub Authentication</CardTitle>
-                <CardDescription className="text-base font-normal leading-normal">
+        <Card className="shadow-md border-border bg-card">
+          <CardHeader className="max-w-4xl mx-auto px-8 py-6">
+            <div className="flex items-center justify-between space-x-6">
+              <div className="space-y-2">
+                <CardTitle className="text-xl font-semibold tracking-tight">GitHub Authentication</CardTitle>
+                <CardDescription className="text-base text-muted-foreground leading-relaxed">
                   {tokenQuery.data?.status ? 'Update or remove your GitHub Personal Access Token.' : 'Connect your GitHub account to access repositories.'}
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
+                  size="default"
                   onClick={(): void => {
                     // console.log('[SettingsPage] Opening token management popup');
                     setShowTokenPopup(true);
                   }}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 min-w-[120px]"
                   // Optionally disable if token is loading or there's an error initially fetching it
                   // disabled={tokenQuery.isLoading || tokenQuery.isError} 
                 >
@@ -95,6 +96,7 @@ export default function SettingsPage(): React.ReactElement {
                     }}
                     title="Delete GitHub Token"
                     disabled={deleteMutation.isPending || tokenQuery.isLoading} // Use isPending instead of isLoading
+                    className="h-10 w-10"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

@@ -4,8 +4,9 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import { DataTable } from '../data-table';
-import { getJobStatusDataTableColumns, getStatusIcon, getStatusStyles } from './job-status-data-table-columns';
+import { getJobStatusDataTableColumns, getStatusIcon, getStatusVariant } from './job-status-data-table-columns';
 import { getRepositoryStatus } from '../../lib/api';
 import { apiToUiErrorReport } from '../../lib/error-utils';
 import type { 
@@ -219,9 +220,9 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
             </div>
           ) : error || statusError ? (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
-              <p className="font-semibold text-red-800">Error:</p>
-              <p className="text-red-700">{statusError || 'An error occurred while fetching data.'}</p>
+            <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded">
+              <p className="font-semibold text-destructive">Error:</p>
+              <p className="text-destructive/80">{statusError || 'An error occurred while fetching data.'}</p>
             </div>
           ) : repositoryStatus ? (
             <div className="space-y-6">
@@ -253,10 +254,10 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
                 <div>
                   <p>
                     <strong>Status:</strong> 
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ml-2 ${getStatusStyles(effectiveStatus || 'SUBMITTED')}`}>
+                    <Badge variant={getStatusVariant(effectiveStatus || 'SUBMITTED')} className="gap-1 ml-2">
                       {getStatusIcon(effectiveStatus || 'SUBMITTED')}
                       {hasFailedWithoutError ? 'COMPLETED' : repositoryStatus.status}
-                    </span>
+                    </Badge>
                   </p>
                   {repositoryStatus.error_report && (
                     <div className="mt-2">
@@ -267,7 +268,7 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
                             href={repositoryStatus.issue_tracking.issue_url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline inline-flex items-center gap-1 ml-2"
+                            className="text-primary hover:underline inline-flex items-center gap-1 ml-2"
                           >
                             #{repositoryStatus.issue_tracking.issue_number}
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
@@ -275,10 +276,9 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
                         </p>
                       ) : hasReportableRepositoryError && (
                         <Button 
-                          variant="outline" 
                           size="sm"
                           onClick={handleSubmitRepositoryFeedback}
-                          className="mt-2 font-medium bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-800"
+                          className="mt-2"
                         >
                           Submit Repository Feedback
                         </Button>
@@ -293,7 +293,7 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
                 <div className="mt-6">
                   <h4 className="text-lg font-semibold mb-2">Codebase Runs</h4>
                   {/* Debug data is logged when the component renders */}
-                  <div className="rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
+                  <div className="rounded-md border border-border overflow-hidden">
                     <DataTable
                       table={table}
                       actionBar={null}
@@ -315,7 +315,7 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
             <Button 
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="font-medium border border-gray-300 text-gray-700 hover:bg-gray-50"
+              className=""
             >
               Close
             </Button>

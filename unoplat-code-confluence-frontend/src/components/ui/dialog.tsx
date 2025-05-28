@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
@@ -21,7 +22,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 [&_svg]:pointer-events-none",
+      "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -29,10 +30,56 @@ const DialogOverlay = React.forwardRef<
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
+const dialogContentVariants = cva(
+  "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+  {
+    variants: {
+      size: {
+        sm: "max-w-sm",
+        default: "max-w-lg",
+        lg: "max-w-4xl",
+        xl: "max-w-6xl",
+        full: "max-w-[90vw] max-h-[90vh]",
+      },
+      padding: {
+        none: "p-0",
+        sm: "p-4",
+        default: "p-6",
+        lg: "p-8",
+      },
+      radius: {
+        default: "sm:rounded-[--radius-lg]",
+        sm: "sm:rounded-[--radius-sm]",
+        md: "sm:rounded-[--radius-md]",
+        lg: "sm:rounded-[--radius-lg]",
+        none: "rounded-none",
+      },
+      shadow: {
+        default: "shadow-[--shadow-lg]",
+        sm: "shadow-[--shadow-sm]",
+        md: "shadow-[--shadow-md]",
+        lg: "shadow-[--shadow-lg]",
+        xl: "shadow-[--shadow-xl]",
+        none: "shadow-none",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+      padding: "default",
+      radius: "default",
+      shadow: "default",
+    },
+  }
+)
+
+export interface DialogContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+    VariantProps<typeof dialogContentVariants> {}
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, forwardedRef) => {
+  DialogContentProps
+>(({ className, children, size, padding, radius, shadow, ...props }, forwardedRef) => {
   const contentRef = React.useRef<React.ElementRef<typeof DialogPrimitive.Content>>(null)
   React.useImperativeHandle(forwardedRef, () => contentRef.current as React.ElementRef<typeof DialogPrimitive.Content>)
   return (
@@ -40,10 +87,7 @@ const DialogContent = React.forwardRef<
       <DialogOverlay />
       <DialogPrimitive.Content
         ref={contentRef}
-        className={cn(
-          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg [&_svg]:pointer-events-none",
-          className
-        )}
+        className={cn(dialogContentVariants({ size, padding, radius, shadow }), className)}
         aria-describedby={props["aria-describedby"] || "dialog-description"}
         data-aria-hidden="false"
         tabIndex={-1}
@@ -129,4 +173,5 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
+  dialogContentVariants,
 }
