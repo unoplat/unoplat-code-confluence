@@ -4,7 +4,7 @@ import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useDevModeStore } from "@/stores/useDevModeStore"
-import { Workflow, Network } from "lucide-react"
+import { Workflow, Network, ExternalLink } from "lucide-react"
 import { env } from "@/lib/env"
 
 export default function DeveloperModePage(): React.ReactElement {
@@ -12,12 +12,12 @@ export default function DeveloperModePage(): React.ReactElement {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6">
-        <Card className="shadow-sm rounded-none border-x-0">
-          <CardHeader className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between space-x-4">
-              <div className="space-y-1">
-                <CardTitle>Developer Mode</CardTitle>
-                <CardDescription className="text-base font-normal leading-normal">
+        <Card className="shadow-md border-border bg-card">
+          <CardHeader className="max-w-4xl mx-auto px-8 py-6">
+            <div className="flex items-center justify-between space-x-6">
+              <div className="space-y-2">
+                <CardTitle className="text-xl font-semibold tracking-tight">Developer Mode</CardTitle>
+                <CardDescription className="text-base text-muted-foreground leading-relaxed">
                   Toggle Developer Mode to access code confluence's infrastructure tooling.
                 </CardDescription>
               </div>
@@ -31,29 +31,32 @@ export default function DeveloperModePage(): React.ReactElement {
             </div>
           </CardHeader>
           {isDevMode && (
-            <CardContent className="px-6 pt-0 pb-6 max-w-4xl mx-auto">
-              <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+            <CardContent className="px-8 pt-0 pb-6 max-w-4xl mx-auto">
+              <div className="mt-6 space-y-6">
+                <div className="grid grid-cols-[1fr_auto] gap-6 items-center">
                   <div className="min-w-0">
-                    <h3 className="text-sm font-medium mb-1">Workflow Orchestrator</h3>
-                    <p className="text-muted-foreground text-xs leading-normal break-words">
-                      Access and manage automated workflows, view execution logs, and debug orchestration issues.                    </p>
+                    <h3 className="text-base font-semibold mb-2">Workflow Orchestrator</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed break-words">
+                      Access and manage automated workflows, view execution logs, and debug orchestration issues.
+                    </p>
                   </div>
                   <div className="flex justify-end">
                     <Button 
                       asChild 
                       variant="outline" 
                       size="default" 
-                      className="w-auto max-w-xs hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                      className="min-w-[160px] hover:bg-accent hover:text-accent-foreground"
                     >
                       <a
                         href={env.workflowOrchestratorUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2"
+                        aria-label="Open Workflow Orchestrator in new tab"
                       >
                         <Workflow className="h-4 w-4" />
-                        Workflow Orchestrator
+                        <span>Workflow Orchestrator</span>
+                        <ExternalLink className="h-3 w-3" />
                       </a>
                     </Button>
                   </div>
@@ -61,10 +64,10 @@ export default function DeveloperModePage(): React.ReactElement {
                 
                 <Separator />
                 
-                <div className="grid grid-cols-[1fr_auto] gap-4 items-center">
+                <div className="grid grid-cols-[1fr_auto] gap-6 items-center">
                   <div className="min-w-0">
-                    <h3 className="text-sm font-medium mb-1">Knowledge Graph</h3>
-                    <p className="text-muted-foreground text-xs leading-normal break-words">
+                    <h3 className="text-base font-semibold mb-2">Knowledge Graph</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed break-words">
                       Explore the knowledge graph, inspect entities and relationships, and debug data connections.
                     </p>
                   </div>
@@ -73,16 +76,18 @@ export default function DeveloperModePage(): React.ReactElement {
                       asChild 
                       variant="outline" 
                       size="default" 
-                      className="w-auto max-w-xs hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                      className="min-w-[160px] hover:bg-accent hover:text-accent-foreground"
                     >
                       <a
                         href={env.knowledgeGraphUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2"
+                        aria-label="Open Knowledge Graph in new tab"
                       >
                         <Network className="h-4 w-4" />
-                        Knowledge Graph
+                        <span>Knowledge Graph</span>
+                        <ExternalLink className="h-3 w-3" />
                       </a>
                     </Button>
                   </div>

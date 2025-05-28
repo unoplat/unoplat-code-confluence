@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { GitHubRepoSummary } from '../../types';
 import { DataTableColumnHeader } from '../data-table-column-header';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -72,15 +73,9 @@ export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: 
         <DataTableColumnHeader column={column} title="Visibility" icon={<FaTripadvisor />} />
       ),
       cell: ({ row }): React.ReactNode => (
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            row.original.private
-              ? 'bg-destructive text-destructive-foreground'
-              : 'bg-emerald-100 text-emerald-800'
-          }`}
-        >
+        <Badge variant={row.original.private ? 'default' : 'secondary'}>
           {row.original.private ? 'Private' : 'Public'}
-        </span>
+        </Badge>
       ),
       enableSorting: false,
     },
