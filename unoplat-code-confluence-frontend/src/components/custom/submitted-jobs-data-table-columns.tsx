@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { ParentWorkflowJobResponse, JobStatus } from '../../types';
 import { DataTableColumnHeader } from '../data-table-column-header';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -26,24 +27,24 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
     case 'RETRYING':
       return <RefreshCw className="h-4 w-4 text-blue-500" />;
     default:
-      return <Clock className="h-4 w-4 text-gray-500" />;
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
   }
 };
 
-export const getStatusStyles = (status: JobStatus): string => {
+export const getStatusVariant = (status: JobStatus): 'completed' | 'failed' | 'pending' | 'running' | 'cancelled' => {
   switch (status) {
     case 'COMPLETED':
-      return 'bg-emerald-100 text-emerald-800';
+      return 'completed';
     case 'FAILED':
     case 'TIMED_OUT':
-      return 'bg-red-100 text-red-800';
+      return 'failed';
     case 'SUBMITTED':
-      return 'bg-amber-100 text-amber-800';
+      return 'pending';
     case 'RUNNING':
     case 'RETRYING':
-      return 'bg-blue-100 text-blue-800';
+      return 'running';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'cancelled';
   }
 };
 
@@ -102,14 +103,10 @@ export function getSubmittedJobsDataTableColumns({ setRowAction }: { setRowActio
       ),
       cell: ({ row }): React.ReactNode => (
         <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyles(
-              row.original.status
-            )}`}
-          >
+          <Badge variant={getStatusVariant(row.original.status)} className="gap-1">
             {getStatusIcon(row.original.status)}
             {row.original.status}
-          </span>
+          </Badge>
         </div>
       ),
       meta: {

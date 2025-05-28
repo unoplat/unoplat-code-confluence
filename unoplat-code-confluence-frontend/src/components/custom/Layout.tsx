@@ -12,6 +12,7 @@ import {
 } from '../ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { Home, Github, BookOpen } from 'lucide-react'
+import { ModeToggle } from './ModeToggle'
 
 /**
  * Layout Component - Main Application Shell with Sidebar Navigation
@@ -160,6 +161,7 @@ export function Layout(): React.ReactElement {
                       <BookOpen size={18} />
                       <span>Docs</span>
                     </a>
+                    <ModeToggle />
                   </div>
                 </div>
               </header>

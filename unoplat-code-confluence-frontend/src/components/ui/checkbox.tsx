@@ -1,25 +1,73 @@
 import * as React from "react"
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
+import { cva, type VariantProps } from "class-variance-authority"
 import { Check } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+const checkboxVariants = cva(
+  "peer shrink-0 border ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+  {
+    variants: {
+      size: {
+        sm: "h-3 w-3",
+        default: "h-4 w-4",
+        lg: "h-5 w-5",
+      },
+      variant: {
+        default: "border-primary",
+        secondary: "border-secondary",
+        muted: "border-muted-foreground",
+      },
+      radius: {
+        none: "rounded-none",
+        sm: "rounded-sm",
+        default: "rounded-sm",
+        md: "rounded-md",
+        full: "rounded-full",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+      variant: "default",
+      radius: "default",
+    },
+  }
+)
+
+const checkboxIndicatorVariants = cva(
+  "flex items-center justify-center text-current",
+  {
+    variants: {
+      size: {
+        sm: "[&>svg]:h-2.5 [&>svg]:w-2.5",
+        default: "[&>svg]:h-4 [&>svg]:w-4",
+        lg: "[&>svg]:h-4 [&>svg]:w-4",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  }
+)
+
+export interface CheckboxProps
+  extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>,
+    VariantProps<typeof checkboxVariants> {}
+
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
->(({ className, ...props }, ref) => (
+  CheckboxProps
+>(({ className, size, variant, radius, ...props }, ref) => (
   <CheckboxPrimitive.Root
     ref={ref}
-    className={cn(
-      "peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
-      className
-    )}
+    className={cn(checkboxVariants({ size, variant, radius }), className)}
     {...props}
   >
     <CheckboxPrimitive.Indicator
-      className={cn("flex items-center justify-center text-current")}
+      className={cn(checkboxIndicatorVariants({ size }))}
     >
-      <Check className="h-4 w-4" />
+      <Check />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ))

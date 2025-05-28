@@ -314,7 +314,7 @@ export function RepositoryConfigDialog({
                           variant="outline"
                           size="sm"
                           aria-label="Add Codebase"
-                          className="flex items-center justify-center bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
+                          className="flex items-center justify-center"
                           onClick={() => field.pushValue(defaultCodebase)}
                         >
                           <PlusIcon className="mr-2 h-4 w-4" />
@@ -332,7 +332,6 @@ export function RepositoryConfigDialog({
             <Button
               type="button"
               variant="outline"
-              className="border-muted bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => handleDialogOpenChange(false)}
             >
               Cancel

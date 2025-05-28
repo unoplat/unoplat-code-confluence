@@ -10,11 +10,11 @@ import '../styles/app.css'
 // It serves as a fallback UI when no routes match the current URL
 function NotFoundComponent(): React.ReactElement {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-800">404</h1>
-        <p className="text-xl mt-2 text-gray-600">Page Not Found</p>
-        <p className="mt-4 text-gray-500">The page you're looking for doesn't exist or has been moved.</p>
+        <h1 className="text-4xl font-bold text-foreground">404</h1>
+        <p className="text-xl mt-2 text-muted-foreground">Page Not Found</p>
+        <p className="mt-4 text-muted-foreground">The page you're looking for doesn't exist or has been moved.</p>
       </div>
     </div>
   )

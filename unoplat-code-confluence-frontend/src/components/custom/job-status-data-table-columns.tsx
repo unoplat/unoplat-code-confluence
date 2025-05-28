@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { FlattenedCodebaseRun, JobStatus } from '../../types';
 import { DataTableColumnHeader } from '../data-table-column-header';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import { AlertCircle, CheckCircle, Clock, PauseCircle, RefreshCw } from 'lucide-react';
 
 // Reusing the status icon and styles functions from the parent component
@@ -21,24 +22,24 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
     case 'RETRYING':
       return <RefreshCw className="h-4 w-4 text-blue-500" />;
     default:
-      return <Clock className="h-4 w-4 text-gray-500" />;
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
   }
 };
 
-export const getStatusStyles = (status: JobStatus): string => {
+export const getStatusVariant = (status: JobStatus): 'completed' | 'failed' | 'pending' | 'running' | 'cancelled' => {
   switch (status) {
     case 'COMPLETED':
-      return 'bg-emerald-100 text-emerald-800';
+      return 'completed';
     case 'FAILED':
     case 'TIMED_OUT':
-      return 'bg-red-100 text-red-800';
+      return 'failed';
     case 'SUBMITTED':
-      return 'bg-amber-100 text-amber-800';
+      return 'pending';
     case 'RUNNING':
     case 'RETRYING':
-      return 'bg-blue-100 text-blue-800';
+      return 'running';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'cancelled';
   }
 };
 
@@ -94,14 +95,10 @@ export function getJobStatusDataTableColumns({
       ),
       cell: ({ row }): React.ReactNode => (
         <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusStyles(
-              row.original.codebase_status
-            )}`}
-          >
+          <Badge variant={getStatusVariant(row.original.codebase_status)} className="gap-1">
             {getStatusIcon(row.original.codebase_status)}
             {row.original.codebase_status}
-          </span>
+          </Badge>
         </div>
       ),
       meta: {
@@ -200,7 +197,7 @@ export function getJobStatusDataTableColumns({
               href={issueUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline flex items-center gap-1"
+              className="text-primary hover:underline flex items-center gap-1"
             >
               #{issueNumber}
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
@@ -211,10 +208,9 @@ export function getJobStatusDataTableColumns({
         // If feedback hasn't been submitted and status is FAILED, show submit button
         return row.original.codebase_status === 'FAILED' ? (
           <Button
-            variant="outline"
+            variant="info"
             size="sm"
             onClick={() => onSubmitFeedback(row.original)}
-            className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-800 text-xs"
           >
             Submit Feedback
           </Button>

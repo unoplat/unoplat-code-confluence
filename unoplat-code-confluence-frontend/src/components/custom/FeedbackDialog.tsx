@@ -216,14 +216,13 @@ export function FeedbackDialog({
               variant="outline" 
               onClick={() => onOpenChange(false)}
               disabled={submitMutation.isPending}
-              className="border border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </Button>
             <Button
+              variant="default"
               onClick={handleSubmit}
               disabled={submitMutation.isPending}
-              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-800"
             >
               {submitMutation.isPending ? (
                 <>
