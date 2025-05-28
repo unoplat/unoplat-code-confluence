@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.22.0...unoplat-code-confluence-frontend-v1.23.0) (2025-05-28)
+
+
+### Features
+
+* **ui:** UI overhaul with new design system and support dark/lig ([4b344f5](https://github.com/unoplat/unoplat-code-confluence/commit/4b344f5c85f94f6b062ea0dfd21e66ebcc38a056))
+* **ui:** UI overhaul with new design system and support dark/lig ([0bbb67a](https://github.com/unoplat/unoplat-code-confluence/commit/0bbb67ae62472e66c9c9484ac93bad0717123fcc))
+
 ## [1.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.21.1...unoplat-code-confluence-frontend-v1.22.0) (2025-05-28)
 
 
