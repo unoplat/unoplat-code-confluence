@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.35.1...code-confluence-flow-bridge-v0.36.0) (2025-05-28)
+
+
+### Features
+
+* **ui:** UI overhaul with new design system and support dark/lig ([4b344f5](https://github.com/unoplat/unoplat-code-confluence/commit/4b344f5c85f94f6b062ea0dfd21e66ebcc38a056))
+* **ui:** UI overhaul with new design system and support dark/lig ([0bbb67a](https://github.com/unoplat/unoplat-code-confluence/commit/0bbb67ae62472e66c9c9484ac93bad0717123fcc))
+
 ## [0.35.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.35.0...code-confluence-flow-bridge-v0.35.1) (2025-05-27)
 
 
