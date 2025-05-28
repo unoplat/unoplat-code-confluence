@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.21.1...unoplat-code-confluence-frontend-v1.22.0) (2025-05-28)
+
+
+### Features
+
+* **registry:** add self hostable registry ([fbc2fae](https://github.com/unoplat/unoplat-code-confluence/commit/fbc2fae59760fed9f89112d1a499470fe031b686))
+* **registry:** add self hostable registry ([2b45d62](https://github.com/unoplat/unoplat-code-confluence/commit/2b45d6206b44e4c368e960a364dcb6242e0af063))
+
 ## [1.21.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.21.0...unoplat-code-confluence-frontend-v1.21.1) (2025-05-27)
 
 
