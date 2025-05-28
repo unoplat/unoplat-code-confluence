@@ -160,7 +160,7 @@ export const RepositoryDataTable = forwardRef<RepositoryDataTableRef, { tokenSta
     // 4️⃣ Render DataTable and dialog
     return (
       <>
-        <div className="w-full max-w-7xl mx-auto px-4">
+        <div className="w-full">
           <DataTable
             table={table}
             actionBar={null}

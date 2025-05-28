@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
@@ -26,24 +27,49 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    className={cn("fixed inset-0 z-50 bg-background/80", className)}
     {...props}
   />
 ))
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 
+const drawerContentVariants = cva(
+  "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col border bg-background",
+  {
+    variants: {
+      radius: {
+        none: "rounded-none",
+        sm: "rounded-t-sm",
+        default: "rounded-t-lg",
+        lg: "rounded-t-xl",
+      },
+      shadow: {
+        sm: "shadow-sm",
+        default: "shadow-lg",
+        lg: "shadow-xl",
+        xl: "shadow-2xl",
+      },
+    },
+    defaultVariants: {
+      radius: "default",
+      shadow: "default",
+    },
+  }
+)
+
+export interface DrawerContentProps
+  extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>,
+    VariantProps<typeof drawerContentVariants> {}
+
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  DrawerContentProps
+>(({ className, children, radius, shadow, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
       ref={ref}
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
-        className
-      )}
+      className={cn(drawerContentVariants({ radius, shadow }), className)}
       {...props}
     >
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />

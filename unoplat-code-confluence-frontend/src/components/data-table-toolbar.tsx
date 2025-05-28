@@ -87,7 +87,7 @@ export function DataTableToolbar<TData>({
             aria-label="Reset filters"
             variant="outline"
             size="sm"
-            className="border border-gray-300/60 dark:border-gray-600/60 rounded-md"
+            className="border-0 shadow-sm"
             onClick={onReset}
           >
             <X />
@@ -97,7 +97,7 @@ export function DataTableToolbar<TData>({
       </div>
       <div className="flex items-center gap-2">
         {children}
-        <div className="border border-gray-300/60 dark:border-gray-600/60 rounded-md p-1">
+        <div className="border-0 shadow-sm rounded-md p-1">
           <DataTableViewOptions table={table} />
         </div>
       </div>
@@ -146,16 +146,16 @@ function DataTableToolbarFilter<TData>({
                 value={(column.getFilterValue() as string) ?? ""}
                 onChange={(event) => column.setFilterValue(event.target.value)}
                 className={cn(
-                  "h-9 w-full border border-gray-300/60 dark:border-gray-600/60 rounded-md pl-9 pr-9",
-                  "group-focus-within:border-primary group-focus-within:ring-1 group-focus-within:ring-primary",
-                  shouldAutoFocus && "focus:border-primary"
+                  "h-9 w-full border-0 shadow-sm rounded-md pl-9 pr-9 bg-background",
+                  "group-focus-within:ring-2 group-focus-within:ring-ring group-focus-within:shadow-md",
+                  shouldAutoFocus && "focus:ring-2 focus:ring-ring"
                 )}
                 autoFocus={shouldAutoFocus}
               />
               {shortcutKey && (
                 <div className="pointer-events-none absolute right-3 flex items-center text-muted-foreground">
                   <kbd
-                    className="kbd kbd-xs bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow-sm px-2 py-0.5 text-sm leading-none rounded"
+                    className="kbd kbd-xs bg-muted border border-border shadow-sm px-2 py-0.5 text-sm leading-none rounded"
                   >
                     {shortcutKey}
                   </kbd>
@@ -174,7 +174,7 @@ function DataTableToolbarFilter<TData>({
                 placeholder={columnMeta.placeholder ?? columnMeta.label}
                 value={(column.getFilterValue() as string) ?? ""}
                 onChange={(event) => column.setFilterValue(event.target.value)}
-                className={cn("h-8 w-[120px] border border-gray-300/60 dark:border-gray-600/60 rounded-md", columnMeta.unit && "pr-8")}
+                className={cn("h-8 w-[120px] border-0 shadow-sm rounded-md bg-background", columnMeta.unit && "pr-8")}
               />
               {columnMeta.unit && (
                 <span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-accent px-2 text-muted-foreground text-sm">
