@@ -1,0 +1,13 @@
+version: '3'
+
+tasks:
+  launch-registry:
+    desc: Build and launch the registry with all dependencies
+    cmds:
+      - pnpm install
+      - pnpm build
+      - pnpm registry:build
+      - pnpm dev
+
+  default:
+    deps: [launch-registry]

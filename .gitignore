@@ -332,3 +332,4 @@ unoplat-code-confluence-ingestion/dependencies/analysers
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/linters/python/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/python/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/app/jars/scanner_cli-2.2.8-all.jar
+unoplat-code-confluence-frontend/registry-template-v4
