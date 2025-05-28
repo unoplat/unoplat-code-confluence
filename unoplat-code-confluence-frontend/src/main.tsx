@@ -51,3 +51,20 @@ createRoot(document.getElementById('root')!).render(
     
   </StrictMode>,
 )
+
+// Initialize stagewise toolbar in development mode only
+// TEMPORARILY DISABLED to debug sidebar header issue
+// if (process.env.NODE_ENV === 'development') {
+//   const stagewiseConfig = {
+//     plugins: []
+//   };
+
+//   // Create a separate React root for the stagewise toolbar
+//   const stagewiseContainer = document.createElement('div');
+//   stagewiseContainer.id = 'stagewise-toolbar-container';
+//   document.body.appendChild(stagewiseContainer);
+  
+//   createRoot(stagewiseContainer).render(
+//     <StagewiseToolbar config={stagewiseConfig} />
+//   );
+// }
