@@ -1,4 +1,5 @@
-from typing import Any, List, Union, Dict
+from typing import Any, Dict, List, Union
+
 
 def normalize_authors(authors: Union[List[str], List[Dict[str, Any]], None]) -> List[str]:
     """

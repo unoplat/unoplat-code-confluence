@@ -1,7 +1,6 @@
 # Standard Library
 # First Party
 
-from loguru import logger
 from src.code_confluence_flow_bridge.models.chapi.chapi_functioncall import ChapiFunctionCall
 from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode
 from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
@@ -12,6 +11,8 @@ from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import_type impo
 from src.code_confluence_flow_bridge.parser.tree_sitter.code_confluence_tree_sitter import CodeConfluenceTreeSitter
 
 from typing import Dict, List, Optional
+
+from loguru import logger
 
 # Third Party
 from tree_sitter import Parser, Tree
