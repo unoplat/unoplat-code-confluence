@@ -1,6 +1,5 @@
 # Standard Library
 import os
-from typing import Optional
 
 
 class PythonPackageNamingStrategy:

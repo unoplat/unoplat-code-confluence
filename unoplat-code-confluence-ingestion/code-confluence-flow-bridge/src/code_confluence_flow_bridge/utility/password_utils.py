@@ -1,6 +1,6 @@
 import os
+
 from cryptography.fernet import Fernet
-from typing import Optional
 
 # Initialize Fernet for symmetrical encryption (where we need to decrypt later)
 # For tokens that need to be retrieved in their original form

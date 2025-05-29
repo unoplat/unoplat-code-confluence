@@ -153,3 +153,34 @@ tasks:
       DOCKER_HOST: "unix:///{{.HOME}}/.orbstack/run/docker.sock"
     cmds:
       - act pull_request_target -j test-uv-projects -s GITHUB_TOKEN="$(gh auth token)" --env GITHUB_REPOSITORY="unoplat/unoplat-code-confluence" --env GITHUB_HEAD_REF="end-end-test-local-temporal-workflow" --env GITHUB_BASE_REF="main" --local-repository="." --container-architecture linux/amd64 -P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+  lint:
+    desc: Run ruff linter on the codebase
+    dir: .
+    cmds:
+      - uv run ruff check src/
+
+  lint-fix:
+    desc: Run ruff linter and auto-fix issues
+    dir: .
+    cmds:
+      - uv run ruff check src/ --fix
+
+  typecheck:
+    desc: Run mypy type checker on the codebase
+    dir: .
+    cmds:
+      - uv run mypy src/
+
+  format:
+    desc: Format code using ruff
+    dir: .
+    cmds:
+      - uv run ruff format src/
+
+  code-quality:
+    desc: Run all code quality checks (lint, typecheck)
+    dir: .
+    cmds:
+      - task: lint
+      - task: typecheck
