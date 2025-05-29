@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.36.0...code-confluence-flow-bridge-v0.36.1) (2025-05-29)
+
+
+### Bug Fixes
+
+* **graph_ingestion:** graceful ingestion in case of existing nodes and relationships and add idempotency tests for repo and package metadata ([82a40f9](https://github.com/unoplat/unoplat-code-confluence/commit/82a40f9cb20266d4b41a76b44555d74599da10a4))
+* **graph_ingestion:** graceful ingestion in case of existing nodes and relationships and add idempotency tests for repo and package metadata ([69339da](https://github.com/unoplat/unoplat-code-confluence/commit/69339da7f82b7232f6ed65c5d65da9fc1c3d97e5))
+
 ## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.35.1...code-confluence-flow-bridge-v0.36.0) (2025-05-28)
 
 
