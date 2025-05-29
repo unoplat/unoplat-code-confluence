@@ -63,6 +63,7 @@ from sqlalchemy.orm import QueryableAttribute, selectinload
 from sqlalchemy.orm.attributes import QueryableAttribute
 from sqlmodel import select
 from temporalio.client import Client, WorkflowHandle
+from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.exceptions import ApplicationError
 from temporalio.worker import PollerBehaviorAutoscaling, Worker
 
@@ -79,7 +80,10 @@ async def get_temporal_client() -> Client:
     # Connect to local temporal server
     # Read from env - TEMPORAL_SERVER_ADDRESS, default to localhost:7233
     temporal_server: str = os.getenv("TEMPORAL_SERVER_ADDRESS", "localhost:7233")
-    temporal_client = await Client.connect(temporal_server)
+    temporal_client = await Client.connect(
+        temporal_server,
+        data_converter=pydantic_data_converter
+    )
     return temporal_client
 
 
