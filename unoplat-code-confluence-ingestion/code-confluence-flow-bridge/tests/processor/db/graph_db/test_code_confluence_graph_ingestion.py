@@ -154,9 +154,10 @@ class TestCodeConfluenceGraphIngestion:
             "local_path": "/tmp/test-codebase",
         }
         
-        codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
-        assert len(codebase_results) == 1
-        created_codebase = codebase_results[0]
+        # Create codebase node using save method to avoid type error
+        created_codebase = CodeConfluenceCodebase(**codebase_dict)
+        await created_codebase.save()
+        assert created_codebase is not None
         
         # Create sample package manager metadata
         package_metadata = UnoplatPackageManagerMetadata(
@@ -213,9 +214,10 @@ class TestCodeConfluenceGraphIngestion:
             "local_path": "/tmp/test-codebase",
         }
         
-        codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
-        assert len(codebase_results) == 1
-        created_codebase = codebase_results[0]
+        # Create codebase node using save method to avoid type error
+        created_codebase = CodeConfluenceCodebase(**codebase_dict)
+        await created_codebase.save()
+        assert created_codebase is not None
         
         # Import required classes
         from src.code_confluence_flow_bridge.models.chapi.chapi_position import Position
@@ -306,3 +308,91 @@ class TestCodeConfluenceGraphIngestion:
         
         # Verify class node properties
         assert "TestClass" in class_node.qualified_name  # Check qualified_name instead of name
+
+    @pytest.mark.asyncio
+    async def test_idempotent_git_repo_insertion(self, graph_ingestion: CodeConfluenceGraphIngestion, sample_git_repo: UnoplatGitRepository):
+        """Test that inserting the same git repository twice succeeds gracefully without errors"""
+        # Insert repository first time
+        metadata1 = await graph_ingestion.insert_code_confluence_git_repo(sample_git_repo)
+        
+        # Verify first insertion
+        assert isinstance(metadata1, ParentChildCloneMetadata)
+        assert metadata1.repository_qualified_name == "unoplat_unoplat-code-confluence"
+        
+        # Insert the same repository again - should succeed gracefully
+        metadata2 = await graph_ingestion.insert_code_confluence_git_repo(sample_git_repo)
+        
+        # Verify second insertion returns same metadata
+        assert isinstance(metadata2, ParentChildCloneMetadata)
+        assert metadata2.repository_qualified_name == metadata1.repository_qualified_name
+        assert metadata2.codebase_qualified_names == metadata1.codebase_qualified_names
+        
+        # Verify only one repository node exists
+        repo_nodes = await CodeConfluenceGitRepository.nodes.filter(
+            qualified_name=metadata1.repository_qualified_name
+        ).all()
+        assert len(repo_nodes) == 1
+        
+        # Verify only one codebase node exists  
+        codebase_nodes = await CodeConfluenceCodebase.nodes.filter(
+            qualified_name=metadata1.codebase_qualified_names[0]
+        ).all()
+        assert len(codebase_nodes) == 1
+
+    @pytest.mark.asyncio
+    async def test_idempotent_package_metadata_insertion(self, graph_ingestion: CodeConfluenceGraphIngestion):
+        """Test that inserting the same package metadata twice succeeds gracefully"""
+        # First create a codebase node
+        codebase_qualified_name = "test_org_test-repo_test_codebase_idempotent"
+        codebase_dict = {
+            "qualified_name": codebase_qualified_name,
+            "name": "test_codebase",
+            "readme": "# Test Codebase",
+            "local_path": "/tmp/test-codebase",
+        }
+        
+        # Create codebase node using save method to avoid type error
+        created_codebase = CodeConfluenceCodebase(**codebase_dict)
+        await created_codebase.save()
+        assert created_codebase is not None
+        
+        # Create sample package manager metadata
+        package_metadata = UnoplatPackageManagerMetadata(
+            dependencies={
+                "requests": UnoplatProjectDependency(
+                    version=UnoplatVersion(minimum_version="2.0.0")
+                )
+            },
+            package_name="test-package-idempotent",
+            programming_language="python",
+            package_manager="poetry",
+            programming_language_version="3.9",
+            project_version="1.0.0",
+            description="Test package for idempotency",
+            authors=["Test Author"],
+            entry_points={"cli": "test_package.cli:main"}
+        )
+        
+        # Insert metadata first time
+        await graph_ingestion.insert_code_confluence_codebase_package_manager_metadata(
+            codebase_qualified_name=codebase_qualified_name,
+            package_manager_metadata=package_metadata
+        )
+        
+        # Insert the same metadata again - should succeed gracefully
+        await graph_ingestion.insert_code_confluence_codebase_package_manager_metadata(
+            codebase_qualified_name=codebase_qualified_name,
+            package_manager_metadata=package_metadata
+        )
+        
+        # Verify only one metadata node exists
+        retrieved_codebase = await CodeConfluenceCodebase.nodes.get(
+            qualified_name=codebase_qualified_name
+        )
+        metadata_nodes = await retrieved_codebase.package_manager_metadata.all()
+        assert len(metadata_nodes) == 1
+        
+        # Verify metadata fields are still correct
+        metadata_node = metadata_nodes[0]
+        assert metadata_node.package_name == package_metadata.package_name
+        assert metadata_node.programming_language == package_metadata.programming_language

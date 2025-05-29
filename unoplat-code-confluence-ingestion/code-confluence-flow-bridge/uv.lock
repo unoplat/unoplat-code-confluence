@@ -349,7 +349,7 @@ wheels = [
 
 [[package]]
 name = "code-confluence-flow-bridge"
-version = "0.35.1"
+version = "0.36.0"
 source = { virtual = "." }
 dependencies = [
     { name = "asyncpg" },
