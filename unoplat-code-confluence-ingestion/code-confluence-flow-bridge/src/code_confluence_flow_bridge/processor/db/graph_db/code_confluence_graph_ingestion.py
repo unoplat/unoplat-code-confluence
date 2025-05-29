@@ -11,9 +11,10 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 
 import hashlib
 import traceback
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from loguru import logger
+from neomodel.exceptions import RequiredProperty, UniqueProperty
 from temporalio.exceptions import ApplicationError
 from unoplat_code_confluence_commons import (
     CodeConfluenceClass,
@@ -44,6 +45,139 @@ class CodeConfluenceGraphIngestion:
         """Close graph connection"""
         await self.code_confluence_graph.close()
 
+    def _get_node_identifier(self, node) -> str:
+        """
+        Get the appropriate identifier for a node for logging purposes.
+        
+        Args:
+            node: The node to get identifier for
+            
+        Returns:
+            str: The identifier value
+        """
+        # CodeConfluenceFile inherits from AsyncStructuredNode and uses file_path as unique identifier
+        if hasattr(node, 'file_path') and node.file_path:
+            return node.file_path
+        # CodeConfluenceAnnotation inherits from AsyncStructuredNode and uses name as unique identifier
+        elif hasattr(node, 'name') and node.name and not hasattr(node, 'qualified_name'):
+            return node.name
+        # All BaseNode-derived classes use qualified_name
+        elif hasattr(node, 'qualified_name') and node.qualified_name:
+            return node.qualified_name
+        # Fallback to string representation
+        else:
+            return str(node)
+
+    async def _safe_connect(self, source_node, relationship_attr: str, target_node) -> bool:
+        """
+        Safely connect two nodes, checking if relationship already exists.
+        Logs at INFO level if relationship already exists and proceeds gracefully.
+        
+        Args:
+            source_node: The source node
+            relationship_attr: The name of the relationship attribute
+            target_node: The target node
+            
+        Returns:
+            bool: True if new connection made, False if already existed
+        """
+        try:
+            relationship = getattr(source_node, relationship_attr)
+            if await relationship.is_connected(target_node):
+                # Use appropriate identifier for each node type based on inheritance
+                source_id = self._get_node_identifier(source_node)
+                target_id = self._get_node_identifier(target_node)
+                logger.info(
+                    "Relationship already exists: {}.{} -> {} (source: {}, target: {})",
+                    source_node.__class__.__name__,
+                    relationship_attr,
+                    target_node.__class__.__name__,
+                    source_id,
+                    target_id
+                )
+                return False
+            else:
+                await relationship.connect(target_node)
+                source_id = self._get_node_identifier(source_node)
+                target_id = self._get_node_identifier(target_node)
+                logger.debug(
+                    "Created new relationship: {}.{} -> {} (source: {}, target: {})",
+                    source_node.__class__.__name__,
+                    relationship_attr,
+                    target_node.__class__.__name__,
+                    source_id,
+                    target_id
+                )
+                return True
+        except Exception as e:
+            # Log the error but don't fail the application
+            logger.warning(
+                "Failed to create relationship {}.{} -> {}: {}. Proceeding gracefully.",
+                source_node.__class__.__name__,
+                relationship_attr,
+                target_node.__class__.__name__,
+                str(e)
+            )
+            return False
+
+    async def _handle_node_creation(self, node_class, node_dict: dict):
+        """
+        Safely create or update a node with graceful error handling for constraint violations.
+        Logs constraint violations and proceeds gracefully instead of failing.
+        
+        Args:
+            node_class: The neomodel node class
+            node_dict: Dictionary of node properties
+            
+        Returns:
+            List of created/updated nodes, or empty list if failed
+        """
+        try:
+            results = await node_class.create_or_update(node_dict)
+            return results if results else []
+        except UniqueProperty as e:
+            logger.info(
+                "Node already exists with unique property: {} for {}. Proceeding gracefully.",
+                str(e),
+                node_class.__name__
+            )
+            # Try to retrieve the existing node by unique properties
+            try:
+                # Find unique index properties in the node dict
+                for prop_name, value in node_dict.items():
+                    if hasattr(node_class, prop_name):
+                        prop = getattr(node_class, prop_name)
+                        if hasattr(prop, 'unique_index') and prop.unique_index:
+                            existing_nodes = await node_class.nodes.filter(**{prop_name: value}).all()
+                            if existing_nodes:
+                                return existing_nodes[:1]  # Return as list for consistency
+                # If no unique property found, try qualified_name (all nodes have this from BaseNode)
+                if 'qualified_name' in node_dict:
+                    existing_nodes = await node_class.nodes.filter(qualified_name=node_dict['qualified_name']).all()
+                    if existing_nodes:
+                        return existing_nodes[:1]
+            except Exception as retrieval_error:
+                logger.warning(
+                    "Failed to retrieve existing {} node after UniqueProperty error: {}. Proceeding gracefully.",
+                    node_class.__name__,
+                    str(retrieval_error)
+                )
+            return []
+        except RequiredProperty as e:
+            logger.error(
+                "Missing required property for {}: {}. Cannot proceed with node creation.",
+                node_class.__name__,
+                str(e)
+            )
+            return []
+        except Exception as e:
+            logger.warning(
+                "Unexpected error creating {} node: {}. Proceeding gracefully.",
+                node_class.__name__,
+                str(e)
+            )
+            return []
+
     async def insert_code_confluence_git_repo(self, git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
         """
         Insert a git repository into the graph database
@@ -65,7 +199,7 @@ class CodeConfluenceGraphIngestion:
                 # Create repository node
                 repo_dict = {"qualified_name": qualified_name, "repository_url": git_repo.repository_url, "repository_name": git_repo.repository_name, "repository_metadata": git_repo.repository_metadata, "readme": git_repo.readme, "github_organization": git_repo.github_organization}
 
-                repo_results = await CodeConfluenceGitRepository.create_or_update(repo_dict)
+                repo_results = await self._handle_node_creation(CodeConfluenceGitRepository, repo_dict)
                 if not repo_results:
                     raise ApplicationError(
                         f"Failed to create repository node: {qualified_name}", 
@@ -87,7 +221,7 @@ class CodeConfluenceGraphIngestion:
                     codebase_dict = {"qualified_name": codebase_qualified_name, "name": codebase.name, "readme": codebase.readme, "local_path": codebase.local_path}
                     parent_child_clone_metadata.codebase_qualified_names.append(codebase_qualified_name)
 
-                    codebase_results = await CodeConfluenceCodebase.create_or_update(codebase_dict)
+                    codebase_results = await self._handle_node_creation(CodeConfluenceCodebase, codebase_dict)
                     if not codebase_results:
                         raise ApplicationError(
                             f"Failed to create codebase node: {codebase.name}",
@@ -102,9 +236,9 @@ class CodeConfluenceGraphIngestion:
 
                     codebase_node = codebase_results[0]
 
-                    # Establish relationships
-                    await repo_node.codebases.connect(codebase_node)
-                    await codebase_node.git_repository.connect(repo_node)
+                    # Establish relationships using safe connect
+                    await self._safe_connect(repo_node, 'codebases', codebase_node)
+                    await self._safe_connect(codebase_node, 'git_repository', repo_node)
 
                 logger.debug(f"Successfully ingested repository {qualified_name}")
                 return parent_child_clone_metadata
@@ -169,7 +303,7 @@ class CodeConfluenceGraphIngestion:
                     "authors": package_manager_metadata.authors or [],
                 }
 
-                metadata_results = await CodeConfluencePackageManagerMetadata.create_or_update(metadata_dict)
+                metadata_results = await self._handle_node_creation(CodeConfluencePackageManagerMetadata, metadata_dict)
                 if not metadata_results:
                     raise ApplicationError(
                         f"Failed to create package manager metadata for {codebase_qualified_name}", 
@@ -183,8 +317,8 @@ class CodeConfluenceGraphIngestion:
 
                 metadata_node: CodeConfluencePackageManagerMetadata = metadata_results[0]
 
-                # Connect metadata to codebase
-                await codebase_node.package_manager_metadata.connect(metadata_node)
+                # Connect metadata to codebase using safe connect
+                await self._safe_connect(codebase_node, 'package_manager_metadata', metadata_node)
 
                 logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
 
@@ -235,7 +369,7 @@ class CodeConfluenceGraphIngestion:
             "checksum": checksum
         }
         
-        file_results = await CodeConfluenceFile.create_or_update(file_dict)
+        file_results = await self._handle_node_creation(CodeConfluenceFile, file_dict)
         if not file_results:
             raise ApplicationError(
                 f"Failed to create file node: {file_path}",
@@ -250,9 +384,9 @@ class CodeConfluenceGraphIngestion:
         
         file_node: CodeConfluenceFile = file_results[0]
         
-        # Connect package to file
-        await package_node.files.connect(file_node)
-        await file_node.package.connect(package_node)
+        # Connect package to file using safe connect
+        await self._safe_connect(package_node, 'files', file_node)
+        await self._safe_connect(file_node, 'package', package_node)
         
         logger.debug(f"Created file node: {file_path}")
         
@@ -301,7 +435,7 @@ class CodeConfluenceGraphIngestion:
             "global_variables": [var.model_dump() if var else {}
                                for var in (node.global_variables or [])]
         }
-        class_results = await CodeConfluenceClass.create_or_update(class_dict)
+        class_results = await self._handle_node_creation(CodeConfluenceClass, class_dict)
         if not class_results:
             raise ApplicationError(
                 message=f"Failed to create class node for {getattr(node, 'node_name', 'UnnamedClass')}",
@@ -309,10 +443,10 @@ class CodeConfluenceGraphIngestion:
             )
         class_node: CodeConfluenceClass = class_results[0]
         
-        # Connect file to class node (file → class)
-        await file_node.nodes.connect(class_node)
-        # Connect class node to file (class → file)
-        await class_node.file.connect(file_node)
+        # Connect file to class node (file → class) using safe connect
+        await self._safe_connect(file_node, 'nodes', class_node)
+        # Connect class node to file (class → file) using safe connect
+        await self._safe_connect(class_node, 'file', file_node)
         logger.debug(f"Connected class {node.node_name} to file {node.file_path}")
 
         logger.debug(f"Created class node: {getattr(node, 'node_name', 'UnnamedClass')}")
@@ -356,20 +490,15 @@ class CodeConfluenceGraphIngestion:
             "content": function.content or "",
             "comments_description": function.comments_description or ""
         }
-        function_results: list[CodeConfluenceInternalFunction] = await CodeConfluenceInternalFunction.create_or_update(function_dict)
+        function_results: list[CodeConfluenceInternalFunction] = await self._handle_node_creation(CodeConfluenceInternalFunction, function_dict)
         if not function_results:
             raise ApplicationError(
                 message=f"Failed to create function node for {func_name}",
                 type="FUNCTION_CREATION_ERROR"
             )
         function_node: CodeConfluenceInternalFunction = function_results[0]
-        # Check relationship to avoid duplicates
-        if await class_node.functions.is_connected(function_node):
-            logger.debug(f"Function {func_name} already connected to class {class_node.qualified_name}")
-            return function_node
-
-        # Connect relationship on one side only
-        await class_node.functions.connect(function_node)
+        # Connect relationship using safe connect (already handles duplicate checking)
+        await self._safe_connect(class_node, 'functions', function_node)
         logger.debug(f"Created function node: {func_name}")
         return function_node
     
@@ -450,7 +579,7 @@ class CodeConfluenceGraphIngestion:
                     ),
                 }
 
-                package_results = await CodeConfluencePackage.create_or_update(package_dict)
+                package_results = await self._handle_node_creation(CodeConfluencePackage, package_dict)
                 if not package_results:
                     raise ApplicationError(
                         f"Failed to create package node: {pkg_name}",
@@ -464,13 +593,13 @@ class CodeConfluenceGraphIngestion:
                     )
                 package_node: CodeConfluencePackage = package_results[0]
 
-                # Connect to parent and codebase
+                # Connect to parent and codebase using safe connect
                 if isinstance(parent_node, CodeConfluenceCodebase):
-                    await parent_node.packages.connect(package_node)
-                    await package_node.codebase.connect(parent_node)
+                    await self._safe_connect(parent_node, 'packages', package_node)
+                    await self._safe_connect(package_node, 'codebase', parent_node)
                 else:
-                    await parent_node.sub_packages.connect(package_node)
-                    await package_node.sub_packages.connect(parent_node)
+                    await self._safe_connect(parent_node, 'sub_packages', package_node)
+                    await self._safe_connect(package_node, 'sub_packages', parent_node)
 
                 logger.debug(f"Created package node: {pkg_name}")
 

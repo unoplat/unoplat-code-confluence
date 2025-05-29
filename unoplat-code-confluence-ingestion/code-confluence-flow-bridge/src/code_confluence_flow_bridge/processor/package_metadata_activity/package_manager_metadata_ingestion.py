@@ -48,7 +48,7 @@ class PackageManagerMetadataIngestion:
                 "Starting package manager metadata ingestion | codebase_name={} | programming_language={} | package_manager={}",
                 codebase_qualified_name, package_manager_metadata.programming_language, package_manager_metadata.package_manager
             )
-
+            
             await self.code_confluence_graph_ingestion.insert_code_confluence_codebase_package_manager_metadata(codebase_qualified_name=codebase_qualified_name, package_manager_metadata=package_manager_metadata)
 
             log.debug(
