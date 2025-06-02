@@ -33,7 +33,7 @@ Follow these steps to set up Code Confluence:
    mkdir -p code-confluence && cd code-confluence
    
    # Download Docker Compose file
-   curl -O https://raw.githubusercontent.com/unoplat/unoplat-code-confluence/main/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/prod-docker-compose.yml
+   curl -O https://raw.githubusercontent.com/unoplat/unoplat-code-confluence/refs/heads/main/prod-docker-compose.yml
    ```
 
 2. **Launch Services:**
