@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.36.1...code-confluence-flow-bridge-v0.37.0) (2025-05-29)
+
+
+### Features
+
+* add code quality tasks and remove pydantic converter ([530e1d2](https://github.com/unoplat/unoplat-code-confluence/commit/530e1d2b993c12f1cba7e6f438987258acafc6b9))
+* add code quality tasks and remove pydantic converter ([e1dc759](https://github.com/unoplat/unoplat-code-confluence/commit/e1dc7595316a521b3ce02fbb4d6725aaf6b59e60))
+
 ## [0.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.36.0...code-confluence-flow-bridge-v0.36.1) (2025-05-29)
 
 
