@@ -78,7 +78,6 @@ Unoplat-CodeConfluence aims to be the definitive solution for extracting, unders
 
 - **Deterministic Understanding**: Built on ArchGuard and Tree-sitter for reliable, language-agnostic code parsing
 - **Smart Summarization**: Bottom-up code analysis from functions to entire codebases, preserving context at every level
-- **Graph based Embedding**: Embed codebases' functions using SOTA embeddings to enable semantic search and retrieval
 - **Enhanced Onboarding**: Intuitive, interconnected documentation helps new team members understand complex codebases quickly
 - **Graph-Based Intelligence**: Query and explore codebases through natural, graphical relationships between components
 - **Deep Dependency Insights**: Comprehensive parsing of package managers as well as any other related metadata reveals true project structure and relationships
@@ -151,7 +150,6 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 | Insertion into Graph Database                            | ✓        | ✓   | ✓        |
 | Data Modelling for Code Summarisation                    | ✓        | ✓   |          |
 | SOTA LLM Pipelines For Code Grammar Summarisation/Reports| ✓        | ✓   |          |
-| SOTA Embeddings on Codebase Functions                    | ✓        |     |          |
 | Automatic Documentation                                  | ✓        |     |          |
 | GraphRag based Query Module                              |          |     |          |
 | SDK for integration                                      |          |     |          |
