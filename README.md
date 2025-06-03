@@ -50,7 +50,6 @@
     <li><a href="#-vision">Vision</a></li>
     <li><a href="#-why-unoplat-codeconfluence">Why Unoplat-CodeConfluence?</a></li>
     <li><a href="#-for-knowledge-engine-and-ai-coding-assistants">For Knowledge Engine and AI Coding Assistants</a></li>
-    <li><a href="#-oss-atlas-initiative">OSS Atlas Initiative</a></li>
     <li><a href="#-getting-started">Getting Started</a></li>
     <li><a href="#project-status">Project Status</a>
       <ul>
@@ -92,26 +91,8 @@ Unoplat-CodeConfluence will provide:
 
 - **Precise Context API**: Get reliable, deterministic code understanding through:
   - Bottom-up code summarization from functions to systems
-  - Graph-based querying on SOTA embeddings with deterministic code grammar for natural code exploration
+  - Precise and Efficient GraphRag
   - Deep package and dependency analysis
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- OSS ATLAS INITIATIVE SECTION -->
-## 🔍 OSS Atlas Initiative
-
-Our [UnoplatOssAtlas](https://github.com/unoplat/unoplat-oss-atlas/tree/main) project is designed to dramatically accelerate contributor onboarding and productivity in open-source projects. By providing deep, contextual understanding of popular repositories, we will help developers in the following:
-
-- **Accelerate Onboarding**: Understand complex codebases in minutes instead of months
-- **Boost Contribution Velocity**: Make meaningful contributions faster with deep contextual insights
-- **Navigate Complex Systems**: Easily understand dependencies, patterns, and architectural decisions
-- **Learn Best Practices**: Study and adopt patterns from well-established open-source projects
-
-This initiative demonstrates our commitment to:
-
-- Empowering the open-source ecosystem by reducing barriers to contribution
-- Showcasing practical applications of our context extraction capabilities
-- Supporting sustainable open-source development through better understanding and reducing time to value for oss projects
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -186,14 +167,14 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
         <a href="https://github.com/JayGhiya">
           <strong>Jay Ghiya</strong>
           <br>
-          Contact: jayghiya@unoplat.co.in
+          Contact: jayghiya@unoplat.io
         </a>
       </td>
       <td align="center">
         <a href="https://github.com/vipinshreyaskumar">
           <strong>Vipin Shreyas Kumar</strong>
           <br>
-          Contact: vipinshreyaskumar@unoplat.co.in
+          Contact: vipinshreyaskumar@unoplat.io
         </a>
       </td>
     </tr>
