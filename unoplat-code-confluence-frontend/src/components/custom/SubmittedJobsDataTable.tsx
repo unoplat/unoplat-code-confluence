@@ -4,7 +4,7 @@
 // Import necessary React hooks.
 import { useState, useEffect, useMemo } from "react";
 // Import useQuery from TanStack Query.
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import React from "react";
 
 // Import the Dice UI DataTable component which is built on TanStack Table.
@@ -60,11 +60,13 @@ export function SubmittedJobsDataTable(): React.ReactElement {
   const {
     data: jobs = [],
     isFetching,
+    isPlaceholderData,
   } = useQuery({
     queryKey: ['parentWorkflowJobs'],
     queryFn: fetchParentWorkflowJobs,
     staleTime: 1000 * 60 * 1, // 1 minute
     refetchInterval: 1000 * 5, // Refetch every 5 seconds for active jobs
+    placeholderData: keepPreviousData,
   });
   
   
@@ -123,7 +125,7 @@ export function SubmittedJobsDataTable(): React.ReactElement {
       <DataTable
         table={table}
         actionBar={null}
-        isLoading={isFetching}
+        isLoading={isFetching && !isPlaceholderData}
       >
         <DataTableToolbar table={table} />
       </DataTable>
