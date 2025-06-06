@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.37.0...code-confluence-flow-bridge-v0.38.0) (2025-06-06)
+
+
+### Features
+
+* update schema in accordance with auto detection of codebases ([20e2391](https://github.com/unoplat/unoplat-code-confluence/commit/20e2391b1c6dffa5e06fd069536a1c447e98719f))
+* update schema in accordance with auto detection of codebases ([b2ea676](https://github.com/unoplat/unoplat-code-confluence/commit/b2ea6765df00bf70a1881f96dbe692e27d35aa28))
+
+
+### Documentation
+
+* updated docs and api collection for yak ([5266a9d](https://github.com/unoplat/unoplat-code-confluence/commit/5266a9da1c751475dc0a8be456fb33bd8705c99b))
+
 ## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.36.1...code-confluence-flow-bridge-v0.37.0) (2025-05-29)
 
 

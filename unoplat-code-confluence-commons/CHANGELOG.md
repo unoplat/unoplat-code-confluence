@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.15.0...unoplat-code-confluence-commons-v0.16.0) (2025-06-06)
+
+
+### Features
+
+* update schema in accordance with auto detection of codebases ([20e2391](https://github.com/unoplat/unoplat-code-confluence/commit/20e2391b1c6dffa5e06fd069536a1c447e98719f))
+* update schema in accordance with auto detection of codebases ([b2ea676](https://github.com/unoplat/unoplat-code-confluence/commit/b2ea6765df00bf70a1881f96dbe692e27d35aa28))
+
 ## [0.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.14.1...unoplat-code-confluence-commons-v0.15.0) (2025-05-26)
 
 
