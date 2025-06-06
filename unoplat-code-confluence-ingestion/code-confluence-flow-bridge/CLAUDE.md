@@ -215,6 +215,7 @@ Stores code structure graph:
 - Relationships represent dependencies and structure
 - Properties store metadata (versions, types, parameters)
 - **Detailed schema documentation**: See `schema_documentation.md` for complete node and relationship definitions
+- **Recent Changes**: `CodeConfluenceCodebase` now supports multiple root packages via `ArrayProperty(StringProperty())` instead of single `local_path`, and includes `codebase_path` for the base directory
 
 ## Environment Variables
 
