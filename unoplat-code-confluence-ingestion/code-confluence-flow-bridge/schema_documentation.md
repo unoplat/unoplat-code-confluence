@@ -146,11 +146,10 @@ class CodeConfluenceGitRepository(BaseNode):
 ```python
 from neomodel import (
     StringProperty,
-    JSONProperty,
+    ArrayProperty,
     AsyncRelationshipTo,
     AsyncZeroOrMore,
-    AsyncOne,
-    AsyncRelationshipFrom
+    AsyncOne
 )
 from .base_models import BaseNode, ContainsRelationship
 
@@ -161,6 +160,8 @@ class CodeConfluenceCodebase(BaseNode):
     Fields:
         name (str): The name of the codebase or root package.
         readme (str): Optional content of the codebase's README file.
+        root_packages (ArrayProperty): List of root package paths within the codebase.
+        codebase_path (str): Codebase root directory path.
     
     Relationships:
         packages (RelationshipTo): Connects to package nodes.
@@ -168,7 +169,8 @@ class CodeConfluenceCodebase(BaseNode):
     """
     name = StringProperty(required=True)
     readme = StringProperty()
-    local_path = StringProperty(required=True)
+    root_packages = ArrayProperty(StringProperty())
+    codebase_path = StringProperty(required=True)
     
     packages = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',
