@@ -1,0 +1,13 @@
+type: folder
+model: folder
+id: fl_gqjfAddzF8
+createdAt: 2025-06-06T04:54:09.586370
+updatedAt: 2025-06-06T04:54:31.173395
+workspaceId: wk_KULjx4bEa8
+folderId: fl_TpVgSdpioc
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: python
+sortPriority: 1000.0
