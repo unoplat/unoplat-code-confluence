@@ -1,0 +1,26 @@
+type: http_request
+model: http_request
+id: rq_hSEDgHvSMJ
+createdAt: 2025-06-05T07:26:10.494308
+updatedAt: 2025-06-06T04:55:14.599039
+workspaceId: wk_KULjx4bEa8
+folderId: fl_gqjfAddzF8
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: test-code-confluence
+sortPriority: 0.0
+url: http://localhost:8000/detect-codebases-sse
+urlParameters:
+- enabled: true
+  name: git_url
+  value: https://www.github.com/unoplat/unoplat-code-confluence
+  id: xrXbPIFSBG
+- enabled: true
+  name: ''
+  value: ''
+  id: se8SgaGUFw

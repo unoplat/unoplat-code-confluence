@@ -20,15 +20,11 @@ class CodeConfluenceClass(BaseNode):
     """
     # From ChapiNode
     name = StringProperty()       # NodeName
-    type_ = StringProperty()           # Type (renamed to avoid Python 'type' shadowing)
     file_path = StringProperty()       # FilePath
-    module = StringProperty()          # Module
     multiple_extend = ArrayProperty(StringProperty(), default=[])  # MultipleExtend
     fields = JSONProperty()                # Fields (list of ClassGlobalFieldModel)
-    extend = StringProperty()          # Extend
     position = JSONProperty()          # Position
     content = StringProperty()         # Content
-
     # From UnoplatChapiForgeNode
     comments_description = StringProperty()  # CommentsDescription
     segregated_imports = JSONProperty()      # SegregatedImports

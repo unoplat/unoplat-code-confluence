@@ -1,0 +1,26 @@
+type: http_request
+model: http_request
+id: rq_DwTkeJP8FJ
+createdAt: 2025-06-06T04:50:08.587406
+updatedAt: 2025-06-06T04:52:59.032518
+workspaceId: wk_KULjx4bEa8
+folderId: fl_ZwwFo3jTXL
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: Authorization
+  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RmhxdXZxaWJhNnFYcytNRkJQRHlpNmxkbjFNSXVOMGd4Zm9IL1dueFRSZi9YYXptWlUvS0NEWmlqMDZERmpKbSs1cXM1SWtoZ1FNNDRucEdFc0FxVlIxcFVrV29GTDdEbE1zSWc4VGIvWDk0dm5qbU5yMUtFPQ') ]}
+  id: 89jkcmSwpq
+- enabled: true
+  name: ''
+  value: ''
+  id: k245dJt0Rn
+method: POST
+name: ''
+sortPriority: -0.0001
+url: http://localhost:8000/ingest-token
+urlParameters: []

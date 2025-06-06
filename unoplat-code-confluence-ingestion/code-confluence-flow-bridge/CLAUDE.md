@@ -215,6 +215,7 @@ Stores code structure graph:
 - Relationships represent dependencies and structure
 - Properties store metadata (versions, types, parameters)
 - **Detailed schema documentation**: See `schema_documentation.md` for complete node and relationship definitions
+- **Recent Changes**: `CodeConfluenceCodebase` now supports multiple root packages via `ArrayProperty(StringProperty())` instead of single `local_path`, and includes `codebase_path` for the base directory
 
 ## Environment Variables
 
@@ -272,3 +273,12 @@ All errors include:
    - Use test databases for integration tests
    - Generate test prerequisites with `task generate-test-prerequisites`
    - Coverage reports available in `coverage_reports/`
+
+4. **Asyncio and SSE Development**:
+   - **Follow asyncio best practices**: See `asyncio-practices.md` for comprehensive guidelines
+   - Avoid double-threading anti-pattern (no `threading.Timer` in ThreadPoolExecutor)
+   - Use `asyncio.run_coroutine_threadsafe()` for thread-safe communication
+   - Always use bounded queues (`asyncio.Queue(maxsize=100)`) for backpressure
+   - Replace `threading.Timer` with `asyncio.create_task()` and `asyncio.sleep()`
+   - Use Python 3.12's eager task execution for performance gains
+   - **AVOID NESTED FUNCTIONS**: Do not define functions inside other functions, especially in async contexts. This causes mypy issues with context managers and async/sync mixing. Always define helper functions at module level.
