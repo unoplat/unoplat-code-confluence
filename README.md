@@ -75,7 +75,7 @@ Unoplat-CodeConfluence aims to be the definitive solution for extracting, unders
 <!-- WHY SECTION -->
 ## 🌟 Why Unoplat-CodeConfluence?
 
-- **Deterministic Understanding**: Built on ArchGuard and Tree-sitter for reliable, language-agnostic code parsing
+- **Deterministic Understanding**: Built on Tree-sitter for reliable, language-agnostic code parsing
 - **Smart Summarization**: Bottom-up code analysis from functions to entire codebases, preserving context at every level
 - **Enhanced Onboarding**: Intuitive, interconnected documentation helps new team members understand complex codebases quickly
 - **Graph-Based Intelligence**: Query and explore codebases through natural, graphical relationships between components
