@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.16.0...unoplat-code-confluence-commons-v0.17.0) (2025-06-09)
+
+
+### Features
+
+* simplified schema ([42ef65a](https://github.com/unoplat/unoplat-code-confluence/commit/42ef65a2659fad397ea4c421e36802138fbf11a5))
+* simplified schema ([16987d5](https://github.com/unoplat/unoplat-code-confluence/commit/16987d5d1c86e86e6d180e441864d5ae889d2be2))
+
 ## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.15.0...unoplat-code-confluence-commons-v0.16.0) (2025-06-06)
 
 
