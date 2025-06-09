@@ -9,8 +9,6 @@ from unoplat_code_confluence_commons.graph_models import (
     CodeConfluenceGitRepository,  # Represents a Git repository
     CodeConfluenceCodebase,       # Represents a codebase within a repository
     CodeConfluencePackage,        # Represents a package within a codebase
-    CodeConfluenceClass,          # Represents a class within a file
-    CodeConfluenceInternalFunction,  # Represents a function within a class
     CodeConfluencePackageManagerMetadata,  # Represents package manager metadata
     CodeConfluenceFile            # Represents a file within a package
 )
@@ -103,11 +101,13 @@ async def test_git_repository_codebase_relationship() -> None:
         repository_name="test-repo"
     ).save()
     
-    # Create and save a codebase node
+    # Create and save a codebase node with new fields
     codebase: CodeConfluenceCodebase = await CodeConfluenceCodebase(
         qualified_name="org/repo/main",  # Unique identifier for the codebase
         name="main-codebase",  # Name of the codebase
-        local_path="/test/repo/path"  # Local path where the codebase is stored
+        codebase_path="/test/repo/path",  # File system path to the codebase
+        programming_language="python",  # New field: primary programming language
+        root_packages=["main", "tests"]  # New field: list of root packages
     ).save()
     
     # Create and save package manager metadata
@@ -120,6 +120,8 @@ async def test_git_repository_codebase_relationship() -> None:
     
     # Connect repository to codebase (Repository -> Codebase relationship)
     await repo.codebases.connect(codebase)
+    # Connect codebase to git repository (bidirectional relationship)
+    await codebase.git_repository.connect(repo)
     # Connect codebase to package manager metadata (Codebase -> PackageManagerMetadata relationship)
     await codebase.package_manager_metadata.connect(metadata)
     
@@ -127,6 +129,9 @@ async def test_git_repository_codebase_relationship() -> None:
     connected_codebases: List[CodeConfluenceCodebase] = await repo.codebases.all()
     assert len(connected_codebases) == 1
     assert connected_codebases[0].name == "main-codebase"
+    # Verify new fields
+    assert connected_codebases[0].programming_language == "python"
+    assert connected_codebases[0].root_packages == ["main", "tests"]
     
     # Verify codebase to package manager metadata relationship
     codebase_metadata = await connected_codebases[0].package_manager_metadata.all()
@@ -135,24 +140,21 @@ async def test_git_repository_codebase_relationship() -> None:
 
 
 @pytest.mark.asyncio(scope="session")
-async def test_complete_hierarchy() -> None:
-    """Test creating a complete hierarchy from repo to function with the new package -> file -> node structure.
+async def test_repository_to_file_hierarchy() -> None:
+    """Test creating a complete hierarchy from repository to file.
     
-    This test verifies the complete hierarchy of the code confluence graph model:
-    Repository -> Codebase -> Package -> File -> Class -> Function
+    This test verifies the simplified hierarchy of the code confluence graph model:
+    Repository -> Codebase -> Package -> File
     
     The test creates all necessary nodes, establishes relationships between them,
-    and then verifies that the relationships can be traversed in both directions.
-    It also tests the complete traversal path from repository to function.
+    and then verifies that the relationships can be traversed correctly.
     
     The hierarchy being tested represents the following structure:
     - A Git repository contains one or more codebases (branches)
     - A codebase contains one or more packages
     - A package contains one or more files
-    - A file contains one or more nodes (classes, functions)
-    - A class contains one or more functions
     
-    Note: Some relationships are bidirectional (e.g., file <-> class)
+    Note: Some relationships are bidirectional (e.g., codebase <-> repository)
     """
     # Create repository node
     repo: CodeConfluenceGitRepository = await CodeConfluenceGitRepository(
@@ -165,7 +167,7 @@ async def test_complete_hierarchy() -> None:
     codebase: CodeConfluenceCodebase = await CodeConfluenceCodebase(
         qualified_name="org/repo/main",  # Unique identifier
         name="main-codebase",  # Codebase name (e.g., main branch)
-        local_path="/test/repo/path"  # Local path where code is stored
+        codebase_path="/test/repo/path"  # Updated property name from local_path to codebase_path
     ).save()
     
     # Create package node (represents a module or package in the codebase)
@@ -174,39 +176,28 @@ async def test_complete_hierarchy() -> None:
         name="test_package"  # Package name
     ).save()
     
-    # Create file node (represents a source code file)
+    # Create file node (represents a source code file) with new fields
     file: CodeConfluenceFile = await CodeConfluenceFile(
         file_path="/test/path.py",  # Path to the file
-        content="# Test file content",  # File content
-        checksum="abcdef123456"  # Checksum for file integrity/version tracking
+        content="# Test file content\nimport os\nimport sys\n\nx = 10",  # File content
+        checksum="abcdef123456",  # Checksum for file integrity/version tracking
+        # New fields
+        imports=["os", "sys"],  # List of imports
+        global_variables=["x"],  # List of global variables
+        structural_signature={  # Structural information about the file
+            "functions": [],
+            "classes": []
+        },
+        class_variables={}  # No class variables in this simple file
     ).save()
     
-    # Create class node (represents a class defined in the file)
-    class_node: CodeConfluenceClass = await CodeConfluenceClass(
-        qualified_name="org/repo/main/package/TestClass",  # Unique identifier
-        name="TestClass",  # Class name
-        file_path="/test/path.py",  # Path to file containing the class
-        line_number=1  # Line number where class is defined
-    ).save()
-    
-    # Create function node (represents a method within the class)
-    function: CodeConfluenceInternalFunction = await CodeConfluenceInternalFunction(
-        qualified_name="org/repo/main/package/TestClass/test_function",  # Unique identifier
-        name="test_function",  # Function name
-        file_path="/test/path.py",  # Path to file containing the function
-        line_number=2,  # Line number where function is defined
-        return_type="str",  # Return type of the function
-        docstring="Test function"  # Function documentation
-    ).save()
-    
-    # Connect nodes according to the hierarchy: repo -> codebase -> package -> file -> class -> function
+    # Connect nodes according to the hierarchy: repo -> codebase -> package -> file
     # Each connection represents a relationship in the graph database
     await repo.codebases.connect(codebase)  # Repository contains codebase
+    await codebase.git_repository.connect(repo)  # Codebase belongs to repository (bidirectional)
     await codebase.packages.connect(package)  # Codebase contains package
     await package.files.connect(file)  # Package contains file
-    await file.nodes.connect(class_node)  # File contains class node
-    await class_node.file.connect(file)  # Class belongs to file (bidirectional relationship)
-    await class_node.functions.connect(function)  # Class contains function
+    await file.package.connect(package)  # File belongs to package (bidirectional)
     
     # VERIFICATION SECTION
     # Now verify that all nodes and relationships were created correctly
@@ -221,6 +212,11 @@ async def test_complete_hierarchy() -> None:
     found_codebase: CodeConfluenceCodebase = repo_codebases[0]
     assert found_codebase.name == "main-codebase", "Codebase name mismatch"
     
+    # Verify codebase -> repository relationship (bidirectional)
+    codebase_repos = await found_codebase.git_repository.all()
+    assert len(codebase_repos) == 1, "Expected exactly one repository connected to codebase"
+    assert codebase_repos[0].repository_name == "test-repo-2", "Repository name mismatch in bidirectional relationship"
+    
     # Verify codebase -> package relationship
     codebase_packages: List[CodeConfluencePackage] = await found_codebase.packages.all()
     assert len(codebase_packages) == 1, "Expected exactly one package connected to codebase"
@@ -233,26 +229,19 @@ async def test_complete_hierarchy() -> None:
     found_file: CodeConfluenceFile = package_files[0]
     assert found_file.file_path == "/test/path.py", "File path mismatch"
     
-    # Verify bidirectional relationship between file and class
-    # 1. File -> Class (file contains class)
-    file_classes = await found_file.nodes.all()
-    assert len(file_classes) == 1, "Expected exactly one class connected to file"
-    found_class: CodeConfluenceClass = file_classes[0]
-    assert found_class.name == "TestClass", "Class name mismatch"
+    # Verify new fields in file
+    assert found_file.imports == ["os", "sys"], "Imports mismatch"
+    assert found_file.global_variables == ["x"], "Global variables mismatch"
+    assert found_file.structural_signature == {"functions": [], "classes": []}, "Structural signature mismatch"
+    assert found_file.class_variables == {}, "Class variables mismatch"
     
-    # 2. Class -> File (class belongs to file)
-    class_file = await found_class.file.all()
-    assert len(class_file) == 1, "Expected exactly one file connected to class"
-    assert class_file[0].file_path == "/test/path.py", "File path mismatch in bidirectional relationship"
+    # Verify bidirectional relationship between file and package
+    file_packages = await found_file.package.all()
+    assert len(file_packages) == 1, "Expected exactly one package connected to file"
+    assert file_packages[0].name == "test_package", "Package name mismatch in file->package relationship"
     
-    # Verify class -> function relationship
-    class_functions: List[CodeConfluenceInternalFunction] = await found_class.functions.all()
-    assert len(class_functions) == 1, "Expected exactly one function connected to class"
-    found_function: CodeConfluenceInternalFunction = class_functions[0]
-    assert found_function.name == "test_function", "Function name mismatch"
-    
-    # Test complete traversal from repo all the way to function
-    # This verifies we can navigate the entire hierarchy: repo -> codebase -> package -> file -> class -> function
+    # Test complete traversal from repo to file
+    # This verifies we can navigate the entire hierarchy: repo -> codebase -> package -> file
     # We need to await each step in the chain since these are async relationships
     codebases = await found_repo.codebases.all()
     codebase = codebases[0]
@@ -260,8 +249,103 @@ async def test_complete_hierarchy() -> None:
     package = packages[0]
     files = await package.files.all()
     file = files[0]
-    nodes = await file.nodes.all()
-    node = nodes[0]  # This is the class node
-    functions = await node.functions.all()
-    function = functions[0]
-    assert function.name == "test_function", "Function name mismatch after complete traversal"
+    assert file.file_path == "/test/path.py", "File path mismatch after complete traversal"
+
+
+@pytest.mark.asyncio(scope="session")
+async def test_new_codebase_and_file_fields() -> None:
+    """Test the new fields added to CodeConfluenceCodebase and CodeConfluenceFile models.
+    
+    This test specifically verifies:
+    1. CodeConfluenceCodebase new fields: programming_language, root_packages
+    2. CodeConfluenceFile new fields: structural_signature, global_variables, class_variables, imports
+    """
+    # Create a codebase with all new fields populated
+    codebase = await CodeConfluenceCodebase(
+        qualified_name="test/codebase",
+        name="test-codebase",
+        codebase_path="/test/path",
+        programming_language="python",  # Test programming language field
+        root_packages=["src", "tests", "docs"],  # Test root_packages array field
+        readme="# Test Codebase\nThis is a test README"  # Test readme field
+    ).save()
+    
+    # Verify codebase fields
+    assert codebase.programming_language == "python"
+    assert codebase.root_packages == ["src", "tests", "docs"]
+    assert codebase.readme == "# Test Codebase\nThis is a test README"
+    
+    # Create a package for the file
+    package = await CodeConfluencePackage(
+        qualified_name="test/codebase/src",
+        name="src"
+    ).save()
+    
+    # Connect codebase to package
+    await codebase.packages.connect(package)
+    
+    # Create a file with all new fields populated
+    file = await CodeConfluenceFile(
+        file_path="/test/src/main.py",
+        content="""import os
+import sys
+from typing import List
+
+class MyClass:
+    class_var = 42
+    
+    def method(self):
+        pass
+
+def my_function(x: int) -> int:
+    return x * 2
+
+global_var = "test"
+""",
+        checksum="xyz789",
+        # Test new fields
+        imports=["os", "sys", "typing.List"],
+        global_variables=["global_var"],
+        class_variables={"MyClass": ["class_var"]},
+        structural_signature={
+            "functions": [
+                {
+                    "name": "my_function",
+                    "signature": "def my_function(x: int) -> int",
+                    "position": {"start_line": 11, "end_line": 12}
+                }
+            ],
+            "classes": [
+                {
+                    "name": "MyClass",
+                    "signature": "class MyClass:",
+                    "position": {"start_line": 5, "end_line": 9},
+                    "methods": [
+                        {
+                            "name": "method",
+                            "signature": "def method(self):",
+                            "position": {"start_line": 8, "end_line": 9}
+                        }
+                    ]
+                }
+            ]
+        }
+    ).save()
+    
+    # Connect package to file and file to package (bidirectional)
+    await package.files.connect(file)
+    await file.package.connect(package)
+    
+    # Verify file fields
+    assert file.imports == ["os", "sys", "typing.List"]
+    assert file.global_variables == ["global_var"]
+    assert file.class_variables == {"MyClass": ["class_var"]}
+    assert file.structural_signature["functions"][0]["name"] == "my_function"
+    assert file.structural_signature["classes"][0]["name"] == "MyClass"
+    assert len(file.structural_signature["classes"][0]["methods"]) == 1
+    
+    # Test retrieval from database
+    retrieved_file = await CodeConfluenceFile.nodes.get_or_none(file_path="/test/src/main.py")
+    assert retrieved_file is not None
+    assert retrieved_file.imports == ["os", "sys", "typing.List"]
+    assert retrieved_file.structural_signature["classes"][0]["name"] == "MyClass"
