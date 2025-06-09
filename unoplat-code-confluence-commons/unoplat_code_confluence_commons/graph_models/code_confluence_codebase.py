@@ -1,10 +1,9 @@
 from neomodel import (
     StringProperty,
-    JSONProperty,
+    ArrayProperty,
     AsyncRelationshipTo,
     AsyncZeroOrMore,
-    AsyncOne,
-    AsyncRelationshipFrom
+    AsyncOne
 )
 from .base_models import BaseNode, ContainsRelationship
 
@@ -14,15 +13,27 @@ class CodeConfluenceCodebase(BaseNode):
 
     Fields:
         name (str): The name of the codebase or root package.
-        readme (str): Optional content of the codebase’s README file.
+        readme (str): Optional content of the codebase's README file.
+        programming_language (str): The primary programming language of the codebase.
     
     Relationships:
         packages (RelationshipTo): Connects to package nodes.
         package_manager_metadata (RelationshipTo): Connects to package manager metadata node.
     """
+    
+    # Programming language choices
+    PROGRAMMING_LANGUAGES = {
+        'python': 'Python',
+        'java': 'Java',
+        'go': 'Go',
+        'typescript': 'TypeScript',
+    }
+    
     name = StringProperty(required=True)
     readme = StringProperty()
-    local_path = StringProperty(required=True)
+    root_packages = ArrayProperty(StringProperty())
+    codebase_path = StringProperty(required=True)
+    programming_language = StringProperty(choices=PROGRAMMING_LANGUAGES)
     
     packages = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',

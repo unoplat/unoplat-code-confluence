@@ -44,9 +44,3 @@ class CodeConfluencePackage(BaseNode):
         cardinality=AsyncZeroOrMore,
     )
     
-    # classes = AsyncRelationshipTo(
-    #     '.code_confluence_class.CodeConfluenceClass',
-    #     'CONTAINS_CLASS',
-    #     model=ContainsRelationship,
-    #     cardinality=AsyncZeroOrMore
-    # )

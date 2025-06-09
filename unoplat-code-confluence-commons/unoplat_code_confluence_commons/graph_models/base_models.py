@@ -1,7 +1,6 @@
 from neomodel import (
     AsyncStructuredNode, 
-    StringProperty, 
-    JSONProperty,
+    StringProperty,
     AsyncStructuredRel
 )
 
@@ -12,8 +11,3 @@ class BaseNode(AsyncStructuredNode):
 class ContainsRelationship(AsyncStructuredRel):
     """Relationship for representing containment between nodes"""
     pass
-
-class AnnotatedRelationship(AsyncStructuredRel):
-    """Relationship for representing annotation on nodes and methods"""
-    position = JSONProperty()
-    key_values = JSONProperty()      # KeyValues (list[ChapiAnnotationKeyVal])
