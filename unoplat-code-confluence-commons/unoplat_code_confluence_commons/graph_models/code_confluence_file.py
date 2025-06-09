@@ -1,7 +1,8 @@
 # new imports (top of the file, after existing neomodel import list)
-from neomodel import AsyncStructuredNode, StringProperty, AsyncRelationshipTo, AsyncRelationship, AsyncOne, AsyncZeroOrMore
+from neomodel import AsyncStructuredNode, StringProperty, AsyncRelationshipTo, AsyncOne
 
-from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship
+from unoplat_code_confluence_commons.graph_models.base_models import  ContainsRelationship
+from neomodel import JSONProperty, ArrayProperty
 
 # ⬇️  insert just above class `CodeConfluencePackage`
 class CodeConfluenceFile(AsyncStructuredNode):
@@ -11,22 +12,18 @@ class CodeConfluenceFile(AsyncStructuredNode):
     Relationships
     ─────────────
     package  (PART_OF_PACKAGE)  -> CodeConfluencePackage
-    nodes    (CONTAINS_NODE)    -> CodeConfluenceClass / CodeConfluenceInternalFunction
     """
     file_path = StringProperty(required=True, unique_index=True)
     content   = StringProperty()
     checksum  = StringProperty()
-
+    structural_signature = JSONProperty()
+    global_variables = ArrayProperty(StringProperty(), default=[])
+    class_variables = JSONProperty()
+    imports = ArrayProperty(StringProperty(), default=[])
+    
     package = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',
         'PART_OF_PACKAGE',
         model=ContainsRelationship,
         cardinality=AsyncOne,
-    )
-
-    nodes = AsyncRelationship(
-        '.code_confluence_class.CodeConfluenceClass',
-        'CONTAINS_NODE',
-        model=ContainsRelationship,
-        cardinality=AsyncZeroOrMore,
     )
