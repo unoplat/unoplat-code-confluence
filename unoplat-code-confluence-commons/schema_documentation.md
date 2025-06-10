@@ -126,6 +126,7 @@ class CodeConfluenceGitRepository(BaseNode):
 - `git_repository` (AsyncRelationshipTo → CodeConfluenceGitRepository, 'PART_OF_GIT_REPOSITORY', cardinality=AsyncOne): Connects to the parent git repository.
 
 **Code**:
+
 ```python
 from neomodel import (
     StringProperty,
@@ -208,6 +209,7 @@ class CodeConfluenceCodebase(BaseNode):
 - `codebase` (AsyncRelationshipFrom ← CodeConfluenceCodebase, 'HAS_PACKAGE_MANAGER_METADATA', cardinality=AsyncOne): Connection back to the parent codebase.
 
 **Code**:
+
 ```python
 from neomodel import (
     StringProperty,
@@ -271,6 +273,7 @@ class CodeConfluencePackageManagerMetadata(BaseNode):
 - `files` (AsyncRelationshipTo → CodeConfluenceFile, 'CONTAINS_FILE', cardinality=AsyncZeroOrMore): Connects to files within the package.
 
 **Code**:
+
 ```python
 from neomodel import (
     StringProperty,
@@ -326,22 +329,23 @@ class CodeConfluencePackage(BaseNode):
 **Properties**:
 
 - `file_path` (StringProperty, required=True, unique_index=True): Path to the file.
-- `content` (StringProperty): Content of the file.
+- `content` (StringProperty, fulltext_index=FulltextIndex(analyzer="english")): Content of the file with full-text search support.
 - `checksum` (StringProperty): Checksum of the file content.
 - `structural_signature` (JSONProperty): Structural signature of the file.
 - `global_variables` (ArrayProperty(StringProperty), default=[]): List of global variables in the file.
 - `class_variables` (JSONProperty): Class variables information.
-- `imports` (ArrayProperty(StringProperty), default=[]): List of imports in the file.
+- `imports` (ArrayProperty(StringProperty), default=[], fulltext_index=FulltextIndex(analyzer="english")): List of imports in the file with full-text search support.
+- `poi_labels` (ArrayProperty(StringProperty), fulltext_index=FulltextIndex(analyzer="english")): Points of interest labels with full-text search support.
 
 **Relationships**:
 
 - `package` (AsyncRelationshipTo → CodeConfluencePackage, 'PART_OF_PACKAGE', cardinality=AsyncOne): Connection to the parent package.
 
 **Code**:
-```python
-from neomodel import AsyncStructuredNode, StringProperty, AsyncRelationshipTo, AsyncRelationship, AsyncOne, AsyncZeroOrMore
-from neomodel import JSONProperty, ArrayProperty
 
+```python
+from neomodel import AsyncStructuredNode, StringProperty, AsyncRelationshipTo, AsyncOne
+from neomodel import JSONProperty, ArrayProperty, FulltextIndex
 from unoplat_code_confluence_commons.graph_models.base_models import ContainsRelationship
 
 class CodeConfluenceFile(AsyncStructuredNode):
@@ -353,13 +357,20 @@ class CodeConfluenceFile(AsyncStructuredNode):
     package  (PART_OF_PACKAGE)  -> CodeConfluencePackage
     """
     file_path = StringProperty(required=True, unique_index=True)
-    content   = StringProperty()
+    content   = StringProperty(fulltext_index=FulltextIndex(analyzer="english"))
     checksum  = StringProperty()
     structural_signature = JSONProperty()
     global_variables = ArrayProperty(StringProperty(), default=[])
     class_variables = JSONProperty()
-    imports = ArrayProperty(StringProperty(), default=[])
-    
+    imports = ArrayProperty(
+        StringProperty(),
+        default=[],
+        fulltext_index=FulltextIndex(analyzer="english")
+    )
+    poi_labels = ArrayProperty(
+        StringProperty(),
+        fulltext_index=FulltextIndex(analyzer="english")
+    )
     package = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',
         'PART_OF_PACKAGE',
