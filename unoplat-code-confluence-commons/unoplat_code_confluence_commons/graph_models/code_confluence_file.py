@@ -17,8 +17,6 @@ class CodeConfluenceFile(AsyncStructuredNode):
     content   = StringProperty(fulltext_index=FulltextIndex(analyzer="english"))
     checksum  = StringProperty()
     structural_signature = JSONProperty()
-    global_variables = ArrayProperty(StringProperty(), default=[])
-    class_variables = JSONProperty()
     imports = ArrayProperty(
         StringProperty(),
         default=[],
