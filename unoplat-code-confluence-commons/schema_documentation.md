@@ -1,4 +1,4 @@
-# Unoplat Code Confluence Commons Schema Documentation
+****# Unoplat Code Confluence Commons Schema Documentation
 
 This document provides a comprehensive overview of the graph data model schema used in the Unoplat Code Confluence Commons project. The schema is built using neomodel for Neo4j graph database integration.
 
@@ -331,9 +331,7 @@ class CodeConfluencePackage(BaseNode):
 - `file_path` (StringProperty, required=True, unique_index=True): Path to the file.
 - `content` (StringProperty, fulltext_index=FulltextIndex(analyzer="english")): Content of the file with full-text search support.
 - `checksum` (StringProperty): Checksum of the file content.
-- `structural_signature` (JSONProperty): Structural signature of the file.
-- `global_variables` (ArrayProperty(StringProperty), default=[]): List of global variables in the file.
-- `class_variables` (JSONProperty): Class variables information.
+- `structural_signature` (JSONProperty): Structural signature of the file containing detailed structure information including global variables and class variables.
 - `imports` (ArrayProperty(StringProperty), default=[], fulltext_index=FulltextIndex(analyzer="english")): List of imports in the file with full-text search support.
 - `poi_labels` (ArrayProperty(StringProperty), fulltext_index=FulltextIndex(analyzer="english")): Points of interest labels with full-text search support.
 
@@ -360,8 +358,6 @@ class CodeConfluenceFile(AsyncStructuredNode):
     content   = StringProperty(fulltext_index=FulltextIndex(analyzer="english"))
     checksum  = StringProperty()
     structural_signature = JSONProperty()
-    global_variables = ArrayProperty(StringProperty(), default=[])
-    class_variables = JSONProperty()
     imports = ArrayProperty(
         StringProperty(),
         default=[],
