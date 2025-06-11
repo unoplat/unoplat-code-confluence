@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.0...unoplat-code-confluence-commons-v0.18.1) (2025-06-10)
+
+
+### Bug Fixes
+
+* updated documentation ([90a8661](https://github.com/unoplat/unoplat-code-confluence/commit/90a866124ab4ab58371d1dd40e8efeedb11baf76))
+* variables per class should be part of signature. ([20162c6](https://github.com/unoplat/unoplat-code-confluence/commit/20162c633d008d3c9a7325c446bb641a668cd8d8))
+
 ## [0.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.17.0...unoplat-code-confluence-commons-v0.18.0) (2025-06-10)
 
 
