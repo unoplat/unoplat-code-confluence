@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.13.0...code-confluence-docs-v0.14.0) (2025-06-11)
+
+
+### Features
+
+* add dark mode, search and make docs efficient ([751d6ba](https://github.com/unoplat/unoplat-code-confluence/commit/751d6ba3c07c3144dd5791bb741be17d3d603a77))
+* add dark mode, search and make docs efficient ([9620f29](https://github.com/unoplat/unoplat-code-confluence/commit/9620f299e64302612731878ca6a3ca689577f707))
+
 ## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.12.0...code-confluence-docs-v0.13.0) (2025-05-26)
 
 
