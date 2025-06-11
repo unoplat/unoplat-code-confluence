@@ -6,11 +6,11 @@
     <style class="text-font-style fontImports" data-font-family="Shantell Sans">
         @import url('https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@300..800&amp;display=block');
     </style>
-    <rect id="" x="0" y="0" width="565" height="866" style="fill: #ffffff;"></rect>
+    <rect id="" x="0" y="0" width="565" height="866" style="fill: transparent;"></rect>
     <g id="items" style="isolation: isolate">
         <g id="blend" style="mix-blend-mode: normal">
             <g id="g-root-tf_1qdtpye1j9flsd-fill" data-item-order="-482112" transform="translate(-9, -9)">
-                <g id="tf_1qdtpye1j9flsd-fill" stroke="none" fill="#ffffff">
+                <g id="tf_1qdtpye1j9flsd-fill" stroke="none" fill="transparent">
                     <g>
                         <path d="M 10 10L 568 10L 568 874L 10 874Z"></path>
                     </g>
