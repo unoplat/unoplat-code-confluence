@@ -6,7 +6,7 @@
     <style class="text-font-style fontImports" data-font-family="Roboto">
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&amp;display=block');
     </style>
-    <rect id="" x="0" y="0" width="1130" height="626" style="fill: #ffffff;"></rect>
+    <rect id="" x="0" y="0" width="1130" height="626" style="fill: transparent;"></rect>
     <g id="items" style="isolation: isolate">
         <g id="blend" style="mix-blend-mode: normal">
             <g id="g-root-tf_zk1ttz1k30dfr-fill" data-item-order="-703872" transform="translate(-9, -9)"></g>
