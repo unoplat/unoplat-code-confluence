@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.14.0...code-confluence-docs-v0.14.1) (2025-06-11)
+
+
+### Bug Fixes
+
+* svgs for dark mode in docs ([9f09255](https://github.com/unoplat/unoplat-code-confluence/commit/9f09255259d97ba6b462722dc629060c7b15b7b7))
+* svgs for dark mode in docs ([8eef748](https://github.com/unoplat/unoplat-code-confluence/commit/8eef74805b4a2e881e24195a2ad6d79500a9bbb7))
+
 ## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.13.0...code-confluence-docs-v0.14.0) (2025-06-11)
 
 
