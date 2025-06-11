@@ -1,5 +1,6 @@
 ---
 sidebar_position: 2
+slug: /
 ---
 
 # Quick Start Guide
@@ -14,7 +15,7 @@ While in alpha stage, it's best suited for developers and tech enthusiasts who e
 ## Introduction
 
 The current version supports parsing codebases and exporting a JSON representation of code graph. For more details, check out:
-- 📘 [**Vision »**](/docs/deep-dive/vision)
+- 📘 [**Vision »**](/deep-dive/vision)
 
 ## Prerequisites
 

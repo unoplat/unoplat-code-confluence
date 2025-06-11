@@ -51,7 +51,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-website-
 
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --refresh-lockfile
       - run: yarn build      
 
       - name: Deploy
