@@ -30,7 +30,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: code-confluence
-        run: yarn install --frozen-lockfile
+        run: yarn install --refresh-lockfile
 
       - name: Run tests
         working-directory: code-confluence
