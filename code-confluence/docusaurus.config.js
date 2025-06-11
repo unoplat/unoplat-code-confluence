@@ -5,7 +5,6 @@
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
 import {themes as prismThemes} from 'prism-react-renderer';
-import React from 'react';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -45,15 +44,78 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
-          routeBasePath: 'docs',
+          routeBasePath: '/', // Serve the docs at the site's root
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
+        blog: false, // Disable the blog plugin
+        pages: false, // Disable pages plugin to avoid conflicts
         theme: {
           customCss: './src/css/custom.css',
         },
+      }),
+    ],
+  ],
+
+  themes: [
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
+      ({
+        // Index docs only (since we disabled blog and pages)
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: false,
+        
+        // For docs-only mode, use "/" as route base path
+        docsRouteBasePath: "/",
+        
+        // Language support
+        language: ["en"],
+        
+        // Position search in middle of navbar
+        searchBarPosition: "right",
+        
+        // Enable keyboard shortcuts
+        searchBarShortcut: true,
+        searchBarShortcutHint: true,
+        
+        // Highlight search terms on target page
+        highlightSearchTermsOnTargetPage: true,
+        
+        // Search result limits and context
+        searchResultLimits: 8,
+        searchResultContextMaxLength: 100,
+        
+        // Performance optimizations
+        hashed: true,
+        
+        // Remove default stop words for programming docs
+        removeDefaultStopWordFilter: ["en"],
+        
+        // Exclude files from indexing to avoid errors
+        ignoreFiles: [
+          // Image files
+          /.*\.(png|jpg|jpeg|gif|svg|ico|webp|bmp|tiff?)$/i,
+          // Document files
+          /.*\.(pdf|docx?|xlsx?|pptx?|odt|ods|odp)$/i,
+          // Archive files
+          /.*\.(zip|tar|gz|bz2|7z|rar)$/i,
+          // Media files
+          /.*\.(mp3|mp4|avi|mov|wmv|flv|mkv|webm|ogg|wav)$/i,
+          // Font files
+          /.*\.(woff2?|ttf|otf|eot)$/i,
+          // Exclude entire static directory
+          "static/**/*",
+          // Exclude build artifacts
+          "build/**/*",
+          ".docusaurus/**/*",
+          // Exclude yarn files
+          ".yarn/**/*",
+          ".pnp.*",
+        ],
       }),
     ],
   ],
@@ -68,6 +130,7 @@ const config = {
         logo: {
           alt: 'Code Confluence',
           src: 'img/Unoplat_Logo.svg',
+          srcDark: 'img/Unoplat_Logo.svg', // Using same logo for dark mode
         },
         items: [
           {
@@ -76,15 +139,15 @@ const config = {
             position: 'left',
             label: 'Documentation',
           },
-          
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Contact Us',
-            href: '/contact-us',
+            type: 'search',
+            position: 'right',
           },
-          
+          {
+            label: 'Contact Us',
+            href: 'https://www.unoplat.io/contact/',
+            position: 'left',
+          },
         ],
       },
       // algolia: {
@@ -147,7 +210,8 @@ const config = {
       },
       colorMode: {
         defaultMode: 'light',
-        disableSwitch: true,
+        disableSwitch: false,
+        respectPrefersColorScheme: true,
       },
       zoom: {
         selector: '.zoomable',
@@ -163,11 +227,8 @@ const config = {
   stylesheets: [
     '/src/css/custom.css',
   ],
-  plugins: [
-    'docusaurus-plugin-image-zoom'
-  ],
   webpack: {
-    jsLoader: (isServer) => ({
+    jsLoader: () => ({
       loader: require.resolve('swc-loader'),
       options: {
         jsc: {
