@@ -28,7 +28,7 @@ class ChildWorkflowDbActivity:
         # Extract parameters from envelope
         repository_name: str = envelope.repository_name
         repository_owner_name: str = envelope.repository_owner_name
-        root_package: str = envelope.root_package
+        codebase_folder: str = envelope.codebase_folder
         workflow_id: str = envelope.codebase_workflow_id
         workflow_run_id: str = envelope.codebase_workflow_run_id
         parent_workflow_run_id: str = envelope.repository_workflow_run_id
@@ -62,9 +62,9 @@ class ChildWorkflowDbActivity:
                     )
                 
                 # Check if codebase config exists
-                codebase_config = await session.get(CodebaseConfig, (repository_name, repository_owner_name, root_package))
+                codebase_config = await session.get(CodebaseConfig, (repository_name, repository_owner_name, codebase_folder))
                 if not codebase_config:
-                    error_msg = f"Codebase config not found for {repository_name}/{repository_owner_name}/{root_package}"
+                    error_msg = f"Codebase config not found for {repository_name}/{repository_owner_name}/{codebase_folder}"
                     log.error(error_msg)
                     raise ApplicationError(
                         error_msg,
@@ -77,7 +77,7 @@ class ChildWorkflowDbActivity:
                     )
                 
                 # Check if workflow run exists
-                workflow_run = await self._get_workflow_run(session, repository_name, repository_owner_name, root_package, workflow_run_id)
+                workflow_run = await self._get_workflow_run(session, repository_name, repository_owner_name, codebase_folder, workflow_run_id)
                 
                 now = datetime.now(timezone.utc)
                 if not workflow_run:
@@ -85,7 +85,7 @@ class ChildWorkflowDbActivity:
                     workflow_run = CodebaseWorkflowRun(
                         repository_name=repository_name,
                         repository_owner_name=repository_owner_name,
-                        root_package=root_package,
+                        codebase_folder=codebase_folder,
                         codebase_workflow_run_id=workflow_run_id,
                         codebase_workflow_id=workflow_id,
                         repository_workflow_run_id=parent_workflow_run_id,
@@ -98,7 +98,7 @@ class ChildWorkflowDbActivity:
                     session.add(workflow_run)
                     await session.commit()
                     await session.refresh(workflow_run)
-                    log.info(f"Created codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{root_package}")
+                    log.info(f"Created codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{codebase_folder}")
                 else:
                     # Update existing workflow run
                     workflow_run.status = status.value
@@ -113,7 +113,7 @@ class ChildWorkflowDbActivity:
                     session.add(workflow_run)
                     await session.commit()
                     await session.refresh(workflow_run)
-                    log.info(f"Updated codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{root_package} with status {status.value}")
+                    log.info(f"Updated codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{codebase_folder} with status {status.value}")
                     
         except ApplicationError:
             # Re-raise without wrapping to preserve error context
@@ -136,6 +136,6 @@ class ChildWorkflowDbActivity:
         """Get a parent workflow run by its keys."""
         return await session.get(RepositoryWorkflowRun, (repository_name, repository_owner_name, workflow_run_id))
     
-    async def _get_workflow_run(self, session: AsyncSession, repository_name: str, repository_owner_name: str, root_package: str, workflow_run_id: str) -> Optional[CodebaseWorkflowRun]:
+    async def _get_workflow_run(self, session: AsyncSession, repository_name: str, repository_owner_name: str, codebase_folder: str, workflow_run_id: str) -> Optional[CodebaseWorkflowRun]:
         """Get a codebase workflow run by its keys."""
-        return await session.get(CodebaseWorkflowRun, (repository_name, repository_owner_name, root_package, workflow_run_id))
+        return await session.get(CodebaseWorkflowRun, (repository_name, repository_owner_name, codebase_folder, workflow_run_id))

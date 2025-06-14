@@ -1,9 +1,9 @@
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import UnoplatGitRepository
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig, ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.models.github.github_repo import ErrorReport, GitHubRepoRequestConfiguration
 
-from typing import Any, List, Optional
+from typing import Any, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -43,11 +43,11 @@ class ConfluenceGitGraphEnvelope(BaseModel):
 class CodebaseChildWorkflowEnvelope(BaseModel):
     repository_qualified_name: str
     codebase_qualified_name: str
-    local_path: str
-    source_directory: str
+    root_packages: List[str]
+    codebase_path: str
+    codebase_folder: str
     package_manager_metadata: UnoplatPackageManagerMetadata
     trace_id: str
-    root_package: str
     parent_workflow_run_id: Optional[str] = None
     model_config = ConfigDict(extra='allow')
     
@@ -73,7 +73,7 @@ class ParentWorkflowDbActivityEnvelope(BaseModel):
 
 
 class PackageMetadataActivityEnvelope(BaseModel):
-    local_path: str
+    codebase_path: str
     programming_language_metadata: ProgrammingLanguageMetadata
     trace_id: str
     model_config = ConfigDict(extra='allow')
@@ -95,8 +95,8 @@ class PackageManagerMetadataIngestionEnvelope(BaseModel):
 
 
 class CodebaseProcessingActivityEnvelope(BaseModel):
-    local_workspace_path: str
-    source_directory: str
+    root_packages: List[str]
+    codebase_path: str
     repository_qualified_name: str
     codebase_qualified_name: str
     dependencies: Optional[List[str]]
@@ -113,7 +113,7 @@ class CodebaseProcessingActivityEnvelope(BaseModel):
 class CodebaseWorkflowDbActivityEnvelope(BaseModel):
     repository_name: str
     repository_owner_name: str
-    root_package: str
+    codebase_folder: str
     repository_workflow_run_id: str
     codebase_workflow_id: str
     codebase_workflow_run_id: str

@@ -64,7 +64,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             # Prepare codebase configurations for headers with complete metadata
             codebase_configs = [
                 {
-                    "root_package": config.root_package,
+                    "root_packages": config.root_packages,
                     "codebase_folder": config.codebase_folder,
                     "programming_language_metadata": config.programming_language_metadata.model_dump()
                 }
@@ -175,8 +175,8 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         elif workflow_type == "child-codebase-workflow":
             child_envelope: CodebaseChildWorkflowEnvelope = input.args[0]
             child_trace_id: str = child_envelope.trace_id
-            #root package is present in the workflow_id
-            root_package: str = workflow_id.split("|")[-1]
+            # Extract codebase folder from envelope (use relative path, not absolute)
+            codebase_folder: str = child_envelope.codebase_folder
             parent_workflow_run_id: str = child_envelope.parent_workflow_run_id #type: ignore
             
             # Parse repository_name and repository_owner_name from trace_id
@@ -187,7 +187,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 "trace_id": Payload(data=child_trace_id.encode('utf-8')),
                 "repository_name": Payload(data=repository_name.encode('utf-8')),
                 "repository_owner_name": Payload(data=repository_owner_name.encode('utf-8')),
-                "root_package": Payload(data=root_package.encode('utf-8')),
+                "codebase_folder": Payload(data=codebase_folder.encode('utf-8')),
                 "workflow_run_id": Payload(data=workflow_run_id.encode('utf-8'))
             }
             
@@ -209,7 +209,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             running_child_env = CodebaseWorkflowDbActivityEnvelope(
                 repository_name=repository_name,
                 repository_owner_name=repository_owner_name,
-                root_package=root_package,
+                codebase_folder=codebase_folder,
                 codebase_workflow_id=workflow_id,
                 codebase_workflow_run_id=workflow_run_id,
                 repository_workflow_run_id=parent_workflow_run_id,
@@ -222,7 +222,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 start_to_close_timeout=timedelta(minutes=1),
                 retry_policy=ActivityRetriesConfig.DEFAULT,
             )
-            log.debug(f"Initial RUNNING status recorded for child workflow {workflow_run_id} for codebase {root_package}")
+            log.debug(f"Initial RUNNING status recorded for child workflow {workflow_run_id} for codebase {codebase_folder}")
 
             child_status = JobStatus.COMPLETED.value
             child_error_report: Optional[ErrorReport] = None
@@ -267,7 +267,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 final_child_env = CodebaseWorkflowDbActivityEnvelope(
                     repository_name=repository_name,
                     repository_owner_name=repository_owner_name,
-                    root_package=root_package,
+                    codebase_folder=codebase_folder,
                     codebase_workflow_id=workflow_id,
                     codebase_workflow_run_id=workflow_run_id,
                     repository_workflow_run_id=parent_workflow_run_id,

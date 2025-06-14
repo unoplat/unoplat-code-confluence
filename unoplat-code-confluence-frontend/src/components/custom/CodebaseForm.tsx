@@ -15,7 +15,7 @@ import { LANGUAGE_PACKAGE_MANAGERS } from "../../types";
 // Extend the Zod schema to include nested structures if needed
 export const CodebaseSchema = z.object({
   codebase_folder: z.string().min(1, "Codebase folder is required"),
-  root_package: z.string().min(1, "Root package is required"),
+  root_packages: z.array(z.string().min(1, "Root package path cannot be empty")).nullable().optional(),
   programming_language_metadata: z.object({
     language: z.string().min(1, "Language is required"),
     package_manager: z.string().min(1, "Package manager is required"),
@@ -59,6 +59,7 @@ export function CodebaseForm({
   const [isRootRepo, setIsRootRepo] = useState<boolean>(false);
   const [isRootRepoLocked, setIsRootRepoLocked] = useState<boolean>(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('python'); // Default to python
+  const [rootPackages, setRootPackages] = useState<string[]>([]);
   
   
 
@@ -82,6 +83,14 @@ export function CodebaseForm({
     const languageValue: string = parentForm.getFieldValue(getFieldName("programming_language_metadata") + '.language');
     if (languageValue) {
       setSelectedLanguage(languageValue);
+    }
+
+    // Initialize root packages
+    const rootPackagesValue: string[] | null = parentForm.getFieldValue(getFieldName("root_packages"));
+    if (rootPackagesValue && Array.isArray(rootPackagesValue)) {
+      setRootPackages(rootPackagesValue);
+    } else {
+      setRootPackages([]);
     }
   // Only run on mount and when index/parentForm changes
   }, [index, parentForm]);
@@ -130,6 +139,26 @@ export function CodebaseForm({
       field.handleChange("");
     }
   }
+
+  // Helper functions for managing root packages array
+  const addRootPackage = () => {
+    const newPackages = [...rootPackages, ""];
+    setRootPackages(newPackages);
+    parentForm.setFieldValue(getFieldName("root_packages"), newPackages);
+  };
+
+  const removeRootPackage = (indexToRemove: number) => {
+    const newPackages = rootPackages.filter((_, i) => i !== indexToRemove);
+    setRootPackages(newPackages);
+    parentForm.setFieldValue(getFieldName("root_packages"), newPackages.length > 0 ? newPackages : null);
+  };
+
+  const updateRootPackage = (packageIndex: number, value: string) => {
+    const newPackages = [...rootPackages];
+    newPackages[packageIndex] = value;
+    setRootPackages(newPackages);
+    parentForm.setFieldValue(getFieldName("root_packages"), newPackages);
+  };
 
   return (
     <div className="space-y-4 p-4 border rounded-md relative">
@@ -194,29 +223,65 @@ export function CodebaseForm({
         )}
       </parentForm.Field>
 
-      <parentForm.Field
-        name={getFieldName("root_package")}
-        validators={{
-          onChange: ({ value }: { value: string }) => !value ? "Root package is required" : undefined
-        }}
-      >
-        {(field: FieldState) => renderField(
-          field,
-          "Root Package",
-          "The path to the root package within the codebase folder",
-          `root_package_${index}`,
-          <Input
-            id={`root_package_${index}`}
-            placeholder="e.g., src/code_confluence_flow_bridge"
-            value={field.state.value}
-            onBlur={field.handleBlur}
-            onChange={(e) => field.handleChange(e.target.value)}
-            className={field.state.meta.errors.length > 0 ? "border-destructive" : ""}
-            disabled={disabled}
-            readOnly={disabled}
-          />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">Root Packages</label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <InfoIcon className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="start" className="max-w-[260px] text-sm">
+                  <p>The paths to root packages within the codebase folder. Leave empty for non-monorepo projects.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          {!disabled && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addRootPackage}
+            >
+              Add Root Package
+            </Button>
+          )}
+        </div>
+        
+        {rootPackages.length === 0 ? (
+          <div className="text-sm text-muted-foreground italic">
+            No root packages specified. For non-monorepo projects, this is normal.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {rootPackages.map((pkg, pkgIndex) => (
+              <div key={pkgIndex} className="flex items-center gap-2">
+                <Input
+                  placeholder="e.g., src/code_confluence_flow_bridge"
+                  value={pkg}
+                  onChange={(e) => updateRootPackage(pkgIndex, e.target.value)}
+                  disabled={disabled}
+                  readOnly={disabled}
+                />
+                {!disabled && rootPackages.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeRootPackage(pkgIndex)}
+                  >
+                    <TrashIcon className="h-4 w-4 text-destructive" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
         )}
-      </parentForm.Field>
+      </div>
 
       <parentForm.Field
         name={getFieldName('programming_language_metadata') + '.language'}

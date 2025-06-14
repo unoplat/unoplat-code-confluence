@@ -1,7 +1,9 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatProjectDependency,
+    UnoplatVersion,
+)
 
 import os
 from typing import Dict, Optional, Tuple
