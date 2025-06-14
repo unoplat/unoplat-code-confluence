@@ -407,8 +407,25 @@ async def lifespan(app: FastAPI):
         activity_executor=app.state.activity_executor,
         env_settings=app.state.code_confluence_env
     ))
-    yield
-    await app.state.code_confluence_graph_ingestion.close()
+    try:
+        # Hand control back to FastAPI until shutdown is triggered
+        yield
+    finally:
+        # Gracefully close resources that hold onto event-loop specific state.
+        await app.state.code_confluence_graph_ingestion.close()
+
+        # Dispose the SQLAlchemy async engine so that any remaining database
+        # connections tied to this event loop are cleaned up. This is
+        # particularly important in test suites that spin up multiple
+        # TestClient instances, each with its own event loop.
+        try:
+            from src.code_confluence_flow_bridge.processor.db.postgres.db import async_engine  # local import to avoid cycles
+            await async_engine.dispose()
+        except Exception as exc:  # pragma: no cover – defensive cleanup
+            logger.warning(f"Failed to dispose async engine during shutdown: {exc}")
+
+        # Shut down the activity executor to release thread resources.
+        app.state.activity_executor.shutdown(wait=False)
 
 
 
