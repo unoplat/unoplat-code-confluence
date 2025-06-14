@@ -1,6 +1,6 @@
 # Standard Library
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 # Third Party
 from pydantic import BaseModel, Field, SecretStr
@@ -15,24 +15,79 @@ class PackageManagerType(str, Enum):
     POETRY = "poetry"
     PIP = "pip"
     UV = "uv"
-    AUTO_DETECT = "auto-detect"
+    
 
 
 class DatabaseType(str, Enum):
     NEO4J = "neo4j"
 
 
-# Configuration Models (BaseModel for JSON config)
+# ──────────────────────────────────────────────────────────────────────────────
+# CODEBASE DETECTION MODELS (moved from POC)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class FileNode(BaseModel):
+    """A single path from the repository inventory."""
+    path: str                           # e.g. "src/foo/__init__.py"
+    kind: Literal["file", "dir"]
+    size: Optional[int] = None          # bytes (None for directories)
+
+
+class Signature(BaseModel):
+    """
+    A test applied to the set of filenames in a directory, or to the file
+    contents if 'contains' is supplied.
+    """
+    file: Optional[str] = None          # exact filename to look for
+    contains: Optional[str] = None      # substring that must appear in that file
+    glob: Optional[str] = None          # shell-style wildcard pattern
+
+
+class ManagerRule(BaseModel):
+    """Package manager detection rule."""
+    manager: str                        # "poetry", "pip", "maven", …
+    weight: int = 1                     # for tie-breaking / confidence
+    signatures: List[Signature] = Field(default_factory=list)
+    workspace_field: Optional[str] = None  # e.g. "workspaces" for npm, "tool.uv.workspace" for uv
+
+
+class LanguageRules(BaseModel):
+    """Language-specific detection rules."""
+    ignores: List[str]                  # dir tokens to drop if not referenced
+    managers: List[ManagerRule]
+
+
+class CodebaseDetection(BaseModel):
+    """Simple codebase detection result."""
+    path: str                           # relative path from repository root
+    programming_language: str           # "python"
+    package_manager: str                # "poetry" | "pip" | "uv"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# EXISTING CONFIGURATION MODELS (BaseModel for JSON config)
+# ──────────────────────────────────────────────────────────────────────────────
+
 class ProgrammingLanguageMetadata(BaseModel):
     language: ProgrammingLanguage
     package_manager: Optional[PackageManagerType] = None
     language_version: Optional[str] = None
+    role: Literal["leaf", "aggregator", "NA"]  # leaf = buildable module
+    manifest_path: Optional[str] = None
+    project_name: Optional[str] = None
 
+    
 
 class CodebaseConfig(BaseModel):
-    codebase_folder: Optional[str] = None
-    root_package: str
+    codebase_folder: str  
+    root_packages: Optional[list[str]] = Field(
+        default=None,
+        description=(
+            "Relative paths (POSIX) to each root package inside codebase_folder."
+        ),
+    )
     programming_language_metadata: ProgrammingLanguageMetadata
+
+    
 
 
 class RepositorySettings(BaseModel):
@@ -130,3 +185,45 @@ class EnvironmentSettings(BaseSettings):
         alias="TEMPORAL_ENABLE_POLLER_AUTOSCALING",
         description="Whether to enable autoscaling for workflow and activity task pollers"
     )
+    
+    # Generic codebase parser configuration
+    codebase_parser_file_batch_size: int = Field(
+        default=1000,
+        alias="CODEBASE_PARSER_FILE_BATCH_SIZE",
+        description="Number of files to process in a single Neo4j UNWIND batch operation. Optimal for performance vs memory usage.",
+        ge=100,  # minimum 100
+        le=5000  # maximum 5000
+    )
+    
+    codebase_parser_package_batch_size: int = Field(
+        default=500,
+        alias="CODEBASE_PARSER_PACKAGE_BATCH_SIZE",
+        description="Number of packages to create in a single batch operation. Smaller than file batch due to hierarchical relationships.",
+        ge=50,   # minimum 50
+        le=2000  # maximum 2000
+    )
+    
+    codebase_parser_insertion_queue_size: int = Field(
+        default=2000,
+        alias="CODEBASE_PARSER_INSERTION_QUEUE_SIZE",
+        description="Maximum size of the asyncio queue for file insertion batches. Should be at least 2x file_batch_size for optimal throughput.",
+        ge=200,   # minimum 200
+        le=10000  # maximum 10000
+    )
+    
+    codebase_parser_max_retry_wait: int = Field(
+        default=30,
+        alias="CODEBASE_PARSER_MAX_RETRY_WAIT",
+        description="Maximum wait time in seconds for exponential backoff when Neo4j operations fail",
+        ge=5,    # minimum 5 seconds
+        le=300   # maximum 5 minutes
+    )
+    
+    codebase_parser_initial_retry_wait: float = Field(
+        default=1.0,
+        alias="CODEBASE_PARSER_INITIAL_RETRY_WAIT",
+        description="Initial wait time in seconds for exponential backoff when Neo4j operations fail",
+        ge=0.1,  # minimum 0.1 seconds
+        le=10.0  # maximum 10 seconds
+    )
+

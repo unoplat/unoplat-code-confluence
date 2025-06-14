@@ -1,8 +1,10 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatPackageManagerMetadata,
+    UnoplatProjectDependency,
+    UnoplatVersion,
+)
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
@@ -55,7 +57,11 @@ class UvStrategy(PackageManagerStrategy):
             
 
             if not pyproject_path.exists():
-                return UnoplatPackageManagerMetadata(programming_language="python", package_manager="uv")
+                package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
+                return UnoplatPackageManagerMetadata(
+                    programming_language=metadata.language.value, 
+                    package_manager=package_manager_value
+                )
            
             with open(pyproject_path, "rb") as f:
                 pyproject_data = tomllib.load(f)
@@ -138,11 +144,12 @@ class UvStrategy(PackageManagerStrategy):
                     logger.warning(f"Error processing dependency metadata for {name}: {str(e)}")
                     continue
 
+        package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
         return UnoplatPackageManagerMetadata(
             dependencies=dependencies,
             package_name=project_data.get("name"),
-            programming_language="python",
-            package_manager="uv",
+            programming_language=metadata.language.value,
+            package_manager=package_manager_value,
             programming_language_version=project_data.get("requires-python"),
             project_version=project_data.get("version"),
             description=project_data.get("description"),

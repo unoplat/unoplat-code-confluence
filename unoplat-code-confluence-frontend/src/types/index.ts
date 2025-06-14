@@ -20,7 +20,7 @@ export interface RepositoryWithCategory extends Repository {
 
 export interface RepositoryMetadata {
   codebaseFolder: string;
-  rootPackage: string;
+  rootPackages: string[];
   programmingLanguage: string;
   packageManager: string;
 }

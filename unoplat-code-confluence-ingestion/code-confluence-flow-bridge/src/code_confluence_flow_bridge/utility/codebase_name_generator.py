@@ -25,13 +25,13 @@ class CodebaseNameGenerator:
     def derive_name(
         cls,
         codebase_folder: Optional[str],
-        root_package: Optional[str],
+        root_packages: Optional[list[str]],
         repository_name: str,
     ) -> str:
         """
         Derive a unique codebase name:
          - If codebase_folder != "." and is non-empty, split on "/" and slugify each piece.
-         - Else if root_package != "." and non-empty, split on "/" or "." and slugify each piece.
+         - Else if root_packages has entries, use the first one, split on "/" or "." and slugify each piece.
          - Else fallback to slugified repository_name.
         Joined with "__" to keep segments distinct.
         """
@@ -42,12 +42,14 @@ class CodebaseNameGenerator:
             if slugged:
                 return "__".join(slugged)
 
-        # Fallback to package path
-        if root_package and root_package != ".":
-            parts = re.split(r"[\/\.]", root_package)
-            slugged = [cls.slugify(p) for p in parts if p and p != "."]
-            if slugged:
-                return "__".join(slugged)
+        # Fallback to first package path
+        if root_packages and len(root_packages) > 0:
+            first_package = root_packages[0]
+            if first_package and first_package != ".":
+                parts = re.split(r"[\/\.]", first_package)
+                slugged = [cls.slugify(p) for p in parts if p and p != "."]
+                if slugged:
+                    return "__".join(slugged)
 
         # Final fallback to repo name
         return cls.slugify(repository_name)

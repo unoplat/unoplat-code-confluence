@@ -109,6 +109,19 @@ task update-all-packages
 - **Factory Pattern**: Used for parser selection (codebase, package manager, linter)
 - **Strategy Pattern**: Different strategies for package managers and linters
 
+### Model Architecture
+
+**Current State**: All models are being consolidated into `src/code_confluence_flow_bridge/models/code_confluence_parsing_models/`
+
+**Legacy Models (Being Deprecated)**:
+- `src/code_confluence_flow_bridge/models/chapi/` - Legacy Chapi AST models
+- `src/code_confluence_flow_bridge/models/chapi_forge/` - Legacy domain models 
+
+**Migration Notes**:
+- Use models from `code_confluence_parsing_models` for all new development
+- Legacy `chapi/` and `chapi_forge/` directories will be removed after refactoring
+- Some legacy components (like SetupParser) may still reference old models during transition
+
 ## Temporal Workflow Architecture
 
 ### Worker Configuration
@@ -223,7 +236,6 @@ Key environment variables (see `main.py:run-dev` task for defaults):
 - `TEMPORAL_SERVER_ADDRESS`: Temporal server location
 - `DB_HOST/PORT/USER/PASSWORD/NAME`: PostgreSQL configuration  
 - `NEO4J_HOST/PORT/USERNAME/PASSWORD`: Neo4j configuration
-- `SCANNER_JAR_PATH`: Path to ArchGuard scanner JAR
 - `UNOPLAT_TEMPORAL_MAX_CONCURRENT_ACTIVITIES`: Worker concurrency settings
 - `UNOPLAT_TEMPORAL_ENABLE_POLLER_AUTOSCALING`: Enable autoscaling pollers
 

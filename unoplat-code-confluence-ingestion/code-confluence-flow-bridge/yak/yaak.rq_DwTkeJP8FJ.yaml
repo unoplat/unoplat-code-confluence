@@ -2,9 +2,9 @@ type: http_request
 model: http_request
 id: rq_DwTkeJP8FJ
 createdAt: 2025-06-06T04:50:08.587406
-updatedAt: 2025-06-06T04:52:59.032518
+updatedAt: 2025-06-14T07:04:39.370354
 workspaceId: wk_KULjx4bEa8
-folderId: fl_ZwwFo3jTXL
+folderId: fl_pr9oGjGRnn
 authentication: {}
 authenticationType: null
 body: {}
@@ -20,7 +20,7 @@ headers:
   value: ''
   id: k245dJt0Rn
 method: POST
-name: ''
-sortPriority: -0.0001
+name: ingest-code-confluence
+sortPriority: 0.0
 url: http://localhost:8000/ingest-token
 urlParameters: []

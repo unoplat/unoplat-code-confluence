@@ -139,8 +139,7 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
                         )
                         # Ensure trace_id is not None before using it
                         if trace_id is None:
-                            # Both repository_name and repository_owner_name must be strings at this point
-                            assert repository_name is not None and repository_owner_name is not None, "Repository name and owner must be defined"
+                            # Repository name and owner are already verified to be non-None in the parent if-statement
                             trace_id = f"{repository_name}__{repository_owner_name}"  # Fallback if trace_id is missing
                         
                         # Use cast to tell type checker that trace_id is definitely a string at this point
@@ -167,48 +166,48 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
                         repository_name, repository_owner_name, workflow_id, type(e).__name__
                     )
                     
-                    # Extract root package from the workflow_id
-                    # Pattern: codebase-child-workflow_{codebase_qualified_name}_{root_package}
-                    target_root_package = None
+                    # Extract codebase_folder from headers
+                    target_codebase_folder = None
                     try:
-                        if workflow_id.startswith("codebase-child-workflow_"):
-                            # Split by underscore and get the last element
-                            workflow_id_parts = workflow_id.split('|')
-                            if len(workflow_id_parts) > 2:  # Ensure we have enough parts
-                                target_root_package = workflow_id_parts[-1]
-                                log.debug(
-                                    "Extracted root package from workflow_id: {} -> {}",
-                                    workflow_id, target_root_package
-                                )
+                        if "codebase_folder" in input.headers:
+                            target_codebase_folder = input.headers["codebase_folder"].data.decode('utf-8')
+                            log.debug(
+                                "Extracted codebase_folder from headers: {}",
+                                target_codebase_folder
+                            )
+                        else:
+                            log.warning("codebase_folder not found in headers, cannot update child workflow status")
                     except Exception as parse_error:
                         log.error(
-                            "Failed to parse root package from workflow_id: {} | error={}",
-                            workflow_id, str(parse_error)
+                            "Failed to parse codebase_folder from headers | error={}",
+                            str(parse_error)
                         )
-                    try:
-                        # Create child workflow envelope for this codebase with RETRYING status
-                        child_env = CodebaseWorkflowDbActivityEnvelope(
-                            repository_name=repository_name,
-                            repository_owner_name=repository_owner_name,
-                            root_package=target_root_package, #type: ignore
-                            codebase_workflow_id=workflow_id,
-                            codebase_workflow_run_id=workflow_run_id,
-                            repository_workflow_run_id=parent_workflow_run_id,
-                            trace_id=trace_id,
-                            status=status_to_mark.value,
-                            error_report=error_report
-                        )
-                        
-                        log.debug(
-                            "Marking child workflow as RETRYING | repository={}/{} | root_package={} | workflow_run_id={}",
-                            repository_name, repository_owner_name, target_root_package, workflow_run_id
-                        )
-                        
-                        # Update status for this specific codebase
-                        await self.child_db_activity.update_codebase_workflow_status(child_env)
-                    except Exception as status_update_error:
-                        # Log but continue - we want to propagate the original exception
-                        log.error(f"Failed to update {status_to_mark.value} status: {status_update_error}")
+                    
+                    if target_codebase_folder:
+                        try:
+                            # Create child workflow envelope for this codebase with RETRYING status
+                            child_env = CodebaseWorkflowDbActivityEnvelope(
+                                repository_name=repository_name,
+                                repository_owner_name=repository_owner_name,
+                                codebase_folder=target_codebase_folder,
+                                codebase_workflow_id=workflow_id,
+                                codebase_workflow_run_id=workflow_run_id,
+                                repository_workflow_run_id=parent_workflow_run_id,
+                                trace_id=trace_id,
+                                status=status_to_mark.value,
+                                error_report=error_report
+                            )
+                            
+                            log.debug(
+                                "Marking child workflow as RETRYING | repository={}/{} | codebase_folder={} | workflow_run_id={}",
+                                repository_name, repository_owner_name, target_codebase_folder, workflow_run_id
+                            )
+                            
+                            # Update status for this specific codebase
+                            await self.child_db_activity.update_codebase_workflow_status(child_env)
+                        except Exception as status_update_error:
+                            # Log but continue - we want to propagate the original exception
+                            log.error(f"Failed to update {status_to_mark.value} status: {status_update_error}")
             except Exception as outer_error:
                 log.error(f"Error in activity interceptor error handling: {outer_error}")
                 

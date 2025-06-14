@@ -6,10 +6,11 @@
         "codebases": [
           {
             "codebase_folder": "unoplat-code-confluence-ingestion/code-confluence-flow-bridge",
-            "root_package": "src/code_confluence_flow_bridge",
+            "root_packages": ["src/code_confluence_flow_bridge"],
             "programming_language_metadata": {
               "language": "python",
-              "package_manager": "uv"
+              "package_manager": "uv",
+              "role": "leaf"
             }        
           }
         ]

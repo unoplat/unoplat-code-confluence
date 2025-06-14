@@ -1,8 +1,10 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatPackageManagerMetadata,
+    UnoplatProjectDependency,
+    UnoplatVersion,
+)
 from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import SetupParser
@@ -26,7 +28,8 @@ class PipStrategy(PackageManagerStrategy):
         """Process pip specific metadata from setup.py and requirements files."""
         try:
             # Create initial metadata
-            package_metadata = UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=metadata.package_manager.value, programming_language_version=metadata.language_version)
+            package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
+            package_metadata = UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=package_manager_value, programming_language_version=metadata.language_version)
 
             workspace = Path(local_workspace_path)
 

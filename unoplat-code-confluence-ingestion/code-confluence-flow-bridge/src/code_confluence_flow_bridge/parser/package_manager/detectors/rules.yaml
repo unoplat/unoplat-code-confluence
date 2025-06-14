@@ -1,30 +1,109 @@
 python:
-  - manager: uv
-    signatures:
-      - uv.lock
-      - file: pyproject.toml
-        contains: "[tool.uv]"
+  # Common directories to ignore during detection
+  ignores:
+    # Virtual environments
+    - venv
+    - .venv
+    - env
+    - .env
+    - virtualenv
+    # Python cache and build artifacts
+    - __pycache__
+    - .pytest_cache
+    - .tox
+    - .mypy_cache
+    - .ruff_cache
+    - dist
+    - build
+    - .eggs
+    - site-packages
+    # Test and coverage
+    - htmlcov
+    - .coverage
+    # IDE and tools
+    - .idea
+    - .vscode
+    # Dependencies
+    - node_modules
+    # Version control
+    - .git
+    # Documentation
+    - docs/_build
+    - site
+  
+  # Package managers with priority weights
+  managers:
+    - manager: uv
+      weight: 3  # Highest priority - newest and most specific
+      signatures:
+        - uv.lock
+        - file: pyproject.toml
+          contains: "[tool.uv]"
+      workspace_field: tool.uv.workspace
 
-  - manager: poetry
-    signatures:
-      - poetry.lock
-      - file: pyproject.toml
-        contains: "[tool.poetry]"
+    - manager: poetry
+      weight: 2  # Medium priority - modern package manager
+      signatures:
+        - poetry.lock
+        - file: pyproject.toml
+          contains: "[tool.poetry]"
 
-  - manager: pip
-    signatures:
-      - requirements.txt
-      - glob: "requirements-*.txt"
-      - setup.py  # Check for traditional setup.py files
+    - manager: pip
+      weight: 1  # Lowest priority - fallback option
+      signatures:
+        - requirements.txt
+        - glob: "requirements-*.txt"
+        - setup.py  # Check for traditional setup.py files
+
 
 # Add support for additional languages as needed
-# javascript:
-#   - manager: pnpm
-#     signatures:
-#       - pnpm-lock.yaml
-#   - manager: yarn
-#     signatures:
-#       - yarn.lock
-#   - manager: npm
-#     signatures:
-#       - package-lock.json
+
+java:
+  ignores:
+    - target
+    - .gradle
+    - out
+    - bin
+  managers:
+    - manager: maven
+      weight: 2
+      signatures:
+        - pom.xml
+    - manager: gradle
+      weight: 2
+      signatures:
+        - build.gradle
+        - build.gradle.kts
+
+typescript:
+  ignores:
+    - node_modules
+    - dist
+    - build
+    - out
+    - .next
+    - coverage
+  managers:
+    - manager: pnpm
+      weight: 3
+      signatures:
+        - pnpm-lock.yaml
+    - manager: yarn
+      weight: 2
+      signatures:
+        - yarn.lock
+    - manager: npm
+      weight: 1
+      signatures:
+        - package-lock.json
+        - package.json
+
+golang:
+  ignores:
+    - vendor
+    - bin
+  managers:
+    - manager: go
+      weight: 1
+      signatures:
+        - go.mod
