@@ -54,23 +54,22 @@ class ParentWorkflowDbActivity:
                 _ = await self._get_or_create_repository(session, repository_name, repository_owner_name)
                 if envelope.repository_metadata:
                     for cm in envelope.repository_metadata:
-                        existing_config = await session.get(CodebaseConfig, (repository_name, repository_owner_name, cm.root_package))
-                        source_directory = cm.codebase_folder or cm.root_package
+                        existing_config = await session.get(CodebaseConfig, (repository_name, repository_owner_name, cm.codebase_folder))
                         plm = cm.programming_language_metadata.model_dump()
                         if not existing_config:
                             config = CodebaseConfig(
                                 repository_name=repository_name,
                                 repository_owner_name=repository_owner_name,
-                                root_package=cm.root_package,
-                                source_directory=source_directory,
+                                codebase_folder=cm.codebase_folder,
+                                root_packages=cm.root_packages,
                                 programming_language_metadata=plm,
                             )
                             session.add(config)
                             await session.commit()
                             await session.refresh(config)
                         else:
-                            #Todo: Revisit this later
-                            existing_config.source_directory = source_directory
+                            # Todo: Revisit this later - update existing config
+                            existing_config.root_packages = cm.root_packages
                             existing_config.programming_language_metadata = plm
                             session.add(existing_config)
                             await session.commit()

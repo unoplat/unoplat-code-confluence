@@ -10,7 +10,7 @@ export interface GitHubRepoSummary {
 // Repository metadata type
 export interface RepositoryMetadata {
   codebaseFolder: string;
-  rootPackage: string;
+  rootPackages: string[];
   programmingLanguage: string;
   packageManager: string;
 }
@@ -62,7 +62,7 @@ export interface ProgrammingLanguageMetadata {
 
 export interface CodebaseConfig {
   codebase_folder: string;
-  root_package?: string;
+  root_packages?: string[] | null;
   programming_language_metadata: ProgrammingLanguageMetadata;
   dependencies?: Array<{
     name: string;
@@ -81,7 +81,7 @@ export interface GitHubRepoRequestConfiguration {
 // Backend-compatible codebase config for repository metadata (GET response)
 export interface CodebaseRepoConfig {
   codebase_folder: string;
-  root_package?: string | null;
+  root_packages?: string[] | null;
   programming_language_metadata: ProgrammingLanguageMetadata;
   status?: CodebaseStatusSchema | null;
   dependencies?: Array<{
@@ -198,7 +198,7 @@ export interface WorkflowRun {
 
 // Flattened codebase run for table display
 export interface FlattenedCodebaseRun {
-  root_package: string,
+  codebase_folder: string,
   codebase_workflow_run_id: string;
   codebase_status: JobStatus;
   codebase_started_at: string;
@@ -215,7 +215,7 @@ export interface WorkflowStatus {
 
 // CodebaseStatus model from backend
 export interface CodebaseStatus {
-  root_package: string;
+  codebase_folder: string;
   workflows: WorkflowStatus[];
 }
 

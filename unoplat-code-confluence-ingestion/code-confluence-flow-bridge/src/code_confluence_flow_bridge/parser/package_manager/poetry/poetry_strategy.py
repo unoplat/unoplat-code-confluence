@@ -1,7 +1,9 @@
 # Standard Library
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatPackageManagerMetadata,
+    UnoplatProjectDependency,
+    UnoplatVersion,
+)
 from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
 from src.code_confluence_flow_bridge.parser.package_manager.utils.requirements_utils import RequirementsUtils
@@ -83,7 +85,8 @@ class PythonPoetryStrategy(PackageManagerStrategy):
 
     def _handle_fallback(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Handle fallback to requirements.txt when no poetry config is found"""
-        activity.logger.warning("No poetry configuration found, falling back to requirements", {"path": local_workspace_path, "package_manager": metadata.package_manager.value})
+        package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
+        activity.logger.warning("No poetry configuration found, falling back to requirements", {"path": local_workspace_path, "package_manager": package_manager_value})
         dependencies = RequirementsUtils.parse_requirements_folder(local_workspace_path)
         package_manager = UnoplatPackageManagerMetadata(dependencies=dependencies, programming_language=metadata.language.value, package_manager=PackageManagerType.PIP.value)
         try:
@@ -129,7 +132,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
 
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information"""
-        return UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value)
+        return UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value, programming_language_version=metadata.language_version)
 
     def _parse_dependencies(self, deps_dict: Dict, group: Optional[str] = None) -> Dict[str, UnoplatProjectDependency]:
         dependencies = {}

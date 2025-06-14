@@ -1,8 +1,7 @@
-import os
 import pytest
 import tomlkit
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
 from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
 from src.code_confluence_flow_bridge.models.configuration.settings import (
@@ -10,7 +9,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
     PackageManagerType,
     ProgrammingLanguage
 )
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import UnoplatProjectDependency
 from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 # Constants
@@ -49,7 +48,8 @@ def mock_metadata() -> ProgrammingLanguageMetadata:
     return ProgrammingLanguageMetadata(
         language=ProgrammingLanguage.PYTHON,
         package_manager=PackageManagerType.POETRY,
-        language_version="3.8.0"
+        language_version="3.8.0",
+        role="leaf"
     )
 
 def writepyproject(content: str, tmp_path: Path) -> Path:

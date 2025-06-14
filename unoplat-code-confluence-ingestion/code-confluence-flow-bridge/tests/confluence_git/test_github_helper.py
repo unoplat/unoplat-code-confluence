@@ -109,8 +109,19 @@ class TestGithubHelper:
         # Check codebases
         assert len(repo.codebases) == len(settings.codebases)
         for codebase, config in zip(repo.codebases, settings.codebases):
-            assert codebase.name == config.root_package
-            assert os.path.exists(codebase.local_path)
+            # Codebase name should match first root package or codebase_folder
+            expected_name = config.codebase_folder
+            if config.root_packages and len(config.root_packages) > 0:
+                first_root_package = config.root_packages[0]
+                if first_root_package != ".":
+                    expected_name = first_root_package
+            assert codebase.name == expected_name
+            
+            # Verify root_packages are valid paths
+            assert len(codebase.root_packages) > 0
+            for root_package_path in codebase.root_packages:
+                assert os.path.exists(root_package_path)
+            
             assert codebase.package_manager_metadata.programming_language == "python"
             assert codebase.package_manager_metadata.package_manager == "uv"
             
@@ -122,20 +133,21 @@ class TestGithubHelper:
                 "unoplat-code-confluence"
             )
             
-            # Expected local_path includes root_package
-            expected_path = os.path.join(
-                repo_base,
-                config.codebase_folder,
-                config.root_package
-            )
-            assert codebase.local_path == expected_path
-            
-            # Verify source_directory (should be codebase folder path)
-            expected_source_dir = os.path.join(
+            # Expected codebase_path (base directory for the codebase)
+            expected_codebase_path = os.path.join(
                 repo_base,
                 config.codebase_folder if config.codebase_folder and config.codebase_folder != "." else ""
             )
-            assert codebase.source_directory == expected_source_dir
+            assert codebase.codebase_path == expected_codebase_path
+            
+            # Expected root_packages should include full paths to each root package
+            if config.root_packages:
+                for i, root_package in enumerate(config.root_packages):
+                    if root_package == ".":
+                        expected_root_path = expected_codebase_path
+                    else:
+                        expected_root_path = os.path.join(expected_codebase_path, root_package)
+                    assert codebase.root_packages[i] == expected_root_path
         
         # Check README
         assert repo.readme is not None
@@ -162,8 +174,19 @@ class TestGithubHelper:
         # Check codebases with nested structure
         assert len(repo.codebases) == len(nested_settings.codebases)
         for codebase, config in zip(repo.codebases, nested_settings.codebases):
-            assert codebase.name == config.root_package
-            assert os.path.exists(codebase.local_path)
+            # Codebase name should match first root package or codebase_folder
+            expected_name = config.codebase_folder
+            if config.root_packages and len(config.root_packages) > 0:
+                first_root_package = config.root_packages[0]
+                if first_root_package != ".":
+                    expected_name = first_root_package
+            assert codebase.name == expected_name
+            
+            # Verify root_packages are valid paths
+            assert len(codebase.root_packages) > 0
+            for root_package_path in codebase.root_packages:
+                assert os.path.exists(root_package_path)
+                
             assert codebase.package_manager_metadata.programming_language == "python"
             assert codebase.package_manager_metadata.package_manager == "uv"
             
@@ -175,20 +198,21 @@ class TestGithubHelper:
                 "unoplat-code-confluence"
             )
             
-            # Expected local_path includes root_package
-            expected_path = os.path.join(
-                repo_base,
-                config.codebase_folder,
-                config.root_package
-            )
-            assert codebase.local_path == expected_path
-            
-            # Verify source_directory (should be codebase folder path)
-            expected_source_dir = os.path.join(
+            # Expected codebase_path (base directory for the codebase)
+            expected_codebase_path = os.path.join(
                 repo_base,
                 config.codebase_folder if config.codebase_folder and config.codebase_folder != "." else ""
             )
-            assert codebase.source_directory == expected_source_dir
+            assert codebase.codebase_path == expected_codebase_path
+            
+            # Expected root_packages should include full paths to each root package
+            if config.root_packages:
+                for i, root_package in enumerate(config.root_packages):
+                    if root_package == ".":
+                        expected_root_path = expected_codebase_path
+                    else:
+                        expected_root_path = os.path.join(expected_codebase_path, root_package)
+                    assert codebase.root_packages[i] == expected_root_path
         
         # Check README
         assert repo.readme is not None

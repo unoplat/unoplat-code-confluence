@@ -62,7 +62,7 @@ export function RepositoryConfigDialog({
   // Default codebase structure
   const defaultCodebase: Codebase = {
     codebase_folder: "",
-    root_package: "",
+    root_packages: null,
     programming_language_metadata: {
       language: "python",
       package_manager: "auto-detect",
@@ -93,7 +93,7 @@ export function RepositoryConfigDialog({
         // Convert to the expected Codebase type
         const codebase: Codebase = {
           codebase_folder: item.codebase_folder || "",
-          root_package: item.root_package || "",
+          root_packages: item.root_packages || null,
           programming_language_metadata: {
             language: item.programming_language_metadata.language || "python",
             package_manager: item.programming_language_metadata.package_manager || "auto-detect",
@@ -166,7 +166,7 @@ export function RepositoryConfigDialog({
           repository_owner_name: repositoryOwnerName,
           repository_metadata: value.codebases.map((cb) => ({
             codebase_folder: cb.codebase_folder,
-            root_package: cb.root_package || "",
+            root_packages: cb.root_packages || null,
             programming_language_metadata: cb.programming_language_metadata,
           })),
         };

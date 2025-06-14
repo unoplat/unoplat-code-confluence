@@ -38,4 +38,5 @@ async def get_session_cm():
 async def create_db_and_tables():
     """Asynchronously create database tables."""
     async with async_engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+        # Use create_all with checkfirst=True to avoid errors if tables already exist
+        await conn.run_sync(lambda sync_conn: SQLModel.metadata.create_all(sync_conn, checkfirst=True))

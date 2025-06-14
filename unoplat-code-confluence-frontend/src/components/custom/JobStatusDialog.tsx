@@ -111,7 +111,7 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
             
           return {
             // Use the new accessor keys that match the column definitions
-            root_package: codebase.root_package,
+            codebase_folder: codebase.codebase_folder,
             codebase_workflow_run_id: run.codebase_workflow_run_id,
             codebase_status: run.status,
             codebase_started_at: run.started_at,

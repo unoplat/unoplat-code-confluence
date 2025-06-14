@@ -341,7 +341,7 @@ export interface GithubIssueSubmissionRequest {
   repository_owner_name: string;
   parent_workflow_run_id: string;
   error_type: string;
-  root_package?: string | null;
+  codebase_folder?: string | null;
   codebase_workflow_run_id?: string | null;
   error_message_body: string;
 }
