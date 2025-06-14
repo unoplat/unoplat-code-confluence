@@ -52,12 +52,6 @@ jobs:
           fetch-depth: 0
           ref: ${{ GITHUB.HEAD_REF }}
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -72,31 +66,6 @@ jobs:
       - name: Install Ruff
         run: curl -LsSf https://astral.sh/ruff/install.sh | sh
         
-      - name: Setup Scanner CLI
-        run: |
-          SCANNER_DIR="$HOME/.unoplat/repositories/assets"
-          SCANNER_JAR="scanner_cli-2.2.8-all.jar"
-          SCANNER_URL="https://github.com/archguard/archguard/releases/download/v2.2.8/$SCANNER_JAR"
-          
-          # Create directory if it doesn't exist
-          mkdir -p "$SCANNER_DIR"
-          
-          # Download scanner CLI
-          curl -L -o "$SCANNER_DIR/$SCANNER_JAR" "$SCANNER_URL"
-
-      - name: Generate Test Prerequisites
-        working-directory: ${{ matrix.project }}/tests/test_data/unoplat-code-confluence-cli
-        run: |
-          SCANNER_DIR="$HOME/.unoplat/repositories/assets"
-          SCANNER_JAR="scanner_cli-2.2.8-all.jar"
-          
-          java -jar "$SCANNER_DIR/$SCANNER_JAR" \
-            --with-function-code --language=python \
-            --output=arrow --output=json \
-            --path=unoplat_code_confluence_cli \
-            --output-dir=unoplat_code_confluence_cli/ \
-            --depth=20
-
       - name: Install dependencies and run tests
         working-directory: ${{ matrix.project }}
         env:
