@@ -77,7 +77,6 @@ tasks:
     deps: [sync]
     dir: src/code_confluence_flow_bridge
     env:
-      SCANNER_JAR_PATH: "{{.HOME}}/.unoplat/repositories/assets/scanner_cli-2.3.0-all.jar"
       DB_HOST: "localhost"
       DB_PORT: "5432"
       DB_USER: "postgres"

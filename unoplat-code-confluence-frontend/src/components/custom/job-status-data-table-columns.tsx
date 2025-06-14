@@ -54,20 +54,20 @@ export function getJobStatusDataTableColumns({
 }: JobStatusDataTableColumnsProps): ColumnDef<FlattenedCodebaseRun>[] {
   const columns: ColumnDef<FlattenedCodebaseRun>[] = [
     {
-      accessorKey: 'root_package',
+      accessorKey: 'codebase_folder',
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader column={column} title="Root Package" />
+        <DataTableColumnHeader column={column} title="Codebase Folder" />
       ),
       cell: ({ row }): React.ReactNode => (
         <div className="flex items-center">
           <span className="text-sm font-normal text-primary">
-            {row.original.root_package}
+            {row.original.codebase_folder}
           </span>
         </div>
       ),
       meta: {
-        label: 'Root Package',
-        placeholder: 'Search package...',
+        label: 'Codebase Folder',
+        placeholder: 'Search folder...',
         variant: 'text',
       },
       enableSorting: false,

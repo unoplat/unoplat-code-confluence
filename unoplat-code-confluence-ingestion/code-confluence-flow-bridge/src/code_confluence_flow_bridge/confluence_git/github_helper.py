@@ -1,8 +1,8 @@
 
 from src.code_confluence_flow_bridge.logging.trace_utils import activity_id_var, activity_name_var, workflow_id_var, workflow_run_id_var
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_codebase import UnoplatCodebase
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import UnoplatCodebase
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import UnoplatGitRepository
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
 from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 
@@ -89,42 +89,66 @@ class GithubHelper:
             # Create UnoplatCodebase objects for each codebase config in repository_metadata
             codebases: List[UnoplatCodebase] = []
             for codebase_config in repo_request.repository_metadata:
-                # First build path with codebase_folder
-                local_path = repo_path
+                # Build codebase path with codebase_folder
+                codebase_path = repo_path
                 if codebase_config.codebase_folder and codebase_config.codebase_folder != ".":
                     path_components = codebase_config.codebase_folder.split("/")
                     for component in path_components:
-                        local_path = os.path.join(local_path, component)
+                        codebase_path = os.path.join(codebase_path, component)
 
-                source_directory: str = local_path
-
-                # Then append root_package components if present
-                if codebase_config.root_package and codebase_config.root_package != ".":
-                    root_package_components = codebase_config.root_package.split("/")
-                    for component in root_package_components:
-                        local_path = os.path.join(local_path, component)
+                # Build absolute paths for each root package
+                root_package_paths: List[str] = []
+                if codebase_config.root_packages:
+                    for root_package in codebase_config.root_packages:
+                        if root_package == ".":
+                            # Root package at codebase root
+                            root_package_path = codebase_path
+                        else:
+                            # Root package in subdirectory
+                            root_package_path = os.path.join(codebase_path, root_package)
+                        
+                        # Verify the path exists
+                        if not os.path.exists(root_package_path):
+                            logger.warning(
+                                "Root package path not found | path={} | skipping",
+                                root_package_path
+                            )
+                            continue
+                            
+                        root_package_paths.append(root_package_path)
                 else:
                     if codebase_config.programming_language_metadata.language.value == "python":
-                        raise Exception("Root package should be specified for python codebases")
+                        logger.warning("No root packages specified for python codebase, using codebase root")
+                    root_package_paths.append(codebase_path)
 
-                # Log the computed local path for the codebase
+                # Verify at least one valid root package path exists
+                if not root_package_paths:
+                    raise Exception(f"No valid root package paths found for codebase at {codebase_path}")
+
+                # Log the computed paths for the codebase
                 logger.info(
-                    "Codebase local path computed | local_path={} | status=success",
-                    local_path
+                    "Codebase paths computed | codebase_path={} | root_packages={} | status=success",
+                    codebase_path, root_package_paths
                 )
 
                 programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
-                # Verify the path exists
-                if not os.path.exists(local_path):
-                    raise Exception(f"Codebase path not found: {local_path}")
-
+                
+                # Determine codebase name (use codebase_folder or first root package name)
+                codebase_name = codebase_config.codebase_folder
+                if codebase_config.root_packages and len(codebase_config.root_packages) > 0:
+                    # Use first root package name, or codebase_folder if root package is "."
+                    first_root_package = codebase_config.root_packages[0]
+                    if first_root_package != ".":
+                        codebase_name = first_root_package
+                
                 codebase = UnoplatCodebase(
-                    name=codebase_config.root_package,  # type: ignore
-                    local_path=local_path,
-                    source_directory=source_directory,
+                    name=codebase_name,
+                    root_packages=root_package_paths,
+                    codebase_path=codebase_path,
+                    codebase_folder=codebase_config.codebase_folder,
                     package_manager_metadata=UnoplatPackageManagerMetadata(
                         programming_language=programming_language_metadata.language.value,
-                        package_manager=programming_language_metadata.package_manager,
+                        package_manager=programming_language_metadata.package_manager.value if programming_language_metadata.package_manager else "unknown",
                         programming_language_version=programming_language_metadata.language_version,
                     ),
                 )

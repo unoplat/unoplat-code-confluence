@@ -1,4 +1,3 @@
-
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, ProgrammingLanguageMetadata
@@ -23,9 +22,15 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     WorkflowStatus,
 )
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.async_detector_wrapper import AsyncDetectorWrapper
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import (
+    DetectionProgress,
+    DetectionResult,
+    DetectionState,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import SSEMessage
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
-from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
@@ -33,6 +38,7 @@ from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_a
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
 from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import CodebaseWorkflowRun, Repository, RepositoryWorkflowRun
+from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import process_codebase_generic
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
@@ -48,11 +54,12 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 import traceback
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, cast
+from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Sequence, Tuple, cast
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from github import Github
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -209,6 +216,36 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
         ) from e
 
 
+async def fetch_github_token_from_db(session: AsyncSession) -> str:
+    """
+    Fetch and decrypt GitHub token from database.
+    
+    Args:
+        session: Database session
+        
+    Returns:
+        Decrypted GitHub token
+        
+    Raises:
+        HTTPException: If no credentials found or decryption fails
+    """
+    try:
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
+    except Exception as db_error:
+        logger.error(f"Database error while fetching credentials: {db_error}")
+        raise HTTPException(status_code=500, detail="Database error while fetching credentials")
+    
+    if not credential:
+        raise HTTPException(status_code=404, detail="No credentials found")
+    
+    try:
+        return decrypt_token(credential.token_hash)
+    except Exception as decrypt_error:
+        logger.error(f"Failed to decrypt token: {decrypt_error}")
+        raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
+
+
 async def start_workflow(
     temporal_client: Client,
     repo_request: GitHubRepoRequestConfiguration,
@@ -232,6 +269,96 @@ async def start_workflow(
     )
     logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
     return workflow_handle
+
+
+async def generate_sse_events(
+    git_url: str,
+    github_token: str,
+    detector_wrapper: AsyncDetectorWrapper
+) -> AsyncGenerator[str, None]:
+    """
+    Generate SSE events for codebase detection progress.
+    
+    Args:
+        git_url: GitHub repository URL
+        github_token: GitHub authentication token
+        detector_wrapper: AsyncDetectorWrapper instance
+        
+    Yields:
+        SSE-formatted event strings
+    """
+    # Create progress queue with bounded size (following best practices)
+    progress_queue: asyncio.Queue[DetectionProgress] = asyncio.Queue(maxsize=100)
+    
+    # Send initial connection event
+    yield SSEMessage.connected()
+    
+    # Start detection task
+    detection_task = asyncio.create_task(
+        detector_wrapper.detect_codebases_async(
+            git_url=git_url,
+            github_token=github_token,
+            progress_queue=progress_queue
+        )
+    )
+    
+    try:
+        # Stream progress updates
+        while True:
+            try:
+                # Wait for progress with timeout for disconnection detection
+                progress = await asyncio.wait_for(
+                    progress_queue.get(), 
+                    timeout=1.0
+                )
+                
+                # Convert progress to SSE event
+                yield SSEMessage.format_sse(
+                    data={
+                        "state": progress.state.value,
+                        "message": progress.message,
+                        "repository_url": progress.repository_url
+                    },
+                    event="progress"
+                )
+                
+                # Check if detection is complete
+                if progress.state == DetectionState.COMPLETE:
+                    break
+                    
+            except asyncio.TimeoutError:
+                # Check if client is still connected by checking task status
+                if detection_task.done():
+                    break
+                # Send heartbeat comment to keep connection alive
+                yield SSEMessage.comment("heartbeat")
+                continue
+                
+        # Get final result
+        result: DetectionResult = await detection_task
+        
+        # Send result event
+        yield SSEMessage.result(result.model_dump())
+        
+        # Send completion event
+        yield SSEMessage.done()
+        
+    except asyncio.CancelledError:
+        # Client disconnected - cancel detection
+        logger.info("Client disconnected, cancelling detection")
+        if not detection_task.done():
+            detection_task.cancel()
+            try:
+                await detection_task
+            except asyncio.CancelledError:
+                pass
+        raise
+        
+    except Exception as e:
+        # Send error event
+        logger.error(f"Detection error: {str(e)}")
+        yield SSEMessage.error(str(e), error_type="DETECTION_ERROR")
+        yield SSEMessage.done()
 
 
 # Create FastAPI lifespan context manager
@@ -268,8 +395,8 @@ async def lifespan(app: FastAPI):
     codebase_package_ingestion = PackageManagerMetadataIngestion(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
     activities.append(codebase_package_ingestion.insert_package_manager_metadata)
     
-    codebase_processing_activity = CodebaseProcessingActivity(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
-    activities.append(codebase_processing_activity.process_codebase)
+    # Add generic codebase processing activity
+    activities.append(process_codebase_generic)
     
     # Create database tables during startup
     await create_db_and_tables()
@@ -420,23 +547,8 @@ async def get_repos(
     filterValues: Optional[str] = Query(None, description="Optional JSON filter values to filter repositories"),
     session: AsyncSession = Depends(get_session)
 ) -> PaginatedResponse:
-    # Attempt to fetch the stored credentials from the database
-    try:
-        result = await session.execute(select(Credentials))
-        credential: Optional[Credentials] = result.scalars().first()
-    except Exception as db_error:
-        logger.error(f"Database error while fetching credentials: {db_error}")
-        raise HTTPException(status_code=500, detail="Database error while fetching credentials")
-    
-    if not credential:
-        raise HTTPException(status_code=404, detail="No credentials found")
-  
-    # Attempt to decrypt the stored token
-    try:
-        token: str = decrypt_token(credential.token_hash)
-    except Exception as decrypt_error:
-        logger.error(f"Failed to decrypt token: {decrypt_error}")
-        raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
+    # Fetch GitHub token from database using helper function
+    token = await fetch_github_token_from_db(session)
     
     
     # Parse filterValues if provided, and merge with the search parameter
@@ -573,7 +685,7 @@ async def get_repos(
 async def ingestion(
     repo_request: GitHubRepoRequestConfiguration,
     session: AsyncSession = Depends(get_session),
-    request_logger: "Logger" = Depends(trace_dependency) # type: ignore
+    request_logger: "Logger" = Depends(trace_dependency) #type: ignore
 ) -> dict[str, str]:
     """
     Start the ingestion workflow for the entire repository using the GitHub token from the database.
@@ -581,23 +693,8 @@ async def ingestion(
     Returns the workflow_id and run_id.
     Also ingests the repository configuration into the database.
     """
-    # Attempt to fetch the stored credentials from the database
-    try:
-        result = await session.execute(select(Credentials))
-        credential: Optional[Credentials] = result.scalars().first()
-    except Exception as db_error:
-        request_logger.error(f"Database error while fetching credentials: {db_error}")
-        raise HTTPException(status_code=500, detail="Database error while fetching credentials")
-
-    if not credential:
-        raise HTTPException(status_code=404, detail="No credentials found")
-
-    # Attempt to decrypt the stored token
-    try:
-        github_token: str = decrypt_token(credential.token_hash)
-    except Exception as decrypt_error:
-        request_logger.error(f"Failed to decrypt token: {decrypt_error}")
-        raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
+    # Fetch GitHub token from database using helper function
+    github_token = await fetch_github_token_from_db(session)
 
     # Fetch the trace-id that `trace_dependency` already set
     trace_id = trace_id_var.get()
@@ -764,12 +861,12 @@ async def get_repository_status(
         )
         codebase_runs = (await session.execute(cb_stmt)).scalars().all()
         
-        # Group codebase runs by root_package
+        # Group codebase runs by codebase_folder
         codebase_data: Dict[str, List[Tuple[str, WorkflowRun]]] = {}
         for run in codebase_runs:
-            root_package = run.root_package
-            if root_package not in codebase_data:
-                codebase_data[root_package] = []
+            codebase_folder = run.codebase_folder
+            if codebase_folder not in codebase_data:
+                codebase_data[codebase_folder] = []
                 
             error_report = ErrorReport(**run.error_report) if run.error_report else None
             
@@ -784,11 +881,11 @@ async def get_repository_status(
             )
             
             # Add to the list of runs for this codebase
-            codebase_data[root_package].append((run.codebase_workflow_id, workflow_run))
+            codebase_data[codebase_folder].append((run.codebase_workflow_id, workflow_run))
         
         # Now organize workflow runs by workflow ID
         codebases: List[CodebaseStatus] = []
-        for root_package, runs in codebase_data.items():
+        for codebase_folder, runs in codebase_data.items():
             # Group workflow runs by workflow ID
             workflow_map: Dict[str, List[WorkflowRun]] = {}
             for workflow_id, wf_run in runs:
@@ -804,9 +901,9 @@ async def get_repository_status(
                     codebase_workflow_runs=workflow_runs
                 ))
             
-            # Create CodebaseStatus for this root package
+            # Create CodebaseStatus for this codebase
             codebases.append(CodebaseStatus(
-                root_package=root_package,
+                codebase_folder=codebase_folder,
                 workflows=workflows
             ))
         
@@ -862,12 +959,13 @@ async def get_repository_data(
     try:
         codebases = [
             CodebaseConfig(
-                codebase_folder=config.source_directory,
-                root_package=config.root_package,
+                codebase_folder=config.codebase_folder,
+                root_packages=config.root_packages,
                 programming_language_metadata=ProgrammingLanguageMetadata(
                     language=config.programming_language_metadata["language"],
                     package_manager=config.programming_language_metadata["package_manager"],
                     language_version=config.programming_language_metadata.get("language_version"),
+                    role=config.programming_language_metadata.get("role", "NA"),
                 ),
             )
             for config in db_obj.configs
@@ -927,12 +1025,8 @@ async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict
     """
     Fetch authenticated GitHub user's name, avatar URL, and email.
     """
-    # Fetch stored GitHub token from database
-    result = await session.execute(select(Credentials))
-    credential: Optional[Credentials] = result.scalars().first()
-    if not credential:
-        raise HTTPException(status_code=404, detail="No credentials found")
-    token = decrypt_token(credential.token_hash)
+    # Fetch GitHub token from database using helper function
+    token = await fetch_github_token_from_db(session)
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -964,6 +1058,43 @@ async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict
     }
 
 
+@app.get("/detect-codebases-sse")
+async def detect_codebases_sse(
+    git_url: str = Query(..., description="GitHub repository URL to analyze"),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Server-Sent Events endpoint for real-time codebase detection progress.
+    
+    Streams progress updates during Python codebase auto-detection from GitHub repositories.
+    Uses FastAPI's StreamingResponse with proper SSE formatting.
+    
+    Args:
+        git_url: GitHub repository URL to detect codebases from
+        session: Database session for token retrieval
+        
+    Returns:
+        StreamingResponse with text/event-stream content type
+    """
+    
+    # Fetch GitHub token from database
+    github_token = await fetch_github_token_from_db(session)
+    
+    # Create async detector wrapper using existing ThreadPoolExecutor
+    detector_wrapper = AsyncDetectorWrapper(app.state.activity_executor)
+    
+    # Generate SSE events using the helper function and return StreamingResponse
+    return StreamingResponse(
+        generate_sse_events(git_url, github_token, detector_wrapper),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"  # Disable nginx buffering
+        }
+    )
+
+
 @app.post("/code-confluence/issues", response_model=IssueTracking)
 async def create_github_issue(request: GithubIssueSubmissionRequest, session: AsyncSession = Depends(get_session)):
     """
@@ -973,12 +1104,8 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
     either the codebase workflow run or repository workflow run record with the issue details.
     """
     try:
-        # Get GitHub token from credentials
-        result = await session.execute(select(Credentials))
-        credential: Optional[Credentials] = result.scalars().first()
-        if not credential:
-            raise HTTPException(status_code=404, detail="No GitHub credentials found")
-        token = decrypt_token(credential.token_hash)
+        # Get GitHub token from credentials using helper function
+        token = await fetch_github_token_from_db(session)
         
         # Create GitHub issue
         
@@ -987,13 +1114,13 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
         body = f"## Error Details\n\n{request.error_message_body}\n\n"
         
         # Add workflow context information to the issue body
-        body += f"## Workflow Information\n\n"
+        body += "## Workflow Information\n\n"
         body += f"- Repository: {request.repository_owner_name}/{request.repository_name}\n"
         
         
         
-        if request.root_package:
-            body += f"- Root Package: {request.root_package}\n"
+        if request.codebase_folder:
+            body += f"- Codebase Folder: {request.codebase_folder}\n"
         
         # Build the GitHub API request data
         github_issue_data = {
@@ -1049,7 +1176,7 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
             condition = (
                 (CodebaseWorkflowRun.repository_name == request.repository_name)
                 & (CodebaseWorkflowRun.repository_owner_name == request.repository_owner_name)
-                & (CodebaseWorkflowRun.root_package == request.root_package)
+                & (CodebaseWorkflowRun.codebase_folder == request.codebase_folder)
                 & (CodebaseWorkflowRun.codebase_workflow_run_id == request.codebase_workflow_run_id)
             )  # type: ignore
             codebase_run_query = select(CodebaseWorkflowRun).where(condition)
@@ -1091,8 +1218,8 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
         }
         if request.error_type == IssueType.CODEBASE and request.codebase_workflow_run_id:
             workflow_context["codebase_workflow_run_id"] = request.codebase_workflow_run_id
-            if request.root_package:
-                workflow_context["root_package"] = request.root_package
+            if request.codebase_folder:
+                workflow_context["codebase_folder"] = request.codebase_folder
             
         error_context = {
             "error_message": str(e),

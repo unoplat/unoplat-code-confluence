@@ -1,8 +1,10 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_project_dependency import UnoplatProjectDependency
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_version import UnoplatVersion
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatPackageManagerMetadata,
+    UnoplatProjectDependency,
+    UnoplatVersion,
+)
 
 import os
 import ast
