@@ -439,8 +439,7 @@ def make_sse_request(test_client: TestClient, url: str) -> Dict:
 class TestDetectCodebasesSSEIntegration:
     """Integration tests for SSE endpoint with real services via DockerCompose."""
     
-    @pytest.mark.asyncio
-    async def test_full_sse_flow_with_token_ingestion(
+    def test_full_sse_flow_with_token_ingestion(
         self,
         test_client: TestClient,
         github_token: str
@@ -536,8 +535,7 @@ class TestDetectCodebasesSSEIntegration:
             assert done_events[0]['data'] == {'status': 'complete'}
             logger.info("✓ Done event received")
     
-    @pytest.mark.asyncio
-    async def test_sse_with_invalid_git_url(
+    def test_sse_with_invalid_git_url(
         self,
         test_client: TestClient,
         github_token: str
@@ -570,8 +568,7 @@ class TestDetectCodebasesSSEIntegration:
             )
             logger.info("✓ Error properly handled for invalid repository")
     
-    @pytest.mark.asyncio
-    async def test_concurrent_sse_requests(
+    def test_concurrent_sse_requests(
         self,
         test_client: TestClient,
         github_token: str
@@ -598,12 +595,8 @@ class TestDetectCodebasesSSEIntegration:
         
         # Run requests concurrently using ThreadPoolExecutor since TestClient is sync
         with ThreadPoolExecutor(max_workers=3) as executor:
-            loop = asyncio.get_event_loop()
-            futures = [
-                loop.run_in_executor(executor, make_request_func, url)
-                for url in urls
-            ]
-            results = await asyncio.gather(*futures)
+            futures = [executor.submit(make_request_func, url) for url in urls]
+            results = [f.result() for f in futures]
         
         logger.info("Concurrent request results:")
         for result in results:
@@ -613,8 +606,7 @@ class TestDetectCodebasesSSEIntegration:
         assert len(results) == len(urls)
         logger.info("✓ All concurrent requests completed successfully")
     
-    @pytest.mark.asyncio
-    async def test_sse_missing_git_url_parameter(self, test_client: TestClient):
+    def test_sse_missing_git_url_parameter(self, test_client: TestClient):
         """Test SSE endpoint with missing git_url parameter."""
         logger.info("Testing SSE endpoint with missing git_url parameter")
         
@@ -624,10 +616,4 @@ class TestDetectCodebasesSSEIntegration:
         logger.info("✓ Correctly rejected request without git_url parameter")
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# MAIN
-# ──────────────────────────────────────────────────────────────────────────────
 
-if __name__ == "__main__":
-    # Run only integration tests
-    pytest.main([__file__, "-v", "-s", "-m", "integration"])
