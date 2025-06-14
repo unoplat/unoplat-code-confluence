@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.38.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.38.0...code-confluence-flow-bridge-v0.38.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* remove java, archguard related dependencies ([b554b9d](https://github.com/unoplat/unoplat-code-confluence/commit/b554b9dd00972e26b79874aa82b4463ce0bae8ef))
+* remove java, archguard related dependencies ([bd7d11c](https://github.com/unoplat/unoplat-code-confluence/commit/bd7d11c70581ed9e231f7385b8708ede787b37dc))
+
 ## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.37.0...code-confluence-flow-bridge-v0.38.0) (2025-06-06)
 
 
