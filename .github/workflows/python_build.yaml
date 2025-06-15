@@ -63,6 +63,12 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@v1
 
+      - name: Install docker-compose v1 for testcontainers compatibility
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
       - name: Install Ruff
         run: curl -LsSf https://astral.sh/ruff/install.sh | sh
         
