@@ -8,8 +8,10 @@ import { useForm } from '@tanstack/react-form';
 import { submitGitHubToken, updateGitHubToken, ApiError, ApiResponse } from '../../lib/api';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Dialog, DialogContent, DialogDescription } from '../ui/dialog';
-import { Github, X } from 'lucide-react';
+import { Github, X, ExternalLink, Key } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { buildGitHubPatLink, SCOPE_DESCRIPTIONS } from '@/lib/github-token-utils';
+import { Separator } from '../ui/separator';
 
 interface GitHubTokenPopupProps {
   open: boolean;
@@ -167,7 +169,7 @@ export default function GitHubTokenPopup({
         }
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <div className="absolute right-4 top-4">
           <Button
             variant="ghost"
@@ -202,88 +204,134 @@ export default function GitHubTokenPopup({
             </Alert>
           )}
 
-          <form
-            onSubmit={(e: React.FormEvent<HTMLFormElement>): void => {
-              console.log('[GitHubTokenPopup] Form onSubmit event triggered');
-              e.preventDefault();
-              e.stopPropagation();
-              void form.handleSubmit();
-            }}
-            className="w-full space-y-4"
-          >
-            <div className="grid w-full gap-2">
-              <form.Field
-                name="patToken"
-                validators={{
-                  onChange: ({ value }): string | undefined => {
-                    const result: string | undefined = value.trim() === '' ? 'A GitHub token is required' : undefined;
-                    console.log('[GitHubTokenPopup] Field validation:', result ? 'invalid' : 'valid');
-                    return result;
-                  },
-                }}
-              >
-                {(field): React.ReactElement => (
-                  <div className="grid gap-1">
-                    <Label htmlFor={`github-${field.name}`} className="text-sm font-medium">
-                      GitHub Personal Access Token (PAT)
-                    </Label>
-                    <Input
-                      type="password"
-                      id={`github-${field.name}`}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                        console.log('[GitHubTokenPopup] Input changed');
-                        field.handleChange(e.target.value);
-                        // Clear the error state when user types
-                        if (error) {
-                          setError(null);
-                        }
-                      }}
-                      placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                      className="w-full"
-                      autoComplete="off"
-                    />
-                    {field.state.meta.errors ? (
-                      <p className="text-sm text-destructive">
-                        {field.state.meta.errors}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Your token will be securely stored and used only for GitHub API requests.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </form.Field>
-            </div>
-            <div className="flex flex-col gap-2">
-              <form.Subscribe
-                selector={(state) => [state.canSubmit, state.isSubmitting, tokenMutation.isPending, formSubmitted] as [boolean, boolean, boolean, boolean]}
-              >
-                {(tuple): React.ReactElement => {
-                  const [canSubmit, isSubmitting, isMutating, isFormSubmitted] = tuple as [boolean, boolean, boolean, boolean];
-                  console.log('[GitHubTokenPopup] Button state:', { canSubmit, isSubmitting, isMutating, isFormSubmitted });
-                  
-                  return (
-                    <Button 
-                      type="submit" 
-                      disabled={!canSubmit || isSubmitting || isMutating || isFormSubmitted}
-                      className="w-full"
+          {/* Step indicator or instructions */}
+          <div className="w-full space-y-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-primary">1</span>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h3 className="font-medium">Generate a GitHub Token</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Click the button below to open GitHub and create a new Personal Access Token with the required permissions.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    asChild
+                  >
+                    <a
+                      href={buildGitHubPatLink()}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      {isSubmitting || isMutating ? 'Submitting...' : isUpdate ? 'Update Token' : 'Submit Token'}
-                    </Button>
-                  );
-                }}
-              </form.Subscribe>
+                      <Key className="h-4 w-4" />
+                      Generate Token on GitHub
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </Button>
+                  <div className="text-xs text-muted-foreground space-y-1 pt-2">
+                    <p className="font-medium">Required permissions:</p>
+                    <ul className="list-disc list-inside space-y-0.5 ml-2">
+                      {Object.entries(SCOPE_DESCRIPTIONS).map(([scope, description]) => (
+                        <li key={scope}>
+                          <code className="text-xs bg-muted px-1 rounded">{scope}</code> - {description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
-          </form>
-          
-          <div className="text-xs text-center text-muted-foreground mt-2">
-            <p>
-              To create a PAT token, go to GitHub → Settings → Developer settings → Personal access tokens.
-            </p>
+
+            <Separator />
+
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-primary">2</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium mb-3">Paste Your Token</h3>
+                  <form
+                    onSubmit={(e: React.FormEvent<HTMLFormElement>): void => {
+                      console.log('[GitHubTokenPopup] Form onSubmit event triggered');
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void form.handleSubmit();
+                    }}
+                    className="space-y-4"
+                  >
+                    <form.Field
+                      name="patToken"
+                      validators={{
+                        onChange: ({ value }): string | undefined => {
+                          const result: string | undefined = value.trim() === '' ? 'A GitHub token is required' : undefined;
+                          console.log('[GitHubTokenPopup] Field validation:', result ? 'invalid' : 'valid');
+                          return result;
+                        },
+                      }}
+                    >
+                      {(field): React.ReactElement => (
+                        <div className="space-y-2">
+                          <Label htmlFor={`github-${field.name}`} className="text-sm font-medium">
+                            GitHub Personal Access Token
+                          </Label>
+                          <Input
+                            type="password"
+                            id={`github-${field.name}`}
+                            name={field.name}
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                              console.log('[GitHubTokenPopup] Input changed');
+                              field.handleChange(e.target.value);
+                              // Clear the error state when user types
+                              if (error) {
+                                setError(null);
+                              }
+                            }}
+                            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                            className="w-full font-mono text-sm"
+                            autoComplete="off"
+                          />
+                          {field.state.meta.errors ? (
+                            <p className="text-sm text-destructive">
+                              {field.state.meta.errors}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              Your token will be encrypted and stored securely.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </form.Field>
+                    
+                    <form.Subscribe
+                      selector={(state) => [state.canSubmit, state.isSubmitting, tokenMutation.isPending, formSubmitted] as [boolean, boolean, boolean, boolean]}
+                    >
+                      {(tuple): React.ReactElement => {
+                        const [canSubmit, isSubmitting, isMutating, isFormSubmitted] = tuple as [boolean, boolean, boolean, boolean];
+                        console.log('[GitHubTokenPopup] Button state:', { canSubmit, isSubmitting, isMutating, isFormSubmitted });
+                        
+                        return (
+                          <Button 
+                            type="submit" 
+                            disabled={!canSubmit || isSubmitting || isMutating || isFormSubmitted}
+                            className="w-full"
+                          >
+                            {isSubmitting || isMutating ? 'Submitting...' : isUpdate ? 'Update Token' : 'Submit Token'}
+                          </Button>
+                        );
+                      }}
+                    </form.Subscribe>
+                  </form>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
