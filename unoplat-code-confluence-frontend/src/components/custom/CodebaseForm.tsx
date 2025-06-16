@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import { InfoIcon, TrashIcon } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useStore } from '@tanstack/react-store';
 
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,44 +57,29 @@ export function CodebaseForm({
   disabled = false,
   onRemove,
 }: CodebaseFormProps): React.ReactElement {
-  const [isRootRepo, setIsRootRepo] = useState<boolean>(false);
-  const [isRootRepoLocked, setIsRootRepoLocked] = useState<boolean>(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('python'); // Default to python
-  const [rootPackages, setRootPackages] = useState<string[]>([]);
   
-  
+  // Subscribe to form store for reactive data
+  const codebaseFolder: string = useStore(
+    parentForm.store,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any) => state.values?.codebases?.[index]?.codebase_folder ?? "",
+  );
+
+  // Direct access to store state for arrays (not using useStore to avoid rendering issues)
+  const getRootPackages = (): string[] => {
+    const state = parentForm.store.state;
+    return state.values?.codebases?.[index]?.root_packages ?? [];
+  };
+
+  const isRootRepo: boolean = codebaseFolder === ".";
+  const isRootRepoLocked: boolean = isRootRepo;
+
+  // Debug logs to examine reactive values
+  console.debug('[CodebaseForm]', { index, codebaseFolder, rootPackages: getRootPackages() });
 
   // Helper to create field name with proper type
   const getFieldName = <K extends keyof Codebase>(fieldName: K): string => 
     `codebases[${index}].${fieldName}`;
-
-  // Effect to initialize isRootRepo and isRootRepoLocked from field value
-  useEffect(() => {
-    // Get the current value of codebase_folder from parentForm
-    const codebaseFolderValue: string = parentForm.getFieldValue(getFieldName("codebase_folder"));
-    if (codebaseFolderValue === ".") {
-      setIsRootRepo(true);
-      setIsRootRepoLocked(true);
-    } else {
-      setIsRootRepo(false);
-      setIsRootRepoLocked(false);
-    }
-
-    // Set the selected language
-    const languageValue: string = parentForm.getFieldValue(getFieldName("programming_language_metadata") + '.language');
-    if (languageValue) {
-      setSelectedLanguage(languageValue);
-    }
-
-    // Initialize root packages
-    const rootPackagesValue: string[] | null = parentForm.getFieldValue(getFieldName("root_packages"));
-    if (rootPackagesValue && Array.isArray(rootPackagesValue)) {
-      setRootPackages(rootPackagesValue);
-    } else {
-      setRootPackages([]);
-    }
-  // Only run on mount and when index/parentForm changes
-  }, [index, parentForm]);
 
   // Function to render a field with common components
   const renderField = (
@@ -132,7 +118,6 @@ export function CodebaseForm({
 
   // Handle root repository checkbox change
   function handleRootRepoChange(checked: boolean, field: FieldState): void {
-    setIsRootRepo(checked);
     if (checked) {
       field.handleChange(".");
     } else {
@@ -142,21 +127,24 @@ export function CodebaseForm({
 
   // Helper functions for managing root packages array
   const addRootPackage = () => {
-    const newPackages = [...rootPackages, ""];
-    setRootPackages(newPackages);
+    const currentPackages = getRootPackages();
+    const newPackages = [...currentPackages, ""];
     parentForm.setFieldValue(getFieldName("root_packages"), newPackages);
   };
 
   const removeRootPackage = (indexToRemove: number) => {
-    const newPackages = rootPackages.filter((_, i) => i !== indexToRemove);
-    setRootPackages(newPackages);
-    parentForm.setFieldValue(getFieldName("root_packages"), newPackages.length > 0 ? newPackages : null);
+    const currentPackages = getRootPackages();
+    const newPackages = currentPackages.filter((_, i) => i !== indexToRemove);
+    parentForm.setFieldValue(
+      getFieldName("root_packages"),
+      newPackages.length > 0 ? newPackages : null
+    );
   };
 
   const updateRootPackage = (packageIndex: number, value: string) => {
-    const newPackages = [...rootPackages];
+    const currentPackages = getRootPackages();
+    const newPackages = [...currentPackages];
     newPackages[packageIndex] = value;
-    setRootPackages(newPackages);
     parentForm.setFieldValue(getFieldName("root_packages"), newPackages);
   };
 
@@ -252,13 +240,13 @@ export function CodebaseForm({
           )}
         </div>
         
-        {rootPackages.length === 0 ? (
+        {getRootPackages().length === 0 ? (
           <div className="text-sm text-muted-foreground italic">
             No root packages specified. For non-monorepo projects, this is normal.
           </div>
         ) : (
           <div className="space-y-2">
-            {rootPackages.map((pkg, pkgIndex) => (
+            {getRootPackages().map((pkg, pkgIndex) => (
               <div key={pkgIndex} className="flex items-center gap-2">
                 <Input
                   placeholder="e.g., src/code_confluence_flow_bridge"
@@ -267,7 +255,7 @@ export function CodebaseForm({
                   disabled={disabled}
                   readOnly={disabled}
                 />
-                {!disabled && rootPackages.length > 1 && (
+                {!disabled && getRootPackages().length > 1 && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -296,7 +284,9 @@ export function CodebaseForm({
           `language_${index}`,
           <Select
             value={field.state.value}
-            onValueChange={(value) => field.handleChange(value)}
+            onValueChange={(value) => {
+              field.handleChange(value);
+            }}
             disabled={disabled}
           >
             <SelectTrigger 
@@ -316,45 +306,44 @@ export function CodebaseForm({
       <parentForm.Field
         name={getFieldName('programming_language_metadata') + '.package_manager'}
         validators={{
-          onChange: ({ value }: { value: string }) => !value ? "Package manager is required" : undefined
+          onChange: ({ value }: { value: string }) => (!value ? "Package manager is required" : undefined),
         }}
       >
-        {(field: FieldState) => renderField(
-          field,
-          "Package Manager",
-          "The package manager used for managing dependencies",
-          `package_manager_${index}`,
-          <Select
-            value={field.state.value}
-            onValueChange={(value) => field.handleChange(value)}
-            disabled={disabled}
-          >
-            <SelectTrigger 
-              id={`package_manager_${index}`} 
-              className={field.state.meta.errors.length > 0 ? "border-destructive" : ""}
+        {(field: FieldState) => {
+          return renderField(
+            field,
+            'Package Manager',
+            'The package manager used for managing dependencies',
+            `package_manager_${index}`,
+            <Select
+              value={field.state.value}
+              onValueChange={(value) => {
+                field.handleChange(value);
+              }}
               disabled={disabled}
             >
-              <SelectValue placeholder="Select package manager" />
-            </SelectTrigger>
-            <SelectContent>
-              {selectedLanguage && LANGUAGE_PACKAGE_MANAGERS[selectedLanguage] ? (
-                LANGUAGE_PACKAGE_MANAGERS[selectedLanguage].map((packageManager) => (
-                  <SelectItem key={packageManager} value={packageManager}>
-                    {packageManager === 'auto-detect' ? 'Auto-detect' : packageManager}
-                  </SelectItem>
-                ))
-              ) : (
-                // Fallback to default options if language not found in dictionary
-                <>
-                  <SelectItem value="auto-detect">Auto-detect</SelectItem>
-                  <SelectItem value="pip">pip</SelectItem>
-                  <SelectItem value="poetry">poetry</SelectItem>
-                  <SelectItem value="uv">uv</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
-        )}
+              <SelectTrigger
+                id={`package_manager_${index}`}
+                className={field.state.meta.errors.length > 0 ? 'border-destructive' : ''}
+                disabled={disabled}
+              >
+                <SelectValue placeholder="Select package manager" />
+              </SelectTrigger>
+              <SelectContent>
+                {(() => {
+                  const state = parentForm.store.state;
+                  const lang = state.values?.codebases?.[index]?.programming_language_metadata?.language;
+                  
+                  return lang && LANGUAGE_PACKAGE_MANAGERS[lang]
+                    ? LANGUAGE_PACKAGE_MANAGERS[lang].map((pm) => (
+                        <SelectItem key={pm} value={pm}>{pm}</SelectItem>
+                      ))
+                    : null;
+                })()}
+              </SelectContent>
+            </Select>,
+          );
+        }}
       </parentForm.Field>
     </div>
   );

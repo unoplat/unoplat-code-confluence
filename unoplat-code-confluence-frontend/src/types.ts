@@ -57,7 +57,10 @@ export interface FlagResponse {
 export interface ProgrammingLanguageMetadata {
   language: string; // e.g., "python"
   package_manager: string; // e.g., "uv", "pip", "poetry"
-  language_version?: string;
+  language_version?: string | null;
+  role?: 'leaf' | 'aggregator' | 'NA';
+  manifest_path?: string | null;
+  project_name?: string | null;
 }
 
 export interface CodebaseConfig {
@@ -240,10 +243,38 @@ export interface GithubRepoStatus {
 
 // Dictionary mapping programming languages to their supported package managers
 export const LANGUAGE_PACKAGE_MANAGERS: Record<string, string[]> = {
-  python: ['auto-detect', 'uv', 'pip', 'poetry'],
+  python: ['uv', 'pip', 'poetry'],
   // Add more languages as needed
-  javascript: ['auto-detect', 'npm', 'yarn', 'pnpm'],
-  typescript: ['auto-detect', 'npm', 'yarn', 'pnpm'],
-  java: ['auto-detect', 'maven', 'gradle'],
-  rust: ['auto-detect', 'cargo']
+  javascript: ['npm', 'yarn', 'pnpm'],
+  typescript: ['npm', 'yarn', 'pnpm'],
+  java: ['maven', 'gradle'],
+  rust: ['cargo'],
 };
+
+// ===================================
+// CODEBASE DETECTION TYPES
+// ===================================
+
+export interface DetectionProgress {
+  state: 'initializing' | 'cloning' | 'analyzing' | 'complete';
+  message: string;
+  repository_url: string;
+}
+
+export interface DetectionResult {
+  repository_url: string;
+  duration_seconds: number;
+  codebases: CodebaseConfig[];
+  error: string | null;
+}
+
+export interface DetectionError {
+  error: string;
+  timestamp: string;
+  type: 'DETECTION_ERROR' | 'CONNECTION_ERROR' | 'AUTH_ERROR';
+}
+
+export interface SSEEvent<T = unknown> {
+  event: string;
+  data: T;
+}
