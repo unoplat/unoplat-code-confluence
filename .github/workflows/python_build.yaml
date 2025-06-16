@@ -60,14 +60,27 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Set up Docker Compose
+      # 1) Always ensure the Compose v2 plugin is present
+      - name: Set up Docker Compose (v2)
         uses: docker/setup-compose-action@v1
+        # pin a version if you need repeatability:
+        # with:
+        #   version: '2.37.0'
 
-      - name: Install docker-compose v1 for testcontainers compatibility
+      # 2) Drop in a shim so legacy tools that expect `docker-compose`
+      #    still work (but use v2 under the hood)
+      - name: Provide docker-compose wrapper for compatibility
+        shell: bash
         run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose --version
+          if ! command -v docker-compose >/dev/null; then
+            echo 'Creating docker-compose wrapper ➜ docker compose "$@"'
+            sudo install -d /usr/local/bin
+            printf '#!/usr/bin/env bash\nexec docker compose "$@"\n' | \
+              sudo tee /usr/local/bin/docker-compose >/dev/null
+            sudo chmod +x /usr/local/bin/docker-compose
+          fi
+          docker compose version
+          docker-compose version   # should output the same version
 
       - name: Install Ruff
         run: curl -LsSf https://astral.sh/ruff/install.sh | sh
