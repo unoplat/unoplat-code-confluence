@@ -118,6 +118,20 @@ tasks:
     cmds:
       - act pull_request_target -j test-uv-projects -s GITHUB_TOKEN="$(gh auth token)" --env GITHUB_REPOSITORY="unoplat/unoplat-code-confluence" --env GITHUB_HEAD_REF="end-end-test-local-temporal-workflow" --env GITHUB_BASE_REF="main" --local-repository="." --container-architecture linux/amd64 -P ubuntu-latest=catthehacker/ubuntu:act-latest
 
+  run-github-action-locally:
+    desc: Run GitHub Actions python_build workflow locally using act
+    dir: ../../
+    cmds:
+      - |
+        act pull_request_target -j test-uv-projects \
+          -s GITHUB_TOKEN="$(gh auth token)" \
+          --env GITHUB_REPOSITORY="unoplat/unoplat-code-confluence" \
+          --env GITHUB_HEAD_REF="fix-docker-compose" \
+          --env GITHUB_BASE_REF="main" \
+          --local-repository="." \
+          --container-architecture linux/arm64 \
+          -P ubuntu-latest=catthehacker/ubuntu:act-latest
+
   lint:
     desc: Run ruff linter on the codebase
     dir: .

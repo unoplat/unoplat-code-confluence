@@ -34,7 +34,11 @@ from src.code_confluence_flow_bridge.processor.codebase_child_workflow import Co
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
-from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_and_tables, get_session
+from src.code_confluence_flow_bridge.processor.db.postgres.db import (
+    async_engine,  # local import to avoid cycles
+    create_db_and_tables,
+    get_session,
+)
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
 from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import CodebaseWorkflowRun, Repository, RepositoryWorkflowRun
@@ -419,7 +423,7 @@ async def lifespan(app: FastAPI):
         # particularly important in test suites that spin up multiple
         # TestClient instances, each with its own event loop.
         try:
-            from src.code_confluence_flow_bridge.processor.db.postgres.db import async_engine  # local import to avoid cycles
+            
             await async_engine.dispose()
         except Exception as exc:  # pragma: no cover – defensive cleanup
             logger.warning(f"Failed to dispose async engine during shutdown: {exc}")
@@ -1247,7 +1251,7 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
         raise HTTPException(
             status_code=500,
             detail={
-                "message": "Error creating GitHub issue. Please try after some time.",
+                "message": "Faced an error while creating GitHub issue. Please try after some time.",
                 "error_context": error_context
             }
         )
