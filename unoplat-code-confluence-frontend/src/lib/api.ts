@@ -1,9 +1,9 @@
 import { env } from './env';
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration } from '../types';
+import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, DetectionProgress, DetectionResult, DetectionError } from '../types';
 
 // Re-export types from '../types' for consumers
-export type { FlagResponse, GitHubRepoSummary, PaginatedResponse };
+export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgress, DetectionResult, DetectionError };
 
 /**
  * API Services
@@ -374,4 +374,111 @@ export const submitFeedback = async (
   } catch (error: unknown) {
     throw handleApiError(error);
   }
+};
+
+/**
+ * Options for detecting codebases with SSE
+ */
+export interface DetectCodebasesOptions {
+  gitUrl: string;
+  onProgress?: (progress: DetectionProgress) => void;
+  onResult?: (result: DetectionResult) => void;
+  onError?: (error: DetectionError) => void;
+  signal?: AbortSignal;
+}
+
+/**
+ * Detect codebases using Server-Sent Events
+ * 
+ * @param options - Detection options including gitUrl and event handlers
+ * @returns Promise with the detection result
+ */
+export const detectCodebasesSSE = async (options: DetectCodebasesOptions): Promise<DetectionResult> => {
+  const { gitUrl, onProgress, onResult, onError, signal } = options;
+  
+  return new Promise((resolve, reject) => {
+    // Build the URL with query parameter
+    const url = `${env.apiBaseUrl}/detect-codebases-sse?git_url=${encodeURIComponent(gitUrl)}`;
+    
+    // Create EventSource for SSE connection
+    const eventSource = new EventSource(url);
+    let hasCompleted = false;
+    
+    // Handle abort signal
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        eventSource.close();
+        if (!hasCompleted) {
+          reject(new Error('Detection aborted'));
+        }
+      });
+    }
+    
+    // Connected event handler
+    eventSource.addEventListener('connected', () => {
+      console.log('[SSE] Connected to detection stream');
+    });
+    
+    // Progress event handler
+    eventSource.addEventListener('progress', (event: MessageEvent) => {
+      try {
+        const progress: DetectionProgress = JSON.parse(event.data);
+        console.log('[SSE] Progress:', progress);
+        onProgress?.(progress);
+      } catch (error) {
+        console.error('[SSE] Failed to parse progress event:', error);
+      }
+    });
+    
+    // Result event handler
+    eventSource.addEventListener('result', (event: MessageEvent) => {
+      try {
+        const result: DetectionResult = JSON.parse(event.data);
+        console.log('[SSE] Result:', result);
+        hasCompleted = true;
+        onResult?.(result);
+        resolve(result);
+      } catch (error) {
+        console.error('[SSE] Failed to parse result event:', error);
+        reject(new Error('Failed to parse detection result'));
+      }
+    });
+    
+    // Error event handler
+    eventSource.addEventListener('error', (event: MessageEvent) => {
+      try {
+        if (event.data) {
+          const error: DetectionError = JSON.parse(event.data);
+          console.error('[SSE] Detection error:', error);
+          hasCompleted = true;
+          onError?.(error);
+          reject(new Error(error.error));
+        }
+      } catch (parseError) {
+        console.error('[SSE] Failed to parse error event:', parseError);
+      }
+    });
+    
+    // Done event handler
+    eventSource.addEventListener('done', () => {
+      console.log('[SSE] Detection stream complete');
+      eventSource.close();
+    });
+    
+    // Generic error handler for connection issues
+    eventSource.onerror = (error) => {
+      console.error('[SSE] Connection error:', error);
+      eventSource.close();
+      
+      if (!hasCompleted) {
+        const detectionError: DetectionError = {
+          error: 'Connection to detection service failed',
+          timestamp: new Date().toISOString(),
+          type: 'CONNECTION_ERROR'
+        };
+        onError?.(detectionError);
+        reject(new Error(detectionError.error));
+      }
+    };
+  });
 };
