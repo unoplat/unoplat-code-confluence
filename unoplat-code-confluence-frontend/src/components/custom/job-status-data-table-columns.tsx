@@ -61,7 +61,7 @@ export function getJobStatusDataTableColumns({
       cell: ({ row }): React.ReactNode => (
         <div className="flex items-center">
           <span className="text-sm font-normal text-primary">
-            {row.original.codebase_folder}
+            {row.original.codebase_folder === '.' ? 'Root' : row.original.codebase_folder}
           </span>
         </div>
       ),
