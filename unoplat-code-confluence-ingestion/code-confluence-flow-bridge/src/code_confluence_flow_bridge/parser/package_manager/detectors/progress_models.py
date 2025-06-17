@@ -4,13 +4,13 @@ Progress tracking models for codebase detection with SSE support.
 Simple models for tracking detection progress during SSE streaming.
 """
 
+# Import the actual CodebaseConfig model
+from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
+
 from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-
-# Import the actual CodebaseConfig model
-from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
 
 
 class DetectionState(str, Enum):

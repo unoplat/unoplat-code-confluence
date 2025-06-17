@@ -6,7 +6,7 @@ export const Route = createFileRoute('/_app/repositoryManagement')({
   component: RepositoryManagementPage,
   beforeLoad: () => {
     return {
-      getTitle: () => 'Repository Management'
+      getTitle: () => 'Ingestion Management'
     };
   }
 });

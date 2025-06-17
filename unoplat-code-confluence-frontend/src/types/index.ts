@@ -40,4 +40,6 @@ export interface IngestionJob {
   createdAt: string;
   updatedAt: string;
   error?: string;
-} 
+}
+
+ 

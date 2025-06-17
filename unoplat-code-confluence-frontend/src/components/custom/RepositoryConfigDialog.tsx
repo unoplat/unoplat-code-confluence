@@ -130,6 +130,13 @@ export function RepositoryConfigDialog({
     return [];
   }, [loadedConfig]);
 
+  // Automatically switch to configuring mode if we have existing config
+  React.useEffect(() => {
+    if (existingCodebases.length > 0 && dialogMode === 'initial' && !isLoadingConfig) {
+      setDialogMode('configuring');
+    }
+  }, [existingCodebases.length, dialogMode, isLoadingConfig]);
+
   // Mutation for create
   const createMutation = useMutation<ApiResponse, Error, GitHubRepoRequestConfiguration>({
     mutationFn: submitRepositoryConfig,

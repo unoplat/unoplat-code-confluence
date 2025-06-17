@@ -278,3 +278,16 @@ export interface SSEEvent<T = unknown> {
   event: string;
   data: T;
 }
+
+// ===================================
+// INGESTED REPOSITORY TYPES  
+// ===================================
+
+export interface IngestedRepository {
+  repository_name: string;
+  repository_owner_name: string;
+}
+
+export interface IngestedRepositoriesResponse {
+  repositories: IngestedRepository[];
+}

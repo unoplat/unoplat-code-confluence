@@ -552,7 +552,15 @@ class GenericCodebaseParser:
                     package = await CodeConfluencePackage.nodes.get(
                         qualified_name=package_qualified_name
                     )
-                    await file_node.package.connect(package)
+
+                    # Establish both directions to keep graph consistent
+                    # (file) -[:PART_OF_PACKAGE]-> (package)
+                    # (package) -[:CONTAINS_FILE]-> (file)
+                    if not await file_node.package.is_connected(package):
+                        await file_node.package.connect(package)
+
+                    if not await package.files.is_connected(file_node):
+                        await package.files.connect(file_node)
                 
                 logger.debug(f"Created file: {unoplat_file.file_path}")
             

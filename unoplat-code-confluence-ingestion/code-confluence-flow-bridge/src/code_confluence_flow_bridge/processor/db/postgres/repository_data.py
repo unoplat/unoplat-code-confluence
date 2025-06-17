@@ -14,8 +14,20 @@ class Repository(SQLModel, table=True):
     repository_owner_name: str = Field(primary_key=True, description="The name of the repository owner")
     
     # Relationships - will be populated after class definitions
-    workflow_runs: List["RepositoryWorkflowRun"] = Relationship(back_populates="repository")
-    configs: List["CodebaseConfig"] = Relationship(back_populates="repository")
+    workflow_runs: List["RepositoryWorkflowRun"] = Relationship(
+        back_populates="repository",
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True,
+        },
+    )
+    configs: List["CodebaseConfig"] = Relationship(
+        back_populates="repository",
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True,
+        },
+    )
 
 
 class CodebaseConfig(SQLModel, table=True):
@@ -58,6 +70,7 @@ class CodebaseConfig(SQLModel, table=True):
         sa_relationship_kwargs={
             "viewonly": True,
             "overlaps": "repository_workflow_run,workflow_runs",
+            "passive_deletes": True,
         },
     )
 
@@ -124,6 +137,7 @@ class RepositoryWorkflowRun(SQLModel, table=True):
         sa_relationship_kwargs={
             "viewonly": True,
             "overlaps": "codebase_config,workflow_runs",
+            "passive_deletes": True,
         },
     )
 
