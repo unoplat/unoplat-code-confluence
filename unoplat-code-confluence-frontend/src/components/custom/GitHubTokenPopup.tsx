@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Dialog, DialogContent, DialogDescription } from '../ui/dialog';
 import { Github, X, ExternalLink, Key } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { buildGitHubPatLink, SCOPE_DESCRIPTIONS } from '@/lib/github-token-utils';
+import { buildGitHubPatLink } from '@/lib/github-token-utils';
 import { Separator } from '../ui/separator';
 
 interface GitHubTokenPopupProps {
@@ -232,7 +232,7 @@ export default function GitHubTokenPopup({
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   </Button>
-                  <div className="text-xs text-muted-foreground space-y-1 pt-2">
+                  {/* <div className="text-xs text-muted-foreground space-y-1 pt-2">
                     <p className="font-medium">Required permissions:</p>
                     <ul className="list-disc list-inside space-y-0.5 ml-2">
                       {Object.entries(SCOPE_DESCRIPTIONS).map(([scope, description]) => (
@@ -241,7 +241,7 @@ export default function GitHubTokenPopup({
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
