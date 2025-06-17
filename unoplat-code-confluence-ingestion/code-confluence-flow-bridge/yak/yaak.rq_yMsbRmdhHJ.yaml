@@ -2,9 +2,9 @@ type: http_request
 model: http_request
 id: rq_yMsbRmdhHJ
 createdAt: 2025-06-14T06:59:41.097465
-updatedAt: 2025-06-14T07:02:54.690756
+updatedAt: 2025-06-16T04:10:11.255914
 workspaceId: wk_KULjx4bEa8
-folderId: fl_TpVgSdpioc
+folderId: fl_ZwwFo3jTXL
 authentication: {}
 authenticationType: null
 body:
@@ -34,6 +34,6 @@ headers:
   id: PDR2m0DBab
 method: POST
 name: ''
-sortPriority: -0.0001
+sortPriority: 0.0
 url: http://localhost:8000/start-ingestion
 urlParameters: []

@@ -1,0 +1,23 @@
+type: http_request
+model: http_request
+id: rq_Jp2qmok4Xs
+createdAt: 2025-06-17T11:15:08.563769
+updatedAt: 2025-06-17T11:15:08.563770
+workspaceId: wk_KULjx4bEa8
+folderId: fl_KBoWUpi8x7
+authentication: {}
+authenticationType: null
+body:
+  text: '{"repository_name": "crewAI", "repository_owner_name": "crewAIInc"}'
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+method: DELETE
+name: ''
+sortPriority: 0.0
+url: http://localhost:8000/delete-repository
+urlParameters: []

@@ -1,9 +1,9 @@
 import { env } from './env';
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, DetectionProgress, DetectionResult, DetectionError } from '../types';
+import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse } from '../types';
 
 // Re-export types from '../types' for consumers
-export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgress, DetectionResult, DetectionError };
+export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse };
 
 /**
  * API Services
@@ -481,4 +481,53 @@ export const detectCodebasesSSE = async (options: DetectCodebasesOptions): Promi
       }
     };
   });
+};
+
+/**
+ * Fetch ingested repositories from the backend
+ * 
+ * @returns Promise with ingested repositories data
+ */
+export const getIngestedRepositories = async (): Promise<IngestedRepositoriesResponse> => {
+  try {
+    const response: AxiosResponse<IngestedRepositoriesResponse> = await apiClient.get('/get/ingestedRepositories');
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Refresh an ingested repository
+ * 
+ * @param repositoryName - Name of the repository
+ * @param repositoryOwnerName - Name of the repository owner
+ * @returns Promise with the response data
+ */
+export const refreshRepository = async (repositoryName: string, repositoryOwnerName: string): Promise<ApiResponse> => {
+  try {
+    const params = {
+      repository_name: repositoryName,
+      repository_owner_name: repositoryOwnerName
+    };
+    const response: AxiosResponse<ApiResponse> = await apiClient.post('/repositories/refresh', params);
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Delete an ingested repository
+ * 
+ * @param repository - Repository object containing name and owner
+ * @returns Promise with the response data
+ */
+export const deleteRepository = async (repository: import('../types').IngestedRepository): Promise<ApiResponse> => {
+  try {
+    const response: AxiosResponse<ApiResponse> = await apiClient.delete('/delete-repository', { data: repository });
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
 };

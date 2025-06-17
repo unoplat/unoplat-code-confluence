@@ -71,7 +71,7 @@ export function useDetectCodebases({ gitUrl, onSuccess, onError }: UseDetectCode
     if (chunks.length > 0) {
       // log only the last chunk to avoid flooding
       const c = chunks[chunks.length - 1];
-      // eslint-disable-next-line no-console
+       
       console.debug('[useDetectCodebases] chunk', c);
     }
   }, [chunks]);

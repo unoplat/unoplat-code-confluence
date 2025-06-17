@@ -1,4 +1,3 @@
-
 from src.code_confluence_flow_bridge.logging.trace_utils import activity_id_var, activity_name_var, workflow_id_var, workflow_run_id_var
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import UnoplatCodebase
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import UnoplatGitRepository

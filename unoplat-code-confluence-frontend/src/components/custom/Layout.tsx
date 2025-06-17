@@ -38,7 +38,7 @@ import { ModeToggle } from './ModeToggle'
 
 // Map category titles to their base paths
 const categoryMap: Record<string, string[]> = {
-  'Workspace': ['/onboarding', '/repositoryManagement'],
+  'Workspace': ['/onboarding', '/repositoryManagement', '/repositoryOperations'],
   'Settings': ['/settings'],
 };
 
@@ -55,9 +55,9 @@ export function Layout(): React.ReactElement {
   const { matches, pathname } = useRouterState({ select: (s) => ({ matches: s.matches, pathname: s.location.pathname }) });
 
   // Debug logs
-  // eslint-disable-next-line no-console
+   
   console.log('Layout matches:', matches);
-  // eslint-disable-next-line no-console
+   
   console.log('Layout pathname:', pathname);
 
   // Only include matches with a getTitle function in their context
@@ -70,7 +70,7 @@ export function Layout(): React.ReactElement {
     }));
 
   // Debug logs
-  // eslint-disable-next-line no-console
+   
   console.log('Layout crumbs:', crumbs);
 
   // Deduplicate by title+path (in case of double-matches)
@@ -82,7 +82,7 @@ export function Layout(): React.ReactElement {
   );
 
   // Debug logs
-  // eslint-disable-next-line no-console
+   
   console.log('Layout breadcrumbs:', breadcrumbs);
 
   // Find the category for the current path
@@ -95,7 +95,7 @@ export function Layout(): React.ReactElement {
   }
 
   // Debug logs
-  // eslint-disable-next-line no-console
+   
   console.log('Layout currentCategory:', currentCategory);
 
   return (

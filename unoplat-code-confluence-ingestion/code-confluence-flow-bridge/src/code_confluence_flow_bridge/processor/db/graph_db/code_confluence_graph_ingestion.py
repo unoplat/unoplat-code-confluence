@@ -1,22 +1,20 @@
 from src.code_confluence_flow_bridge.logging.trace_utils import activity_id_var, activity_name_var, workflow_id_var, workflow_run_id_var
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import UnoplatFile
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import UnoplatGitRepository
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package import UnoplatPackage
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+    UnoplatPackageManagerMetadata,
+)
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
+    CodeConfluenceGraph,
+)
 
-import hashlib
 import traceback
-from typing import Any, Dict, List, Tuple, Union
 
 from loguru import logger
 from neomodel.exceptions import RequiredProperty, UniqueProperty
 from temporalio.exceptions import ApplicationError
 from unoplat_code_confluence_commons import (
-    CodeConfluenceFile,
-    CodeConfluencePackage,
     CodeConfluencePackageManagerMetadata,
 )
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
@@ -339,205 +337,9 @@ class CodeConfluenceGraphIngestion:
                 type="PACKAGE_METADATA_ERROR"
             )
 
-    async def _create_file_node(
-        self, file_path: str, file_obj: UnoplatFile, package_node: CodeConfluencePackage
-    ) -> CodeConfluenceFile:
-        """
-        Create a file node and establish relationships with the package.
-        
-        Args:
-            file_path: Path of the file
-            file_obj: UnoplatFile object containing file data
-            package_node: The parent package node
-            
-        Returns:
-            Created CodeConfluenceFile node
-        """
-        # Generate checksum for the file content if not already present
-        checksum = file_obj.checksum
-        if not checksum and file_obj.content:
-            checksum = hashlib.md5(file_obj.content.encode()).hexdigest()
-            
-        # Create file node
-        file_dict = {
-            "file_path": file_path,
-            "content": file_obj.content,
-            "checksum": checksum
-        }
-        
-        file_results = await self._handle_node_creation(CodeConfluenceFile, file_dict)
-        if not file_results:
-            raise ApplicationError(
-                f"Failed to create file node: {file_path}",
-                {"file_path": file_path},
-                {"package": package_node.name},
-                {"workflow_id": workflow_id_var.get("")},
-                {"workflow_run_id": workflow_run_id_var.get("")},
-                {"activity_name": activity_name_var.get("")},
-                {"activity_id": activity_id_var.get("")},
-                type="FILE_CREATION_ERROR"
-            )
-        
-        file_node: CodeConfluenceFile = file_results[0]
-        
-        # Connect package to file using safe connect
-        await self._safe_connect(package_node, 'files', file_node)
-        await self._safe_connect(file_node, 'package', package_node)
-        
-        logger.debug(f"Created file node: {file_path}")
-        
-        # # ============== BEGIN DEBUG CODE (REMOVE AFTER TESTING) ==============
-        # # Add debug logging for file node creation with checksum
-        # logger.debug(f"File node details - path: {file_path}, checksum: {checksum}")
-        # # ============== END DEBUG CODE (REMOVE AFTER TESTING) ==============
-        
-        return file_node
-        
-
-    
-
-
     # #todo: we need to ingest packages into the graph database
     # async def insert_code_confluence_package(
     #     self, codebase_qualified_name: str, packages: List[UnoplatPackage]
     # ) -> None:
-    #     # # ============== BEGIN DEBUG CODE (REMOVE AFTER TESTING) ==============
-    #     # # Count total files in packages before ingestion
-    #     # total_files = 0
-    #     # file_paths = set()
-        
-    #     # def count_files_recursive(pkg_list):
-    #     #     nonlocal total_files, file_paths
-    #     #     for pkg in pkg_list:
-    #     #         if pkg.files:
-    #     #             for file_path in pkg.files.keys():
-    #     #                 if file_path not in file_paths:
-    #     #                     file_paths.add(file_path)
-    #     #                     total_files += 1
-    #     #         if pkg.sub_packages:
-    #     #             count_files_recursive(pkg.sub_packages.values())
-        
-    #     # count_files_recursive(packages)
-    #     # logger.info(f"Starting ingestion with {total_files} unique files across all packages")
-    #     # logger.debug(f"Files to be ingested: {list(file_paths)}")
-    #     # # ============== END DEBUG CODE (REMOVE AFTER TESTING) ==============
-        
-    #     """
-    #     Insert packages (with classes and functions) into the graph database.
-    #     Expects a list of root packages, where each package may contain nested sub-packages.
-
-    #     Args:
-    #         codebase_qualified_name (str): The qualified name of the codebase
-    #         packages (List[UnoplatPackage]): List of root packages from the parser
-    #     """
-    #     try:
-    #         codebase_node: CodeConfluenceCodebase = await CodeConfluenceCodebase.nodes.get(
-    #             qualified_name=codebase_qualified_name
-    #         )
-    #     except CodeConfluenceCodebase.DoesNotExist as e:
-    #         raise ApplicationError(
-    #             f"Codebase not found: {codebase_qualified_name}",
-    #             type="CODEBASE_NOT_FOUND"
-    #         ) from e
-
-    #     async with self.code_confluence_graph.transaction:
-    #         # Initialize stack with root packages
-    #         # Each stack item is (package, parent_node)
-    #         stack: List[Tuple[UnoplatPackage, Union[CodeConfluenceCodebase, CodeConfluencePackage]]] = [
-    #             (pkg, codebase_node) for pkg in packages
-    #         ]
-            
-    #         while stack:
-    #             current_pkg, parent_node = stack.pop()
-                
-    #             # Skip packages without names
-    #             if not current_pkg.name:
-    #                 logger.warning("Skipping package with no name")
-    #                 continue
-
-    #             # Create package node
-    #             pkg_name = current_pkg.name
-    #             package_dict = {
-    #                 "name": pkg_name,
-    #                 "qualified_name": (
-    #                     f"{parent_node.qualified_name}.{pkg_name}"
-    #                     if hasattr(parent_node, "qualified_name")
-    #                     else pkg_name
-    #                 ),
-    #             }
-
-    #             package_results = await self._handle_node_creation(CodeConfluencePackage, package_dict)
-    #             if not package_results:
-    #                 raise ApplicationError(
-    #                     f"Failed to create package node: {pkg_name}",
-    #                     {"package": pkg_name},
-    #                     {"codebase": codebase_qualified_name},
-    #                     {"workflow_id": workflow_id_var.get("")},
-    #                     {"workflow_run_id": workflow_run_id_var.get("")},
-    #                     {"activity_name": activity_name_var.get("")},
-    #                     {"activity_id": activity_id_var.get("")},
-    #                     type="PACKAGE_CREATION_ERROR"
-    #                 )
-    #             package_node: CodeConfluencePackage = package_results[0]
-
-    #             # Connect to parent and codebase using safe connect
-    #             if isinstance(parent_node, CodeConfluenceCodebase):
-    #                 await self._safe_connect(parent_node, 'packages', package_node)
-    #                 await self._safe_connect(package_node, 'codebase', parent_node)
-    #             else:
-    #                 await self._safe_connect(parent_node, 'sub_packages', package_node)
-    #                 await self._safe_connect(package_node, 'sub_packages', parent_node)
-
-    #             logger.debug(f"Created package node: {pkg_name}")
-
-    #             # Process all files in this package
-    #             file_nodes: Dict[str, CodeConfluenceFile] = {}
-                
-    #             # # ============== BEGIN DEBUG CODE (REMOVE AFTER TESTING) ==============
-    #             # # Add debug logging for file count in current package
-    #             # file_count = len(current_pkg.files) if current_pkg.files else 0
-    #             # logger.info(f"Package '{pkg_name}' contains {file_count} files")
-    #             # # ============== END DEBUG CODE (REMOVE AFTER TESTING) ==============
-                
-    #             # Create all file nodes for this package
-    #             if current_pkg.files:
-    #                 for file_path, file_obj in current_pkg.files.items():
-    #                     file_node = await self._create_file_node(
-    #                         file_path=file_path,
-    #                         file_obj=file_obj,
-    #                         package_node=package_node
-    #                     )
-    #                     file_nodes[file_path] = file_node
-                        
-    #                     # Process all nodes in each file
-    #                     for node in file_obj.nodes:
-    #                         await self._process_class(
-    #                             node=node, 
-    #                             package_node=package_node,
-    #                             file_node=file_node
-    #                         )
-
-    #             # Add sub-packages to stack (in reverse order to maintain original order when popping)
-    #             if current_pkg.sub_packages:
-    #                 # Convert items to list and reverse it
-    #                 sub_packages = list(current_pkg.sub_packages.items())
-    #                 for sub_pkg_name, sub_pkg in reversed(sub_packages):
-    #                     if sub_pkg.name is None:
-    #                         sub_pkg.name = sub_pkg_name
-    #                     # Add to stack with current package as parent
-    #                     stack.append((sub_pkg, package_node))
-            
-    #         # ============== BEGIN DEBUG CODE (REMOVE AFTER TESTING) ==============
-    #         # # After processing all packages, count total file nodes created
-    #         # try:
-    #         #     file_nodes_count = await CodeConfluenceFile.nodes.count()
-    #         #     logger.info(f"Total number of file nodes in database: {file_nodes_count}")    
-    #         # except Exception as e:
-    #         #     logger.error(f"Error counting file nodes: {e}")
-    #         # # ============== END DEBUG CODE (REMOVE AFTER TESTING) ==============
-
-
-    # --------------------------------------------------------------------------
-    # End of added methods for package ingestion
-    # --------------------------------------------------------------------------
+    #     """(method body omitted, deprecated)"""
         

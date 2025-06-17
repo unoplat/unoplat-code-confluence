@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as SettingsDeveloperRouteImport } from './routes/settings.developer'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRepositoryOperationsRouteImport } from './routes/_app.repositoryOperations'
 import { Route as AppRepositoryManagementRouteImport } from './routes/_app.repositoryManagement'
 import { Route as AppOnboardingRouteImport } from './routes/_app.onboarding'
 import { Route as AppDeveloperRouteImport } from './routes/_app.developer'
@@ -36,6 +37,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRepositoryOperationsRoute = AppRepositoryOperationsRouteImport.update({
+  id: '/repositoryOperations',
+  path: '/repositoryOperations',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppRepositoryManagementRoute = AppRepositoryManagementRouteImport.update({
   id: '/repositoryManagement',
   path: '/repositoryManagement',
@@ -56,6 +62,7 @@ export interface FileRoutesByFullPath {
   '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRoute
   '/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/': typeof AppIndexRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByTo {
   '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRoute
   '/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/': typeof AppIndexRoute
@@ -74,6 +82,7 @@ export interface FileRoutesById {
   '/_app/developer': typeof AppDeveloperRoute
   '/_app/onboarding': typeof AppOnboardingRoute
   '/_app/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/_app/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/_app/': typeof AppIndexRoute
@@ -84,6 +93,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/onboarding'
     | '/repositoryManagement'
+    | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
     | '/'
@@ -92,6 +102,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/onboarding'
     | '/repositoryManagement'
+    | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
     | '/'
@@ -101,6 +112,7 @@ export interface FileRouteTypes {
     | '/_app/developer'
     | '/_app/onboarding'
     | '/_app/repositoryManagement'
+    | '/_app/repositoryOperations'
     | '/_app/settings'
     | '/settings/developer'
     | '/_app/'
@@ -141,6 +153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/repositoryOperations': {
+      id: '/_app/repositoryOperations'
+      path: '/repositoryOperations'
+      fullPath: '/repositoryOperations'
+      preLoaderRoute: typeof AppRepositoryOperationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/repositoryManagement': {
       id: '/_app/repositoryManagement'
       path: '/repositoryManagement'
@@ -169,6 +188,7 @@ interface AppRouteChildren {
   AppDeveloperRoute: typeof AppDeveloperRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppRepositoryManagementRoute: typeof AppRepositoryManagementRoute
+  AppRepositoryOperationsRoute: typeof AppRepositoryOperationsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -177,6 +197,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDeveloperRoute: AppDeveloperRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppRepositoryManagementRoute: AppRepositoryManagementRoute,
+  AppRepositoryOperationsRoute: AppRepositoryOperationsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
 }

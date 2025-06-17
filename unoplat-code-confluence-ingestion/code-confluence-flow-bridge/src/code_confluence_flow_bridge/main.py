@@ -11,6 +11,8 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoResponseConfiguration,
     GithubRepoStatus,
     GitHubRepoSummary,
+    IngestedRepositoriesListResponse,
+    IngestedRepositoryResponse,
     IssueStatus,
     IssueTracking,
     IssueType,
@@ -32,6 +34,7 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_respon
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_deletion import CodeConfluenceGraphDeletion
 from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
 from src.code_confluence_flow_bridge.processor.db.postgres.db import (
@@ -372,6 +375,8 @@ async def lifespan(app: FastAPI):
     app.state.temporal_client = await get_temporal_client()
     app.state.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=app.state.code_confluence_env)
     await app.state.code_confluence_graph_ingestion.initialize()
+    app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(code_confluence_env=app.state.code_confluence_env)
+    await app.state.code_confluence_graph_deletion.initialize()
 
     # Calculate thread pool size based on Temporal best practice: one thread per activity slot plus a buffer
     # This ensures we have enough threads to handle all concurrent activities plus overhead
@@ -417,6 +422,7 @@ async def lifespan(app: FastAPI):
     finally:
         # Gracefully close resources that hold onto event-loop specific state.
         await app.state.code_confluence_graph_ingestion.close()
+        await app.state.code_confluence_graph_deletion.close()
 
         # Dispose the SQLAlchemy async engine so that any remaining database
         # connections tied to this event loop are cleaned up. This is
@@ -1039,6 +1045,122 @@ async def get_parent_workflow_jobs(session: AsyncSession = Depends(get_session))
         raise HTTPException(
             status_code=500,
             detail=f"Error retrieving parent workflow jobs: {str(e)}"
+        )
+
+@app.get(
+    "/get/ingestedRepositories",
+    response_model=IngestedRepositoriesListResponse,
+    description="Get all ingested repositories without pagination"
+)
+async def get_ingested_repositories(session: AsyncSession = Depends(get_session)) -> IngestedRepositoriesListResponse:
+    """Get all ingested repositories without pagination.
+    
+    Returns basic information for all repositories in the database.
+    Includes repository_name and repository_owner_name only.
+    """
+    try:
+        # Query to get all repositories
+        query = select(Repository)
+        result = await session.execute(query)
+        repositories = result.scalars().all()
+        
+        # Transform the database records to the response model format
+        repo_list = [
+            IngestedRepositoryResponse(
+                repository_name=repo.repository_name,
+                repository_owner_name=repo.repository_owner_name
+            ) for repo in repositories
+        ]
+        
+        return IngestedRepositoriesListResponse(repositories=repo_list)
+    except Exception as e:
+        logger.error(f"Error retrieving ingested repositories: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving ingested repositories: {str(e)}"
+        )
+
+@app.delete("/delete-repository", status_code=200)
+async def delete_repository(
+    repo_info: IngestedRepositoryResponse,
+    session: AsyncSession = Depends(get_session)
+) -> Dict[str, Any]:
+    """Delete a repository from both PostgreSQL and Neo4j databases.
+    
+    This endpoint removes a repository and all its associated data including:
+    - Repository record and cascaded relations in PostgreSQL
+    - Repository node and all connected nodes/relationships in Neo4j
+    
+    Args:
+        repo_info: IngestedRepositoryResponse containing repository_name and repository_owner_name
+        session: Database session
+        
+    Returns:
+        Success message with deletion statistics
+        
+    Raises:
+        HTTPException: 404 if repository not found, 500 on error
+    """
+    repository_name = repo_info.repository_name
+    repository_owner_name = repo_info.repository_owner_name
+    
+    try:
+        # First check if repository exists in PostgreSQL
+        db_obj: Repository | None = await session.get(
+            Repository,
+            (repository_name, repository_owner_name)
+        )
+        if not db_obj:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Repository not found: {repository_owner_name}/{repository_name}"
+            )
+        
+        # Delete from PostgreSQL - cascade will handle related tables
+        await session.delete(db_obj)
+        await session.commit()
+        
+        logger.info(f"Deleted repository from PostgreSQL: {repository_owner_name}/{repository_name}")
+        
+        # Delete from Neo4j using qualified name format
+        qualified_name = f"{repository_owner_name}_{repository_name}"
+        
+        try:
+            neo4j_stats = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name(
+                qualified_name=qualified_name
+            )
+            logger.info(f"Deleted repository from Neo4j: {qualified_name}")
+        except ApplicationError as neo4j_error:
+            # Log Neo4j error but don't fail if already deleted
+            if neo4j_error.type == "REPOSITORY_NOT_FOUND":
+                logger.warning(f"Repository not found in Neo4j (may have been already deleted): {qualified_name}")
+                neo4j_stats = {"repository_qualified_name": qualified_name, "status": "not_found"}
+            else:
+                # For other errors, re-raise
+                raise neo4j_error
+        
+        return {
+            "message": f"Successfully deleted repository {repository_owner_name}/{repository_name}",
+            "repository_name": repository_name,
+            "repository_owner_name": repository_owner_name,
+            "neo4j_deletion_stats": neo4j_stats
+        }
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except ApplicationError as e:
+        # Handle Neo4j application errors
+        logger.error(f"Neo4j deletion error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete repository from graph database: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error deleting repository: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error deleting repository: {str(e)}"
         )
 
 @app.get("/user-details", status_code=200)

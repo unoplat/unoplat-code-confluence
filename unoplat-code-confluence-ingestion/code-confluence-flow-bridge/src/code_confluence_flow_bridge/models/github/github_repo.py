@@ -207,5 +207,16 @@ class GithubIssueSubmissionRequest(BaseModel):
     codebase_folder: Optional[str] = Field(default=None, description="Codebase folder path")
     codebase_workflow_run_id: Optional[str] = Field(default=None, description="The run ID of the codebase workflow")
     error_message_body: str = Field(description="Error message")
+
+
+class IngestedRepositoryResponse(BaseModel):
+    """Response model for ingested repository data."""
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+
+
+class IngestedRepositoriesListResponse(BaseModel):
+    """Response model containing a list of ingested repositories."""
+    repositories: List[IngestedRepositoryResponse] = Field(description="List of ingested repositories")
     
     
