@@ -56,44 +56,46 @@ Follow these steps to set up Code Confluence:
 - When prompted, enter a GitHub PAT with read access to the repositories you want to ingest.
 - This is required for Code Confluence to clone and analyze your repositories.
 
-![Enter GitHub PAT Token](../../static/github_pat_token.png)
+![Enter GitHub PAT Token](../../static/new_github_token.png)
 
 :::tip Getting a GitHub PAT
 If you don't have a GitHub PAT:
-1. Go to GitHub Settings → Developer Settings → Personal Access Tokens → Tokens (classic)
-2. Click "Generate new token (classic)"
-3. Give it a name like "CodeConfluence"
-4. Select only the `repo` scope (this gives read access to repositories)
-5. Click "Generate token" and copy it
+1. Click "Generate new token on github (classic)"
+2. Click "Generate token" and copy it in the dialog box.
 
-You only need read access since we'll just be cloning repositories!
 :::
 
 ### 3. Search for a Repository
 - Press **`s`** or **`S`** (Shift + s) to open the search dialog.
 - You can search through your personal, public, and open source repositories.
 
-![Search for Repository](../../static/search_repo.png)
+***![Search for Repository](../../static/repository_search.png)
 
 ### 4. Ingest a Repository
 - In the **Actions** column, click on **Ingest Repo** for the repository you want to analyze.
 
-![Ingest Repo Action](../../static/ingest_repo_action.png)
+![Ingest Repo Action](../../static/repository_ingest_action.jpeg)
 
 ### 5. Configure Repository & Codebase
-- A Repository Dialog Configuration will open up where you can add one or more codebases for that repo.
-- For each codebase, fill in the following:
-  - **Root Package**: Path to root package/module where the main file for the codebase is situated
-  - **Codebase Folder**: Folder for codebase within the mono repo (check "No subdirectory" if codebase lives in the repository root)
-  - **Package Manager**: Select the package manager
-  - **Programming Language**: Currently only Python is supported
+- A Repository Dialog Configuration will open up with automatic codebase detection capabilities.
+- Code Confluence will automatically detect Python projects and their main directories within the repository.
 
-#### Example: Configuring CrewAI
-For example, to ingest the popular agent framework CrewAI:
+![Automatic Codebase Detection](../../static/automatic_code_base_detection.png)
 
-![CrewAI Configuration Example](../../static/codebase_configuration.png)
+- You can choose to **Detect Codebases Automatically** (recommended) or configure manually if needed.
+- The automatic detection will analyze the repository structure and suggest appropriate configurations for:
+  - **Root Packages**: Automatically identified main modules/packages
+  - **Codebase Folders**: Detected project directories
+  - **Package Manager**: Automatically detected (e.g., uv, pip, poetry)
+  - **Programming Language**: Currently supports Python
 
-- Once done, click **Submit** to start the ingestion process.
+#### Example: Automatic Detection Results
+When automatic detection completes, you'll see the detected codebases:
+
+![Automatically Detected Codebases](../../static/codebase_automatic_detected.png)
+
+- Review the automatically detected configurations and make any necessary adjustments.
+- Once satisfied with the detection results, click **Submit Repo** to start the ingestion process.
 
 ### 6. Enable Developer Mode
 - Navigate to **Settings > Developer Mode**, and toggle the switch on to unlock infrastructure tooling.
