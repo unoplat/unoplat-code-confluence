@@ -12,7 +12,6 @@ from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterP
 
 import traceback
 
-from neomodel import adb
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 

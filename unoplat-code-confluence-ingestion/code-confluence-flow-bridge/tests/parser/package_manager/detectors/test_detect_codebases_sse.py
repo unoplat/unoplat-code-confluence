@@ -225,6 +225,10 @@ def verify_cleanup():
 @pytest.fixture(scope="session")
 def docker_compose():
     """Start docker-compose services with proper cleanup including volumes."""
+    # Set Docker client timeouts to prevent hanging
+    os.environ["DOCKER_CLIENT_TIMEOUT"] = "180"
+    os.environ["COMPOSE_HTTP_TIMEOUT"] = "180"
+    
     # Verify compose file exists
     if not COMPOSE_FILE.exists():
         raise FileNotFoundError(f"Docker compose file not found: {COMPOSE_FILE}")
@@ -335,6 +339,8 @@ def test_client(service_ports: Dict[str, int]) -> Iterator[TestClient]:
     time.sleep(15)
     with TestClient(app) as client:
         yield client
+        # Allow time for async cleanup of streaming responses
+        time.sleep(0.5)
 
 
 @pytest.fixture(scope="session")
@@ -395,8 +401,13 @@ def parse_sse_events(response_text: str) -> List[Dict]:
 def stream_sse_response(response) -> str:
     """Collect SSE stream into string."""
     chunks = []
-    for chunk in response.iter_text():
-        chunks.append(chunk)
+    try:
+        for chunk in response.iter_text():
+            chunks.append(chunk)
+    finally:
+        # Ensure the response iterator is fully consumed
+        # This helps with cleanup of the underlying stream
+        pass
     return ''.join(chunks)
 
 

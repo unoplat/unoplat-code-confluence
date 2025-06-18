@@ -139,7 +139,7 @@ class GithubHelper:
                     first_root_package = codebase_config.root_packages[0]
                     if first_root_package != ".":
                         codebase_name = first_root_package
-                
+
                 codebase = UnoplatCodebase(
                     name=codebase_name,
                     root_packages=root_package_paths,
@@ -147,7 +147,9 @@ class GithubHelper:
                     codebase_folder=codebase_config.codebase_folder,
                     package_manager_metadata=UnoplatPackageManagerMetadata(
                         programming_language=programming_language_metadata.language.value,
-                        package_manager=programming_language_metadata.package_manager.value if programming_language_metadata.package_manager else "unknown",
+                        package_manager=programming_language_metadata.package_manager.value
+                        if programming_language_metadata.package_manager
+                        else "unknown",
                         programming_language_version=programming_language_metadata.language_version,
                     ),
                 )

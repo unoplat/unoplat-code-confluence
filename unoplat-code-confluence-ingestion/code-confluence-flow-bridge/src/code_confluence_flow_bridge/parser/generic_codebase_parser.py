@@ -14,9 +14,7 @@ from src.code_confluence_flow_bridge.parser.language_configs import LanguageConf
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
     TreeSitterStructuralSignatureExtractor,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import (
-    CodeConfluenceGraphIngestion,
-)
+from src.code_confluence_flow_bridge.processor.db.graph_db.graph_context import graph_ingestion_ctx
 
 import asyncio
 import hashlib
@@ -24,7 +22,8 @@ from pathlib import Path
 from typing import AsyncGenerator, Dict, List, Optional, Set
 
 from loguru import logger
-from neomodel import AsyncRelationshipTo, AsyncZeroOrMore, adb  # imported lazily to avoid circular deps
+from neomodel import AsyncRelationshipTo, AsyncZeroOrMore  # imported lazily to avoid circular deps
+from neomodel.exceptions import UniqueProperty
 from unoplat_code_confluence_commons.graph_models.base_models import ContainsRelationship
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
     CodeConfluenceCodebase,
@@ -71,7 +70,6 @@ class GenericCodebaseParser:
         
         # Initialize components (deferred to avoid import issues)
         self.extractor = None
-        self.neo4j_ingestion = None
         self.language_config: Optional[LanguageConfig] = None
         
         # Use provided environment settings or fall back to environment variables
@@ -167,6 +165,43 @@ class GenericCodebaseParser:
                 if ignored.startswith(".") and file_path.name.endswith(ignored):
                     return True
         return False
+
+    async def _handle_node_creation(self, node_class, node_dict):
+        """
+        Safely create or retrieve a node, handling duplicates gracefully.
+        
+        Uses create_or_update for atomic operations, falls back to 
+        retrieval if UniqueProperty exception occurs.
+        """
+        try:
+            # create_or_update returns a list
+            results = await node_class.create_or_update(node_dict)
+            return results[0] if results else None
+        except UniqueProperty as e:
+            # Node exists, retrieve it
+            logger.info(f"Node already exists: {node_class.__name__} with qualified_name={node_dict.get('qualified_name')}. Retrieving existing node.")
+            
+            # Try to find by qualified_name (all BaseNode descendants have this)
+            if 'qualified_name' in node_dict:
+                existing = await node_class.nodes.filter(
+                    qualified_name=node_dict['qualified_name']
+                ).first_or_none()
+                if existing:
+                    return existing
+            
+            # Try file_path for CodeConfluenceFile
+            if 'file_path' in node_dict and node_class == CodeConfluenceFile:
+                existing = await node_class.nodes.filter(
+                    file_path=node_dict['file_path']
+                ).first_or_none()
+                if existing:
+                    return existing
+            
+            logger.warning(f"Could not retrieve existing {node_class.__name__} after UniqueProperty error")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error creating {node_class.__name__}: {e}")
+            raise
 
     def discover_packages(self) -> Dict[str, List[str]]:
         """
@@ -319,9 +354,19 @@ class GenericCodebaseParser:
             captures = import_query.captures(root_node)
             
             imports = []
-            for node, capture_name in captures:
-                import_text = source_code[node.start_byte:node.end_byte]
-                imports.append(import_text)
+            # NOTE: py-tree-sitter >=0.23 returns a **dict** mapping capture names to
+            # a list of nodes, whereas older versions return a **list** of
+            # (node, capture_name) tuples.  Handle both for forward/backward
+            # compatibility.
+            if isinstance(captures, dict):  # New API (>=0.23)
+                for nodes in captures.values():
+                    for node in nodes:
+                        import_text = source_code[node.start_byte:node.end_byte]
+                        imports.append(import_text)
+            else:  # Old API (<=0.22)
+                for node, _capture_name in captures:
+                    import_text = source_code[node.start_byte:node.end_byte]
+                    imports.append(import_text)
             
             return imports
             
@@ -529,16 +574,20 @@ class GenericCodebaseParser:
         try:
             # Reuse ambient transaction if present; otherwise operations will execute auto-commit.
             for unoplat_file in file_data_list:
-                # Create file node
-                file_node = CodeConfluenceFile(
-                    file_path=unoplat_file.file_path,
-                    content=unoplat_file.content,
-                    checksum=unoplat_file.checksum,
-                    structural_signature=unoplat_file.structural_signature.model_dump() if unoplat_file.structural_signature else {},
-                    imports=unoplat_file.imports,
-                    poi_labels=unoplat_file.poi_labels
-                )
-                await file_node.save()
+                # Create file node using helper method
+                file_dict = {
+                    "file_path": unoplat_file.file_path,
+                    "content": unoplat_file.content,
+                    "checksum": unoplat_file.checksum,
+                    "structural_signature": unoplat_file.structural_signature.model_dump() if unoplat_file.structural_signature else {},
+                    "imports": unoplat_file.imports,
+                    "poi_labels": unoplat_file.poi_labels
+                }
+                file_node = await self._handle_node_creation(CodeConfluenceFile, file_dict)
+                
+                if not file_node:
+                    logger.warning(f"Failed to create/retrieve file node: {unoplat_file.file_path}")
+                    continue
                 
                 # Find the package for this file
                 package_qualified_name = None
@@ -589,7 +638,8 @@ class GenericCodebaseParser:
 
     async def process_and_insert_codebase(self) -> None:
         """
-        Main processing method with simple neomodel operations.
+        Main processing method with fresh Neo4j connection.
+        Each call gets its own Neo4j session to avoid transaction conflicts.
         """
         try:
             self._initialize_components()
@@ -603,18 +653,23 @@ class GenericCodebaseParser:
                 logger.warning(f"No source files found in {self.codebase_path}")
                 return
             
-            # 2. Create all packages
-            await self.create_packages(list(package_files.keys()))
-            
-            # 3. Create package hierarchy
-            hierarchy = self.build_package_hierarchy(package_files)
-            await self.create_package_hierarchy(hierarchy)
+            # Use fresh Neo4j session for all database operations
+            async with graph_ingestion_ctx(self.config) as graph:
+                # We don't actually need the graph object here since we're using
+                # neomodel operations directly, but we need the connection initialized
+                
+                # 2. Create all packages
+                await self.create_packages(list(package_files.keys()))
+                
+                # 3. Create package hierarchy
+                hierarchy = self.build_package_hierarchy(package_files)
+                await self.create_package_hierarchy(hierarchy)
 
-            # 3b. Connect root-level packages (depth-1) to the CodeConfluenceCodebase node
-            await self._connect_root_packages(package_files)
+                # 3b. Connect root-level packages (depth-1) to the CodeConfluenceCodebase node
+                await self._connect_root_packages(package_files)
 
-            # 4. Process and insert files
-            await self.process_files(package_files)
+                # 4. Process and insert files
+                await self.process_files(package_files)
             
             logger.info(
                 f"Completed codebase processing: {self.files_processed} files, "
