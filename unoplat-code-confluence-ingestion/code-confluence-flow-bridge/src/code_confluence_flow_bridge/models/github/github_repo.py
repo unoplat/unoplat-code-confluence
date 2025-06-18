@@ -218,5 +218,13 @@ class IngestedRepositoryResponse(BaseModel):
 class IngestedRepositoriesListResponse(BaseModel):
     """Response model containing a list of ingested repositories."""
     repositories: List[IngestedRepositoryResponse] = Field(description="List of ingested repositories")
+
+
+class RefreshRepositoryResponse(BaseModel):
+    """Response after triggering repository refresh."""
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    workflow_id: str = Field(description="The ID of the started workflow")
+    run_id: str = Field(description="The run ID of the started workflow")
     
     

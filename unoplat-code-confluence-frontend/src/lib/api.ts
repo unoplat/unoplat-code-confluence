@@ -1,9 +1,9 @@
 import { env } from './env';
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse } from '../types';
+import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse, RefreshRepositoryResponse } from '../types';
 
 // Re-export types from '../types' for consumers
-export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse };
+export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse, RefreshRepositoryResponse };
 
 /**
  * API Services
@@ -500,17 +500,12 @@ export const getIngestedRepositories = async (): Promise<IngestedRepositoriesRes
 /**
  * Refresh an ingested repository
  * 
- * @param repositoryName - Name of the repository
- * @param repositoryOwnerName - Name of the repository owner
- * @returns Promise with the response data
+ * @param repository - Repository object containing name and owner
+ * @returns Promise with the refresh repository response
  */
-export const refreshRepository = async (repositoryName: string, repositoryOwnerName: string): Promise<ApiResponse> => {
+export const refreshRepository = async (repository: IngestedRepository): Promise<RefreshRepositoryResponse> => {
   try {
-    const params = {
-      repository_name: repositoryName,
-      repository_owner_name: repositoryOwnerName
-    };
-    const response: AxiosResponse<ApiResponse> = await apiClient.post('/repositories/refresh', params);
+    const response: AxiosResponse<RefreshRepositoryResponse> = await apiClient.post('/refresh-repository', repository);
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);

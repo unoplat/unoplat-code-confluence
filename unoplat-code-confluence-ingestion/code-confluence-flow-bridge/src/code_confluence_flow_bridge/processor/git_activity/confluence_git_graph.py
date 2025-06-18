@@ -7,7 +7,8 @@ from src.code_confluence_flow_bridge.logging.trace_utils import (
 )
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import ConfluenceGitGraphEnvelope
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
+from src.code_confluence_flow_bridge.processor.db.graph_db.graph_context import graph_ingestion_ctx
 
 import traceback
 
@@ -18,13 +19,14 @@ from temporalio.exceptions import ApplicationError
 
 class ConfluenceGitGraph:
     """
-    Temporal activity class for GitHub operations using GithubHelper
+    Temporal activity class for GitHub operations.
+    Uses context manager to create fresh Neo4j sessions for each activity execution.
     """
 
-    def __init__(self, code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
-        self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
+    def __init__(self):
+        self.env_settings = EnvironmentSettings()
         logger.debug(
-            "Initialized ConfluenceGitGraph with CodeConfluenceGraphIngestion"
+            "Initialized ConfluenceGitGraph - will create fresh Neo4j session per activity execution"
         )
 
     @activity.defn
@@ -63,7 +65,9 @@ class ConfluenceGitGraph:
                 git_repo.repository_url
             )
             
-            parent_child_clone_metadata = await self.code_confluence_graph_ingestion.insert_code_confluence_git_repo(git_repo=git_repo)
+            # Use fresh Neo4j session for this activity execution
+            async with graph_ingestion_ctx(self.env_settings) as graph:
+                parent_child_clone_metadata = await graph.insert_code_confluence_git_repo(git_repo=git_repo)
             
             log.debug(
                 "Successfully inserted git repo into graph db: {} ",

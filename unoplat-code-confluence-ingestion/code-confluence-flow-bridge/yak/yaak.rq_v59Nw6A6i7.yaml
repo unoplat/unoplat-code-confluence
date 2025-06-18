@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_v59Nw6A6i7
+createdAt: 2025-06-17T13:45:03.379038
+updatedAt: 2025-06-17T13:45:34.249444
+workspaceId: wk_KULjx4bEa8
+folderId: fl_UkSk9aN56L
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+          "repository_name": "crewAI",
+          "repository_owner_name": "crewAIInc"
+        }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: un223yziEE
+method: POST
+name: ''
+sortPriority: -0.0001
+url: http://localhost:8000/refresh-repository
+urlParameters: []

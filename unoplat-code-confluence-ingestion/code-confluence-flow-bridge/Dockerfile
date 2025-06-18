@@ -1,33 +1,43 @@
-# Use official Python 3.12 slim image
+########################################
+# ---------- builder stage ------------
+########################################
+FROM python:3.12-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Only tools required to COMPILE wheels
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git build-essential libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install runtime tools now – they'll be copied later
+RUN pip install --no-cache-dir uv ruff
+
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-cache
+COPY . /app
+
+########################################
+# ---------- runtime stage ------------
+########################################
 FROM python:3.12-slim
 
-# Set environment variables for Python optimization
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Install system dependencies
+# Keep git only if the running service needs it
 RUN apt-get update && \
-    apt-get install -y git build-essential libpq-dev && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install uv package manager and ruff
-RUN pip install --no-cache-dir uv
-RUN pip install --no-cache-dir ruff
-
-# Set working directory
 WORKDIR /app
 
-# Copy dependency files first for better Docker layer caching
-COPY pyproject.toml uv.lock ./
+# ⬇️  This single line brings in uv, ruff *and* all project deps
+COPY --from=builder /usr/local /usr/local
+COPY --from=builder /app /app
 
-# Install dependencies using uv sync
-RUN uv sync --frozen --no-cache
-
-# Copy the rest of the application files
-COPY . /app/
-
-# Expose the port that the FastAPI app listens on
 EXPOSE 8000
-
-# Use exec form for proper signal handling
 CMD ["uv", "run", "uvicorn", "src.code_confluence_flow_bridge.main:app", "--host", "0.0.0.0", "--port", "8000"] 

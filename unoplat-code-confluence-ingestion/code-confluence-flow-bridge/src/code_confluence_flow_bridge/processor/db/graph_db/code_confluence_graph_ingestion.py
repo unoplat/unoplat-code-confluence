@@ -267,54 +267,53 @@ class CodeConfluenceGraphIngestion:
             package_manager_metadata: UnoplatPackageManagerMetadata containing package manager metadata
         """
         try:
-            async with self.code_confluence_graph.transaction:
-                # Use get() instead of filter() for unique index
-                try:
-                    codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)
-                except CodeConfluenceCodebase.DoesNotExist:
-                    raise ApplicationError(
-                        f"Codebase not found: {codebase_qualified_name}", 
-                        {"codebase": codebase_qualified_name},
-                        {"workflow_id": workflow_id_var.get("")},
-                        {"workflow_run_id": workflow_run_id_var.get("")},
-                        {"activity_name": activity_name_var.get("")},
-                        {"activity_id": activity_id_var.get("")},
-                        type="CODEBASE_NOT_FOUND"
-                    )
+            # Use get() instead of filter() for unique index
+            try:
+                codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)
+            except CodeConfluenceCodebase.DoesNotExist:
+                raise ApplicationError(
+                    f"Codebase not found: {codebase_qualified_name}", 
+                    {"codebase": codebase_qualified_name},
+                    {"workflow_id": workflow_id_var.get("")},
+                    {"workflow_run_id": workflow_run_id_var.get("")},
+                    {"activity_name": activity_name_var.get("")},
+                    {"activity_id": activity_id_var.get("")},
+                    type="CODEBASE_NOT_FOUND"
+                )
 
-                # Create package manager metadata node
-                metadata_dict = {
-                    "qualified_name": f"{codebase_qualified_name}_package_manager_metadata",
-                    "dependencies": {k: v.model_dump() for k, v in package_manager_metadata.dependencies.items()},
-                    "package_manager": package_manager_metadata.package_manager,
-                    "programming_language": package_manager_metadata.programming_language,
-                    "programming_language_version": package_manager_metadata.programming_language_version,
-                    "project_version": package_manager_metadata.project_version,
-                    "description": package_manager_metadata.description,
-                    "license": package_manager_metadata.license,
-                    "package_name": package_manager_metadata.package_name,
-                    "entry_points": package_manager_metadata.entry_points,
-                    "authors": package_manager_metadata.authors or [],
-                }
+            # Create package manager metadata node
+            metadata_dict = {
+                "qualified_name": f"{codebase_qualified_name}_package_manager_metadata",
+                "dependencies": {k: v.model_dump() for k, v in package_manager_metadata.dependencies.items()},
+                "package_manager": package_manager_metadata.package_manager,
+                "programming_language": package_manager_metadata.programming_language,
+                "programming_language_version": package_manager_metadata.programming_language_version,
+                "project_version": package_manager_metadata.project_version,
+                "description": package_manager_metadata.description,
+                "license": package_manager_metadata.license,
+                "package_name": package_manager_metadata.package_name,
+                "entry_points": package_manager_metadata.entry_points,
+                "authors": package_manager_metadata.authors or [],
+            }
 
-                metadata_results = await self._handle_node_creation(CodeConfluencePackageManagerMetadata, metadata_dict)
-                if not metadata_results:
-                    raise ApplicationError(
-                        f"Failed to create package manager metadata for {codebase_qualified_name}", 
-                        {"codebase": codebase_qualified_name},
-                        {"workflow_id": workflow_id_var.get("")},
-                        {"workflow_run_id": workflow_run_id_var.get("")},
-                        {"activity_name": activity_name_var.get("")},
-                        {"activity_id": activity_id_var.get("")},
-                        type="METADATA_CREATION_ERROR"
-                    )
+            metadata_results = await self._handle_node_creation(CodeConfluencePackageManagerMetadata, metadata_dict)
+            if not metadata_results:
+                raise ApplicationError(
+                    f"Failed to create package manager metadata for {codebase_qualified_name}", 
+                    {"codebase": codebase_qualified_name},
+                    {"workflow_id": workflow_id_var.get("")},
+                    {"workflow_run_id": workflow_run_id_var.get("")},
+                    {"activity_name": activity_name_var.get("")},
+                    {"activity_id": activity_id_var.get("")},
+                    type="METADATA_CREATION_ERROR"
+                )
 
-                metadata_node: CodeConfluencePackageManagerMetadata = metadata_results[0]
+            metadata_node: CodeConfluencePackageManagerMetadata = metadata_results[0]
 
-                # Connect metadata to codebase using safe connect
-                await self._safe_connect(codebase_node, 'package_manager_metadata', metadata_node)
+            # Connect metadata to codebase using safe connect
+            await self._safe_connect(codebase_node, 'package_manager_metadata', metadata_node)
 
-                logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
+            logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
 
         except Exception as e:
             # Capture detailed error information

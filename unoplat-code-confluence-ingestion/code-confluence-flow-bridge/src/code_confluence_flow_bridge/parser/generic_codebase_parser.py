@@ -100,16 +100,13 @@ class GenericCodebaseParser:
         return extension_map.get(self.programming_language_metadata.language, {".py"})
 
     def _initialize_components(self):
-        """Initialize extractor and Neo4j components (lazy loading)."""
+        """Initialize extractor components (lazy loading)."""
         if self.extractor is None:
             # Import here to avoid circular imports
             
             self.extractor = TreeSitterStructuralSignatureExtractor(
                 self.programming_language_metadata.language.value
             )
-        
-        if self.neo4j_ingestion is None:
-            self.neo4j_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=self.config)
             
         # ----------------------------------------------------------------------------------
         # Ensure that the CodeConfluencePackage.sub_packages relationship is **directed**
@@ -465,15 +462,16 @@ class GenericCodebaseParser:
                 # Extract simple name from qualified name
                 simple_name = package_name.split(".")[-1]
                 
-                # Create package node
-                package = CodeConfluencePackage(
-                    qualified_name=package_name,
-                    name=simple_name
-                )
-                await package.save()
+                # Create package node using helper method
+                package_dict = {
+                    "qualified_name": package_name,
+                    "name": simple_name
+                }
+                package_node = await self._handle_node_creation(CodeConfluencePackage, package_dict)
                 
-                self.packages_created += 1
-                logger.debug(f"Created package: {package_name}")
+                if package_node:
+                    self.packages_created += 1
+                    logger.debug(f"Created/retrieved package: {package_name}")
             
             logger.info(f"Created {self.packages_created} packages")
             
