@@ -1,12 +1,27 @@
-# Unoplat Code Confluence Commons Schema Documentation
+***# Unoplat Code Confluence Commons Schema Documentation
 
 This document provides a comprehensive overview of the graph data model schema used in the Unoplat Code Confluence Commons project. The schema is built using neomodel for Neo4j graph database integration.
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Base Models](#base-models)
+  - [BaseNode](#basenode)
+  - [ContainsRelationship](#containsrelationship)
 - [Node Models](#node-models)
+  - [CodeConfluenceGitRepository](#codeconfluencegitrepository)
+  - [CodeConfluenceCodebase](#codeconfluencecodebase)
+  - [CodeConfluencePackageManagerMetadata](#codeconfluencepackagemanagermetadata)
+  - [CodeConfluencePackage](#codeconfluencepackage)
+  - [CodeConfluenceFile](#codeconfluencefile)
 - [Relationship Overview](#relationship-overview)
+- [Search and Indexing](#search-and-indexing)
+  - [Unique Indexes](#unique-indexes)
+  - [Full-text Search Indexes](#full-text-search-indexes)
+  - [Performance Considerations](#performance-considerations)
+- [Important Implementation Notes](#important-implementation-notes)
+  - [Inheritance Inconsistency](#inheritance-inconsistency)
+  - [Relationship Cardinality](#relationship-cardinality)
 
 ## Base Models
 
@@ -23,8 +38,7 @@ These models serve as the foundation for all other models in the schema.
 ```python
 from neomodel import (
     AsyncStructuredNode, 
-    StringProperty, 
-    JSONProperty,
+    StringProperty,
     AsyncStructuredRel
 )
 
@@ -46,23 +60,6 @@ class ContainsRelationship(AsyncStructuredRel):
     pass
 ```
 
-### AnnotatedRelationship
-
-**Description**: Relationship class for representing annotations on nodes and methods.
-
-**Properties**:
-
-- `position` (JSONProperty): Position information for the annotation.
-- `key_values` (JSONProperty): Key-value pairs for the annotation (list of ChapiAnnotationKeyVal).
-
-**Code**:
-```python
-class AnnotatedRelationship(AsyncStructuredRel):
-    """Relationship for representing annotation on nodes and methods"""
-    position = JSONProperty()
-    key_values = JSONProperty()      # KeyValues (list[ChapiAnnotationKeyVal])
-```
-
 ## Node Models
 
 ### CodeConfluenceGitRepository
@@ -73,7 +70,7 @@ class AnnotatedRelationship(AsyncStructuredRel):
 
 - `repository_url` (StringProperty, required=True, unique_index=True): The URL used to clone or reference the repository.
 - `repository_name` (StringProperty, required=True, unique_index=True): A human-friendly or organizational name for the repository.
-- `repository_metadata` (JSONProperty): Arbitrary JSON metadata describing the repository.
+- `repository_metadata` (JSONProperty): Arbitrary JSON metadata describing the repository (e.g., stats, commits, custom config).
 - `readme` (StringProperty): Optional text content of the repository's main README.
 
 **Relationships**:
@@ -133,8 +130,13 @@ class CodeConfluenceGitRepository(BaseNode):
 
 - `name` (StringProperty, required=True): The name of the codebase or root package.
 - `readme` (StringProperty): Optional content of the codebase's README file.
-- `root_packages` (ArrayProperty(StringProperty)): List of root package paths within the codebase.
-- `codebase_path` (StringProperty, required=True): Codebase root directory path.
+- `root_packages` (ArrayProperty(StringProperty)): List of root package names within the codebase.
+- `codebase_path` (StringProperty, required=True): File system path to the codebase root directory.
+- `programming_language` (StringProperty, choices=PROGRAMMING_LANGUAGES): The primary programming language of the codebase. Choices include:
+  - `python`: Python
+  - `java`: Java
+  - `go`: Go
+  - `typescript`: TypeScript
 
 **Relationships**:
 
@@ -160,17 +162,26 @@ class CodeConfluenceCodebase(BaseNode):
     Fields:
         name (str): The name of the codebase or root package.
         readme (str): Optional content of the codebase's README file.
-        root_packages (ArrayProperty): List of root package paths within the codebase.
-        codebase_path (str): Codebase root directory path.
+        programming_language (str): The primary programming language of the codebase.
     
     Relationships:
         packages (RelationshipTo): Connects to package nodes.
         package_manager_metadata (RelationshipTo): Connects to package manager metadata node.
     """
+    
+    # Programming language choices
+    PROGRAMMING_LANGUAGES = {
+        'python': 'Python',
+        'java': 'Java',
+        'go': 'Go',
+        'typescript': 'TypeScript',
+    }
+    
     name = StringProperty(required=True)
     readme = StringProperty()
     root_packages = ArrayProperty(StringProperty())
     codebase_path = StringProperty(required=True)
+    programming_language = StringProperty(choices=PROGRAMMING_LANGUAGES)
     
     packages = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',
@@ -207,7 +218,7 @@ class CodeConfluenceCodebase(BaseNode):
 - `project_version` (StringProperty): Version of the project.
 - `description` (StringProperty): Description of the project.
 - `license` (StringProperty): License of the project.
-- `package_name` (StringProperty): Name of the package.
+- `package_name` (StringProperty): Name of the main package.
 - `entry_points` (JSONProperty, default={}): Dictionary of script names to their entry points.
 - `authors` (ArrayProperty(StringProperty)): List of project authors.
 
@@ -274,7 +285,7 @@ class CodeConfluencePackageManagerMetadata(BaseNode):
 
 **Relationships**:
 
-- `sub_packages` (AsyncRelationship ↔ CodeConfluencePackage, 'CONTAINS_PACKAGE', cardinality=AsyncZeroOrMore): Connects to sub-package nodes.
+- `sub_packages` (AsyncRelationship ↔ CodeConfluencePackage, 'CONTAINS_PACKAGE', cardinality=AsyncZeroOrMore): Connects to sub-package nodes (self-referential for nested packages).
 - `codebase` (AsyncRelationshipTo → CodeConfluenceCodebase, 'PART_OF_CODEBASE', cardinality=AsyncOne): Connects to the parent codebase.
 - `files` (AsyncRelationshipTo → CodeConfluenceFile, 'CONTAINS_FILE', cardinality=AsyncZeroOrMore): Connects to files within the package.
 
@@ -299,10 +310,9 @@ class CodeConfluencePackage(BaseNode):
     Relationships:
         sub_packages (RelationshipTo): Connects to sub-package nodes.
         codebase (RelationshipTo): Connects to the parent codebase.
-        classes (RelationshipTo): Connects to the classes within the package.
+        files (RelationshipTo): Connects to files within the package.
     """
     name = StringProperty()
-    
     
     sub_packages = AsyncRelationship(
         '.code_confluence_package.CodeConfluencePackage',
@@ -310,7 +320,6 @@ class CodeConfluencePackage(BaseNode):
         model=ContainsRelationship,
         cardinality=AsyncZeroOrMore
     )
-    
     
     codebase = AsyncRelationshipTo(
         '.code_confluence_codebase.CodeConfluenceCodebase',
@@ -331,223 +340,57 @@ class CodeConfluencePackage(BaseNode):
 
 **Description**: Graph node representing a single source file.
 
+**Note**: This model extends `AsyncStructuredNode` directly rather than `BaseNode`, so it does not inherit the `qualified_name` property.
+
 **Properties**:
 
-- `file_path` (StringProperty, required=True, unique_index=True): Path to the file.
-- `content` (StringProperty): Content of the file.
-- `checksum` (StringProperty): Checksum of the file content.
+- `file_path` (StringProperty, required=True, unique_index=True): Absolute path to the file.
+- `content` (StringProperty, fulltext_index=FulltextIndex(analyzer="english")): Full content of the file with fulltext search capability.
+- `checksum` (StringProperty): Checksum/hash of the file content for integrity verification.
+- `structural_signature` (JSONProperty): Detailed structural signature of the file containing AST-level information, functions, classes, and other structural elements.
+- `imports` (ArrayProperty(StringProperty), default=[], fulltext_index=FulltextIndex(analyzer="english")): List of import statements in the file with fulltext search capability.
+- `poi_labels` (ArrayProperty(StringProperty), fulltext_index=FulltextIndex(analyzer="english")): Points of interest labels for the file (e.g., tags, annotations, special markers) with fulltext search capability.
 
 **Relationships**:
 
 - `package` (AsyncRelationshipTo → CodeConfluencePackage, 'PART_OF_PACKAGE', cardinality=AsyncOne): Connection to the parent package.
-- `nodes` (AsyncRelationship ↔ CodeConfluenceClass, 'CONTAINS_NODE', cardinality=AsyncZeroOrMore): Connects to class nodes within the file.
 
 **Code**:
 ```python
-from neomodel import AsyncStructuredNode, StringProperty, AsyncRelationshipTo, AsyncRelationship, AsyncOne, AsyncZeroOrMore
+from neomodel import AsyncStructuredNode, StringProperty, AsyncRelationshipTo, AsyncOne
+from neomodel import JSONProperty, ArrayProperty, FulltextIndex
 
-from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship
+from unoplat_code_confluence_commons.graph_models.base_models import ContainsRelationship
 
 class CodeConfluenceFile(AsyncStructuredNode):
     """
     Graph node representing a single source file.
 
+    Note: Extends AsyncStructuredNode directly, not BaseNode
+    
     Relationships
     ─────────────
     package  (PART_OF_PACKAGE)  -> CodeConfluencePackage
-    nodes    (CONTAINS_NODE)    -> CodeConfluenceClass / CodeConfluenceInternalFunction
     """
     file_path = StringProperty(required=True, unique_index=True)
-    content   = StringProperty()
-    checksum  = StringProperty()
-
+    content = StringProperty(fulltext_index=FulltextIndex(analyzer="english"))
+    checksum = StringProperty()
+    structural_signature = JSONProperty()
+    imports = ArrayProperty(
+        StringProperty(),
+        default=[],
+        fulltext_index=FulltextIndex(analyzer="english")
+    )
+    poi_labels = ArrayProperty(
+        StringProperty(),
+        fulltext_index=FulltextIndex(analyzer="english")
+    )
     package = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',
         'PART_OF_PACKAGE',
         model=ContainsRelationship,
         cardinality=AsyncOne,
     )
-
-    nodes = AsyncRelationship(
-        '.code_confluence_class.CodeConfluenceClass',
-        'CONTAINS_NODE',
-        model=ContainsRelationship,
-        cardinality=AsyncZeroOrMore,
-    )
-```
-
-### CodeConfluenceClass
-
-**Description**: Represents a class-like node, combining fields from ChapiNode and UnoplatChapiForgeNode.
-
-**Properties**:
-
-- `name` (StringProperty): The name of the class (NodeName).
-- `type_` (StringProperty): Type of the node.
-- `file_path` (StringProperty): Path to the file containing the class.
-- `module` (StringProperty): Module containing the class.
-- `multiple_extend` (ArrayProperty(StringProperty), default=[]): List of extended classes.
-- `fields` (JSONProperty): Fields of the class (list of ClassGlobalFieldModel).
-- `extend` (StringProperty): Class being extended.
-- `position` (JSONProperty): Position information for the class.
-- `content` (StringProperty): Content of the class.
-- `comments_description` (StringProperty): Description from comments.
-- `segregated_imports` (JSONProperty): Segregated imports information.
-- `dependent_internal_classes` (ArrayProperty(StringProperty), default=[]): List of dependent internal classes.
-- `global_variables` (JSONProperty, default=[]): Global variables.
-
-**Relationships**:
-
-- `functions` (AsyncRelationshipTo → CodeConfluenceInternalFunction, 'HAS_FUNCTION', cardinality=AsyncZeroOrMore): Connects to function nodes.
-- `annotations` (AsyncRelationship ↔ CodeConfluenceAnnotation, 'HAS_ANNOTATION', cardinality=AsyncZeroOrMore): Connects to annotation nodes.
-- `package` (AsyncRelationshipTo → CodeConfluencePackage, 'PART_OF_PACKAGE', cardinality=AsyncOne): Connects to the parent package.
-- `file` (AsyncRelationshipTo → CodeConfluenceFile, 'PART_OF_FILE', cardinality=AsyncOne): Connects to the parent file.
-
-**Code**:
-```python
-from neomodel import (
-    StringProperty,
-    ArrayProperty,
-    JSONProperty,
-    AsyncRelationshipTo,
-    AsyncRelationshipFrom,
-    AsyncRelationship,
-    AsyncZeroOrMore,
-    AsyncOne,
-    AsyncOneOrMore
-)
-
-from .base_models import AnnotatedRelationship, BaseNode, ContainsRelationship
-
-class CodeConfluenceClass(BaseNode):
-    """
-    Represents a class-like node, combining fields from:
-      - ChapiNode
-      - UnoplatChapiForgeNode
-    """
-    # From ChapiNode
-    name = StringProperty()       # NodeName
-    type_ = StringProperty()           # Type (renamed to avoid Python 'type' shadowing)
-    file_path = StringProperty()       # FilePath
-    module = StringProperty()          # Module
-    multiple_extend = ArrayProperty(StringProperty(), default=[])  # MultipleExtend
-    fields = JSONProperty()                # Fields (list of ClassGlobalFieldModel)
-    extend = StringProperty()          # Extend
-    position = JSONProperty()          # Position
-    content = StringProperty()         # Content
-
-    # From UnoplatChapiForgeNode
-    comments_description = StringProperty()  # CommentsDescription
-    segregated_imports = JSONProperty()      # SegregatedImports
-    dependent_internal_classes = ArrayProperty(StringProperty(), default=[])  # DependentInternalClasses
-    global_variables = JSONProperty(default=[])            # GlobalVariables
-
-    # RELATIONSHIPS
-    # "Functions" from either ChapiNode or UnoplatChapiForgeNode become a relationship
-    functions = AsyncRelationshipTo(".code_confluence_internal_function.CodeConfluenceInternalFunction", "HAS_FUNCTION",model=ContainsRelationship,cardinality=AsyncZeroOrMore)
-    
-    # Classes can also have annotations
-    annotations = AsyncRelationship(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=AnnotatedRelationship,cardinality=AsyncZeroOrMore)
-    
-    # relation to package
-    package = AsyncRelationshipTo(".code_confluence_package.CodeConfluencePackage", "PART_OF_PACKAGE",model=ContainsRelationship,cardinality=AsyncOne)
-    
-    file = AsyncRelationshipTo(
-        '.code_confluence_file.CodeConfluenceFile',
-        'PART_OF_FILE',
-        model=ContainsRelationship,
-        cardinality=AsyncOne,
-    )
-```
-
-### CodeConfluenceInternalFunction
-
-**Description**: Represents a function-like node, combining fields from ChapiFunction and UnoplatChapiForgeFunction.
-
-**Properties**:
-
-- `name` (StringProperty): Name of the function.
-- `return_type` (StringProperty): Return type of the function.
-- `function_calls` (JSONProperty, default=[]): Function calls made within the function.
-- `parameters` (JSONProperty, default=[]): Parameters of the function.
-- `position` (JSONProperty): Position information for the function.
-- `body_hash` (IntegerProperty): Hash of the function body.
-- `content` (StringProperty): Content of the function.
-- `comments_description` (StringProperty): Description from comments.
-
-**Relationships**:
-
-- `annotations` (AsyncRelationship ↔ CodeConfluenceAnnotation, 'HAS_ANNOTATION', cardinality=AsyncZeroOrMore): Connects to annotation nodes.
-- `confluence_class` (AsyncRelationshipTo → CodeConfluenceClass, 'PART_OF_CLASS', cardinality=AsyncOne): Connects to the parent class.
-
-**Code**:
-```python
-from neomodel import (
-    StringProperty,
-    IntegerProperty,
-    JSONProperty,
-    AsyncRelationshipTo,
-    AsyncRelationship,
-    AsyncZeroOrMore,
-    AsyncOne
-)
-from .base_models import AnnotatedRelationship, BaseNode,ContainsRelationship
-
-class CodeConfluenceInternalFunction(BaseNode):
-    """
-    Represents a function-like node, combining fields from:
-      - ChapiFunction
-      - UnoplatChapiForgeFunction
-    """
-    # From ChapiFunction
-    name = StringProperty()              # Name
-    return_type = StringProperty()       # ReturnType
-    # function_calls, parameters, local_variables can be stored as JSON
-    function_calls = JSONProperty(default=[])          # FunctionCalls
-    parameters = JSONProperty(default=[])              # Parameters
-    position = JSONProperty()            # Position
-    body_hash = IntegerProperty()        # BodyHash
-    content = StringProperty()           # Content
-    comments_description = StringProperty() # CommentsDescription
-
-    # RELATIONSHIPS
-    annotations = AsyncRelationship(".code_confluence_annotation.CodeConfluenceAnnotation", "HAS_ANNOTATION",model=AnnotatedRelationship,cardinality=AsyncZeroOrMore)
-    
-    confluence_class = AsyncRelationshipTo(".code_confluence_class.CodeConfluenceClass", "PART_OF_CLASS",model=ContainsRelationship,cardinality=AsyncOne)
-```
-
-### CodeConfluenceAnnotation
-
-**Description**: Represents an annotation node based on ChapiAnnotation.
-
-**Properties**:
-
-- `name` (StringProperty, required=True, unique_index=True): Name of the annotation.
-
-**Relationships**:
-
-- `annotated_classes` (AsyncRelationship ↔ CodeConfluenceClass, 'HAS_ANNOTATION', cardinality=AsyncZeroOrMore): Connects to annotated class nodes.
-- `annotated_functions` (AsyncRelationship ↔ CodeConfluenceInternalFunction, 'HAS_ANNOTATION', cardinality=AsyncZeroOrMore): Connects to annotated function nodes.
-
-**Code**:
-```python
-from neomodel import (
-    AsyncStructuredNode,
-    StringProperty,
-    AsyncRelationship,
-    AsyncZeroOrMore
-)
-
-from unoplat_code_confluence_commons.graph_models.base_models import AnnotatedRelationship
-
-class CodeConfluenceAnnotation(AsyncStructuredNode):
-    """
-    Represents an annotation node based on ChapiAnnotation.
-    """
-    name = StringProperty(required=True,unique_index=True)      # Name
-    # key_values can be stored as JSON if you don't need them as separate nodes
-    annotated_classes = AsyncRelationship('.code_confluence_class.CodeConfluenceClass', 'HAS_ANNOTATION', model=AnnotatedRelationship, cardinality=AsyncZeroOrMore)
-    annotated_functions = AsyncRelationship('.code_confluence_internal_function.CodeConfluenceInternalFunction', 'HAS_ANNOTATION', model=AnnotatedRelationship, cardinality=AsyncZeroOrMore)
 ```
 
 ## Relationship Overview
@@ -556,23 +399,46 @@ This section provides a visual representation of how the models are connected:
 
 ```text
 CodeConfluenceGitRepository
-  ├── CONTAINS_CODEBASE → CodeConfluenceCodebase
+  └── CONTAINS_CODEBASE → CodeConfluenceCodebase
       ├── HAS_PACKAGE_MANAGER_METADATA → CodeConfluencePackageManagerMetadata
       ├── PART_OF_GIT_REPOSITORY → CodeConfluenceGitRepository
       └── CONTAINS_PACKAGE → CodeConfluencePackage
           ├── PART_OF_CODEBASE → CodeConfluenceCodebase
           ├── CONTAINS_PACKAGE → CodeConfluencePackage (self-reference for sub-packages)
           └── CONTAINS_FILE → CodeConfluenceFile
-              ├── PART_OF_PACKAGE → CodeConfluencePackage
-              └── CONTAINS_NODE → CodeConfluenceClass
-                  ├── PART_OF_FILE → CodeConfluenceFile
-                  ├── PART_OF_PACKAGE → CodeConfluencePackage
-                  ├── HAS_FUNCTION → CodeConfluenceInternalFunction
-                  │   ├── PART_OF_CLASS → CodeConfluenceClass
-                  │   └── HAS_ANNOTATION ↔ CodeConfluenceAnnotation
-                  └── HAS_ANNOTATION ↔ CodeConfluenceAnnotation
-                      ├── HAS_ANNOTATION ↔ CodeConfluenceClass
-                      └── HAS_ANNOTATION ↔ CodeConfluenceInternalFunction
+              └── PART_OF_PACKAGE → CodeConfluencePackage
 ```
 
-This schema represents a comprehensive graph model for code analysis and representation, capturing the relationships between repositories, codebases, packages, files, classes, functions, and annotations.
+## Search and Indexing
+
+The schema implements comprehensive search capabilities through Neo4j indexing:
+
+### Unique Indexes
+- `BaseNode.qualified_name`: Ensures unique identification across all nodes
+- `CodeConfluenceGitRepository.repository_url`: Prevents duplicate repository URLs
+- `CodeConfluenceGitRepository.repository_name`: Ensures unique repository names
+- `CodeConfluenceFile.file_path`: Prevents duplicate file paths
+
+### Full-text Search Indexes
+- `CodeConfluenceFile.content`: English analyzer for searching file contents
+- `CodeConfluenceFile.imports`: English analyzer for searching import statements
+- `CodeConfluenceFile.poi_labels`: English analyzer for searching points of interest
+
+### Performance Considerations
+- All relationship queries use indexed properties for optimal performance
+- Full-text search enables natural language queries on code content
+- Unique indexes prevent data duplication and ensure referential integrity
+
+## Important Implementation Notes
+
+### Inheritance Inconsistency
+- **Issue**: `CodeConfluenceFile` extends `AsyncStructuredNode` directly instead of `BaseNode`
+- **Impact**: Files lack the `qualified_name` property that other nodes have
+- **Recommendation**: Consider standardizing inheritance to use `BaseNode` for consistency
+
+### Relationship Cardinality
+- Most relationships use `AsyncZeroOrMore` or `AsyncOne` cardinality
+- `CodeConfluenceGitRepository.codebases` uses `AsyncOneOrMore` (repositories must have at least one codebase)
+- Self-referential relationships in packages support nested package structures
+
+This schema represents a comprehensive graph model for code analysis and representation, capturing the relationships between repositories, codebases, packages, files, and their metadata. The model focuses on structural organization and package management while providing detailed file-level analysis through structural signatures and search capabilities.
