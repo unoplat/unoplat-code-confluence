@@ -20,11 +20,13 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     PaginatedResponse,
     ParentWorkflowJobListResponse,
     ParentWorkflowJobResponse,
+    RefreshRepositoryResponse,
     WorkflowRun,
     WorkflowStatus,
 )
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.async_detector_wrapper import AsyncDetectorWrapper
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.codebase_auto_detector import PythonCodebaseDetector
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import (
     DetectionProgress,
     DetectionResult,
@@ -33,7 +35,6 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_m
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import SSEMessage
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_deletion import CodeConfluenceGraphDeletion
 from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
@@ -61,7 +62,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 import traceback
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Sequence, Tuple, cast
+from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager

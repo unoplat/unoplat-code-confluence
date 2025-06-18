@@ -17,7 +17,7 @@ import { DataTableToolbar } from '@/components/data-table-toolbar';
 import { getIngestedRepositoriesColumns } from './ingested-repositories-data-table-columns';
 import { RefreshRepositoryDialog } from './RefreshRepositoryDialog';
 import { DeleteRepositoryDialog } from './DeleteRepositoryDialog';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 import type { IngestedRepository } from '../../types';
 import { 
@@ -122,8 +122,7 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
 
   const handleRefreshConfirm = () => {
     if (rowAction?.row.original) {
-      const { repository_name, repository_owner_name } = rowAction.row.original;
-      refreshMutation.mutate({ repositoryName: repository_name, repositoryOwnerName: repository_owner_name });
+      refreshMutation.mutate(rowAction.row.original);
     }
     setIsRefreshDialogOpen(false);
     setRowAction(null);
