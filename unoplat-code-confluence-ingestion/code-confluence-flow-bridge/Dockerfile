@@ -1,39 +1,43 @@
-# Minimal Python 3.12 Web image (slim variant)
+########################################
+# ---------- builder stage ------------
+########################################
+FROM python:3.12-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Only tools required to COMPILE wheels
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git build-essential libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install runtime tools now – they'll be copied later
+RUN pip install --no-cache-dir uv ruff
+
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-cache
+COPY . /app
+
+########################################
+# ---------- runtime stage ------------
+########################################
 FROM python:3.12-slim
 
-# Install Java and Git
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Keep git only if the running service needs it
 RUN apt-get update && \
-    apt-get install -y wget gnupg curl git build-essential libpq-dev && \
-    curl -s https://repos.azul.com/azul-repo.key | gpg --dearmor -o /usr/share/keyrings/azul.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" | \
-    tee /etc/apt/sources.list.d/zulu.list && \
-    apt-get update && \
-    apt-get install -y zulu11-jre && \
-    rm -rf /var/lib/apt/lists/*
-# Set the JAVA_HOME environment variable
-ENV JAVA_HOME=/usr/lib/jvm/zulu11
-# Install uv directly from the official image
-RUN pip install uv
-RUN pip install ruff
-# Set working directory
+    apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Create directory for JAR file and copy it
-RUN mkdir -p jars
+# ⬇️  This single line brings in uv, ruff *and* all project deps
+COPY --from=builder /usr/local /usr/local
+COPY --from=builder /app /app
 
-# Copy the application files (including pyproject.toml)
-COPY . /app/
-
-# Install dependencies using uv sync
-RUN uv sync --frozen --no-cache
-
-# Create directory for scanner and download scanner CLI
-RUN mkdir -p /root/assets && \
-    curl -L -o /root/assets/scanner_cli-2.3.0-all.jar \
-    https://github.com/archguard/archguard/releases/download/v2.3.0/scanner_cli-2.3.0-all.jar
-
-# Expose the port that the FastAPI app listens on
 EXPOSE 8000
-
-# Start the FastAPI application
 CMD ["uv", "run", "uvicorn", "src.code_confluence_flow_bridge.main:app", "--host", "0.0.0.0", "--port", "8000"] 

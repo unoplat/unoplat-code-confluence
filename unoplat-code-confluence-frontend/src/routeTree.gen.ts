@@ -8,173 +8,92 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as SettingsDeveloperRouteImport } from './routes/settings.developer'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRepositoryOperationsRouteImport } from './routes/_app.repositoryOperations'
+import { Route as AppRepositoryManagementRouteImport } from './routes/_app.repositoryManagement'
+import { Route as AppOnboardingRouteImport } from './routes/_app.onboarding'
+import { Route as AppDeveloperRouteImport } from './routes/_app.developer'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as AppImport } from './routes/_app'
-import { Route as AppIndexImport } from './routes/_app.index'
-import { Route as SettingsDeveloperImport } from './routes/settings.developer'
-import { Route as AppSettingsImport } from './routes/_app.settings'
-import { Route as AppRepositoryManagementImport } from './routes/_app.repositoryManagement'
-import { Route as AppOnboardingImport } from './routes/_app.onboarding'
-import { Route as AppDeveloperImport } from './routes/_app.developer'
-
-// Create/Update Routes
-
-const AppRoute = AppImport.update({
+const AppRoute = AppRouteImport.update({
   id: '/_app',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AppIndexRoute = AppIndexImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-
-const SettingsDeveloperRoute = SettingsDeveloperImport.update({
+const SettingsDeveloperRoute = SettingsDeveloperRouteImport.update({
   id: '/settings/developer',
   path: '/settings/developer',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AppSettingsRoute = AppSettingsImport.update({
+const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
-
-const AppRepositoryManagementRoute = AppRepositoryManagementImport.update({
+const AppRepositoryOperationsRoute = AppRepositoryOperationsRouteImport.update({
+  id: '/repositoryOperations',
+  path: '/repositoryOperations',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRepositoryManagementRoute = AppRepositoryManagementRouteImport.update({
   id: '/repositoryManagement',
   path: '/repositoryManagement',
   getParentRoute: () => AppRoute,
 } as any)
-
-const AppOnboardingRoute = AppOnboardingImport.update({
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => AppRoute,
 } as any)
-
-const AppDeveloperRoute = AppDeveloperImport.update({
+const AppDeveloperRoute = AppDeveloperRouteImport.update({
   id: '/developer',
   path: '/developer',
   getParentRoute: () => AppRoute,
 } as any)
 
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/_app': {
-      id: '/_app'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AppImport
-      parentRoute: typeof rootRoute
-    }
-    '/_app/developer': {
-      id: '/_app/developer'
-      path: '/developer'
-      fullPath: '/developer'
-      preLoaderRoute: typeof AppDeveloperImport
-      parentRoute: typeof AppImport
-    }
-    '/_app/onboarding': {
-      id: '/_app/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof AppOnboardingImport
-      parentRoute: typeof AppImport
-    }
-    '/_app/repositoryManagement': {
-      id: '/_app/repositoryManagement'
-      path: '/repositoryManagement'
-      fullPath: '/repositoryManagement'
-      preLoaderRoute: typeof AppRepositoryManagementImport
-      parentRoute: typeof AppImport
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsImport
-      parentRoute: typeof AppImport
-    }
-    '/settings/developer': {
-      id: '/settings/developer'
-      path: '/settings/developer'
-      fullPath: '/settings/developer'
-      preLoaderRoute: typeof SettingsDeveloperImport
-      parentRoute: typeof rootRoute
-    }
-    '/_app/': {
-      id: '/_app/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AppIndexImport
-      parentRoute: typeof AppImport
-    }
-  }
-}
-
-// Create and export the route tree
-
-interface AppRouteChildren {
-  AppDeveloperRoute: typeof AppDeveloperRoute
-  AppOnboardingRoute: typeof AppOnboardingRoute
-  AppRepositoryManagementRoute: typeof AppRepositoryManagementRoute
-  AppSettingsRoute: typeof AppSettingsRoute
-  AppIndexRoute: typeof AppIndexRoute
-}
-
-const AppRouteChildren: AppRouteChildren = {
-  AppDeveloperRoute: AppDeveloperRoute,
-  AppOnboardingRoute: AppOnboardingRoute,
-  AppRepositoryManagementRoute: AppRepositoryManagementRoute,
-  AppSettingsRoute: AppSettingsRoute,
-  AppIndexRoute: AppIndexRoute,
-}
-
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
-
 export interface FileRoutesByFullPath {
-  '': typeof AppRouteWithChildren
   '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRoute
   '/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/': typeof AppIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRoute
   '/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/': typeof AppIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_app/developer': typeof AppDeveloperRoute
   '/_app/onboarding': typeof AppOnboardingRoute
   '/_app/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/_app/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/_app/': typeof AppIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | ''
     | '/developer'
     | '/onboarding'
     | '/repositoryManagement'
+    | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
     | '/'
@@ -183,6 +102,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/onboarding'
     | '/repositoryManagement'
+    | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
     | '/'
@@ -192,69 +112,102 @@ export interface FileRouteTypes {
     | '/_app/developer'
     | '/_app/onboarding'
     | '/_app/repositoryManagement'
+    | '/_app/repositoryOperations'
     | '/_app/settings'
     | '/settings/developer'
     | '/_app/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   SettingsDeveloperRoute: typeof SettingsDeveloperRoute
 }
 
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/settings/developer': {
+      id: '/settings/developer'
+      path: '/settings/developer'
+      fullPath: '/settings/developer'
+      preLoaderRoute: typeof SettingsDeveloperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/repositoryOperations': {
+      id: '/_app/repositoryOperations'
+      path: '/repositoryOperations'
+      fullPath: '/repositoryOperations'
+      preLoaderRoute: typeof AppRepositoryOperationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/repositoryManagement': {
+      id: '/_app/repositoryManagement'
+      path: '/repositoryManagement'
+      fullPath: '/repositoryManagement'
+      preLoaderRoute: typeof AppRepositoryManagementRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/onboarding': {
+      id: '/_app/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/developer': {
+      id: '/_app/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof AppDeveloperRouteImport
+      parentRoute: typeof AppRoute
+    }
+  }
+}
+
+interface AppRouteChildren {
+  AppDeveloperRoute: typeof AppDeveloperRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
+  AppRepositoryManagementRoute: typeof AppRepositoryManagementRoute
+  AppRepositoryOperationsRoute: typeof AppRepositoryOperationsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppDeveloperRoute: AppDeveloperRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
+  AppRepositoryManagementRoute: AppRepositoryManagementRoute,
+  AppRepositoryOperationsRoute: AppRepositoryOperationsRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   SettingsDeveloperRoute: SettingsDeveloperRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/_app",
-        "/settings/developer"
-      ]
-    },
-    "/_app": {
-      "filePath": "_app.tsx",
-      "children": [
-        "/_app/developer",
-        "/_app/onboarding",
-        "/_app/repositoryManagement",
-        "/_app/settings",
-        "/_app/"
-      ]
-    },
-    "/_app/developer": {
-      "filePath": "_app.developer.tsx",
-      "parent": "/_app"
-    },
-    "/_app/onboarding": {
-      "filePath": "_app.onboarding.tsx",
-      "parent": "/_app"
-    },
-    "/_app/repositoryManagement": {
-      "filePath": "_app.repositoryManagement.tsx",
-      "parent": "/_app"
-    },
-    "/_app/settings": {
-      "filePath": "_app.settings.tsx",
-      "parent": "/_app"
-    },
-    "/settings/developer": {
-      "filePath": "settings.developer.tsx"
-    },
-    "/_app/": {
-      "filePath": "_app.index.tsx",
-      "parent": "/_app"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

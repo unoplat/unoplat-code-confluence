@@ -1,0 +1,13 @@
+type: folder
+model: folder
+id: fl_pr9oGjGRnn
+createdAt: 2025-06-14T06:59:24.029417
+updatedAt: 2025-06-16T04:10:11.257652
+workspaceId: wk_KULjx4bEa8
+folderId: fl_ZwwFo3jTXL
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: ingestion
+sortPriority: 1000.0

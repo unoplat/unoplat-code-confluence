@@ -1,6 +1,6 @@
 from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_git_repository import UnoplatGitRepository
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import UnoplatGitRepository
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import GitActivityEnvelope
 
 import traceback
@@ -55,7 +55,7 @@ class GitActivity:
                 info.attempt, repo_request.repository_git_url
             )
 
-            activity_data = self.github_helper.clone_repository(repo_request, github_token)
+            activity_data: UnoplatGitRepository = self.github_helper.clone_repository(repo_request, github_token)
             
 
             log.debug(

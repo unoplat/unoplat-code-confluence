@@ -2,7 +2,7 @@ type: folder
 model: folder
 id: fl_TpVgSdpioc
 createdAt: 2025-06-06T04:54:00.991379
-updatedAt: 2025-06-06T04:54:00.991379
+updatedAt: 2025-06-16T04:10:11.258461
 workspaceId: wk_KULjx4bEa8
 folderId: fl_ZwwFo3jTXL
 authentication: {}
@@ -10,4 +10,4 @@ authenticationType: null
 description: ''
 headers: []
 name: codebase_detection
-sortPriority: -1749185600000.0
+sortPriority: 2000.0

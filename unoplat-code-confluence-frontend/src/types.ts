@@ -10,7 +10,7 @@ export interface GitHubRepoSummary {
 // Repository metadata type
 export interface RepositoryMetadata {
   codebaseFolder: string;
-  rootPackage: string;
+  rootPackages: string[];
   programmingLanguage: string;
   packageManager: string;
 }
@@ -57,12 +57,15 @@ export interface FlagResponse {
 export interface ProgrammingLanguageMetadata {
   language: string; // e.g., "python"
   package_manager: string; // e.g., "uv", "pip", "poetry"
-  language_version?: string;
+  language_version?: string | null;
+  role?: 'leaf' | 'aggregator' | 'NA';
+  manifest_path?: string | null;
+  project_name?: string | null;
 }
 
 export interface CodebaseConfig {
   codebase_folder: string;
-  root_package?: string;
+  root_packages?: string[] | null;
   programming_language_metadata: ProgrammingLanguageMetadata;
   dependencies?: Array<{
     name: string;
@@ -81,7 +84,7 @@ export interface GitHubRepoRequestConfiguration {
 // Backend-compatible codebase config for repository metadata (GET response)
 export interface CodebaseRepoConfig {
   codebase_folder: string;
-  root_package?: string | null;
+  root_packages?: string[] | null;
   programming_language_metadata: ProgrammingLanguageMetadata;
   status?: CodebaseStatusSchema | null;
   dependencies?: Array<{
@@ -198,7 +201,7 @@ export interface WorkflowRun {
 
 // Flattened codebase run for table display
 export interface FlattenedCodebaseRun {
-  root_package: string,
+  codebase_folder: string,
   codebase_workflow_run_id: string;
   codebase_status: JobStatus;
   codebase_started_at: string;
@@ -215,7 +218,7 @@ export interface WorkflowStatus {
 
 // CodebaseStatus model from backend
 export interface CodebaseStatus {
-  root_package: string;
+  codebase_folder: string;
   workflows: WorkflowStatus[];
 }
 
@@ -240,10 +243,59 @@ export interface GithubRepoStatus {
 
 // Dictionary mapping programming languages to their supported package managers
 export const LANGUAGE_PACKAGE_MANAGERS: Record<string, string[]> = {
-  python: ['auto-detect', 'uv', 'pip', 'poetry'],
+  python: ['uv', 'pip', 'poetry'],
   // Add more languages as needed
-  javascript: ['auto-detect', 'npm', 'yarn', 'pnpm'],
-  typescript: ['auto-detect', 'npm', 'yarn', 'pnpm'],
-  java: ['auto-detect', 'maven', 'gradle'],
-  rust: ['auto-detect', 'cargo']
+  javascript: ['npm', 'yarn', 'pnpm'],
+  typescript: ['npm', 'yarn', 'pnpm'],
+  java: ['maven', 'gradle'],
+  rust: ['cargo'],
 };
+
+// ===================================
+// CODEBASE DETECTION TYPES
+// ===================================
+
+export interface DetectionProgress {
+  state: 'initializing' | 'cloning' | 'analyzing' | 'complete';
+  message: string;
+  repository_url: string;
+}
+
+export interface DetectionResult {
+  repository_url: string;
+  duration_seconds: number;
+  codebases: CodebaseConfig[];
+  error: string | null;
+}
+
+export interface DetectionError {
+  error: string;
+  timestamp: string;
+  type: 'DETECTION_ERROR' | 'CONNECTION_ERROR' | 'AUTH_ERROR';
+}
+
+export interface SSEEvent<T = unknown> {
+  event: string;
+  data: T;
+}
+
+// ===================================
+// INGESTED REPOSITORY TYPES  
+// ===================================
+
+export interface IngestedRepository {
+  repository_name: string;
+  repository_owner_name: string;
+}
+
+export interface IngestedRepositoriesResponse {
+  repositories: IngestedRepository[];
+}
+
+// Refresh repository response from the backend
+export interface RefreshRepositoryResponse {
+  repository_name: string;
+  repository_owner_name: string;
+  workflow_id: string;
+  run_id: string;
+}

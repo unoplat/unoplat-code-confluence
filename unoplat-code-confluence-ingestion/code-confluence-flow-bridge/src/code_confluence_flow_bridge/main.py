@@ -1,4 +1,3 @@
-
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, ProgrammingLanguageMetadata
@@ -12,6 +11,8 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoResponseConfiguration,
     GithubRepoStatus,
     GitHubRepoSummary,
+    IngestedRepositoriesListResponse,
+    IngestedRepositoryResponse,
     IssueStatus,
     IssueTracking,
     IssueType,
@@ -19,20 +20,33 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     PaginatedResponse,
     ParentWorkflowJobListResponse,
     ParentWorkflowJobResponse,
+    RefreshRepositoryResponse,
     WorkflowRun,
     WorkflowStatus,
 )
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.async_detector_wrapper import AsyncDetectorWrapper
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.codebase_auto_detector import PythonCodebaseDetector
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import (
+    DetectionProgress,
+    DetectionResult,
+    DetectionState,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import SSEMessage
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
-from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import CodebaseProcessingActivity
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_deletion import CodeConfluenceGraphDeletion
 from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
-from src.code_confluence_flow_bridge.processor.db.postgres.db import create_db_and_tables, get_session
+from src.code_confluence_flow_bridge.processor.db.postgres.db import (
+    async_engine,  # local import to avoid cycles
+    create_db_and_tables,
+    get_session,
+)
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
 from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
 from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import CodebaseWorkflowRun, Repository, RepositoryWorkflowRun
+from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import process_codebase_generic
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
 from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
@@ -48,11 +62,12 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 import traceback
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, cast
+from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from github import Github
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -87,15 +102,28 @@ async def get_temporal_client() -> Client:
     return temporal_client
 
 
-async def run_worker(activities: List[Callable], client: Client, activity_executor: ThreadPoolExecutor, env_settings: EnvironmentSettings) -> None:
+async def _serve_worker(
+    stop: asyncio.Event,
+    worker: Worker
+) -> None:
+    """Keep the worker running until `stop` is set, then shut it down."""
+    async with worker:
+        await stop.wait()          # blocks here
+    # context manager calls worker.shutdown() for us
+
+
+def create_worker(activities: List[Callable], client: Client, activity_executor: ThreadPoolExecutor, env_settings: EnvironmentSettings) -> Worker:
     """
-    Run the Temporal worker with given activities
+    Create a Temporal worker with given activities
 
     Args:
         activities: List of activity functions
         client: Temporal client
         activity_executor: Thread pool executor for activities
         env_settings: Environment settings containing Temporal worker configuration
+        
+    Returns:
+        Worker: Configured Temporal worker instance
     """
     try:
         # Worker configuration parameters
@@ -147,7 +175,6 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
                 f"max_concurrent_activity_task_polls={env_settings.temporal_max_concurrent_activity_task_polls}"
             )
         
-        # Create and run the worker with explicit parameters for better type safety
         # Create the worker with client as positional argument and other parameters as keyword arguments
         if env_settings.temporal_enable_poller_autoscaling:
             # Initialize with autoscaling poller behaviors
@@ -184,8 +211,8 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
                 max_concurrent_activity_task_polls=env_settings.temporal_max_concurrent_activity_task_polls
             )
         
-        # Run the worker
-        await worker.run()
+        # Return the configured worker
+        return worker
         
     except Exception as e:
         # Follow established error handling pattern in the codebase
@@ -207,6 +234,36 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
             error_message,
             type="WORKER_INITIALIZATION_ERROR"
         ) from e
+
+
+async def fetch_github_token_from_db(session: AsyncSession) -> str:
+    """
+    Fetch and decrypt GitHub token from database.
+    
+    Args:
+        session: Database session
+        
+    Returns:
+        Decrypted GitHub token
+        
+    Raises:
+        HTTPException: If no credentials found or decryption fails
+    """
+    try:
+        result = await session.execute(select(Credentials))
+        credential: Optional[Credentials] = result.scalars().first()
+    except Exception as db_error:
+        logger.error(f"Database error while fetching credentials: {db_error}")
+        raise HTTPException(status_code=500, detail="Database error while fetching credentials")
+    
+    if not credential:
+        raise HTTPException(status_code=404, detail="No credentials found")
+    
+    try:
+        return decrypt_token(credential.token_hash)
+    except Exception as decrypt_error:
+        logger.error(f"Failed to decrypt token: {decrypt_error}")
+        raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
 
 
 async def start_workflow(
@@ -234,13 +291,105 @@ async def start_workflow(
     return workflow_handle
 
 
+async def generate_sse_events(
+    git_url: str,
+    github_token: str,
+    detector_wrapper: AsyncDetectorWrapper
+) -> AsyncGenerator[str, None]:
+    """
+    Generate SSE events for codebase detection progress.
+    
+    Args:
+        git_url: GitHub repository URL
+        github_token: GitHub authentication token
+        detector_wrapper: AsyncDetectorWrapper instance
+        
+    Yields:
+        SSE-formatted event strings
+    """
+    # Create progress queue with bounded size (following best practices)
+    progress_queue: asyncio.Queue[DetectionProgress] = asyncio.Queue(maxsize=100)
+    
+    # Send initial connection event
+    yield SSEMessage.connected()
+    
+    # Start detection task
+    detection_task = asyncio.create_task(
+        detector_wrapper.detect_codebases_async(
+            git_url=git_url,
+            github_token=github_token,
+            progress_queue=progress_queue
+        )
+    )
+    
+    try:
+        # Stream progress updates
+        while True:
+            try:
+                # Wait for progress with timeout for disconnection detection
+                progress = await asyncio.wait_for(
+                    progress_queue.get(), 
+                    timeout=1.0
+                )
+                
+                # Convert progress to SSE event
+                yield SSEMessage.format_sse(
+                    data={
+                        "state": progress.state.value,
+                        "message": progress.message,
+                        "repository_url": progress.repository_url
+                    },
+                    event="progress"
+                )
+                
+                # Check if detection is complete
+                if progress.state == DetectionState.COMPLETE:
+                    break
+                    
+            except asyncio.TimeoutError:
+                # Check if client is still connected by checking task status
+                if detection_task.done():
+                    break
+                # Send heartbeat comment to keep connection alive
+                yield SSEMessage.comment("heartbeat")
+                continue
+                
+        # Get final result
+        result: DetectionResult = await detection_task
+        
+        # Send result event
+        yield SSEMessage.result(result.model_dump())
+        
+        # Send completion event
+        yield SSEMessage.done()
+        
+    except asyncio.CancelledError:
+        # Client disconnected - cancel detection
+        logger.info("Client disconnected, cancelling detection")
+        if not detection_task.done():
+            detection_task.cancel()
+            try:
+                await detection_task
+            except asyncio.CancelledError:
+                pass
+        raise
+        
+    except Exception as e:
+        # Send error event
+        logger.error(f"Detection error: {str(e)}")
+        yield SSEMessage.error(str(e), error_type="DETECTION_ERROR")
+        yield SSEMessage.done()
+
+
 # Create FastAPI lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.code_confluence_env = EnvironmentSettings()
     app.state.temporal_client = await get_temporal_client()
-    app.state.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=app.state.code_confluence_env)
-    await app.state.code_confluence_graph_ingestion.initialize()
+    # Note: Removed shared CodeConfluenceGraphIngestion to avoid async context issues
+    # Each activity that needs Neo4j will create its own instance
+    app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(code_confluence_env=app.state.code_confluence_env)
+    await app.state.code_confluence_graph_deletion.initialize()
 
     # Calculate thread pool size based on Temporal best practice: one thread per activity slot plus a buffer
     # This ensures we have enough threads to handle all concurrent activities plus overhead
@@ -262,26 +411,76 @@ async def lifespan(app: FastAPI):
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)
 
-    confluence_git_graph = ConfluenceGitGraph(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
+    # Create activities without shared graph ingestion instance
+    confluence_git_graph = ConfluenceGitGraph()
     activities.append(confluence_git_graph.insert_git_repo_into_graph_db)
 
-    codebase_package_ingestion = PackageManagerMetadataIngestion(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
+    codebase_package_ingestion = PackageManagerMetadataIngestion()
     activities.append(codebase_package_ingestion.insert_package_manager_metadata)
     
-    codebase_processing_activity = CodebaseProcessingActivity(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
-    activities.append(codebase_processing_activity.process_codebase)
+    # Add generic codebase processing activity
+    activities.append(process_codebase_generic)
     
     # Create database tables during startup
     await create_db_and_tables()
     
-    asyncio.create_task(run_worker(
-        activities=activities, 
-        client=app.state.temporal_client, 
+    # Create the worker
+    worker = create_worker(
+        activities=activities,
+        client=app.state.temporal_client,
         activity_executor=app.state.activity_executor,
         env_settings=app.state.code_confluence_env
-    ))
-    yield
-    await app.state.code_confluence_graph_ingestion.close()
+    )
+    
+    # Create stop event and worker task
+    stop_event = asyncio.Event()
+    worker_task = asyncio.create_task(_serve_worker(stop_event, worker))
+    
+    # Store references for cleanup
+    app.state.worker_task = worker_task
+    app.state.worker_stop = stop_event
+    app.state.temporal_client = app.state.temporal_client  # Already assigned, but keeping for clarity
+    app.state.activity_executor = app.state.activity_executor  # Already assigned, but keeping for clarity
+    
+    try:
+        # Hand control back to FastAPI until shutdown is triggered
+        yield
+    finally:
+        # ── shutdown ─────────────────────────────────────────────────────
+        logger.info("Shutting down application...")
+        
+        # 1. Signal worker to stop
+        stop_event.set()
+        
+        # 2. Wait for worker to shut down gracefully
+        try:
+            await worker_task
+            logger.info("Temporal worker shut down successfully")
+        except Exception as e:
+            logger.error(f"Error during worker shutdown: {e}")
+        
+        # 3. Temporal client doesn't need explicit disconnect - it cleans up on garbage collection
+        
+        # 4. Close Neo4j connections
+        try:
+            await app.state.code_confluence_graph_deletion.close()
+            logger.info("Neo4j connections closed")
+        except Exception as e:
+            logger.error(f"Error closing Neo4j connections: {e}")
+        
+        # 5. Dispose SQLAlchemy async engine
+        try:
+            await async_engine.dispose()
+            logger.info("SQLAlchemy engine disposed")
+        except Exception as exc:
+            logger.warning(f"Failed to dispose async engine during shutdown: {exc}")
+        
+        # 6. Shut down the thread pool executor (after worker is done)
+        try:
+            app.state.activity_executor.shutdown(wait=True)
+            logger.info("Thread pool executor shut down")
+        except Exception as e:
+            logger.error(f"Error shutting down thread pool executor: {e}")
 
 
 
@@ -420,23 +619,8 @@ async def get_repos(
     filterValues: Optional[str] = Query(None, description="Optional JSON filter values to filter repositories"),
     session: AsyncSession = Depends(get_session)
 ) -> PaginatedResponse:
-    # Attempt to fetch the stored credentials from the database
-    try:
-        result = await session.execute(select(Credentials))
-        credential: Optional[Credentials] = result.scalars().first()
-    except Exception as db_error:
-        logger.error(f"Database error while fetching credentials: {db_error}")
-        raise HTTPException(status_code=500, detail="Database error while fetching credentials")
-    
-    if not credential:
-        raise HTTPException(status_code=404, detail="No credentials found")
-  
-    # Attempt to decrypt the stored token
-    try:
-        token: str = decrypt_token(credential.token_hash)
-    except Exception as decrypt_error:
-        logger.error(f"Failed to decrypt token: {decrypt_error}")
-        raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
+    # Fetch GitHub token from database using helper function
+    token = await fetch_github_token_from_db(session)
     
     
     # Parse filterValues if provided, and merge with the search parameter
@@ -573,7 +757,7 @@ async def get_repos(
 async def ingestion(
     repo_request: GitHubRepoRequestConfiguration,
     session: AsyncSession = Depends(get_session),
-    request_logger: "Logger" = Depends(trace_dependency) # type: ignore
+    request_logger: "Logger" = Depends(trace_dependency) #type: ignore
 ) -> dict[str, str]:
     """
     Start the ingestion workflow for the entire repository using the GitHub token from the database.
@@ -581,23 +765,8 @@ async def ingestion(
     Returns the workflow_id and run_id.
     Also ingests the repository configuration into the database.
     """
-    # Attempt to fetch the stored credentials from the database
-    try:
-        result = await session.execute(select(Credentials))
-        credential: Optional[Credentials] = result.scalars().first()
-    except Exception as db_error:
-        request_logger.error(f"Database error while fetching credentials: {db_error}")
-        raise HTTPException(status_code=500, detail="Database error while fetching credentials")
-
-    if not credential:
-        raise HTTPException(status_code=404, detail="No credentials found")
-
-    # Attempt to decrypt the stored token
-    try:
-        github_token: str = decrypt_token(credential.token_hash)
-    except Exception as decrypt_error:
-        request_logger.error(f"Failed to decrypt token: {decrypt_error}")
-        raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
+    # Fetch GitHub token from database using helper function
+    github_token = await fetch_github_token_from_db(session)
 
     # Fetch the trace-id that `trace_dependency` already set
     trace_id = trace_id_var.get()
@@ -764,12 +933,12 @@ async def get_repository_status(
         )
         codebase_runs = (await session.execute(cb_stmt)).scalars().all()
         
-        # Group codebase runs by root_package
+        # Group codebase runs by codebase_folder
         codebase_data: Dict[str, List[Tuple[str, WorkflowRun]]] = {}
         for run in codebase_runs:
-            root_package = run.root_package
-            if root_package not in codebase_data:
-                codebase_data[root_package] = []
+            codebase_folder = run.codebase_folder
+            if codebase_folder not in codebase_data:
+                codebase_data[codebase_folder] = []
                 
             error_report = ErrorReport(**run.error_report) if run.error_report else None
             
@@ -784,11 +953,11 @@ async def get_repository_status(
             )
             
             # Add to the list of runs for this codebase
-            codebase_data[root_package].append((run.codebase_workflow_id, workflow_run))
+            codebase_data[codebase_folder].append((run.codebase_workflow_id, workflow_run))
         
         # Now organize workflow runs by workflow ID
         codebases: List[CodebaseStatus] = []
-        for root_package, runs in codebase_data.items():
+        for codebase_folder, runs in codebase_data.items():
             # Group workflow runs by workflow ID
             workflow_map: Dict[str, List[WorkflowRun]] = {}
             for workflow_id, wf_run in runs:
@@ -804,9 +973,9 @@ async def get_repository_status(
                     codebase_workflow_runs=workflow_runs
                 ))
             
-            # Create CodebaseStatus for this root package
+            # Create CodebaseStatus for this codebase
             codebases.append(CodebaseStatus(
-                root_package=root_package,
+                codebase_folder=codebase_folder,
                 workflows=workflows
             ))
         
@@ -862,12 +1031,13 @@ async def get_repository_data(
     try:
         codebases = [
             CodebaseConfig(
-                codebase_folder=config.source_directory,
-                root_package=config.root_package,
+                codebase_folder=config.codebase_folder,
+                root_packages=config.root_packages,
                 programming_language_metadata=ProgrammingLanguageMetadata(
                     language=config.programming_language_metadata["language"],
                     package_manager=config.programming_language_metadata["package_manager"],
                     language_version=config.programming_language_metadata.get("language_version"),
+                    role=config.programming_language_metadata.get("role", "NA"),
                 ),
             )
             for config in db_obj.configs
@@ -922,17 +1092,230 @@ async def get_parent_workflow_jobs(session: AsyncSession = Depends(get_session))
             detail=f"Error retrieving parent workflow jobs: {str(e)}"
         )
 
+@app.get(
+    "/get/ingestedRepositories",
+    response_model=IngestedRepositoriesListResponse,
+    description="Get all ingested repositories without pagination"
+)
+async def get_ingested_repositories(session: AsyncSession = Depends(get_session)) -> IngestedRepositoriesListResponse:
+    """Get all ingested repositories without pagination.
+    
+    Returns basic information for all repositories in the database.
+    Includes repository_name and repository_owner_name only.
+    """
+    try:
+        # Query to get all repositories
+        query = select(Repository)
+        result = await session.execute(query)
+        repositories = result.scalars().all()
+        
+        # Transform the database records to the response model format
+        repo_list = [
+            IngestedRepositoryResponse(
+                repository_name=repo.repository_name,
+                repository_owner_name=repo.repository_owner_name
+            ) for repo in repositories
+        ]
+        
+        return IngestedRepositoriesListResponse(repositories=repo_list)
+    except Exception as e:
+        logger.error(f"Error retrieving ingested repositories: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving ingested repositories: {str(e)}"
+        )
+
+@app.delete("/delete-repository", status_code=200)
+async def delete_repository(
+    repo_info: IngestedRepositoryResponse,
+    session: AsyncSession = Depends(get_session)
+) -> Dict[str, Any]:
+    """Delete a repository from both PostgreSQL and Neo4j databases.
+    
+    This endpoint removes a repository and all its associated data including:
+    - Repository record and cascaded relations in PostgreSQL
+    - Repository node and all connected nodes/relationships in Neo4j
+    
+    Args:
+        repo_info: IngestedRepositoryResponse containing repository_name and repository_owner_name
+        session: Database session
+        
+    Returns:
+        Success message with deletion statistics
+        
+    Raises:
+        HTTPException: 404 if repository not found, 500 on error
+    """
+    repository_name = repo_info.repository_name
+    repository_owner_name = repo_info.repository_owner_name
+    
+    try:
+        # First check if repository exists in PostgreSQL
+        db_obj: Repository | None = await session.get(
+            Repository,
+            (repository_name, repository_owner_name)
+        )
+        if not db_obj:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Repository not found: {repository_owner_name}/{repository_name}"
+            )
+        
+        # Delete from PostgreSQL - cascade will handle related tables
+        await session.delete(db_obj)
+        await session.commit()
+        
+        logger.info(f"Deleted repository from PostgreSQL: {repository_owner_name}/{repository_name}")
+        
+        # Delete from Neo4j using qualified name format
+        qualified_name = f"{repository_owner_name}_{repository_name}"
+        
+        try:
+            neo4j_stats = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name(
+                qualified_name=qualified_name
+            )
+            logger.info(f"Deleted repository from Neo4j: {qualified_name}")
+        except ApplicationError as neo4j_error:
+            # Log Neo4j error but don't fail if already deleted
+            if neo4j_error.type == "REPOSITORY_NOT_FOUND":
+                logger.warning(f"Repository not found in Neo4j (may have been already deleted): {qualified_name}")
+                neo4j_stats = {"repository_qualified_name": qualified_name, "status": "not_found"}
+            else:
+                # For other errors, re-raise
+                raise neo4j_error
+        
+        return {
+            "message": f"Successfully deleted repository {repository_owner_name}/{repository_name}",
+            "repository_name": repository_name,
+            "repository_owner_name": repository_owner_name,
+            "neo4j_deletion_stats": neo4j_stats
+        }
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except ApplicationError as e:
+        # Handle Neo4j application errors
+        logger.error(f"Neo4j deletion error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete repository from graph database: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error deleting repository: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error deleting repository: {str(e)}"
+        )
+
+@app.post("/refresh-repository", response_model=RefreshRepositoryResponse, status_code=201)
+async def refresh_repository(
+    repo_info: IngestedRepositoryResponse,
+    session: AsyncSession = Depends(get_session),
+    request_logger: "Logger" = Depends(trace_dependency) #type: ignore
+) -> RefreshRepositoryResponse:
+    """
+    Refresh a repository by purging Neo4j data and re-ingesting.
+    
+    This endpoint:
+    1. Deletes all repository data from Neo4j (keeps PostgreSQL intact)
+    2. Re-detects codebases using PythonCodebaseDetector
+    3. Starts a new Temporal workflow for ingestion
+    
+    Args:
+        repo_info: Repository name and owner
+        session: Database session
+        request_logger: Logger with trace ID
+        
+    Returns:
+        RefreshRepositoryResponse with workflow IDs
+    """
+    repository_name: str = repo_info.repository_name
+    repository_owner_name: str = repo_info.repository_owner_name
+    
+    try:
+        # 1. Delete from Neo4j (reuse existing pattern from delete-repository)
+        qualified_name: str = f"{repository_owner_name}_{repository_name}"
+        
+        try:
+            neo4j_stats: Dict[str, Union[int, str]] = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name(
+                qualified_name=qualified_name
+            )
+            request_logger.info(f"Deleted repository from Neo4j: {qualified_name}")
+        except ApplicationError as neo4j_error:
+            # Log but don't fail if already deleted
+            if neo4j_error.type == "REPOSITORY_NOT_FOUND":
+                request_logger.warning(f"Repository not found in Neo4j: {qualified_name}")
+            else:
+                raise HTTPException(status_code=500, detail=f"Neo4j deletion failed: {str(neo4j_error)}")
+        
+        # 2. Fetch GitHub token
+        github_token: str = await fetch_github_token_from_db(session)
+        
+        # 3. Detect codebases using correct pattern
+        detector: PythonCodebaseDetector = PythonCodebaseDetector(github_token=github_token)
+        git_url: str = f"https://github.com/{repository_owner_name}/{repository_name}"
+        
+        try:
+            detected_codebases: List[CodebaseConfig] = detector.detect_codebases(git_url)
+            request_logger.info(f"Detected {len(detected_codebases)} codebases for {repository_owner_name}/{repository_name}")
+        except Exception as e:
+            request_logger.error(f"Codebase detection failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to detect codebases: {str(e)}")
+        
+        # 4. Build repository request configuration
+        repo_request: GitHubRepoRequestConfiguration = GitHubRepoRequestConfiguration(
+            repository_name=repository_name,
+            repository_owner_name=repository_owner_name,
+            repository_git_url=git_url,
+            repository_metadata=detected_codebases
+        )
+        
+        # 5. Start Temporal workflow
+        trace_id: Optional[str] = trace_id_var.get()
+        if not trace_id:
+            raise HTTPException(500, "trace_id not set by dependency")
+        
+        workflow_handle: WorkflowHandle = await start_workflow(
+            temporal_client=app.state.temporal_client,
+            repo_request=repo_request,
+            github_token=github_token,
+            workflow_id=f"refresh-{repository_owner_name}-{repository_name}-{trace_id}",
+            trace_id=trace_id
+        )
+        
+        # 6. Schedule background monitoring
+        asyncio.create_task(monitor_workflow(workflow_handle))
+        
+        request_logger.info(
+            f"Started refresh workflow for {repository_owner_name}/{repository_name}. "
+            f"Workflow ID: {workflow_handle.id}, RunID: {workflow_handle.result_run_id}"
+        )
+        
+        return RefreshRepositoryResponse(
+            repository_name=repository_name,
+            repository_owner_name=repository_owner_name,
+            workflow_id=workflow_handle.id or "",
+            run_id=workflow_handle.result_run_id or ""
+        )
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        request_logger.error(f"Error refreshing repository: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error refreshing repository: {str(e)}"
+        )
+
 @app.get("/user-details", status_code=200)
 async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict[str, Optional[str]]:
     """
     Fetch authenticated GitHub user's name, avatar URL, and email.
     """
-    # Fetch stored GitHub token from database
-    result = await session.execute(select(Credentials))
-    credential: Optional[Credentials] = result.scalars().first()
-    if not credential:
-        raise HTTPException(status_code=404, detail="No credentials found")
-    token = decrypt_token(credential.token_hash)
+    # Fetch GitHub token from database using helper function
+    token = await fetch_github_token_from_db(session)
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -964,6 +1347,43 @@ async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict
     }
 
 
+@app.get("/detect-codebases-sse")
+async def detect_codebases_sse(
+    git_url: str = Query(..., description="GitHub repository URL to analyze"),
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Server-Sent Events endpoint for real-time codebase detection progress.
+    
+    Streams progress updates during Python codebase auto-detection from GitHub repositories.
+    Uses FastAPI's StreamingResponse with proper SSE formatting.
+    
+    Args:
+        git_url: GitHub repository URL to detect codebases from
+        session: Database session for token retrieval
+        
+    Returns:
+        StreamingResponse with text/event-stream content type
+    """
+    
+    # Fetch GitHub token from database
+    github_token = await fetch_github_token_from_db(session)
+    
+    # Create async detector wrapper using existing ThreadPoolExecutor
+    detector_wrapper = AsyncDetectorWrapper(app.state.activity_executor)
+    
+    # Generate SSE events using the helper function and return StreamingResponse
+    return StreamingResponse(
+        generate_sse_events(git_url, github_token, detector_wrapper),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"  # Disable nginx buffering
+        }
+    )
+
+
 @app.post("/code-confluence/issues", response_model=IssueTracking)
 async def create_github_issue(request: GithubIssueSubmissionRequest, session: AsyncSession = Depends(get_session)):
     """
@@ -973,12 +1393,8 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
     either the codebase workflow run or repository workflow run record with the issue details.
     """
     try:
-        # Get GitHub token from credentials
-        result = await session.execute(select(Credentials))
-        credential: Optional[Credentials] = result.scalars().first()
-        if not credential:
-            raise HTTPException(status_code=404, detail="No GitHub credentials found")
-        token = decrypt_token(credential.token_hash)
+        # Get GitHub token from credentials using helper function
+        token = await fetch_github_token_from_db(session)
         
         # Create GitHub issue
         
@@ -987,13 +1403,13 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
         body = f"## Error Details\n\n{request.error_message_body}\n\n"
         
         # Add workflow context information to the issue body
-        body += f"## Workflow Information\n\n"
+        body += "## Workflow Information\n\n"
         body += f"- Repository: {request.repository_owner_name}/{request.repository_name}\n"
         
         
         
-        if request.root_package:
-            body += f"- Root Package: {request.root_package}\n"
+        if request.codebase_folder:
+            body += f"- Codebase Folder: {request.codebase_folder}\n"
         
         # Build the GitHub API request data
         github_issue_data = {
@@ -1049,7 +1465,7 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
             condition = (
                 (CodebaseWorkflowRun.repository_name == request.repository_name)
                 & (CodebaseWorkflowRun.repository_owner_name == request.repository_owner_name)
-                & (CodebaseWorkflowRun.root_package == request.root_package)
+                & (CodebaseWorkflowRun.codebase_folder == request.codebase_folder)
                 & (CodebaseWorkflowRun.codebase_workflow_run_id == request.codebase_workflow_run_id)
             )  # type: ignore
             codebase_run_query = select(CodebaseWorkflowRun).where(condition)
@@ -1091,8 +1507,8 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
         }
         if request.error_type == IssueType.CODEBASE and request.codebase_workflow_run_id:
             workflow_context["codebase_workflow_run_id"] = request.codebase_workflow_run_id
-            if request.root_package:
-                workflow_context["root_package"] = request.root_package
+            if request.codebase_folder:
+                workflow_context["codebase_folder"] = request.codebase_folder
             
         error_context = {
             "error_message": str(e),
@@ -1103,7 +1519,7 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
         raise HTTPException(
             status_code=500,
             detail={
-                "message": "Error creating GitHub issue. Please try after some time.",
+                "message": "Faced an error while creating GitHub issue. Please try after some time.",
                 "error_context": error_context
             }
         )

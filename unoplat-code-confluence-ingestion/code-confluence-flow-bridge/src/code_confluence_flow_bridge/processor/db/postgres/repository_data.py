@@ -14,8 +14,20 @@ class Repository(SQLModel, table=True):
     repository_owner_name: str = Field(primary_key=True, description="The name of the repository owner")
     
     # Relationships - will be populated after class definitions
-    workflow_runs: List["RepositoryWorkflowRun"] = Relationship(back_populates="repository")
-    configs: List["CodebaseConfig"] = Relationship(back_populates="repository")
+    workflow_runs: List["RepositoryWorkflowRun"] = Relationship(
+        back_populates="repository",
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True,
+        },
+    )
+    configs: List["CodebaseConfig"] = Relationship(
+        back_populates="repository",
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True,
+        },
+    )
 
 
 class CodebaseConfig(SQLModel, table=True):
@@ -37,12 +49,14 @@ class CodebaseConfig(SQLModel, table=True):
         primary_key=True, 
         description="The name of the repository owner"
     )
-    root_package: str = Field(
+    codebase_folder: str = Field(
         primary_key=True, 
-        description="root package of the codebase"
+        description="Path to codebase folder relative to repo root"
     )
-    source_directory: str = Field(
-        description="Source directory for this codebase in case repository is a mono repo"
+    root_packages: Optional[List[str]] = Field(
+        default=None,
+        sa_column=Column(JSONB),
+        description="List of root packages within the codebase folder"
     )
     programming_language_metadata: Dict[str, Any] = Field(
         sa_column=Column(JSONB, nullable=False),
@@ -56,6 +70,7 @@ class CodebaseConfig(SQLModel, table=True):
         sa_relationship_kwargs={
             "viewonly": True,
             "overlaps": "repository_workflow_run,workflow_runs",
+            "passive_deletes": True,
         },
     )
 
@@ -122,6 +137,7 @@ class RepositoryWorkflowRun(SQLModel, table=True):
         sa_relationship_kwargs={
             "viewonly": True,
             "overlaps": "codebase_config,workflow_runs",
+            "passive_deletes": True,
         },
     )
 
@@ -135,10 +151,10 @@ class CodebaseWorkflowRun(SQLModel, table=True):
             name="codebase_status_check"
         ),
         ForeignKeyConstraint(
-            ["repository_name", "repository_owner_name", "root_package"],
+            ["repository_name", "repository_owner_name", "codebase_folder"],
             ["codebase_config.repository_name",
              "codebase_config.repository_owner_name",
-             "codebase_config.root_package"],
+             "codebase_config.codebase_folder"],
             ondelete="CASCADE"
         ),
         ForeignKeyConstraint(
@@ -158,9 +174,9 @@ class CodebaseWorkflowRun(SQLModel, table=True):
         primary_key=True, 
         description="The name of the repository owner"
     )
-    root_package: str = Field(
+    codebase_folder: str = Field(
         primary_key=True, 
-        description="FK to codebase_config"
+        description="FK to codebase_config - path to codebase folder"
     )
     codebase_workflow_run_id: str = Field(
         primary_key=True, 

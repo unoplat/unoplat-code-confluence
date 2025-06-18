@@ -14,9 +14,7 @@ dependencies = [
     "pygithub>=2.5.0",
     "requirements-parser>=0.11.0",
     "tomlkit>=0.13.2",
-    "tree-sitter>=0.23.2",
-    "tree-sitter-python>=0.23.6",
-    "pytest>=8.3.4",
+    "pytest>=8.3.5",
     "neomodel>=5.4.2",
     "unoplat-code-confluence-commons",
     "packaging>=24.2",
@@ -24,7 +22,7 @@ dependencies = [
     "sqlmodel>=0.0.24",
     "psycopg2>=2.9.10",
     "passlib[bcrypt]>=1.7.4",
-    "gql[all]>=3.5.2",
+    "gql[aiohttp]>=3.5.3",
     "opentelemetry-api>=1.32.1",
     "opentelemetry-sdk>=1.32.1",
     "opentelemetry-exporter-otlp>=1.32.1",
@@ -33,20 +31,36 @@ dependencies = [
     "asyncpg>=0.27.0",
     "greenlet>=3.1.1",
     "pyyaml>=6.0.2",
+    "tiktoken>=0.9.0",
+    "tree-sitter-language-pack>=0.8.0",
+    "typing-extensions>=4.11",
 ] 
 
 [dependency-groups]
 test = [
     "httpx>=0.28.1",
-    "pytest>=8.3.4",
+    "pytest>=8.3.5",
     "pytest-asyncio>=0.25.0",
     "pytest-cov>=6.0.0",
-    "pytest-mock>=3.14.0"
+    "pytest-mock>=3.14.0",
+    "loguru>=0.7.3",
+    "pytest-timeout>=2.4.0",
+]
+
+dev = [
+    # Type checking and linting tools used only during development
+    "mypy>=1.16.0",
+    # Optional: stubs for popular libraries
+    # "types-requests>=2.31.0",
 ]
 
 [tool.uv.sources]
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.14.1" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.17.0" }
 
+[tool.uv]
+override-dependencies = ["pytest>=8.3.5"]
+# do it for kit if required - "fastapi[standard]>=0.115.6"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

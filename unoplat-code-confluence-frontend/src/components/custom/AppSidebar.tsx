@@ -69,9 +69,16 @@ export function AppSidebar(): React.ReactElement {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Repository Management">
+                      <SidebarMenuButton asChild tooltip="Ingestion Management">
                         <Link to="/repositoryManagement" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
-                          <span className="text-sm font-medium">Repository Management</span>
+                          <span className="text-sm font-medium">Ingestion Management</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="Repository Operations">
+                        <Link to="/repositoryOperations" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
+                          <span className="text-sm font-medium">Repository Operations</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
