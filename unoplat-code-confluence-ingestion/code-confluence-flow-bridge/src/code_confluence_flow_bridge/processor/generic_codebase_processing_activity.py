@@ -156,34 +156,22 @@ class GenericCodebaseProcessingActivity:
                 trace_id=envelope.trace_id
             )
 
-            # Process with transaction boundaries for consistency
-            try:
-                async with adb.transaction:
-                    await parser.process_and_insert_codebase()
+            # Process with fresh connection - parser will handle its own transactions
+            await parser.process_and_insert_codebase()
                     
-                log.info(
-                    "Parser processing completed successfully | codebase_qualified_name={} | files_processed={} | packages_created={} | neo4j_retries={}",
-                    envelope.codebase_qualified_name, 
-                    getattr(parser, 'files_processed', 0),
-                    getattr(parser, 'packages_created', 0),
-                    getattr(parser, 'neo4j_retries', 0)
-                )
-                
-            except Exception as e:
-                # Transaction rollback is handled automatically by neomodel
-                log.error(
-                    "Parser processing failed, transaction rolled back | codebase_qualified_name={} | error={} | files_processed={} | packages_created={} | neo4j_retries={}",
-                    envelope.codebase_qualified_name, str(e),
-                    getattr(parser, 'files_processed', 0) if 'parser' in locals() else 0,
-                    getattr(parser, 'packages_created', 0) if 'parser' in locals() else 0,
-                    getattr(parser, 'neo4j_retries', 0) if 'parser' in locals() else 0
-                )
-                raise
+            log.info(
+                "Parser processing completed successfully | codebase_qualified_name={} | files_processed={} | packages_created={}",
+                envelope.codebase_qualified_name, 
+                getattr(parser, 'files_processed', 0),
+                getattr(parser, 'packages_created', 0)
+            )
 
         except Exception as e:
             log.error(
-                "Failed to initialize or run generic parser | codebase_qualified_name={} | error={}",
-                envelope.codebase_qualified_name, str(e)
+                "Failed to process codebase | codebase_qualified_name={} | error={} | files_processed={} | packages_created={}",
+                envelope.codebase_qualified_name, str(e),
+                getattr(parser, 'files_processed', 0) if 'parser' in locals() else 0,
+                getattr(parser, 'packages_created', 0) if 'parser' in locals() else 0
             )
             raise
 

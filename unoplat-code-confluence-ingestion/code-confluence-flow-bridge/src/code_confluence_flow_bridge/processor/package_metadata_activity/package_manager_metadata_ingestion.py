@@ -1,20 +1,26 @@
 from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
+from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import PackageManagerMetadataIngestionEnvelope
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+from src.code_confluence_flow_bridge.processor.db.graph_db.graph_context import graph_ingestion_ctx
 
 import traceback
 
+from loguru import logger
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
 
 class PackageManagerMetadataIngestion:
     """
-    Temporal activity class for package manager metadata ingestion
+    Temporal activity class for package manager metadata ingestion.
+    Uses context manager to create fresh Neo4j sessions for each activity execution.
     """
 
-    def __init__(self, code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
-        self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
+    def __init__(self):
+        self.env_settings = EnvironmentSettings()
+        logger.debug(
+            "Initialized PackageManagerMetadataIngestion - will create fresh Neo4j session per activity execution"
+        )
 
     @activity.defn
     async def insert_package_manager_metadata(self, envelope: PackageManagerMetadataIngestionEnvelope) -> None:
@@ -49,7 +55,12 @@ class PackageManagerMetadataIngestion:
                 codebase_qualified_name, package_manager_metadata.programming_language, package_manager_metadata.package_manager
             )
             
-            await self.code_confluence_graph_ingestion.insert_code_confluence_codebase_package_manager_metadata(codebase_qualified_name=codebase_qualified_name, package_manager_metadata=package_manager_metadata)
+            # Use fresh Neo4j session for this activity execution
+            async with graph_ingestion_ctx(self.env_settings) as graph:
+                await graph.insert_code_confluence_codebase_package_manager_metadata(
+                    codebase_qualified_name=codebase_qualified_name, 
+                    package_manager_metadata=package_manager_metadata
+                )
 
             log.debug(
                 "Successfully ingested package manager metadata | codebase_name={} | status=success",

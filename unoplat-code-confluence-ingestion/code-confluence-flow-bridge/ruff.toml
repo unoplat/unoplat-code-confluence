@@ -18,7 +18,7 @@ line-length = 150
 
 [lint]
 preview = true
-select = ["I","E402","INP001","TID","F401","F841","PLC0415"]
+select = ["I","E402","INP001","TID","F401","F811","F841","PLC0415"]
 
 [lint.per-file-ignores]
 "__init__.py" = ["E402","F401"]

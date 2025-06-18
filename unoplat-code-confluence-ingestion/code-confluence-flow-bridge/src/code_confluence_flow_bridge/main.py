@@ -102,15 +102,28 @@ async def get_temporal_client() -> Client:
     return temporal_client
 
 
-async def run_worker(activities: List[Callable], client: Client, activity_executor: ThreadPoolExecutor, env_settings: EnvironmentSettings) -> None:
+async def _serve_worker(
+    stop: asyncio.Event,
+    worker: Worker
+) -> None:
+    """Keep the worker running until `stop` is set, then shut it down."""
+    async with worker:
+        await stop.wait()          # blocks here
+    # context manager calls worker.shutdown() for us
+
+
+def create_worker(activities: List[Callable], client: Client, activity_executor: ThreadPoolExecutor, env_settings: EnvironmentSettings) -> Worker:
     """
-    Run the Temporal worker with given activities
+    Create a Temporal worker with given activities
 
     Args:
         activities: List of activity functions
         client: Temporal client
         activity_executor: Thread pool executor for activities
         env_settings: Environment settings containing Temporal worker configuration
+        
+    Returns:
+        Worker: Configured Temporal worker instance
     """
     try:
         # Worker configuration parameters
@@ -162,7 +175,6 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
                 f"max_concurrent_activity_task_polls={env_settings.temporal_max_concurrent_activity_task_polls}"
             )
         
-        # Create and run the worker with explicit parameters for better type safety
         # Create the worker with client as positional argument and other parameters as keyword arguments
         if env_settings.temporal_enable_poller_autoscaling:
             # Initialize with autoscaling poller behaviors
@@ -199,8 +211,8 @@ async def run_worker(activities: List[Callable], client: Client, activity_execut
                 max_concurrent_activity_task_polls=env_settings.temporal_max_concurrent_activity_task_polls
             )
         
-        # Run the worker
-        await worker.run()
+        # Return the configured worker
+        return worker
         
     except Exception as e:
         # Follow established error handling pattern in the codebase
@@ -374,8 +386,8 @@ async def generate_sse_events(
 async def lifespan(app: FastAPI):
     app.state.code_confluence_env = EnvironmentSettings()
     app.state.temporal_client = await get_temporal_client()
-    app.state.code_confluence_graph_ingestion = CodeConfluenceGraphIngestion(code_confluence_env=app.state.code_confluence_env)
-    await app.state.code_confluence_graph_ingestion.initialize()
+    # Note: Removed shared CodeConfluenceGraphIngestion to avoid async context issues
+    # Each activity that needs Neo4j will create its own instance
     app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(code_confluence_env=app.state.code_confluence_env)
     await app.state.code_confluence_graph_deletion.initialize()
 
@@ -399,10 +411,11 @@ async def lifespan(app: FastAPI):
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)
 
-    confluence_git_graph = ConfluenceGitGraph(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
+    # Create activities without shared graph ingestion instance
+    confluence_git_graph = ConfluenceGitGraph()
     activities.append(confluence_git_graph.insert_git_repo_into_graph_db)
 
-    codebase_package_ingestion = PackageManagerMetadataIngestion(code_confluence_graph_ingestion=app.state.code_confluence_graph_ingestion)
+    codebase_package_ingestion = PackageManagerMetadataIngestion()
     activities.append(codebase_package_ingestion.insert_package_manager_metadata)
     
     # Add generic codebase processing activity
@@ -411,32 +424,63 @@ async def lifespan(app: FastAPI):
     # Create database tables during startup
     await create_db_and_tables()
     
-    asyncio.create_task(run_worker(
-        activities=activities, 
-        client=app.state.temporal_client, 
+    # Create the worker
+    worker = create_worker(
+        activities=activities,
+        client=app.state.temporal_client,
         activity_executor=app.state.activity_executor,
         env_settings=app.state.code_confluence_env
-    ))
+    )
+    
+    # Create stop event and worker task
+    stop_event = asyncio.Event()
+    worker_task = asyncio.create_task(_serve_worker(stop_event, worker))
+    
+    # Store references for cleanup
+    app.state.worker_task = worker_task
+    app.state.worker_stop = stop_event
+    app.state.temporal_client = app.state.temporal_client  # Already assigned, but keeping for clarity
+    app.state.activity_executor = app.state.activity_executor  # Already assigned, but keeping for clarity
+    
     try:
         # Hand control back to FastAPI until shutdown is triggered
         yield
     finally:
-        # Gracefully close resources that hold onto event-loop specific state.
-        await app.state.code_confluence_graph_ingestion.close()
-        await app.state.code_confluence_graph_deletion.close()
-
-        # Dispose the SQLAlchemy async engine so that any remaining database
-        # connections tied to this event loop are cleaned up. This is
-        # particularly important in test suites that spin up multiple
-        # TestClient instances, each with its own event loop.
+        # ── shutdown ─────────────────────────────────────────────────────
+        logger.info("Shutting down application...")
+        
+        # 1. Signal worker to stop
+        stop_event.set()
+        
+        # 2. Wait for worker to shut down gracefully
         try:
-            
+            await worker_task
+            logger.info("Temporal worker shut down successfully")
+        except Exception as e:
+            logger.error(f"Error during worker shutdown: {e}")
+        
+        # 3. Temporal client doesn't need explicit disconnect - it cleans up on garbage collection
+        
+        # 4. Close Neo4j connections
+        try:
+            await app.state.code_confluence_graph_deletion.close()
+            logger.info("Neo4j connections closed")
+        except Exception as e:
+            logger.error(f"Error closing Neo4j connections: {e}")
+        
+        # 5. Dispose SQLAlchemy async engine
+        try:
             await async_engine.dispose()
-        except Exception as exc:  # pragma: no cover – defensive cleanup
+            logger.info("SQLAlchemy engine disposed")
+        except Exception as exc:
             logger.warning(f"Failed to dispose async engine during shutdown: {exc}")
-
-        # Shut down the activity executor to release thread resources.
-        app.state.activity_executor.shutdown(wait=False)
+        
+        # 6. Shut down the thread pool executor (after worker is done)
+        try:
+            app.state.activity_executor.shutdown(wait=True)
+            logger.info("Thread pool executor shut down")
+        except Exception as e:
+            logger.error(f"Error shutting down thread pool executor: {e}")
 
 
 
@@ -1162,6 +1206,107 @@ async def delete_repository(
         raise HTTPException(
             status_code=500,
             detail=f"Error deleting repository: {str(e)}"
+        )
+
+@app.post("/refresh-repository", response_model=RefreshRepositoryResponse, status_code=201)
+async def refresh_repository(
+    repo_info: IngestedRepositoryResponse,
+    session: AsyncSession = Depends(get_session),
+    request_logger: "Logger" = Depends(trace_dependency) #type: ignore
+) -> RefreshRepositoryResponse:
+    """
+    Refresh a repository by purging Neo4j data and re-ingesting.
+    
+    This endpoint:
+    1. Deletes all repository data from Neo4j (keeps PostgreSQL intact)
+    2. Re-detects codebases using PythonCodebaseDetector
+    3. Starts a new Temporal workflow for ingestion
+    
+    Args:
+        repo_info: Repository name and owner
+        session: Database session
+        request_logger: Logger with trace ID
+        
+    Returns:
+        RefreshRepositoryResponse with workflow IDs
+    """
+    repository_name: str = repo_info.repository_name
+    repository_owner_name: str = repo_info.repository_owner_name
+    
+    try:
+        # 1. Delete from Neo4j (reuse existing pattern from delete-repository)
+        qualified_name: str = f"{repository_owner_name}_{repository_name}"
+        
+        try:
+            neo4j_stats: Dict[str, Union[int, str]] = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name(
+                qualified_name=qualified_name
+            )
+            request_logger.info(f"Deleted repository from Neo4j: {qualified_name}")
+        except ApplicationError as neo4j_error:
+            # Log but don't fail if already deleted
+            if neo4j_error.type == "REPOSITORY_NOT_FOUND":
+                request_logger.warning(f"Repository not found in Neo4j: {qualified_name}")
+            else:
+                raise HTTPException(status_code=500, detail=f"Neo4j deletion failed: {str(neo4j_error)}")
+        
+        # 2. Fetch GitHub token
+        github_token: str = await fetch_github_token_from_db(session)
+        
+        # 3. Detect codebases using correct pattern
+        detector: PythonCodebaseDetector = PythonCodebaseDetector(github_token=github_token)
+        git_url: str = f"https://github.com/{repository_owner_name}/{repository_name}"
+        
+        try:
+            detected_codebases: List[CodebaseConfig] = detector.detect_codebases(git_url)
+            request_logger.info(f"Detected {len(detected_codebases)} codebases for {repository_owner_name}/{repository_name}")
+        except Exception as e:
+            request_logger.error(f"Codebase detection failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to detect codebases: {str(e)}")
+        
+        # 4. Build repository request configuration
+        repo_request: GitHubRepoRequestConfiguration = GitHubRepoRequestConfiguration(
+            repository_name=repository_name,
+            repository_owner_name=repository_owner_name,
+            repository_git_url=git_url,
+            repository_metadata=detected_codebases
+        )
+        
+        # 5. Start Temporal workflow
+        trace_id: Optional[str] = trace_id_var.get()
+        if not trace_id:
+            raise HTTPException(500, "trace_id not set by dependency")
+        
+        workflow_handle: WorkflowHandle = await start_workflow(
+            temporal_client=app.state.temporal_client,
+            repo_request=repo_request,
+            github_token=github_token,
+            workflow_id=f"refresh-{repository_owner_name}-{repository_name}-{trace_id}",
+            trace_id=trace_id
+        )
+        
+        # 6. Schedule background monitoring
+        asyncio.create_task(monitor_workflow(workflow_handle))
+        
+        request_logger.info(
+            f"Started refresh workflow for {repository_owner_name}/{repository_name}. "
+            f"Workflow ID: {workflow_handle.id}, RunID: {workflow_handle.result_run_id}"
+        )
+        
+        return RefreshRepositoryResponse(
+            repository_name=repository_name,
+            repository_owner_name=repository_owner_name,
+            workflow_id=workflow_handle.id or "",
+            run_id=workflow_handle.result_run_id or ""
+        )
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        request_logger.error(f"Error refreshing repository: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error refreshing repository: {str(e)}"
         )
 
 @app.get("/user-details", status_code=200)

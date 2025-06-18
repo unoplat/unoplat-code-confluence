@@ -58,10 +58,10 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
 
   // Refresh mutation
   const refreshMutation = useMutation({
-    mutationFn: ({ repositoryName, repositoryOwnerName }: { repositoryName: string; repositoryOwnerName: string }) => 
-      refreshRepository(repositoryName, repositoryOwnerName),
+    mutationFn: (repository: IngestedRepository) => 
+      refreshRepository(repository),
     onSuccess: () => {
-      toast.success("The repository refresh has been started successfully.");
+      toast.success("Repository has been successfully submitted for refresh");
       queryClient.invalidateQueries({ queryKey: ['ingestedRepositories'] });
     },
     onError: () => {

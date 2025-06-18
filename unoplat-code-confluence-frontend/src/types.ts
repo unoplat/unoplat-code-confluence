@@ -291,3 +291,11 @@ export interface IngestedRepository {
 export interface IngestedRepositoriesResponse {
   repositories: IngestedRepository[];
 }
+
+// Refresh repository response from the backend
+export interface RefreshRepositoryResponse {
+  repository_name: string;
+  repository_owner_name: string;
+  workflow_id: string;
+  run_id: string;
+}
