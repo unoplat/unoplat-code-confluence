@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.23.1...unoplat-code-confluence-frontend-v1.24.0) (2025-06-18)
+
+
+### Features
+
+* add ui/ux for codebase auto detection ([55d5178](https://github.com/unoplat/unoplat-code-confluence/commit/55d5178dd172c97aed00607f45384e75f751ffb8))
+* help in github token generation ([03393dc](https://github.com/unoplat/unoplat-code-confluence/commit/03393dcc3efcb11c5c25befa86585e2f9c332dce))
+* refresh changes and bugs fix ([8e0230a](https://github.com/unoplat/unoplat-code-confluence/commit/8e0230acfc162ca9eec8f4495cab102224a68472))
+* **revamp:** complete revamp to shift to tree sitter for core symbol extraction for queries and sse endpoint for auto codebase detection ([c3c6f89](https://github.com/unoplat/unoplat-code-confluence/commit/c3c6f89064c63ecca6e6314a70348b8780d1b6ee))
+* **revamp:** complete revamp to shift to tree sitter for core symbol extraction for queries and sse endpoint for auto codebase detection ([5130bc7](https://github.com/unoplat/unoplat-code-confluence/commit/5130bc7a2f18f4dbbb10c30d5750b54149258e44))
+* support repository operations including deletion ([f68e03d](https://github.com/unoplat/unoplat-code-confluence/commit/f68e03d14cbcd413062f4f45863fbf1af686153f))
+
+
+### Bug Fixes
+
+* removed unnecessary description ([4a8cf77](https://github.com/unoplat/unoplat-code-confluence/commit/4a8cf7747e81f1e5c58ca686c5d53feae6835091))
+* squashed bugs ([7ac7d05](https://github.com/unoplat/unoplat-code-confluence/commit/7ac7d058ee8ee8b2170912e91f10a80376567d73))
+* vite config (skipping auto code split) ([d970775](https://github.com/unoplat/unoplat-code-confluence/commit/d97077509d851e0000ccb39581d86843e0883e7e))
+
 ## [1.23.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.23.0...unoplat-code-confluence-frontend-v1.23.1) (2025-05-28)
 
 
