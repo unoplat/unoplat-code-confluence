@@ -1,13 +1,14 @@
 "use client";
 
-import { z } from "zod";
+
 import { useForm } from "@tanstack/react-form";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Wand2Icon, Loader2Icon, AlertCircleIcon, InfoIcon } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRepositoryConfig, submitRepositoryConfig } from '../../lib/api';
 import type { GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, CodebaseRepoConfig, ApiResponse } from '../../types';
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useDetectCodebases } from '@/hooks/useDetectCodebases';
 
 import {
   Dialog,
@@ -19,19 +20,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CodebaseForm } from "./CodebaseForm";
-import { CodebaseSchema, type Codebase } from "./CodebaseForm";
+import { type Codebase } from "./CodebaseForm";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 
-// Schema for a repository configuration containing multiple codebases
-export const RepositoryConfigSchema = z.object({
-  repositoryName: z.string(),
-  repositoryGitUrl: z.string(),
-  repositoryOwnerName: z.string(),
-  codebases: z.array(CodebaseSchema).min(1, "At least one codebase is required"),
-});
 
-export type RepositoryConfig = z.infer<typeof RepositoryConfigSchema>;
 
 interface RepositoryConfigDialogProps {
   repositoryName: string;
@@ -48,6 +44,34 @@ export function RepositoryConfigDialog({
   isOpen,
   onOpenChange,
 }: RepositoryConfigDialogProps): React.ReactElement {
+  // Local dialog/detection state
+  const [dialogMode, setDialogMode] = useState<'initial' | 'detecting' | 'configuring'>('initial');
+
+  const {
+    cancelDetection,
+    status: detectionStatus,
+    error: detectionError,
+    codebases: detectedCodebases,
+  } = useDetectCodebases({
+    gitUrl: dialogMode === 'detecting' ? repositoryGitUrl : null,
+    onSuccess: () => {
+      toast.success('Codebase detection completed successfully!');
+      setDialogMode('configuring');
+    },
+    onError: (err) => {
+      // The shape of the error chunk can vary depending on the backend. We
+      // guard against unexpected structures to avoid runtime failures.
+      const message =
+        typeof err === 'string'
+          ? err
+          : err && typeof err === 'object' && 'error' in err && err.error
+            ? (err as { error: string }).error
+            : 'Unknown error';
+
+      toast.error(`Detection failed: ${message}`);
+      setDialogMode('initial');
+    },
+  });
   const queryClient = useQueryClient(); 
   
   // Local dialog open/close handler
@@ -55,6 +79,8 @@ export function RepositoryConfigDialog({
     console.log('[RepositoryConfigDialog] Dialog open/close handler called with open:', open);
     if (!open) {
       form.reset();
+      cancelDetection();
+      setDialogMode('initial');
     }
     onOpenChange(open);
   }
@@ -62,10 +88,10 @@ export function RepositoryConfigDialog({
   // Default codebase structure
   const defaultCodebase: Codebase = {
     codebase_folder: "",
-    root_package: "",
+    root_packages: null,
     programming_language_metadata: {
       language: "python",
-      package_manager: "auto-detect",
+      package_manager: "uv",
     }
   };
 
@@ -85,7 +111,6 @@ export function RepositoryConfigDialog({
   });
 
   
-
   // Extract codebases from loadedConfig if available
   const existingCodebases = React.useMemo(() => {
     if (loadedConfig && Array.isArray(loadedConfig.repository_metadata)) {
@@ -93,10 +118,10 @@ export function RepositoryConfigDialog({
         // Convert to the expected Codebase type
         const codebase: Codebase = {
           codebase_folder: item.codebase_folder || "",
-          root_package: item.root_package || "",
+          root_packages: item.root_packages || null,
           programming_language_metadata: {
             language: item.programming_language_metadata.language || "python",
-            package_manager: item.programming_language_metadata.package_manager || "auto-detect",
+            package_manager: item.programming_language_metadata.package_manager || "uv",
           }
         };
         return codebase;
@@ -104,6 +129,13 @@ export function RepositoryConfigDialog({
     }
     return [];
   }, [loadedConfig]);
+
+  // Automatically switch to configuring mode if we have existing config
+  React.useEffect(() => {
+    if (existingCodebases.length > 0 && dialogMode === 'initial' && !isLoadingConfig) {
+      setDialogMode('configuring');
+    }
+  }, [existingCodebases.length, dialogMode, isLoadingConfig]);
 
   // Mutation for create
   const createMutation = useMutation<ApiResponse, Error, GitHubRepoRequestConfiguration>({
@@ -129,32 +161,12 @@ export function RepositoryConfigDialog({
     },
   });
   
-  // Disable update functionality until backend supports it
-  /*
-  const updateMutation = useMutation<ApiResponse, Error, GitHubRepoRequestConfiguration>({
-    mutationFn: updateRepositoryData,
-    onSuccess: () => {
-      // Invalidate all repository configurations to force a refetch
-      queryClient.invalidateQueries({ queryKey: ["repository-config"] });
-      // Also invalidate the specific repository config
-      queryClient.invalidateQueries({ queryKey: ["repository-config", repositoryName] });
-      toast.success(`Successfully updated repository configuration for ${repositoryName}`);
-      // Close the dialog and reset the form
-      handleDialogOpenChange(false);
-      form.reset();
-    },
-    onError: (error) => {
-      console.error("Failed to update repository data:", error);
-      toast.error(`Failed to update repository configuration: ${error.message}`);
-    },
-  });
-  */
-
+  
   // Initialize form with TanStack Form
   const form = useForm({
     defaultValues: {
       repositoryName,
-      codebases: existingCodebases || [defaultCodebase],
+      codebases: existingCodebases.length > 0 ? existingCodebases : [defaultCodebase],
     },
     onSubmit: async ({ value }) => {
       console.log('[RepositoryConfigDialog] Form submitted with values:', value);
@@ -166,7 +178,7 @@ export function RepositoryConfigDialog({
           repository_owner_name: repositoryOwnerName,
           repository_metadata: value.codebases.map((cb) => ({
             codebase_folder: cb.codebase_folder,
-            root_package: cb.root_package || "",
+            root_packages: cb.root_packages || null,
             programming_language_metadata: cb.programming_language_metadata,
           })),
         };
@@ -230,16 +242,50 @@ export function RepositoryConfigDialog({
     },
   });
 
-  // Explicitly reset the form when initialCodebases change
-  React.useEffect(() => {
-    if (isOpen) {
-      console.log('[RepositoryConfigDialog] Resetting form with initialCodebases', existingCodebases);
-      form.reset({
-        repositoryName,
-        codebases: existingCodebases || [defaultCodebase],
+  // Workaround for TanStack Form ≥1.9 reset regression -------------------
+  // See https://github.com/TanStack/form/issues/1490. We avoid form.reset()
+  // with values and instead update defaultValues and current state in one go.
+  const prefillForm = React.useCallback(
+    (codebasesToApply: Codebase[]) => {
+      form.update({
+        defaultValues: {
+          repositoryName,
+          codebases: codebasesToApply,
+        },
       });
+
+      // 2) push the same tree into state.values (workaround for reset bug)
+      form.setFieldValue('codebases', codebasesToApply);
+    },
+    [form, repositoryName],
+  );
+
+  const didPrefill = React.useRef(false);
+
+  React.useEffect(() => {
+    // Reset guard when dialog closes
+    if (!isOpen) {
+      didPrefill.current = false;
+      return;
     }
-  }, [existingCodebases, isOpen, repositoryName, form]);
+
+    if (didPrefill.current) return;
+
+    if (existingCodebases.length > 0) {
+      // Prefill with server configuration
+      console.debug('[RepositoryConfigDialog] prefill with existing config');
+      prefillForm(existingCodebases);
+      didPrefill.current = true;
+      return;
+    }
+
+    if (detectionStatus === 'success' && detectedCodebases.length > 0) {
+      // Prefill with detected codebases
+      console.debug('[RepositoryConfigDialog] prefill with detected codebases');
+      prefillForm(detectedCodebases);
+      didPrefill.current = true;
+    }
+  }, [isOpen, existingCodebases.length, detectionStatus, detectedCodebases.length, prefillForm]);
 
   // Create button text based on configuration existence
   const buttonText: string = "Submit Repo";
@@ -273,15 +319,122 @@ export function RepositoryConfigDialog({
     );
   }
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-      <DialogContent aria-describedby="repo-config-desc" className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Configure Repository: {repositoryName}</DialogTitle>
-          <DialogDescription id="repo-config-desc">
-            Configure one or more codebases for this repository. Each codebase represents a separate project within the repository.
-          </DialogDescription>
-        </DialogHeader>
+  // Handle manual configuration
+  const handleManualConfig = () => {
+    setDialogMode('configuring');
+    // If we have detected codebases, use them; otherwise use default
+    if (detectedCodebases.length > 0) {
+      prefillForm(detectedCodebases);
+    }
+  };
+
+  // Handle auto-detect
+  const handleAutoDetect = () => {
+    setDialogMode('detecting');
+  };
+
+  // Render content based on dialog mode
+  const renderDialogContent = () => {
+    switch (dialogMode) {
+      case 'initial':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold tracking-tight">
+                Configure Repository: <span className="text-primary">{repositoryName}</span>
+              </DialogTitle>
+              <DialogDescription className="text-sm leading-6">
+                Configure one or more codebases for this repository. Each codebase represents a separate project within the repository.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-6">
+              <Button
+                onClick={handleAutoDetect}
+                className="w-full h-11 inline-flex items-center justify-center"
+                size="lg"
+              >
+                <Wand2Icon className="mr-2 h-4 w-4" />
+                Detect Codebases Automatically
+                <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground">
+                  Beta
+                </Badge>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleManualConfig}
+                className="w-full h-11 inline-flex items-center justify-center"
+                size="lg"
+              >
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Configure Manually
+              </Button>
+            </div>
+            <div className="rounded-md bg-muted px-4 py-3">
+              <p className="text-sm text-muted-foreground">
+                <InfoIcon className="mr-2 h-4 w-4 inline-block" />
+                Automatic detection helps find Python projects and their main directories. You'll be able to review and edit any suggestions.
+              </p>
+            </div>
+          </>
+        );
+
+      case 'detecting':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle>Detecting Codebases</DialogTitle>
+              <DialogDescription>
+                Analyzing your repository structure...
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-8">
+              <div className="flex items-center justify-center">
+                <Loader2Icon className="h-8 w-8 animate-spin text-primary" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-3/4 mx-auto" />
+                <Skeleton className="h-4 w-1/2 mx-auto" />
+                <Skeleton className="h-4 w-2/3 mx-auto" />
+              </div>
+              {detectionError && (
+                <Alert variant="destructive">
+                  <AlertCircleIcon className="h-4 w-4" />
+                  <AlertDescription>{detectionError}</AlertDescription>
+                </Alert>
+              )}
+              <div className="text-center text-sm text-muted-foreground">
+                {detectionStatus === 'detecting' && 'This may take a few moments...'}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { cancelDetection(); setDialogMode('initial'); }}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </>
+        );
+
+      case 'configuring':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle>Configure Repository: {repositoryName}</DialogTitle>
+              <DialogDescription id="repo-config-desc">
+                {detectionStatus === 'success' && detectedCodebases.length > 0 
+                  ? `We detected ${detectedCodebases.length} codebase${detectedCodebases.length > 1 ? 's' : ''} in your repository. Review and modify as needed before submitting.`
+                  : 'Configure one or more codebases for this repository. Each codebase represents a separate project within the repository.'
+                }
+              </DialogDescription>
+            </DialogHeader>
+
+            {detectionStatus === 'success' && detectedCodebases.length > 0 && (
+              <Alert className="mt-4">
+                <Wand2Icon className="h-4 w-4" />
+                <AlertDescription>
+                  Automatic detection completed successfully. The detected codebases have been pre-filled below.
+                </AlertDescription>
+              </Alert>
+            )}
 
         <form onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
           e.preventDefault();
@@ -352,6 +505,18 @@ export function RepositoryConfigDialog({
             />
           </DialogFooter>
         </form>
+          </>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
+      <DialogContent aria-describedby="repo-config-desc" className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        {renderDialogContent()}
       </DialogContent>
     </Dialog>
   );

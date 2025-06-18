@@ -67,7 +67,9 @@ This is a React 19 + TypeScript SPA built with Vite, using TanStack Router for f
 
 ### Data Table Architecture (DiceUI + TanStack Table)
 
-The codebase uses **DiceUI Data Table** components built on top of **TanStack Table v8** for all data table implementations. Key architecture:
+The codebase uses **DiceUI Data Table** components built on top of **TanStack Table v8** for all data table implementations. For comprehensive TanStack Table patterns and best practices, see [TanStack Table Documentation](./docs/tanstack_table.md).
+
+Key architecture:
 
 1. **Core Components** (DiceUI-based):
    - `data-table.tsx`: Base table component wrapping TanStack Table with DiceUI styling

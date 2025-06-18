@@ -130,7 +130,7 @@ class WorkflowStatus(BaseModel):
     codebase_workflow_runs: List[WorkflowRun] = Field(description="Multiple run instances for this workflow.")
 
 class CodebaseStatus(BaseModel):
-    root_package: str = Field(description="The name of the codebase.")
+    codebase_folder: str = Field(description="The folder path of the codebase.")
     workflows: List[WorkflowStatus] = Field(description="List of workflows under this codebase.")
 
 class CodebaseStatusList(BaseModel):
@@ -151,7 +151,7 @@ class GitHubRepoResponseConfiguration(BaseModel):
     
 class CodebaseCurrentStatus(BaseModel):
     """Model for current status of a single codebase workflow run."""
-    root_package: str = Field(description="The name of the root package")
+    codebase_folder: str = Field(description="The folder path of the codebase")
     codebase_workflow_run_id: str = Field(description="The run ID of the codebase workflow")
     codebase_workflow_id: str = Field(description="The ID of the codebase workflow")
     status: JobStatus = Field(description="Status of the workflow run")
@@ -204,8 +204,27 @@ class GithubIssueSubmissionRequest(BaseModel):
     repository_owner_name: str = Field(description="The name of the repository owner")
     parent_workflow_run_id: str = Field(description="The run ID of the parent workflow")
     error_type: IssueType = Field(description="Type of error")
-    root_package: Optional[str] = Field(default=None, description="Root package of the codebase")
+    codebase_folder: Optional[str] = Field(default=None, description="Codebase folder path")
     codebase_workflow_run_id: Optional[str] = Field(default=None, description="The run ID of the codebase workflow")
     error_message_body: str = Field(description="Error message")
+
+
+class IngestedRepositoryResponse(BaseModel):
+    """Response model for ingested repository data."""
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+
+
+class IngestedRepositoriesListResponse(BaseModel):
+    """Response model containing a list of ingested repositories."""
+    repositories: List[IngestedRepositoryResponse] = Field(description="List of ingested repositories")
+
+
+class RefreshRepositoryResponse(BaseModel):
+    """Response after triggering repository refresh."""
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    workflow_id: str = Field(description="The ID of the started workflow")
+    run_id: str = Field(description="The run ID of the started workflow")
     
     

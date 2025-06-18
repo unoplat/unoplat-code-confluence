@@ -97,7 +97,7 @@ export function FeedbackDialog({
           repository_owner_name: report.repository_owner_name,
           parent_workflow_run_id: report.parent_workflow_run_id,
           error_type: issueType,
-          root_package: codebaseRun.root_package,
+          codebase_folder: codebaseRun.codebase_folder,
           codebase_workflow_run_id: codebaseRun.codebase_workflow_run_id,
           error_message_body: content
         });
@@ -117,7 +117,7 @@ export function FeedbackDialog({
           repository_owner_name: repoStatus.repository_owner_name,
           parent_workflow_run_id: repoStatus.repository_workflow_run_id,
           error_type: issueType,
-          root_package: null, // No specific root package for repository-level issues
+          codebase_folder: null, // No specific codebase folder for repository-level issues
           codebase_workflow_run_id: null, // No specific codebase run ID for repository-level issues
           error_message_body: content
         });

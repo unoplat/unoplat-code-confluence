@@ -1,0 +1,39 @@
+type: http_request
+model: http_request
+id: rq_yMsbRmdhHJ
+createdAt: 2025-06-14T06:59:41.097465
+updatedAt: 2025-06-16T04:10:11.255914
+workspaceId: wk_KULjx4bEa8
+folderId: fl_ZwwFo3jTXL
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+        "repository_name": "unoplat-code-confluence",
+        "repository_git_url": "https://github.com/unoplat/unoplat-code-confluence",
+        "repository_owner_name": "unoplat",
+        "repository_metadata": [
+            {
+                "codebase_folder": "unoplat-code-confluence-ingestion/code-confluence-flow-bridge",
+                "root_packages": ["src/code_confluence_flow_bridge"],
+                "programming_language_metadata": {
+                    "language": "python",
+                    "package_manager": "uv",
+                    "role": "leaf"
+                }
+            }
+        ]
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: PDR2m0DBab
+method: POST
+name: ''
+sortPriority: 0.0
+url: http://localhost:8000/start-ingestion
+urlParameters: []

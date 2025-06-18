@@ -1,169 +1,134 @@
-from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import CodebaseProcessingActivityEnvelope
-from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
-from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
-from src.code_confluence_flow_bridge.processor.archguard.arc_guard_handler import ArchGuardHandler
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
+# from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
+# from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package import UnoplatPackage
+# from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import CodebaseProcessingActivityEnvelope
+# from src.code_confluence_flow_bridge.parser.codebase_parser import CodebaseParser
+# from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
+# from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import CodeConfluenceGraphIngestion
 
-import os
-import json
-import traceback
-from typing import List
+# import os
+# import json
+# import traceback
+# from typing import List
 
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
+# from temporalio import activity
+# from temporalio.exceptions import ApplicationError
 
 
-class CodebaseProcessingActivity:
-    """Activity for processing codebase through linting, AST generation and parsing."""
+# class CodebaseProcessingActivity:
+#     """Activity for processing codebase through linting, AST generation and parsing."""
    
-    def __init__(self, code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
-        self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
+#     def __init__(self, code_confluence_graph_ingestion: CodeConfluenceGraphIngestion):
+#         self.code_confluence_graph_ingestion = code_confluence_graph_ingestion
 
-    @activity.defn
-    async def process_codebase(
-        self,
-        envelope: CodebaseProcessingActivityEnvelope,
-    ) -> None:
-        """
-        Process codebase through linting, AST generation, and parsing.
+#     @activity.defn
+#     async def process_codebase(
+#         self,
+#         envelope: CodebaseProcessingActivityEnvelope,
+#     ) -> None:
+#         """
+#         Process codebase through linting, AST generation, and parsing.
 
-        Args:
-            envelope: CodebaseProcessingActivityEnvelope containing parameters
+#         Args:
+#             envelope: CodebaseProcessingActivityEnvelope containing parameters
 
-        Returns:
-            UnoplatCodebase: Parsed codebase data
-        """
-        # Extract parameters from envelope
-        local_workspace_path = envelope.local_workspace_path
-        source_directory = envelope.source_directory
-        codebase_qualified_name = envelope.codebase_qualified_name
-        programming_language_metadata = envelope.programming_language_metadata
-        trace_id = envelope.trace_id
+#         Returns:
+#             UnoplatCodebase: Parsed codebase data
+#         """
+#         # Extract parameters from envelope
+#         codebase_path = envelope.codebase_path
+#         root_packages = envelope.root_packages
+#         codebase_qualified_name = envelope.codebase_qualified_name
+#         programming_language_metadata = envelope.programming_language_metadata
+#         trace_id = envelope.trace_id
         
-        info : activity.Info = activity.info()
-        workflow_id = info.workflow_id
-        workflow_run_id = info.workflow_run_id
-        activity_id = info.activity_id
-        activity_name = info.activity_type
-        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id, activity_name)
+#         info : activity.Info = activity.info()
+#         workflow_id = info.workflow_id
+#         workflow_run_id = info.workflow_run_id
+#         activity_id = info.activity_id
+#         activity_name = info.activity_type
+#         log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id, activity_name)
+#         log.info("Starting codebase processing")
+#         log.info("Programming language metadata: {}", programming_language_metadata.language.value)
+#         linter_parser = LinterParser()
+#         #TODO: review this post mvp in terms of how to do it better when codebases do not follow standard practices
+#         lint_result = linter_parser.lint_codebase(
+#             local_workspace_path=codebase_path,
+#             dependencies=[],
+#             programming_language_metadata=programming_language_metadata
+#         )
         
-        log.info("Starting codebase processing")
-        log.info("Programming language metadata: {}", programming_language_metadata.language.value)
-        
-        linter_parser = LinterParser()
-        lint_result = linter_parser.lint_codebase(
-            local_workspace_path=local_workspace_path,
-            dependencies=[],
-            programming_language_metadata=programming_language_metadata
-        )
-        
-        if not lint_result:
-            log.warning("Linting completed with warnings")
-        else:
-            log.info("Linting completed successfully")
+#         if not lint_result:
+#             log.warning("Linting completed with warnings")
+#         else:
+#             log.info("Linting completed successfully")
 
-        # 2. Generate AST using ArchGuard
-        jar_env: str = os.getenv("SCANNER_JAR_PATH", "/app/jars/scanner_cli-2.2.8-all.jar")
-        if jar_env:
-            scanner_jar_path: str = jar_env
+#         parser = CodebaseParser()
+#         list_packages: List[UnoplatPackage] = parser.parse_codebase(
+#             codebase_name=codebase_qualified_name,
+#             json_data=json_data,
+#             local_workspace_path=local_workspace_path,
+#             source_directory=source_directory,
+#             programming_language_metadata=programming_language_metadata
+#         )
         
-        log.debug(
-            "Initializing ArchGuardHandler with args: jar_path='{}', language='{}', codebase_path='{}', codebase_name='{}', output_path='{}', extension='{}'",
-            scanner_jar_path,
-            programming_language_metadata.language.value,
-            local_workspace_path,
-            codebase_qualified_name,
-            local_workspace_path,
-            ".py"
-        )
-        arch_guard = ArchGuardHandler(
-            jar_path=scanner_jar_path,
-            language=programming_language_metadata.language.value,
-            codebase_path=local_workspace_path,
-            codebase_name=codebase_qualified_name,
-            output_path=local_workspace_path,
-            extension=".py"  # For Python files
-        )
+#         log.debug("Parsed {} packages from codebase", len(list_packages))
         
-        chapi_json_path = arch_guard.run_scan()
+#         await self.code_confluence_graph_ingestion.insert_code_confluence_package(codebase_qualified_name=codebase_qualified_name, packages=list_packages)
 
-        log.info("ArchGuard scan completed, JSON path: {}", chapi_json_path)
+#         log.debug("Inserted {} packages into graph DB", len(list_packages))
 
-        # 3. Parse the codebase using CodebaseParser
-        with open(chapi_json_path, 'r') as f:
-            json_data = json.load(f)
-
-        log.debug("Loaded AST JSON data, size {} bytes", len(json_data))
-
-        parser = CodebaseParser()
-        list_packages: List[UnoplatPackage] = parser.parse_codebase(
-            codebase_name=codebase_qualified_name,
-            json_data=json_data,
-            local_workspace_path=local_workspace_path,
-            source_directory=source_directory,
-            programming_language_metadata=programming_language_metadata
-        )
+#         log.success("Completed codebase processing successfully")
         
-        log.debug("Parsed {} packages from codebase", len(list_packages))
+#         return None
         
-        await self.code_confluence_graph_ingestion.insert_code_confluence_package(codebase_qualified_name=codebase_qualified_name, packages=list_packages)
-
-        log.debug("Inserted {} packages into graph DB", len(list_packages))
-
-        log.success("Completed codebase processing successfully")
+#     @activity.defn
+#     async def process_codebase_with_error_handling(
+#         self,
+#         envelope: CodebaseProcessingActivityEnvelope,
+#     ) -> None:
+#         """
+#         Process codebase with proper error handling.
         
-        return None
+#         Args:
+#             envelope: CodebaseProcessingActivityEnvelope containing parameters
+#         """
+#         # Extract parameters from envelope
+#         local_workspace_path = envelope.local_workspace_path
+#         codebase_qualified_name = envelope.codebase_qualified_name
+#         trace_id = envelope.trace_id
         
-    @activity.defn
-    async def process_codebase_with_error_handling(
-        self,
-        envelope: CodebaseProcessingActivityEnvelope,
-    ) -> None:
-        """
-        Process codebase with proper error handling.
+#         info : activity.Info = activity.info()
+#         workflow_id = info.workflow_id
+#         workflow_run_id = info.workflow_run_id
+#         activity_id = info.activity_id
+#         activity_name = info.activity_type
+#         log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id, activity_name)
         
-        Args:
-            envelope: CodebaseProcessingActivityEnvelope containing parameters
-        """
-        # Extract parameters from envelope
-        local_workspace_path = envelope.local_workspace_path
-        codebase_qualified_name = envelope.codebase_qualified_name
-        trace_id = envelope.trace_id
-        
-        info : activity.Info = activity.info()
-        workflow_id = info.workflow_id
-        workflow_run_id = info.workflow_run_id
-        activity_id = info.activity_id
-        activity_name = info.activity_type
-        log = seed_and_bind_logger_from_trace_id(trace_id, workflow_id, workflow_run_id, activity_id, activity_name)
-        
-        try:
-            await self.process_codebase(envelope)
-        except Exception as e:
-            if isinstance(e, ApplicationError):
-                # Re-raise ApplicationError as is since it already contains detailed error info
-                raise
+#         try:
+#             await self.process_codebase(envelope)
+#         except Exception as e:
+#             if isinstance(e, ApplicationError):
+#                 # Re-raise ApplicationError as is since it already contains detailed error info
+#                 raise
                 
-            log.error(
-                "Failed to process codebase | codebase_name={} | error_type={} | error_details={} | status=error",
-                codebase_qualified_name, type(e).__name__, str(e)
-            )
+#             log.error(
+#                 "Failed to process codebase | codebase_name={} | error_type={} | error_details={} | status=error",
+#                 codebase_qualified_name, type(e).__name__, str(e)
+#             )
             
-            # Capture the traceback string
-            tb_str = traceback.format_exc()
+#             # Capture the traceback string
+#             tb_str = traceback.format_exc()
             
-            raise ApplicationError(
-                f"Failed to process codebase {codebase_qualified_name}",
-                {"codebase": codebase_qualified_name},
-                {"local_path": local_workspace_path},
-                {"error": str(e)},
-                {"error_type": type(e).__name__},
-                {"traceback": tb_str},
-                {"workflow_id": info.workflow_id},
-                {"workflow_run_id": info.workflow_run_id},
-                {"activity_name": info.activity_type},
-                {"activity_id": info.activity_id},
-                type="CODEBASE_PROCESSING_ERROR"
-            )
+#             raise ApplicationError(
+#                 f"Failed to process codebase {codebase_qualified_name}",
+#                 {"codebase": codebase_qualified_name},
+#                 {"local_path": local_workspace_path},
+#                 {"error": str(e)},
+#                 {"error_type": type(e).__name__},
+#                 {"traceback": tb_str},
+#                 {"workflow_id": info.workflow_id},
+#                 {"workflow_run_id": info.workflow_run_id},
+#                 {"activity_name": info.activity_type},
+#                 {"activity_id": info.activity_id},
+#                 type="CODEBASE_PROCESSING_ERROR"
+#             )
