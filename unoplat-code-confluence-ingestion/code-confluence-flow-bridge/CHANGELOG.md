@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.38.1...code-confluence-flow-bridge-v0.39.0) (2025-06-18)
+
+
+### Features
+
+* refresh changes and bugs fix ([8e0230a](https://github.com/unoplat/unoplat-code-confluence/commit/8e0230acfc162ca9eec8f4495cab102224a68472))
+* **revamp:** complete revamp to shift to tree sitter for core symbol extraction for queries and sse endpoint for auto codebase detection ([c3c6f89](https://github.com/unoplat/unoplat-code-confluence/commit/c3c6f89064c63ecca6e6314a70348b8780d1b6ee))
+* **revamp:** complete revamp to shift to tree sitter for core symbol extraction for queries and sse endpoint for auto codebase detection ([5130bc7](https://github.com/unoplat/unoplat-code-confluence/commit/5130bc7a2f18f4dbbb10c30d5750b54149258e44))
+* support repository operations including deletion ([f68e03d](https://github.com/unoplat/unoplat-code-confluence/commit/f68e03d14cbcd413062f4f45863fbf1af686153f))
+
+
+### Bug Fixes
+
+* clean up async event loop so test client does not coconflict ([aba2433](https://github.com/unoplat/unoplat-code-confluence/commit/aba2433df97093180083d9e04e0329d8e056dbab))
+* clean up async loop ([853b785](https://github.com/unoplat/unoplat-code-confluence/commit/853b785259e4495899fc6f6496a52a0f408ceffd))
+* close multiple asynchronous connection loop ([079bfcf](https://github.com/unoplat/unoplat-code-confluence/commit/079bfcf08c8c510519d2e69e6a079dba571f6ba2))
+* docker compose and taskfile ([09cb051](https://github.com/unoplat/unoplat-code-confluence/commit/09cb05187784e2545070fd36747418e6021065f7))
+* docs updated for schema ([591d00b](https://github.com/unoplat/unoplat-code-confluence/commit/591d00bd7f1d96f87176d4388c4c2ca840275e2f))
+* remove tests dependent on old code ([d4c14a9](https://github.com/unoplat/unoplat-code-confluence/commit/d4c14a9532928d61b950f78ea348511efb65b438))
+* remove unused models ([4aea88b](https://github.com/unoplat/unoplat-code-confluence/commit/4aea88bad99d523cd92707acd02cf4215017c6a5))
+* removed code that is not required ([5315cc2](https://github.com/unoplat/unoplat-code-confluence/commit/5315cc21740bc8a1e06581e116089eb0254bddb6))
+* squashed bugs ([7ac7d05](https://github.com/unoplat/unoplat-code-confluence/commit/7ac7d058ee8ee8b2170912e91f10a80376567d73))
+* test duration ([8ed3c52](https://github.com/unoplat/unoplat-code-confluence/commit/8ed3c520084b82f40374cfc60a3142e6d4a28ca4))
+
 ## [0.38.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.38.0...code-confluence-flow-bridge-v0.38.1) (2025-06-14)
 
 
