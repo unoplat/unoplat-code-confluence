@@ -82,10 +82,19 @@ class GithubHelper:
                     # Pull latest changes
                     logger.info("Pulling latest changes | repo_path={} | status=pulling", repo_path)
                     origin = local_repo.remotes.origin
-                    pull_info = origin.pull()
 
-                    for info in pull_info:
-                        logger.debug("Updated ref | ref={} | commit={} | repo_path={}", info.ref, info.commit, repo_path)
+                    try:
+                        # Git (>=2.34) requires an explicit reconciliation strategy
+                        pull_output: str = local_repo.git.pull("--no-rebase", "origin", default_branch)
+                        logger.debug("Pull output | output={} | repo_path={}", pull_output, repo_path)
+                    except Exception as git_err:
+                        # Log and re-raise for outer handler
+                        logger.error(
+                            "git pull failed | repo_path={} | error={} | status=failed",
+                            repo_path,
+                            str(git_err),
+                        )
+                        raise
 
                     logger.info("Repository updated successfully | repo_path={} | status=success", repo_path)
 
