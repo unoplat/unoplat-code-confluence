@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.39.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.0...code-confluence-flow-bridge-v0.39.1) (2025-06-20)
+
+
+### Bug Fixes
+
+* git pull explicit no rebase ([dfbbc26](https://github.com/unoplat/unoplat-code-confluence/commit/dfbbc26be5fc790127fb5b731568fa05f119bf9d))
+* git pull fix explicit no rebase ([6e4e8e6](https://github.com/unoplat/unoplat-code-confluence/commit/6e4e8e6306688e9c9e7c5e413a09be024cbaeafb))
+* git pull fix explicit no rebase ([ebbf28e](https://github.com/unoplat/unoplat-code-confluence/commit/ebbf28eb22db7a1a4aa01200c08257965c3f2efa))
+
 ## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.38.1...code-confluence-flow-bridge-v0.39.0) (2025-06-18)
 
 
