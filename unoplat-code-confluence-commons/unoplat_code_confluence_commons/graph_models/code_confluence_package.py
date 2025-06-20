@@ -22,13 +22,18 @@ class CodeConfluencePackage(BaseNode):
     name = StringProperty()
     
     
-    sub_packages = AsyncRelationship(
+    sub_packages = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',
         'CONTAINS_PACKAGE',
         model=ContainsRelationship,
         cardinality=AsyncZeroOrMore
     )
-    
+    parent_package = AsyncRelationshipTo(
+        '.code_confluence_package.CodeConfluencePackage',
+        'PART_OF_PACKAGE',
+        model=ContainsRelationship,
+        cardinality=AsyncZeroOrMore,
+    )
     
     codebase = AsyncRelationshipTo(
         '.code_confluence_codebase.CodeConfluenceCodebase',
