@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.3...unoplat-code-confluence-commons-v0.18.4) (2025-06-20)
+
+
+### Bug Fixes
+
+* reverse edge from sub package to parent package ([38e3c9c](https://github.com/unoplat/unoplat-code-confluence/commit/38e3c9c246171abb4b6a663b370358ba92c5e6f9))
+* reverse edge from sub package to parent package ([ec71526](https://github.com/unoplat/unoplat-code-confluence/commit/ec7152672bda2801b8076403ca2bb8f72b21bc3f))
+
 ## [0.18.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.2...unoplat-code-confluence-commons-v0.18.3) (2025-06-20)
 
 
