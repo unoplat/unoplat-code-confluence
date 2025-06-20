@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.24.0...unoplat-code-confluence-frontend-v1.24.1) (2025-06-20)
+
+
+### Bug Fixes
+
+* git pull explicit no rebase ([dfbbc26](https://github.com/unoplat/unoplat-code-confluence/commit/dfbbc26be5fc790127fb5b731568fa05f119bf9d))
+
 ## [1.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.23.1...unoplat-code-confluence-frontend-v1.24.0) (2025-06-18)
 
 

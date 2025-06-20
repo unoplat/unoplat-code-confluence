@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.1...unoplat-code-confluence-commons-v0.18.2) (2025-06-20)
+
+
+### Bug Fixes
+
+* git pull explicit no rebase ([dfbbc26](https://github.com/unoplat/unoplat-code-confluence/commit/dfbbc26be5fc790127fb5b731568fa05f119bf9d))
+
 ## [0.18.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.0...unoplat-code-confluence-commons-v0.18.1) (2025-06-10)
 
 
