@@ -14,17 +14,17 @@ class CodeConfluenceFile(AsyncStructuredNode):
     package  (PART_OF_PACKAGE)  -> CodeConfluencePackage
     """
     file_path = StringProperty(required=True, unique_index=True)
-    content   = StringProperty(fulltext_index=FulltextIndex(analyzer="english"))
+    content   = StringProperty(fulltext_index=FulltextIndex(analyzer="whitespace"))
     checksum  = StringProperty()
     structural_signature = JSONProperty()
     imports = ArrayProperty(
         StringProperty(),
         default=[],
-        fulltext_index=FulltextIndex(analyzer="english")
+        index=True
     )
     poi_labels = ArrayProperty(
         StringProperty(),
-        fulltext_index=FulltextIndex(analyzer="english")
+        index=True
     )
     package = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',
