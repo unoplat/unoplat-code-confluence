@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.2...unoplat-code-confluence-commons-v0.18.3) (2025-06-20)
+
+
+### Bug Fixes
+
+* indexes ([ef30ae0](https://github.com/unoplat/unoplat-code-confluence/commit/ef30ae04d2ebfdc6aa97547bfe9d10b2a5b9ba1c))
+* indexes ([2d3cc9f](https://github.com/unoplat/unoplat-code-confluence/commit/2d3cc9fff34950b4e832223db01140aa1a76cc81))
+
 ## [0.18.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.1...unoplat-code-confluence-commons-v0.18.2) (2025-06-20)
 
 
