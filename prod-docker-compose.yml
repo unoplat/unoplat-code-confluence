@@ -139,7 +139,7 @@ services:
       - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
       - TEMPORAL_DEBUG=false
       - LOG_LEVEL=DEBUG
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.39.1
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.39.2
     depends_on:
       temporal:
         condition: service_healthy
