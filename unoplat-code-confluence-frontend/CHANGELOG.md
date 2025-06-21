@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.24.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.24.2...unoplat-code-confluence-frontend-v1.24.3) (2025-06-21)
+
+
+### Bug Fixes
+
+* refetch to 5s and fix ports ([e777453](https://github.com/unoplat/unoplat-code-confluence/commit/e777453e8d668fd7061b0abf3baa3a0ca8a4b14d))
+* refetch to 5s and fix ports ([c47d43a](https://github.com/unoplat/unoplat-code-confluence/commit/c47d43a2ab9a58d091677b515ce78333e64bffb5))
+
 ## [1.24.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.24.1...unoplat-code-confluence-frontend-v1.24.2) (2025-06-21)
 
 
