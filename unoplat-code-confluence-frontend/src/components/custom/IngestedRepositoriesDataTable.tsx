@@ -49,7 +49,7 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
     queryKey: ['ingestedRepositories'],
     queryFn: getIngestedRepositories,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchInterval: 1000 * 30, // Refetch every 30 seconds
+    refetchInterval: 1000 * 5, // Refetch every 5 seconds
     placeholderData: keepPreviousData,
     refetchOnMount: 'always',
   });
