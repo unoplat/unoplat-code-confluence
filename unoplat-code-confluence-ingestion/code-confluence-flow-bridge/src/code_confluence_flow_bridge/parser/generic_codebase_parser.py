@@ -429,7 +429,7 @@ class GenericCodebaseParser:
                 
                 # Connect them using the sub_packages relationship
                 await parent.sub_packages.connect(child)
-                await child.sub_packages.connect(parent)
+                await child.parent_package.connect(parent)
                 
                 logger.debug(f"Connected packages: {parent_pkg_name} -> {child_pkg_name}")
             
