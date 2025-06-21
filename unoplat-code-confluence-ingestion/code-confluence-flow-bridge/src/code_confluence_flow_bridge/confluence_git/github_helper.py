@@ -6,8 +6,8 @@ from src.code_confluence_flow_bridge.models.configuration.settings import Progra
 from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 
 import os
-import traceback
 from datetime import datetime
+import traceback
 from typing import Any, Dict, List
 
 from git import Repo
