@@ -103,7 +103,7 @@ services:
     networks:
       - temporal-network
     ports:
-      - 8080:8080
+      - 8081:8080
   neo4j:
     image: graphstack/dozerdb:5.25.1.0-alpha.1
     ports:
