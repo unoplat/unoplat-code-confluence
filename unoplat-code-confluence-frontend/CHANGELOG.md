@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.24.1...unoplat-code-confluence-frontend-v1.24.2) (2025-06-21)
+
+
+### Bug Fixes
+
+* change the dotted path to full path for packages too ([b6277e0](https://github.com/unoplat/unoplat-code-confluence/commit/b6277e0b2a5247080feace1a6becc24225813a91))
+
 ## [1.24.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.24.0...unoplat-code-confluence-frontend-v1.24.1) (2025-06-20)
 
 

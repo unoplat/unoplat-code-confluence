@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.1...code-confluence-flow-bridge-v0.39.2) (2025-06-21)
+
+
+### Bug Fixes
+
+* change the dotted path to full path for packages too ([b6277e0](https://github.com/unoplat/unoplat-code-confluence/commit/b6277e0b2a5247080feace1a6becc24225813a91))
+* use local folder reference for schema to fastrack schema changes ([d23a3c8](https://github.com/unoplat/unoplat-code-confluence/commit/d23a3c8169798a2d335cc2a71d6a44492c1bb7ff))
+
 ## [0.39.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.0...code-confluence-flow-bridge-v0.39.1) (2025-06-20)
 
 
