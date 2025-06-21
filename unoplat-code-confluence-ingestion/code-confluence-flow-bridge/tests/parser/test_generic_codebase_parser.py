@@ -135,23 +135,36 @@ class TestGenericCodebaseParserIntegration:
         await parser.process_and_insert_codebase()
 
         # ------------------------------------------------------------------
+        # Build expected absolute paths from the sample directory
+        # ------------------------------------------------------------------
+        base_path = sample_codebase_dir
+        expected_paths = {
+            "root": (base_path / "unoplat_code_confluence_cli").as_posix(),
+            "connector": (base_path / "unoplat_code_confluence_cli" / "connector").as_posix(),
+            "config": (base_path / "unoplat_code_confluence_cli" / "config").as_posix(),
+            "analytics": (base_path / "unoplat_code_confluence_cli" / "connector" / "analytics").as_posix(),
+            "reports": (base_path / "unoplat_code_confluence_cli" / "connector" / "analytics" / "reports").as_posix(),
+            "utils": (base_path / "unoplat_code_confluence_cli" / "connector" / "analytics" / "utils").as_posix(),
+        }
+
+        # ------------------------------------------------------------------
         # Comprehensive validation of nodes and relationships
         # ------------------------------------------------------------------
         
         # 1. Verify package nodes were created with correct hierarchy
         packages = await CodeConfluencePackage.nodes.order_by('qualified_name').all()
         
-        # Expected packages: cli_codebase.unoplat_code_confluence_cli and nested sub-packages
+        # Expected 6 packages with absolute path qualified names
         assert len(packages) == 6, f"Expected 6 packages, got {len(packages)}"
         
         package_names = {(p.qualified_name, p.name) for p in packages}
         expected_packages = {
-            ("cli_codebase.unoplat_code_confluence_cli", "unoplat_code_confluence_cli"),
-            ("cli_codebase.unoplat_code_confluence_cli.connector", "connector"),
-            ("cli_codebase.unoplat_code_confluence_cli.config", "config"),
-            ("cli_codebase.unoplat_code_confluence_cli.connector.analytics", "analytics"),
-            ("cli_codebase.unoplat_code_confluence_cli.connector.analytics.reports", "reports"),
-            ("cli_codebase.unoplat_code_confluence_cli.connector.analytics.utils", "utils"),
+            (expected_paths["root"], "unoplat_code_confluence_cli"),
+            (expected_paths["connector"], "connector"),
+            (expected_paths["config"], "config"),
+            (expected_paths["analytics"], "analytics"),
+            (expected_paths["reports"], "reports"),
+            (expected_paths["utils"], "utils"),
         }
         assert package_names == expected_packages, (
             "Package names mismatch.\n"
@@ -162,7 +175,7 @@ class TestGenericCodebaseParserIntegration:
         # 2. Verify package hierarchy relationships
         # Since we know the parent package, let's query it directly
         parent_package = await CodeConfluencePackage.nodes.get(
-            qualified_name="cli_codebase.unoplat_code_confluence_cli"
+            qualified_name=expected_paths["root"]
         )
         
         # Get all sub-packages
@@ -178,8 +191,8 @@ class TestGenericCodebaseParserIntegration:
         assert len(hierarchy_data) == 2, f"Expected 2 hierarchy relationships, got {len(hierarchy_data)}"
         
         expected_hierarchy = {
-            ("cli_codebase.unoplat_code_confluence_cli", "cli_codebase.unoplat_code_confluence_cli.connector"),
-            ("cli_codebase.unoplat_code_confluence_cli", "cli_codebase.unoplat_code_confluence_cli.config"),
+            (expected_paths["root"], expected_paths["connector"]),
+            (expected_paths["root"], expected_paths["config"]),
         }
         actual_hierarchy = set(hierarchy_data)
         assert actual_hierarchy == expected_hierarchy, (
@@ -193,24 +206,23 @@ class TestGenericCodebaseParserIntegration:
         # ------------------------------------------------------------------
         # 2a. Connector -> analytics relationship
         connector_pkg = await CodeConfluencePackage.nodes.get(
-            qualified_name="cli_codebase.unoplat_code_confluence_cli.connector"
+            qualified_name=expected_paths["connector"]
         )
         connector_children = await connector_pkg.sub_packages.all()
         connector_child_names = {child.qualified_name for child in connector_children}
         assert (
-            "cli_codebase.unoplat_code_confluence_cli.connector.analytics" in connector_child_names
+            expected_paths["analytics"] in connector_child_names
         ), "connector package should contain analytics sub-package"
 
         # 2b. Analytics -> reports & utils relationship
         analytics_pkg = await CodeConfluencePackage.nodes.get(
-            qualified_name="cli_codebase.unoplat_code_confluence_cli.connector.analytics"
+            qualified_name=expected_paths["analytics"]
         )
         analytics_children = await analytics_pkg.sub_packages.all()
         analytics_child_names = {child.qualified_name for child in analytics_children}
         expected_analytics_children = {
-            "cli_codebase.unoplat_code_confluence_cli.connector",
-            "cli_codebase.unoplat_code_confluence_cli.connector.analytics.reports",
-            "cli_codebase.unoplat_code_confluence_cli.connector.analytics.utils",
+            expected_paths["reports"],
+            expected_paths["utils"],
         }
         assert analytics_child_names == expected_analytics_children, (
             "Analytics sub-package hierarchy mismatch."

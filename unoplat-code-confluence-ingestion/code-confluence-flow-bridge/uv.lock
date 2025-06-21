@@ -418,7 +418,7 @@ requires-dist = [
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "tree-sitter-language-pack", specifier = ">=0.8.0" },
     { name = "typing-extensions", specifier = ">=4.11" },
-    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.18.3" },
+    { name = "unoplat-code-confluence-commons", editable = "../../unoplat-code-confluence-commons" },
     { name = "validate-pyproject", extras = ["all"], specifier = ">=0.23" },
 ]
 
@@ -2257,12 +2257,20 @@ wheels = [
 [[package]]
 name = "unoplat-code-confluence-commons"
 version = "0.18.3"
-source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.18.3#c572ce235e0281ed70536a9ae714b971ff2c2e6b" }
+source = { editable = "../../unoplat-code-confluence-commons" }
 dependencies = [
     { name = "neomodel" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "testcontainers", extra = ["neo4j"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "neomodel", specifier = ">=5.4.2,<6.0.0" },
+    { name = "pytest", specifier = "==8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.0,<0.26.0" },
+    { name = "testcontainers", extras = ["neo4j"], specifier = ">=3.7.1,<4.0.0" },
 ]
 
 [[package]]
