@@ -55,7 +55,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.17.0" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.18.3" }
 
 [tool.uv]
 override-dependencies = ["pytest>=8.3.5"]
