@@ -201,112 +201,44 @@ class GenericCodebaseParser:
             raise
 
     def discover_packages(self) -> Dict[str, List[str]]:
-        """
-        Discover packages (directories containing source files).
-        
-        Returns:
-            Dict mapping package path to list of source files in that package
-            Only includes directories that contain source files (directly or transitively)
-        """
+        """Discover packages by absolute directory path (Linux/Posix)."""
         logger.info(
             "Discovering packages | codebase_path={} | language={}",
-            self.codebase_path, self.programming_language_metadata.language.value
+            self.codebase_path,
+            self.programming_language_metadata.language.value,
         )
-        
+
+        root_path = self.codebase_path.resolve()
         package_files: Dict[str, List[str]] = {}
-        
-        # Walk the filesystem to find all source files
-        for file_path in self.codebase_path.rglob("*"):
+
+        # 1️⃣ walk every source file and group by its parent directory (absolute path)
+        for file_path in root_path.rglob("*"):
             if file_path.is_file() and file_path.suffix in self.file_extensions:
-                # Check if file should be ignored
                 if self._should_ignore_file(file_path):
-                    logger.debug(
-                        "Ignoring file | file_path={} | language={}",
-                        file_path, self.programming_language_metadata.language.value
-                    )
-                    continue
-                    
-                # Get the package path (directory containing the file)
-                package_path = file_path.parent
-                
-                # Convert to relative path from codebase root
-                try:
-                    relative_package = package_path.relative_to(self.codebase_path)
-                    package_qualified_name = str(relative_package).replace("/", ".").replace("\\", ".")
-                    
-                    # Handle root package case
-                    if package_qualified_name == ".":
-                        package_qualified_name = self.codebase_name
-                    else:
-                        package_qualified_name = f"{self.codebase_name}.{package_qualified_name}"
-                    
-                    # Add file to package
-                    if package_qualified_name not in package_files:
-                        package_files[package_qualified_name] = []
-                    
-                    package_files[package_qualified_name].append(str(file_path))
-                    
-                except ValueError:
-                    # File is outside codebase path, skip
-                    continue
-        
-        logger.info(
-            "Discovered packages with source files | package_count={}",
-            len(package_files)
-        )
-
-        # ------------------------------------------------------------------
-        # Ensure that all intermediate parent packages are included, even if
-        # they do not directly contain source files. This guarantees that
-        # multi-level nested packages are connected in the hierarchy.
-        # ------------------------------------------------------------------
-        all_packages: List[str] = list(package_files.keys())  # snapshot to avoid dict size change
-
-        for pkg in all_packages:
-            # Split on dots to walk up the hierarchy (skip the codebase name)
-            parts = pkg.split(".")
-
-            # parts[0] is always `self.codebase_name` – we never create a
-            # package node just for the codebase itself.
-            for i in range(2, len(parts)):  # start from 2 to keep at least codebase + first segment
-                parent_pkg = ".".join(parts[:i])
-
-                # Skip if this is the codebase root (already handled separately)
-                if parent_pkg == self.codebase_name:
                     continue
 
-                # Ensure entry exists (using empty list for folders without source files)
-                if parent_pkg not in package_files:
-                    package_files[parent_pkg] = []
+                pkg_path = file_path.parent.resolve()
+                pkg_qname = pkg_path.as_posix()  # absolute path string
+                package_files.setdefault(pkg_qname, []).append(str(file_path.resolve()))
 
-        # Re-log after adding parent packages for easier debugging
-        logger.debug(
-            "Package discovery augmented with parents | total_packages={}",
-            len(package_files)
-        )
+        # 2️⃣ ensure that every ancestor folder between the repo root and any discovered
+        #     package is present in the mapping (even if it contains no source files)
+        for pkg_q in list(package_files.keys()):
+            current = Path(pkg_q)
+            while current.parent != root_path and current.parent != current:
+                current = current.parent
+                package_files.setdefault(current.as_posix(), [])
 
+        logger.info("Discovered packages with source files | package_count={}", len(package_files))
         return package_files
 
     def build_package_hierarchy(self, package_files: Dict[str, List[str]]) -> Dict[str, str]:
-        """
-        Build parent-child relationships for packages.
-        
-        Args:
-            package_files: Map of package name to files
-            
-        Returns:
-            Dict mapping child package to parent package
-        """
-        hierarchy = {}
-        
-        for package_name in package_files.keys():
-            # Find parent package
-            parts = package_name.split(".")
-            if len(parts) > 1:
-                parent_name = ".".join(parts[:-1])
-                if parent_name in package_files:
-                    hierarchy[package_name] = parent_name
-        
+        """Map child-package absolute path → parent absolute path."""
+        hierarchy: Dict[str, str] = {}
+        for child_q in package_files.keys():
+            parent_q = Path(child_q).parent.as_posix()
+            if parent_q in package_files:
+                hierarchy[child_q] = parent_q
         return hierarchy
 
     def calculate_file_checksum(self, file_path: str) -> str:
@@ -459,8 +391,8 @@ class GenericCodebaseParser:
         try:
             # No nested transaction - the caller should manage the transaction
             for package_name in package_names:
-                # Extract simple name from qualified name
-                simple_name = package_name.split(".")[-1]
+                # Extract simple name using pathlib
+                simple_name = Path(package_name).name
                 
                 # Create package node using helper method
                 package_dict = {
@@ -497,6 +429,7 @@ class GenericCodebaseParser:
                 
                 # Connect them using the sub_packages relationship
                 await parent.sub_packages.connect(child)
+                await child.parent_package.connect(parent)
                 
                 logger.debug(f"Connected packages: {parent_pkg_name} -> {child_pkg_name}")
             
@@ -523,9 +456,7 @@ class GenericCodebaseParser:
 
             root_package_names = []
             for pkg_name in package_files.keys():
-                # Determine direct children of the codebase: codebase_name.<segment>
-                parent_name = ".".join(pkg_name.split(".")[:-1])
-                if parent_name == self.codebase_name:
+                if Path(pkg_name).parent == self.codebase_path.resolve():
                     root_package_names.append(pkg_name)
 
             if not root_package_names:
