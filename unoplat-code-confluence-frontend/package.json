@@ -84,7 +84,7 @@
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"
   },
-  "packageManager": "yarn@4.8.1",
+  "packageManager": "yarn@4.9.2",
   "resolutions": {
     "rollup": "npm:@rollup/wasm-node@*"
   }
