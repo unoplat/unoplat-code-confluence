@@ -11,7 +11,7 @@
   <h3 align="center">The Universal Code Context Engine</h3>
 
   <p align="center">
-    Extract, understand, and provide precise code context across repositories tied through domains
+    Extract, understand, and provide precise code context and related metadata across repositories tied through domains
     <br />
     <a href="https://docs.unoplat.io"><strong>Explore the docs »</strong></a>
     <br />
@@ -76,23 +76,9 @@ Unoplat-CodeConfluence aims to be the definitive solution for extracting, unders
 ## 🌟 Why Unoplat-CodeConfluence?
 
 - **Deterministic Understanding**: Built on Tree-sitter for reliable, language-agnostic code parsing
-- **Smart Summarization**: Bottom-up code analysis from functions to entire codebases, preserving context at every level
-- **Enhanced Onboarding**: Intuitive, interconnected documentation helps new team members understand complex codebases quickly
+- **Enhanced Onboarding**: Accelerate team onboarding by discovering public and private repositories, automatically detecting codebase structures, and ingesting them through our reliable, high-performance pipelines.
 - **Graph-Based Intelligence**: Query and explore codebases through natural, graphical relationships between components
 - **Deep Dependency Insights**: Comprehensive parsing of package managers as well as any other related metadata reveals true project structure and relationships
-- **Integration Ready**: Designed to work seamlessly with your existing development tools and workflows
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- FOR KNOWLEDGE ENGINE SECTION -->
-## 🤝 For Knowledge Engine and AI Coding Assistants
-
-Unoplat-CodeConfluence will provide:
-
-- **Precise Context API**: Get reliable, deterministic code understanding through:
-  - Bottom-up code summarization from functions to systems
-  - Precise and Efficient GraphRag
-  - Deep package and dependency analysis
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -123,17 +109,30 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 
 ### Tasks Status
 
-| Task                                                     | Research | POC | Released |
-|----------------------------------------------------------|----------|-----|----------|
-| Code Grammar                                             | ✓        | ✓   | ✓        |
-| Integration With Workflow Orchestrator                   | ✓        | ✓   | ✓        |
-| Data Modelling for Code Grammar                          | ✓        | ✓   | ✓        |
-| Insertion into Graph Database                            | ✓        | ✓   | ✓        |
-| Data Modelling for Code Summarisation                    | ✓        | ✓   |          |
-| SOTA LLM Pipelines For Code Grammar Summarisation/Reports| ✓        | ✓   |          |
-| Automatic Documentation                                  | ✓        |     |          |
-| GraphRag based Query Module                              |          |     |          |
-| SDK for integration                                      |          |     |          |
+| Task                       | Done | In Progress |
+|----------------------------|:----:|:-----------:|
+| Repository Discovery       |  ✓   |             |
+| Auto Codebase Detection    |  ✓   |             |
+| Ingestion                  |  ✓   |             |
+| Chat With Codebase         |      |      ✓      |
+
+<!-- MAINTAINERS SECTION -->
+## Maintainers
+
+<table>
+  <tr>
+    <td>
+      <a href="https://github.com/JayGhiya">
+        <strong>Jay Ghiya</strong>
+        <br>
+        Contact: jayghiya@unoplat.io
+      </a>
+    </td>
+  </tr>
+</table>
+<p>Book a call with me - <a href="https://cal.com/jay-ghiya/15min">Cal Link</a></p>
+
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- CREDITS SECTION -->
 ## Credits/heroes/supporters/Inspirations
@@ -154,52 +153,6 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 10. [Temporal](https://temporal.io)
 11. [Neo4j](https://neo4j.com)
 12. [FastApi](https://fastapi.tiangolo.com)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- MAINTAINERS SECTION -->
-## Maintainers
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center">
-        <a href="https://github.com/JayGhiya">
-          <strong>Jay Ghiya</strong>
-          <br>
-          Contact: jayghiya@unoplat.io
-        </a>
-      </td>
-      <td align="center">
-        <a href="https://github.com/vipinshreyaskumar">
-          <strong>Vipin Shreyas Kumar</strong>
-          <br>
-          Contact: vipinshreyaskumar@unoplat.io
-        </a>
-      </td>
-    </tr>
-  </table>
-  <p>Book a call with us - <a href="https://cal.com/jay-ghiya/15min">Cal Link</a></p>
-</div>
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- COMMUNITY SECTION -->
-## Community Channel
-
-<div align="center">
-  <a href="https://discord.com/channels/1131597983058755675/1169968780953260106">
-    <img src="https://img.shields.io/badge/Discord-Join%20our%20community-7289DA?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" />
-  </a>
-  <br>
-  <a href="https://x.com/unoplatio">
-    <img src="https://img.shields.io/badge/Twitter-Follow%20us-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" alt="Twitter" />
-  </a>
-  <br>
-  <a href="https://www.linkedin.com/company/unoplat/">
-    <img src="https://img.shields.io/badge/LinkedIn-Follow%20us-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-  </a>
-</div>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
