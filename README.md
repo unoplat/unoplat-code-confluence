@@ -60,6 +60,7 @@
     </li>
     <li><a href="#creditsheeroessupportersinspirations">Credits/Heroes/Supporters/Inspirations</a></li>
     <li><a href="#maintainers">Maintainers</a></li>
+    <li><a href="#-product-feedback">Product Feedback</a></li>
     <li><a href="#community-channel">Community Channel</a></li>
     <li><a href="#license">License</a></li>
   </ol>
@@ -134,25 +135,19 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-<!-- CREDITS SECTION -->
-## Credits/heroes/supporters/Inspirations
+<!-- PRODUCT FEEDBACK SECTION -->
+## 💬 Product Feedback
 
-<div align="center">
-  <h4>These are the people/entities because of which this work has been possible.<br>Unoplat code confluence would not exist without them.</h4>
-</div>
+We value your feedback and want to hear from you! Whether you have suggestions, feature requests, or just want to share your experience with Unoplat-CodeConfluence, we're here to listen.
 
-1. [Phodal from Chapi and ArcGuard](https://github.com/phodal)
-2. [Ishaan & Krrish from Litellm](ishaan@berri.ai / krrish@berri.ai)
-3. [Omar Khattab](https://omarkhattab.com/)
-4. [Joao Moura from crewai](https://github.com/joaomdmoura)
-5. [Vipin Shreyas Kumar](https://github.com/vipinshreyaskumar)
-6. [Danswer](https://www.danswer.ai/)
-7. [Continue](https://www.continue.dev/)
-8. [Apeksha](https://github.com/apekshamehta)
-9. [Jeremy Howard](https://www.linkedin.com/in/howardjeremy)
-10. [Temporal](https://temporal.io)
-11. [Neo4j](https://neo4j.com)
-12. [FastApi](https://fastapi.tiangolo.com)
+**How to reach us:**
+- **Email**: 
+  - Primary: [vipinskumar@unoplat.io](mailto:vipinskumar@unoplat.io)
+  - Secondary: [jayghiya@unoplat.io](mailto:jayghiya@unoplat.io)
+- **Discord**: Join our [community channel](https://discord.com/channels/1131597983058755675/1169968780953260106)
+- **GitHub Issues**: [Create an issue](https://github.com/unoplat/unoplat-code-confluence/issues) for bug reports or feature requests
+
+Your input helps shape the future of Unoplat-CodeConfluence. Don't hesitate to reach out!
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
