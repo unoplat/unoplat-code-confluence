@@ -154,7 +154,7 @@ Your input helps shape the future of Unoplat-CodeConfluence. Don't hesitate to r
 <!-- LICENSE SECTION -->
 ## License
 
-Unoplat-CodeConfluence is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.gnu.org/licenses/agpl-3.0.en.html).
+Unoplat-CodeConfluence is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0) + COMMONS CLAUSE](LICENSE).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
