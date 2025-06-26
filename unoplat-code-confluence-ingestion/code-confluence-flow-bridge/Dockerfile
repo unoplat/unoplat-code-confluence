@@ -16,8 +16,8 @@ RUN apt-get update && \
 RUN pip install --no-cache-dir uv ruff
 
 WORKDIR /app
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-cache
+COPY pyproject.toml ./
+RUN uv sync --no-cache
 COPY . /app
 
 ########################################

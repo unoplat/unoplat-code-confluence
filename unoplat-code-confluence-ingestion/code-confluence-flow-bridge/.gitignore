@@ -1,3 +1,237 @@
+# Environment variables
+.env
+.env.*
 .env.dev
 .env.test
 .env.prod
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+.env/
+venv/
+ENV/
+env/
+.virtualenv/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+coverage_reports/
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+test_results/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Ruff
+.ruff_cache/
+
+# Bandit
+.bandit
+
+# Cython debug symbols
+cython_debug/
+
+# FastAPI specific
+fastapi_cache/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.logs
+logs/
+temporal-logs.txt
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# Node.js (for any frontend dependencies)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Docker
+.dockerignore
+*.tar
+*.zip
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Debug and analysis files
+debug/
+debug_output/
+ast_debug.json
+*.debug
+
+# AI/ML models and large files
+*.model
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+
+# IDE-specific files
+.cursor/
+.windsurf/
+.claude/
+
+# Temporal workflow logs
+temporal-*.log
+
+# Tree-sitter artifacts
+tree-sitter-*.log
+
+# Analysis and documentation artifacts
+kit_directory_structure_*.json
+example_github_repo_response.json
+
+# API documentation
+docs/_build/
+docs/build/
+
+# uv lock file (optional - you may want to commit this)
+# uv.lock
+
+# Experimental and development files
+experiments/output/
+experiments/results/
+
+# Package manager artifacts
+.uv_cache/
+
+# Coverage HTML reports (already covered by coverage_reports/ but being explicit)
+htmlcov/
+
+# PyTest temporary directories
+.pytest_tmp/
+
+# Local configuration overrides
+config.local.*
+settings.local.*
+
+# Backup files
+*.bak
+*.backup
+
+# Editor temporary files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# System files
+*.pid
+
+# Local development scripts
+run_local.py
+test_local.py
+
+# Yaak API client files (keeping them for now but could be ignored)
+# yak/
+
+# Tilt development files
+.tiltbuild/
+
+# Kubernetes manifests with secrets
+*-secret.yaml
+*-secrets.yaml
+
+# Local override compose files
+docker-compose.override.yml
+docker-compose.local.yml
