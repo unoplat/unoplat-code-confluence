@@ -343,7 +343,6 @@ class GenericCodebaseParser:
             # Create UnoplatFile instance
             unoplat_file = UnoplatFile(
                 file_path=file_path,
-                content=content,
                 checksum=checksum,
                 structural_signature=signature,  # Store the actual object, not dict
                 imports=imports,
@@ -506,7 +505,6 @@ class GenericCodebaseParser:
                 # Create file node using helper method
                 file_dict = {
                     "file_path": unoplat_file.file_path,
-                    "content": unoplat_file.content,
                     "checksum": unoplat_file.checksum,
                     "structural_signature": unoplat_file.structural_signature.model_dump() if unoplat_file.structural_signature else {},
                     "imports": unoplat_file.imports,

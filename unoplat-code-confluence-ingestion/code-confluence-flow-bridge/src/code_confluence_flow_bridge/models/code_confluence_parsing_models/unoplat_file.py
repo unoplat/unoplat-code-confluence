@@ -11,7 +11,6 @@ class UnoplatFile(BaseModel):
     """Represents individual source code files."""
     
     file_path: str = Field(description="Absolute file path")
-    content: Optional[str] = Field(default=None, description="Optional file content")
     checksum: Optional[str] = Field(
         default=None, 
         description="Optional content checksum for change tracking"
