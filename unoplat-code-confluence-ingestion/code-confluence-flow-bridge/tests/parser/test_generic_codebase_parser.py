@@ -235,10 +235,9 @@ class TestGenericCodebaseParserIntegration:
         # Should have 5 files: __main__.py, api_client.py, settings.py, generator.py, helpers.py
         assert len(files) == 5, f"Expected 5 files, got {len(files)}"
         
-        # Verify all files have checksum, content, and structural signature
+        # Verify all files have checksum and structural signature
         for file in files:
             assert file.checksum is not None, f"File {file.file_path} missing checksum"
-            assert file.content is not None, f"File {file.file_path} missing content"
             assert file.structural_signature is not None, f"File {file.file_path} missing structural signature"
         
         # 4. Verify file-to-package relationships
@@ -257,16 +256,14 @@ class TestGenericCodebaseParserIntegration:
             f"Expected 5 file-package relationships, got {len(file_package_data)}"
         )
         
-        # 5. Verify specific file content - check settings.py
+        # 5. Verify specific file structural signature - check settings.py
         settings_files = await CodeConfluenceFile.nodes.filter(
             file_path__contains='settings.py'
         ).all()
         
         assert len(settings_files) == 1, "Expected to find settings.py"
         settings_file = settings_files[0]
-        assert "class AppConfig" in settings_file.content, "settings.py should contain AppConfig class"
-        
-        # Verify structural signature contains expected elements
+        # Verify settings.py contains expected class via structural signature
         signature = settings_file.structural_signature
         if signature:  # Only check if structural signature extraction worked
             # Parse using Pydantic model for type safety
@@ -276,20 +273,18 @@ class TestGenericCodebaseParserIntegration:
                 signature_data = StructuralSignature.model_validate(signature)
             assert signature_data.classes is not None, "Structural signature should have classes"
             assert len(signature_data.classes) >= 1, "Should have at least 1 class"
+            # Check if AppConfig class exists in the class signatures
+            class_signatures = [cls.signature for cls in signature_data.classes]
+            assert any("class AppConfig" in sig for sig in class_signatures), "settings.py should contain AppConfig class"
         
-        # 6. Verify content and structural signature in generator.py
+        
+        # 6. Verify structural signature in generator.py
         generator_files = await CodeConfluenceFile.nodes.filter(
             file_path__contains="generator.py"
         ).all()
 
         assert len(generator_files) == 1, "Expected to find generator.py"
         generator_file = generator_files[0]
-        assert "class ReportGenerator" in generator_file.content, (
-            "generator.py should contain ReportGenerator class"
-        )
-        assert "GLOBAL_CONSTANT" in generator_file.content, (
-            "generator.py should contain GLOBAL_CONSTANT variable"
-        )
 
         # NEW: Ensure imports, global variables, functions, and classes are captured in structural signature
         if isinstance(generator_file.structural_signature, str):
