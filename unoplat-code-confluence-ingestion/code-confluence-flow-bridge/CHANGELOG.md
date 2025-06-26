@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.2...code-confluence-flow-bridge-v0.39.3) (2025-06-26)
+
+
+### Bug Fixes
+
+* do not ingest content ([e2f1978](https://github.com/unoplat/unoplat-code-confluence/commit/e2f1978bfc931d4a6cbd9e7d4901f464307b970c))
+* remove content as we do have it available on host storage ([e4cef4e](https://github.com/unoplat/unoplat-code-confluence/commit/e4cef4e7e7a087eb917a38b97e81f1f2458a1f45))
+
 ## [0.39.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.1...code-confluence-flow-bridge-v0.39.2) (2025-06-21)
 
 
