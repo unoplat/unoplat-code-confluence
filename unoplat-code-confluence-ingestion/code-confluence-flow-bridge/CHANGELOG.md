@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.4](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.3...code-confluence-flow-bridge-v0.39.4) (2025-06-26)
+
+
+### Bug Fixes
+
+* dependencies and docker file ([70d2fe2](https://github.com/unoplat/unoplat-code-confluence/commit/70d2fe27a81ca2b744535cb685c760550834698f))
+* dependencies and docker file ([ed79a58](https://github.com/unoplat/unoplat-code-confluence/commit/ed79a5879bfd073c026fb596ad7f8ac83c7c190c))
+
 ## [0.39.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.2...code-confluence-flow-bridge-v0.39.3) (2025-06-26)
 
 
