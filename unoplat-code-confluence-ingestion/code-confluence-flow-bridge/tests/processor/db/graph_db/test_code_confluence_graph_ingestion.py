@@ -233,7 +233,6 @@
 #         # Create a sample file with the node
 #         sample_file = UnoplatFile(
 #             file_path="/tmp/test-codebase/src/test_module/test_file.py",
-#             content="class TestClass:\n    pass",
 #             nodes=[sample_node]
 #         )
         
