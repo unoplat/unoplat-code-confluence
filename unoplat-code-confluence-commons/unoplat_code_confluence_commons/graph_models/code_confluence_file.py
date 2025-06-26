@@ -14,7 +14,6 @@ class CodeConfluenceFile(AsyncStructuredNode):
     package  (PART_OF_PACKAGE)  -> CodeConfluencePackage
     """
     file_path = StringProperty(required=True, unique_index=True)
-    content   = StringProperty(fulltext_index=FulltextIndex(analyzer="whitespace"))
     checksum  = StringProperty()
     structural_signature = JSONProperty()
     imports = ArrayProperty(
