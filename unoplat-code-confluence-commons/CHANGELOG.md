@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.4...unoplat-code-confluence-commons-v0.18.5) (2025-06-26)
+
+
+### Bug Fixes
+
+* remove content as we do have it available on host storage ([e4cef4e](https://github.com/unoplat/unoplat-code-confluence/commit/e4cef4e7e7a087eb917a38b97e81f1f2458a1f45))
+* remove content as we do have it available on host storage ([30ed9e8](https://github.com/unoplat/unoplat-code-confluence/commit/30ed9e8ed3b8fb53575dad121a4f10fc07d6a5b7))
+
 ## [0.18.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.3...unoplat-code-confluence-commons-v0.18.4) (2025-06-20)
 
 
