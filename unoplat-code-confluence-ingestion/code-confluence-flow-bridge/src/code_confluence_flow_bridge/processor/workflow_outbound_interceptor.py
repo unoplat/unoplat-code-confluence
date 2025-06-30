@@ -2,7 +2,11 @@ import contextvars
 
 from loguru import logger
 from temporalio import workflow
-from temporalio.worker._interceptor import StartActivityInput, StartChildWorkflowInput, WorkflowOutboundInterceptor
+from temporalio.worker._interceptor import (
+    StartActivityInput,
+    StartChildWorkflowInput,
+    WorkflowOutboundInterceptor,
+)
 
 # Context variables to store workflow headers
 workflow_headers_var: contextvars.ContextVar[dict] = contextvars.ContextVar('workflow_headers', default={})

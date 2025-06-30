@@ -12,7 +12,10 @@ from typing import Any, Dict
 from opentelemetry import trace
 from opentelemetry._logs import SeverityNumber
 from opentelemetry.sdk._logs._internal import LoggerProvider, LogRecord
-from opentelemetry.sdk._logs._internal.export import BatchLogRecordProcessor, LogExporter
+from opentelemetry.sdk._logs._internal.export import (
+    BatchLogRecordProcessor,
+    LogExporter,
+)
 from opentelemetry.sdk.resources import Resource
 
 # Constants

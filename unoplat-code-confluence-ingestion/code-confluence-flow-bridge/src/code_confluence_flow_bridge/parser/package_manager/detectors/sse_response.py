@@ -5,12 +5,11 @@ This module provides SSE response classes and utilities for streaming
 real-time updates during codebase detection operations.
 """
 
-import json
 import asyncio
-from typing import AsyncGenerator, Any, Dict, Optional
 from datetime import datetime, timezone
+import json
+from typing import Any, AsyncGenerator, Dict, Optional
 
-from fastapi import Response
 from fastapi.responses import StreamingResponse
 
 

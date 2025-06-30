@@ -5,10 +5,18 @@ from src.code_confluence_flow_bridge.logging.trace_utils import (
     workflow_id_var,
     workflow_run_id_var,
 )
-from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import ConfluenceGitGraphEnvelope
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
-from src.code_confluence_flow_bridge.processor.db.graph_db.graph_context import graph_ingestion_ctx
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
+from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import (
+    ParentChildCloneMetadata,
+)
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+    ConfluenceGitGraphEnvelope,
+)
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import (
+    CodeConfluenceGraphIngestion,
+)
 
 import traceback
 
@@ -20,13 +28,13 @@ from temporalio.exceptions import ApplicationError
 class ConfluenceGitGraph:
     """
     Temporal activity class for GitHub operations.
-    Uses context manager to create fresh Neo4j sessions for each activity execution.
+    Uses global Neo4j connection managed at application startup.
     """
 
     def __init__(self):
         self.env_settings = EnvironmentSettings()
         logger.debug(
-            "Initialized ConfluenceGitGraph - will create fresh Neo4j session per activity execution"
+            "Initialized ConfluenceGitGraph - using global Neo4j connection"
         )
 
     @activity.defn
@@ -65,9 +73,9 @@ class ConfluenceGitGraph:
                 git_repo.repository_url
             )
             
-            # Use fresh Neo4j session for this activity execution
-            async with graph_ingestion_ctx(self.env_settings) as graph:
-                parent_child_clone_metadata = await graph.insert_code_confluence_git_repo(git_repo=git_repo)
+            # Use global Neo4j connection
+            graph = CodeConfluenceGraphIngestion(code_confluence_env=self.env_settings)
+            parent_child_clone_metadata = await graph.insert_code_confluence_git_repo(git_repo=git_repo)
             
             log.debug(
                 "Successfully inserted git repo into graph db: {} ",

@@ -13,8 +13,14 @@ Based on Python 3.12 asyncio best practices from asyncio-practices.md:
 """
 
 from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.codebase_auto_detector import PythonCodebaseDetector
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import DetectionProgress, DetectionResult, DetectionState
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.codebase_auto_detector import (
+    PythonCodebaseDetector,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import (
+    DetectionProgress,
+    DetectionResult,
+    DetectionState,
+)
 
 import asyncio
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -32,14 +38,16 @@ class AsyncDetectorWrapper:
     best practices to avoid common anti-patterns.
     """
     
-    def __init__(self, executor: ThreadPoolExecutor):
+    def __init__(self, executor: ThreadPoolExecutor, is_local: bool = False):
         """
         Initialize the async wrapper.
         
         Args:
             executor: ThreadPoolExecutor to run blocking detector operations
+            is_local: Whether to detect local repositories
         """
         self.executor = executor
+        self.is_local = is_local
         self._heartbeat_task: Optional[asyncio.Task] = None
         self._start_time: Optional[float] = None
     
@@ -206,17 +214,25 @@ class AsyncDetectorWrapper:
         
         Args:
             detector: PythonCodebaseDetector instance  
-            git_url: GitHub repository URL
+            git_url: GitHub repository URL or local path
             progress_callback: Optional progress callback function
             
         Returns:
             List of detected CodebaseConfig objects
         """
-        if progress_callback:
-            progress_callback(DetectionState.CLONING, "Cloning repository...")
-        
-        # Use the new detect_codebases method (no need to pass github_token)
-        codebases = detector.detect_codebases(git_url)
+        if self.is_local:
+            if progress_callback:
+                progress_callback(DetectionState.ANALYZING, "Analyzing local repository...")
+            
+            # For local repos, git_url is actually a local path
+            # Use detect_codebases_from_local_path method
+            codebases = detector.detect_codebases_from_local_path(git_url)
+        else:
+            if progress_callback:
+                progress_callback(DetectionState.CLONING, "Cloning repository...")
+            
+            # Use the existing detect_codebases method for remote repos
+            codebases = detector.detect_codebases(git_url)
         
         return codebases
     
@@ -225,7 +241,7 @@ class AsyncDetectorWrapper:
         loop: asyncio.AbstractEventLoop,
         progress_queue: asyncio.Queue,
         git_url: str
-    ) -> Callable[[DetectionState, str, Optional[List[str]]], None]:
+    ) -> Callable[[DetectionState, str], None]:
         """
         Create a thread-safe progress callback function.
         

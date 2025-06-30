@@ -1,6 +1,8 @@
 """File model for representing individual source code files."""
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import StructuralSignature
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
+    StructuralSignature,
+)
 
 from typing import List, Optional
 

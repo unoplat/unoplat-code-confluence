@@ -7,6 +7,22 @@ export interface GitHubRepoSummary {
   owner_name: string;
 }
 
+// Local repository data interface
+export interface LocalRepositoryData {
+  repositoryPath: string;
+  repositoryName: string;
+  repositorySource: "local";
+}
+
+// Repository configuration for dialog props - supports both GitHub and local repositories
+export interface RepositoryConfigDialogData {
+  repositoryName: string;
+  repositoryGitUrl: string;
+  repositoryOwnerName: string;
+  isLocal?: boolean;
+  localPath?: string;
+}
+
 // Repository metadata type
 export interface RepositoryMetadata {
   codebaseFolder: string;
@@ -79,6 +95,8 @@ export interface GitHubRepoRequestConfiguration {
   repository_git_url: string;
   repository_owner_name: string;
   repository_metadata: CodebaseConfig[];
+  is_local: boolean; // Whether it's a local repository
+  local_path?: string | null; // Local path for local repositories
 }
 
 // Backend-compatible codebase config for repository metadata (GET response)
@@ -286,6 +304,8 @@ export interface SSEEvent<T = unknown> {
 export interface IngestedRepository {
   repository_name: string;
   repository_owner_name: string;
+  is_local: boolean;
+  local_path?: string | null;
 }
 
 export interface IngestedRepositoriesResponse {

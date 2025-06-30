@@ -15,6 +15,8 @@ export type DetectionStatus = 'idle' | 'detecting' | 'success' | 'error';
 export interface UseDetectCodebasesOptions {
   /** Git URL to stream detection for. If falsy, no request is made. */
   gitUrl?: string | null;
+  /** Whether this is a local repository */
+  isLocal?: boolean;
   onSuccess?: (result: DetectionResult) => void;
   onError?: (error: DetectionError) => void;
 }
@@ -48,7 +50,7 @@ function mapResultToCodebases(result: DetectionResult): Codebase[] {
   }));
 }
 
-export function useDetectCodebases({ gitUrl, onSuccess, onError }: UseDetectCodebasesOptions = {}): UseDetectCodebasesReturn {
+export function useDetectCodebases({ gitUrl, isLocal = false, onSuccess, onError }: UseDetectCodebasesOptions = {}): UseDetectCodebasesReturn {
   const queryClient = useQueryClient();
 
   // --- Streaming query ---------------------------------------------------
@@ -56,8 +58,8 @@ export function useDetectCodebases({ gitUrl, onSuccess, onError }: UseDetectCode
     data: chunks = [],
     fetchStatus,
   } = useSseStreamedQuery<DetectionStreamChunk>(
-    ['detect-codebases', gitUrl],
-    gitUrl ? `${env.apiBaseUrl}/detect-codebases-sse?git_url=${encodeURIComponent(gitUrl)}` : '',
+    ['detect-codebases', gitUrl, isLocal],
+    gitUrl ? `${env.apiBaseUrl}/detect-codebases-sse?git_url=${encodeURIComponent(gitUrl)}&is_local=${isLocal}` : '',
     {
       enabled: !!gitUrl,
       eventNames: ['connected', 'progress', 'result', 'error', 'done'],
@@ -141,9 +143,9 @@ export function useDetectCodebases({ gitUrl, onSuccess, onError }: UseDetectCode
   // --- Control functions -------------------------------------------------
   const cancelDetection = useCallback(() => {
     if (gitUrl) {
-      queryClient.cancelQueries({ queryKey: ['detect-codebases', gitUrl] });
+      queryClient.cancelQueries({ queryKey: ['detect-codebases', gitUrl, isLocal] });
     }
-  }, [gitUrl, queryClient]);
+  }, [gitUrl, isLocal, queryClient]);
 
   return {
     status,

@@ -1,19 +1,35 @@
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-    from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguage, ProgrammingLanguageMetadata
+    from src.code_confluence_flow_bridge.logging.trace_utils import (
+        seed_and_bind_logger_from_trace_id,
+    )
+    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+        UnoplatPackageManagerMetadata,
+    )
+    from src.code_confluence_flow_bridge.models.configuration.settings import (
+        PackageManagerType,
+        ProgrammingLanguage,
+        ProgrammingLanguageMetadata,
+    )
     from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
         CodebaseChildWorkflowEnvelope,
         CodebaseProcessingActivityEnvelope,
         PackageManagerMetadataIngestionEnvelope,
         PackageMetadataActivityEnvelope,
     )
-    from src.code_confluence_flow_bridge.processor.activity_retries_config import ActivityRetriesConfig
-    from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import process_codebase_generic
-    from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
-    from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
+    from src.code_confluence_flow_bridge.processor.activity_retries_config import (
+        ActivityRetriesConfig,
+    )
+    from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import (
+        process_codebase_generic,
+    )
+    from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import (
+        PackageMetadataActivity,
+    )
+    from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import (
+        PackageManagerMetadataIngestion,
+    )
 
     from datetime import timedelta
 

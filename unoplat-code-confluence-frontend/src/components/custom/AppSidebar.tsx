@@ -62,9 +62,9 @@ export function AppSidebar(): React.ReactElement {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="GitHub Onboarding">
+                      <SidebarMenuButton asChild tooltip="Onboarding">
                         <Link to="/onboarding" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
-                          <span className="text-sm font-medium">GitHub Onboarding</span>
+                          <span className="text-sm font-medium">Onboarding</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
