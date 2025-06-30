@@ -1,5 +1,6 @@
 from pathlib import Path
 import textwrap
+from typing import Optional
 
 import pytest
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import StructuralSignature
@@ -490,6 +491,7 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     main_class = signature.classes[0]
     assert "TreeSitterStructuralSignatureExtractor" in main_class.signature
     assert main_class.signature.strip().endswith(":")
+    assert main_class.docstring is not None
     assert "Extracts structural signatures from source code using tree-sitter queries." in main_class.docstring
     
     # No class variables
@@ -559,6 +561,7 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     func_calls_method = method_map["_extract_function_calls_for_node"]
     assert "start_line: Optional[int] = None" in func_calls_method.signature
     assert "end_line: Optional[int] = None" in func_calls_method.signature
+    assert func_calls_method.docstring is not None
     assert "filters out calls that are within nested functions" in func_calls_method.docstring
     # Check for the new filtering logic calls
     assert "self.queries[\"function_calls\"].captures(func_node)" in func_calls_method.function_calls
@@ -585,10 +588,10 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     assert len(extract_functions_method.function_calls) > 10
     
     # 9. Test line number accuracy for a few methods
-    # __init__ should be around line 35
-    assert 30 < init_method.start_line < 45
-    # extract_structural_signature should be around line 93
-    assert 90 < extract_method.start_line < 100
+    # __init__ should be around line 46 (shifted due to import formatting)
+    assert 40 < init_method.start_line < 55
+    # extract_structural_signature should be around line 104 (shifted due to import formatting)
+    assert 100 < extract_method.start_line < 110
     
     # 10. Export structural signature to JSON for experimentation
     import json
@@ -657,7 +660,7 @@ def test_no_duplicate_nested_functions(tmp_path: Path, language_name: str) -> No
     sig = extractor.extract_structural_signature(str(file_path))
     
     # Helper to assert no duplicates
-    def assert_unique_nested(func: FunctionInfo, seen_signatures: set = None):
+    def assert_unique_nested(func: FunctionInfo, seen_signatures: Optional[set[str]] = None):
         if seen_signatures is None:
             seen_signatures = set()
         

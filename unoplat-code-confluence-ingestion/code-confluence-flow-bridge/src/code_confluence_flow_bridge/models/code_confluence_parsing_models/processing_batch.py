@@ -1,10 +1,12 @@
 """Processing batch model."""
 
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.file_processing_data import (
+    FileProcessingData,
+)
+
 from typing import List
 
 from pydantic import BaseModel, Field
-
-from .file_processing_data import FileProcessingData
 
 
 class ProcessingBatch(BaseModel):

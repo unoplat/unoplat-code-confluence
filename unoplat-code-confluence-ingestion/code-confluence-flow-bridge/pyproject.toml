@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "code-confluence-flow-bridge"
 version = "0.39.4"
@@ -64,3 +68,7 @@ override-dependencies = ["pytest>=8.3.5"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["code_confluence_flow_bridge*"]

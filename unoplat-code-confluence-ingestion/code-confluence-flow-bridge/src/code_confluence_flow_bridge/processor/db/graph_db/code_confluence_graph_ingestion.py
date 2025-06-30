@@ -1,10 +1,21 @@
-from src.code_confluence_flow_bridge.logging.trace_utils import activity_id_var, activity_name_var, workflow_id_var, workflow_run_id_var
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import UnoplatGitRepository
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    activity_id_var,
+    activity_name_var,
+    workflow_id_var,
+    workflow_run_id_var,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+    UnoplatGitRepository,
+)
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
     UnoplatPackageManagerMetadata,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
-from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
+from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import (
+    ParentChildCloneMetadata,
+)
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
     CodeConfluenceGraph,
 )
@@ -17,27 +28,19 @@ from temporalio.exceptions import ApplicationError
 from unoplat_code_confluence_commons import (
     CodeConfluencePackageManagerMetadata,
 )
-from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
-from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import CodeConfluenceGitRepository
+from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
+    CodeConfluenceCodebase,
+)
+from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
+    CodeConfluenceGitRepository,
+)
 
 
 class CodeConfluenceGraphIngestion:
     def __init__(self, code_confluence_env: EnvironmentSettings):
+        # Reuse the singleton global connection
         self.code_confluence_graph = CodeConfluenceGraph(code_confluence_env=code_confluence_env)
-
-    async def initialize(self) -> None:
-        """Initialize graph connection and schema"""
-        try:
-            await self.code_confluence_graph.connect()
-            await self.code_confluence_graph.create_schema()
-            logger.info("Graph initialization complete")
-        except Exception as e:
-            logger.error(f"Failed to initialize graph: {str(e)}")
-            raise
-
-    async def close(self) -> None:
-        """Close graph connection"""
-        await self.code_confluence_graph.close()
+        # No longer need to initialize or close - global connection is managed at application level
 
     def _get_node_identifier(self, node) -> str:
         """
@@ -260,13 +263,17 @@ class CodeConfluenceGraphIngestion:
 
     async def insert_code_confluence_codebase_package_manager_metadata(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
         """
-        Insert codebase package manager metadata into the graph database
+        Insert codebase package manager metadata into the graph database.
+        
+        Note: This method runs within the transaction context provided by the caller.
+        Do not create nested transactions as Neo4j does not support them.
 
         Args:
             codebase_qualified_name: Qualified name of the codebase
             package_manager_metadata: UnoplatPackageManagerMetadata containing package manager metadata
         """
         try:
+            # All operations run within the caller's transaction context
             # Use get() instead of filter() for unique index
             try:
                 codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)

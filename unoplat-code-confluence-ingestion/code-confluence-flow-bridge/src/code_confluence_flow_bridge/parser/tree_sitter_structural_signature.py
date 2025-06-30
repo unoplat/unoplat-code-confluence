@@ -5,15 +5,26 @@ This module provides language-agnostic structural signature extraction using tre
 with configurable queries for different programming languages.
 """
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.class_info import ClassInfo
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import FunctionInfo
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import StructuralSignature
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.class_info import (
+    ClassInfo,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import (
+    FunctionInfo,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
+    StructuralSignature,
+)
 
 # Model imports
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import VariableInfo
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import (
+    VariableInfo,
+)
 
 # Local imports
-from src.code_confluence_flow_bridge.parser.language_configs import LanguageConfig, get_config
+from src.code_confluence_flow_bridge.parser.language_configs import (
+    LanguageConfig,
+    get_config,
+)
 
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple

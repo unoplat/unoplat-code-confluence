@@ -24,7 +24,7 @@ import { type Codebase } from "./CodebaseForm";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/custom/StatusBadge";
 
 
 
@@ -35,6 +35,8 @@ interface RepositoryConfigDialogProps {
   repositoryOwnerName: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  isLocal?: boolean;
+  localPath?: string;
 }
 
 export function RepositoryConfigDialog({
@@ -43,6 +45,8 @@ export function RepositoryConfigDialog({
   repositoryOwnerName,
   isOpen,
   onOpenChange,
+  isLocal = false,
+  localPath,
 }: RepositoryConfigDialogProps): React.ReactElement {
   // Local dialog/detection state
   const [dialogMode, setDialogMode] = useState<'initial' | 'detecting' | 'configuring'>('initial');
@@ -53,7 +57,8 @@ export function RepositoryConfigDialog({
     error: detectionError,
     codebases: detectedCodebases,
   } = useDetectCodebases({
-    gitUrl: dialogMode === 'detecting' ? repositoryGitUrl : null,
+    gitUrl: dialogMode === 'detecting' ? (isLocal ? localPath : repositoryGitUrl) : null,
+    isLocal,
     onSuccess: () => {
       toast.success('Codebase detection completed successfully!');
       setDialogMode('configuring');
@@ -174,13 +179,15 @@ export function RepositoryConfigDialog({
         // Map form values to API payload format
         const payload: GitHubRepoRequestConfiguration = {
           repository_name: value.repositoryName,
-          repository_git_url: repositoryGitUrl,
+          repository_git_url: isLocal ? (localPath || repositoryGitUrl) : repositoryGitUrl,
           repository_owner_name: repositoryOwnerName,
           repository_metadata: value.codebases.map((cb) => ({
             codebase_folder: cb.codebase_folder,
             root_packages: cb.root_packages || null,
             programming_language_metadata: cb.programming_language_metadata,
           })),
+          is_local: isLocal,
+          local_path: isLocal ? localPath : null,
         };
 
         // Check if we're updating or creating
@@ -341,10 +348,10 @@ export function RepositoryConfigDialog({
           <>
             <DialogHeader>
               <DialogTitle className="text-2xl font-semibold tracking-tight">
-                Configure Repository: <span className="text-primary">{repositoryName}</span>
+                Configure {isLocal ? 'Local' : ''} Repository: <span className="text-primary">{repositoryName}</span>
               </DialogTitle>
               <DialogDescription className="text-sm leading-6">
-                Configure one or more codebases for this repository. Each codebase represents a separate project within the repository.
+                Configure one or more codebases for this {isLocal ? 'local' : ''} repository. Each codebase represents a separate project within the repository.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-6">
@@ -355,9 +362,7 @@ export function RepositoryConfigDialog({
               >
                 <Wand2Icon className="mr-2 h-4 w-4" />
                 Detect Codebases Automatically
-                <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground">
-                  Beta
-                </Badge>
+                <StatusBadge status="beta" className="ml-2" />
               </Button>
               <Button
                 variant="outline"
@@ -418,11 +423,11 @@ export function RepositoryConfigDialog({
         return (
           <>
             <DialogHeader>
-              <DialogTitle>Configure Repository: {repositoryName}</DialogTitle>
+              <DialogTitle>Configure {isLocal ? 'Local' : ''} Repository: {repositoryName}</DialogTitle>
               <DialogDescription id="repo-config-desc">
                 {detectionStatus === 'success' && detectedCodebases.length > 0 
-                  ? `We detected ${detectedCodebases.length} codebase${detectedCodebases.length > 1 ? 's' : ''} in your repository. Review and modify as needed before submitting.`
-                  : 'Configure one or more codebases for this repository. Each codebase represents a separate project within the repository.'
+                  ? `We detected ${detectedCodebases.length} codebase${detectedCodebases.length > 1 ? 's' : ''} in your ${isLocal ? 'local' : ''} repository. Review and modify as needed before submitting.`
+                  : `Configure one or more codebases for this ${isLocal ? 'local' : ''} repository. Each codebase represents a separate project within the repository.`
                 }
               </DialogDescription>
             </DialogHeader>

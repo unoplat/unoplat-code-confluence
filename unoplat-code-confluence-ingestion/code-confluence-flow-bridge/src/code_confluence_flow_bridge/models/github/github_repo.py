@@ -142,6 +142,8 @@ class GitHubRepoRequestConfiguration(BaseModel):
     repository_git_url: str = Field(description="The git URL of the repository")
     repository_owner_name: str = Field(description="The name of the repository owner")
     repository_metadata: List[CodebaseConfig] = Field(description="List of codebase configurations for the repository")
+    is_local: bool = Field(default=False, description="Whether this is a local repository")
+    local_path: Optional[str] = Field(default=None, description="Local filesystem path for local repositories")
     
 class GitHubRepoResponseConfiguration(BaseModel):
     """Configuration for a GitHub repository, including codebase config and status."""
@@ -213,6 +215,8 @@ class IngestedRepositoryResponse(BaseModel):
     """Response model for ingested repository data."""
     repository_name: str = Field(description="The name of the repository")
     repository_owner_name: str = Field(description="The name of the repository owner")
+    is_local: bool = Field(default=False, description="Whether this is a local repository")
+    local_path: Optional[str] = Field(default=None, description="Local filesystem path for local repositories")
 
 
 class IngestedRepositoriesListResponse(BaseModel):

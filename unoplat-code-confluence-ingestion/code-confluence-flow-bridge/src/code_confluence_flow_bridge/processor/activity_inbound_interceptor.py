@@ -1,8 +1,17 @@
-from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    seed_and_bind_logger_from_trace_id,
+)
 from src.code_confluence_flow_bridge.models.github.github_repo import JobStatus
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import CodebaseWorkflowDbActivityEnvelope, ParentWorkflowDbActivityEnvelope
-from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
-from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+    CodebaseWorkflowDbActivityEnvelope,
+    ParentWorkflowDbActivityEnvelope,
+)
+from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
+    ChildWorkflowDbActivity,
+)
+from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
+    ParentWorkflowDbActivity,
+)
 
 import json
 from typing import Any, Dict, List, cast
@@ -10,7 +19,11 @@ from typing import Any, Dict, List, cast
 from temporalio import activity
 from temporalio.activity import Info
 from temporalio.exceptions import ApplicationError
-from temporalio.worker import ActivityInboundInterceptor, ExecuteActivityInput, Interceptor
+from temporalio.worker import (
+    ActivityInboundInterceptor,
+    ExecuteActivityInput,
+    Interceptor,
+)
 
 
 class ActivityStatusInterceptor(Interceptor):
@@ -153,7 +166,9 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
                             trace_id=safe_trace_id,
                             status=status_to_mark.value,
                             repository_metadata=[],
-                            error_report=error_report
+                            error_report=error_report,
+                            is_local=False,
+                            local_path=None
                         )
                         
                         # Directly call the activity method instead of using workflow.execute_activity

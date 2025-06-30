@@ -7,21 +7,36 @@ from loguru import logger
 from temporalio import workflow
 from temporalio.api.common.v1 import Payload
 from temporalio.exceptions import ActivityError, ApplicationError, ChildWorkflowError
-from temporalio.worker._interceptor import ExecuteWorkflowInput, Interceptor, WorkflowInboundInterceptor
+from temporalio.worker._interceptor import (
+    ExecuteWorkflowInput,
+    Interceptor,
+    WorkflowInboundInterceptor,
+)
 from temporalio.workflow import Info
 
 with workflow.unsafe.imports_passed_through():
-    from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-    from src.code_confluence_flow_bridge.models.github.github_repo import ErrorReport, JobStatus
+    from src.code_confluence_flow_bridge.logging.trace_utils import (
+        seed_and_bind_logger_from_trace_id,
+    )
+    from src.code_confluence_flow_bridge.models.github.github_repo import (
+        ErrorReport,
+        JobStatus,
+    )
     from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
         CodebaseChildWorkflowEnvelope,
         CodebaseWorkflowDbActivityEnvelope,
         ParentWorkflowDbActivityEnvelope,
         RepoWorkflowRunEnvelope,
     )
-    from src.code_confluence_flow_bridge.processor.activity_retries_config import ActivityRetriesConfig
-    from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
-    from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
+    from src.code_confluence_flow_bridge.processor.activity_retries_config import (
+        ActivityRetriesConfig,
+    )
+    from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
+        ChildWorkflowDbActivity,
+    )
+    from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
+        ParentWorkflowDbActivity,
+    )
 
     # Bring in the outbound interceptor and shared headers ContextVar
     from src.code_confluence_flow_bridge.processor.workflow_outbound_interceptor import (
@@ -98,7 +113,9 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 workflow_run_id=info.run_id,
                 trace_id=envelope.trace_id,
                 repository_metadata=envelope.repo_request.repository_metadata,
-                status=JobStatus.RUNNING.value
+                status=JobStatus.RUNNING.value,
+                is_local=envelope.repo_request.is_local,
+                local_path=envelope.repo_request.local_path
             )
             await workflow.execute_activity(
                 activity=ParentWorkflowDbActivity.update_repository_workflow_status,
@@ -156,7 +173,9 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     trace_id=envelope.trace_id,
                     repository_metadata=envelope.repo_request.repository_metadata,
                     status=status,
-                    error_report=error_report
+                    error_report=error_report,
+                    is_local=envelope.repo_request.is_local,
+                    local_path=envelope.repo_request.local_path
                 )
                 await workflow.execute_activity(
                     activity=ParentWorkflowDbActivity.update_repository_workflow_status,
@@ -293,7 +312,9 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                         workflow_run_id=parent_workflow_run_id,
                         trace_id=child_trace_id,
                         status=JobStatus.FAILED.value,
-                        error_report=None
+                        error_report=None,
+                        is_local=False,
+                        local_path=None
                     )
                     await workflow.execute_activity(
                         activity=ParentWorkflowDbActivity.update_repository_workflow_status,

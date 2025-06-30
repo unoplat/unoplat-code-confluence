@@ -1,9 +1,17 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguage
-from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import LinterType
-from src.code_confluence_flow_bridge.parser.linters.linter_strategy import LinterStrategy
-from src.code_confluence_flow_bridge.parser.linters.python.ruff_strategy import RuffStrategy
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    ProgrammingLanguage,
+)
+from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import (
+    LinterType,
+)
+from src.code_confluence_flow_bridge.parser.linters.linter_strategy import (
+    LinterStrategy,
+)
+from src.code_confluence_flow_bridge.parser.linters.python.ruff_strategy import (
+    RuffStrategy,
+)
 
 from typing import Dict, Tuple
 

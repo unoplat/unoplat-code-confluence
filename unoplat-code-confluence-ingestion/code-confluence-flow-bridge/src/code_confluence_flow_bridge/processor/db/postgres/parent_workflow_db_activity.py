@@ -1,6 +1,13 @@
-from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-from src.code_confluence_flow_bridge.models.github.github_repo import ErrorReport, JobStatus
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import ParentWorkflowDbActivityEnvelope
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    seed_and_bind_logger_from_trace_id,
+)
+from src.code_confluence_flow_bridge.models.github.github_repo import (
+    ErrorReport,
+    JobStatus,
+)
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+    ParentWorkflowDbActivityEnvelope,
+)
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
 from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import (
     CodebaseConfig,
@@ -36,6 +43,8 @@ class ParentWorkflowDbActivity:
         trace_id: Optional[str] = envelope.trace_id
         status: JobStatus = JobStatus(envelope.status)  # Convert string to JobStatus enum
         error_report: Optional[ErrorReport] = envelope.error_report
+        is_local: bool = envelope.is_local
+        local_path: Optional[str] = envelope.local_path
         
         activity_id: str = "update_repository_workflow_status"
         log = seed_and_bind_logger_from_trace_id(
@@ -51,7 +60,13 @@ class ParentWorkflowDbActivity:
             )
             async with get_session_cm() as session:
                 # First check if repository exists, if not create it
-                _ = await self._get_or_create_repository(session, repository_name, repository_owner_name)
+                _ = await self._get_or_create_repository(
+                    session, 
+                    repository_name, 
+                    repository_owner_name,
+                    is_local,
+                    local_path
+                )
                 if envelope.repository_metadata:
                     for cm in envelope.repository_metadata:
                         existing_config = await session.get(CodebaseConfig, (repository_name, repository_owner_name, cm.codebase_folder))
@@ -136,7 +151,14 @@ class ParentWorkflowDbActivity:
             log.error(f"Failed to update repository workflow status: {e}")
             raise
         
-    async def _get_or_create_repository(self, session: AsyncSession, repository_name: str, repository_owner_name: str) -> Repository:
+    async def _get_or_create_repository(
+        self, 
+        session: AsyncSession, 
+        repository_name: str, 
+        repository_owner_name: str,
+        is_local: bool = False,
+        local_path: Optional[str] = None
+    ) -> Repository:
         """Get or create a repository record."""
         repository = await session.get(Repository, (repository_name, repository_owner_name))
         
@@ -144,7 +166,9 @@ class ParentWorkflowDbActivity:
             # Create a new repository
             repository = Repository(
                 repository_name=repository_name,
-                repository_owner_name=repository_owner_name
+                repository_owner_name=repository_owner_name,
+                is_local=is_local,
+                local_path=local_path
             )
             session.add(repository)
             await session.commit()

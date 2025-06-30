@@ -1,7 +1,13 @@
 
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
-from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import LinterType
-from src.code_confluence_flow_bridge.parser.linters.linter_factory import LinterStrategyFactory
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    ProgrammingLanguageMetadata,
+)
+from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import (
+    LinterType,
+)
+from src.code_confluence_flow_bridge.parser.linters.linter_factory import (
+    LinterStrategyFactory,
+)
 
 from typing import List, Optional
 

@@ -1,4 +1,6 @@
-# Target Python 3.10
+# Default Ruff configuration template
+# This file can be modified without rebuilding the container
+
 target-version = "py311"
 
 exclude = [
@@ -13,8 +15,8 @@ exclude = [
     "tests"
 ]
 
-src = ["src/code_confluence_flow_bridge"]  # Adjust this to your project's source directory
-line-length = 150
+src = ["/Users/jayghiya/Documents/unoplat/unoplat-codebase-understanding/unoplat-code-confluence-ingestion/code-confluence-flow-bridge"]
+line-length = 88
 
 [lint]
 preview = true
@@ -31,8 +33,5 @@ force-to-top = ["os","sys"]
 force-sort-within-sections = true
 combine-as-imports = true
 from-first = true
-section-order = ["future","first-party", "local-folder", "standard-library", "third-party"]
-lines-between-types = 2
-
-
-
+section-order = ["first-party", "local-folder","future", "standard-library", "third-party"]
+lines-between-types = 2 

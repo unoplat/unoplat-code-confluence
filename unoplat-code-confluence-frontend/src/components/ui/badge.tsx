@@ -31,6 +31,10 @@ const badgeVariants = cva(
           "border-transparent bg-destructive/10 text-destructive",
         cancelled:
           "border-transparent bg-muted text-muted-foreground",
+        alpha:
+          "border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-400 dark:bg-amber-950/40 dark:text-amber-200",
+        beta:
+          "border-blue-200 bg-blue-100 text-blue-800 dark:border-blue-400 dark:bg-blue-950/40 dark:text-blue-200",
       },
       size: {
         default: "px-2.5 py-0.5 text-xs",

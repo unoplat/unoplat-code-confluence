@@ -381,6 +381,7 @@ export const submitFeedback = async (
  */
 export interface DetectCodebasesOptions {
   gitUrl: string;
+  isLocal?: boolean;
   onProgress?: (progress: DetectionProgress) => void;
   onResult?: (result: DetectionResult) => void;
   onError?: (error: DetectionError) => void;
@@ -394,11 +395,11 @@ export interface DetectCodebasesOptions {
  * @returns Promise with the detection result
  */
 export const detectCodebasesSSE = async (options: DetectCodebasesOptions): Promise<DetectionResult> => {
-  const { gitUrl, onProgress, onResult, onError, signal } = options;
+  const { gitUrl, isLocal = false, onProgress, onResult, onError, signal } = options;
   
   return new Promise((resolve, reject) => {
-    // Build the URL with query parameter
-    const url = `${env.apiBaseUrl}/detect-codebases-sse?git_url=${encodeURIComponent(gitUrl)}`;
+    // Build the URL with query parameters
+    const url = `${env.apiBaseUrl}/detect-codebases-sse?git_url=${encodeURIComponent(gitUrl)}&is_local=${isLocal}`;
     
     // Create EventSource for SSE connection
     const eventSource = new EventSource(url);
