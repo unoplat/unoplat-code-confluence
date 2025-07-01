@@ -7,6 +7,7 @@
 
 import asyncio
 import json
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -156,7 +157,11 @@ def detect_local_codebases(test_client: TestClient, local_path: str) -> Detectio
     Raises:
         AssertionError: If SSE response is invalid or missing required events
     """
-    with test_client.stream("GET", "/detect-codebases-sse", params={"git_url": local_path}) as response:
+    # Extract just the folder name from the absolute path
+    # The SSE endpoint expects a folder name when is_local=true, not an absolute path
+    folder_name = os.path.basename(local_path)
+    
+    with test_client.stream("GET", "/detect-codebases-sse", params={"git_url": folder_name, "is_local": "true"}) as response:
         assert response.status_code == 200, f"SSE request failed: {response.text}"
         assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
         assert response.headers["cache-control"] == "no-cache"
@@ -215,13 +220,24 @@ def create_repo_request_from_detection(
     Returns:
         Properly structured Pydantic model for ingestion endpoint
     """
+    # Extract just the folder name from the absolute path for local repositories
+    # This matches the UI behavior where only relative folder names are sent
+    repository_url = detection_result.repository_url
+    if repository_url.startswith('/') or repository_url.startswith('file://'):
+        # This is an absolute path, extract just the folder name
+        folder_name = os.path.basename(repository_url.replace('file://', ''))
+        local_path = folder_name
+    else:
+        # Already a relative path or URL
+        local_path = repository_url
+    
     return GitHubRepoRequestConfiguration(
         repository_name=repository_name,
         repository_git_url=detection_result.repository_url,
         repository_owner_name=repository_owner_name,
         repository_metadata=detection_result.codebases,
         is_local=True,
-        local_path=detection_result.repository_url,
+        local_path=local_path,  # Now contains just the folder name
     )
 
 
@@ -387,7 +403,9 @@ class TestStartIngestionEndpoint:
         # ------------------------------------------------------------------
         # 4️⃣  Validate detection results
         # ------------------------------------------------------------------
-        assert detection_result.repository_url == local_repo_path
+        # SSE endpoint constructs the path, so we should expect the constructed path in detection result
+        expected_detection_path = construct_local_repository_path(os.path.basename(local_repo_path))
+        assert detection_result.repository_url == expected_detection_path
         assert detection_result.error is None, f"Detection failed with error: {detection_result.error}"
         assert len(detection_result.codebases) > 0, "No codebases detected in local repository"
         assert detection_result.duration_seconds > 0, "Detection duration should be positive"
@@ -424,6 +442,7 @@ class TestStartIngestionEndpoint:
         Complete integration test: detect local repository codebases via SSE,
         then ingest them via the ingestion endpoint and monitor workflow completion.
         """
+        from src.code_confluence_flow_bridge.utility.environment_utils import construct_local_repository_path
 
         # ------------------------------------------------------------------
         # 1️⃣  Ensure token is ingested (idempotent)
@@ -457,9 +476,11 @@ class TestStartIngestionEndpoint:
         # Validate Pydantic model creation
         assert repo_request.repository_name == "unoplat-codebase-understanding"
         assert repo_request.repository_owner_name == "unoplat"
-        assert repo_request.repository_git_url == local_repo_path
+        # SSE endpoint constructs path using construct_local_repository_path(), so we should expect the constructed path
+        expected_constructed_path = construct_local_repository_path(os.path.basename(local_repo_path))
+        assert repo_request.repository_git_url == expected_constructed_path
         assert repo_request.is_local is True
-        assert repo_request.local_path == local_repo_path
+        assert repo_request.local_path == os.path.basename(local_repo_path)  # Now checks for folder name only
         assert len(repo_request.repository_metadata) == len(detection_result.codebases)
 
         # Validate that all codebases are properly structured

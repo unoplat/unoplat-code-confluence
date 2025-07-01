@@ -4,10 +4,12 @@ from typing import AsyncGenerator, Iterator
 
 from loguru import logger
 from neomodel.async_.core import adb #type: ignore
+from neomodel import config
 from pydantic import SecretStr
 
 # Third Party
 import pytest
+import pytest_asyncio
 
 # First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import (
@@ -16,7 +18,6 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
     ProgrammingLanguageMetadata,
 )
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import StructuralSignature
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import UnoplatFile
 from src.code_confluence_flow_bridge.parser.generic_codebase_parser import GenericCodebaseParser
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import (
     CodeConfluenceGraphIngestion,
@@ -42,9 +43,14 @@ NEO4J_HTTP_PORT: int = 7474
 @pytest.fixture(scope="session")
 def neo4j_container() -> Iterator[Neo4jContainer]:
     """Spin up a Neo4j container for the test session and guarantee clean teardown."""
+    # Neo4j 5.x images require explicit license acceptance, otherwise the
+    # container starts and immediately exits which results in connection
+    # failures when pytest attempts to open a Bolt session.
+    # See: https://neo4j.com/docs/operations-manual/current/docker/#docker-basic-usage
     container = (
         Neo4jContainer(image=f"neo4j:{NEO4J_VERSION}")
         .with_env("NEO4J_AUTH", f"neo4j/{NEO4J_PASSWORD}")
+        .with_env("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
         .with_exposed_ports(NEO4J_PORT, NEO4J_HTTP_PORT)
     )
 
@@ -70,15 +76,32 @@ def env_settings(neo4j_container: Neo4jContainer) -> EnvironmentSettings:
     )
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def graph_connection(env_settings: EnvironmentSettings) -> AsyncGenerator[CodeConfluenceGraphIngestion, None]:
-    """Initialise Neo4j connection and schema using CodeConfluenceGraphIngestion."""
+    """Initialize Neo4j connection and schema using CodeConfluenceGraphIngestion."""
+    
+    
+    # Build connection URL directly to ensure correct test container settings
+    connection_url = (
+        f"bolt://{env_settings.neo4j_username}:{env_settings.neo4j_password.get_secret_value()}"
+        f"@{env_settings.neo4j_host}:{env_settings.neo4j_port}"
+        f"?max_connection_lifetime={env_settings.neo4j_max_connection_lifetime}"
+        f"&max_connection_pool_size={env_settings.neo4j_max_connection_pool_size}"
+        f"&connection_acquisition_timeout={env_settings.neo4j_connection_acquisition_timeout}"
+    )
+    
+    # Set global neomodel connection for managed_tx()
+    config.DATABASE_URL = connection_url
+    await adb.set_connection(connection_url)
+    await adb.install_all_labels()
+    
+    # Create ingestion instance after global connection is established
     ingestion: CodeConfluenceGraphIngestion = CodeConfluenceGraphIngestion(code_confluence_env=env_settings)
-    await ingestion.initialize()
+    
     try:
         yield ingestion
     finally:
-        await ingestion.close()
+        await adb.close_connection()
 
 
 @pytest.fixture()
@@ -88,11 +111,12 @@ def sample_codebase_dir() -> Path:  # noqa: D401 – simple fixture
 
 
 # Ensure the database is empty before each test (autouse fixture)
-@pytest.fixture(autouse=True)
-async def clear_neo4j(graph_connection):
+@pytest_asyncio.fixture(autouse=True)
+async def clear_neo4j(graph_connection):  # noqa: ARG001 – fixture dependency required
     """Remove all nodes and relationships so every test starts with a clean database."""
     yield
-    await graph_connection.run("MATCH (n) DETACH DELETE n")
+    # Use neomodel's adb.cypher_query to clear database
+    await adb.cypher_query("MATCH (n) DETACH DELETE n")
 
 
 
@@ -108,7 +132,7 @@ class TestGenericCodebaseParserIntegration:
     @pytest.mark.asyncio
     async def test_parser_inserts_nodes(
         self,
-        graph_connection: CodeConfluenceGraphIngestion,  # noqa: PT004 – fixture provides connection & schema
+        graph_connection: CodeConfluenceGraphIngestion,  # noqa: ARG002 – fixture provides connection & schema
         sample_codebase_dir: Path,
         env_settings: EnvironmentSettings,
     ) -> None:

@@ -164,7 +164,7 @@ class UvStrategy(PackageManagerStrategy):
             repository=project_data.get("repository"),
             documentation=project_data.get("documentation"),
             keywords=project_data.get("keywords", []),
-            maintainers=project_data.get("maintainers", []),
+            maintainers=normalize_authors(project_data.get("maintainers", [])),
             readme=project_data.get("readme"),
         )
 

@@ -52,6 +52,10 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
     refetchInterval: 1000 * 5, // Refetch every 5 seconds
     placeholderData: keepPreviousData,
     refetchOnMount: 'always',
+    initialData: { repositories: [] },
+    // Prevent re-renders during background fetches
+    notifyOnChangeProps: ['data', 'error'],
+    refetchIntervalInBackground: true,
   });
 
   const repositories = repositoriesData?.repositories ?? [];

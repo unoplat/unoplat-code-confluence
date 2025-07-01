@@ -1,6 +1,5 @@
 import { type Table as TanstackTable, flexRender } from "@tanstack/react-table";
 import type * as React from "react";
-import { useEffect } from "react";
 
 import { DataTablePagination } from "@/components/data-table-pagination";
 import {
@@ -41,15 +40,7 @@ export function DataTable<TData>({
   
   console.log('DataTable props:', { showRowsPerPage, isLoading });
   
-  // Log table state changes to track pagination updates
-  useEffect(() => {
-    console.log('[DataTable] Table pagination state changed:', {
-      pageIndex: table.getState().pagination.pageIndex,
-      pageSize: table.getState().pagination.pageSize,
-      canNextPage: table.getCanNextPage(),
-      canPreviousPage: table.getCanPreviousPage()
-    });
-  }, [table.getState().pagination]);
+  
   
   return (
     <div
