@@ -134,9 +134,10 @@ class CodeConfluenceGraphIngestion:
             return results if results else []
         except UniqueProperty as e:
             logger.info(
-                "Node already exists with unique property: {} for {}. Proceeding gracefully.",
+                "Node already exists with unique property: {} for {}. properties={} Proceeding gracefully.",
                 str(e),
-                node_class.__name__
+                node_class.__name__,
+                node_dict,
             )
             # Try to retrieve the existing node by unique properties
             try:
@@ -168,10 +169,13 @@ class CodeConfluenceGraphIngestion:
             )
             return []
         except Exception as e:
-            logger.warning(
-                "Unexpected error creating {} node: {}. Proceeding gracefully.",
+            tb_str = traceback.format_exc()
+            logger.error(
+                "Unexpected error creating {} node with properties={} : {}. Proceeding gracefully.\nTraceback:\n{}",
                 node_class.__name__,
-                str(e)
+                node_dict,
+                str(e),
+                tb_str,
             )
             return []
 
@@ -196,6 +200,9 @@ class CodeConfluenceGraphIngestion:
                 # Create repository node
                 repo_dict = {"qualified_name": qualified_name, "repository_url": git_repo.repository_url, "repository_name": git_repo.repository_name, "repository_metadata": git_repo.repository_metadata, "readme": git_repo.readme, "github_organization": git_repo.github_organization}
 
+                # 🔍 Add verbose logging to aid debugging CI-only failures
+                logger.debug("Attempting to create CodeConfluenceGitRepository with properties: {}", repo_dict)
+
                 repo_results = await self._handle_node_creation(CodeConfluenceGitRepository, repo_dict)
                 if not repo_results:
                     raise ApplicationError(
@@ -218,6 +225,7 @@ class CodeConfluenceGraphIngestion:
                     codebase_dict = {"qualified_name": codebase_qualified_name, "name": codebase.name, "readme": codebase.readme, "root_packages": codebase.root_packages, "codebase_path": codebase.codebase_path}
                     parent_child_clone_metadata.codebase_qualified_names.append(codebase_qualified_name)
 
+                    logger.debug("Attempting to create CodeConfluenceCodebase with properties: {}", codebase_dict)
                     codebase_results = await self._handle_node_creation(CodeConfluenceCodebase, codebase_dict)
                     if not codebase_results:
                         raise ApplicationError(
