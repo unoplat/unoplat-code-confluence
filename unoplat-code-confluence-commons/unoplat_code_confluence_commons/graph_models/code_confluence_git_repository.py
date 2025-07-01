@@ -1,10 +1,10 @@
-from neomodel import (
-    StringProperty,
-    JSONProperty,
-    AsyncRelationshipTo,
-    AsyncOneOrMore
+from unoplat_code_confluence_commons.graph_models.base_models import (
+    BaseNode,
+    ContainsRelationship,
 )
-from .base_models import BaseNode, ContainsRelationship
+
+from neomodel import AsyncOneOrMore, AsyncRelationshipTo, JSONProperty, StringProperty
+
 
 class CodeConfluenceGitRepository(BaseNode):
     """
@@ -27,7 +27,7 @@ class CodeConfluenceGitRepository(BaseNode):
                                     extra relationship metadata.
     """
     repository_url = StringProperty(required=True,unique_index=True)
-    repository_name = StringProperty(required=True, unique_index=True)
+    repository_name = StringProperty(required=True)  # Not unique - multiple orgs can have same repo name
     repository_metadata = JSONProperty()
     readme = StringProperty()
 
