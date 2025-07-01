@@ -20,6 +20,9 @@ from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
 from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
 from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import DetectionResult
+from src.code_confluence_flow_bridge.utility.environment_utils import (
+    construct_local_repository_path,
+)
 
 # ---------------------------------------------------------------------------
 # REPOSITORY PATH HELPER
