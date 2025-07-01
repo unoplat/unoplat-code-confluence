@@ -25,6 +25,10 @@ from testcontainers.compose import DockerCompose
 
 # Local
 from src.code_confluence_flow_bridge.main import app
+from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
+from src.code_confluence_flow_bridge.processor.db.postgres.db import AsyncSessionLocal
+from tests.utils.db_cleanup import quick_cleanup
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -276,3 +280,65 @@ def github_token() -> str:
         pytest.fail("GITHUB_PAT_TOKEN not found in environment or .env.testing file")
         
     return token
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DATABASE CLIENT FIXTURES FOR CLEANUP
+# ──────────────────────────────────────────────────────────────────────────────
+
+@pytest.fixture(scope="session")
+async def neo4j_client(service_ports: Dict[str, int]):
+    """Session-scoped Neo4j client for database operations."""
+    from neomodel import adb
+    
+    # Create environment settings from service ports
+    env_settings = EnvironmentSettings(
+        neo4j_host="localhost",
+        neo4j_port=service_ports["neo4j"],
+        neo4j_username="neo4j",
+        neo4j_password="password"
+    )
+    
+    # Initialize and connect to Neo4j
+    graph = CodeConfluenceGraph(env_settings)
+    await graph.connect()
+    
+    # Yield the adb client for use in tests and cleanup
+    yield adb
+    
+    # Session cleanup handled by docker_compose fixture
+
+
+@pytest.fixture(scope="session")
+async def postgres_session(service_ports: Dict[str, int]):
+    """Session-scoped PostgreSQL session for database operations."""
+    # Environment variables are already set by test_client fixture
+    # Just create a session from the existing AsyncSessionLocal
+    async with AsyncSessionLocal() as session:
+        yield session
+        # Session will be closed automatically
+
+
+@pytest.fixture(autouse=True)
+async def clean_databases(neo4j_client, postgres_session):
+    """
+    Function-scoped fixture that cleans databases before each test.
+    
+    This ensures test isolation by removing all data from both Neo4j and PostgreSQL
+    databases before each test runs. Uses the session-scoped database clients
+    to avoid connection overhead.
+    """
+    # Clean databases BEFORE each test
+    try:
+        cleanup_success = await quick_cleanup(neo4j_client, postgres_session)
+        if not cleanup_success:
+            logger.warning("Database cleanup failed - test may have stale data")
+    except Exception as e:
+        logger.error(f"Database cleanup error: {e}")
+        # Don't fail the test setup, but log the issue
+    
+    # Run the test
+    yield
+    
+    # Optional: Clean after test if needed for debugging
+    # await quick_cleanup(neo4j_client, postgres_session)
