@@ -91,7 +91,7 @@ jobs:
           GITHUB_PAT_TOKEN: ${{ github.token }} 
         run: |
           uv sync --group test
-          uv run pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
+          uv run --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
 
       - name: Set sanitized project name
         id: sanitize
