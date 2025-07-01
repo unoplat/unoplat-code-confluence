@@ -348,7 +348,7 @@ class TestStartIngestionEndpoint:
         assert token_resp.status_code in (201, 409), token_resp.text
 
         # Wait for token ingestion to complete and services to stabilize
-        await asyncio.sleep(30)
+        await asyncio.sleep(5)
 
         # ------------------------------------------------------------------
         # 2️⃣  call the endpoint under test
