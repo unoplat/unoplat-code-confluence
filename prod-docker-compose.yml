@@ -134,11 +134,11 @@ services:
       - NEO4J_USERNAME=neo4j
       - NEO4J_PASSWORD=password
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
-      - SCANNER_JAR_PATH=/root/assets/scanner_cli-2.3.0-all.jar
       - DB_HOST=postgresql
       - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
       - TEMPORAL_DEBUG=false
       - LOG_LEVEL=DEBUG
+      - REPOSITORIES_BASE_PATH=/root/.unoplat/repositories
     image: ghcr.io/unoplat/code-confluence-flow-bridge:0.39.2
     depends_on:
       temporal:
@@ -147,6 +147,8 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    volumes:
+      - ${HOME}/.unoplat:/root/.unoplat
     networks:
       - temporal-network
     stdin_open: true
