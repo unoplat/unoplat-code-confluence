@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.5...unoplat-code-confluence-commons-v0.19.0) (2025-07-01)
+
+
+### Features
+
+* **graph_models:** Update CodeConfluenceGitRepository model ([1e396b8](https://github.com/unoplat/unoplat-code-confluence/commit/1e396b8847ee60c2278dd44527a6e6fdaafdb6d2))
+* **graph_models:** Update CodeConfluenceGitRepository model ([62a39e3](https://github.com/unoplat/unoplat-code-confluence/commit/62a39e3dc15772c0822daf4d29e97559ae9707da))
+
 ## [0.18.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.4...unoplat-code-confluence-commons-v0.18.5) (2025-06-26)
 
 
