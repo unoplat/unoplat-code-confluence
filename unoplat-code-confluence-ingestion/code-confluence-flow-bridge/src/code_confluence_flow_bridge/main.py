@@ -1397,14 +1397,14 @@ async def refresh_repository(
         
         # 5. Detect codebases using correct pattern
         detector: PythonCodebaseDetector = PythonCodebaseDetector(github_token=github_token)
-        
+        detected_codebases: List[CodebaseConfig]
         try:
             if is_local:
                 # Use actual local path for detection
-                detected_codebases: List[CodebaseConfig] = detector.detect_codebases(actual_local_path)
+                detected_codebases = detector.detect_codebases(actual_local_path) #type: ignore
             else:
                 # Use GitHub URL for detection
-                detected_codebases: List[CodebaseConfig] = detector.detect_codebases(repository_url)
+                detected_codebases = detector.detect_codebases(repository_url)
             
             request_logger.info(f"Detected {len(detected_codebases)} codebases for {repository_owner_name}/{repository_name}")
         except Exception as e:
