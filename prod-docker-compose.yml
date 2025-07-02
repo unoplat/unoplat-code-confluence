@@ -139,7 +139,7 @@ services:
       - TEMPORAL_DEBUG=false
       - LOG_LEVEL=DEBUG
       - REPOSITORIES_BASE_PATH=/root/.unoplat/repositories
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.39.2
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.40.0
     depends_on:
       temporal:
         condition: service_healthy
@@ -154,7 +154,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.24.3
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.25.0
     environment:
       - VITE_API_BASE_URL=http://code-confluence-flow-bridge:8000
       - VITE_WORKFLOW_ORCHESTRATOR_URL=http://temporal-ui:8080
