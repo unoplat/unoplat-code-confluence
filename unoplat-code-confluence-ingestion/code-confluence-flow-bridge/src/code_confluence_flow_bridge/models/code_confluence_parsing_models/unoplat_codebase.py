@@ -1,11 +1,15 @@
 """Codebase model for representing a single codebase within a repository."""
 
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package import (
+    UnoplatPackage,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+    UnoplatPackageManagerMetadata,
+)
+
 from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
-
-from .unoplat_package import UnoplatPackage
-from .unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
 
 
 class UnoplatCodebase(BaseModel):

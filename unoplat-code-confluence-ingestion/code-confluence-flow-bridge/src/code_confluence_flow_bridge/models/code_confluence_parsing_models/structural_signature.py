@@ -1,12 +1,18 @@
 """Structural signature model."""
 
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.class_info import (
+    ClassInfo,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import (
+    FunctionInfo,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import (
+    VariableInfo,
+)
+
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.class_info import ClassInfo
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import FunctionInfo
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import VariableInfo
 
 
 class StructuralSignature(BaseModel):

@@ -48,8 +48,8 @@ export const getStatusVariant = (status: JobStatus): 'completed' | 'failed' | 'p
   }
 };
 
-export function getSubmittedJobsDataTableColumns({ setRowAction }: { setRowAction: React.Dispatch<React.SetStateAction<{ row: import('@tanstack/react-table').Row<ParentWorkflowJobResponse>; variant: string } | null>> }): ColumnDef<ParentWorkflowJobResponse>[] {
-  return [
+// Static column definitions - defined once outside component scope
+export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
     {
       accessorKey: 'repository_name',
       header: ({ column }): React.ReactNode => (
@@ -181,7 +181,7 @@ export function getSubmittedJobsDataTableColumns({ setRowAction }: { setRowActio
       header: ({ column }): React.ReactNode => (
         <DataTableColumnHeader column={column} title="Actions" />
       ),
-      cell: ({ row }): React.ReactNode => (
+      cell: ({ row, table }): React.ReactNode => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -201,7 +201,12 @@ export function getSubmittedJobsDataTableColumns({ setRowAction }: { setRowActio
           >
             <DropdownMenuItem
               className="capitalize"
-              onSelect={() => setRowAction({ row, variant: 'view' })}
+              onSelect={() => {
+                const handleRowAction = table.options.meta?.handleRowAction;
+                if (handleRowAction) {
+                  handleRowAction({ row, variant: 'view' });
+                }
+              }}
             >
               View Details
             </DropdownMenuItem>
@@ -213,4 +218,3 @@ export function getSubmittedJobsDataTableColumns({ setRowAction }: { setRowActio
       size: 40,
     },
   ];
-}

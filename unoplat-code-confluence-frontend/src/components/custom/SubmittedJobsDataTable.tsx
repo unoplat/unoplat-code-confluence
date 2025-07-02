@@ -2,10 +2,11 @@
 "use client";
 
 // Import necessary React hooks.
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 // Import useQuery from TanStack Query.
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import React from "react";
+import type { Row } from '@tanstack/react-table';
 
 // Import the Dice UI DataTable component which is built on TanStack Table.
 import { DataTable } from '../data-table';
@@ -19,7 +20,7 @@ import {
   ColumnFiltersState
 } from "@tanstack/react-table";
 // Import the column definitions for this repository table.
-import { getSubmittedJobsDataTableColumns } from "./submitted-jobs-data-table-columns";
+import { submittedJobsColumns } from "./submitted-jobs-data-table-columns";
 
 // Import the API function to fetch repository data along with type definitions.
 import type { ParentWorkflowJobResponse } from "../../types";
@@ -30,8 +31,8 @@ import { JobStatusDialog } from "./JobStatusDialog";
 
 
 
-interface RowAction<T> {
-  row: import('@tanstack/react-table').Row<T>;
+interface RowAction {
+  row: Row<ParentWorkflowJobResponse>;
   variant: string;
 }
 
@@ -51,32 +52,41 @@ const fetchParentWorkflowJobs = async (): Promise<ParentWorkflowJobResponse[]> =
 // Main component implementation
 export function SubmittedJobsDataTable(): React.ReactElement {
   // 1️⃣ Track the current row action in state
-  const [rowAction, setRowAction] = useState<RowAction<ParentWorkflowJobResponse> | null>(null);
+  const [rowAction, setRowAction] = useState<RowAction | null>(null);
   
   // 2️⃣ Track filter state
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   
   // 3️⃣ Fetch parent workflow jobs data
   const {
-    data: jobs = [],
-    isFetching,
+    data: jobs,
+    isInitialLoading,
   } = useQuery({
     queryKey: ['parentWorkflowJobs'],
     queryFn: fetchParentWorkflowJobs,
     staleTime: 1000 * 60 * 1, // 1 minute
     refetchInterval: 1000 * 5, // Refetch every 5 seconds for active jobs
+    refetchOnMount: 'always',
+    placeholderData: keepPreviousData,
+    initialData: [],
+    // Prevent re-renders during background fetches
+    notifyOnChangeProps: ['data', 'error'],
+    refetchIntervalInBackground: true,
   });
   
   
-  // 4️⃣ Build columns with the row action setter
-  const columns = useMemo(() => {
-    return getSubmittedJobsDataTableColumns({ setRowAction });
+  // 4️⃣ Create stable handleRowAction callback
+  const handleRowAction = useCallback((action: RowAction) => {
+    setRowAction(action);
   }, []);
   
   // 5️⃣ Initialize TanStack Table with client-side pagination
   const table = useReactTable({
     data: jobs,
-    columns,
+    columns: submittedJobsColumns,
+    meta: {
+      handleRowAction,
+    },
     state: {
       columnFilters,
     },
@@ -117,13 +127,13 @@ export function SubmittedJobsDataTable(): React.ReactElement {
     }
   };
   
-  // 4️⃣ Render DataTable with toolbar
+  // 6️⃣ Render DataTable with toolbar
   return (
     <div className="w-full max-w-7xl mx-auto px-4">
       <DataTable
         table={table}
         actionBar={null}
-        isLoading={isFetching}
+        isLoading={isInitialLoading}
       >
         <DataTableToolbar table={table} />
       </DataTable>

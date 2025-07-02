@@ -1,13 +1,15 @@
-from __future__ import annotations
-
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
     activity_name_var,
     workflow_id_var,
     workflow_run_id_var,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
+    CodeConfluenceGraph,
+)
 
 import traceback
 from typing import Dict, Set, Union
@@ -17,7 +19,9 @@ from temporalio.exceptions import ApplicationError
 from unoplat_code_confluence_commons.graph_models.code_confluence_file import (
     CodeConfluenceFile,
 )
-from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import CodeConfluenceGitRepository
+from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
+    CodeConfluenceGitRepository,
+)
 from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
     CodeConfluencePackage,
 )
@@ -29,16 +33,9 @@ class CodeConfluenceGraphDeletion:
     """
     
     def __init__(self, code_confluence_env: EnvironmentSettings):
+        # Reuse the singleton global connection
         self.code_confluence_graph = CodeConfluenceGraph(code_confluence_env=code_confluence_env)
-    
-    async def initialize(self) -> None:
-        """Initialize graph connection"""
-        await self.code_confluence_graph.connect()
-        logger.info("Graph deletion service initialized")
-    
-    async def close(self) -> None:
-        """Close graph connection"""
-        await self.code_confluence_graph.close()
+        # No longer need to initialize or close - global connection is managed at application level
     
     async def _delete_package_recursive(
         self,

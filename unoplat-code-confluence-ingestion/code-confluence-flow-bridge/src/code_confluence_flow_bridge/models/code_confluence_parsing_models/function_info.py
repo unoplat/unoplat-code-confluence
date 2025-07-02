@@ -1,11 +1,11 @@
 """Function information model."""
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from typing import Self
+    pass
 
 
 class FunctionInfo(BaseModel):

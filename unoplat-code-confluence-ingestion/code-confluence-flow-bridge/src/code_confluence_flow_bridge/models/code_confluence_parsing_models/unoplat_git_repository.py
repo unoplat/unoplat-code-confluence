@@ -1,10 +1,12 @@
 """Git repository model for representing the top-level Git repository."""
 
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
+    UnoplatCodebase,
+)
+
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
-
-from .unoplat_codebase import UnoplatCodebase
 
 
 class UnoplatGitRepository(BaseModel):

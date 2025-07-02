@@ -5,16 +5,21 @@ This module provides a language-neutral parser that uses TreeSitterStructuralSig
 for AST analysis and ingests results into Neo4j using neomodel operations.
 """
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import UnoplatFile
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
+    UnoplatFile,
+)
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
     ProgrammingLanguageMetadata,
 )
-from src.code_confluence_flow_bridge.parser.language_configs import LanguageConfig, get_config
+from src.code_confluence_flow_bridge.parser.language_configs import (
+    LanguageConfig,
+    get_config,
+)
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
     TreeSitterStructuralSignatureExtractor,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.graph_context import graph_ingestion_ctx
+# No longer need graph_context - using neomodel operations directly with global connection
 
 import asyncio
 import hashlib
@@ -22,14 +27,25 @@ from pathlib import Path
 from typing import AsyncGenerator, Dict, List, Optional, Set
 
 from loguru import logger
-from neomodel import AsyncRelationshipTo, AsyncZeroOrMore  # imported lazily to avoid circular deps
-from neomodel.exceptions import UniqueProperty
-from unoplat_code_confluence_commons.graph_models.base_models import ContainsRelationship
+
+from neomodel import (  # type: ignore  # imported lazily to avoid circular deps
+    AsyncRelationshipTo,
+    AsyncZeroOrMore,
+)
+from neomodel.exceptions import UniqueProperty  # type: ignore
+from unoplat_code_confluence_commons.graph_models.base_models import (
+    ContainsRelationship,
+)
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
     CodeConfluenceCodebase,
 )
-from unoplat_code_confluence_commons.graph_models.code_confluence_file import CodeConfluenceFile
-from unoplat_code_confluence_commons.graph_models.code_confluence_package import CodeConfluencePackage
+from unoplat_code_confluence_commons.graph_models.code_confluence_file import (
+    CodeConfluenceFile,
+)
+from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
+    CodeConfluencePackage,
+)
+from src.code_confluence_flow_bridge.processor.db.graph_db.txn_context import managed_tx  # local import to avoid top-level heavy dep
 
 
 class GenericCodebaseParser:
@@ -174,7 +190,7 @@ class GenericCodebaseParser:
             # create_or_update returns a list
             results = await node_class.create_or_update(node_dict)
             return results[0] if results else None
-        except UniqueProperty as e:
+        except UniqueProperty:
             # Node exists, retrieve it
             logger.info(f"Node already exists: {node_class.__name__} with qualified_name={node_dict.get('qualified_name')}. Retrieving existing node.")
             
@@ -388,7 +404,7 @@ class GenericCodebaseParser:
             package_names: List of package qualified names to create
         """
         try:
-            # No nested transaction - the caller should manage the transaction
+            # All operations run within the parent transaction context
             for package_name in package_names:
                 # Extract simple name using pathlib
                 simple_name = Path(package_name).name
@@ -500,7 +516,7 @@ class GenericCodebaseParser:
             package_files: Map of package name to files for determining package relationships
         """
         try:
-            # Reuse ambient transaction if present; otherwise operations will execute auto-commit.
+            # All operations run within the parent transaction context
             for unoplat_file in file_data_list:
                 # Create file node using helper method
                 file_dict = {
@@ -565,8 +581,8 @@ class GenericCodebaseParser:
 
     async def process_and_insert_codebase(self) -> None:
         """
-        Main processing method with fresh Neo4j connection.
-        Each call gets its own Neo4j session to avoid transaction conflicts.
+        Main processing method with explicit transaction management.
+        Uses a single transaction for all Neo4j operations to prevent concurrent access conflicts.
         """
         try:
             self._initialize_components()
@@ -580,10 +596,10 @@ class GenericCodebaseParser:
                 logger.warning(f"No source files found in {self.codebase_path}")
                 return
             
-            # Use fresh Neo4j session for all database operations
-            async with graph_ingestion_ctx(self.config) as graph:
-                # We don't actually need the graph object here since we're using
-                # neomodel operations directly, but we need the connection initialized
+            # Wrap all Neo4j operations in a single explicit transaction
+            # This prevents concurrent auto-commit conflicts on the shared connection
+            async with managed_tx():
+                logger.debug("Started explicit Neo4j transaction for codebase processing")
                 
                 # 2. Create all packages
                 await self.create_packages(list(package_files.keys()))
@@ -597,6 +613,8 @@ class GenericCodebaseParser:
 
                 # 4. Process and insert files
                 await self.process_files(package_files)
+                
+                logger.debug("Completed all Neo4j operations within transaction")
             
             logger.info(
                 f"Completed codebase processing: {self.files_processed} files, "

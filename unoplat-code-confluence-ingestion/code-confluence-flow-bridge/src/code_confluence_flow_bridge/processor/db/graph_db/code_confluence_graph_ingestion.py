@@ -1,10 +1,21 @@
-from src.code_confluence_flow_bridge.logging.trace_utils import activity_id_var, activity_name_var, workflow_id_var, workflow_run_id_var
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import UnoplatGitRepository
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    activity_id_var,
+    activity_name_var,
+    workflow_id_var,
+    workflow_run_id_var,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+    UnoplatGitRepository,
+)
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
     UnoplatPackageManagerMetadata,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
-from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import ParentChildCloneMetadata
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
+from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import (
+    ParentChildCloneMetadata,
+)
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
     CodeConfluenceGraph,
 )
@@ -17,27 +28,19 @@ from temporalio.exceptions import ApplicationError
 from unoplat_code_confluence_commons import (
     CodeConfluencePackageManagerMetadata,
 )
-from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
-from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import CodeConfluenceGitRepository
+from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
+    CodeConfluenceCodebase,
+)
+from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
+    CodeConfluenceGitRepository,
+)
 
 
 class CodeConfluenceGraphIngestion:
     def __init__(self, code_confluence_env: EnvironmentSettings):
+        # Reuse the singleton global connection
         self.code_confluence_graph = CodeConfluenceGraph(code_confluence_env=code_confluence_env)
-
-    async def initialize(self) -> None:
-        """Initialize graph connection and schema"""
-        try:
-            await self.code_confluence_graph.connect()
-            await self.code_confluence_graph.create_schema()
-            logger.info("Graph initialization complete")
-        except Exception as e:
-            logger.error(f"Failed to initialize graph: {str(e)}")
-            raise
-
-    async def close(self) -> None:
-        """Close graph connection"""
-        await self.code_confluence_graph.close()
+        # No longer need to initialize or close - global connection is managed at application level
 
     def _get_node_identifier(self, node) -> str:
         """
@@ -127,13 +130,15 @@ class CodeConfluenceGraphIngestion:
             List of created/updated nodes, or empty list if failed
         """
         try:
+            # Use create_or_update for single node upsert behavior  
             results = await node_class.create_or_update(node_dict)
             return results if results else []
         except UniqueProperty as e:
             logger.info(
-                "Node already exists with unique property: {} for {}. Proceeding gracefully.",
+                "Node already exists with unique property: {} for {}. properties={} Proceeding gracefully.",
                 str(e),
-                node_class.__name__
+                node_class.__name__,
+                node_dict,
             )
             # Try to retrieve the existing node by unique properties
             try:
@@ -165,10 +170,13 @@ class CodeConfluenceGraphIngestion:
             )
             return []
         except Exception as e:
-            logger.warning(
-                "Unexpected error creating {} node: {}. Proceeding gracefully.",
+            tb_str = traceback.format_exc()
+            logger.error(
+                "Unexpected error creating {} node with properties={} : {}. Proceeding gracefully.\nTraceback:\n{}",
                 node_class.__name__,
-                str(e)
+                node_dict,
+                str(e),
+                tb_str,
             )
             return []
 
@@ -193,6 +201,9 @@ class CodeConfluenceGraphIngestion:
                 # Create repository node
                 repo_dict = {"qualified_name": qualified_name, "repository_url": git_repo.repository_url, "repository_name": git_repo.repository_name, "repository_metadata": git_repo.repository_metadata, "readme": git_repo.readme, "github_organization": git_repo.github_organization}
 
+                # 🔍 Add verbose logging to aid debugging CI-only failures
+                logger.debug("Attempting to create CodeConfluenceGitRepository with properties: {}", repo_dict)
+
                 repo_results = await self._handle_node_creation(CodeConfluenceGitRepository, repo_dict)
                 if not repo_results:
                     raise ApplicationError(
@@ -215,6 +226,7 @@ class CodeConfluenceGraphIngestion:
                     codebase_dict = {"qualified_name": codebase_qualified_name, "name": codebase.name, "readme": codebase.readme, "root_packages": codebase.root_packages, "codebase_path": codebase.codebase_path}
                     parent_child_clone_metadata.codebase_qualified_names.append(codebase_qualified_name)
 
+                    logger.debug("Attempting to create CodeConfluenceCodebase with properties: {}", codebase_dict)
                     codebase_results = await self._handle_node_creation(CodeConfluenceCodebase, codebase_dict)
                     if not codebase_results:
                         raise ApplicationError(
@@ -260,13 +272,17 @@ class CodeConfluenceGraphIngestion:
 
     async def insert_code_confluence_codebase_package_manager_metadata(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
         """
-        Insert codebase package manager metadata into the graph database
+        Insert codebase package manager metadata into the graph database.
+        
+        Note: This method runs within the transaction context provided by the caller.
+        Do not create nested transactions as Neo4j does not support them.
 
         Args:
             codebase_qualified_name: Qualified name of the codebase
             package_manager_metadata: UnoplatPackageManagerMetadata containing package manager metadata
         """
         try:
+            # All operations run within the caller's transaction context
             # Use get() instead of filter() for unique index
             try:
                 codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)

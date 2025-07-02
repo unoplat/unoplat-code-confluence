@@ -1,6 +1,10 @@
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+    UnoplatPackageManagerMetadata,
+)
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    ProgrammingLanguageMetadata,
+)
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_factory import (
     PackageManagerStrategyFactory,
     UnsupportedPackageManagerError,

@@ -12,6 +12,8 @@ class Repository(SQLModel, table=True):
 
     repository_name: str = Field(primary_key=True, description="The name of the repository")
     repository_owner_name: str = Field(primary_key=True, description="The name of the repository owner")
+    is_local: bool = Field(default=False, description="Whether this is a local repository")
+    local_path: Optional[str] = Field(default=None, description="Local filesystem path for local repositories")
     
     # Relationships - will be populated after class definitions
     workflow_runs: List["RepositoryWorkflowRun"] = Relationship(
@@ -70,7 +72,6 @@ class CodebaseConfig(SQLModel, table=True):
         sa_relationship_kwargs={
             "viewonly": True,
             "overlaps": "repository_workflow_run,workflow_runs",
-            "passive_deletes": True,
         },
     )
 

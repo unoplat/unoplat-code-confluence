@@ -1,8 +1,19 @@
-from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-from src.code_confluence_flow_bridge.models.github.github_repo import ErrorReport, JobStatus
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import CodebaseWorkflowDbActivityEnvelope
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    seed_and_bind_logger_from_trace_id,
+)
+from src.code_confluence_flow_bridge.models.github.github_repo import (
+    ErrorReport,
+    JobStatus,
+)
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+    CodebaseWorkflowDbActivityEnvelope,
+)
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import CodebaseConfig, CodebaseWorkflowRun, RepositoryWorkflowRun
+from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import (
+    CodebaseConfig,
+    CodebaseWorkflowRun,
+    RepositoryWorkflowRun,
+)
 
 from datetime import datetime, timezone
 from typing import Optional

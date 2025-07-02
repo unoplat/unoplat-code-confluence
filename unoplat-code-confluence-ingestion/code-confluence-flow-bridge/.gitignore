@@ -235,3 +235,21 @@ test_local.py
 # Local override compose files
 docker-compose.override.yml
 docker-compose.local.yml
+
+# Logs
+logs
+dev-debug.log
+# Dependency directories
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+# tasks.json
+# tasks/ 

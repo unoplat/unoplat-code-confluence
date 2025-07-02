@@ -27,7 +27,7 @@ import { ModeToggle } from './ModeToggle'
  * 4. Initializes authentication state on application load.
  *
  * Navigation Flow:
- * - Clicking "GitHub Onboarding" (to "/onboarding") and "Ingestion Dashboard"
+ * - Clicking "Onboarding" (to "/onboarding") and "Ingestion Dashboard"
  *   (to "/dashboard") renders components from `_app.onboarding.tsx` and `_app.dashboard.tsx`
  *   respectively in the <Outlet />.
  * 

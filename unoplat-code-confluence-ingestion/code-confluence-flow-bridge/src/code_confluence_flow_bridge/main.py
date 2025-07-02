@@ -1,6 +1,12 @@
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
-from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings, ProgrammingLanguageMetadata
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    build_trace_id,
+    trace_id_var,
+)
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+    ProgrammingLanguageMetadata,
+)
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseConfig,
     CodebaseStatus,
@@ -24,37 +30,87 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     WorkflowRun,
     WorkflowStatus,
 )
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import RepoWorkflowRunEnvelope
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.async_detector_wrapper import AsyncDetectorWrapper
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.codebase_auto_detector import PythonCodebaseDetector
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+    RepoWorkflowRunEnvelope,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.async_detector_wrapper import (
+    AsyncDetectorWrapper,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.codebase_auto_detector import (
+    PythonCodebaseDetector,
+)
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import (
     DetectionProgress,
     DetectionResult,
     DetectionState,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import SSEMessage
-from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import ActivityStatusInterceptor
-from src.code_confluence_flow_bridge.processor.codebase_child_workflow import CodebaseChildWorkflow
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_deletion import CodeConfluenceGraphDeletion
-from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import ChildWorkflowDbActivity
-from src.code_confluence_flow_bridge.processor.db.postgres.credentials import Credentials
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import (
+    SSEMessage,
+)
+from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
+    ActivityStatusInterceptor,
+)
+from src.code_confluence_flow_bridge.processor.codebase_child_workflow import (
+    CodebaseChildWorkflow,
+)
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
+    CodeConfluenceGraph,
+)
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_deletion import (
+    CodeConfluenceGraphDeletion,
+)
+from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
+    ChildWorkflowDbActivity,
+)
+from src.code_confluence_flow_bridge.processor.db.postgres.credentials import (
+    Credentials,
+)
 from src.code_confluence_flow_bridge.processor.db.postgres.db import (
     async_engine,  # local import to avoid cycles
     create_db_and_tables,
     get_session,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
-from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import ParentWorkflowDbActivity
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import CodebaseWorkflowRun, Repository, RepositoryWorkflowRun
-from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import process_codebase_generic
-from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import GitActivity
-from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import ConfluenceGitGraph
-from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import PackageMetadataActivity
-from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import PackageManagerMetadataIngestion
-from src.code_confluence_flow_bridge.processor.parent_workflow_interceptor import ParentWorkflowStatusInterceptor
+from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
+    ParentWorkflowDbActivity,
+)
+from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import (
+    CodebaseWorkflowRun,
+    Repository,
+    RepositoryWorkflowRun,
+)
+from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import (
+    process_codebase_generic,
+)
+from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import (
+    GitActivity,
+)
+from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import (
+    ConfluenceGitGraph,
+)
+from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import (
+    PackageMetadataActivity,
+)
+from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import (
+    PackageManagerMetadataIngestion,
+)
+from src.code_confluence_flow_bridge.processor.parent_workflow_interceptor import (
+    ParentWorkflowStatusInterceptor,
+)
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 from src.code_confluence_flow_bridge.utility.deps import trace_dependency
-from src.code_confluence_flow_bridge.utility.password_utils import decrypt_token, encrypt_token
+from src.code_confluence_flow_bridge.utility.environment_utils import (
+    construct_local_repository_path,
+    get_runtime_environment,
+    validate_local_repository_path,
+)
+from src.code_confluence_flow_bridge.utility.git_remote_utils import (
+    extract_github_organization_from_local_repo,
+)
+from src.code_confluence_flow_bridge.utility.password_utils import (
+    decrypt_token,
+    encrypt_token,
+)
 
 import os
 import asyncio
@@ -62,7 +118,17 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 import traceback
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
+from typing import (
+    Any,
+    AsyncGenerator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    cast,
+)
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
@@ -72,17 +138,15 @@ from github import Github
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 import httpx
-from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import QueryableAttribute, selectinload
-from sqlalchemy.orm.attributes import QueryableAttribute
 from sqlmodel import select
 from temporalio.client import Client, WorkflowHandle
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.exceptions import ApplicationError
 from temporalio.worker import PollerBehaviorAutoscaling, Worker
 
-# Setup logging
+# Setup logging - override imported logger with configured one
 logger = setup_logging(service_name="code-confluence-flow-bridge", app_name="unoplat-code-confluence")
 
 
@@ -386,10 +450,16 @@ async def generate_sse_events(
 async def lifespan(app: FastAPI):
     app.state.code_confluence_env = EnvironmentSettings()
     app.state.temporal_client = await get_temporal_client()
-    # Note: Removed shared CodeConfluenceGraphIngestion to avoid async context issues
-    # Each activity that needs Neo4j will create its own instance
+    
+    # Initialize Neo4j connection and schema once during application startup
+    app.state.code_confluence_graph = CodeConfluenceGraph(code_confluence_env=app.state.code_confluence_env)
+    await app.state.code_confluence_graph.connect()
+    await app.state.code_confluence_graph.create_schema()
+    logger.info("Neo4j connection and schema initialized successfully")
+    
+    # Initialize graph deletion service (reuses the global connection)
     app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(code_confluence_env=app.state.code_confluence_env)
-    await app.state.code_confluence_graph_deletion.initialize()
+    # Note: Don't call initialize() on deletion service since global connection is already established
 
     # Calculate thread pool size based on Temporal best practice: one thread per activity slot plus a buffer
     # This ensures we have enough threads to handle all concurrent activities plus overhead
@@ -463,8 +533,9 @@ async def lifespan(app: FastAPI):
         
         # 4. Close Neo4j connections
         try:
-            await app.state.code_confluence_graph_deletion.close()
-            logger.info("Neo4j connections closed")
+            # Close the main graph connection first (this closes the global connection)
+            await app.state.code_confluence_graph.close()
+            logger.info("Neo4j global connection closed")
         except Exception as e:
             logger.error(f"Error closing Neo4j connections: {e}")
         
@@ -765,10 +836,35 @@ async def ingestion(
     Returns the workflow_id and run_id.
     Also ingests the repository configuration into the database.
     """
-    # Fetch GitHub token from database using helper function
-    github_token = await fetch_github_token_from_db(session)
+    # Handle local repository path construction based on environment
+    if repo_request.is_local and repo_request.local_path:
+        # For local repositories, construct the full path based on runtime environment
+        # local_path contains just the folder name (e.g., "dspy")
+        folder_name = repo_request.local_path
+        actual_path = construct_local_repository_path(folder_name)
+        # Update the local_path field with the constructed full path
+        repo_request.local_path = actual_path
+        request_logger.info(f"Local repository ingestion - folder: {folder_name}, resolved path: {actual_path}, environment: {get_runtime_environment()}")
+        
+        # Extract actual GitHub organization from git remote origin for consistent qualified name generation
+        # This ensures PostgreSQL and Neo4j use the same organization name instead of "local"
+        original_owner = repo_request.repository_owner_name
+        github_organization = extract_github_organization_from_local_repo(actual_path, original_owner)
+        repo_request.repository_owner_name = github_organization
+        request_logger.info(f"Local repository GitHub organization - original: {original_owner}, extracted: {github_organization}")
+        
+        # Rebuild trace_id with the updated organization to ensure workflow ID consistency
+        updated_trace_id = build_trace_id(repo_request.repository_name, github_organization)
+        trace_id_var.set(updated_trace_id)
+        request_logger.info(f"Updated trace_id for workflow consistency - new: {updated_trace_id}")
+    
+    # Fetch GitHub token from database for remote repositories (not needed for local)
+    if not repo_request.is_local:
+        github_token = await fetch_github_token_from_db(session)
+    else:
+        github_token = ""
 
-    # Fetch the trace-id that `trace_dependency` already set
+    # Fetch the trace-id (now potentially updated for local repos)
     trace_id = trace_id_var.get()
     if not trace_id:
         raise HTTPException(500, "trace_id not set by dependency")
@@ -1113,7 +1209,9 @@ async def get_ingested_repositories(session: AsyncSession = Depends(get_session)
         repo_list = [
             IngestedRepositoryResponse(
                 repository_name=repo.repository_name,
-                repository_owner_name=repo.repository_owner_name
+                repository_owner_name=repo.repository_owner_name,
+                is_local=repo.is_local,
+                local_path=repo.local_path
             ) for repo in repositories
         ]
         
@@ -1234,11 +1332,26 @@ async def refresh_repository(
     repository_owner_name: str = repo_info.repository_owner_name
     
     try:
-        # 1. Delete from Neo4j (reuse existing pattern from delete-repository)
+        # 1. Get repository info from database to determine if it's local or remote
+        db_repo: Repository | None = await session.get(
+            Repository,
+            (repository_name, repository_owner_name)
+        )
+        if not db_repo:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Repository not found in database: {repository_name}/{repository_owner_name}"
+            )
+        
+        # Use database values for local repository information
+        is_local = db_repo.is_local
+        local_path = db_repo.local_path
+        
+        # 2. Delete from Neo4j (reuse existing pattern from delete-repository)
         qualified_name: str = f"{repository_owner_name}_{repository_name}"
         
         try:
-            neo4j_stats: Dict[str, Union[int, str]] = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name(
+            await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name(
                 qualified_name=qualified_name
             )
             request_logger.info(f"Deleted repository from Neo4j: {qualified_name}")
@@ -1249,29 +1362,66 @@ async def refresh_repository(
             else:
                 raise HTTPException(status_code=500, detail=f"Neo4j deletion failed: {str(neo4j_error)}")
         
-        # 2. Fetch GitHub token
-        github_token: str = await fetch_github_token_from_db(session)
+        # 3. Fetch GitHub token only for remote repositories
+        github_token: str = ""
+        if not is_local:
+            github_token = await fetch_github_token_from_db(session)
         
-        # 3. Detect codebases using correct pattern
+        # 4. Handle repository path/URL based on type
+        if is_local:
+            if not local_path:
+                raise HTTPException(status_code=400, detail="local_path required for local repositories")
+            
+            # Check if local_path is already absolute or just a folder name
+            if os.path.isabs(local_path):
+                # Already absolute path, use directly
+                actual_local_path = local_path
+                # For validation, extract just the folder name from the absolute path
+                folder_name_for_validation = os.path.basename(local_path)
+            else:
+                # Just folder name, construct full path using environment utils
+                actual_local_path = construct_local_repository_path(local_path)
+                folder_name_for_validation = local_path
+            
+            # Validate local repository exists
+            is_valid, validated_path = validate_local_repository_path(folder_name_for_validation)
+            if not is_valid:
+                raise HTTPException(status_code=404, detail=f"Local repository not found: {validated_path}")
+            
+            repository_url = f"file://{actual_local_path}"
+            request_logger.info(f"Refreshing local repository: {actual_local_path}")
+        else:
+            repository_url = f"https://github.com/{repository_owner_name}/{repository_name}"
+            actual_local_path = None
+            request_logger.info(f"Refreshing GitHub repository: {repository_url}")
+        
+        # 5. Detect codebases using correct pattern
         detector: PythonCodebaseDetector = PythonCodebaseDetector(github_token=github_token)
-        git_url: str = f"https://github.com/{repository_owner_name}/{repository_name}"
-        
+        detected_codebases: List[CodebaseConfig]
         try:
-            detected_codebases: List[CodebaseConfig] = detector.detect_codebases(git_url)
+            if is_local:
+                # Use actual local path for detection
+                detected_codebases = detector.detect_codebases(actual_local_path) #type: ignore
+            else:
+                # Use GitHub URL for detection
+                detected_codebases = detector.detect_codebases(repository_url)
+            
             request_logger.info(f"Detected {len(detected_codebases)} codebases for {repository_owner_name}/{repository_name}")
         except Exception as e:
             request_logger.error(f"Codebase detection failed: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Failed to detect codebases: {str(e)}")
         
-        # 4. Build repository request configuration
+        # 6. Build repository request configuration with local support
         repo_request: GitHubRepoRequestConfiguration = GitHubRepoRequestConfiguration(
             repository_name=repository_name,
             repository_owner_name=repository_owner_name,
-            repository_git_url=git_url,
-            repository_metadata=detected_codebases
+            repository_git_url=repository_url,
+            repository_metadata=detected_codebases,
+            is_local=is_local,
+            local_path=actual_local_path if is_local else None
         )
         
-        # 5. Start Temporal workflow
+        # 7. Start Temporal workflow
         trace_id: Optional[str] = trace_id_var.get()
         if not trace_id:
             raise HTTPException(500, "trace_id not set by dependency")
@@ -1284,7 +1434,7 @@ async def refresh_repository(
             trace_id=trace_id
         )
         
-        # 6. Schedule background monitoring
+        # 8. Schedule background monitoring
         asyncio.create_task(monitor_workflow(workflow_handle))
         
         request_logger.info(
@@ -1349,32 +1499,45 @@ async def get_user_details(session: AsyncSession = Depends(get_session)) -> Dict
 
 @app.get("/detect-codebases-sse")
 async def detect_codebases_sse(
-    git_url: str = Query(..., description="GitHub repository URL to analyze"),
+    git_url: str = Query(..., description="GitHub repository URL or folder name for local repository"),
+    is_local: bool = Query(False, description="Whether this is a local repository"),
     session: AsyncSession = Depends(get_session)
 ):
     """
     Server-Sent Events endpoint for real-time codebase detection progress.
     
-    Streams progress updates during Python codebase auto-detection from GitHub repositories.
+    Streams progress updates during Python codebase auto-detection from GitHub repositories
+    or local Git repositories.
     Uses FastAPI's StreamingResponse with proper SSE formatting.
     
     Args:
-        git_url: GitHub repository URL to detect codebases from
+        git_url: GitHub repository URL or folder name for local repository
+        is_local: Whether this is a local repository
         session: Database session for token retrieval
         
     Returns:
         StreamingResponse with text/event-stream content type
     """
     
-    # Fetch GitHub token from database
-    github_token = await fetch_github_token_from_db(session)
+    # Construct appropriate path based on environment and repository type
+    if is_local:
+        # For local repositories, construct the full path based on runtime environment
+        # git_url contains just the folder name (e.g., "dspy")
+        actual_path = construct_local_repository_path(git_url)
+        github_token = ""
+        logger.info(f"Local repository detection - folder: {git_url}, resolved path: {actual_path}, environment: {get_runtime_environment()}")
+    else:
+        # For remote repositories, git_url is the actual GitHub URL
+        actual_path = git_url
+        github_token = await fetch_github_token_from_db(session)
+        logger.info(f"Remote repository detection - URL: {git_url}")
     
     # Create async detector wrapper using existing ThreadPoolExecutor
-    detector_wrapper = AsyncDetectorWrapper(app.state.activity_executor)
+    detector_wrapper = AsyncDetectorWrapper(app.state.activity_executor, is_local=is_local)
     
     # Generate SSE events using the helper function and return StreamingResponse
     return StreamingResponse(
-        generate_sse_events(git_url, github_token, detector_wrapper),
+        generate_sse_events(actual_path, github_token, detector_wrapper),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

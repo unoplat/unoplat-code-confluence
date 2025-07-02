@@ -1,14 +1,18 @@
 """Class information model."""
 
-from typing import List, Optional, TYPE_CHECKING
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import (
+    FunctionInfo,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import (
+    VariableInfo,
+)
+
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import BaseModel, Field
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import FunctionInfo
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import VariableInfo
-
 if TYPE_CHECKING:
-    from typing import Self
+    pass
 
 
 class ClassInfo(BaseModel):
