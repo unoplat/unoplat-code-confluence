@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.15.1...code-confluence-docs-v0.16.0) (2025-07-02)
+
+
+### Features
+
+* **docs:** enhance vision and roadmap documentation ([9c2fdc4](https://github.com/unoplat/unoplat-code-confluence/commit/9c2fdc4fabca73d267d1fc8dc306bbf0b0a75ebb))
+* **docs:** enhance vision and roadmap documentation ([73e398f](https://github.com/unoplat/unoplat-code-confluence/commit/73e398f763bbe5ad526e0f3838bcbea5bbacd111))
+
 ## [0.15.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.15.0...code-confluence-docs-v0.15.1) (2025-06-20)
 
 
