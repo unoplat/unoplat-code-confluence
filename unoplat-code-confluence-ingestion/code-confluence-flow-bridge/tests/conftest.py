@@ -16,13 +16,15 @@ from typing import Dict, Iterator
 
 # Third Party
 import docker
+from pydantic import SecretStr
 import pytest
+import pytest_asyncio
 import requests
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from loguru import logger
 from testcontainers.compose import DockerCompose
-
+from neomodel import adb
 # Local
 from src.code_confluence_flow_bridge.main import app
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
@@ -32,7 +34,7 @@ from tests.utils.db_cleanup import quick_cleanup
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
-COMPOSE_FILE = PROJECT_ROOT / "local-dependencies-only-docker-compose.yml"
+COMPOSE_FILE = PROJECT_ROOT / "docker-compose-dependencies-test.yml"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -58,13 +60,10 @@ class DockerComposeWithCleanup(DockerCompose):
     
     def cleanup_volumes(self):
         """Explicitly clean up named volumes from compose file."""
-        # Actual volume names as they appear in Docker
+        # Actual volume names as they appear in Docker for test compose
         volume_names = [
             "postgresql_data",
-            "elasticsearch_data", 
-            "signoz-clickhouse",     # Note: actual name, not compose key
-            "signoz-sqlite",         # Note: actual name, not compose key
-            "signoz-zookeeper-1"     # Note: actual name, not compose key
+            "elasticsearch_data"
         ]
         
         cleaned_count = 0
@@ -286,17 +285,17 @@ def github_token() -> str:
 # DATABASE CLIENT FIXTURES FOR CLEANUP
 # ──────────────────────────────────────────────────────────────────────────────
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def neo4j_client(service_ports: Dict[str, int]):
     """Session-scoped Neo4j client for database operations."""
-    from neomodel import adb
+    
     
     # Create environment settings from service ports
     env_settings = EnvironmentSettings(
-        neo4j_host="localhost",
-        neo4j_port=service_ports["neo4j"],
-        neo4j_username="neo4j",
-        neo4j_password="password"
+        NEO4J_HOST="localhost",
+        NEO4J_PORT=service_ports["neo4j"],
+        NEO4J_USERNAME="neo4j",
+        NEO4J_PASSWORD=SecretStr("password")
     )
     
     # Initialize and connect to Neo4j
@@ -309,7 +308,7 @@ async def neo4j_client(service_ports: Dict[str, int]):
     # Session cleanup handled by docker_compose fixture
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def postgres_session(service_ports: Dict[str, int]):
     """Session-scoped PostgreSQL session for database operations."""
     # Environment variables are already set by test_client fixture
@@ -319,26 +318,3 @@ async def postgres_session(service_ports: Dict[str, int]):
         # Session will be closed automatically
 
 
-@pytest.fixture(autouse=True)
-async def clean_databases(neo4j_client, postgres_session):
-    """
-    Function-scoped fixture that cleans databases before each test.
-    
-    This ensures test isolation by removing all data from both Neo4j and PostgreSQL
-    databases before each test runs. Uses the session-scoped database clients
-    to avoid connection overhead.
-    """
-    # Clean databases BEFORE each test
-    try:
-        cleanup_success = await quick_cleanup(neo4j_client, postgres_session)
-        if not cleanup_success:
-            logger.warning("Database cleanup failed - test may have stale data")
-    except Exception as e:
-        logger.error(f"Database cleanup error: {e}")
-        # Don't fail the test setup, but log the issue
-    
-    # Run the test
-    yield
-    
-    # Optional: Clean after test if needed for debugging
-    # await quick_cleanup(neo4j_client, postgres_session)

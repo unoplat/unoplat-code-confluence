@@ -72,7 +72,6 @@ class CodebaseConfig(SQLModel, table=True):
         sa_relationship_kwargs={
             "viewonly": True,
             "overlaps": "repository_workflow_run,workflow_runs",
-            "passive_deletes": True,
         },
     )
 

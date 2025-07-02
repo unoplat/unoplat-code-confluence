@@ -1,296 +1,417 @@
-# CLAUDE.md
+# Task Master AI - Claude Code Integration Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Essential Commands
 
-## Common Development Commands
-
-### Environment Setup
-```bash
-# Install dependencies (requires uv package manager)
-uv sync
-
-# Sync test dependencies
-uv sync --group test
-```
-
-### Running the Application
+### Core Workflow Commands
 
 ```bash
-# Start all required services and run in development mode
-task dev
+# Project Setup
+task-master init                                    # Initialize Task Master in current project
+task-master parse-prd .taskmaster/docs/prd.txt      # Generate tasks from PRD document
+task-master models --setup                        # Configure AI models interactively
 
-# Or start services individually:
-task start-temporal      # Start Temporal server (port 8080)
-task start-neo4j        # Start Neo4j graph database
-task start-dependencies # Start all dependencies via docker-compose
-task run-dev           # Run FastAPI in development mode
+# Daily Development Workflow
+task-master list                                   # Show all tasks with status
+task-master next                                   # Get next available task to work on
+task-master show <id>                             # View detailed task information (e.g., task-master show 1.2)
+task-master set-status --id=<id> --status=done    # Mark task complete
 
-# Run the CLI client to submit a job
-task run-client
+# Task Management
+task-master add-task --prompt="description" --research        # Add new task with AI assistance
+task-master expand --id=<id> --research --force              # Break task into subtasks
+task-master update-task --id=<id> --prompt="changes"         # Update specific task
+task-master update --from=<id> --prompt="changes"            # Update multiple tasks from ID onwards
+task-master update-subtask --id=<id> --prompt="notes"        # Add implementation notes to subtask
+
+# Analysis & Planning
+task-master analyze-complexity --research          # Analyze task complexity
+task-master complexity-report                      # View complexity analysis
+task-master expand --all --research               # Expand all eligible tasks
+
+# Dependencies & Organization
+task-master add-dependency --id=<id> --depends-on=<id>       # Add task dependency
+task-master move --from=<id> --to=<id>                       # Reorganize task hierarchy
+task-master validate-dependencies                            # Check for dependency issues
+task-master generate                                         # Update task markdown files (usually auto-called)
 ```
 
-### Testing
+## Key Files & Project Structure
+
+### Core Files
+
+- `.taskmaster/tasks/tasks.json` - Main task data file (auto-managed)
+- `.taskmaster/config.json` - AI model configuration (use `task-master models` to modify)
+- `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
+- `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
+- `.env` - API keys for CLI usage
+
+### Claude Code Integration Files
+
+- `CLAUDE.md` - Auto-loaded context for Claude Code (this file)
+- `.claude/settings.json` - Claude Code tool allowlist and preferences
+- `.claude/commands/` - Custom slash commands for repeated workflows
+- `.mcp.json` - MCP server configuration (project-specific)
+
+### Directory Structure
+
+```
+project/
+├── .taskmaster/
+│   ├── tasks/              # Task files directory
+│   │   ├── tasks.json      # Main task database
+│   │   ├── task-1.md      # Individual task files
+│   │   └── task-2.md
+│   ├── docs/              # Documentation directory
+│   │   ├── prd.txt        # Product requirements
+│   ├── reports/           # Analysis reports directory
+│   │   └── task-complexity-report.json
+│   ├── templates/         # Template files
+│   │   └── example_prd.txt  # Example PRD template
+│   └── config.json        # AI models & settings
+├── .claude/
+│   ├── settings.json      # Claude Code configuration
+│   └── commands/         # Custom slash commands
+├── .env                  # API keys
+├── .mcp.json            # MCP configuration
+└── CLAUDE.md            # This file - auto-loaded by Claude Code
+```
+
+## MCP Integration
+
+Task Master provides an MCP server that Claude Code can connect to. Configure in `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "task-master-ai": {
+      "command": "npx",
+      "args": ["-y", "--package=task-master-ai", "task-master-ai"],
+      "env": {
+        "ANTHROPIC_API_KEY": "your_key_here",
+        "PERPLEXITY_API_KEY": "your_key_here",
+        "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
+        "GOOGLE_API_KEY": "GOOGLE_API_KEY_HERE",
+        "XAI_API_KEY": "XAI_API_KEY_HERE",
+        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
+        "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
+        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
+        "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
+      }
+    }
+  }
+}
+```
+
+### Essential MCP Tools
+
+```javascript
+help; // = shows available taskmaster commands
+// Project setup
+initialize_project; // = task-master init
+parse_prd; // = task-master parse-prd
+
+// Daily workflow
+get_tasks; // = task-master list
+next_task; // = task-master next
+get_task; // = task-master show <id>
+set_task_status; // = task-master set-status
+
+// Task management
+add_task; // = task-master add-task
+expand_task; // = task-master expand
+update_task; // = task-master update-task
+update_subtask; // = task-master update-subtask
+update; // = task-master update
+
+// Analysis
+analyze_project_complexity; // = task-master analyze-complexity
+complexity_report; // = task-master complexity-report
+```
+
+## Claude Code Workflow Integration
+
+### Standard Development Workflow
+
+#### 1. Project Initialization
 
 ```bash
-# Run all tests with coverage
-task test
+# Initialize Task Master
+task-master init
 
-# Run tests in CI mode (using act)
-task ci-test
+# Create or obtain PRD, then parse it
+task-master parse-prd .taskmaster/docs/prd.txt
 
-# Generate test prerequisites (required before running tests)
-task generate-test-prerequisites
+# Analyze complexity and expand tasks
+task-master analyze-complexity --research
+task-master expand --all --research
 ```
 
-### Code Quality
+If tasks already exist, another PRD can be parsed (with new information only!) using parse-prd with --append flag. This will add the generated tasks to the existing list of tasks..
+
+#### 2. Daily Development Loop
 
 ```bash
-# Run linting with ruff (configured in ruff.toml)
-uv run ruff check src/
+# Start each session
+task-master next                           # Find next available task
+task-master show <id>                     # Review task details
 
-# Run type checking
-uv run mypy src/
+# During implementation, check in code context into the tasks and subtasks
+task-master update-subtask --id=<id> --prompt="implementation notes..."
 
-# Format code
-uv run ruff format src/
+# Complete tasks
+task-master set-status --id=<id> --status=done
 ```
 
-### Package Management
+#### 3. Multi-Claude Workflows
+
+For complex projects, use multiple Claude Code sessions:
 
 ```bash
-# Update a specific package
-task update-package PACKAGE=package_name
+# Terminal 1: Main implementation
+cd project && claude
 
-# Update all packages
-task update-all-packages
+# Terminal 2: Testing and validation
+cd project-test-worktree && claude
+
+# Terminal 3: Documentation updates
+cd project-docs-worktree && claude
 ```
 
-## Architecture Overview
+### Custom Slash Commands
 
-### Core Components
+Create `.claude/commands/taskmaster-next.md`:
 
-1. **FastAPI Application** (`src/code_confluence_flow_bridge/main.py`)
-   - REST API for repository ingestion and status monitoring
-   - Manages GitHub authentication tokens
-   - Initiates Temporal workflows for processing
+```markdown
+Find the next available Task Master task and show its details.
 
-2. **Temporal Workflows**
-   - **RepoWorkflow** (`processor/repo_workflow.py`): Parent workflow that orchestrates repository processing
-   - **CodebaseChildWorkflow** (`processor/codebase_child_workflow.py`): Child workflows for processing individual codebases within a repository
+Steps:
 
-3. **Activities**
-   - **GitActivity**: Clones and analyzes Git repositories
-   - **CodebaseProcessingActivity**: Processes codebase using tree-sitter for AST analysis
-   - **PackageMetadataActivity**: Extracts package manager metadata
-   - **Database Activities**: Handle PostgreSQL and Neo4j persistence
-
-4. **Parsers**
-   - **Language Parsers**: Currently supports Python with tree-sitter
-   - **Package Manager Parsers**: Support for pip, poetry, and uv
-   - **Linter Integration**: Ruff strategy for Python linting
-
-### Data Flow
-
-1. User submits GitHub repository via `/start-ingestion` endpoint
-2. Main FastAPI app creates a Temporal workflow with trace ID
-3. RepoWorkflow:
-   - Clones repository via GitActivity
-   - Inserts repository metadata into Neo4j graph
-   - Spawns child workflows for each detected codebase
-4. CodebaseChildWorkflow:
-   - Extracts package metadata
-   - Processes code structure using tree-sitter
-   - Stores results in both PostgreSQL and Neo4j
-
-### Key Design Patterns
-
-- **Envelope Pattern**: All workflow/activity parameters wrapped in envelope models for type safety
-- **Interceptors**: Custom Temporal interceptors for workflow status tracking and logging
-- **Factory Pattern**: Used for parser selection (codebase, package manager, linter)
-- **Strategy Pattern**: Different strategies for package managers and linters
-
-### Model Architecture
-
-**Current State**: All models are being consolidated into `src/code_confluence_flow_bridge/models/code_confluence_parsing_models/`
-
-**Legacy Models (Being Deprecated)**:
-- `src/code_confluence_flow_bridge/models/chapi/` - Legacy Chapi AST models
-- `src/code_confluence_flow_bridge/models/chapi_forge/` - Legacy domain models 
-
-**Migration Notes**:
-- Use models from `code_confluence_parsing_models` for all new development
-- Legacy `chapi/` and `chapi_forge/` directories will be removed after refactoring
-- Some legacy components (like SetupParser) may still reference old models during transition
-
-## Temporal Workflow Architecture
-
-### Worker Configuration
-
-The Temporal worker (`main.py:run_worker`) is configured with:
-- **Task Queue**: `unoplat-code-confluence-repository-context-ingestion`
-- **Thread Pool**: Sized as `max_concurrent_activities + 4` for optimal performance
-- **Autoscaling Support**: Optional poller autoscaling for dynamic workload handling
-- **Interceptors**: Custom interceptors for status tracking and activity monitoring
-
-### Workflow Patterns
-
-1. **Parent-Child Workflow Pattern**
-   - `RepoWorkflow` spawns multiple `CodebaseChildWorkflow` instances
-   - Uses `ParentClosePolicy.TERMINATE` to ensure child workflows are cleaned up
-   - Child workflows run independently for each codebase in a repository
-
-2. **Activity Execution**
-   - All activities use `ActivityRetriesConfig.DEFAULT` retry policy
-   - Activities are executed with appropriate timeouts (typically 10 minutes)
-   - Thread pool executor handles concurrent activity execution
-
-3. **Workflow Sandbox**
-   - Uses `workflow.unsafe.imports_passed_through()` for external module imports
-   - Ensures workflow determinism by controlling imports
-
-### Activity Design
-
-Activities follow these patterns:
-- Accept envelope models as parameters for type safety
-- Return domain models (e.g., `UnoplatGitRepository`, `UnoplatPackageManagerMetadata`)
-- Handle errors with structured error contexts including workflow IDs and trace IDs
-- Use `@activity.defn` decorator for registration
-
-## Neo4j Graph Database Integration
-
-### Neomodel Configuration
-
-- **Connection**: Managed through `CodeConfluenceGraphIngestion` class
-- **Async Support**: Uses `AsyncDatabase` for non-blocking operations
-- **Connection String**: `bolt://username:password@host:port`
-
-### Graph Model Structure
-
-The codebase uses neomodel's `StructuredNode` and `StructuredRel` for defining:
-
-1. **Node Types**:
-   - Repository nodes
-   - Package nodes
-   - Module/File nodes
-   - Function/Class nodes
-   - Import nodes
-
-2. **Relationship Types**:
-   - `HAS_PACKAGE`: Repository to Package
-   - `HAS_MODULE`: Package to Module
-   - `IMPORTS`: Module to Module
-   - `CONTAINS`: Module to Function/Class
-   - `CALLS`: Function to Function
-
-3. **Relationship Properties**:
-   - Use `StructuredRel` subclasses for relationship metadata
-   - Properties like `since`, `version`, `type` on relationships
-
-### Query Patterns
-
-Common neomodel query patterns used:
-```python
-# Basic node creation
-node = MyNode(property=value).save()
-
-# Relationship creation
-node1.relationship.connect(node2, {'property': value})
-
-# Querying with filters
-MyNode.nodes.filter(property__gt=value)
-
-# Traversing relationships
-MyNode.nodes.traverse_relations(path="relationship__nested_relationship")
-
-# Fetch relations for performance
-MyNode.nodes.fetch_relations('relationship').all()
+1. Run `task-master next` to get the next task
+2. If a task is available, run `task-master show <id>` for full details
+3. Provide a summary of what needs to be implemented
+4. Suggest the first implementation step
 ```
 
-### Transaction Management
+Create `.claude/commands/taskmaster-complete.md`:
 
-- Uses context managers for transaction boundaries
-- Automatic rollback on exceptions
-- Batch operations with `create_or_update()` for efficiency
+```markdown
+Complete a Task Master task: $ARGUMENTS
 
-## Database Schema
+Steps:
 
-### PostgreSQL Schema
-Stores workflow execution data:
-- **Repository**: Repository configurations
-- **RepositoryWorkflowRun**: Parent workflow execution status
-- **CodebaseWorkflowRun**: Child workflow execution status
-- **Credentials**: Encrypted GitHub tokens
-- **Flag**: Feature flags
+1. Review the current task with `task-master show $ARGUMENTS`
+2. Verify all implementation is complete
+3. Run any tests related to this task
+4. Mark as complete: `task-master set-status --id=$ARGUMENTS --status=done`
+5. Show the next available task with `task-master next`
+```
 
-### Neo4j Schema
-Stores code structure graph:
-- Nodes represent code entities (packages, modules, functions)
-- Relationships represent dependencies and structure
-- Properties store metadata (versions, types, parameters)
-- **Detailed schema documentation**: See `schema_documentation.md` for complete node and relationship definitions
-- **Recent Changes**: `CodeConfluenceCodebase` now supports multiple root packages via `ArrayProperty(StringProperty())` instead of single `local_path`, and includes `codebase_path` for the base directory
+## Tool Allowlist Recommendations
 
-## Environment Variables
+Add to `.claude/settings.json`:
 
-Key environment variables (see `main.py:run-dev` task for defaults):
-- `TEMPORAL_SERVER_ADDRESS`: Temporal server location
-- `DB_HOST/PORT/USER/PASSWORD/NAME`: PostgreSQL configuration  
-- `NEO4J_HOST/PORT/USERNAME/PASSWORD`: Neo4j configuration
-- `UNOPLAT_TEMPORAL_MAX_CONCURRENT_ACTIVITIES`: Worker concurrency settings
-- `UNOPLAT_TEMPORAL_ENABLE_POLLER_AUTOSCALING`: Enable autoscaling pollers
+```json
+{
+  "allowedTools": [
+    "Edit",
+    "Bash(task-master *)",
+    "Bash(git commit:*)",
+    "Bash(git add:*)",
+    "Bash(npm run *)",
+    "mcp__task_master_ai__*"
+  ]
+}
+```
 
-## Error Handling
+## Configuration & Setup
 
-### Temporal Error Handling
-- Activities throw `ApplicationError` with specific error types
-- Retry policies handle transient failures
-- Workflow interceptors track failure states
+### API Keys Required
 
-### Standardized Error Context
-All errors include:
-- `workflow_id`: Temporal workflow identifier
-- `activity_name`: Failed activity name
-- `error_details`: Error message
-- `traceback`: Full stack trace
-- Additional context (repository, codebase, etc.)
+At least **one** of these API keys must be configured:
 
-### GitHub Issue Integration
-- `/code-confluence/issues` endpoint creates GitHub issues for errors
-- Issues are tracked in database with workflow runs
-- Automatic error reporting to unoplat/unoplat-code-confluence repository
+- `ANTHROPIC_API_KEY` (Claude models) - **Recommended**
+- `PERPLEXITY_API_KEY` (Research features) - **Highly recommended**
+- `OPENAI_API_KEY` (GPT models)
+- `GOOGLE_API_KEY` (Gemini models)
+- `MISTRAL_API_KEY` (Mistral models)
+- `OPENROUTER_API_KEY` (Multiple models)
+- `XAI_API_KEY` (Grok models)
 
-## Security Considerations
+An API key is required for any provider used across any of the 3 roles defined in the `models` command.
 
-- **Token Encryption**: GitHub tokens encrypted with Fernet before storage
-- **Environment Variables**: All sensitive configuration via environment
-- **Bearer Authentication**: Token management endpoints require authentication
-- **Database Credentials**: Stored securely in environment variables
+### Model Configuration
 
-## Development Tips
+```bash
+# Interactive setup (recommended)
+task-master models --setup
 
-1. **Temporal Workflow Development**:
-   - Always use envelope models for workflow/activity parameters
-   - Import external modules within `workflow.unsafe.imports_passed_through()`
-   - Use structured logging with trace IDs for debugging
-   - Test workflows with time-skipping test environment
+# Set specific models
+task-master models --set-main claude-3-5-sonnet-20241022
+task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
+task-master models --set-fallback gpt-4o-mini
+```
 
-2. **Neo4j/Neomodel Development**:
-   - Use `fetch_relations()` to avoid N+1 queries
-   - Leverage `create_or_update()` for idempotent operations
-   - Use transactions for multi-step operations
-   - Define indexes on frequently queried properties
+## Task Structure & IDs
 
-3. **Testing**:
-   - Mock Temporal workflows/activities in unit tests
-   - Use test databases for integration tests
-   - Generate test prerequisites with `task generate-test-prerequisites`
-   - Coverage reports available in `coverage_reports/`
+### Task ID Format
 
-4. **Asyncio and SSE Development**:
-   - **Follow asyncio best practices**: See `asyncio-practices.md` for comprehensive guidelines
-   - Avoid double-threading anti-pattern (no `threading.Timer` in ThreadPoolExecutor)
-   - Use `asyncio.run_coroutine_threadsafe()` for thread-safe communication
-   - Always use bounded queues (`asyncio.Queue(maxsize=100)`) for backpressure
-   - Replace `threading.Timer` with `asyncio.create_task()` and `asyncio.sleep()`
-   - Use Python 3.12's eager task execution for performance gains
-   - **AVOID NESTED FUNCTIONS**: Do not define functions inside other functions, especially in async contexts. This causes mypy issues with context managers and async/sync mixing. Always define helper functions at module level.
+- Main tasks: `1`, `2`, `3`, etc.
+- Subtasks: `1.1`, `1.2`, `2.1`, etc.
+- Sub-subtasks: `1.1.1`, `1.1.2`, etc.
+
+### Task Status Values
+
+- `pending` - Ready to work on
+- `in-progress` - Currently being worked on
+- `done` - Completed and verified
+- `deferred` - Postponed
+- `cancelled` - No longer needed
+- `blocked` - Waiting on external factors
+
+### Task Fields
+
+```json
+{
+  "id": "1.2",
+  "title": "Implement user authentication",
+  "description": "Set up JWT-based auth system",
+  "status": "pending",
+  "priority": "high",
+  "dependencies": ["1.1"],
+  "details": "Use bcrypt for hashing, JWT for tokens...",
+  "testStrategy": "Unit tests for auth functions, integration tests for login flow",
+  "subtasks": []
+}
+```
+
+## Claude Code Best Practices with Task Master
+
+### Context Management
+
+- Use `/clear` between different tasks to maintain focus
+- This CLAUDE.md file is automatically loaded for context
+- Use `task-master show <id>` to pull specific task context when needed
+
+### Iterative Implementation
+
+1. `task-master show <subtask-id>` - Understand requirements
+2. Explore codebase and plan implementation
+3. `task-master update-subtask --id=<id> --prompt="detailed plan"` - Log plan
+4. `task-master set-status --id=<id> --status=in-progress` - Start work
+5. Implement code following logged plan
+6. `task-master update-subtask --id=<id> --prompt="what worked/didn't work"` - Log progress
+7. `task-master set-status --id=<id> --status=done` - Complete task
+
+### Complex Workflows with Checklists
+
+For large migrations or multi-step processes:
+
+1. Create a markdown PRD file describing the new changes: `touch task-migration-checklist.md` (prds can be .txt or .md)
+2. Use Taskmaster to parse the new prd with `task-master parse-prd --append` (also available in MCP)
+3. Use Taskmaster to expand the newly generated tasks into subtasks. Consdier using `analyze-complexity` with the correct --to and --from IDs (the new ids) to identify the ideal subtask amounts for each task. Then expand them.
+4. Work through items systematically, checking them off as completed
+5. Use `task-master update-subtask` to log progress on each task/subtask and/or updating/researching them before/during implementation if getting stuck
+
+### Git Integration
+
+Task Master works well with `gh` CLI:
+
+```bash
+# Create PR for completed task
+gh pr create --title "Complete task 1.2: User authentication" --body "Implements JWT auth system as specified in task 1.2"
+
+# Reference task in commits
+git commit -m "feat: implement JWT auth (task 1.2)"
+```
+
+### Parallel Development with Git Worktrees
+
+```bash
+# Create worktrees for parallel task development
+git worktree add ../project-auth feature/auth-system
+git worktree add ../project-api feature/api-refactor
+
+# Run Claude Code in each worktree
+cd ../project-auth && claude    # Terminal 1: Auth work
+cd ../project-api && claude     # Terminal 2: API work
+```
+
+## Troubleshooting
+
+### AI Commands Failing
+
+```bash
+# Check API keys are configured
+cat .env                           # For CLI usage
+
+# Verify model configuration
+task-master models
+
+# Test with different model
+task-master models --set-fallback gpt-4o-mini
+```
+
+### MCP Connection Issues
+
+- Check `.mcp.json` configuration
+- Verify Node.js installation
+- Use `--mcp-debug` flag when starting Claude Code
+- Use CLI as fallback if MCP unavailable
+
+### Task File Sync Issues
+
+```bash
+# Regenerate task files from tasks.json
+task-master generate
+
+# Fix dependency issues
+task-master fix-dependencies
+```
+
+DO NOT RE-INITIALIZE. That will not do anything beyond re-adding the same Taskmaster core files.
+
+## Important Notes
+
+### AI-Powered Operations
+
+These commands make AI calls and may take up to a minute:
+
+- `parse_prd` / `task-master parse-prd`
+- `analyze_project_complexity` / `task-master analyze-complexity`
+- `expand_task` / `task-master expand`
+- `expand_all` / `task-master expand --all`
+- `add_task` / `task-master add-task`
+- `update` / `task-master update`
+- `update_task` / `task-master update-task`
+- `update_subtask` / `task-master update-subtask`
+
+### File Management
+
+- Never manually edit `tasks.json` - use commands instead
+- Never manually edit `.taskmaster/config.json` - use `task-master models`
+- Task markdown files in `tasks/` are auto-generated
+- Run `task-master generate` after manual changes to tasks.json
+
+### Claude Code Session Management
+
+- Use `/clear` frequently to maintain focused context
+- Create custom slash commands for repeated Task Master workflows
+- Configure tool allowlist to streamline permissions
+- Use headless mode for automation: `claude -p "task-master next"`
+
+### Multi-Task Updates
+
+- Use `update --from=<id>` to update multiple future tasks
+- Use `update-task --id=<id>` for single task updates
+- Use `update-subtask --id=<id>` for implementation logging
+
+### Research Mode
+
+- Add `--research` flag for research-based AI enhancement
+- Requires a research model API key like Perplexity (`PERPLEXITY_API_KEY`) in environment
+- Provides more informed task creation and updates
+- Recommended for complex technical tasks
+
+---
+
+_This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._

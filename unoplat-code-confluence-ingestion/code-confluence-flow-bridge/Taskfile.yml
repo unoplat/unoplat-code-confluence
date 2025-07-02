@@ -102,7 +102,6 @@ tasks:
 
   test:
     desc: Run tests with coverage
-    deps: [start-dependencies]
     dir: .
     cmds:
       # Sync only the test dependencies group before running tests.
