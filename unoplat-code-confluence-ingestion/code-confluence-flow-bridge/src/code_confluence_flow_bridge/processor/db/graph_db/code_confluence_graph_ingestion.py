@@ -130,6 +130,7 @@ class CodeConfluenceGraphIngestion:
             List of created/updated nodes, or empty list if failed
         """
         try:
+            # Use create_or_update for single node upsert behavior  
             results = await node_class.create_or_update(node_dict)
             return results if results else []
         except UniqueProperty as e:

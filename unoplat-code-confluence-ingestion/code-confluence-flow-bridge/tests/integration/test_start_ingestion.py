@@ -23,6 +23,7 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_m
 from src.code_confluence_flow_bridge.utility.environment_utils import (
     construct_local_repository_path,
 )
+from tests.utils.db_cleanup import quick_cleanup
 
 # ---------------------------------------------------------------------------
 # REPOSITORY PATH HELPER
@@ -328,13 +329,15 @@ REPO_REQUEST: Dict[str, Any] = {
 
 @pytest.mark.integration  # type: ignore[var-annotated]
 class TestStartIngestionEndpoint:
-    """Integration tests for the POST /start-ingestion endpoint."""
+    """Integration tests for the start_ingestion endpoint with full workflow testing."""
 
     @pytest.mark.asyncio  # type: ignore[var-annotated]
     async def test_start_ingestion_flow(
         self,
         test_client: TestClient,
         github_token: str,
+        neo4j_client,  # Session-scoped Neo4j client
+        postgres_session,  # Session-scoped PostgreSQL session
     ) -> None:
         """Full happy-path flow: ingest token -> start ingestion -> verify response."""
 
@@ -373,12 +376,17 @@ class TestStartIngestionEndpoint:
             time.sleep(5)
         else:
             pytest.fail("Workflow run did not show up in /parent-workflow-jobs within timeout")
+        
+        # Database cleanup after test completion
+        await quick_cleanup(neo4j_client, postgres_session)
 
     @pytest.mark.asyncio  # type: ignore[var-annotated]
     async def test_local_repository_detection_via_sse(
         self,
         test_client: TestClient,
         github_token: str,
+        neo4j_client,  # Session-scoped Neo4j client
+        postgres_session,  # Session-scoped PostgreSQL session
     ) -> None:
         """Test local repository codebase detection using SSE endpoint."""
 
@@ -433,6 +441,9 @@ class TestStartIngestionEndpoint:
         backend_codebase: CodebaseConfig = backend_codebases[0]
         assert backend_codebase.programming_language_metadata.package_manager is not None
         assert backend_codebase.programming_language_metadata.package_manager.value in ["uv", "pip", "poetry"]
+        
+        # Database cleanup after test completion
+        await quick_cleanup(neo4j_client, postgres_session)
 
     @pytest.mark.asyncio  # type: ignore[var-annotated]
     async def test_complete_detection_and_ingestion_flow(
@@ -440,6 +451,8 @@ class TestStartIngestionEndpoint:
         test_client: TestClient,
         github_token: str,
         service_ports: Dict[str, int],  # noqa: F811 - fixture parameter
+        neo4j_client,  # Session-scoped Neo4j client
+        postgres_session,  # Session-scoped PostgreSQL session
     ) -> None:
         """
         Complete integration test: detect local repository codebases via SSE,
@@ -555,3 +568,6 @@ class TestStartIngestionEndpoint:
         assert target_job["repository_workflow_run_id"] == run_id
         assert "status" in target_job
         assert "started_at" in target_job
+        
+        # Database cleanup after test completion
+        await quick_cleanup(neo4j_client, postgres_session)
