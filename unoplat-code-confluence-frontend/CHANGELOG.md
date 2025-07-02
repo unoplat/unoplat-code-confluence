@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.24.3...unoplat-code-confluence-frontend-v1.25.0) (2025-07-02)
+
+
+### Features
+
+* **IngestedRepositoriesDataTable:** improve data fetching ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* local folder support ([ac56073](https://github.com/unoplat/unoplat-code-confluence/commit/ac56073502515c73208cc3e1122ab676aa0ed7e6))
+* local git support ([5959c0d](https://github.com/unoplat/unoplat-code-confluence/commit/5959c0ddd0f177ad402e595a61c068b1506b4c05))
+* **local-docker-compose.yml:** add repositories volume mount ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* **SubmittedJobsDataTable:** improve data fetching ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* **tanstack-table.d.ts:** add custom column and table meta ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+
+
+### Bug Fixes
+
+* **Taskfile.yml:** run pytest with test group ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* **test_start_ingestion.py:** handle local repository paths ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+
 ## [1.24.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.24.2...unoplat-code-confluence-frontend-v1.24.3) (2025-06-21)
 
 
