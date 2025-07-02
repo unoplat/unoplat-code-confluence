@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.4...code-confluence-flow-bridge-v0.40.0) (2025-07-02)
+
+
+### Features
+
+* Add database cleanup utilities and fixtures ([889e271](https://github.com/unoplat/unoplat-code-confluence/commit/889e27116a2ddb3c922b4fe52a06fa1de7c0a8ad))
+* Add utility function to construct local repository path ([fdb118a](https://github.com/unoplat/unoplat-code-confluence/commit/fdb118a562c47094d19b3bee7f4ae143121ddc35))
+* **graph-db:** add verbose logging to aid debugging CI-only failures ([917ad0d](https://github.com/unoplat/unoplat-code-confluence/commit/917ad0d67745e79eef6ec6b2563014e90efc8b5f))
+* **IngestedRepositoriesDataTable:** improve data fetching ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* **ingestion:** Reduce token ingestion wait time ([7da6de2](https://github.com/unoplat/unoplat-code-confluence/commit/7da6de26a8b399b37333407e615ff999cfdc2811))
+* local folder support ([ac56073](https://github.com/unoplat/unoplat-code-confluence/commit/ac56073502515c73208cc3e1122ab676aa0ed7e6))
+* local git support ([5959c0d](https://github.com/unoplat/unoplat-code-confluence/commit/5959c0ddd0f177ad402e595a61c068b1506b4c05))
+* **local-docker-compose.yml:** add repositories volume mount ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* **SubmittedJobsDataTable:** improve data fetching ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* **tanstack-table.d.ts:** add custom column and table meta ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* **unoplat-code-confluence-commons:** update to v0.19.0 ([ce5f69e](https://github.com/unoplat/unoplat-code-confluence/commit/ce5f69ed3d4e14f57d7483ff4510cbc331903a67))
+
+
+### Bug Fixes
+
+* **Taskfile.yml:** run pytest with test group ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+* **test_start_ingestion.py:** handle local repository paths ([396e036](https://github.com/unoplat/unoplat-code-confluence/commit/396e036111fd8474cf9a35a017709f3e73840bec))
+
 ## [0.39.4](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.3...code-confluence-flow-bridge-v0.39.4) (2025-06-26)
 
 
