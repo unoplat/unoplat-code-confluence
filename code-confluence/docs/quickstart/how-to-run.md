@@ -65,14 +65,30 @@ If you don't have a GitHub PAT:
 
 :::
 
-### 3. Search for a Repository
+### 3. Ingest Repository
+
+You can ingest repositories from two sources:
+
+#### A. Search for GitHub Repositories
 - Press **`s`** or **`S`** (Shift + s) to open the search dialog.
 - You can search through your personal, public, and open source repositories.
 
-***![Search for Repository](../../static/repository_search.png)
+![Search for Repository](../../static/repository_search.png)
 
-### 4. Ingest a Repository
-- In the **Actions** column, click on **Ingest Repo** for the repository you want to analyze.
+#### B. Browse Local Git Repositories
+- Click on the **Local Repository** tab to switch to local repository onboarding.
+- Click the **Browse** button to select a local Git repository from your machine.
+- Note: Your repository must be located within the directory configured by the backend's REPOSITORIES_BASE_PATH setting.
+
+![Local Repository Onboarding](../../static/local_onboarding_repo.png)
+
+:::note Docker Configuration for Local Repositories
+The production Docker Compose configuration is pre-configured with volume mounting (`${HOME}/.unoplat:/root/.unoplat`) and sets the environment variable `REPOSITORIES_BASE_PATH=/root/.unoplat/repositories` in the flow-bridge service to enable local repository ingestion. You can modify these paths in the Docker Compose file to match your preferred directory structure if needed.
+:::
+
+### 4. Continue with Repository Configuration
+- For GitHub repositories: In the **Actions** column, click on **Ingest Repo** for the repository you want to analyze.
+- For local repositories: After selecting your local repository, click **Continue to Configuration** to proceed.
 
 ![Ingest Repo Action](../../static/repository_ingest_action.jpeg)
 
