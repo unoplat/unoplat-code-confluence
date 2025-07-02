@@ -7,30 +7,62 @@ for the Code Confluence parsing system.
 """
 
 # Base utility models
-from .position import Position
-
-# Version and dependency models
-from .unoplat_version import UnoplatVersion
-from .unoplat_project_dependency import UnoplatProjectDependency
-from .unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-
-# Structural signature models
-from .import_info import ImportInfo
-from .variable_info import VariableInfo
-from .function_info import FunctionInfo
-from .class_info import ClassInfo
-from .structural_signature import StructuralSignature
-
-# File and package models
-from .unoplat_file import UnoplatFile
-from .unoplat_package import UnoplatPackage
-from .unoplat_codebase import UnoplatCodebase
-from .unoplat_git_repository import UnoplatGitRepository
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.class_info import (
+    ClassInfo,
+)
 
 # File processing models
-from .file_processing_data import FileProcessingData
-from .processing_batch import ProcessingBatch
-from .processing_status import ProcessingStatus
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.file_processing_data import (
+    FileProcessingData,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import (
+    FunctionInfo,
+)
+
+# Structural signature models
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.import_info import (
+    ImportInfo,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.position import (
+    Position,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.processing_batch import (
+    ProcessingBatch,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.processing_status import (
+    ProcessingStatus,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
+    StructuralSignature,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
+    UnoplatCodebase,
+)
+
+# File and package models
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
+    UnoplatFile,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+    UnoplatGitRepository,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package import (
+    UnoplatPackage,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+    UnoplatPackageManagerMetadata,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_project_dependency import (
+    UnoplatProjectDependency,
+)
+
+# Version and dependency models
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_version import (
+    UnoplatVersion,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import (
+    VariableInfo,
+)
 
 __all__ = [
     # Base models

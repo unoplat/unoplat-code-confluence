@@ -17,6 +17,8 @@ RUN pip install --no-cache-dir uv ruff
 
 WORKDIR /app
 COPY pyproject.toml ./
+COPY README.md ./
+COPY src ./src
 RUN uv sync --no-cache
 COPY . /app
 

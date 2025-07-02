@@ -4,10 +4,19 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models impor
     UnoplatProjectDependency,
     UnoplatVersion,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import PackageManagerType, ProgrammingLanguageMetadata
-from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import PackageManagerStrategy
-from src.code_confluence_flow_bridge.parser.package_manager.utils.requirements_utils import RequirementsUtils
-from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import SetupParser
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    PackageManagerType,
+    ProgrammingLanguageMetadata,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import (
+    PackageManagerStrategy,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.utils.requirements_utils import (
+    RequirementsUtils,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import (
+    SetupParser,
+)
 from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 import os

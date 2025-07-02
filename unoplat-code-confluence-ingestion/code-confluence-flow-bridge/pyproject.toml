@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "code-confluence-flow-bridge"
 version = "0.39.4"
@@ -55,12 +59,25 @@ dev = [
 ]
 
 [tool.uv.sources]
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.18.5" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.19.0" }
 
 [tool.uv]
 override-dependencies = ["pytest>=8.3.5"]
 # do it for kit if required - "fastapi[standard]>=0.115.6"]
 
 [tool.pytest.ini_options]
+# Auto mode allows async test functions to run without explicit asyncio.run()
 asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
+# Function scope ensures each test gets its own event loop for proper fixture isolation
+asyncio_default_fixture_loop_scope = "session"
+# Test reporting and timeout configuration
+addopts = "-ra --timeout=500 --timeout-method=thread --durations=10"
+
+# Register custom markers to silence unknown-mark warnings
+markers = [
+    "integration: integration tests connecting to external services",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["code_confluence_flow_bridge*"]

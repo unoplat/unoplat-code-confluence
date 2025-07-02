@@ -226,4 +226,11 @@ class EnvironmentSettings(BaseSettings):
         ge=0.1,  # minimum 0.1 seconds
         le=10.0  # maximum 10 seconds
     )
+    
+    # Repository storage configuration
+    repositories_base_path: str = Field(
+        default="~/.unoplat/repositories",
+        alias="REPOSITORIES_BASE_PATH",
+        description="Base directory path for storing cloned repositories. Use '~' for user home directory expansion."
+    )
 

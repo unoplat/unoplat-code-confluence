@@ -1,9 +1,8 @@
 # Standard Library
 from pathlib import Path
-from typing import AsyncGenerator, Iterator
+from typing import Dict
 
 from loguru import logger
-from neomodel.async_.core import adb #type: ignore
 from pydantic import SecretStr
 
 # Third Party
@@ -16,22 +15,14 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
     ProgrammingLanguageMetadata,
 )
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import StructuralSignature
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import UnoplatFile
 from src.code_confluence_flow_bridge.parser.generic_codebase_parser import GenericCodebaseParser
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import (
-    CodeConfluenceGraphIngestion,
-)
-from testcontainers.neo4j import Neo4jContainer #type: ignore
 
 # Import graph models for neomodel queries
+from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
 from unoplat_code_confluence_commons.graph_models.code_confluence_file import CodeConfluenceFile
 from unoplat_code_confluence_commons.graph_models.code_confluence_package import CodeConfluencePackage
-
-# Constants for the Neo4j container
-NEO4J_VERSION: str = "5.26.0-community"
-NEO4J_PASSWORD: str = "password"
-NEO4J_PORT: int = 7687
-NEO4J_HTTP_PORT: int = 7474
+# Import cleanup utility
+from tests.utils.db_cleanup import cleanup_neo4j_data
 
 
 # ---------------------------------------------------------------------------
@@ -39,46 +30,18 @@ NEO4J_HTTP_PORT: int = 7474
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture(scope="session")
-def neo4j_container() -> Iterator[Neo4jContainer]:
-    """Spin up a Neo4j container for the test session and guarantee clean teardown."""
-    container = (
-        Neo4jContainer(image=f"neo4j:{NEO4J_VERSION}")
-        .with_env("NEO4J_AUTH", f"neo4j/{NEO4J_PASSWORD}")
-        .with_exposed_ports(NEO4J_PORT, NEO4J_HTTP_PORT)
-    )
-
-    # Using the context‑manager ensures .start() on enter and .stop() on exit,
-    # even if the test session exits with an error.
-    with container as neo4j:
-        yield neo4j
-        
-
-
 @pytest.fixture()
-def env_settings(neo4j_container: Neo4jContainer) -> EnvironmentSettings:
-    """Create EnvironmentSettings pointing to the running Neo4j container."""
-    bolt_port: str = neo4j_container.get_exposed_port(NEO4J_PORT)
+def env_settings(service_ports: Dict[str, int]) -> EnvironmentSettings:
+    """Create EnvironmentSettings using the shared Neo4j from docker-compose."""
     return EnvironmentSettings(
-        NEO4J_HOST=neo4j_container.get_container_host_ip(),
-        NEO4J_PORT=int(bolt_port),
+        NEO4J_HOST="localhost",
+        NEO4J_PORT=service_ports["neo4j"],
         NEO4J_USERNAME="neo4j",
-        NEO4J_PASSWORD=SecretStr(NEO4J_PASSWORD),
+        NEO4J_PASSWORD=SecretStr("password"),
         NEO4J_MAX_CONNECTION_LIFETIME=3600,
         NEO4J_MAX_CONNECTION_POOL_SIZE=50,
         NEO4J_CONNECTION_ACQUISITION_TIMEOUT=60
     )
-
-
-@pytest.fixture()
-async def graph_connection(env_settings: EnvironmentSettings) -> AsyncGenerator[CodeConfluenceGraphIngestion, None]:
-    """Initialise Neo4j connection and schema using CodeConfluenceGraphIngestion."""
-    ingestion: CodeConfluenceGraphIngestion = CodeConfluenceGraphIngestion(code_confluence_env=env_settings)
-    await ingestion.initialize()
-    try:
-        yield ingestion
-    finally:
-        await ingestion.close()
 
 
 @pytest.fixture()
@@ -87,12 +50,6 @@ def sample_codebase_dir() -> Path:  # noqa: D401 – simple fixture
     return (Path(__file__).parent.parent / "test_data" / "unoplat-code-confluence-cli").resolve()
 
 
-# Ensure the database is empty before each test (autouse fixture)
-@pytest.fixture(autouse=True)
-async def clear_neo4j(graph_connection):
-    """Remove all nodes and relationships so every test starts with a clean database."""
-    yield
-    await graph_connection.run("MATCH (n) DETACH DELETE n")
 
 
 
@@ -105,14 +62,19 @@ async def clear_neo4j(graph_connection):
 class TestGenericCodebaseParserIntegration:
     """Validate that GenericCodebaseParser can insert packages & files into Neo4j."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio(loop_scope="session")
     async def test_parser_inserts_nodes(
         self,
-        graph_connection: CodeConfluenceGraphIngestion,  # noqa: PT004 – fixture provides connection & schema
+        neo4j_client,  # noqa: ARG002 – fixture provides connection & schema
         sample_codebase_dir: Path,
         env_settings: EnvironmentSettings,
     ) -> None:
         """Run the parser and assert that nodes exist in the database afterwards."""
+        # ------------------------------------------------------------------
+        # Clean database before test using utility function
+        # ------------------------------------------------------------------
+        await cleanup_neo4j_data(neo4j_client)
+        
         # ------------------------------------------------------------------
         # Build required input metadata for the parser
         # ------------------------------------------------------------------
@@ -130,6 +92,15 @@ class TestGenericCodebaseParserIntegration:
             trace_id="integration-test",
             code_confluence_env=env_settings,
         )
+
+        # Create the missing CodeConfluenceCodebase node that the parser expects
+        # (normally created during git ingestion step, but we're testing parser in isolation)
+        codebase_node_data = await CodeConfluenceCodebase.create_or_update({
+            "qualified_name": "cli_codebase",
+            "name": "cli_codebase",
+            "codebase_path": str(sample_codebase_dir.resolve())
+        })
+        logger.info(f"Created codebase node with path: {codebase_node_data[0] if codebase_node_data else None}")
 
         # Execute the parser – this streams data directly into Neo4j
         await parser.process_and_insert_codebase()

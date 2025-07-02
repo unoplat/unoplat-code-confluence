@@ -1,9 +1,24 @@
-from src.code_confluence_flow_bridge.logging.trace_utils import activity_id_var, activity_name_var, workflow_id_var, workflow_run_id_var
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import UnoplatCodebase
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import UnoplatGitRepository
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import UnoplatPackageManagerMetadata
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguageMetadata
-from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    activity_id_var,
+    activity_name_var,
+    workflow_id_var,
+    workflow_run_id_var,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
+    UnoplatCodebase,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+    UnoplatGitRepository,
+)
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+    UnoplatPackageManagerMetadata,
+)
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    ProgrammingLanguageMetadata,
+)
+from src.code_confluence_flow_bridge.models.github.github_repo import (
+    GitHubRepoRequestConfiguration,
+)
 
 import os
 from datetime import datetime
@@ -81,7 +96,6 @@ class GithubHelper:
 
                     # Pull latest changes
                     logger.info("Pulling latest changes | repo_path={} | status=pulling", repo_path)
-                    origin = local_repo.remotes.origin
 
                     try:
                         # Git (>=2.34) requires an explicit reconciliation strategy

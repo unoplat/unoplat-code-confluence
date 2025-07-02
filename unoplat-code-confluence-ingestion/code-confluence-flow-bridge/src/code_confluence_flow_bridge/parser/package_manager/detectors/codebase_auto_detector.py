@@ -488,6 +488,41 @@ class PythonCodebaseDetector:
         
         return codebase_configs
     
+    def detect_codebases_from_local_path(self, local_path: str) -> List[CodebaseConfig]:
+        """
+        Detect Python codebases from a local repository path without cloning.
+        
+        Args:
+            local_path: Local filesystem path to a Git repository
+            
+        Returns:
+            List of CodebaseConfig objects for detected codebases
+            
+        Raises:
+            ValueError: If the path does not exist
+        """
+        # Validate path exists
+        if not os.path.exists(local_path):
+            raise ValueError(f"Path does not exist: {local_path}")
+        
+        # Use the path directly without cloning
+        repo_path = local_path
+        
+        # Walk and detect simultaneously 
+        inventory, hits = self._walk_and_detect(repo_path)
+        
+        # Prune nested and ignored paths
+        pruned_paths = self.prune_nested_and_ignored(hits, repo_path)
+        
+        # Build codebase config objects
+        codebase_configs = []
+        for path in pruned_paths:
+            mgr_rule = hits[path]
+            codebase_config = self._build_codebase_config(path, mgr_rule, inventory, repo_path)
+            codebase_configs.append(codebase_config)
+        
+        return codebase_configs
+    
     def _clone_repository(self, git_url: str) -> str:
         """
         Clone GitHub repository to local path.

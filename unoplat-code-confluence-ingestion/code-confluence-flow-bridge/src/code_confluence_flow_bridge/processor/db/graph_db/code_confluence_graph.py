@@ -1,19 +1,34 @@
 # Standard Library
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
 
 from loguru import logger
 
 # Third Party
-from neomodel import adb, config
+from neomodel import adb, config  # type: ignore
+from .txn_context import managed_tx
 
 
 class CodeConfluenceGraph:
     """
     Async Neo4j graph database connection manager using neomodel
+    Implements singleton pattern to ensure single global connection
     """
+    _instance = None
+    _initialized = False
+
+    def __new__(cls, code_confluence_env: EnvironmentSettings):
+        """Singleton pattern: ensure only one instance exists"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self, code_confluence_env: EnvironmentSettings):
-        """Initialize connection settings"""
+        """Initialize connection settings (only once due to singleton)"""
+        if self._initialized:
+            return
+            
         host = code_confluence_env.neo4j_host
         port = code_confluence_env.neo4j_port
         username = code_confluence_env.neo4j_username
@@ -27,6 +42,7 @@ class CodeConfluenceGraph:
 
         self.connection_url = f"bolt://{username}:{password}@{host}:{port}" f"?max_connection_lifetime={max_connection_lifetime}" f"&max_connection_pool_size={max_connection_pool_size}" f"&connection_acquisition_timeout={connection_acquisition_timeout}"
         config.DATABASE_URL = self.connection_url
+        self._initialized = True
         logger.info("Neo4j connection settings initialized")
 
     async def connect(self) -> None:
@@ -58,5 +74,13 @@ class CodeConfluenceGraph:
 
     @property
     def transaction(self):
-        """Get transaction context manager"""
-        return adb.transaction
+        """Return a *new* managed Neo4j transaction context manager.
+
+        The returned object can be used directly in ``async with`` blocks:
+
+        >>> async with graph.transaction:
+        ...     ...
+        """
+        # Each call must create a *fresh* context-manager instance, hence the
+        # trailing parenthesis.
+        return managed_tx()

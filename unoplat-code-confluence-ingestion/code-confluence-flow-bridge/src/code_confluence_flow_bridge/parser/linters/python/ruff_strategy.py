@@ -1,4 +1,6 @@
-from src.code_confluence_flow_bridge.parser.linters.linter_strategy import LinterStrategy
+from src.code_confluence_flow_bridge.parser.linters.linter_strategy import (
+    LinterStrategy,
+)
 
 import os
 from pathlib import Path

@@ -5,9 +5,15 @@ This activity replaces the legacy CodebaseProcessingActivity with a new language
 approach that uses TreeSitterStructuralSignatureExtractor and optimized Neo4j streaming ingestion.
 """
 
-from src.code_confluence_flow_bridge.logging.trace_utils import seed_and_bind_logger_from_trace_id
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import CodebaseProcessingActivityEnvelope
-from src.code_confluence_flow_bridge.parser.generic_codebase_parser import GenericCodebaseParser
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    seed_and_bind_logger_from_trace_id,
+)
+from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+    CodebaseProcessingActivityEnvelope,
+)
+from src.code_confluence_flow_bridge.parser.generic_codebase_parser import (
+    GenericCodebaseParser,
+)
 from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
 
 import traceback
