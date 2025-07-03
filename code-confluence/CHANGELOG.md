@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.16.0...code-confluence-docs-v0.17.0) (2025-07-03)
+
+
+### Features
+
+* **roadmap:** update Python grammar status and core capabilities ([2161de3](https://github.com/unoplat/unoplat-code-confluence/commit/2161de3ab7ed48b7b50a50795504ff796f892bed))
+* **roadmap:** update Python grammar status and core capabilities ([4f1e256](https://github.com/unoplat/unoplat-code-confluence/commit/4f1e2560b45ec0c128f238c167ea4f2956b0e038))
+
 ## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.15.1...code-confluence-docs-v0.16.0) (2025-07-02)
 
 
