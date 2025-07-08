@@ -22,7 +22,7 @@ services:
       - discovery.type=single-node
       - DISABLE_SECURITY_PLUGIN=true
       - OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m
-    image: opensearchproject/opensearch:2.14.0
+    image: docker.io/opensearchproject/opensearch:2.14.0
     networks:
       - temporal-network
     expose:
@@ -36,7 +36,7 @@ services:
       retries: 5
       start_period: 30s
   postgresql:
-    image: bitnami/postgresql:latest
+    image: docker.io/bitnami/postgresql:latest
     # container_name: code-confluence-postgresql
     environment:
       - POSTGRESQL_USERNAME=postgres
@@ -73,7 +73,7 @@ services:
       - ES_VERSION=v7
       # - SKIP_SCHEMA_SETUP=false
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/auto-setup:1.26.2
+    image: docker.io/temporalio/auto-setup:1.26.2
     networks:
       - temporal-network
     ports:
@@ -94,7 +94,7 @@ services:
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/admin-tools:1.26.2
+    image: docker.io/temporalio/admin-tools:1.26.2
     networks:
       - temporal-network
     stdin_open: true
@@ -107,14 +107,14 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
       - TEMPORAL_CSRF_COOKIE_INSECURE=True
-    image: temporalio/ui:2.34.0
+    image: docker.io/temporalio/ui:2.34.0
     networks:
       - temporal-network
     ports:
       - 8081:8080
   neo4j:
     # container_name: neo4j
-    image: graphstack/dozerdb:5.25.1.0-alpha.1
+    image: docker.io/graphstack/dozerdb:5.25.1.0-alpha.1
     ports:
       - "7474:7474"
       - "7687:7687"

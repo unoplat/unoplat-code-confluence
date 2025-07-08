@@ -114,7 +114,10 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 |----------------------------|:----:|:-----------:|
 | Repository Discovery       |  ✓   |             |
 | Auto Codebase Detection    |  ✓   |             |
-| Ingestion                  |  ✓   |             |
+| GitHub Ingestion           |  ✓   |             |
+| GitHub Manual Sync         |  ✓   |             |
+| Local Ingestion            |  ✓   |             |
+| Local Manual Sync          |  ✓   |             |
 | Chat With Codebase         |      |      ✓      |
 
 <!-- MAINTAINERS SECTION -->
