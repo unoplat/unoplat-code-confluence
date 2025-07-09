@@ -78,7 +78,7 @@ You can ingest repositories from two sources:
 #### B. Browse Local Git Repositories
 - Click on the **Local Repository** tab to switch to local repository onboarding.
 - Click the **Browse** button to select a local Git repository from your machine.
-- Note: Your repository must be located within the directory configured by the backend's REPOSITORIES_BASE_PATH setting.
+
 
 ![Local Repository Onboarding](../../static/local_onboarding_repo.png)
 
