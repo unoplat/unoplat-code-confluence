@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.17.0...code-confluence-docs-v0.17.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* **docker:** mount local repositories directory ([dff4feb](https://github.com/unoplat/unoplat-code-confluence/commit/dff4feb8bb55313f4edfe1f11682a85ee9b99cd2))
+* **docker:** mount local repositories directory ([43251c0](https://github.com/unoplat/unoplat-code-confluence/commit/43251c098086370d3d049b57ce58c83c06693331))
+
 ## [0.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.16.0...code-confluence-docs-v0.17.0) (2025-07-03)
 
 
