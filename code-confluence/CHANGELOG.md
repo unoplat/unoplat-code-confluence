@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.17.2...code-confluence-docs-v0.17.3) (2025-07-09)
+
+
+### Bug Fixes
+
+* better docs ([64f8230](https://github.com/unoplat/unoplat-code-confluence/commit/64f8230cab53549f4174cac0de82e783bfc26c6a))
+* better docs ([d0b2522](https://github.com/unoplat/unoplat-code-confluence/commit/d0b2522785678fc406e43d6867576e5c2be6be97))
+
 ## [0.17.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.17.1...code-confluence-docs-v0.17.2) (2025-07-09)
 
 
