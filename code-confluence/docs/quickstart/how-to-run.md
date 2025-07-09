@@ -83,7 +83,14 @@ You can ingest repositories from two sources:
 ![Local Repository Onboarding](../../static/local_onboarding_repo.png)
 
 :::note Docker Configuration for Local Repositories
-The production Docker Compose configuration is pre-configured with volume mounting (`${HOME}/.unoplat:/root/.unoplat`) and sets the environment variable `REPOSITORIES_BASE_PATH=/root/.unoplat/repositories` in the flow-bridge service to enable local repository ingestion. You can modify these paths in the Docker Compose file to match your preferred directory structure if needed.
+The Docker Compose is pre-configured with volume mounting (`${HOME}/unoplat/repositories:/root/.unoplat/repositories`) and sets the environment variable `REPOSITORIES_BASE_PATH=/root/.unoplat/repositories` in the flow-bridge service to enable local repository ingestion. 
+
+Before using local repositories, create the required directory on your host machine:
+```bash
+mkdir -p ~/unoplat/repositories
+```
+
+You can modify these paths in the Docker Compose file to match your preferred directory structure if needed, but ensure the volume mount path remains consistent with the `REPOSITORIES_BASE_PATH` environment variable in the `code-confluence-flow-bridge` service configuration.
 :::
 
 ### 4. Continue with Repository Configuration
