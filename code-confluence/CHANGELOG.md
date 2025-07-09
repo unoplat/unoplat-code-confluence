@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.17.1...code-confluence-docs-v0.17.2) (2025-07-09)
+
+
+### Bug Fixes
+
+* **docs:** Simplify local repository onboarding instructions ([46f8efc](https://github.com/unoplat/unoplat-code-confluence/commit/46f8efcb8ba2ee15ca3b6e67f6ecca61342fcb1e))
+* **docs:** Simplify local repository onboarding instructions ([2052134](https://github.com/unoplat/unoplat-code-confluence/commit/2052134ae1c7cfe59e78cce5b02b4822ecd77783))
+
 ## [0.17.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.17.0...code-confluence-docs-v0.17.1) (2025-07-09)
 
 
