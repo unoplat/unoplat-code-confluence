@@ -85,7 +85,7 @@ You can ingest repositories from two sources:
 :::note Docker Configuration for Local Repositories
 The Docker Compose is pre-configured with volume mounting (`${HOME}/unoplat/repositories:/root/.unoplat/repositories`) and sets the environment variable `REPOSITORIES_BASE_PATH=/root/.unoplat/repositories` in the flow-bridge service to enable local repository ingestion. 
 
-Before using local repositories, create the required directory on your host machine:
+Before using local repositories, create the required directory on your host machine and clone your Git repositories into this path:
 ```bash
 mkdir -p ~/unoplat/repositories
 ```
