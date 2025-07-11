@@ -23,14 +23,16 @@ import requests
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from loguru import logger
+from sqlmodel import SQLModel
 from testcontainers.compose import DockerCompose
 from neomodel import adb
 # Local
 from src.code_confluence_flow_bridge.main import app
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
-from src.code_confluence_flow_bridge.processor.db.postgres.db import AsyncSessionLocal
+from src.code_confluence_flow_bridge.processor.db.postgres.db import AsyncSessionLocal, create_db_and_tables, get_session_cm
 from tests.utils.db_cleanup import quick_cleanup
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -285,6 +287,16 @@ def github_token() -> str:
 # DATABASE CLIENT FIXTURES FOR CLEANUP
 # ──────────────────────────────────────────────────────────────────────────────
 
+# Session-scoped fixtures for integration tests
+# These fixtures ensure the database engine is bound to the current event loop
+# which is critical when running individual tests with pytest.
+# 
+# The create_db_and_tables() call ensures that when running individual tests,
+# the async engine is recreated and bound to the new event loop, preventing
+# "RuntimeError: got Future attached to a different loop" errors.
+#
+# Reference: https://pytest-asyncio.readthedocs.io/en/latest/concepts.html
+
 @pytest_asyncio.fixture(scope="session")
 async def neo4j_client(service_ports: Dict[str, int]):
     """Session-scoped Neo4j client for database operations."""
@@ -308,13 +320,44 @@ async def neo4j_client(service_ports: Dict[str, int]):
     # Session cleanup handled by docker_compose fixture
 
 
+# use when you are using test client as it initialises the entire fastapi app with engine
 @pytest_asyncio.fixture(scope="session")
-async def postgres_session(service_ports: Dict[str, int]):
+async def postgres_session_e_2_e(service_ports: Dict[str, int]):
     """Session-scoped PostgreSQL session for database operations."""
-    # Environment variables are already set by test_client fixture
-    # Just create a session from the existing AsyncSessionLocal
+    # Now AsyncSessionLocal will use the correctly bound engine
     async with AsyncSessionLocal() as session:
         yield session
         # Session will be closed automatically
+        
+# use when you are not using test client as it initialises the entire fastapi app with engine
+@pytest_asyncio.fixture(scope="session")
+async def postgres_session(service_ports: Dict[str, int]):
+    """Session-scoped PostgreSQL session for database operations."""
+    DB_USER = os.getenv("DB_USER", "postgres")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", service_ports["postgresql"])
+    DB_NAME = os.getenv("DB_NAME", "code_confluence")
 
+    # Construct PostgreSQL connection string
+    POSTGRES_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
+    # Create async engine
+    DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
+    async_engine = create_async_engine(POSTGRES_URL, echo=DB_ECHO)
+    async_session_factory = async_sessionmaker(bind=async_engine, expire_on_commit=False)
+    # Finally, create all tables if they are missing.
+    async with async_engine.begin() as conn:
+        await conn.run_sync(lambda sync_conn: SQLModel.metadata.create_all(sync_conn, checkfirst=True))
+    async with async_session_factory() as session:
+        try:
+            yield session
+        finally:
+            # Ensure session is properly closed
+            await session.close()
+    
+    # Clean up engine
+    await async_engine.dispose()
+
+    
+        
