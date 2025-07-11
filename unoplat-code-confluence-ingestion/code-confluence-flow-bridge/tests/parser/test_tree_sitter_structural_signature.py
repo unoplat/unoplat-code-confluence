@@ -700,4 +700,175 @@ def test_no_duplicate_nested_functions(tmp_path: Path, language_name: str) -> No
     assert "def method_nested()" in method.nested_functions[0].signature
     
     # method_deep_nested should not appear in method's immediate children
-    assert not any("method_deep_nested" in nf.signature for nf in method.nested_functions) 
+    assert not any("method_deep_nested" in nf.signature for nf in method.nested_functions)
+
+
+# ---------------------------------------------------------------------------
+# Test for main.py structural signature extraction
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("language_name", ["python"])
+def test_main_py_structural_signature(language_name: str) -> None:
+    """Test structural signature extraction of the main.py FastAPI application."""
+    
+    # Get the actual main.py file path
+    from pathlib import Path
+    
+    # Build path to main.py from the test file location
+    test_file_path = Path(__file__).parent.parent.parent
+    main_py_path = test_file_path / "src" / "code_confluence_flow_bridge" / "main.py"
+    
+    # Ensure the file exists
+    assert main_py_path.exists(), f"main.py not found at {main_py_path}"
+    
+    # Extract structural signature
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
+    signature = extractor.extract_structural_signature(str(main_py_path))
+    
+    # 1. Module-level verification
+    # No module docstring expected (starts with imports)
+    assert signature.module_docstring is None or signature.module_docstring.strip() == ""
+    
+    # 2. Global variables verification
+    # Should have at least: logger, app, origins
+    assert len(signature.global_variables) >= 3
+    
+    global_var_signatures = [var.signature for var in signature.global_variables]
+    assert any("logger" in sig for sig in global_var_signatures), f"logger not found in {global_var_signatures}"
+    assert any("app" in sig for sig in global_var_signatures), f"app not found in {global_var_signatures}"
+    assert any("origins" in sig for sig in global_var_signatures), f"origins not found in {global_var_signatures}"
+    
+    # 3. Functions verification
+    # Should have many functions (utility, endpoints, etc.)
+    assert len(signature.functions) >= 20, f"Expected at least 20 functions, got {len(signature.functions)}"
+    
+    function_signatures = [fn.signature for fn in signature.functions]
+    
+    # Key utility functions
+    assert any("async def get_temporal_client" in sig for sig in function_signatures), "get_temporal_client not found"
+    assert any("async def _serve_worker" in sig for sig in function_signatures), "_serve_worker not found"
+    assert any("def create_worker" in sig for sig in function_signatures), "create_worker not found"
+    assert any("async def fetch_github_token_from_db" in sig for sig in function_signatures), "fetch_github_token_from_db not found"
+    assert any("async def start_workflow" in sig for sig in function_signatures), "start_workflow not found"
+    assert any("async def generate_sse_events" in sig for sig in function_signatures), "generate_sse_events not found"
+    assert any("async def monitor_workflow" in sig for sig in function_signatures), "monitor_workflow not found"
+    
+    # FastAPI endpoints
+    assert any("async def ingest_token" in sig for sig in function_signatures), "ingest_token not found"
+    assert any("async def update_token" in sig for sig in function_signatures), "update_token not found"
+    assert any("async def delete_token" in sig for sig in function_signatures), "delete_token not found"
+    assert any("async def get_repos" in sig for sig in function_signatures), "get_repos not found"
+    assert any("async def ingestion" in sig for sig in function_signatures), "ingestion not found"
+    assert any("async def get_repository_status" in sig for sig in function_signatures), "get_repository_status not found"
+    
+    # Context manager function
+    assert any("async def lifespan" in sig for sig in function_signatures), "lifespan not found"
+    
+    # 4. No classes should be defined directly in main.py
+    assert len(signature.classes) == 0, f"Expected no classes, got {len(signature.classes)}"
+    
+    # 5. Function call verification for complex functions
+    
+    # create_worker function should have many calls
+    create_worker_fn = next((fn for fn in signature.functions if "def create_worker" in fn.signature), None)
+    assert create_worker_fn is not None, "create_worker function not found"
+    assert len(create_worker_fn.function_calls) >= 10, f"create_worker should have many calls, got {len(create_worker_fn.function_calls)}"
+    
+    # Check some specific calls in create_worker
+    create_worker_calls = create_worker_fn.function_calls
+    assert any("Worker(" in call for call in create_worker_calls), "Worker instantiation not found"
+    assert any("logger.info(" in call for call in create_worker_calls), "logger.info call not found"
+    
+    # ingestion function should have specific calls
+    ingestion_fn = next((fn for fn in signature.functions if "async def ingestion" in fn.signature), None)
+    assert ingestion_fn is not None, "ingestion function not found"
+    assert len(ingestion_fn.function_calls) >= 5, f"ingestion should have several calls, got {len(ingestion_fn.function_calls)}"
+    
+    ingestion_calls = ingestion_fn.function_calls
+    assert any("fetch_github_token_from_db(" in call for call in ingestion_calls), "fetch_github_token_from_db call not found"
+    assert any("start_workflow(" in call for call in ingestion_calls), "start_workflow call not found"
+    assert any("asyncio.create_task(" in call for call in ingestion_calls), "asyncio.create_task call not found"
+    
+    # lifespan function should have many setup/teardown calls
+    lifespan_fn = next((fn for fn in signature.functions if "async def lifespan" in fn.signature), None)
+    assert lifespan_fn is not None, "lifespan function not found"
+    assert len(lifespan_fn.function_calls) >= 15, f"lifespan should have many calls, got {len(lifespan_fn.function_calls)}"
+    
+    lifespan_calls = lifespan_fn.function_calls
+    assert any("get_temporal_client(" in call for call in lifespan_calls), "get_temporal_client call not found"
+    assert any("CodeConfluenceGraph(" in call for call in lifespan_calls), "CodeConfluenceGraph call not found"
+    assert any("create_db_and_tables(" in call for call in lifespan_calls), "create_db_and_tables call not found"
+    
+    # get_repos function should have GraphQL-related calls
+    get_repos_fn = next((fn for fn in signature.functions if "async def get_repos" in fn.signature), None)
+    assert get_repos_fn is not None, "get_repos function not found"
+    assert len(get_repos_fn.function_calls) >= 8, f"get_repos should have several calls, got {len(get_repos_fn.function_calls)}"
+    
+    get_repos_calls = get_repos_fn.function_calls
+    assert any("GQLClient(" in call for call in get_repos_calls), "GQLClient call not found"
+    assert any("client.execute(" in call for call in get_repos_calls), "client.execute call not found"
+    
+    # 6. Verify line numbers are reasonable
+    # Functions should be ordered by line number
+    prev_line = 0
+    for fn in signature.functions:
+        assert fn.start_line > prev_line, f"Functions should be ordered by line number, {fn.signature} at line {fn.start_line} comes before {prev_line}"
+        prev_line = fn.start_line
+    
+    # Check some specific line number ranges
+    get_temporal_client_fn = next((fn for fn in signature.functions if "async def get_temporal_client" in fn.signature), None)
+    assert get_temporal_client_fn is not None
+    assert 150 < get_temporal_client_fn.start_line < 200, f"get_temporal_client should be around line 157, got {get_temporal_client_fn.start_line}"
+    
+    # 7. Check for nested functions in lifespan
+    assert len(lifespan_fn.nested_functions) == 0, "lifespan should not have nested functions directly"
+    
+    # 8. Export structural signature to JSON for experimentation
+    import json
+    from pathlib import Path
+    
+    # Convert to JSON-serializable dict
+    signature_dict = signature.model_dump()
+    
+    # Write to JSON file in the same directory as the test
+    json_output_path = Path(__file__).parent / "test_main_py_structural_signature.json"
+    with open(json_output_path, 'w', encoding='utf-8') as f:
+        json.dump(signature_dict, f, indent=2, ensure_ascii=False)
+    
+    print(f"\nStructural signature exported to: {json_output_path}")
+    print(f"Total global variables: {len(signature.global_variables)}")
+    print(f"Total functions: {len(signature.functions)}")
+    print(f"Total classes: {len(signature.classes)}")
+    
+    # Calculate total function calls across all functions
+    total_function_calls = sum(len(func.function_calls) for func in signature.functions)
+    print(f"Total function calls across all functions: {total_function_calls}")
+    
+    # Calculate total nested functions
+    total_nested_functions = sum(len(func.nested_functions) for func in signature.functions)
+    print(f"Total nested functions: {total_nested_functions}")
+    
+    # Print some interesting statistics
+    functions_with_calls = [fn for fn in signature.functions if len(fn.function_calls) > 0]
+    print(f"Functions with function calls: {len(functions_with_calls)}")
+    
+    if functions_with_calls:
+        max_calls = max(len(fn.function_calls) for fn in functions_with_calls)
+        max_calls_fn = next(fn for fn in functions_with_calls if len(fn.function_calls) == max_calls)
+        print(f"Function with most calls: {max_calls_fn.signature.split('(')[0].strip().split()[-1]} ({max_calls} calls)")
+    
+    # Print decorator usage
+    decorated_functions = [fn for fn in signature.functions if fn.signature.strip().startswith("@")]
+    print(f"Functions with decorators: {len(decorated_functions)}")
+    
+    # Print async function count
+    async_functions = [fn for fn in signature.functions if "async def" in fn.signature]
+    print(f"Async functions: {len(async_functions)}")
+    
+    print("\nKey findings:")
+    print(f"- FastAPI application with {len(signature.functions)} functions")
+    print(f"- {len(async_functions)} async functions for handling concurrent operations")
+    print(f"- {total_function_calls} total function calls indicating complex business logic")
+    print(f"- {len(signature.global_variables)} global variables for app configuration")
+    print(f"- No classes defined (all imported), following separation of concerns") 
