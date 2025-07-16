@@ -38,6 +38,7 @@ dependencies = [
     "tiktoken>=0.9.0",
     "tree-sitter-language-pack>=0.8.0",
     "typing-extensions>=4.11",
+    "sqlalchemy>=2.0.41",
 ] 
 
 [dependency-groups]
@@ -54,6 +55,8 @@ test = [
 dev = [
     # Type checking and linting tools used only during development
     "mypy>=1.16.0",
+    # JSON schema validation for framework definitions
+    "check-jsonschema>=0.33.0",
     # Optional: stubs for popular libraries
     # "types-requests>=2.31.0",
 ]

@@ -1,5 +1,6 @@
 """File model for representing individual source code files."""
 
+from code_confluence_flow_bridge.engine.models import Detection
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
     StructuralSignature,
 )
@@ -25,7 +26,8 @@ class UnoplatFile(BaseModel):
         default_factory=list,
         description="List of imports in the file"
     )
-    poi_labels: List[str] = Field(
-        default_factory=list,
-        description="Points of interest labels for the file"
+    
+    custom_features_list: Optional[List[Detection]] = Field(
+        default=None,
+        description="List of custom features detected in the file"
     )

@@ -30,9 +30,10 @@ from neomodel import adb
 from src.code_confluence_flow_bridge.main import app
 from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
-from src.code_confluence_flow_bridge.processor.db.postgres.db import AsyncSessionLocal, create_db_and_tables, get_session_cm
-from tests.utils.db_cleanup import quick_cleanup
+from tests.utils.db_cleanup import cleanup_postgresql_data
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import text
+from sqlalchemy.schema import CreateTable
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -225,6 +226,12 @@ def docker_compose():
         logger.info("Docker compose stopped and all resources cleaned up")
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# TEST DATABASE HELPER FUNCTIONS
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+
 @pytest.fixture(scope="session")
 def service_ports(docker_compose: DockerCompose) -> Dict[str, int]:
     """Get the exposed ports for each service."""
@@ -240,6 +247,8 @@ def service_ports(docker_compose: DockerCompose) -> Dict[str, int]:
 def test_client(service_ports: Dict[str, int]) -> Iterator[TestClient]:
     """Create test client with proper configuration using FastAPI's TestClient."""
     # Set environment variables for the app
+    project_root = Path(__file__).parent.parent
+    framework_definitions_path = project_root / "framework-definitions"
     os.environ.update({
         "DB_HOST": "localhost",
         "DB_PORT": str(service_ports["postgresql"]),
@@ -251,6 +260,7 @@ def test_client(service_ports: Dict[str, int]) -> Iterator[TestClient]:
         "NEO4J_USERNAME": "neo4j",
         "NEO4J_PASSWORD": "password",
         "TEMPORAL_SERVER_ADDRESS": f"localhost:{service_ports['temporal']}",
+        "FRAMEWORK_DEFINITIONS_PATH": str(framework_definitions_path),
     })
 
     # Wait briefly for app and Temporal worker initialization
@@ -281,6 +291,22 @@ def github_token() -> str:
         pytest.fail("GITHUB_PAT_TOKEN not found in environment or .env.testing file")
         
     return token
+
+
+# @pytest.fixture(scope="session")
+# def framework_definitions_path(monkeypatch):
+#     """
+#     Fixture that sets the correct framework definitions path for tests.
+#     This ensures the FastAPI app can find the framework definitions during testing.
+#     """
+#     # Calculate the path to framework-definitions directory relative to the project root
+#     project_root = Path(__file__).parent.parent
+#     framework_definitions_path = project_root / "framework-definitions"
+    
+#     # Set the environment variable that the app will use
+#     monkeypatch.setenv("FRAMEWORK_DEFINITIONS_PATH", str(framework_definitions_path))
+    
+#     return str(framework_definitions_path)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -319,15 +345,6 @@ async def neo4j_client(service_ports: Dict[str, int]):
     
     # Session cleanup handled by docker_compose fixture
 
-
-# use when you are using test client as it initialises the entire fastapi app with engine
-@pytest_asyncio.fixture(scope="session")
-async def postgres_session_e_2_e(service_ports: Dict[str, int]):
-    """Session-scoped PostgreSQL session for database operations."""
-    # Now AsyncSessionLocal will use the correctly bound engine
-    async with AsyncSessionLocal() as session:
-        yield session
-        # Session will be closed automatically
         
 # use when you are not using test client as it initialises the entire fastapi app with engine
 @pytest_asyncio.fixture(scope="session")
@@ -345,19 +362,23 @@ async def postgres_session(service_ports: Dict[str, int]):
     # Create async engine
     DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
     async_engine = create_async_engine(POSTGRES_URL, echo=DB_ECHO)
+    
     async_session_factory = async_sessionmaker(bind=async_engine, expire_on_commit=False)
-    # Finally, create all tables if they are missing.
-    async with async_engine.begin() as conn:
-        await conn.run_sync(lambda sync_conn: SQLModel.metadata.create_all(sync_conn, checkfirst=True))
+    
+    # Note: Table creation is handled by FastAPI app startup via create_db_and_tables()
+    # Tests using test_client will have properly initialized database with enum types
+    
     async with async_session_factory() as session:
         try:
             yield session
         finally:
             # Ensure session is properly closed
             await session.close()
+            await async_engine.dispose()
     
-    # Clean up engine
-    await async_engine.dispose()
+    
+
+
 
     
         

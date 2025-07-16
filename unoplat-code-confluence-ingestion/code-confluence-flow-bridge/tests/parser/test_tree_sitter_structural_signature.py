@@ -73,7 +73,7 @@ class Foo:
 
     foo_class = next(cl for cl in signature.classes if cl.signature.startswith("class Foo"))
 
-    class_var_signatures = [var.signature for var in foo_class.class_variables]
+    class_var_signatures = [var.signature for var in foo_class.vars]
     assert any("CLASS_VAR" in sig for sig in class_var_signatures)
 
     method_signatures = [m.signature for m in foo_class.methods]
@@ -110,15 +110,6 @@ class Foo:
     import json
     from pathlib import Path
     
-    # Convert to JSON-serializable dict
-    signature_dict = signature.model_dump()
-    
-    # Write to JSON file in the same directory as the test
-    json_output_path = Path(__file__).parent / "test_structural_signature_extraction.json"
-    with open(json_output_path, 'w', encoding='utf-8') as f:
-        json.dump(signature_dict, f, indent=2, ensure_ascii=False)
-    
-    print(f"\nStructural signature exported to: {json_output_path}")
     print(f"Total global variables: {len(signature.global_variables)}")
     print(f"Total functions: {len(signature.functions)}")
     print(f"Total classes: {len(signature.classes)}")
@@ -205,7 +196,7 @@ class Person:
     person_cls = next(cl for cl in sig.classes if "class Person" in cl.signature)
 
     # Class variable
-    assert any("GREETING_PREFIX" in var.signature for var in person_cls.class_variables)
+    assert any("GREETING_PREFIX" in var.signature for var in person_cls.vars)
 
     # Methods inside Person – greet (decorated) and age_next_year (async)
     method_sigs = [m.signature for m in person_cls.methods]
@@ -239,19 +230,7 @@ class Person:
     assert len(age_method.function_calls) == 1
     assert "asyncio.sleep(0)" in age_method.function_calls
     
-    # Export structural signature to JSON for experimentation
-    import json
-    from pathlib import Path
     
-    # Convert to JSON-serializable dict
-    signature_dict = sig.model_dump()
-    
-    # Write to JSON file in the same directory as the test
-    json_output_path = Path(__file__).parent / "test_structural_signature_extraction_complex.json"
-    with open(json_output_path, 'w', encoding='utf-8') as f:
-        json.dump(signature_dict, f, indent=2, ensure_ascii=False)
-    
-    print(f"\nStructural signature exported to: {json_output_path}")
     print(f"Total global variables: {len(sig.global_variables)}")
     print(f"Total functions: {len(sig.functions)}")
     print(f"Total classes: {len(sig.classes)}")
@@ -414,15 +393,7 @@ class ComplexClass:
     import json
     from pathlib import Path
     
-    # Convert to JSON-serializable dict
-    signature_dict = sig.model_dump()
     
-    # Write to JSON file in the same directory as the test
-    json_output_path = Path(__file__).parent / "test_edge_cases_function_calls.json"
-    with open(json_output_path, 'w', encoding='utf-8') as f:
-        json.dump(signature_dict, f, indent=2, ensure_ascii=False)
-    
-    print(f"\nStructural signature exported to: {json_output_path}")
     print(f"Total global variables: {len(sig.global_variables)}")
     print(f"Total functions: {len(sig.functions)}")
     print(f"Total classes: {len(sig.classes)}")
@@ -494,12 +465,20 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     assert main_class.docstring is not None
     assert "Extracts structural signatures from source code using tree-sitter queries." in main_class.docstring
     
-    # No class variables
-    assert len(main_class.class_variables) == 0
+    # Should have instance variables from __init__ method
+    assert len(main_class.vars) == 5
+    
+    # Verify specific instance variables are captured
+    class_var_signatures = [var.signature for var in main_class.vars]
+    assert any("self.config" in sig for sig in class_var_signatures)
+    assert any("self.language_name" in sig for sig in class_var_signatures)
+    assert any("self.language:" in sig for sig in class_var_signatures)
+    assert any("self.parser:" in sig for sig in class_var_signatures)
+    assert any("self.queries:" in sig for sig in class_var_signatures)
     
     # 3. Method-level verification
-    # Should have 19 methods (including the new _is_immediate_child_function)
-    assert len(main_class.methods) == 19
+    # Should have 21 methods (after hierarchical refactoring + nested class extraction)
+    assert len(main_class.methods) == 21
     
     # Create a mapping of method names to method objects for easier verification
     method_map = {m.signature.split('(')[0].split()[-1]: m for m in main_class.methods}
@@ -511,8 +490,10 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
         "_extract_global_variables", "_extract_functions", "_extract_classes",
         "_extract_class_variables_for_node", "_extract_methods_for_node",
         "_extract_nested_functions_for_node", "_is_at_module_level",
-        "_is_class_level_variable", "_clean_string_literal", "_is_immediate_child_function",
-        "_get_nested_function_ranges", "_extract_function_calls_for_node"
+        "_clean_string_literal", "_is_immediate_child_function", 
+        "_get_nested_function_ranges", "_get_nested_class_ranges",
+        "_extract_function_calls_for_node", "_extract_instance_variables_for_method",
+        "_extract_nested_classes_for_node"
     ]
     
     for method_name in expected_methods:
@@ -871,4 +852,380 @@ def test_main_py_structural_signature(language_name: str) -> None:
     print(f"- {len(async_functions)} async functions for handling concurrent operations")
     print(f"- {total_function_calls} total function calls indicating complex business logic")
     print(f"- {len(signature.global_variables)} global variables for app configuration")
-    print(f"- No classes defined (all imported), following separation of concerns") 
+    print(f"- No classes defined (all imported), following separation of concerns")
+
+
+# ---------------------------------------------------------------------------
+# Comprehensive Instance Variable Edge Cases Test
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("language_name", ["python"])
+def test_instance_variable_edge_cases(tmp_path: Path, language_name: str) -> None:
+    """Test comprehensive edge cases for instance variable detection in structural signatures.
+    
+    This test covers various scenarios that could break or produce false positives
+    in instance variable detection, ensuring robustness of the Tree-sitter query.
+    """
+    
+    # Use the edge cases file from test_data
+    edge_cases_file_path = Path(__file__).parent / "test_data" / "instance_variable_edge_cases.py"
+    assert edge_cases_file_path.exists(), f"Edge cases file not found at {edge_cases_file_path}"
+    
+    file_path = str(edge_cases_file_path)
+    
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
+    signature = extractor.extract_structural_signature(file_path)
+    
+    # ========================================================================
+    # TEST 1: FastAPIApp class - comprehensive instance variable patterns
+    # ========================================================================
+    
+    fastapi_class = next(cls for cls in signature.classes if "class FastAPIApp" in cls.signature)
+    
+    # Should capture both class variables and instance variables
+    class_var_signatures = [var.signature for var in fastapi_class.vars]
+    
+    print(f"\nFastAPIApp class variables found ({len(fastapi_class.vars)}):")
+    for i, var in enumerate(fastapi_class.vars):
+        print(f"  [{i}] Line {var.start_line}: {repr(var.signature)}")
+    
+    # Direct class variables (should be captured)
+    assert any("CLASS_CONSTANT" in sig for sig in class_var_signatures), "CLASS_CONSTANT not captured"
+    assert any("shared_cache" in sig for sig in class_var_signatures), "shared_cache not captured"
+    
+    # Basic instance variables from __init__ (should be captured)
+    assert any("self.app = FastAPI()" in sig for sig in class_var_signatures), "self.app not captured"
+    assert any("self.config = config" in sig for sig in class_var_signatures), "self.config not captured"
+    assert any("self.database_url:" in sig for sig in class_var_signatures), "self.database_url not captured"
+    
+    # Type-annotated instance variables (should be captured)
+    assert any("self.clients:" in sig for sig in class_var_signatures), "self.clients not captured"
+    assert any("self.cache:" in sig for sig in class_var_signatures), "self.cache not captured"
+    assert any("self.metrics:" in sig for sig in class_var_signatures), "self.metrics not captured"
+    
+    # Complex expressions (should be captured)
+    assert any("self.router = APIRouter" in sig for sig in class_var_signatures), "self.router not captured"
+    assert any("self.middleware_stack =" in sig for sig in class_var_signatures), "self.middleware_stack not captured"
+    
+    # Conditional assignments (captured - our hierarchical query captures assignments in if/else blocks)
+    # This is expected behavior - assignments inside control flow are captured with updated query
+    assert any("self.auth_handler = AuthHandler" in sig for sig in class_var_signatures), "self.auth_handler (then) should be captured - inside if block"
+    assert any("self.auth_handler = None" in sig for sig in class_var_signatures), "self.auth_handler (else) should be captured - inside else block"
+    
+    # Nested attribute assignments (NOT captured - Tree-sitter query doesn't match nested attributes)
+    # This is expected behavior - our query only matches simple self.attr assignments
+    assert not any("self.settings.debug =" in sig for sig in class_var_signatures), "self.settings.debug should not be captured - nested attribute"
+    assert not any("self.settings.timeout =" in sig for sig in class_var_signatures), "self.settings.timeout should not be captured - nested attribute"
+    
+    # Method call results (should be captured)
+    assert any("self.connection = self._create_connection()" in sig for sig in class_var_signatures), "self.connection not captured"
+    assert any("self.logger = setup_logger" in sig for sig in class_var_signatures), "self.logger not captured"
+    
+    # F-string assignments (should be captured)
+    assert any("self.base_url = f" in sig for sig in class_var_signatures), "self.base_url not captured"
+    assert any("self.version_info = f" in sig for sig in class_var_signatures), "self.version_info not captured"
+    
+    # Lambda and comprehensions (should be captured)
+    assert any("self.data_processor = lambda" in sig for sig in class_var_signatures), "self.data_processor not captured"
+    assert any("self.valid_routes =" in sig for sig in class_var_signatures), "self.valid_routes not captured"
+    
+    # Instance variables from configure_middleware method (should be captured)
+    assert any("self.cors_middleware =" in sig for sig in class_var_signatures), "self.cors_middleware not captured"
+    assert any("self.rate_limiter =" in sig for sig in class_var_signatures), "self.rate_limiter not captured"
+    assert any("self.security_config =" in sig for sig in class_var_signatures), "self.security_config not captured"
+    
+    # Complex nested assignments (NOT captured - Tree-sitter query doesn't match deeply nested attributes)
+    # This is expected behavior - our query only matches simple self.attr assignments
+    assert not any("self.nested.handler.config =" in sig for sig in class_var_signatures), "self.nested.handler.config should not be captured - deeply nested attribute"
+    assert not any("self.deep.very.nested.setting =" in sig for sig in class_var_signatures), "self.deep.very.nested.setting should not be captured - deeply nested attribute"
+    
+    # Instance variables from private method (should be captured)
+    assert any("self.connection_pool =" in sig for sig in class_var_signatures), "self.connection_pool not captured"
+    assert any("self.connection_helper =" in sig for sig in class_var_signatures), "self.connection_helper not captured"
+    
+    # Instance variables from async method (should be captured)
+    assert any("self.async_client =" in sig for sig in class_var_signatures), "self.async_client not captured"
+    assert any("self.event_loop =" in sig for sig in class_var_signatures), "self.event_loop not captured"
+    assert any("self.async_data = await" in sig for sig in class_var_signatures), "self.async_data not captured"
+    
+    # Property setter assignments are NOT reliably captured due to decorator patterns
+    # This is expected behavior - our focus is on constructor and regular method instance variables
+    property_class = next(cls for cls in signature.classes if "class PropertyAndDescriptorClass" in cls.signature)
+    property_vars = [var.signature for var in property_class.vars]
+    # Note: Property setter assignments (e.g., self._private_value = value in @property.setter)
+    # are not guaranteed to be captured due to complex decorator AST structures
+    
+    # ========================================================================
+    # TEST 2: Verify local variables are NOT captured
+    # ========================================================================
+    
+    # Local variables in methods should NOT appear
+    assert not any("local_config =" in sig for sig in class_var_signatures), "local_config incorrectly captured"
+    assert not any("middleware_list =" in sig for sig in class_var_signatures), "middleware_list incorrectly captured"
+    assert not any("temp_handler =" in sig for sig in class_var_signatures), "temp_handler incorrectly captured"
+    
+    # Variables on other objects should NOT be captured
+    assert not any("other_obj.config =" in sig for sig in class_var_signatures), "other_obj.config incorrectly captured"
+    assert not any("different.setting =" in sig for sig in class_var_signatures), "different.setting incorrectly captured"
+    
+    # Variables in static/class methods should NOT be captured as instance vars
+    assert not any("default_settings =" in sig for sig in class_var_signatures), "default_settings incorrectly captured"
+    assert not any("temp_config =" in sig for sig in class_var_signatures), "temp_config incorrectly captured"
+    assert not any("config_data =" in sig for sig in class_var_signatures), "config_data incorrectly captured"
+    
+    # Nested function variables should NOT be captured
+    assert not any("local_conn =" in sig for sig in class_var_signatures), "local_conn incorrectly captured"
+    assert not any("helper_config =" in sig for sig in class_var_signatures), "helper_config incorrectly captured"
+    assert not any("inner_self.fake_attr =" in sig for sig in class_var_signatures), "inner_self.fake_attr incorrectly captured"
+    
+    # Async method local variables should NOT be captured
+    assert not any("async_config =" in sig for sig in class_var_signatures), "async_config incorrectly captured"
+    
+    # Property local variables should NOT be captured
+    assert not any("temp_calc =" in sig for sig in property_vars), "temp_calc incorrectly captured"
+    assert not any("validation_result =" in sig for sig in property_vars), "validation_result incorrectly captured"
+    
+    # ========================================================================
+    # TEST 3: Nested class instance variables
+    # ========================================================================
+    
+    nested_class_test = next(cls for cls in signature.classes if "class NestedClassTest" in cls.signature)
+    nested_test_vars = [var.signature for var in nested_class_test.vars]
+    
+    # Parent class should have its own instance variables
+    assert any("PARENT_CONSTANT =" in sig for sig in nested_test_vars), "PARENT_CONSTANT not captured"
+    assert any("self.parent_attr =" in sig for sig in nested_test_vars), "self.parent_attr not captured"
+    assert any("self.nested_instance =" in sig for sig in nested_test_vars), "self.nested_instance not captured"
+    
+    # Find the nested class (now properly nested in parent class)
+    nested_class = nested_class_test.nested_classes[0]  # NestedClass is now in nested_classes
+    nested_class_vars = [var.signature for var in nested_class.vars]
+    
+    # Nested class should have its own separate instance variables
+    assert any("NESTED_CONSTANT =" in sig for sig in nested_class_vars), "NESTED_CONSTANT not captured"
+    assert any("self.nested_attr =" in sig for sig in nested_class_vars), "self.nested_attr not captured"
+    assert any("self.config =" in sig for sig in nested_class_vars), "nested self.config not captured"
+    
+    # Verify nested class variables don't leak into parent
+    assert not any("NESTED_CONSTANT =" in sig for sig in nested_test_vars), "NESTED_CONSTANT leaked to parent"
+    assert not any("nested_attr =" in sig for sig in nested_test_vars), "nested_attr leaked to parent"
+    
+    # Verify parent class variables don't leak into nested
+    assert not any("PARENT_CONSTANT =" in sig for sig in nested_class_vars), "PARENT_CONSTANT leaked to nested"
+    assert not any("parent_attr =" in sig for sig in nested_class_vars), "parent_attr leaked to nested"
+    
+    # ========================================================================
+    # TEST 4: Type annotation handling
+    # ========================================================================
+    
+    typed_class = next(cls for cls in signature.classes if "class TypeAnnotatedClass" in cls.signature)
+    typed_vars = [var.signature for var in typed_class.vars]
+    
+    # ClassVar annotated variables (should be captured)
+    assert any("class_config:" in sig for sig in typed_vars), "class_config not captured"
+    assert any("shared_state:" in sig for sig in typed_vars), "shared_state not captured"
+    
+    # Type-annotated instance variables (should be captured)
+    assert any("self.typed_config:" in sig for sig in typed_vars), "self.typed_config not captured"
+    assert any("self.optional_cache:" in sig for sig in typed_vars), "self.optional_cache not captured"
+    assert any("self.generic_list:" in sig for sig in typed_vars), "self.generic_list not captured"
+    assert any("self.union_type:" in sig for sig in typed_vars), "self.union_type not captured"
+    assert any("self.complex_type:" in sig for sig in typed_vars), "self.complex_type not captured"
+    
+    # ========================================================================
+    # TEST 5: Global variables should NOT appear in any class
+    # ========================================================================
+    
+    all_class_vars = []
+    for cls in signature.classes:
+        all_class_vars.extend([var.signature for var in cls.vars])
+    
+    # Module-level variables should NOT be captured as class variables
+    assert not any("GLOBAL_CONFIG =" in sig for sig in all_class_vars), "GLOBAL_CONFIG incorrectly captured"
+    assert not any("app_instance =" in sig for sig in all_class_vars), "app_instance incorrectly captured"
+    assert not any("ANOTHER_GLOBAL =" in sig for sig in all_class_vars), "ANOTHER_GLOBAL incorrectly captured"
+    assert not any("module_config =" in sig for sig in all_class_vars), "module_config incorrectly captured"
+    
+    # Module function variables should NOT be captured
+    assert not any("local_var =" in sig for sig in all_class_vars), "local_var incorrectly captured"
+    assert not any("fake_self.attribute =" in sig for sig in all_class_vars), "fake_self.attribute incorrectly captured"
+    assert not any("nested_var =" in sig for sig in all_class_vars), "nested_var incorrectly captured"
+    
+    # ========================================================================
+    # TEST 6: Method counting and structure verification
+    # ========================================================================
+    
+    # FastAPIApp should have the expected number of methods
+    expected_fastapi_methods = ["__init__", "configure_middleware", "create_default_config", 
+                               "from_config_file", "_create_connection", "async_setup"]
+    assert len(fastapi_class.methods) == len(expected_fastapi_methods), f"Expected {len(expected_fastapi_methods)} methods, got {len(fastapi_class.methods)}"
+    
+    # Verify specific method signatures exist
+    method_signatures = [method.signature for method in fastapi_class.methods]
+    for expected_method in expected_fastapi_methods:
+        assert any(expected_method in sig for sig in method_signatures), f"Method {expected_method} not found"
+    
+    # ========================================================================
+    # TEST 7: Edge case validation - malformed code resilience
+    # ========================================================================
+    
+    # The parser should handle the edge cases gracefully without crashing
+    # and should not produce duplicate entries
+    
+    # Check for duplicates in instance variables
+    seen_signatures = set()
+    duplicates = []
+    for var in fastapi_class.vars:
+        if var.signature in seen_signatures:
+            duplicates.append(var.signature)
+        seen_signatures.add(var.signature)
+    
+    assert len(duplicates) == 0, f"Found duplicate instance variables: {duplicates}"
+    
+    # ========================================================================
+    # Export results for analysis
+    # ========================================================================
+    
+    import json
+    
+    # Convert to JSON-serializable dict
+    signature_dict = signature.model_dump()
+    
+    # Write to JSON file in the same directory as the test
+    json_output_path = Path(__file__).parent / "test_instance_variable_edge_cases.json"
+    with open(json_output_path, 'w', encoding='utf-8') as f:
+        json.dump(signature_dict, f, indent=2, ensure_ascii=False)
+    
+    print(f"\nInstance variable edge cases signature exported to: {json_output_path}")
+    print(f"Total classes tested: {len(signature.classes)}")
+    
+    for cls in signature.classes:
+        class_name = cls.signature.split()[1].rstrip(':')
+        print(f"  {class_name}: {len(cls.vars)} variables, {len(cls.methods)} methods")
+    
+    print(f"\nFastAPIApp detailed breakdown:")
+    print(f"  Total variables captured: {len(fastapi_class.vars)}")
+    
+    # Count different types of variables
+    class_vars = [v for v in fastapi_class.vars if not v.signature.startswith("self.")]
+    instance_vars = [v for v in fastapi_class.vars if v.signature.startswith("self.")]
+    
+    print(f"  Direct class variables: {len(class_vars)}")
+    print(f"  Instance variables: {len(instance_vars)}")
+    
+    # Verify the ratio makes sense (should be mostly instance variables)
+    assert len(instance_vars) > len(class_vars), "Should have more instance variables than class variables"
+    assert len(instance_vars) >= 20, f"Should capture at least 20 instance variables, got {len(instance_vars)}"
+    
+    print(f"\nTest passed: Instance variable detection is robust across {len(instance_vars)} instance variables and {len(class_vars)} class variables")
+
+
+# ---------------------------------------------------------------------------
+# Demonstration Test: Local Variables Are NOT Captured
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("language_name", ["python"])
+def test_local_variables_not_captured(tmp_path: Path, language_name: str) -> None:
+    """Demonstrate that local variables are NOT captured by the structural signature extractor.
+    
+    This test clearly shows the difference between what IS captured (class vars, instance vars)
+    and what is NOT captured (local variables in various contexts).
+    """
+    
+    # Use the demo file from test_data
+    demo_file_path = Path(__file__).parent / "test_data" / "demo_local_vars.py"
+    assert demo_file_path.exists(), f"Demo file not found at {demo_file_path}"
+    
+    file_path = str(demo_file_path)
+    
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
+    signature = extractor.extract_structural_signature(file_path)
+    
+    # Get the demo class
+    demo_class = next(cls for cls in signature.classes if "class DemoClass" in cls.signature)
+    captured_vars = [var.signature for var in demo_class.vars]
+    
+    print(f"\nDemoClass variables captured ({len(demo_class.vars)}):")
+    for i, var in enumerate(demo_class.vars):
+        print(f"  [{i}] Line {var.start_line}: {repr(var.signature)}")
+    
+    # ========================================================================
+    # Verify CAPTURED variables (class vars + instance vars)
+    # ========================================================================
+    
+    # Class variable should be captured
+    assert any("CLASS_VAR" in sig for sig in captured_vars), "CLASS_VAR should be captured"
+    
+    # Instance variables should be captured
+    assert any("self.instance_var" in sig for sig in captured_vars), "self.instance_var should be captured"
+    assert any("self.app" in sig for sig in captured_vars), "self.app should be captured"
+    assert any("self.method_instance_var" in sig for sig in captured_vars), "self.method_instance_var should be captured"
+    assert any("self.outer_instance_var" in sig for sig in captured_vars), "self.outer_instance_var should be captured"
+    assert any("self.after_nested" in sig for sig in captured_vars), "self.after_nested should be captured"
+    
+    # ========================================================================
+    # Verify NOT CAPTURED variables (local vars in various contexts)
+    # ========================================================================
+    
+    # Local variables in __init__ method should NOT be captured
+    assert not any("local_var" in sig for sig in captured_vars), "local_var should NOT be captured"
+    assert not any("temp_config" in sig for sig in captured_vars), "temp_config should NOT be captured"
+    assert not any("helper_obj" in sig for sig in captured_vars), "helper_obj should NOT be captured"
+    
+    # Assignments to other objects should NOT be captured
+    assert not any("helper_obj.config" in sig for sig in captured_vars), "helper_obj.config should NOT be captured"
+    
+    # Local variables in regular method should NOT be captured
+    assert not any("local_data" in sig for sig in captured_vars), "local_data should NOT be captured"
+    assert not any("temp_result" in sig for sig in captured_vars), "temp_result should NOT be captured"
+    assert not any("cache =" in sig for sig in captured_vars), "cache should NOT be captured"
+    assert not any("items =" in sig for sig in captured_vars), "items should NOT be captured"
+    assert not any("processed_items" in sig for sig in captured_vars), "processed_items should NOT be captured"
+    
+    # Local variables in static method should NOT be captured
+    assert not any("static_local" in sig for sig in captured_vars), "static_local should NOT be captured"
+    assert not any("config =" in sig for sig in captured_vars), "config should NOT be captured"
+    
+    # Local variables in method with nested function should NOT be captured
+    assert not any("outer_local" in sig for sig in captured_vars), "outer_local should NOT be captured"
+    
+    # Variables in nested functions should NOT be captured
+    assert not any("nested_local" in sig for sig in captured_vars), "nested_local should NOT be captured"
+    assert not any("nested_config" in sig for sig in captured_vars), "nested_config should NOT be captured"
+    assert not any("fake_self.attribute" in sig for sig in captured_vars), "fake_self.attribute should NOT be captured"
+    
+    # ========================================================================
+    # Verify global variables are not captured as class variables
+    # ========================================================================
+    
+    # Global variables should appear in signature.global_variables, not class vars
+    global_var_signatures = [var.signature for var in signature.global_variables]
+    assert any("GLOBAL_VAR" in sig for sig in global_var_signatures), "GLOBAL_VAR should be in global variables"
+    assert not any("GLOBAL_VAR" in sig for sig in captured_vars), "GLOBAL_VAR should NOT be in class variables"
+    
+    # Module function variables should not appear anywhere in class variables
+    assert not any("func_local" in sig for sig in captured_vars), "func_local should NOT be captured"
+    assert not any("temp_obj" in sig for sig in captured_vars), "temp_obj should NOT be captured"
+    
+    # ========================================================================
+    # Summary assertions
+    # ========================================================================
+    
+    # Should have exactly 1 class variable and 5 instance variables
+    class_vars = [v for v in demo_class.vars if not v.signature.startswith("self.")]
+    instance_vars = [v for v in demo_class.vars if v.signature.startswith("self.")]
+    
+    assert len(class_vars) == 1, f"Expected 1 class variable, got {len(class_vars)}"
+    assert len(instance_vars) == 5, f"Expected 5 instance variables, got {len(instance_vars)}"
+    
+    print(f"\n✅ Verification complete:")
+    print(f"   Class variables captured: {len(class_vars)} (CLASS_VAR)")
+    print(f"   Instance variables captured: {len(instance_vars)} (self.* assignments)")
+    print(f"   Local variables correctly filtered out: ALL")
+    print(f"   Total captured: {len(demo_class.vars)} (only structural class elements)")
+    
+    print(f"\n📝 Key insight: The extractor intentionally captures only structural class elements")
+    print(f"   (class variables + instance variables) while filtering out implementation")
+    print(f"   details (local variables, temporary objects, control flow variables).") 
