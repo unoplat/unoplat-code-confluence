@@ -1,0 +1,47 @@
+{
+  "python": {
+    "sqlalchemy": {
+      "docs_url": "https://docs.sqlalchemy.org",
+      "features": {
+        "declarative_base": {
+          "description": "Base class for SQLAlchemy declarative models",
+          "absolute_paths": [
+            "sqlalchemy.ext.declarative.declarative_base",
+            "sqlalchemy.orm.declarative_base"
+          ],
+          "target_level": "class",
+          "concept": "Inheritance",
+          "locator_strategy": "VariableBound"
+        },
+        "mapped_column": {
+          "description": "Column definition using mapped_column for modern SQLAlchemy",
+          "absolute_paths": [
+            "sqlalchemy.orm.mapped_column"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression",
+          "locator_strategy": "Direct"
+        },
+        "relationship": {
+          "description": "Relationship definition between models",
+          "absolute_paths": [
+            "sqlalchemy.orm.relationship"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression",
+          "locator_strategy": "Direct"
+        },
+        "column": {
+          "description": "Traditional column definition using Column",
+          "absolute_paths": [
+            "sqlalchemy.Column",
+            "sqlalchemy.sql.schema.Column"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression",
+          "locator_strategy": "Direct"
+        }
+      }
+    }
+  }
+}

@@ -337,7 +337,7 @@ class TestStartIngestionEndpoint:
         test_client: TestClient,
         github_token: str,
         neo4j_client,  # Session-scoped Neo4j client
-        postgres_session_e_2_e,  # Session-scoped PostgreSQL session
+        postgres_session,  # Session-scoped PostgreSQL session
     ) -> None:
         """Full happy-path flow: ingest token -> start ingestion -> verify response."""
 
@@ -378,7 +378,7 @@ class TestStartIngestionEndpoint:
             pytest.fail("Workflow run did not show up in /parent-workflow-jobs within timeout")
         
         # Database cleanup after test completion
-        await quick_cleanup(neo4j_client, postgres_session_e_2_e)
+        await quick_cleanup(neo4j_client, postgres_session)
 
     @pytest.mark.asyncio  # type: ignore[var-annotated]
     async def test_local_repository_detection_via_sse(
@@ -386,7 +386,7 @@ class TestStartIngestionEndpoint:
         test_client: TestClient,
         github_token: str,
         neo4j_client,  # Session-scoped Neo4j client
-        postgres_session_e_2_e,  # Session-scoped PostgreSQL session
+        postgres_session,  # Session-scoped PostgreSQL session
     ) -> None:
         """Test local repository codebase detection using SSE endpoint."""
 
@@ -443,7 +443,7 @@ class TestStartIngestionEndpoint:
         assert backend_codebase.programming_language_metadata.package_manager.value in ["uv", "pip", "poetry"]
         
         # Database cleanup after test completion
-        await quick_cleanup(neo4j_client, postgres_session_e_2_e)
+        await quick_cleanup(neo4j_client, postgres_session)
 
     @pytest.mark.asyncio  # type: ignore[var-annotated]
     async def test_complete_detection_and_ingestion_flow(
@@ -452,7 +452,7 @@ class TestStartIngestionEndpoint:
         github_token: str,
         service_ports: Dict[str, int],  # noqa: F811 - fixture parameter
         neo4j_client,  # Session-scoped Neo4j client
-        postgres_session_e_2_e,  # Session-scoped PostgreSQL session
+        postgres_session,  # Session-scoped PostgreSQL session
     ) -> None:
         """
         Complete integration test: detect local repository codebases via SSE,
@@ -570,4 +570,4 @@ class TestStartIngestionEndpoint:
         assert "started_at" in target_job
         
         # Database cleanup after test completion
-        await quick_cleanup(neo4j_client, postgres_session_e_2_e)
+        await quick_cleanup(neo4j_client, postgres_session)

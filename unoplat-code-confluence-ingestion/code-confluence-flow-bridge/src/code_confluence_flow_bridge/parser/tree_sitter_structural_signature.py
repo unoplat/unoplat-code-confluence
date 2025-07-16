@@ -87,14 +87,16 @@ class TreeSitterStructuralSignatureExtractor:
             "class_methods": "class_methods.scm",
             "nested_functions": "nested_functions.scm",
             "function_calls": "function_calls.scm",
+            "instance_variables": "instance_variables.scm",
+            "nested_classes": "nested_classes.scm",
         }
 
         query_strings: Dict[str, str] = {}
         for key, filename in query_file_map.items():
             file_path = base_dir / filename
             if not file_path.exists():
-                # The `function_calls` query is optional to allow gradual rollout
-                if key == "function_calls":
+                # These queries are optional to allow gradual rollout
+                if key in ["function_calls", "instance_variables", "nested_classes"]:
                     continue
                 raise FileNotFoundError(f"Query file not found: {file_path}")
             query_strings[key] = file_path.read_text()
@@ -275,26 +277,46 @@ class TreeSitterStructuralSignatureExtractor:
                 # Extract class variables and methods
                 class_variables = []
                 methods = []
+                nested_classes = []
                 
                 if actual_class_def:
                     class_variables = self._extract_class_variables_for_node(actual_class_def, source)
                     methods = self._extract_methods_for_node(actual_class_def, source)
+                    nested_classes = self._extract_nested_classes_for_node(actual_class_def, source)
+                
+                # Combine class variables with instance variables from all methods
+                all_variables = class_variables.copy()
+                instance_variables_seen = set()
+                
+                for method in methods:
+                    for instance_var in method.instance_variables:
+                        # Deduplicate instance variables (same variable might be assigned in multiple methods)
+                        var_key = (instance_var.signature.split('=')[0].strip(), instance_var.signature)
+                        if var_key not in instance_variables_seen:
+                            instance_variables_seen.add(var_key)
+                            all_variables.append(instance_var)
+                
+                # Sort all variables by line number
+                all_variables.sort(key=lambda v: v.start_line)
                 
                 classes.append(ClassInfo(
                     start_line=start_line,
                     end_line=end_line,
                     signature='\n'.join(sig_parts),
                     docstring=docstring,
-                    class_variables=class_variables,
+                    vars=all_variables,
                     methods=methods,
-                    nested_classes=[]  # TODO: Implement nested class extraction
+                    nested_classes=nested_classes
                 ))
         
         return sorted(classes, key=lambda c: c.start_line)
     
     def _extract_class_variables_for_node(self, class_node: tree_sitter.Node, source: bytes) -> List[VariableInfo]:
-        """Extract class variables for a specific class node."""
+        """Extract class variables for a specific class node, excluding nested class variables."""
         captures = self.queries['class_variables'].captures(class_node)
+        
+        # Get nested class ranges to exclude
+        nested_ranges = self._get_nested_class_ranges(class_node)
         
         variables = []
         seen = set()
@@ -303,25 +325,38 @@ class TreeSitterStructuralSignatureExtractor:
 
         if var_stmt_cap in captures:
             for node in captures[var_stmt_cap]:
-                if self._is_class_level_variable(node, class_node):
-                    start_line = node.start_point[0] + 1
-                    end_line = node.end_point[0] + 1
-                    signature = source[node.start_byte:node.end_byte].decode('utf-8').strip()
-                    
-                    key = (start_line, signature)
-                    if key not in seen:
-                        seen.add(key)
-                        variables.append(VariableInfo(
-                            start_line=start_line,
-                            end_line=end_line,
-                            signature=signature
-                        ))
+                # Check if this assignment is within any nested class
+                assignment_start = node.start_byte
+                is_within_nested = any(
+                    start <= assignment_start < end 
+                    for start, end in nested_ranges
+                )
+                if is_within_nested:
+                    continue  # Skip variables that are inside nested classes
+                # The updated Tree-sitter query now captures both class and instance variables
+                # We filter out local variables (non-self assignments inside methods) programmatically
+                start_line = node.start_point[0] + 1
+                end_line = node.end_point[0] + 1
+                signature = source[node.start_byte:node.end_byte].decode('utf-8').strip()
+                
+                # The reverted query now only captures class-level variables, so no filtering needed
+                key = (start_line, signature)
+                if key not in seen:
+                    seen.add(key)
+                    variables.append(VariableInfo(
+                        start_line=start_line,
+                        end_line=end_line,
+                        signature=signature
+                    ))
         
         return variables
     
     def _extract_methods_for_node(self, class_node: tree_sitter.Node, source: bytes) -> List[FunctionInfo]:
-        """Extract methods for a specific class node using matches."""
+        """Extract methods for a specific class node using matches, excluding nested class methods."""
         matches = self.queries['class_methods'].matches(class_node)
+        
+        # Get nested class ranges to exclude
+        nested_ranges = self._get_nested_class_ranges(class_node)
         
         methods = []
         
@@ -336,6 +371,15 @@ class TreeSitterStructuralSignatureExtractor:
                 method_node = captures[method_def_cap][0]
             
             if method_node:
+                # Check if this method is within any nested class
+                method_start = method_node.start_byte
+                is_within_nested = any(
+                    start <= method_start < end 
+                    for start, end in nested_ranges
+                )
+                if is_within_nested:
+                    continue  # Skip methods that are inside nested classes
+                
                 start_line = method_node.start_point[0] + 1
                 end_line = method_node.end_point[0] + 1
                 
@@ -368,17 +412,24 @@ class TreeSitterStructuralSignatureExtractor:
                 if actual_method_def:
                     function_calls = self._extract_function_calls_for_node(actual_method_def, source)
                 
+                # Extract instance variables inside this method
+                instance_variables: List[VariableInfo] = []
+                if actual_method_def:
+                    instance_variables = self._extract_instance_variables_for_method(actual_method_def, source)
+                
                 methods.append(FunctionInfo(
                     start_line=start_line,
                     end_line=end_line,
                     signature='\n'.join(sig_parts),
                     docstring=docstring,
                     function_calls=function_calls,
-                    nested_functions=nested_functions
+                    nested_functions=nested_functions,
+                    instance_variables=instance_variables
                 ))
         
         return sorted(methods, key=lambda m: m.start_line)
     
+    # TODO: look at doing this through dp . recursive solution are not good to read at 
     def _extract_nested_functions_for_node(self, parent_func_node: tree_sitter.Node, source: bytes) -> List[FunctionInfo]:
         """Extract immediate nested functions within a specific function node.
         
@@ -452,15 +503,6 @@ class TreeSitterStructuralSignatureExtractor:
             parent = parent.parent
         return True
     
-    def _is_class_level_variable(self, node: tree_sitter.Node, class_node: tree_sitter.Node) -> bool:
-        """Check if a variable is at class level (not inside a method) using language config."""
-        parent = node.parent
-        while parent and parent != class_node:
-            if parent.type in self.config.method_nodes:
-                return False
-            parent = parent.parent
-        return True
-    
     def _clean_string_literal(self, string_literal: str) -> str:
         """Delegate string cleaning to language config."""
         return self.config.clean_doc(string_literal)
@@ -530,6 +572,38 @@ class TreeSitterStructuralSignatureExtractor:
                 
         return nested_ranges
 
+    def _get_nested_class_ranges(self, class_node: tree_sitter.Node) -> List[Tuple[int, int]]:
+        """Get byte ranges of immediate nested classes within a class node.
+        
+        Only returns ranges for classes that are direct children of the given
+        class node, not grandchildren or deeper descendants.
+        
+        Returns:
+            List of (start_byte, end_byte) tuples for each immediate child class.
+        """
+        if "nested_classes" not in self.queries:
+            return []
+            
+        # Get all nested class nodes
+        matches = self.queries['nested_classes'].matches(class_node)
+        nested_ranges = []
+        
+        for match_id, captures in matches:
+            # Look for the nested class node (with or without decorators)
+            nested_class_node = None
+            nested_with_decor_cap = self.config.cap("nested_class_with_decorators")
+            nested_def_cap = self.config.cap("nested_class_def")
+            
+            if nested_with_decor_cap in captures:
+                nested_class_node = captures[nested_with_decor_cap][0]
+            elif nested_def_cap in captures:
+                nested_class_node = captures[nested_def_cap][0]
+                
+            if nested_class_node:
+                nested_ranges.append((nested_class_node.start_byte, nested_class_node.end_byte))
+                
+        return nested_ranges
+
     def _extract_function_calls_for_node(self, func_node: tree_sitter.Node, source: bytes, start_line: Optional[int] = None, end_line: Optional[int] = None) -> List[str]:
         """Extract function call names inside a function node via language-specific query.
 
@@ -581,4 +655,146 @@ class TreeSitterStructuralSignatureExtractor:
         direct_call_nodes_sorted = sorted(direct_call_nodes, key=lambda n: n.start_byte)
         
         # Extract and return the call text
-        return [source[n.start_byte:n.end_byte].decode('utf-8').strip() for n in direct_call_nodes_sorted] 
+        return [source[n.start_byte:n.end_byte].decode('utf-8').strip() for n in direct_call_nodes_sorted]
+
+    def _extract_instance_variables_for_method(self, method_node: tree_sitter.Node, source: bytes) -> List[VariableInfo]:
+        """Extract instance variable assignments from a method node.
+
+        This method extracts assignments to instance variables (self.* assignments)
+        within a method body, filtering out assignments within nested functions.
+        
+        Args:
+            method_node: The method AST node
+            source: The full source code
+            
+        Returns:
+            List of VariableInfo objects for instance variable assignments
+        """
+        if "instance_variables" not in self.queries:
+            return []  # No query provided for this language → gracefully skip
+
+        # Run the instance variables query on the method node
+        captures = self.queries["instance_variables"].captures(method_node)
+        
+        if "instance_assignment" not in captures:
+            return []
+
+        assignment_nodes: List[tree_sitter.Node] = captures["instance_assignment"]
+        
+        # Get nested function ranges to filter out assignments within them
+        nested_ranges = self._get_nested_function_ranges(method_node)
+        
+        # Filter out assignments that are within nested functions
+        direct_assignment_nodes: List[tree_sitter.Node] = []
+        for assignment_node in assignment_nodes:
+            assignment_start = assignment_node.start_byte
+            # Check if this assignment is within any nested function
+            is_within_nested = any(
+                start <= assignment_start < end 
+                for start, end in nested_ranges
+            )
+            if not is_within_nested:
+                direct_assignment_nodes.append(assignment_node)
+        
+        # Create VariableInfo objects for each instance variable
+        instance_variables: List[VariableInfo] = []
+        seen: set = set()
+        
+        for node in direct_assignment_nodes:
+            assignment_text = source[node.start_byte:node.end_byte].decode('utf-8').strip()
+            
+            # Only capture self.* assignments
+            if assignment_text.startswith('self.'):
+                start_line = node.start_point[0] + 1
+                end_line = node.end_point[0] + 1
+                
+                key = (start_line, assignment_text)
+                if key not in seen:
+                    seen.add(key)
+                    instance_variables.append(VariableInfo(
+                        start_line=start_line,
+                        end_line=end_line,
+                        signature=assignment_text
+                    ))
+        
+        return sorted(instance_variables, key=lambda v: v.start_line)
+    
+    def _extract_nested_classes_for_node(self, class_node: tree_sitter.Node, source: bytes) -> List[ClassInfo]:
+        """Extract nested class definitions within a class node."""
+        if "nested_classes" not in self.queries:
+            return []
+        
+        matches = self.queries['nested_classes'].matches(class_node)
+        nested_classes = []
+        
+        for match_id, captures in matches:
+            nested_node: Optional[tree_sitter.Node] = None
+            nested_with_decor_cap = self.config.cap("nested_class_with_decorators")
+            nested_def_cap = self.config.cap("nested_class_def")
+            
+            if nested_with_decor_cap in captures:
+                nested_node = captures[nested_with_decor_cap][0]
+            elif nested_def_cap in captures:
+                nested_node = captures[nested_def_cap][0]
+            
+            if nested_node:
+                start_line = nested_node.start_point[0] + 1
+                end_line = nested_node.end_point[0] + 1
+                
+                # Extract signature
+                signature = source[nested_node.start_byte:nested_node.end_byte].decode('utf-8')
+                signature_lines = signature.split('\n')
+                sig_parts = []
+                for line in signature_lines:
+                    sig_parts.append(line)
+                    if line.rstrip().endswith(':'):
+                        break
+                
+                # Extract docstring if present
+                docstring = None
+                nested_doc_cap = self.config.cap("nested_class")
+                if nested_doc_cap in captures:
+                    docstring_node = captures[nested_doc_cap][0]
+                    docstring = self._clean_string_literal(
+                        source[docstring_node.start_byte:docstring_node.end_byte].decode('utf-8')
+                    )
+                
+                # Get the actual class_definition node for extracting variables and methods
+                actual_nested_def = captures[nested_def_cap][0] if nested_def_cap in captures else None
+                
+                # Extract class variables and methods
+                class_variables = []
+                methods = []
+                deeper_nested = []
+                
+                if actual_nested_def:
+                    class_variables = self._extract_class_variables_for_node(actual_nested_def, source)
+                    methods = self._extract_methods_for_node(actual_nested_def, source)
+                    # Recursive call for deeper nesting
+                    deeper_nested = self._extract_nested_classes_for_node(actual_nested_def, source)
+                
+                # Combine class variables with instance variables from all methods
+                all_variables = class_variables.copy()
+                instance_variables_seen = set()
+                
+                for method in methods:
+                    for instance_var in method.instance_variables:
+                        var_key = (instance_var.signature.split('=')[0].strip(), instance_var.signature)
+                        if var_key not in instance_variables_seen:
+                            instance_variables_seen.add(var_key)
+                            all_variables.append(instance_var)
+                
+                # Sort all variables by line number
+                all_variables.sort(key=lambda v: v.start_line)
+                
+                nested_classes.append(ClassInfo(
+                    start_line=start_line,
+                    end_line=end_line,
+                    signature='\n'.join(sig_parts),
+                    docstring=docstring,
+                    vars=all_variables,
+                    methods=methods,
+                    nested_classes=deeper_nested
+                ))
+        
+        return sorted(nested_classes, key=lambda c: c.start_line) 

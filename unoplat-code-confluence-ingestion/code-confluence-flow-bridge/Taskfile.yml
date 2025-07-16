@@ -91,6 +91,7 @@ tasks:
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
       OTEL_SERVICE_NAME: "code-confluence-flow-bridge"
       OTEL_PROPAGATORS: "tracecontext,baggage"
+      FRAMEWORK_DEFINITIONS_PATH: "../../framework-definitions"
     cmds:
       - uv run fastapi dev
 
@@ -155,9 +156,38 @@ tasks:
     cmds:
       - uv run ruff format src/
 
+  validate-framework-definitions:
+    desc: Validate all framework definition JSON files against schema
+    dir: .
+    cmds:
+      - uv run --group dev check-jsonschema --schemafile framework-definitions/schema.json framework-definitions/python/*.json
+
+  validate-single-framework:
+    desc: Validate a specific framework definition (usage - task validate-single-framework FILE=framework-definitions/python/fastapi.json)
+    vars:
+      FILE: '{{.FILE}}'
+    requires:
+      vars: [FILE]
+    cmds:
+      - uv run --group dev check-jsonschema --schemafile framework-definitions/schema.json {{.FILE}}
+
+  validate-all:
+    desc: Run all validation checks (framework definitions + code quality)
+    cmds:
+      - task: validate-framework-definitions
+      - task: code-quality
+
   code-quality:
-    desc: Run all code quality checks (lint, typecheck)
+    desc: Run all code quality checks (lint, typecheck, schema validation)
     dir: .
     cmds:
       - task: lint
       - task: typecheck
+      - task: validate-framework-definitions
+
+  find-pytest-errors:
+    desc: Diagnose pytest test discovery issues and import errors
+    dir: .
+    cmds:
+     - uv run --group test pytest --collect-only tests
+     

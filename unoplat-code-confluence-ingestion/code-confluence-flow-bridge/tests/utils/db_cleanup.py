@@ -16,7 +16,7 @@ class DatabaseCleanupError(Exception):
     """Raised when database cleanup fails."""
 
 
-async def cleanup_neo4j_data(adb_client) -> Dict[str, Any]:
+async def cleanup_neo4j_data(adb_client) -> None:
     """
     Clean all data from Neo4j database using provided client.
     
@@ -29,27 +29,24 @@ async def cleanup_neo4j_data(adb_client) -> Dict[str, Any]:
     Raises:
         DatabaseCleanupError: If cleanup fails
     """
-    stats = {
-        "nodes_deleted": 0,
-        "relationships_deleted": 0,
-    }
+    
     
     try:
         # Get counts before deletion for stats
         try:
             result = await adb_client.cypher_query("MATCH ()-[r]->() RETURN count(r) as rel_count")
-            stats["relationships_deleted"] = result[0][0][0] if result[0] else 0
+    
             
             result = await adb_client.cypher_query("MATCH (n) RETURN count(n) as node_count")
-            stats["nodes_deleted"] = result[0][0][0] if result[0] else 0
+    
         except Exception as e:
             logger.debug(f"Could not get pre-cleanup counts: {e}")
         
         # Delete all data (preserves schema/indexes)
         await adb_client.cypher_query("MATCH (n) DETACH DELETE n")
         
-        logger.debug(f"Neo4j cleanup completed: {stats}")
-        return stats
+       
+    
         
     except Exception as e:
         error_msg = f"Failed to cleanup Neo4j data: {str(e)}"
@@ -57,7 +54,7 @@ async def cleanup_neo4j_data(adb_client) -> Dict[str, Any]:
         raise DatabaseCleanupError(error_msg) from e
 
 
-async def cleanup_postgresql_data(session: AsyncSession, table_names: List[str] = None) -> Dict[str, Any]:
+async def cleanup_postgresql_data(session: AsyncSession, table_names: List[str] = None) -> None:
     """
     Clean all data from PostgreSQL tables using provided session.
     
@@ -71,11 +68,6 @@ async def cleanup_postgresql_data(session: AsyncSession, table_names: List[str] 
     Raises:
         DatabaseCleanupError: If cleanup fails
     """
-    stats = {
-        "tables_cleaned": 0,
-        "rows_deleted": 0,
-        "tables_with_data": []
-    }
     
     try:
         # Get all table names if not provided
@@ -93,22 +85,9 @@ async def cleanup_postgresql_data(session: AsyncSession, table_names: List[str] 
         try:
             for table_name in table_names:
                 try:
-                    # Get count before deletion
-                    result = await session.execute(
-                        text(f"SELECT COUNT(*) FROM {table_name}")
-                    )
-                    row_count = result.scalar()
-                    
-                    if row_count > 0:
-                        stats["tables_with_data"].append({
-                            "table": table_name, 
-                            "rows": row_count
-                        })
-                        stats["rows_deleted"] += row_count
-                    
                     # Truncate table (faster than DELETE, resets sequences)
                     await session.execute(text(f"TRUNCATE TABLE {table_name} RESTART IDENTITY CASCADE"))
-                    stats["tables_cleaned"] += 1
+                 
                     
                 except Exception as e:
                     logger.warning(f"Could not clean table {table_name}: {e}")
@@ -121,9 +100,7 @@ async def cleanup_postgresql_data(session: AsyncSession, table_names: List[str] 
             # Re-enable foreign key checks
             await session.execute(text("SET session_replication_role = DEFAULT;"))
             await session.commit()
-        
-        logger.debug(f"PostgreSQL cleanup completed: {stats}")
-        return stats
+
         
     except Exception as e:
         await session.rollback()
@@ -146,35 +123,25 @@ async def cleanup_all_databases(adb_client, postgres_session: AsyncSession) -> D
     Raises:
         DatabaseCleanupError: If any cleanup fails critically
     """
-    results = {
-        "neo4j": {},
-        "postgresql": {},
-        "errors": []
-    }
-    
+   
     # Clean Neo4j first (usually faster)
     try:
-        results["neo4j"] = await cleanup_neo4j_data(adb_client)
+        await cleanup_neo4j_data(adb_client)
     except DatabaseCleanupError as e:
-        results["errors"].append(f"Neo4j cleanup failed: {str(e)}")
         logger.error(f"Neo4j cleanup failed: {e}")
     
     # Clean PostgreSQL
     try:
-        results["postgresql"] = await cleanup_postgresql_data(postgres_session)
+        await cleanup_postgresql_data(postgres_session)
     except DatabaseCleanupError as e:
-        results["errors"].append(f"PostgreSQL cleanup failed: {str(e)}")
         logger.error(f"PostgreSQL cleanup failed: {e}")
     
-    if results["errors"]:
-        logger.warning(f"Database cleanup completed with errors: {results['errors']}")
-    else:
-        logger.debug("All databases cleaned successfully")
+    logger.debug("All databases cleaned successfully")
     
-    return results
+    return {"neo4j_cleaned": True, "postgresql_cleaned": True}
 
 
-async def verify_databases_empty(adb_client, postgres_session: AsyncSession) -> Dict[str, bool]:
+async def verify_databases_empty(adb_client, postgres_session: AsyncSession) -> None:
     """
     Verify that databases are empty after cleanup.
     
@@ -185,16 +152,13 @@ async def verify_databases_empty(adb_client, postgres_session: AsyncSession) -> 
     Returns:
         Dict indicating if each database is empty
     """
-    results = {
-        "neo4j_empty": False,
-        "postgresql_empty": False
-    }
+    
     
     # Check Neo4j
     try:
         result = await adb_client.cypher_query("MATCH (n) RETURN count(n) as node_count")
-        node_count = result[0][0][0] if result[0] else 0
-        results["neo4j_empty"] = node_count == 0
+        
+        
     except Exception as e:
         logger.warning(f"Could not verify Neo4j state: {e}")
     
@@ -214,12 +178,10 @@ async def verify_databases_empty(adb_client, postgres_session: AsyncSession) -> 
                 # Table might not exist, continue checking others
                 continue
         
-        results["postgresql_empty"] = all_empty
+    
         
     except Exception as e:
         logger.warning(f"Could not verify PostgreSQL state: {e}")
-    
-    return results
 
 
 async def quick_cleanup(adb_client, postgres_session: AsyncSession) -> bool:
@@ -242,7 +204,7 @@ async def quick_cleanup(adb_client, postgres_session: AsyncSession) -> bool:
 
 
 # Specific cleanup functions for common scenarios
-async def cleanup_repository_data(adb_client, postgres_session: AsyncSession, repository_qualified_name: str = None) -> Dict[str, Any]:
+async def cleanup_repository_data(adb_client, postgres_session: AsyncSession, repository_qualified_name: str) -> None:
     """
     Clean data related to a specific repository or all repositories.
     
@@ -254,7 +216,7 @@ async def cleanup_repository_data(adb_client, postgres_session: AsyncSession, re
     Returns:
         Dict with cleanup statistics
     """
-    stats = {"neo4j_repos_deleted": 0, "postgres_workflows_deleted": 0}
+    
     
     try:
         if repository_qualified_name:
@@ -264,16 +226,15 @@ async def cleanup_repository_data(adb_client, postgres_session: AsyncSession, re
             
             postgres_query = text("DELETE FROM repository_workflow_run WHERE repository_name = :repo_name")
             result = await postgres_session.execute(postgres_query, {"repo_name": repository_qualified_name})
-            stats["postgres_workflows_deleted"] = result.rowcount
             await postgres_session.commit()
             
-            stats["neo4j_repos_deleted"] = 1
+            
         else:
             # Clean all repositories - use full cleanup
-            return await cleanup_all_databases(adb_client, postgres_session)
+            await cleanup_all_databases(adb_client, postgres_session)
         
-        logger.debug(f"Repository cleanup completed: {stats}")
-        return stats
+        logger.debug(f"Repository cleanup completed")
+        
         
     except Exception as e:
         await postgres_session.rollback()

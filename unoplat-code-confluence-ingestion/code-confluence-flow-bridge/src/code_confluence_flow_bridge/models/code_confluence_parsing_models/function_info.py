@@ -5,7 +5,10 @@ from typing import TYPE_CHECKING, List, Optional
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    pass
+    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import VariableInfo
+else:
+    # Import at runtime for Pydantic model resolution
+    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import VariableInfo
 
 
 class FunctionInfo(BaseModel):
@@ -16,6 +19,7 @@ class FunctionInfo(BaseModel):
     docstring: Optional[str] = Field(None, description="Function docstring")
     function_calls: List[str] = Field(default_factory=list, description="Fully-qualified names of function calls inside the function body, in order of appearance")
     nested_functions: List['FunctionInfo'] = Field(default_factory=list, description="Nested functions declarations")
+    instance_variables: List['VariableInfo'] = Field(default_factory=list, description="Instance variable assignments (self.*) within this method")
 
 
 # Handle self-reference

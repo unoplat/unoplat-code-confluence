@@ -1,0 +1,36 @@
+{
+  "python": {
+    "sqlmodel": {
+      "docs_url": "https://sqlmodel.tiangolo.com",
+      "features": {
+        "sqlmodel_base": {
+          "description": "Base class for SQLModel models combining Pydantic and SQLAlchemy",
+          "absolute_paths": [
+            "sqlmodel.SQLModel"
+          ],
+          "target_level": "class",
+          "concept": "Inheritance",
+          "locator_strategy": "Direct"
+        },
+        "field_definition": {
+          "description": "Field definition using Field() function with SQLModel extensions",
+          "absolute_paths": [
+            "sqlmodel.Field"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression",
+          "locator_strategy": "Direct"
+        },
+        "relationship": {
+          "description": "Relationship definition between SQLModel models",
+          "absolute_paths": [
+            "sqlmodel.Relationship"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression",
+          "locator_strategy": "Direct"
+        }
+      }
+    }
+  }
+}

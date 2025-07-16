@@ -4,7 +4,15 @@ Generic codebase parser with language-agnostic Tree-Sitter extraction and Neo4j 
 This module provides a language-neutral parser that uses TreeSitterStructuralSignatureExtractor
 for AST analysis and ingests results into Neo4j using neomodel operations.
 """
-
+from src.code_confluence_flow_bridge.engine.framework_detection_service import (
+    FrameworkDetectionService,
+)
+from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
+    extract_imports_from_source,
+)
+from src.code_confluence_flow_bridge.engine.python.python_framework_detection_service import (
+    PythonFrameworkDetectionService,
+)
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
     UnoplatFile,
 )
@@ -19,15 +27,17 @@ from src.code_confluence_flow_bridge.parser.language_configs import (
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
     TreeSitterStructuralSignatureExtractor,
 )
-# No longer need graph_context - using neomodel operations directly with global connection
+from src.code_confluence_flow_bridge.processor.db.graph_db.txn_context import (
+    managed_tx,  # local import to avoid top-level heavy dep
+)
 
+# No longer need graph_context - using neomodel operations directly with global connection
 import asyncio
 import hashlib
 from pathlib import Path
-from typing import AsyncGenerator, Dict, List, Optional, Set
+from typing import Any, AsyncGenerator, Dict, List, Optional, Set
 
 from loguru import logger
-
 from neomodel import (  # type: ignore  # imported lazily to avoid circular deps
     AsyncRelationshipTo,
     AsyncZeroOrMore,
@@ -45,7 +55,6 @@ from unoplat_code_confluence_commons.graph_models.code_confluence_file import (
 from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
     CodeConfluencePackage,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.txn_context import managed_tx  # local import to avoid top-level heavy dep
 
 
 class GenericCodebaseParser:
@@ -87,6 +96,7 @@ class GenericCodebaseParser:
         # Initialize components (deferred to avoid import issues)
         self.extractor = None
         self.language_config: Optional[LanguageConfig] = None
+        self.framework_detection_service: Optional[FrameworkDetectionService] = None
         
         # Use provided environment settings or fall back to environment variables
         self.config: EnvironmentSettings = (
@@ -115,14 +125,14 @@ class GenericCodebaseParser:
         }
         return extension_map.get(self.programming_language_metadata.language, {".py"})
 
-    def _initialize_components(self):
+    def _initialize_components(self) -> None:
         """Initialize extractor components (lazy loading)."""
         if self.extractor is None:
             # Import here to avoid circular imports
             
             self.extractor = TreeSitterStructuralSignatureExtractor(
                 self.programming_language_metadata.language.value
-            )
+            ) #type: ignore
             
         # ----------------------------------------------------------------------------------
         # Ensure that the CodeConfluencePackage.sub_packages relationship is **directed**
@@ -166,6 +176,18 @@ class GenericCodebaseParser:
                     "No language configuration found for {}",
                     self.programming_language_metadata.language.value
                 )
+        
+        # Initialize framework detection service based on language
+        if self.framework_detection_service is None:
+            if self.programming_language_metadata.language.value == "python":
+                self.framework_detection_service = PythonFrameworkDetectionService()
+                logger.debug("Initialized Python framework detection service")
+            # Add other languages as needed
+            else:
+                logger.debug(
+                    "No framework detection service available for language: {}",
+                    self.programming_language_metadata.language.value
+                )
     
     def _should_ignore_file(self, file_path: Path) -> bool:
         """Check if file should be ignored based on language configuration."""
@@ -179,7 +201,7 @@ class GenericCodebaseParser:
                     return True
         return False
 
-    async def _handle_node_creation(self, node_class, node_dict):
+    async def _handle_node_creation(self, node_class, node_dict: Dict[str, Any]): #type: ignore
         """
         Safely create or retrieve a node, handling duplicates gracefully.
         
@@ -189,7 +211,7 @@ class GenericCodebaseParser:
         try:
             # create_or_update returns a list
             results = await node_class.create_or_update(node_dict)
-            return results[0] if results else None
+            return results[0] if results else None #type: ignore
         except UniqueProperty:
             # Node exists, retrieve it
             logger.info(f"Node already exists: {node_class.__name__} with qualified_name={node_dict.get('qualified_name')}. Retrieving existing node.")
@@ -272,51 +294,13 @@ class GenericCodebaseParser:
     
     def _extract_imports_from_source(self, source_code: str) -> List[str]:
         """Extract import statements directly from source code using tree-sitter."""
-        if not self.extractor:
-            return []
-            
         try:
-            # Parse the source code
-            tree = self.extractor.parser.parse(bytes(source_code, "utf8"))
-            root_node = tree.root_node
-            
-            # Load the imports query from the query file
-            query_dir = Path(__file__).parent / "queries" / self.programming_language_metadata.language.value
-            imports_query_file = query_dir / "imports.scm"
-            
-            if not imports_query_file.exists():
-                logger.warning(
-                    "No imports query file found for language: {}",
-                    self.programming_language_metadata.language.value
-                )
-                return []
-            
-            # Read and compile the query
-            import_query_string = imports_query_file.read_text()
-            import_query = self.extractor.language.query(import_query_string)
-            
-            # Execute query
-            captures = import_query.captures(root_node)
-            
-            imports = []
-            # NOTE: py-tree-sitter >=0.23 returns a **dict** mapping capture names to
-            # a list of nodes, whereas older versions return a **list** of
-            # (node, capture_name) tuples.  Handle both for forward/backward
-            # compatibility.
-            if isinstance(captures, dict):  # New API (>=0.23)
-                for nodes in captures.values():
-                    for node in nodes:
-                        import_text = source_code[node.start_byte:node.end_byte]
-                        imports.append(import_text)
-            else:  # Old API (<=0.22)
-                for node, _capture_name in captures:
-                    import_text = source_code[node.start_byte:node.end_byte]
-                    imports.append(import_text)
-            
-            return imports
-            
+            return extract_imports_from_source(
+                source_code, 
+                self.programming_language_metadata.language.value
+            )
         except Exception as e:
-            logger.warning(
+            logger.error(
                 "Failed to extract imports | error={}",
                 str(e)
             )
@@ -349,12 +333,22 @@ class GenericCodebaseParser:
             # Extract imports directly from source code
             imports = self._extract_imports_from_source(content)
             
-            # Add basic POI labels
-            poi_labels = [self.programming_language_metadata.language, "source_file"]
-            if signature and signature.functions:
-                poi_labels.append("has_functions")
-            if signature and signature.classes:
-                poi_labels.append("has_classes")
+            # Detect framework features using the structural signature
+            custom_features_list = None
+            if self.framework_detection_service:
+                try:
+                    detections = await self.framework_detection_service.detect_features(
+                        source_code=content,
+                        imports=imports,
+                        structural_signature=signature,
+                        programming_language=self.programming_language_metadata.language.value
+                    )
+                    custom_features_list = detections if detections else None
+                except Exception as e:
+                    logger.warning(
+                        "Framework feature detection failed | file_path={} | error={}",
+                        file_path, str(e)
+                    )
             
             # Create UnoplatFile instance
             unoplat_file = UnoplatFile(
@@ -362,7 +356,7 @@ class GenericCodebaseParser:
                 checksum=checksum,
                 structural_signature=signature,  # Store the actual object, not dict
                 imports=imports,
-                poi_labels=poi_labels
+                custom_features_list=custom_features_list
             )
             
             return unoplat_file
@@ -524,7 +518,7 @@ class GenericCodebaseParser:
                     "checksum": unoplat_file.checksum,
                     "structural_signature": unoplat_file.structural_signature.model_dump() if unoplat_file.structural_signature else {},
                     "imports": unoplat_file.imports,
-                    "poi_labels": unoplat_file.poi_labels
+                    **({"custom_features_list": unoplat_file.custom_features_list} if unoplat_file.custom_features_list else {})
                 }
                 file_node = await self._handle_node_creation(CodeConfluenceFile, file_dict)
                 

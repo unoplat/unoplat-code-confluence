@@ -412,7 +412,7 @@ class TestFrameworkDetectionStructuralSignature:
     def _has_pydantic_field_patterns(self, signature: StructuralSignature) -> bool:
         """Check if signature contains Pydantic Field patterns."""
         for cls in signature.classes:
-            for var in cls.class_variables:
+            for var in cls.vars:
                 if "Field(" in var.signature:
                     return True
         return False
@@ -483,7 +483,7 @@ class TestFrameworkDetectionStructuralSignature:
     def _has_relationship_patterns(self, signature: StructuralSignature) -> bool:
         """Check if signature contains SQLAlchemy relationship patterns."""
         for cls in signature.classes:
-            for var in cls.class_variables:
+            for var in cls.vars:
                 if "Relationship(" in var.signature:
                     return True
         return False
@@ -491,7 +491,7 @@ class TestFrameworkDetectionStructuralSignature:
     def _has_constraint_patterns(self, signature: StructuralSignature) -> bool:
         """Check if signature contains SQLAlchemy constraint patterns."""
         for cls in signature.classes:
-            for var in cls.class_variables:
+            for var in cls.vars:
                 if "__table_args__" in var.signature:
                     return True
         return False
@@ -499,7 +499,7 @@ class TestFrameworkDetectionStructuralSignature:
     def _has_complex_field_types(self, signature: StructuralSignature) -> bool:
         """Check if signature contains complex Pydantic field types."""
         for cls in signature.classes:
-            for var in cls.class_variables:
+            for var in cls.vars:
                 if "Dict[" in var.signature or "List[" in var.signature or "Optional[" in var.signature:
                     return True
         return False

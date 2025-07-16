@@ -1,7 +1,12 @@
+# Standard library imports
 import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from loguru import logger
+
+# Third-party imports
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 
 # PostgreSQL connection settings - read from environment variables
@@ -22,20 +27,20 @@ async_engine = create_async_engine(POSTGRES_URL, echo=DB_ECHO)
 AsyncSessionLocal = async_sessionmaker(bind=async_engine, expire_on_commit=False)
 
 
-async def get_session():
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """Yield a database session using a context manager."""
     async with AsyncSessionLocal() as session:
         yield session
 
 
 @asynccontextmanager
-async def get_session_cm():
+async def get_session_cm() -> AsyncGenerator[AsyncSession, None]:
     """Async context manager for database session."""
     async with AsyncSessionLocal() as session:
         yield session
 
 
-async def create_db_and_tables():
+async def create_db_and_tables() -> None:
     """Asynchronously create database tables and ensure the database engine is bound to the current event loop.
 
     During test execution (e.g. when FastAPI's TestClient spins up the application inside a
@@ -73,4 +78,12 @@ async def create_db_and_tables():
 
     # Finally, create all tables if they are missing.
     async with async_engine.begin() as conn:
-        await conn.run_sync(lambda sync_conn: SQLModel.metadata.create_all(sync_conn, checkfirst=True))
+        try:
+            await conn.run_sync(lambda sync_conn: SQLModel.metadata.create_all(sync_conn, checkfirst=True))
+        except Exception as e:
+            # Handle index already exists errors gracefully
+            if "already exists" in str(e):
+                logger.warning(f"Database schema creation encountered existing objects: {e}")
+                # Continue execution - this is expected in test environments
+            else:
+                raise

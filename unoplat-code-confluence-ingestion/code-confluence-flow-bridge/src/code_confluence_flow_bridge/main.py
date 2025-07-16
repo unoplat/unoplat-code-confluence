@@ -69,8 +69,12 @@ from src.code_confluence_flow_bridge.processor.db.postgres.db import (
     async_engine,  # local import to avoid cycles
     create_db_and_tables,
     get_session,
+    get_session_cm,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
+from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
+    FrameworkDefinitionLoader,
+)
 from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
     ParentWorkflowDbActivity,
 )
@@ -447,7 +451,7 @@ async def generate_sse_events(
 
 # Create FastAPI lifespan context manager
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.code_confluence_env = EnvironmentSettings()
     app.state.temporal_client = await get_temporal_client()
     
@@ -493,6 +497,19 @@ async def lifespan(app: FastAPI):
     
     # Create database tables during startup
     await create_db_and_tables()
+    
+    # Load framework definitions at startup
+    if os.getenv("LOAD_FRAMEWORK_DEFINITIONS", "true").lower() == "true":
+        try:
+            framework_loader = FrameworkDefinitionLoader(app.state.code_confluence_env)
+            async with get_session_cm() as session:
+                metrics = await framework_loader.load_framework_definitions_at_startup(session) #type: ignore
+                if not metrics.get("skipped"):
+                    logger.info(f"Framework definitions loaded in {metrics['total_time']:.3f}s")
+        except Exception as e:
+            logger.error(f"Failed to load framework definitions: {e}")
+            if os.getenv("FRAMEWORK_DEFINITIONS_REQUIRED", "false").lower() == "true":
+                raise
     
     # Create the worker
     worker = create_worker(
