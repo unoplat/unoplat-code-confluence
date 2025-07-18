@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.40.0...code-confluence-flow-bridge-v0.41.0) (2025-07-18)
+
+
+### Features
+
+* **custom-grammar-metadata:** Optimize bulk insert and improve parsing logic ([18bef75](https://github.com/unoplat/unoplat-code-confluence/commit/18bef7579392af9e3f2e9d29d42d80c60a7aff82))
+* **framework-query-service:** Enhance framework feature retrieval ([26df750](https://github.com/unoplat/unoplat-code-confluence/commit/26df75021ab9629aa7cb00994cc711ab58f94e85))
+* **graph-ingestion:** sync framework nodes based on dependencies ([94c968b](https://github.com/unoplat/unoplat-code-confluence/commit/94c968bb30d175ad767b883e824b0984ff1079e7))
+* **parser:** update structural signature and also added framework detection logic and related tests ([37188f4](https://github.com/unoplat/unoplat-code-confluence/commit/37188f42e634865cadb63692a451f382b1e172eb))
+
 ## [0.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.39.4...code-confluence-flow-bridge-v0.40.0) (2025-07-02)
 
 
