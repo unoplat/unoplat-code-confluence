@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.20.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.19.0...unoplat-code-confluence-commons-v0.20.0) (2025-07-18)
+
+
+### Features
+
+* **graph-models:** Add CodeConfluenceFramework and CodeConfluenceFrameworkFeature models ([62ed87e](https://github.com/unoplat/unoplat-code-confluence/commit/62ed87e6ccba3eee343d39cda3d489f7aabf5625))
+* **graph-models:** Add CodeConfluenceFramework and CodeConfluenceFrameworkFeature models ([0897f1a](https://github.com/unoplat/unoplat-code-confluence/commit/0897f1ab42cad7ac289778758558f56d42befdf8))
+
 ## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.18.5...unoplat-code-confluence-commons-v0.19.0) (2025-07-01)
 
 
