@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.17.3...code-confluence-docs-v0.18.0) (2025-07-18)
+
+
+### Features
+
+* **schema:** add custom framework/library schema ([4125b79](https://github.com/unoplat/unoplat-code-confluence/commit/4125b7993a560a8bd9091262803ce0528e3c3696))
+* **schema:** add custom framework/library schema ([761a8f9](https://github.com/unoplat/unoplat-code-confluence/commit/761a8f964b899be96b5ce5f513be22b6b609a5ba))
+
 ## [0.17.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.17.2...code-confluence-docs-v0.17.3) (2025-07-09)
 
 
