@@ -25,7 +25,7 @@ class PackageManagerMetadataIngestion:
     Uses global Neo4j connection managed at application startup.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.env_settings = EnvironmentSettings()
         logger.debug(
             "Initialized PackageManagerMetadataIngestion - using global Neo4j connection"

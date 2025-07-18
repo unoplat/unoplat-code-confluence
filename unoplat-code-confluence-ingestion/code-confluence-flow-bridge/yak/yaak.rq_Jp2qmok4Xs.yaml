@@ -2,13 +2,13 @@ type: http_request
 model: http_request
 id: rq_Jp2qmok4Xs
 createdAt: 2025-06-17T11:15:08.563769
-updatedAt: 2025-06-17T11:15:08.563770
+updatedAt: 2025-07-18T05:03:43.521875
 workspaceId: wk_KULjx4bEa8
 folderId: fl_KBoWUpi8x7
 authentication: {}
 authenticationType: null
 body:
-  text: '{"repository_name": "crewAI", "repository_owner_name": "crewAIInc"}'
+  text: '{"repository_name": "unoplat-code-confluence", "repository_owner_name": "unoplat"}'
 bodyType: application/json
 description: ''
 headers:
@@ -17,7 +17,7 @@ headers:
   value: application/json
   id: null
 method: DELETE
-name: ''
+name: unoplat-code-confluence
 sortPriority: 0.0
 url: http://localhost:8000/delete-repository
 urlParameters: []
