@@ -58,7 +58,7 @@ async def setup_database(neo4j_container: Neo4jContainer) -> AsyncGenerator[None
     await adb.cypher_query("MATCH (n) DETACH DELETE n")
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(loop_scope="session")
 async def test_create_git_repository() -> None:
     """Test creating a git repository node.
     
@@ -84,7 +84,7 @@ async def test_create_git_repository() -> None:
     assert found_repo is not None
     assert found_repo.repository_name == "test-repo"
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(loop_scope="session")
 async def test_git_repository_codebase_relationship() -> None:
     """Test creating a git repository with a codebase relationship.
     
@@ -139,7 +139,7 @@ async def test_git_repository_codebase_relationship() -> None:
     assert codebase_metadata[0].package_manager == "pip"
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(loop_scope="session")
 async def test_repository_to_file_hierarchy() -> None:
     """Test creating a complete hierarchy from repository to file.
     
@@ -252,7 +252,7 @@ async def test_repository_to_file_hierarchy() -> None:
     assert file.file_path == "/test/path.py", "File path mismatch after complete traversal"
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(loop_scope="session")
 async def test_new_codebase_and_file_fields() -> None:
     """Test the new fields added to CodeConfluenceCodebase and CodeConfluenceFile models.
     
