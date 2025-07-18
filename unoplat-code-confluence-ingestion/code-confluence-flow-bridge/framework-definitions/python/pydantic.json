@@ -1,0 +1,19 @@
+{
+  "python": {
+    "pydantic": {
+      "docs_url": "https://docs.pydantic.dev",
+      "features": {
+        "data_model": {
+          "description": "Base class for Pydantic models with automatic validation",
+          "absolute_paths": [
+            "pydantic.BaseModel",
+            "pydantic.main.BaseModel"
+          ],
+          "target_level": "class",
+          "concept": "Inheritance",
+          "locator_strategy": "Direct"
+        }
+      }
+    }
+  }
+}

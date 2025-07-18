@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import contextvars
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 from neomodel import adb  # type: ignore
 
@@ -22,7 +23,7 @@ _in_tx: contextvars.ContextVar[bool] = contextvars.ContextVar("_in_tx", default=
 _tx_lock = asyncio.Lock()
 
 @asynccontextmanager
-async def managed_tx():
+async def managed_tx() -> AsyncGenerator[None, None]:
     """Async context manager for safe Neo4j transactions via neomodel.
     
     This function provides a transaction wrapper that prevents two critical issues:
