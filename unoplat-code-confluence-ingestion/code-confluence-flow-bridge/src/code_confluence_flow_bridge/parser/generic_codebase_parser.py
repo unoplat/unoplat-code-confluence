@@ -4,6 +4,7 @@ Generic codebase parser with language-agnostic Tree-Sitter extraction and Neo4j 
 This module provides a language-neutral parser that uses TreeSitterStructuralSignatureExtractor
 for AST analysis and ingests results into Neo4j using neomodel operations.
 """
+
 from src.code_confluence_flow_bridge.engine.framework_detection_service import (
     FrameworkDetectionService,
 )
@@ -129,11 +130,11 @@ class GenericCodebaseParser:
         """Initialize extractor components (lazy loading)."""
         if self.extractor is None:
             # Import here to avoid circular imports
-            
+
             self.extractor = TreeSitterStructuralSignatureExtractor(
                 self.programming_language_metadata.language.value
-            ) #type: ignore
-            
+            )  # type: ignore
+
         # ----------------------------------------------------------------------------------
         # Ensure that the CodeConfluencePackage.sub_packages relationship is **directed**
         # so that querying `pkg.sub_packages` only returns true child packages and not
@@ -161,22 +162,24 @@ class GenericCodebaseParser:
                 model=ContainsRelationship,
                 cardinality=AsyncZeroOrMore,
             )  # type: ignore[assignment]
-        
+
         # Load language configuration
         if self.language_config is None:
             try:
-                self.language_config = get_config(self.programming_language_metadata.language.value)
+                self.language_config = get_config(
+                    self.programming_language_metadata.language.value
+                )
                 logger.debug(
                     "Loaded language config for {} with ignored files: {}",
                     self.programming_language_metadata.language.value,
-                    self.language_config.ignored_files
+                    self.language_config.ignored_files,
                 )
             except KeyError:
                 logger.warning(
                     "No language configuration found for {}",
-                    self.programming_language_metadata.language.value
+                    self.programming_language_metadata.language.value,
                 )
-        
+
         # Initialize framework detection service based on language
         if self.framework_detection_service is None:
             if self.programming_language_metadata.language.value == "python":
@@ -201,38 +204,42 @@ class GenericCodebaseParser:
                     return True
         return False
 
-    async def _handle_node_creation(self, node_class, node_dict: Dict[str, Any]): #type: ignore
+    async def _handle_node_creation(self, node_class, node_dict: Dict[str, Any]):  # type: ignore
         """
         Safely create or retrieve a node, handling duplicates gracefully.
-        
-        Uses create_or_update for atomic operations, falls back to 
+
+        Uses create_or_update for atomic operations, falls back to
         retrieval if UniqueProperty exception occurs.
         """
         try:
             # create_or_update returns a list
             results = await node_class.create_or_update(node_dict)
-            return results[0] if results else None #type: ignore
+            return results[0] if results else None  # type: ignore
         except UniqueProperty:
             # Node exists, retrieve it
-            logger.info(f"Node already exists: {node_class.__name__} with qualified_name={node_dict.get('qualified_name')}. Retrieving existing node.")
-            
+            logger.info(
+                f"Node already exists: {node_class.__name__} with qualified_name={node_dict.get('qualified_name')}. Retrieving existing node."
+            )
+
             # Try to find by qualified_name (all BaseNode descendants have this)
-            if 'qualified_name' in node_dict:
+            if "qualified_name" in node_dict:
                 existing = await node_class.nodes.filter(
-                    qualified_name=node_dict['qualified_name']
+                    qualified_name=node_dict["qualified_name"]
                 ).first_or_none()
                 if existing:
                     return existing
-            
+
             # Try file_path for CodeConfluenceFile
-            if 'file_path' in node_dict and node_class == CodeConfluenceFile:
+            if "file_path" in node_dict and node_class == CodeConfluenceFile:
                 existing = await node_class.nodes.filter(
-                    file_path=node_dict['file_path']
+                    file_path=node_dict["file_path"]
                 ).first_or_none()
                 if existing:
                     return existing
-            
-            logger.warning(f"Could not retrieve existing {node_class.__name__} after UniqueProperty error")
+
+            logger.warning(
+                f"Could not retrieve existing {node_class.__name__} after UniqueProperty error"
+            )
             return None
         except Exception as e:
             logger.error(f"Unexpected error creating {node_class.__name__}: {e}")
@@ -282,57 +289,54 @@ class GenericCodebaseParser:
     def calculate_file_checksum(self, file_path: str) -> str:
         """Calculate MD5 checksum of file content."""
         try:
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 content = f.read()
                 return hashlib.md5(content).hexdigest()
         except Exception as e:
             logger.warning(
                 "Failed to calculate checksum | file_path={} | error={}",
-                file_path, str(e)
+                file_path,
+                str(e),
             )
             return ""
-    
+
     def _extract_imports_from_source(self, source_code: str) -> List[str]:
         """Extract import statements directly from source code using tree-sitter."""
         try:
             return extract_imports_from_source(
-                source_code, 
-                self.programming_language_metadata.language.value
+                source_code, self.programming_language_metadata.language.value
             )
         except Exception as e:
-            logger.error(
-                "Failed to extract imports | error={}",
-                str(e)
-            )
+            logger.error("Failed to extract imports | error={}", str(e))
             return []
 
     async def extract_file_data(self, file_path: str) -> Optional[UnoplatFile]:
         """
         Extract structural signature and metadata for a single file.
-        
+
         Args:
             file_path: Path to the source file
-            
+
         Returns:
             UnoplatFile or None if processing fails
         """
         try:
             # Read file content
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
-            
+
             # Calculate checksum
             checksum = self.calculate_file_checksum(file_path)
-            
+
             # Extract structural signature
             signature = await asyncio.to_thread(
-                self.extractor.extract_structural_signature, # type: ignore
-                file_path
+                self.extractor.extract_structural_signature,  # type: ignore
+                file_path,
             )
-            
+
             # Extract imports directly from source code
             imports = self._extract_imports_from_source(content)
-            
+
             # Detect framework features using the structural signature
             custom_features_list = None
             if self.framework_detection_service:
@@ -341,49 +345,52 @@ class GenericCodebaseParser:
                         source_code=content,
                         imports=imports,
                         structural_signature=signature,
-                        programming_language=self.programming_language_metadata.language.value
+                        programming_language=self.programming_language_metadata.language.value,
                     )
                     custom_features_list = detections if detections else None
                 except Exception as e:
                     logger.warning(
                         "Framework feature detection failed | file_path={} | error={}",
-                        file_path, str(e)
+                        file_path,
+                        str(e),
                     )
-            
+
             # Create UnoplatFile instance
             unoplat_file = UnoplatFile(
                 file_path=file_path,
                 checksum=checksum,
                 structural_signature=signature,  # Store the actual object, not dict
                 imports=imports,
-                custom_features_list=custom_features_list
+                custom_features_list=custom_features_list,
             )
-            
+
             return unoplat_file
-            
+
         except Exception as e:
             logger.error(
-                "Failed to process file | file_path={} | error={}",
-                file_path, str(e)
+                "Failed to process file | file_path={} | error={}", file_path, str(e)
             )
             return None
 
-    async def extract_files(self, package_files: Dict[str, List[str]]) -> AsyncGenerator[UnoplatFile, None]:
+    async def extract_files(
+        self, package_files: Dict[str, List[str]]
+    ) -> AsyncGenerator[UnoplatFile, None]:
         """
         Generator that yields file processing data for all source files.
-        
+
         Args:
             package_files: Map of package name to files
-            
+
         Yields:
             UnoplatFile for each successfully processed file
         """
         for package_name, files in package_files.items():
             logger.info(
                 "Processing files in package | package_name={} | file_count={}",
-                package_name, len(files)
+                package_name,
+                len(files),
             )
-            
+
             for file_path in files:
                 file_data = await self.extract_file_data(file_path)
                 if file_data:
@@ -516,23 +523,81 @@ class GenericCodebaseParser:
                 file_dict = {
                     "file_path": unoplat_file.file_path,
                     "checksum": unoplat_file.checksum,
-                    "structural_signature": unoplat_file.structural_signature.model_dump() if unoplat_file.structural_signature else {},
+                    "structural_signature": unoplat_file.structural_signature.model_dump()
+                    if unoplat_file.structural_signature
+                    else {},
                     "imports": unoplat_file.imports,
-                    **({"custom_features_list": unoplat_file.custom_features_list} if unoplat_file.custom_features_list else {})
                 }
-                file_node = await self._handle_node_creation(CodeConfluenceFile, file_dict)
-                
+
+                # First create or upsert the file node
+                file_node = await self._handle_node_creation(
+                    CodeConfluenceFile, file_dict
+                )
                 if not file_node:
-                    logger.warning(f"Failed to create/retrieve file node: {unoplat_file.file_path}")
+                    logger.warning(
+                        f"Failed to create/retrieve file node: {unoplat_file.file_path}"
+                    )
                     continue
-                
+
+                # 🚀 Create Feature nodes and relationships based on detections
+                # Note: Framework nodes are created during package manager metadata ingestion
+                if unoplat_file.custom_features_list:
+                    for det in unoplat_file.custom_features_list:
+                        lang = self.programming_language_metadata.language.value
+                        lib = det.library
+                        feature_key = det.feature_key
+
+                        # Look up existing framework node (should be created during package metadata ingestion)
+                        framework_qualified_name = f"{lang}.{lib}"
+                        try:
+                            framework_node = await CodeConfluenceFramework.nodes.get(
+                                qualified_name=framework_qualified_name
+                            )
+                        except CodeConfluenceFramework.DoesNotExist:
+                            logger.warning(
+                                "Framework not found, skipping feature creation | framework={} | feature={} | file={}",
+                                framework_qualified_name,
+                                feature_key,
+                                unoplat_file.file_path,
+                            )
+                            continue
+
+                        feature_dict = {
+                            "qualified_name": f"{lang}.{lib}.{feature_key}",
+                            "language": lang,
+                            "library": lib,
+                            "feature_key": feature_key,
+                        }
+                        feature_node = await self._handle_node_creation(
+                            CodeConfluenceFrameworkFeature, feature_dict
+                        )
+                        if not feature_node:
+                            continue
+
+                        # Connect framework -> feature
+                        if not await framework_node.features.is_connected(feature_node):
+                            await framework_node.features.connect(feature_node)
+
+                        # Connect file -> feature with line span
+                        try:
+                            if not await file_node.features.is_connected(feature_node):
+                                await file_node.features.connect(
+                                    feature_node,
+                                    {
+                                        "start_line": det.start_line,
+                                        "end_line": det.end_line,
+                                    },
+                                )
+                        except Exception:
+                            pass
+
                 # Find the package for this file
                 package_qualified_name = None
                 for pkg_name, files in package_files.items():
                     if unoplat_file.file_path in files:
                         package_qualified_name = pkg_name
                         break
-                
+
                 if package_qualified_name:
                     # Get the package and connect
                     package = await CodeConfluencePackage.nodes.get(

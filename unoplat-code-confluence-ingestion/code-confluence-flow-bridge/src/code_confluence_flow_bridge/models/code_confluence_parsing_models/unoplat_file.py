@@ -1,12 +1,12 @@
 """File model for representing individual source code files."""
 
-from code_confluence_flow_bridge.engine.models import Detection
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
     StructuralSignature,
 )
 
 from typing import List, Optional
 
+from code_confluence_flow_bridge.engine.models import Detection
 from pydantic import BaseModel, Field
 
 

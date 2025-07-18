@@ -14,7 +14,7 @@ from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata i
     FrameworkFeature,
 )
 from sqlalchemy import delete, func, select
-from sqlmodel import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +127,7 @@ class FrameworkDefinitionLoader:
         logger.info(f"Parsed {len(frameworks)} frameworks, {len(features)} features, {len(absolute_paths)} absolute paths")
         return frameworks, features, absolute_paths
     
-    async def load_framework_definitions_at_startup(self, session: Session) -> Dict[str, Any]:
+    async def load_framework_definitions_at_startup(self, session: AsyncSession) -> Dict[str, Any]:
         """
         Load framework definitions at startup with optimized bulk insertion.
         Uses atomic clear + repopulate strategy for consistency.

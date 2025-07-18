@@ -503,7 +503,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         try:
             framework_loader = FrameworkDefinitionLoader(app.state.code_confluence_env)
             async with get_session_cm() as session:
-                metrics = await framework_loader.load_framework_definitions_at_startup(session) #type: ignore
+                metrics = await framework_loader.load_framework_definitions_at_startup(session)
                 if not metrics.get("skipped"):
                     logger.info(f"Framework definitions loaded in {metrics['total_time']:.3f}s")
         except Exception as e:
