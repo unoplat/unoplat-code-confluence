@@ -1,10 +1,14 @@
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import Column, ForeignKeyConstraint, Index, Enum as SQLAlchemyEnum
-from sqlalchemy.dialects.postgresql import JSONB  
+from code_confluence_flow_bridge.engine.models import (
+    Concept,
+    ConstructQueryConfig,
+    LocatorStrategy,
+    TargetLevel,
+)
+from sqlalchemy import Column, Enum as SQLAlchemyEnum, ForeignKeyConstraint, Index
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship, SQLModel
-
-from code_confluence_flow_bridge.engine.models import TargetLevel, Concept, LocatorStrategy, ConstructQueryConfig
 
 
 # ──────────────────────────────────────────────
