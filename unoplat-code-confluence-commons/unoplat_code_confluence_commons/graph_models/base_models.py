@@ -1,8 +1,5 @@
-from neomodel import (
-    AsyncStructuredNode, 
-    StringProperty,
-    AsyncStructuredRel
-)
+from neomodel import AsyncStructuredNode, AsyncStructuredRel, StringProperty
+
 
 class BaseNode(AsyncStructuredNode):
     """Base node with common properties"""

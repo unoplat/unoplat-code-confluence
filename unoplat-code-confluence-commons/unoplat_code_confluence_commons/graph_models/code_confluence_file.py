@@ -1,8 +1,20 @@
-# new imports (top of the file, after existing neomodel import list)
-from neomodel import AsyncStructuredNode, StringProperty, AsyncRelationshipTo, AsyncOne
+from unoplat_code_confluence_commons.graph_models.base_models import (
+    ContainsRelationship,
+)
+from unoplat_code_confluence_commons.graph_models.code_confluence_framework import (
+    UsesFeatureRelationship,
+)
 
-from unoplat_code_confluence_commons.graph_models.base_models import  ContainsRelationship
-from neomodel import JSONProperty, ArrayProperty, FulltextIndex
+from neomodel import (
+    ArrayProperty,
+    AsyncOne,
+    AsyncRelationshipTo,
+    AsyncStructuredNode,
+    AsyncZeroOrMore,
+    JSONProperty,
+    StringProperty,
+)
+
 
 # ⬇️  insert just above class `CodeConfluencePackage`
 class CodeConfluenceFile(AsyncStructuredNode):
@@ -14,6 +26,7 @@ class CodeConfluenceFile(AsyncStructuredNode):
     package  (PART_OF_PACKAGE)  -> CodeConfluencePackage
     """
     file_path = StringProperty(required=True, unique_index=True)
+    content = StringProperty()
     checksum  = StringProperty()
     structural_signature = JSONProperty()
     imports = ArrayProperty(
@@ -21,9 +34,19 @@ class CodeConfluenceFile(AsyncStructuredNode):
         default=[],
         index=True
     )
-    poi_labels = ArrayProperty(
+    global_variables = ArrayProperty(
         StringProperty(),
-        index=True
+        default=[]
+    )
+    class_variables = JSONProperty(default={})
+    # Relationship to framework features detected in this file
+      # local import to avoid cycles
+
+    features = AsyncRelationshipTo(
+        '.code_confluence_framework.CodeConfluenceFrameworkFeature',
+        'USES_FEATURE',
+        model=UsesFeatureRelationship,
+        cardinality=AsyncZeroOrMore,
     )
     package = AsyncRelationshipTo(
         '.code_confluence_package.CodeConfluencePackage',

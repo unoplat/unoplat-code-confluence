@@ -1,11 +1,10 @@
-from neomodel import (
-    StringProperty,
-    AsyncRelationshipTo,
-    AsyncZeroOrMore,
-    AsyncRelationship,
-    AsyncOne
+from unoplat_code_confluence_commons.graph_models.base_models import (
+    BaseNode,
+    ContainsRelationship,
 )
-from unoplat_code_confluence_commons.graph_models.base_models import BaseNode, ContainsRelationship
+
+from neomodel import AsyncOne, AsyncRelationshipTo, AsyncZeroOrMore, StringProperty
+
 
 class CodeConfluencePackage(BaseNode):
     """
