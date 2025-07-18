@@ -97,6 +97,7 @@ register_language(
             "class": "class_docstring",
             "method": "method_docstring",
             "nested_function": "nested_docstring",
+            "nested_class": "nested_class_docstring",
         },
         ignored_files={"__init__.py"},
     )

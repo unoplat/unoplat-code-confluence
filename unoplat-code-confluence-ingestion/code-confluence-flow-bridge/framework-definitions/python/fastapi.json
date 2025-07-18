@@ -1,0 +1,45 @@
+{
+  "python": {
+    "fastapi": {
+      "docs_url": "https://fastapi.tiangolo.com",
+      "features": {
+        "http_endpoint": {
+          "description": "HTTP verb decorator that registers a route handler",
+          "absolute_paths": [
+            "fastapi.FastAPI",
+            "fastapi.applications.FastAPI"
+          ],
+          "target_level": "function",
+          "concept": "AnnotationLike",
+          "locator_strategy": "VariableBound",
+          "construct_query": {
+            "method_regex": "(get|post|put|delete|patch|head|options|trace)"
+          },
+          "startpoint": true
+        },
+        "background_tasks": {
+          "description": "Background task execution using BackgroundTasks",
+          "absolute_paths": [
+            "fastapi.BackgroundTasks"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression",
+          "locator_strategy": "Direct"
+        },
+        "api_router": {
+          "description": "Route organization using APIRouter",
+          "absolute_paths": [
+            "fastapi.APIRouter"
+          ],
+          "target_level": "function",
+          "concept": "AnnotationLike",
+          "locator_strategy": "VariableBound",
+          "construct_query": {
+            "method_regex": "(get|post|put|delete|patch|head|options|trace|include_router)"
+          },
+          "startpoint": true
+        }
+      }
+    }
+  }
+}

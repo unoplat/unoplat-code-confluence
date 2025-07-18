@@ -233,4 +233,11 @@ class EnvironmentSettings(BaseSettings):
         alias="REPOSITORIES_BASE_PATH",
         description="Base directory path for storing cloned repositories. Use '~' for user home directory expansion."
     )
+    
+    # Framework definitions configuration
+    framework_definitions_path: str = Field(
+        default="/framework-definitions",
+        alias="FRAMEWORK_DEFINITIONS_PATH",
+        description="Absolute path to framework definitions directory containing language-specific definition files"
+    )
 

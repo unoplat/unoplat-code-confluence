@@ -21,15 +21,26 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 )
 
 import traceback
+from typing import Any, List, Type
 
+# 🐘 PostgreSQL models for framework lookup
+from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata import (
+    Framework as PGFramework,
+)
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
 from loguru import logger
+from neomodel import AsyncStructuredNode
 from neomodel.exceptions import RequiredProperty, UniqueProperty
+from sqlmodel import select
 from temporalio.exceptions import ApplicationError
 from unoplat_code_confluence_commons import (
     CodeConfluencePackageManagerMetadata,
 )
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
     CodeConfluenceCodebase,
+)
+from unoplat_code_confluence_commons.graph_models.code_confluence_framework import (
+    CodeConfluenceFramework,
 )
 from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
     CodeConfluenceGitRepository,
@@ -42,7 +53,7 @@ class CodeConfluenceGraphIngestion:
         self.code_confluence_graph = CodeConfluenceGraph(code_confluence_env=code_confluence_env)
         # No longer need to initialize or close - global connection is managed at application level
 
-    def _get_node_identifier(self, node) -> str:
+    def _get_node_identifier(self, node: Any) -> str:
         """
         Get the appropriate identifier for a node for logging purposes.
         
@@ -65,7 +76,7 @@ class CodeConfluenceGraphIngestion:
         else:
             return str(node)
 
-    async def _safe_connect(self, source_node, relationship_attr: str, target_node) -> bool:
+    async def _safe_connect(self, source_node: Any, relationship_attr: str, target_node: Any) -> bool:
         """
         Safely connect two nodes, checking if relationship already exists.
         Logs at INFO level if relationship already exists and proceeds gracefully.
@@ -117,7 +128,7 @@ class CodeConfluenceGraphIngestion:
             )
             return False
 
-    async def _handle_node_creation(self, node_class, node_dict: dict):
+    async def _handle_node_creation(self, node_class: Type[AsyncStructuredNode], node_dict: dict) -> List[AsyncStructuredNode]:
         """
         Safely create or update a node with graceful error handling for constraint violations.
         Logs constraint violations and proceeds gracefully instead of failing.
@@ -132,13 +143,27 @@ class CodeConfluenceGraphIngestion:
         try:
             # Use create_or_update for single node upsert behavior  
             results = await node_class.create_or_update(node_dict)
-            return results if results else []
+            if results:
+                logger.info(
+                    "Node created/updated successfully",
+                    node_class=node_class.__name__,
+                    qualified_name=node_dict.get('qualified_name'),
+                    count=len(results)
+                )
+                return results
+            else:
+                logger.error(
+                    "create_or_update returned empty results",
+                    node_class=node_class.__name__,
+                    qualified_name=node_dict.get('qualified_name')
+                )
+                return []
         except UniqueProperty as e:
-            logger.info(
-                "Node already exists with unique property: {} for {}. properties={} Proceeding gracefully.",
-                str(e),
-                node_class.__name__,
-                node_dict,
+            logger.warning(
+                "Node already exists, retrieving existing",
+                node_class=node_class.__name__,
+                qualified_name=node_dict.get('qualified_name'),
+                error=str(e)
             )
             # Try to retrieve the existing node by unique properties
             try:
@@ -149,34 +174,36 @@ class CodeConfluenceGraphIngestion:
                         if hasattr(prop, 'unique_index') and prop.unique_index:
                             existing_nodes = await node_class.nodes.filter(**{prop_name: value}).all()
                             if existing_nodes:
-                                return existing_nodes[:1]  # Return as list for consistency
+                                return [existing_nodes[0]]  # Return as list for consistency
                 # If no unique property found, try qualified_name (all nodes have this from BaseNode)
                 if 'qualified_name' in node_dict:
                     existing_nodes = await node_class.nodes.filter(qualified_name=node_dict['qualified_name']).all()
                     if existing_nodes:
-                        return existing_nodes[:1]
+                        return [existing_nodes[0]]
             except Exception as retrieval_error:
-                logger.warning(
-                    "Failed to retrieve existing {} node after UniqueProperty error: {}. Proceeding gracefully.",
-                    node_class.__name__,
-                    str(retrieval_error)
+                logger.error(
+                    "Failed to retrieve existing node after UniqueProperty error",
+                    node_class=node_class.__name__,
+                    qualified_name=node_dict.get('qualified_name'),
+                    error=str(retrieval_error)
                 )
             return []
         except RequiredProperty as e:
             logger.error(
-                "Missing required property for {}: {}. Cannot proceed with node creation.",
-                node_class.__name__,
-                str(e)
+                "Missing required property, cannot proceed with node creation",
+                node_class=node_class.__name__,
+                qualified_name=node_dict.get('qualified_name'),
+                error=str(e)
             )
             return []
         except Exception as e:
             tb_str = traceback.format_exc()
             logger.error(
-                "Unexpected error creating {} node with properties={} : {}. Proceeding gracefully.\nTraceback:\n{}",
-                node_class.__name__,
-                node_dict,
-                str(e),
-                tb_str,
+                "Unexpected error during node creation",
+                node_class=node_class.__name__,
+                qualified_name=node_dict.get('qualified_name'),
+                error=str(e),
+                traceback=tb_str
             )
             return []
 
@@ -328,6 +355,48 @@ class CodeConfluenceGraphIngestion:
 
             # Connect metadata to codebase using safe connect
             await self._safe_connect(codebase_node, 'package_manager_metadata', metadata_node)
+            logger.debug(f"Successfully inserted package manager metadata for ",logger)
+
+            # ──────────────────────────────────────────────
+            # 🔄  Sync Framework nodes based on dependencies
+            # ──────────────────────────────────────────────
+            try:
+                async with get_session_cm() as session:
+                    logger.debug("Syncing frameworks for {}",codebase_qualified_name)
+                    for pkg_name, _ in package_manager_metadata.dependencies.items():
+                        # Only process if a matching Framework exists in Postgres
+                        logger.debug("Checking for framework: {}", pkg_name)
+                        stmt = select(PGFramework).where(PGFramework.library == pkg_name)
+                        result = await session.execute(stmt)
+                        pg_framework = result.scalar_one_or_none()
+                        if not pg_framework:
+                            logger.warning("Unknown framework: {}", pkg_name)
+                            continue  # Unknown framework – skip
+
+                        lang = package_manager_metadata.programming_language
+                        lib = pg_framework.library
+
+                        framework_dict = {
+                            "qualified_name": f"{lang}.{lib}",
+                            "language": lang,
+                            "library": lib,
+                        }
+
+                        framework_nodes = await self._handle_node_creation(CodeConfluenceFramework, framework_dict)
+                        if not framework_nodes:
+                            logger.warning("Failed to create framework node: {}", framework_dict)
+                            continue
+                        framework_node = framework_nodes[0]
+
+                        # Connect codebase → framework
+                        await self._safe_connect(codebase_node, 'frameworks', framework_node)
+                        await self._safe_connect(framework_node, 'codebases', codebase_node)
+            except Exception as sync_err:
+                logger.warning(
+                    "Framework sync failed for codebase {}: {}",
+                    codebase_qualified_name,
+                    str(sync_err),
+                )
 
             logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
 
@@ -352,9 +421,4 @@ class CodeConfluenceGraphIngestion:
                 type="PACKAGE_METADATA_ERROR"
             )
 
-    # #todo: we need to ingest packages into the graph database
-    # async def insert_code_confluence_package(
-    #     self, codebase_qualified_name: str, packages: List[UnoplatPackage]
-    # ) -> None:
-    #     """(method body omitted, deprecated)"""
-        
+  

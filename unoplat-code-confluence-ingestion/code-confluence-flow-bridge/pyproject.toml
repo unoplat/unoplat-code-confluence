@@ -38,6 +38,7 @@ dependencies = [
     "tiktoken>=0.9.0",
     "tree-sitter-language-pack>=0.8.0",
     "typing-extensions>=4.11",
+    "sqlalchemy>=2.0.41",
 ] 
 
 [dependency-groups]
@@ -54,12 +55,17 @@ test = [
 dev = [
     # Type checking and linting tools used only during development
     "mypy>=1.16.0",
+    # JSON schema validation for framework definitions
+    "check-jsonschema>=0.33.0",
     # Optional: stubs for popular libraries
     # "types-requests>=2.31.0",
 ]
 
 [tool.uv.sources]
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.19.0" }
+#NOTE: use it for local development to instantly see changes in the schema and its impact
+#unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.20.0" }
+
 
 [tool.uv]
 override-dependencies = ["pytest>=8.3.5"]
