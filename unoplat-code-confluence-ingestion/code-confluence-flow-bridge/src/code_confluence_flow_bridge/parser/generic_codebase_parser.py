@@ -53,6 +53,10 @@ from unoplat_code_confluence_commons.graph_models.code_confluence_codebase impor
 from unoplat_code_confluence_commons.graph_models.code_confluence_file import (
     CodeConfluenceFile,
 )
+from unoplat_code_confluence_commons.graph_models.code_confluence_framework import (
+    CodeConfluenceFramework,
+    CodeConfluenceFrameworkFeature,
+)
 from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
     CodeConfluencePackage,
 )
@@ -61,7 +65,7 @@ from unoplat_code_confluence_commons.graph_models.code_confluence_package import
 class GenericCodebaseParser:
     """
     Language-agnostic codebase parser with Neo4j ingestion.
-    
+
     Uses TreeSitterStructuralSignatureExtractor for AST analysis and neomodel
     for all database operations. This implementation prioritizes simplicity
     and correctness over performance optimization.
@@ -79,11 +83,11 @@ class GenericCodebaseParser:
     ) -> None:
         """
         Initialize parser.
-        
+
         Args:
             codebase_name: Name of the codebase
             codebase_path: File system path to codebase root
-            root_packages: List of root package names  
+            root_packages: List of root package names
             programming_language_metadata: Language configuration
             trace_id: Trace ID for logging and error context
             code_confluence_env: Optional environment settings
@@ -93,27 +97,30 @@ class GenericCodebaseParser:
         self.root_packages = root_packages
         self.programming_language_metadata = programming_language_metadata
         self.trace_id = trace_id
-        
+
         # Initialize components (deferred to avoid import issues)
         self.extractor = None
         self.language_config: Optional[LanguageConfig] = None
         self.framework_detection_service: Optional[FrameworkDetectionService] = None
-        
+
         # Use provided environment settings or fall back to environment variables
         self.config: EnvironmentSettings = (
-            code_confluence_env if code_confluence_env is not None else EnvironmentSettings()
+            code_confluence_env
+            if code_confluence_env is not None
+            else EnvironmentSettings()
         )
-        
+
         # Metrics tracking
         self.files_processed = 0
         self.packages_created = 0
-        
+
         # Language-specific file extensions
         self.file_extensions = self._get_file_extensions()
-        
+
         logger.info(
             "Parser initialized | codebase_name={} | language={}",
-            self.codebase_name, self.programming_language_metadata.language
+            self.codebase_name,
+            self.programming_language_metadata.language,
         )
 
     def _get_file_extensions(self) -> Set[str]:
@@ -148,7 +155,9 @@ class GenericCodebaseParser:
 
         # Patch only if it is undirected; we detect this heuristically by checking the type name
         if existing_rel.__class__.__name__ != "AsyncRelationshipTo":  # type: ignore[attr-defined]
-            logger.debug("Patching CodeConfluencePackage.sub_packages to be directed (AsyncRelationshipTo)")
+            logger.debug(
+                "Patching CodeConfluencePackage.sub_packages to be directed (AsyncRelationshipTo)"
+            )
 
             # Use the actual class object here (or an absolute import path) so that
             # `neomodel` doesn't attempt a relative import that points to the
@@ -189,9 +198,9 @@ class GenericCodebaseParser:
             else:
                 logger.debug(
                     "No framework detection service available for language: {}",
-                    self.programming_language_metadata.language.value
+                    self.programming_language_metadata.language.value,
                 )
-    
+
     def _should_ignore_file(self, file_path: Path) -> bool:
         """Check if file should be ignored based on language configuration."""
         if self.language_config and self.language_config.ignored_files:
@@ -274,10 +283,15 @@ class GenericCodebaseParser:
                 current = current.parent
                 package_files.setdefault(current.as_posix(), [])
 
-        logger.info("Discovered packages with source files | package_count={}", len(package_files))
+        logger.info(
+            "Discovered packages with source files | package_count={}",
+            len(package_files),
+        )
         return package_files
 
-    def build_package_hierarchy(self, package_files: Dict[str, List[str]]) -> Dict[str, str]:
+    def build_package_hierarchy(
+        self, package_files: Dict[str, List[str]]
+    ) -> Dict[str, str]:
         """Map child-package absolute path → parent absolute path."""
         hierarchy: Dict[str, str] = {}
         for child_q in package_files.keys():
@@ -400,7 +414,7 @@ class GenericCodebaseParser:
     async def create_packages(self, package_names: List[str]) -> None:
         """
         Create package nodes using neomodel.
-        
+
         Args:
             package_names: List of package qualified names to create
         """
@@ -409,20 +423,19 @@ class GenericCodebaseParser:
             for package_name in package_names:
                 # Extract simple name using pathlib
                 simple_name = Path(package_name).name
-                
+
                 # Create package node using helper method
-                package_dict = {
-                    "qualified_name": package_name,
-                    "name": simple_name
-                }
-                package_node = await self._handle_node_creation(CodeConfluencePackage, package_dict)
-                
+                package_dict = {"qualified_name": package_name, "name": simple_name}
+                package_node = await self._handle_node_creation(
+                    CodeConfluencePackage, package_dict
+                )
+
                 if package_node:
                     self.packages_created += 1
                     logger.debug(f"Created/retrieved package: {package_name}")
-            
+
             logger.info(f"Created {self.packages_created} packages")
-            
+
         except Exception as e:
             logger.error(f"Failed to create packages: {e}")
             raise
@@ -430,27 +443,33 @@ class GenericCodebaseParser:
     async def create_package_hierarchy(self, package_hierarchy: Dict[str, str]) -> None:
         """
         Create package parent-child relationships using neomodel.
-        
+
         Args:
             package_hierarchy: Map of child package to parent package
         """
         if not package_hierarchy:
             return
-            
+
         try:
             for child_pkg_name, parent_pkg_name in package_hierarchy.items():
                 # Get parent and child packages
-                parent = await CodeConfluencePackage.nodes.get(qualified_name=parent_pkg_name)
-                child = await CodeConfluencePackage.nodes.get(qualified_name=child_pkg_name)
-                
+                parent = await CodeConfluencePackage.nodes.get(
+                    qualified_name=parent_pkg_name
+                )
+                child = await CodeConfluencePackage.nodes.get(
+                    qualified_name=child_pkg_name
+                )
+
                 # Connect them using the sub_packages relationship
                 await parent.sub_packages.connect(child)
                 await child.parent_package.connect(parent)
-                
-                logger.debug(f"Connected packages: {parent_pkg_name} -> {child_pkg_name}")
-            
+
+                logger.debug(
+                    f"Connected packages: {parent_pkg_name} -> {child_pkg_name}"
+                )
+
             logger.info(f"Created {len(package_hierarchy)} package relationships")
-            
+
         except Exception as e:
             logger.error(f"Failed to create package hierarchy: {e}")
             raise
@@ -463,7 +482,6 @@ class GenericCodebaseParser:
         """
         try:
             # Import lazily to avoid circular import issues
-            
 
             # Fetch the codebase node (it must already exist – created during git ingestion step)
             codebase_node = await CodeConfluenceCodebase.nodes.get(
@@ -484,7 +502,9 @@ class GenericCodebaseParser:
 
             for root_pkg in root_package_names:
                 try:
-                    pkg_node = await CodeConfluencePackage.nodes.get(qualified_name=root_pkg)
+                    pkg_node = await CodeConfluencePackage.nodes.get(
+                        qualified_name=root_pkg
+                    )
                     # Connect both directions using safe pattern
                     await codebase_node.packages.connect(pkg_node)
                     await pkg_node.codebase.connect(codebase_node)
@@ -508,10 +528,12 @@ class GenericCodebaseParser:
                 str(outer_err),
             )
 
-    async def insert_files(self, file_data_list: List[UnoplatFile], package_files: Dict[str, List[str]]) -> None:
+    async def insert_files(
+        self, file_data_list: List[UnoplatFile], package_files: Dict[str, List[str]]
+    ) -> None:
         """
         Insert files using neomodel.
-        
+
         Args:
             file_data_list: List of UnoplatFile objects
             package_files: Map of package name to files for determining package relationships
@@ -612,11 +634,11 @@ class GenericCodebaseParser:
 
                     if not await package.files.is_connected(file_node):
                         await package.files.connect(file_node)
-                
+
                 logger.debug(f"Created file: {unoplat_file.file_path}")
-            
+
             logger.info(f"Inserted {len(file_data_list)} files")
-            
+
         except Exception as e:
             logger.error(f"Failed to insert files: {e}")
             raise
@@ -624,16 +646,16 @@ class GenericCodebaseParser:
     async def process_files(self, package_files: Dict[str, List[str]]) -> None:
         """
         Process all files sequentially without batching.
-        
+
         Args:
             package_files: Map of package name to files
         """
         try:
             async for file_data in self.extract_files(package_files):
                 await self.insert_files([file_data], package_files)
-            
+
             logger.info(f"Processed {self.files_processed} files")
-            
+
         except Exception as e:
             logger.error(f"Failed to process files: {e}")
             raise
@@ -645,24 +667,26 @@ class GenericCodebaseParser:
         """
         try:
             self._initialize_components()
-            
+
             logger.info(f"Starting codebase processing: {self.codebase_name}")
-            
+
             # 1. Discover packages and files
             package_files = self.discover_packages()
-            
+
             if not package_files:
                 logger.warning(f"No source files found in {self.codebase_path}")
                 return
-            
+
             # Wrap all Neo4j operations in a single explicit transaction
             # This prevents concurrent auto-commit conflicts on the shared connection
             async with managed_tx():
-                logger.debug("Started explicit Neo4j transaction for codebase processing")
-                
+                logger.debug(
+                    "Started explicit Neo4j transaction for codebase processing"
+                )
+
                 # 2. Create all packages
                 await self.create_packages(list(package_files.keys()))
-                
+
                 # 3. Create package hierarchy
                 hierarchy = self.build_package_hierarchy(package_files)
                 await self.create_package_hierarchy(hierarchy)
@@ -672,16 +696,14 @@ class GenericCodebaseParser:
 
                 # 4. Process and insert files
                 await self.process_files(package_files)
-                
+
                 logger.debug("Completed all Neo4j operations within transaction")
-            
+
             logger.info(
                 f"Completed codebase processing: {self.files_processed} files, "
                 f"{self.packages_created} packages"
             )
-            
+
         except Exception as e:
-            logger.error(
-                f"Codebase processing failed for {self.codebase_name}: {e}"
-            )
+            logger.error(f"Codebase processing failed for {self.codebase_name}: {e}")
             raise

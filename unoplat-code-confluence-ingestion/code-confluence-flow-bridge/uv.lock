@@ -437,7 +437,7 @@ requires-dist = [
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "tree-sitter-language-pack", specifier = ">=0.8.0" },
     { name = "typing-extensions", specifier = ">=4.11" },
-    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.19.0" },
+    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.20.0" },
     { name = "validate-pyproject", extras = ["all"], specifier = ">=0.23" },
 ]
 
@@ -2514,8 +2514,8 @@ wheels = [
 
 [[package]]
 name = "unoplat-code-confluence-commons"
-version = "0.19.0"
-source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.19.0#796a6784976d09f7c06e028c83b3379141d1549e" }
+version = "0.20.0"
+source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.20.0#dfa3c7e47e2955e5383f404b29ae2c40ec0f8090" }
 dependencies = [
     { name = "neomodel" },
     { name = "pytest" },
