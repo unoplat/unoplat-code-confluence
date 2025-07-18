@@ -31,5 +31,16 @@ Have ideas for new features or improvements?
 3. Clearly describe the feature and its use cases
 4. Explain how it would benefit the project and its users
 
+### Contributing Framework/Library Definitions 📚
+
+Help improve Code Confluence's framework and library detection capabilities:
+
+1. **Review the [Custom Framework/Library Schema](./custom-framework-schema.md)** documentation
+2. **Add definitions** for frameworks and libraries not yet supported
+3. **Follow the schema structure** for consistent and accurate definitions
+4. **Test your definitions** against real codebases before submitting
+5. **Submit pull requests** with comprehensive examples and documentation
+
+Framework/library definitions help Code Confluence better understand and analyze codebases across different technologies and programming languages.
 
 We appreciate your interest in Code Confluence and look forward to your feedback as we continue to develop the project!
