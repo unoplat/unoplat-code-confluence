@@ -19,7 +19,6 @@ class CodeConfluenceGitRepository(BaseNode):
         repository_name (str): A human-friendly or organizational name for the repository.
         repository_metadata (dict): Arbitrary JSON metadata describing the repository
                                     (e.g., stats, commits, custom config).
-        github_organization (str): A specific GitHub (or other host) organization name.
         readme (str): Optional text content of the repository’s main README.
     Relationships:
         codebases (RelationshipTo): Points to codebase nodes if needed.

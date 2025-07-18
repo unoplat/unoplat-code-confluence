@@ -1,11 +1,16 @@
-from neomodel import (
-    StringProperty,
-    JSONProperty,
-    AsyncRelationshipFrom,
-    ArrayProperty,
-    AsyncOne
+from unoplat_code_confluence_commons.graph_models.base_models import (
+    BaseNode,
+    ContainsRelationship,
 )
-from .base_models import BaseNode, ContainsRelationship
+
+from neomodel import (
+    ArrayProperty,
+    AsyncOne,
+    AsyncRelationshipFrom,
+    JSONProperty,
+    StringProperty,
+)
+
 
 class CodeConfluencePackageManagerMetadata(BaseNode):
     """

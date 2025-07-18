@@ -1,11 +1,16 @@
+from unoplat_code_confluence_commons.graph_models.base_models import (
+    BaseNode,
+    ContainsRelationship,
+)
+
 from neomodel import (
-    StringProperty,
     ArrayProperty,
+    AsyncOne,
     AsyncRelationshipTo,
     AsyncZeroOrMore,
-    AsyncOne
+    StringProperty,
 )
-from .base_models import BaseNode, ContainsRelationship
+
 
 class CodeConfluenceCodebase(BaseNode):
     """
@@ -54,4 +59,11 @@ class CodeConfluenceCodebase(BaseNode):
         'PART_OF_GIT_REPOSITORY',
         model=ContainsRelationship,
         cardinality=AsyncOne
+    )
+    
+    frameworks = AsyncRelationshipTo(
+        '.code_confluence_framework.CodeConfluenceFramework',
+        'USES_FRAMEWORK',
+        model=ContainsRelationship,
+        cardinality=AsyncZeroOrMore
     )
