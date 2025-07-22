@@ -73,6 +73,12 @@ class PackageManagerMetadataIngestion:
                     package_manager_metadata=package_manager_metadata,
                 )
 
+            # Sync frameworks outside of Neo4j transaction to prevent event loop conflicts
+            await graph.sync_frameworks_for_codebase(
+                codebase_qualified_name=codebase_qualified_name,
+                package_manager_metadata=package_manager_metadata,
+            )
+
             log.debug(
                 "Successfully ingested package manager metadata | codebase_name={} | status=success",
                 codebase_qualified_name
