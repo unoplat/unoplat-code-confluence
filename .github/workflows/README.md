@@ -11,7 +11,7 @@ This workflow runs on pull requests to the `main` branch that include changes to
 - `unoplat-code-confluence-ingestion`
 
 It performs the following tasks:
-- Builds Python packages using Poetry
+- Builds Python packages using uv
 - Runs tests with pytest and generates coverage reports
 - Uploads test coverage reports as artifacts
 
