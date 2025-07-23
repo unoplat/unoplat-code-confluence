@@ -12,6 +12,7 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 )
 from src.code_confluence_flow_bridge.processor.db.graph_db.txn_context import managed_tx
 
+import asyncio
 import traceback
 
 from loguru import logger
@@ -72,6 +73,11 @@ class PackageManagerMetadataIngestion:
                     codebase_qualified_name=codebase_qualified_name,
                     package_manager_metadata=package_manager_metadata,
                 )
+
+            # Explicit wait to ensure transaction is fully committed before framework sync
+            # This prevents race conditions in CI environments where framework sync 
+            # might execute before the codebase creation transaction is committed
+            await asyncio.sleep(0.1)
 
             # Sync frameworks outside of Neo4j transaction to prevent event loop conflicts
             await graph.sync_frameworks_for_codebase(
