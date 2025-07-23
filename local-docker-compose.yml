@@ -152,6 +152,7 @@ services:
       - TEMPORAL_DEBUG=true
       - LOG_LEVEL=DEBUG
       - REPOSITORIES_BASE_PATH=/root/.unoplat/repositories
+      - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
     depends_on:
       temporal:
         condition: service_healthy
