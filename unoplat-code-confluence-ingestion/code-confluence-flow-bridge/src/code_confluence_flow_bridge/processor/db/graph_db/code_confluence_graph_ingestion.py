@@ -355,49 +355,6 @@ class CodeConfluenceGraphIngestion:
 
             # Connect metadata to codebase using safe connect
             await self._safe_connect(codebase_node, 'package_manager_metadata', metadata_node)
-            logger.debug(f"Successfully inserted package manager metadata for ",logger)
-
-            # ──────────────────────────────────────────────
-            # 🔄  Sync Framework nodes based on dependencies
-            # ──────────────────────────────────────────────
-            try:
-                async with get_session_cm() as session:
-                    logger.debug("Syncing frameworks for {}",codebase_qualified_name)
-                    for pkg_name, _ in package_manager_metadata.dependencies.items():
-                        # Only process if a matching Framework exists in Postgres
-                        logger.debug("Checking for framework: {}", pkg_name)
-                        stmt = select(PGFramework).where(PGFramework.library == pkg_name)
-                        result = await session.execute(stmt)
-                        pg_framework = result.scalar_one_or_none()
-                        if not pg_framework:
-                            logger.warning("Unknown framework: {}", pkg_name)
-                            continue  # Unknown framework – skip
-
-                        lang = package_manager_metadata.programming_language
-                        lib = pg_framework.library
-
-                        framework_dict = {
-                            "qualified_name": f"{lang}.{lib}",
-                            "language": lang,
-                            "library": lib,
-                        }
-
-                        framework_nodes = await self._handle_node_creation(CodeConfluenceFramework, framework_dict)
-                        if not framework_nodes:
-                            logger.warning("Failed to create framework node: {}", framework_dict)
-                            continue
-                        framework_node = framework_nodes[0]
-
-                        # Connect codebase → framework
-                        await self._safe_connect(codebase_node, 'frameworks', framework_node)
-                        await self._safe_connect(framework_node, 'codebases', codebase_node)
-            except Exception as sync_err:
-                logger.warning(
-                    "Framework sync failed for codebase {}: {}",
-                    codebase_qualified_name,
-                    str(sync_err),
-                )
-
             logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
 
         except Exception as e:
@@ -419,6 +376,78 @@ class CodeConfluenceGraphIngestion:
                 {"activity_name": activity_name_var.get("")},
                 {"activity_id": activity_id_var.get("")},
                 type="PACKAGE_METADATA_ERROR"
+            )
+
+    async def sync_frameworks_for_codebase(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
+        """
+        Sync framework nodes based on package dependencies.
+        This method runs OUTSIDE of Neo4j transaction contexts to prevent
+        "got Future attached to a different loop" errors in CI environments.
+        
+        PostgreSQL queries and Neo4j operations are kept in separate contexts.
+        
+        Args:
+            codebase_qualified_name: Qualified name of the codebase
+            package_manager_metadata: UnoplatPackageManagerMetadata containing dependencies
+        """
+        try:
+            # PostgreSQL operations (completely separate from Neo4j)
+            frameworks_to_create = []
+            
+            async with get_session_cm() as session:
+                logger.debug(f"Checking frameworks for {codebase_qualified_name}")
+                
+                for pkg_name, _ in package_manager_metadata.dependencies.items():
+                    # Only process if a matching Framework exists in Postgres
+                    logger.debug(f"Checking for framework: {pkg_name}")
+                    stmt = select(PGFramework).where(PGFramework.library == pkg_name)
+                    result = await session.execute(stmt)
+                    pg_framework = result.scalar_one_or_none()
+                    
+                    if not pg_framework:
+                        logger.debug(f"Unknown framework: {pkg_name}")
+                        continue  # Unknown framework – skip
+
+                    lang = package_manager_metadata.programming_language
+                    lib = pg_framework.library
+
+                    framework_dict = {
+                        "qualified_name": f"{lang}.{lib}",
+                        "language": lang,
+                        "library": lib,
+                    }
+                    frameworks_to_create.append(framework_dict)
+
+            if not frameworks_to_create:
+                logger.debug(f"No frameworks to sync for {codebase_qualified_name}")
+                return
+
+            # Neo4j operations in a separate transaction
+            async with self.code_confluence_graph.transaction:
+                # Get the codebase node
+                try:
+                    codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)
+                except CodeConfluenceCodebase.DoesNotExist:
+                    logger.warning(f"Codebase not found for framework sync: {codebase_qualified_name}")
+                    return
+
+                # Create framework nodes and relationships
+                for framework_dict in frameworks_to_create:
+                    framework_nodes = await self._handle_node_creation(CodeConfluenceFramework, framework_dict)
+                    if not framework_nodes:
+                        logger.warning(f"Failed to create framework node: {framework_dict}")
+                        continue
+                    framework_node = framework_nodes[0]
+
+                    # Connect codebase → framework
+                    await self._safe_connect(codebase_node, 'frameworks', framework_node)
+                    await self._safe_connect(framework_node, 'codebases', codebase_node)
+
+            logger.debug(f"Successfully synced {len(frameworks_to_create)} frameworks for {codebase_qualified_name}")
+                        
+        except Exception as sync_err:
+            logger.warning(
+                f"Framework sync failed for codebase {codebase_qualified_name}: {sync_err}",
             )
 
   
