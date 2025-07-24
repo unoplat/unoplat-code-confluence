@@ -159,7 +159,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ${HOME}/.unoplat:/root/.unoplat
+      - ${HOME}/unoplat/repositories:/root/.unoplat/repositories
     networks:
       - temporal-network
     stdin_open: true

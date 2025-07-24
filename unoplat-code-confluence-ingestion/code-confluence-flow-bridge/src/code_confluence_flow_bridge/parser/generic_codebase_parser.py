@@ -279,7 +279,7 @@ class GenericCodebaseParser:
         #     package is present in the mapping (even if it contains no source files)
         for pkg_q in list(package_files.keys()):
             current = Path(pkg_q)
-            while current != root_path and current.parent != current:
+            while current.parent != root_path and current.parent != current:
                 current = current.parent
                 package_files.setdefault(current.as_posix(), [])
 
