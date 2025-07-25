@@ -107,7 +107,7 @@ tasks:
     cmds:
       # Sync only the test dependencies group before running tests.
       - uv sync --group test
-      - uv run --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v
+      - uv run --python 3.13 --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v
       - task: stop-dependencies
 
   ci-test:
