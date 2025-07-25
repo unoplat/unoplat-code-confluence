@@ -1,28 +1,35 @@
-[tool.poetry]
+[project]
 name = "unoplat-code-confluence-commons"
 version = "0.20.0"
 description = "this will hold common operations/models required across code confluence ingestion and query utilities"
-authors = ["JayGhiya <ghiya6548@gmail.com>"]
+authors = [{ name = "JayGhiya", email = "ghiya6548@gmail.com" }]
+requires-python = "~=3.10"
 readme = "README.md"
+dependencies = [
+    "neomodel>=5.4.2,<6",
+    "testcontainers[neo4j]>=3.7.1,<4",
+    "pytest==8.3.4",
+    "pytest-asyncio>=0.25.0,<0.26",
+    "pydantic>=2.11.7",
+    "sqlalchemy>=2.0.41",
+    "sqlmodel>=0.0.24",
+]
+
+[tool.hatch.build.targets.sdist]
 include = ["unoplat_code_confluence_commons/py.typed"]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-neomodel = "^5.4.2"
-testcontainers = {extras = ["neo4j"], version = "^3.7.1"}
-pytest = "8.3.4"
-pytest-asyncio = "^0.25.0"
+[tool.hatch.build.targets.wheel]
+include = ["unoplat_code_confluence_commons/py.typed"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 pythonpath = ["unoplat_code_confluence_commons"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
-
 
 [tool.mypy]
 check_untyped_defs = true

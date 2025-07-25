@@ -587,7 +587,7 @@ app.add_middleware(
 
 
 # Create background task for workflow completion
-async def monitor_workflow(workflow_handle: WorkflowHandle):
+async def monitor_workflow(workflow_handle: WorkflowHandle) -> None:
     try:
         result = await workflow_handle.result()
         logger.info(f"Workflow completed with result: {result}")

@@ -27,8 +27,6 @@ from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata i
 from code_confluence_flow_bridge.processor.db.postgres.db import (
     async_engine,
 )
-from tests.conftest import github_token, test_client
-from tests.utils.db_cleanup import cleanup_postgresql_data
 
 # Framework definitions directory
 FRAMEWORK_DEFINITIONS_DIR = pathlib.Path(__file__).parent.parent.parent / "framework-definitions" / "python"
@@ -110,7 +108,7 @@ def load_framework_definitions() -> Dict[str, Any]:
     return combined_data
 
 
-async def seed_framework_definitions(framework_data: Dict[str, Any], session) -> Dict[str, Any]:
+def seed_framework_definitions(framework_data: Dict[str, Any], session) -> Dict[str, Any]:
     """
     Optimized seed function with clear + repopulate strategy.
     Returns metrics about the operation.
@@ -125,9 +123,9 @@ async def seed_framework_definitions(framework_data: Dict[str, Any], session) ->
     db_start_time = time.time()
     
     # Clear in correct order (foreign key dependencies)
-    await session.execute(delete(FeatureAbsolutePath))
-    await session.execute(delete(FrameworkFeature))
-    await session.execute(delete(Framework))
+    session.execute(delete(FeatureAbsolutePath))
+    session.execute(delete(FrameworkFeature))
+    session.execute(delete(Framework))
     
     # Bulk insert all records
     session.add_all(frameworks)
@@ -135,7 +133,7 @@ async def seed_framework_definitions(framework_data: Dict[str, Any], session) ->
     session.add_all(absolute_paths)
     
     # Single commit
-    await session.commit()
+    session.commit()
     
     db_time = time.time() - db_start_time
     total_time = time.time() - start_time
@@ -165,13 +163,12 @@ class TestFrameworkDefinitionsIngestion:
     - Idempotency and concurrent operation safety
     """
 
-    @pytest.mark.asyncio(loop_scope="session")
-    async def test_schema_creation_and_structure(self, test_client: TestClient, postgres_session: Session):
+    def test_schema_creation_and_structure(self, test_client: TestClient, sync_postgres_session):
 
         """Test that database tables are created correctly with proper structure."""
-        session = postgres_session
+        session = sync_postgres_session
         # Verify all three tables exist
-        result = await session.execute(text("""
+        result = session.execute(text("""
             SELECT table_name 
             FROM information_schema.tables 
             WHERE table_schema = 'public' 
@@ -186,7 +183,7 @@ class TestFrameworkDefinitionsIngestion:
         assert "feature_absolute_path" in tables
         
         # Verify foreign key constraints exist
-        fk_result = await session.execute(text("""
+        fk_result = session.execute(text("""
             SELECT constraint_name, table_name 
             FROM information_schema.table_constraints 
             WHERE constraint_type = 'FOREIGN KEY'
@@ -223,15 +220,14 @@ class TestFrameworkDefinitionsIngestion:
                 for field in required_fields:
                     assert field in feature_def, f"Feature {framework_name}.{feature_key} missing {field}"
 
-    @pytest.mark.asyncio(loop_scope="session")
-    async def test_bulk_insert_performance(self, test_client: TestClient, postgres_session):
+    def test_bulk_insert_performance(self, test_client: TestClient, sync_postgres_session):
         """Test that bulk insert operation meets performance requirements."""
-        session = postgres_session
+        session = sync_postgres_session
         # Load framework definitions
         framework_data = load_framework_definitions()
         
         # Execute optimized seed function
-        metrics = await seed_framework_definitions(framework_data, session)
+        metrics = seed_framework_definitions(framework_data, session)
         
         # Validate performance (should be well under 5 seconds for our framework data)
         assert metrics["total_time"] < 5.0, f"Operation took {metrics['total_time']:.3f}s, expected < 5.0s"
@@ -243,24 +239,23 @@ class TestFrameworkDefinitionsIngestion:
         assert metrics["absolute_paths_count"] == 15, f"Expected 15 absolute paths, got {metrics['absolute_paths_count']}"
         
         # Verify data exists in database
-        framework_count = await session.scalar(select(func.count(Framework.language))) #type: ignore
-        feature_count = await session.scalar(select(func.count(FrameworkFeature.language))) #type: ignore
-        path_count = await session.scalar(select(func.count(FeatureAbsolutePath.language))) #type: ignore
+        framework_count = session.scalar(select(func.count(Framework.language))) #type: ignore
+        feature_count = session.scalar(select(func.count(FrameworkFeature.language))) #type: ignore
+        path_count = session.scalar(select(func.count(FeatureAbsolutePath.language))) #type: ignore
         
         assert framework_count == 4
         assert feature_count == 11
         assert path_count == 15
 
-    @pytest.mark.asyncio(loop_scope="session")  
-    async def test_foreign_key_relationships(self, test_client: TestClient, postgres_session):
+    def test_foreign_key_relationships(self, test_client: TestClient, sync_postgres_session):
         """Test that foreign key relationships work correctly."""
-        session = postgres_session
+        session = sync_postgres_session
         framework_data = load_framework_definitions()
         
-        await seed_framework_definitions(framework_data, session)
+        seed_framework_definitions(framework_data, session)
         
         # Test framework -> feature relationship for FastAPI
-        framework_result = await session.execute(
+        framework_result = session.execute(
             select(Framework).where(
                 Framework.language == "python",
                 Framework.library == "fastapi"
@@ -269,7 +264,7 @@ class TestFrameworkDefinitionsIngestion:
         framework = framework_result.scalar_one()
         
         # Load related features
-        related_features = await session.execute(
+        related_features = session.execute(
             select(FrameworkFeature).where(
                 FrameworkFeature.language == framework.language,
                 FrameworkFeature.library == framework.library
@@ -288,7 +283,7 @@ class TestFrameworkDefinitionsIngestion:
         
         assert http_endpoint_feature is not None, "FastAPI http_endpoint feature not found"
         
-        related_paths = await session.execute(
+        related_paths = session.execute(
             select(FeatureAbsolutePath).where(
                 FeatureAbsolutePath.language == http_endpoint_feature.language,
                 FeatureAbsolutePath.library == http_endpoint_feature.library,
@@ -302,16 +297,15 @@ class TestFrameworkDefinitionsIngestion:
         assert "fastapi.FastAPI" in path_values
         assert "fastapi.applications.FastAPI" in path_values
 
-    @pytest.mark.asyncio(loop_scope="session")
-    async def test_concept_and_locator_strategy_validation(self, test_client: TestClient, postgres_session):
+    def test_concept_and_locator_strategy_validation(self, test_client: TestClient, sync_postgres_session):
         """Test that concept and locator strategy fields are correctly stored."""
-        session = postgres_session
+        session = sync_postgres_session
         framework_data = load_framework_definitions()
         
-        await seed_framework_definitions(framework_data, session)
+        seed_framework_definitions(framework_data, session)
         
         # Test different concept types
-        concepts_query = await session.execute(
+        concepts_query = session.execute(
             select(FrameworkFeature.concept, func.count(FrameworkFeature.concept)).group_by(FrameworkFeature.concept)
         )
         concepts = dict(concepts_query.fetchall())
@@ -322,7 +316,7 @@ class TestFrameworkDefinitionsIngestion:
         assert "Inheritance" in concepts
         
         # Test locator strategies
-        strategies_query = await session.execute(
+        strategies_query = session.execute(
             select(FrameworkFeature.locator_strategy, func.count(FrameworkFeature.locator_strategy)).group_by(FrameworkFeature.locator_strategy)
         )
         strategies = dict(strategies_query.fetchall())
@@ -331,16 +325,15 @@ class TestFrameworkDefinitionsIngestion:
         assert "Direct" in strategies
         assert "VariableBound" in strategies
 
-    @pytest.mark.asyncio(loop_scope="session")
-    async def test_construct_query_jsonb_storage(self, test_client: TestClient, postgres_session):
+    def test_construct_query_jsonb_storage(self, test_client: TestClient, sync_postgres_session):
         """Test that construct_query JSONB field is stored and retrieved correctly."""
-        session = postgres_session
+        session = sync_postgres_session
         framework_data = load_framework_definitions()
         
-        await seed_framework_definitions(framework_data, session)
+        seed_framework_definitions(framework_data, session)
         
         # Find FastAPI http_endpoint feature which has construct_query
-        feature_result = await session.execute(
+        feature_result = session.execute(
             select(FrameworkFeature).where(
                 FrameworkFeature.library == "fastapi",
                 FrameworkFeature.feature_key == "http_endpoint"
@@ -352,21 +345,20 @@ class TestFrameworkDefinitionsIngestion:
         assert "method_regex" in feature.construct_query
         assert feature.construct_query["method_regex"] == "(get|post|put|delete|patch|head|options|trace)"
 
-    @pytest.mark.asyncio(loop_scope="session")
-    async def test_clear_and_repopulate_idempotency(self, test_client: TestClient, postgres_session):
+    def test_clear_and_repopulate_idempotency(self, test_client: TestClient, sync_postgres_session):
         """Test that multiple runs produce the same result."""
-        session = postgres_session
+        session = sync_postgres_session
         framework_data = load_framework_definitions()
         
         # Run seed function multiple times with the same session
         results = []
         for i in range(3):
-            _metrics = await seed_framework_definitions(framework_data, session)
+            _metrics = seed_framework_definitions(framework_data, session)
             
             # Capture current state
-            frameworks = await session.execute(select(Framework))
-            features = await session.execute(select(FrameworkFeature))
-            paths = await session.execute(select(FeatureAbsolutePath))
+            frameworks = session.execute(select(Framework))
+            features = session.execute(select(FrameworkFeature))
+            paths = session.execute(select(FeatureAbsolutePath))
             
             state = {
                 "frameworks": len(frameworks.scalars().all()),
@@ -381,7 +373,7 @@ class TestFrameworkDefinitionsIngestion:
             assert result == expected_state
         
         # Verify final state has correct data
-        final_framework = await session.execute(
+        final_framework = session.execute(
             select(Framework).where(Framework.library == "pydantic")
         )
         fw = final_framework.scalar_one()

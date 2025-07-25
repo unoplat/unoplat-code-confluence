@@ -2,21 +2,21 @@ version: '3'
 
 tasks:
   install:
-    desc: Install poetry dependencies
+    desc: Install dependencies with uv
     cmds:
-      - poetry install --no-root
+      - uv sync
 
   test:
-    desc: Run pytest through poetry
+    desc: Run pytest through uv
     deps: [install]
     cmds:
-      - poetry run pytest -v tests/
+      - uv run pytest -v tests/
 
   test:watch:
     desc: Run pytest in watch mode
     deps: [install]
     cmds:
-      - poetry run pytest -v -f tests/
+      - uv run pytest -v -f tests/
 
   all:
     desc: Run all checks (install, test)
