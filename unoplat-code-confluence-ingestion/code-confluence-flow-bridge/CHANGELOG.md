@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.41.0...code-confluence-flow-bridge-v0.42.0) (2025-07-25)
+
+
+### Features
+
+* **engine-models:** Add pydantic models for custom grammar detection engine ([c31e710](https://github.com/unoplat/unoplat-code-confluence/commit/c31e71065d8093c3fe68277ca130bea0d122ba4c))
+* **package-metadata:** sync frameworks outside of Neo4j transaction ([070f25e](https://github.com/unoplat/unoplat-code-confluence/commit/070f25ed3a538eb97055a68c8d6b1a4fba19f79e))
+
+
+### Bug Fixes
+
+* bug for finding packages ([bd90a6a](https://github.com/unoplat/unoplat-code-confluence/commit/bd90a6adbee95b01c635ddeea51fb5cc154ce689))
+* path for local docker compose ([39a47e3](https://github.com/unoplat/unoplat-code-confluence/commit/39a47e32489f2122be19215d3873f0ae6f2c2b7c))
+* remove dependency on actual code and just keep binary also remove need for building package ([c7498f6](https://github.com/unoplat/unoplat-code-confluence/commit/c7498f6c5eeacb52753798a022157d5e3e4967e7))
+* tests move to sync fixtures to avoid conflicts with session async event loop of main class, moved to python 3.13 for better async per from 3.11 ([4ccc66e](https://github.com/unoplat/unoplat-code-confluence/commit/4ccc66efde505503e058ccb4ed399f68f2a0bba3))
+
 ## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.40.0...code-confluence-flow-bridge-v0.41.0) (2025-07-18)
 
 
