@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.20.0...unoplat-code-confluence-commons-v0.21.0) (2025-07-25)
+
+
+### Features
+
+* **engine-models:** Add pydantic models for custom grammar detection engine ([c31e710](https://github.com/unoplat/unoplat-code-confluence/commit/c31e71065d8093c3fe68277ca130bea0d122ba4c))
+* **engine-models:** Add pydantic models for custom grammar detection engine ([dba8dec](https://github.com/unoplat/unoplat-code-confluence/commit/dba8dec2569a0debc0db1336a0b3b60b60dd8273))
+
 ## [0.20.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.19.0...unoplat-code-confluence-commons-v0.20.0) (2025-07-18)
 
 
