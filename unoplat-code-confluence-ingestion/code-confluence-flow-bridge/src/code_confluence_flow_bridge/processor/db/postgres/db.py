@@ -1,12 +1,17 @@
 # Standard library imports
 import os
+from asyncio import current_task
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from loguru import logger
-
 # Third-party imports
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from loguru import logger
+from sqlalchemy.ext.asyncio import (
+    AsyncSession, 
+    async_sessionmaker, 
+    async_scoped_session,
+    create_async_engine
+)
 from sqlmodel import SQLModel
 
 # PostgreSQL connection settings - read from environment variables
@@ -19,25 +24,56 @@ DB_NAME = os.getenv("DB_NAME", "code_confluence")
 # Construct PostgreSQL connection string
 POSTGRES_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-# Create async engine
+# Create async engine - this can be shared across tasks/threads
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
-async_engine = create_async_engine(POSTGRES_URL, echo=DB_ECHO)
+async_engine = create_async_engine(
+    POSTGRES_URL, 
+    echo=DB_ECHO,
+    pool_size=20,  # Increased pool size for concurrent workflows
+    max_overflow=10
+)
 
-# Create AsyncSession factory
-AsyncSessionLocal = async_sessionmaker(bind=async_engine, expire_on_commit=False)
+# Create AsyncSession factory (public name, no underscore prefix)
+AsyncSessionFactory = async_sessionmaker(
+    bind=async_engine, 
+    expire_on_commit=False,  # Critical for async to prevent implicit I/O
+    class_=AsyncSession
+)
+
+# Create scoped session that provides per-task isolation
+# This follows SQLAlchemy best practices for concurrent async operations
+AsyncScopedSession = async_scoped_session(
+    AsyncSessionFactory,
+    scopefunc=current_task  # Each asyncio task gets its own session
+)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    """Yield a database session using a context manager."""
-    async with AsyncSessionLocal() as session:
-        yield session
+    """Yield a database session using a context manager.
+    
+    This provides backward compatibility but uses the scoped session internally.
+    Uses async_scoped_session to ensure each asyncio task (including Temporal
+    workflows and activities) gets its own session instance, preventing
+    concurrent access errors.
+    """
+    try:
+        async with AsyncScopedSession() as session:
+            yield session
+    except Exception as e:
+        # Log pool status if available for debugging
+        try:
+            pool_status = async_engine.pool.status() if hasattr(async_engine.pool, 'status') else "N/A"
+            logger.warning(f"Session error - Pool status: {pool_status}, Error: {e}")
+        except:
+            pass
+        raise
+    finally:
+        # Remove the session from the scope to prevent memory leaks
+        await AsyncScopedSession.remove()
 
 
-@asynccontextmanager
-async def get_session_cm() -> AsyncGenerator[AsyncSession, None]:
-    """Async context manager for database session."""
-    async with AsyncSessionLocal() as session:
-        yield session
+# Create alias for backwards compatibility
+get_session_cm = asynccontextmanager(get_session)
 
 
 async def create_db_and_tables() -> None:
@@ -57,10 +93,10 @@ async def create_db_and_tables() -> None:
     1. Dispose the existing ``async_engine`` (if any) so that all associated connections
        are closed.
     2. Re-create a *fresh* engine bound to *this* event loop
-    3. Rebuild the ``AsyncSession`` factory so that newly created sessions use the fresh
+    3. Rebuild the scoped session factory so that newly created sessions use the fresh
        engine.
     """
-    global async_engine, AsyncSessionLocal  # we are going to re-assign these
+    global async_engine, AsyncScopedSession, AsyncSessionFactory  # we are going to re-assign these
 
     # Step 1 – dispose previously created engine (if the application is being
     # restarted inside the same interpreter, e.g. by TestClient between tests)
@@ -71,10 +107,25 @@ async def create_db_and_tables() -> None:
         pass
 
     # Step 2 – create a brand-new engine bound to *this* event loop
-    async_engine = create_async_engine(POSTGRES_URL, echo=DB_ECHO)
+    async_engine = create_async_engine(
+        POSTGRES_URL, 
+        echo=DB_ECHO,
+        pool_size=20,
+        max_overflow=10
+    )
 
-    # Step 3 – rebuild the session factory so it points at the new engine
-    AsyncSessionLocal = async_sessionmaker(bind=async_engine, expire_on_commit=False)
+    # Step 3 – rebuild the session factory and scoped session so they point at the new engine
+    AsyncSessionFactory = async_sessionmaker(
+        bind=async_engine, 
+        expire_on_commit=False,
+        class_=AsyncSession
+    )
+    
+    # Recreate the scoped session with the new factory
+    AsyncScopedSession = async_scoped_session(
+        AsyncSessionFactory,
+        scopefunc=current_task
+    )
 
     # Finally, create all tables if they are missing.
     async with async_engine.begin() as conn:

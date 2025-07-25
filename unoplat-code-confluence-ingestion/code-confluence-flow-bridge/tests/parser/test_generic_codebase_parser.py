@@ -7,6 +7,7 @@ from pydantic import SecretStr
 
 # Third Party
 import pytest
+from fastapi.testclient import TestClient
 
 # First Party
 from src.code_confluence_flow_bridge.models.configuration.settings import (
@@ -21,8 +22,10 @@ from src.code_confluence_flow_bridge.parser.generic_codebase_parser import Gener
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import CodeConfluenceCodebase
 from unoplat_code_confluence_commons.graph_models.code_confluence_file import CodeConfluenceFile
 from unoplat_code_confluence_commons.graph_models.code_confluence_package import CodeConfluencePackage
+
 # Import cleanup utility
-from tests.utils.db_cleanup import cleanup_neo4j_data
+from tests.integration.test_start_ingestion import cleanup_repository_via_endpoint
+
 
 
 # ---------------------------------------------------------------------------
@@ -65,15 +68,19 @@ class TestGenericCodebaseParserIntegration:
     @pytest.mark.asyncio(loop_scope="session")
     async def test_parser_inserts_nodes(
         self,
-        neo4j_client,  # noqa: ARG002 – fixture provides connection & schema
+        test_client: TestClient,
         sample_codebase_dir: Path,
         env_settings: EnvironmentSettings,
+        neo4j_client,
     ) -> None:
         """Run the parser and assert that nodes exist in the database afterwards."""
         # ------------------------------------------------------------------
-        # Clean database before test using utility function
+        # Clean database before test using Neo4j direct query
         # ------------------------------------------------------------------
-        await cleanup_neo4j_data(neo4j_client)
+        
+        # Delete all nodes to ensure clean state
+        neo4j_client.cypher_query("MATCH (n) DETACH DELETE n")
+        logger.info("Cleaned up all Neo4j nodes before test")
         
         # ------------------------------------------------------------------
         # Build required input metadata for the parser

@@ -1,0 +1,693 @@
+{
+  "module_docstring": "Module for testing instance variable edge cases.",
+  "global_variables": [
+    {
+      "start_line": 4,
+      "end_line": 4,
+      "signature": "GLOBAL_CONFIG = {\"debug\": True}"
+    },
+    {
+      "start_line": 5,
+      "end_line": 5,
+      "signature": "app_instance = None"
+    },
+    {
+      "start_line": 227,
+      "end_line": 227,
+      "signature": "module_config = {\"module\": True}"
+    },
+    {
+      "start_line": 226,
+      "end_line": 226,
+      "signature": "ANOTHER_GLOBAL = \"global\""
+    }
+  ],
+  "functions": [
+    {
+      "start_line": 211,
+      "end_line": 223,
+      "signature": "def module_level_function():",
+      "docstring": "Module function that should not affect class variable detection.",
+      "function_calls": [
+        "FakeClass()",
+        "nested()"
+      ],
+      "nested_functions": [
+        {
+          "start_line": 219,
+          "end_line": 221,
+          "signature": "def nested():",
+          "docstring": null,
+          "function_calls": [],
+          "nested_functions": [],
+          "instance_variables": []
+        }
+      ],
+      "instance_variables": []
+    }
+  ],
+  "classes": [
+    {
+      "start_line": 7,
+      "end_line": 145,
+      "signature": "class FastAPIApp:",
+      "docstring": "FastAPI application class with various instance variable patterns.",
+      "vars": [
+        {
+          "start_line": 11,
+          "end_line": 11,
+          "signature": "CLASS_CONSTANT = \"production\""
+        },
+        {
+          "start_line": 12,
+          "end_line": 12,
+          "signature": "shared_cache: dict = {}"
+        },
+        {
+          "start_line": 18,
+          "end_line": 18,
+          "signature": "self.app = FastAPI()"
+        },
+        {
+          "start_line": 19,
+          "end_line": 19,
+          "signature": "self.config = config"
+        },
+        {
+          "start_line": 20,
+          "end_line": 20,
+          "signature": "self.database_url: str = config.get(\"db_url\", \"\")"
+        },
+        {
+          "start_line": 23,
+          "end_line": 23,
+          "signature": "self.clients: List[HttpClient] = []"
+        },
+        {
+          "start_line": 24,
+          "end_line": 24,
+          "signature": "self.cache: Optional[RedisCache] = None"
+        },
+        {
+          "start_line": 25,
+          "end_line": 25,
+          "signature": "self.metrics: Dict[str, int] = {}"
+        },
+        {
+          "start_line": 28,
+          "end_line": 28,
+          "signature": "self.router = APIRouter(prefix=\"/api/v1\")"
+        },
+        {
+          "start_line": 29,
+          "end_line": 32,
+          "signature": "self.middleware_stack = [\n            CORSMiddleware,\n            SecurityMiddleware(api_key=config[\"api_key\"]),\n        ]"
+        },
+        {
+          "start_line": 36,
+          "end_line": 36,
+          "signature": "self.auth_handler = AuthHandler(config[\"auth_config\"])"
+        },
+        {
+          "start_line": 38,
+          "end_line": 38,
+          "signature": "self.auth_handler = None"
+        },
+        {
+          "start_line": 45,
+          "end_line": 45,
+          "signature": "self.connection = self._create_connection()"
+        },
+        {
+          "start_line": 46,
+          "end_line": 46,
+          "signature": "self.logger = setup_logger(config.get(\"log_level\", \"INFO\"))"
+        },
+        {
+          "start_line": 52,
+          "end_line": 52,
+          "signature": "self.base_url = f\"https://{self.host}:{self.port}\""
+        },
+        {
+          "start_line": 53,
+          "end_line": 53,
+          "signature": "self.version_info = f\"App v{config.get('version', '1.0')}\""
+        },
+        {
+          "start_line": 56,
+          "end_line": 56,
+          "signature": "self.data_processor = lambda x: x.strip().lower()"
+        },
+        {
+          "start_line": 57,
+          "end_line": 57,
+          "signature": "self.valid_routes = [route for route in config.get(\"routes\", []) if route.startswith(\"/\")]"
+        },
+        {
+          "start_line": 60,
+          "end_line": 63,
+          "signature": "self.response_headers = {\n            \"Content-Type\": \"application/json\",\n            \"X-API-Version\": \"1.0\"\n        }"
+        },
+        {
+          "start_line": 64,
+          "end_line": 64,
+          "signature": "self.supported_methods = [\"GET\", \"POST\", \"PUT\", \"DELETE\"]"
+        },
+        {
+          "start_line": 70,
+          "end_line": 73,
+          "signature": "self.cors_middleware = CORSMiddleware(\n            allow_origins=[\"*\"],\n            allow_methods=[\"*\"]\n        )"
+        },
+        {
+          "start_line": 74,
+          "end_line": 74,
+          "signature": "self.rate_limiter = RateLimiter(requests_per_minute=100)"
+        },
+        {
+          "start_line": 82,
+          "end_line": 82,
+          "signature": "self.security_config = self._get_security_config()"
+        },
+        {
+          "start_line": 113,
+          "end_line": 113,
+          "signature": "self.connection_pool = ConnectionPool()"
+        },
+        {
+          "start_line": 129,
+          "end_line": 129,
+          "signature": "self.connection_helper = inner_connection_helper"
+        },
+        {
+          "start_line": 137,
+          "end_line": 137,
+          "signature": "self.async_client = AsyncHttpClient()"
+        },
+        {
+          "start_line": 138,
+          "end_line": 138,
+          "signature": "self.event_loop = asyncio.get_event_loop()"
+        },
+        {
+          "start_line": 141,
+          "end_line": 141,
+          "signature": "self.async_data = await self.fetch_initial_data()"
+        }
+      ],
+      "methods": [
+        {
+          "start_line": 14,
+          "end_line": 64,
+          "signature": "def __init__(self, config: dict):",
+          "docstring": "Initialize with comprehensive instance variable patterns.",
+          "function_calls": [
+            "FastAPI()",
+            "config.get(\"db_url\", \"\")",
+            "APIRouter(prefix=\"/api/v1\")",
+            "SecurityMiddleware(api_key=config[\"api_key\"])",
+            "config.get(\"enable_auth\", False)",
+            "AuthHandler(config[\"auth_config\"])",
+            "config.get(\"debug\", False)",
+            "self._create_connection()",
+            "setup_logger(config.get(\"log_level\", \"INFO\"))",
+            "config.get(\"log_level\", \"INFO\")",
+            "config.get(\"host\", \"localhost\")",
+            "config.get(\"port\", 8000)",
+            "config.get('version', '1.0')",
+            "x.strip().lower()",
+            "x.strip()",
+            "config.get(\"routes\", [])",
+            "route.startswith(\"/\")"
+          ],
+          "nested_functions": [],
+          "instance_variables": [
+            {
+              "start_line": 18,
+              "end_line": 18,
+              "signature": "self.app = FastAPI()"
+            },
+            {
+              "start_line": 19,
+              "end_line": 19,
+              "signature": "self.config = config"
+            },
+            {
+              "start_line": 20,
+              "end_line": 20,
+              "signature": "self.database_url: str = config.get(\"db_url\", \"\")"
+            },
+            {
+              "start_line": 23,
+              "end_line": 23,
+              "signature": "self.clients: List[HttpClient] = []"
+            },
+            {
+              "start_line": 24,
+              "end_line": 24,
+              "signature": "self.cache: Optional[RedisCache] = None"
+            },
+            {
+              "start_line": 25,
+              "end_line": 25,
+              "signature": "self.metrics: Dict[str, int] = {}"
+            },
+            {
+              "start_line": 28,
+              "end_line": 28,
+              "signature": "self.router = APIRouter(prefix=\"/api/v1\")"
+            },
+            {
+              "start_line": 29,
+              "end_line": 32,
+              "signature": "self.middleware_stack = [\n            CORSMiddleware,\n            SecurityMiddleware(api_key=config[\"api_key\"]),\n        ]"
+            },
+            {
+              "start_line": 36,
+              "end_line": 36,
+              "signature": "self.auth_handler = AuthHandler(config[\"auth_config\"])"
+            },
+            {
+              "start_line": 38,
+              "end_line": 38,
+              "signature": "self.auth_handler = None"
+            },
+            {
+              "start_line": 45,
+              "end_line": 45,
+              "signature": "self.connection = self._create_connection()"
+            },
+            {
+              "start_line": 46,
+              "end_line": 46,
+              "signature": "self.logger = setup_logger(config.get(\"log_level\", \"INFO\"))"
+            },
+            {
+              "start_line": 52,
+              "end_line": 52,
+              "signature": "self.base_url = f\"https://{self.host}:{self.port}\""
+            },
+            {
+              "start_line": 53,
+              "end_line": 53,
+              "signature": "self.version_info = f\"App v{config.get('version', '1.0')}\""
+            },
+            {
+              "start_line": 56,
+              "end_line": 56,
+              "signature": "self.data_processor = lambda x: x.strip().lower()"
+            },
+            {
+              "start_line": 57,
+              "end_line": 57,
+              "signature": "self.valid_routes = [route for route in config.get(\"routes\", []) if route.startswith(\"/\")]"
+            },
+            {
+              "start_line": 60,
+              "end_line": 63,
+              "signature": "self.response_headers = {\n            \"Content-Type\": \"application/json\",\n            \"X-API-Version\": \"1.0\"\n        }"
+            },
+            {
+              "start_line": 64,
+              "end_line": 64,
+              "signature": "self.supported_methods = [\"GET\", \"POST\", \"PUT\", \"DELETE\"]"
+            }
+          ]
+        },
+        {
+          "start_line": 66,
+          "end_line": 91,
+          "signature": "def configure_middleware(self):",
+          "docstring": "Method with instance variable assignments (should be captured).",
+          "function_calls": [
+            "CORSMiddleware(\n            allow_origins=[\"*\"],\n            allow_methods=[\"*\"]\n        )",
+            "RateLimiter(requests_per_minute=100)",
+            "TemporaryHandler()",
+            "self._get_security_config()",
+            "SomeOtherClass()"
+          ],
+          "nested_functions": [],
+          "instance_variables": [
+            {
+              "start_line": 70,
+              "end_line": 73,
+              "signature": "self.cors_middleware = CORSMiddleware(\n            allow_origins=[\"*\"],\n            allow_methods=[\"*\"]\n        )"
+            },
+            {
+              "start_line": 74,
+              "end_line": 74,
+              "signature": "self.rate_limiter = RateLimiter(requests_per_minute=100)"
+            },
+            {
+              "start_line": 82,
+              "end_line": 82,
+              "signature": "self.security_config = self._get_security_config()"
+            }
+          ]
+        },
+        {
+          "start_line": 93,
+          "end_line": 99,
+          "signature": "@staticmethod\n    def create_default_config():",
+          "docstring": "Static method with no instance variables.",
+          "function_calls": [],
+          "nested_functions": [],
+          "instance_variables": []
+        },
+        {
+          "start_line": 101,
+          "end_line": 107,
+          "signature": "@classmethod\n    def from_config_file(cls, config_path: str):",
+          "docstring": "Class method with local variables (should NOT be captured).",
+          "function_calls": [
+            "load_config(config_path)",
+            "cls(config_data)"
+          ],
+          "nested_functions": [],
+          "instance_variables": []
+        },
+        {
+          "start_line": 109,
+          "end_line": 131,
+          "signature": "def _create_connection(self):",
+          "docstring": "Private method with nested function containing instance variables.",
+          "function_calls": [
+            "ConnectionPool()",
+            "inner_connection_helper()"
+          ],
+          "nested_functions": [
+            {
+              "start_line": 116,
+              "end_line": 126,
+              "signature": "def inner_connection_helper():",
+              "docstring": null,
+              "function_calls": [
+                "create_local_connection()",
+                "MockSelf()"
+              ],
+              "nested_functions": [],
+              "instance_variables": []
+            }
+          ],
+          "instance_variables": [
+            {
+              "start_line": 113,
+              "end_line": 113,
+              "signature": "self.connection_pool = ConnectionPool()"
+            },
+            {
+              "start_line": 129,
+              "end_line": 129,
+              "signature": "self.connection_helper = inner_connection_helper"
+            }
+          ]
+        },
+        {
+          "start_line": 133,
+          "end_line": 145,
+          "signature": "async def async_setup(self):",
+          "docstring": "Async method with instance variables (should be captured).",
+          "function_calls": [
+            "AsyncHttpClient()",
+            "asyncio.get_event_loop()",
+            "self.fetch_initial_data()",
+            "asyncio.sleep(0.1)"
+          ],
+          "nested_functions": [],
+          "instance_variables": [
+            {
+              "start_line": 137,
+              "end_line": 137,
+              "signature": "self.async_client = AsyncHttpClient()"
+            },
+            {
+              "start_line": 138,
+              "end_line": 138,
+              "signature": "self.event_loop = asyncio.get_event_loop()"
+            },
+            {
+              "start_line": 141,
+              "end_line": 141,
+              "signature": "self.async_data = await self.fetch_initial_data()"
+            }
+          ]
+        }
+      ],
+      "nested_classes": []
+    },
+    {
+      "start_line": 147,
+      "end_line": 167,
+      "signature": "class NestedClassTest:",
+      "docstring": "Test class with nested class containing instance variables.",
+      "vars": [
+        {
+          "start_line": 151,
+          "end_line": 151,
+          "signature": "PARENT_CONSTANT = \"parent\""
+        },
+        {
+          "start_line": 155,
+          "end_line": 155,
+          "signature": "self.parent_attr = \"parent_value\""
+        },
+        {
+          "start_line": 156,
+          "end_line": 156,
+          "signature": "self.nested_instance = self.NestedClass()"
+        }
+      ],
+      "methods": [
+        {
+          "start_line": 153,
+          "end_line": 156,
+          "signature": "def __init__(self):",
+          "docstring": null,
+          "function_calls": [
+            "self.NestedClass()"
+          ],
+          "nested_functions": [],
+          "instance_variables": [
+            {
+              "start_line": 155,
+              "end_line": 155,
+              "signature": "self.parent_attr = \"parent_value\""
+            },
+            {
+              "start_line": 156,
+              "end_line": 156,
+              "signature": "self.nested_instance = self.NestedClass()"
+            }
+          ]
+        }
+      ],
+      "nested_classes": [
+        {
+          "start_line": 158,
+          "end_line": 167,
+          "signature": "class NestedClass:",
+          "docstring": "Nested class with its own instance variables.",
+          "vars": [
+            {
+              "start_line": 162,
+              "end_line": 162,
+              "signature": "NESTED_CONSTANT = \"nested\""
+            },
+            {
+              "start_line": 166,
+              "end_line": 166,
+              "signature": "self.nested_attr = \"nested_value\""
+            },
+            {
+              "start_line": 167,
+              "end_line": 167,
+              "signature": "self.config = {\"nested\": True}"
+            }
+          ],
+          "methods": [
+            {
+              "start_line": 164,
+              "end_line": 167,
+              "signature": "def __init__(self):",
+              "docstring": null,
+              "function_calls": [],
+              "nested_functions": [],
+              "instance_variables": [
+                {
+                  "start_line": 166,
+                  "end_line": 166,
+                  "signature": "self.nested_attr = \"nested_value\""
+                },
+                {
+                  "start_line": 167,
+                  "end_line": 167,
+                  "signature": "self.config = {\"nested\": True}"
+                }
+              ]
+            }
+          ],
+          "nested_classes": []
+        }
+      ]
+    },
+    {
+      "start_line": 169,
+      "end_line": 182,
+      "signature": "class TypeAnnotatedClass:",
+      "docstring": "Class with comprehensive type annotations.",
+      "vars": [
+        {
+          "start_line": 173,
+          "end_line": 173,
+          "signature": "class_config: ClassVar[Dict[str, str]] = {\"global\": \"config\"}"
+        },
+        {
+          "start_line": 174,
+          "end_line": 174,
+          "signature": "shared_state: ClassVar[List[str]] = []"
+        },
+        {
+          "start_line": 178,
+          "end_line": 178,
+          "signature": "self.typed_config: Dict[str, Any] = data"
+        },
+        {
+          "start_line": 179,
+          "end_line": 179,
+          "signature": "self.optional_cache: Optional[CacheType] = None"
+        },
+        {
+          "start_line": 180,
+          "end_line": 180,
+          "signature": "self.generic_list: List[GenericType[T]] = []"
+        },
+        {
+          "start_line": 181,
+          "end_line": 181,
+          "signature": "self.union_type: Union[str, int, None] = None"
+        },
+        {
+          "start_line": 182,
+          "end_line": 182,
+          "signature": "self.complex_type: Dict[str, List[Optional[CustomType]]] = {}"
+        }
+      ],
+      "methods": [
+        {
+          "start_line": 176,
+          "end_line": 182,
+          "signature": "def __init__(self, data: Dict[str, Any]):",
+          "docstring": null,
+          "function_calls": [],
+          "nested_functions": [],
+          "instance_variables": [
+            {
+              "start_line": 178,
+              "end_line": 178,
+              "signature": "self.typed_config: Dict[str, Any] = data"
+            },
+            {
+              "start_line": 179,
+              "end_line": 179,
+              "signature": "self.optional_cache: Optional[CacheType] = None"
+            },
+            {
+              "start_line": 180,
+              "end_line": 180,
+              "signature": "self.generic_list: List[GenericType[T]] = []"
+            },
+            {
+              "start_line": 181,
+              "end_line": 181,
+              "signature": "self.union_type: Union[str, int, None] = None"
+            },
+            {
+              "start_line": 182,
+              "end_line": 182,
+              "signature": "self.complex_type: Dict[str, List[Optional[CustomType]]] = {}"
+            }
+          ]
+        }
+      ],
+      "nested_classes": []
+    },
+    {
+      "start_line": 184,
+      "end_line": 209,
+      "signature": "class PropertyAndDescriptorClass:",
+      "docstring": "Class with properties and descriptors that might confuse the parser.",
+      "vars": [
+        {
+          "start_line": 188,
+          "end_line": 188,
+          "signature": "DEFAULT_VALUE = \"default\""
+        },
+        {
+          "start_line": 192,
+          "end_line": 192,
+          "signature": "self._private_value = \"private\""
+        },
+        {
+          "start_line": 193,
+          "end_line": 193,
+          "signature": "self.public_value = \"public\""
+        },
+        {
+          "start_line": 206,
+          "end_line": 206,
+          "signature": "self._private_value = value"
+        }
+      ],
+      "methods": [
+        {
+          "start_line": 190,
+          "end_line": 193,
+          "signature": "def __init__(self):",
+          "docstring": null,
+          "function_calls": [],
+          "nested_functions": [],
+          "instance_variables": [
+            {
+              "start_line": 192,
+              "end_line": 192,
+              "signature": "self._private_value = \"private\""
+            },
+            {
+              "start_line": 193,
+              "end_line": 193,
+              "signature": "self.public_value = \"public\""
+            }
+          ]
+        },
+        {
+          "start_line": 195,
+          "end_line": 200,
+          "signature": "@property\n    def computed_value(self):",
+          "docstring": "Property that doesn't create instance variables.",
+          "function_calls": [
+            "self._private_value.upper()"
+          ],
+          "nested_functions": [],
+          "instance_variables": []
+        },
+        {
+          "start_line": 202,
+          "end_line": 209,
+          "signature": "@computed_value.setter\n    def computed_value(self, value):",
+          "docstring": "Property setter.",
+          "function_calls": [
+            "validate(value)"
+          ],
+          "nested_functions": [],
+          "instance_variables": [
+            {
+              "start_line": 206,
+              "end_line": 206,
+              "signature": "self._private_value = value"
+            }
+          ]
+        }
+      ],
+      "nested_classes": []
+    }
+  ]
+}

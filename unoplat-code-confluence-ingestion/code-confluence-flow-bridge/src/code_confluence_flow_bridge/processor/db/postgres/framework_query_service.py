@@ -46,8 +46,18 @@ async def get_framework_features_for_imports(
             .distinct()
         )
 
+        # When using selectinload() with asyncio, we must call .unique() on the
+        # ScalarResult before fully materialising it in order to guarantee that
+        # SQLAlchemy has consumed the *entire* first result set **before** it
+        # issues the secondary SELECT statements required by the select-in-load
+        # strategy (see https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#selectin-eager-loading-with-asyncio).
+        # Failing to do so may lead to the infamous
+        #     asyncpg.exceptions._base.InterfaceError: another operation is in progress
+        # error because the ORM tries to run a second query on the very same
+        # connection while the first one is still being iterated over.
+
         result = await session.execute(query)
-        framework_features = result.scalars().all()
+        framework_features = result.scalars().unique().all()
 
         # Convert to FeatureSpec objects
         feature_specs = []
@@ -99,8 +109,11 @@ async def get_all_framework_features_for_language(
             .where(FrameworkFeature.language == language)
         )
 
+        # See comment above regarding .unique() – the same rationale applies
+        # here as well when eager-loading relationships via selectinload().
+
         result = await session.execute(query)
-        framework_features = result.scalars().all()
+        framework_features = result.scalars().unique().all()
 
         # Convert to FeatureSpec objects
         feature_specs = []
