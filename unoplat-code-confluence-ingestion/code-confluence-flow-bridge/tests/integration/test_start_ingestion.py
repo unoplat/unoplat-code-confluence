@@ -15,15 +15,17 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 from fastapi.testclient import TestClient
+from loguru import logger
 from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
 
 from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
-from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
+from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration, IngestedRepositoryResponse
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import DetectionResult
 from src.code_confluence_flow_bridge.utility.environment_utils import (
     construct_local_repository_path,
 )
-from tests.utils.db_cleanup import quick_cleanup
+from tests.utils.temporal_workflow_cleanup import terminate_all_running_workflows
+from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
 
 # ---------------------------------------------------------------------------
 # REPOSITORY PATH HELPER
@@ -145,6 +147,48 @@ def stream_sse_response(response) -> str:
         # Ensure the response iterator is fully consumed
         pass
     return "".join(chunks)
+
+
+def cleanup_repository_via_endpoint(test_client: TestClient, repository_name: str, repository_owner_name: str, is_local: bool = False, local_path: Optional[str] = None) -> None:
+    """
+    Clean up repository data using the FastAPI delete endpoint.
+    
+    This avoids async session management issues by using the test client
+    to call the production delete endpoint which has proper connection handling.
+    
+    Args:
+        test_client: FastAPI test client instance
+        repository_name: Name of the repository to delete
+        repository_owner_name: Owner/organization name of the repository
+        is_local: Whether this is a local repository
+        local_path: Local path for local repositories
+    """
+    
+    # Create the repository info payload
+    repo_info = IngestedRepositoryResponse(
+        repository_name=repository_name,
+        repository_owner_name=repository_owner_name,
+        is_local=is_local,
+        local_path=local_path
+    )
+    
+    # Call the delete endpoint via test client
+    response = test_client.request(
+        method="DELETE",
+        url="/delete-repository",
+        json=repo_info.model_dump()
+    )
+    
+    # Handle response - don't fail if repository doesn't exist (404)
+    if response.status_code == 404:
+        # Repository doesn't exist, which is fine for cleanup
+        pass
+    elif response.status_code == 200:
+        # Successfully deleted
+        pass
+    else:
+        # Unexpected error - log but don't fail the test
+        logger.error(f"Repository cleanup failed with status {response.status_code}: {response.text}")
 
 
 def detect_local_codebases(test_client: TestClient, local_path: str) -> DetectionResult:
@@ -336,10 +380,21 @@ class TestStartIngestionEndpoint:
         self,
         test_client: TestClient,
         github_token: str,
-        neo4j_client,  # Session-scoped Neo4j client
-        postgres_session,  # Session-scoped PostgreSQL session
+        service_ports: Dict[str, int],
+        neo4j_client,
+        sync_postgres_session
     ) -> None:
         """Full happy-path flow: ingest token -> start ingestion -> verify response."""
+        
+        # ------------------------------------------------------------------
+        # 0️⃣  TERMINATE all running workflows before test
+        # ------------------------------------------------------------------
+        temporal_address = f"localhost:{service_ports['temporal']}"
+        try:
+            terminated_count = await terminate_all_running_workflows(temporal_address)
+            logger.info(f"Pre-test cleanup: TERMINATED {terminated_count} running workflows")
+        except Exception as e:
+            logger.warning(f"Failed to terminate workflows before test: {e}")
 
         # ------------------------------------------------------------------
         # 1️⃣  make sure the PAT is stored (idempotent)
@@ -350,8 +405,6 @@ class TestStartIngestionEndpoint:
         )
         assert token_resp.status_code in (201, 409), token_resp.text
 
-        # Wait for token ingestion to complete and services to stabilize
-        await asyncio.sleep(5)
 
         # ------------------------------------------------------------------
         # 2️⃣  call the endpoint under test
@@ -377,18 +430,41 @@ class TestStartIngestionEndpoint:
         else:
             pytest.fail("Workflow run did not show up in /parent-workflow-jobs within timeout")
         
-        # Database cleanup after test completion
-        await quick_cleanup(neo4j_client, postgres_session)
+        
+        cleanup_neo4j_sync(neo4j_client)
+        #cleanup_postgresql_sync(sync_postgres_session)
+        
+        # ------------------------------------------------------------------
+        # 4️⃣  Terminate workflows after test completion
+        # ------------------------------------------------------------------
+        # try:
+        #     terminated_count = await terminate_all_running_workflows(temporal_address)
+        #     if terminated_count > 0:
+        #         logger.info(f"Post-test cleanup: TERMINATED {terminated_count} workflows")
+        # except Exception as e:
+        #     logger.warning(f"Failed to terminate workflows after test: {e}")
+        
 
     @pytest.mark.asyncio  # type: ignore[var-annotated]
     async def test_local_repository_detection_via_sse(
         self,
         test_client: TestClient,
         github_token: str,
-        neo4j_client,  # Session-scoped Neo4j client
-        postgres_session,  # Session-scoped PostgreSQL session
+        service_ports: Dict[str, int],
+        neo4j_client,
+        sync_postgres_session
     ) -> None:
         """Test local repository codebase detection using SSE endpoint."""
+        
+        # ------------------------------------------------------------------
+        # 0️⃣  TERMINATE all running workflows before test
+        # ------------------------------------------------------------------
+        temporal_address = f"localhost:{service_ports['temporal']}"
+        try:
+            terminated_count = await terminate_all_running_workflows(temporal_address)
+            logger.info(f"Pre-test cleanup: TERMINATED {terminated_count} running workflows")
+        except Exception as e:
+            logger.warning(f"Failed to terminate workflows before test: {e}")
 
         # ------------------------------------------------------------------
         # 1️⃣  Ensure token is ingested (idempotent)
@@ -442,38 +518,50 @@ class TestStartIngestionEndpoint:
         assert backend_codebase.programming_language_metadata.package_manager is not None
         assert backend_codebase.programming_language_metadata.package_manager.value in ["uv", "pip", "poetry"]
         
-        # Database cleanup after test completion
-        await quick_cleanup(neo4j_client, postgres_session)
+        # ------------------------------------------------------------------
+        # 5️⃣  Terminate workflows after test completion
+        # ------------------------------------------------------------------
+        # try:
+        #     terminated_count = await terminate_all_running_workflows(temporal_address)
+        #     if terminated_count > 0:
+        #         logger.info(f"Post-test cleanup: TERMINATED {terminated_count} workflows")
+        # except Exception as e:
+        #     logger.warning(f"Failed to terminate workflows after test: {e}")
 
-    @pytest.mark.asyncio  # type: ignore[var-annotated]
+        cleanup_neo4j_sync(neo4j_client)
+        #cleanup_postgresql_sync(sync_postgres_session)
+       
+
+    @pytest.mark.asyncio
     async def test_complete_detection_and_ingestion_flow(
         self,
         test_client: TestClient,
         github_token: str,
         service_ports: Dict[str, int],  # noqa: F811 - fixture parameter
-        neo4j_client,  # Session-scoped Neo4j client
-        postgres_session,  # Session-scoped PostgreSQL session
+        neo4j_client,
+        sync_postgres_session,
     ) -> None:
         """
         Complete integration test: detect local repository codebases via SSE,
         then ingest them via the ingestion endpoint and monitor workflow completion.
         """
-        from src.code_confluence_flow_bridge.utility.environment_utils import construct_local_repository_path
+        
+        # Temporal address for post-test cleanup
+        temporal_address = f"localhost:{service_ports['temporal']}"
 
-        # ------------------------------------------------------------------
-        # 1️⃣  Ensure token is ingested (idempotent)
+     # ------------------------------------------------------------------
+        # 2️⃣  Ensure token is ingested (idempotent)
         # ------------------------------------------------------------------
         token_resp = test_client.post(
             "/ingest-token",
             headers={"Authorization": f"Bearer {github_token}"},
         )
         assert token_resp.status_code in (201, 409), token_resp.text
-
-        # Wait for token ingestion to stabilize
-        await asyncio.sleep(5)
-
+        
+        repository_name = "unoplat-code-confluence"
+        
         # ------------------------------------------------------------------
-        # 2️⃣  Get local repository path and detect codebases via SSE
+        # 3️⃣  Get local repository path and detect codebases via SSE
         # ------------------------------------------------------------------
         local_repo_path: str = get_repository_path()
         detection_result: DetectionResult = detect_local_codebases(test_client, local_repo_path)
@@ -483,14 +571,14 @@ class TestStartIngestionEndpoint:
         assert len(detection_result.codebases) > 0, "No codebases detected"
 
         # ------------------------------------------------------------------
-        # 3️⃣  Create GitHubRepoRequestConfiguration from detection results
+        # 4️⃣  Create GitHubRepoRequestConfiguration from detection results
         # ------------------------------------------------------------------
         repo_request: GitHubRepoRequestConfiguration = create_repo_request_from_detection(
-            detection_result=detection_result, repository_name="unoplat-codebase-understanding", repository_owner_name="unoplat"
+            detection_result=detection_result, repository_name="unoplat-code-confluence", repository_owner_name="unoplat"
         )
 
         # Validate Pydantic model creation
-        assert repo_request.repository_name == "unoplat-codebase-understanding"
+        assert repo_request.repository_name == repository_name
         assert repo_request.repository_owner_name == "unoplat"
         # SSE endpoint constructs path using construct_local_repository_path(), so we should expect the constructed path
         expected_constructed_path = construct_local_repository_path(os.path.basename(local_repo_path))
@@ -506,7 +594,7 @@ class TestStartIngestionEndpoint:
             assert codebase.programming_language_metadata
 
         # ------------------------------------------------------------------
-        # 4️⃣  Submit ingestion request
+        # 5️⃣  Submit ingestion request
         # ------------------------------------------------------------------
         ingestion_resp = test_client.post("/start-ingestion", json=repo_request.model_dump())
         assert ingestion_resp.status_code == 201, f"Ingestion failed: {ingestion_resp.text}"
@@ -521,9 +609,8 @@ class TestStartIngestionEndpoint:
         run_id: str = ingestion_payload["run_id"]
 
         # ------------------------------------------------------------------
-        # 5️⃣  Monitor workflow execution via Temporal client
+        # 6️⃣  Monitor workflow execution via Temporal client
         # ------------------------------------------------------------------
-        temporal_address: str = f"localhost:{service_ports['temporal']}"
 
         try:
             final_status: WorkflowExecutionStatus = await monitor_workflow_completion(
@@ -548,7 +635,7 @@ class TestStartIngestionEndpoint:
             print(f"Workflow {workflow_id} did not complete within timeout but was started successfully")
 
         # ------------------------------------------------------------------
-        # 6️⃣  Verify workflow appears in jobs API
+        # 7️⃣  Verify workflow appears in jobs API
         # ------------------------------------------------------------------
         jobs_resp = test_client.get("/parent-workflow-jobs")
         assert jobs_resp.status_code == 200, f"Jobs API failed: {jobs_resp.text}"
@@ -568,6 +655,17 @@ class TestStartIngestionEndpoint:
         assert target_job["repository_workflow_run_id"] == run_id
         assert "status" in target_job
         assert "started_at" in target_job
+
+        # ------------------------------------------------------------------
+        # 8️⃣  Clean databases and terminate workflows after test completion
+        # ------------------------------------------------------------------
+        cleanup_neo4j_sync(neo4j_client)
+        cleanup_postgresql_sync(sync_postgres_session)
         
-        # Database cleanup after test completion
-        await quick_cleanup(neo4j_client, postgres_session)
+        # Terminate any workflows created during test
+        try:
+            terminated_count = await terminate_all_running_workflows(temporal_address)
+            if terminated_count > 0:
+                logger.info(f"Post-test cleanup: TERMINATED {terminated_count} workflows")
+        except Exception as e:
+            logger.warning(f"Failed to terminate workflows after test: {e}")

@@ -152,13 +152,14 @@ services:
       - TEMPORAL_DEBUG=true
       - LOG_LEVEL=DEBUG
       - REPOSITORIES_BASE_PATH=/root/.unoplat/repositories
+      - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
     depends_on:
       temporal:
         condition: service_healthy
     ports:
       - "8000:8000"
     volumes:
-      - ${HOME}/.unoplat:/root/.unoplat
+      - ${HOME}/unoplat/repositories:/root/.unoplat/repositories
     networks:
       - temporal-network
     stdin_open: true

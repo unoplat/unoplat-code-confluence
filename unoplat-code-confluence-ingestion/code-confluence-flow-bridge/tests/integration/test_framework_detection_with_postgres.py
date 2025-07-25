@@ -58,13 +58,16 @@ class TestFrameworkDetectionWithPostgres:
         return TreeSitterStructuralSignatureExtractor("python")
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_load_framework_definitions(self, test_client: TestClient, postgres_session):
+    async def test_load_framework_definitions(self, test_client: TestClient, sync_postgres_session):
         """Test loading framework definitions into PostgreSQL database."""
         framework_loader = self.get_framework_loader()
         
-        # Load framework definitions into database
-        session = postgres_session
-        result = await framework_loader.load_framework_definitions_at_startup(session)
+        # Load framework definitions into database (wrap sync operation in asyncio.to_thread)
+        session = sync_postgres_session
+        result = await asyncio.to_thread(
+            framework_loader.load_framework_definitions_at_startup_sync, 
+            session
+        )
         
         # Verify definitions were loaded
         assert isinstance(result, dict)
@@ -79,15 +82,18 @@ class TestFrameworkDetectionWithPostgres:
         assert result["features_count"] >= 8
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_detect_fastapi_endpoints_main_py(self, test_client: TestClient, postgres_session):
+    async def test_detect_fastapi_endpoints_main_py(self, test_client: TestClient, sync_postgres_session):
         """Test FastAPI endpoint detection using the real main.py file."""
         framework_loader = self.get_framework_loader()
         detection_service = self.get_detection_service()
         structural_extractor = self.get_structural_extractor()
         
-        # Load framework definitions first
-        session = postgres_session
-        await framework_loader.load_framework_definitions_at_startup(session)
+        # Load framework definitions first (wrap sync operation in asyncio.to_thread)
+        session = sync_postgres_session
+        await asyncio.to_thread(
+            framework_loader.load_framework_definitions_at_startup_sync, 
+            session
+        )
         
         # Read the actual main.py file
         main_py_path = Path(__file__).parent.parent.parent / "src" / "code_confluence_flow_bridge" / "main.py"
@@ -96,11 +102,9 @@ class TestFrameworkDetectionWithPostgres:
         source_code = main_py_path.read_text(encoding="utf-8")
         
         # Extract structural signature
-        structural_signature = await asyncio.to_thread(
-            structural_extractor.extract_structural_signature, 
-            str(main_py_path)
-        )
-        # Run framework detection
+        structural_signature = structural_extractor.extract_structural_signature(str(main_py_path))
+        
+        # Run framework detection (keep async business logic)
         detections = await detection_service.detect_features(
             source_code=source_code,
             imports=extract_imports_from_source(source_code),
@@ -120,15 +124,18 @@ class TestFrameworkDetectionWithPostgres:
         assert any("get" in text.lower() for text in endpoint_texts), "Expected GET endpoints"
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_instance_variable_binding(self, test_client: TestClient, postgres_session):
+    async def test_instance_variable_binding(self, test_client: TestClient, sync_postgres_session):
         """Test detection of instance variable binding patterns like self.app = FastAPI()."""
         framework_loader = self.get_framework_loader()
         detection_service = self.get_detection_service()
         structural_extractor = self.get_structural_extractor()
         
-        # Load framework definitions
-        session = postgres_session
-        await framework_loader.load_framework_definitions_at_startup(session)
+        # Load framework definitions (wrap sync operation in asyncio.to_thread)
+        session = sync_postgres_session
+        await asyncio.to_thread(
+            framework_loader.load_framework_definitions_at_startup_sync, 
+            session
+        )
         
         # Test source code with instance variable pattern
         test_source = '''
@@ -157,23 +164,18 @@ class MyApp:
         
         try:
             # Extract structural signature
-            structural_signature = await asyncio.to_thread(
-                structural_extractor.extract_structural_signature,
-                temp_path
-            )
+            structural_signature = structural_extractor.extract_structural_signature(temp_path)
             
             # Extract imports
             import_strings = extract_imports_from_source(test_source)
             
-            
-            # Run framework detection
+            # Run framework detection (keep async business logic)
             detections = await detection_service.detect_features(
                 source_code=test_source,
                 imports=import_strings,
                 structural_signature=structural_signature,
                 programming_language="python"
             )
-            
             
             # Verify instance variable endpoints were detected
             fastapi_detections = [d for d in detections if d.feature_key == "http_endpoint"]
@@ -189,15 +191,18 @@ class MyApp:
             Path(temp_path).unlink()
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_detect_pydantic_models(self, test_client: TestClient, postgres_session):
+    async def test_detect_pydantic_models(self, test_client: TestClient, sync_postgres_session):
         """Test Pydantic model detection."""
         framework_loader = self.get_framework_loader()
         detection_service = self.get_detection_service()
         structural_extractor = self.get_structural_extractor()
         
-        # Load framework definitions
-        session = postgres_session
-        await framework_loader.load_framework_definitions_at_startup(session)
+        # Load framework definitions (wrap sync operation in asyncio.to_thread)
+        session = sync_postgres_session
+        await asyncio.to_thread(
+            framework_loader.load_framework_definitions_at_startup_sync, 
+            session
+        )
         
         test_source = '''
 from pydantic import BaseModel
@@ -221,14 +226,11 @@ class Product(BaseModel):
             temp_path = f.name
         
         try:
-            structural_signature = await asyncio.to_thread(
-                structural_extractor.extract_structural_signature,
-                temp_path
-            )
+            structural_signature = structural_extractor.extract_structural_signature(temp_path)
             
             import_strings = extract_imports_from_source(test_source)
             
-            
+            # Run framework detection (keep async business logic)
             detections = await detection_service.detect_features(
                 source_code=test_source,
                 imports=import_strings,
@@ -245,15 +247,18 @@ class Product(BaseModel):
 
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_multi_framework_detection(self, test_client: TestClient, postgres_session):
+    async def test_multi_framework_detection(self, test_client: TestClient, sync_postgres_session):
         """Test detection of multiple frameworks in one file."""
         framework_loader = self.get_framework_loader()
         detection_service = self.get_detection_service()
         structural_extractor = self.get_structural_extractor()
         
-        # Load framework definitions
-        session = postgres_session
-        await framework_loader.load_framework_definitions_at_startup(session)
+        # Load framework definitions (wrap sync operation in asyncio.to_thread)
+        session = sync_postgres_session
+        await asyncio.to_thread(
+            framework_loader.load_framework_definitions_at_startup_sync, 
+            session
+        )
         
         test_source = '''
 from fastapi import FastAPI, Depends
@@ -288,14 +293,11 @@ async def create_user(user: UserModel, db=Depends(get_db)):
             temp_path = f.name
         
         try:
-            structural_signature = await asyncio.to_thread(
-                structural_extractor.extract_structural_signature,
-                temp_path
-            )
+            structural_signature = structural_extractor.extract_structural_signature(temp_path)
             
             import_strings = extract_imports_from_source(test_source)
             
-            
+            # Run framework detection (keep async business logic)
             detections = await detection_service.detect_features(
                 source_code=test_source,
                 imports=import_strings,

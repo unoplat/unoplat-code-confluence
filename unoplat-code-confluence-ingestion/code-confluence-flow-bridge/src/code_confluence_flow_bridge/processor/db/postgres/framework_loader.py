@@ -15,6 +15,7 @@ from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata i
 )
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -188,4 +189,68 @@ class FrameworkDefinitionLoader:
         except Exception as e:
             logger.error(f"Failed to load framework definitions: {e}")
             await session.rollback() #type: ignore
+            raise
+    
+    def load_framework_definitions_at_startup_sync(self, session: Session) -> Dict[str, Any]:
+        """
+        Synchronous version of load_framework_definitions_at_startup for testing.
+        Load framework definitions at startup with optimized bulk insertion.
+        Uses atomic clear + repopulate strategy for consistency.
+        """
+        logger.info("Starting framework definitions loading (sync)...")
+        start_time = time.time()
+        
+        # Check if already loaded (idempotency)
+        existing_count: int = session.scalar(select(func.count(Framework.language))) or 0 #type: ignore
+        if existing_count > 0 and self._loaded:
+            logger.info(f"Framework definitions already loaded ({existing_count} frameworks). Skipping.")
+            return {"skipped": True, "existing_count": existing_count}
+        
+        # Load and parse definitions
+        try:
+            framework_data = self.load_framework_definitions()
+            frameworks, features, absolute_paths = self.parse_json_data(framework_data)
+            parsing_time = time.time() - start_time
+            
+            logger.info(f"Parsed {len(frameworks)} frameworks, {len(features)} features, {len(absolute_paths)} paths in {parsing_time:.3f}s")
+            
+            # Atomic operation: clear existing + repopulate
+            db_start_time = time.time()
+            
+            # Clear in correct order (foreign key dependencies)
+            logger.debug("Clearing existing framework definitions...")
+            
+            session.execute(delete(FeatureAbsolutePath)) #type: ignore
+            session.execute(delete(FrameworkFeature)) #type: ignore
+            session.execute(delete(Framework)) #type: ignore
+            
+            # Bulk insert all records using add_all (optimal for our data size)
+            logger.debug("Bulk inserting framework definitions...")
+            session.add_all(frameworks)
+            session.add_all(features)
+            session.add_all(absolute_paths)
+            
+            # Single commit for atomicity
+            session.commit() #type: ignore
+            
+            db_time = time.time() - db_start_time
+            total_time = time.time() - start_time
+            
+            self._loaded = True
+            
+            metrics = {
+                "parsing_time": parsing_time,
+                "db_time": db_time,
+                "total_time": total_time,
+                "frameworks_count": len(frameworks),
+                "features_count": len(features),
+                "absolute_paths_count": len(absolute_paths),
+            }
+            
+            logger.info(f"Framework definitions loaded successfully (sync): {metrics}")
+            return metrics
+            
+        except Exception as e:
+            logger.error(f"Failed to load framework definitions (sync): {e}")
+            session.rollback() #type: ignore
             raise

@@ -7,7 +7,7 @@ name = "code-confluence-flow-bridge"
 version = "0.41.0"
 description = "Bridge between Code Confluence User and Ingestion Workflow" 
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.115.6",
     "pydantic-settings>=2.7.0",
@@ -24,7 +24,7 @@ dependencies = [
     "packaging>=24.2",
     "validate-pyproject[all]>=0.23",
     "sqlmodel>=0.0.24",
-    "psycopg2>=2.9.10",
+    "psycopg2-binary>=2.9.10",
     "passlib[bcrypt]>=1.7.4",
     "gql[aiohttp]>=3.5.3",
     "opentelemetry-api>=1.32.1",
@@ -84,6 +84,3 @@ markers = [
     "integration: integration tests connecting to external services",
 ]
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["code_confluence_flow_bridge*"]
