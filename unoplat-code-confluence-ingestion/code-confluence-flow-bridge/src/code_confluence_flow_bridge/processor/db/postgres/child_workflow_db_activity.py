@@ -105,10 +105,8 @@ class ChildWorkflowDbActivity:
                         started_at=now
                     )
                     
-                    # Add and commit the new workflow run
+                    # Add the new workflow run
                     session.add(workflow_run)
-                    await session.commit()
-                    await session.refresh(workflow_run)
                     log.info(f"Created codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{codebase_folder}")
                 else:
                     # Update existing workflow run
@@ -120,10 +118,8 @@ class ChildWorkflowDbActivity:
                     if status == JobStatus.COMPLETED or status == JobStatus.FAILED:
                         workflow_run.completed_at = now
                     
-                    # Add and commit the updated workflow run
+                    # Add the updated workflow run
                     session.add(workflow_run)
-                    await session.commit()
-                    await session.refresh(workflow_run)
                     log.info(f"Updated codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{codebase_folder} with status {status.value}")
                     
         except ApplicationError:
