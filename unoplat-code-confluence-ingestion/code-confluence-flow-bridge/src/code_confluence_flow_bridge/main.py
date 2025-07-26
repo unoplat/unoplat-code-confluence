@@ -628,9 +628,6 @@ async def ingest_token(authorization: str = Header(...), session: AsyncSession =
             
         session.add(token_flag)
         
-        await session.commit()
-        await session.refresh(credential)
-        
         return {"message": "Token ingested successfully."}
     except HTTPException as http_ex:
         # Re-raise HTTP exceptions directly
@@ -657,8 +654,6 @@ async def update_token(authorization: str = Header(...), session: AsyncSession =
         credential.updated_at = current_time
         session.add(credential)
         
-        await session.commit()
-        await session.refresh(credential)
         return {"message": "Token updated successfully."}
     except Exception as e:
         logger.error(f"Failed to update token: {str(e)}")
@@ -687,8 +682,6 @@ async def delete_token(session: AsyncSession = Depends(get_session)) -> Dict[str
             token_flag.status = False
             
         session.add(token_flag)
-        
-        await session.commit()
         
         return {"message": "Token deleted successfully."}
     except HTTPException as http_ex:
@@ -985,8 +978,6 @@ async def set_flag_status(flag_name: str, status: bool, session: AsyncSession = 
             flag.status = status
             
         session.add(flag)
-        await session.commit()
-        await session.refresh(flag)
         
         return {
             "name": flag.name,
