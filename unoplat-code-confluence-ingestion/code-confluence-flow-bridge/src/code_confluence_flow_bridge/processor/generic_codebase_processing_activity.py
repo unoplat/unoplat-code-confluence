@@ -102,7 +102,7 @@ class GenericCodebaseProcessingActivity:
                 }
             )
 
-    async def _lint_codebase(self, envelope: CodebaseProcessingActivityEnvelope, log) -> None:
+    async def _lint_codebase(self, envelope: CodebaseProcessingActivityEnvelope, log: logger) -> None:
         """
         Lint the codebase using existing LinterParser for consistency.
         
@@ -140,7 +140,7 @@ class GenericCodebaseProcessingActivity:
                 envelope.codebase_qualified_name, str(e)
             )
 
-    async def _process_codebase_with_parser(self, envelope: CodebaseProcessingActivityEnvelope, log) -> None:
+    async def _process_codebase_with_parser(self, envelope: CodebaseProcessingActivityEnvelope, log: logger) -> None:
         """
         Process codebase using GenericCodebaseParser with streaming Neo4j insertion.
         

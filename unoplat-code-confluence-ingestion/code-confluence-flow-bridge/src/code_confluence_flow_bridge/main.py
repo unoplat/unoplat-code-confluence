@@ -470,6 +470,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     pool_size = app.state.code_confluence_env.temporal_max_concurrent_activities + 4
     app.state.activity_executor = ThreadPoolExecutor(max_workers=pool_size)
     logger.info(f"Initialized activity executor with {pool_size} threads (max_concurrent_activities={app.state.code_confluence_env.temporal_max_concurrent_activities} + 4 buffer threads)")
+    loop = asyncio.get_running_loop()
+    loop.set_default_executor(app.state.activity_executor)
+    logger.info("Set default executor for asyncio loop")
 
     # Define activities
     activities: List[Callable] = []
@@ -1510,7 +1513,7 @@ async def detect_codebases_sse(
     git_url: str = Query(..., description="GitHub repository URL or folder name for local repository"),
     is_local: bool = Query(False, description="Whether this is a local repository"),
     session: AsyncSession = Depends(get_session)
-):
+) -> StreamingResponse:
     """
     Server-Sent Events endpoint for real-time codebase detection progress.
     
@@ -1556,7 +1559,7 @@ async def detect_codebases_sse(
 
 
 @app.post("/code-confluence/issues", response_model=IssueTracking)
-async def create_github_issue(request: GithubIssueSubmissionRequest, session: AsyncSession = Depends(get_session)):
+async def create_github_issue(request: GithubIssueSubmissionRequest, session: AsyncSession = Depends(get_session)) -> IssueTracking:
     """
     Create a GitHub issue based on error information and track it in the database.
     
