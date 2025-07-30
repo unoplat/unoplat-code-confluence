@@ -80,15 +80,11 @@ class ParentWorkflowDbActivity:
                                 programming_language_metadata=plm,
                             )
                             session.add(config)
-                            await session.commit()
-                            await session.refresh(config)
                         else:
                             # Todo: Revisit this later - update existing config
                             existing_config.root_packages = cm.root_packages
                             existing_config.programming_language_metadata = plm
                             session.add(existing_config)
-                            await session.commit()
-                            await session.refresh(existing_config)
             
                 # Then check if workflow run exists
                 workflow_run = await self._get_workflow_run(session, repository_name, repository_owner_name, workflow_run_id)
@@ -108,10 +104,8 @@ class ParentWorkflowDbActivity:
                     if status == JobStatus.COMPLETED:
                         workflow_run.completed_at = now
                     
-                    # Add and commit the new workflow run
+                    # Add the new workflow run
                     session.add(workflow_run)
-                    await session.commit()
-                    await session.refresh(workflow_run)
                     log.success(f"Created workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}")
                     log.debug(
                         "Created workflow run: {} for {}/{}",
@@ -137,10 +131,8 @@ class ParentWorkflowDbActivity:
                         if status == JobStatus.COMPLETED:
                             workflow_run.completed_at = now
                     
-                    # Add and commit the updated workflow run
+                    # Add the updated workflow run
                     session.add(workflow_run)
-                    await session.commit()
-                    await session.refresh(workflow_run)
                     log.success(f"Updated workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}")
                     log.debug(
                         "Updated workflow run: {} for {}/{} with status={}",
@@ -171,8 +163,6 @@ class ParentWorkflowDbActivity:
                 local_path=local_path
             )
             session.add(repository)
-            await session.commit()
-            await session.refresh(repository)
             
         return repository
         

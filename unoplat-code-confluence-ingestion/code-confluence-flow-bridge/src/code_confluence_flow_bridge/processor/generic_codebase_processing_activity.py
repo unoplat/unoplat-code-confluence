@@ -17,9 +17,13 @@ from src.code_confluence_flow_bridge.parser.generic_codebase_parser import (
 from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
 
 import traceback
+from typing import TYPE_CHECKING
 
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
+
+if TYPE_CHECKING:
+    from loguru import Logger
 
 
 class GenericCodebaseProcessingActivity:
@@ -30,7 +34,7 @@ class GenericCodebaseProcessingActivity:
     batch operations for high-performance, memory-efficient processing.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     @activity.defn
@@ -56,7 +60,7 @@ class GenericCodebaseProcessingActivity:
         workflow_run_id: str = info.workflow_run_id
         activity_id: str = info.activity_id
         activity_name: str = info.activity_type
-        log = seed_and_bind_logger_from_trace_id(
+        log: Logger = seed_and_bind_logger_from_trace_id(
             trace_id=trace_id,
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
@@ -102,7 +106,7 @@ class GenericCodebaseProcessingActivity:
                 }
             )
 
-    async def _lint_codebase(self, envelope: CodebaseProcessingActivityEnvelope, log) -> None:
+    async def _lint_codebase(self, envelope: CodebaseProcessingActivityEnvelope, log: "Logger") -> None:
         """
         Lint the codebase using existing LinterParser for consistency.
         
@@ -140,7 +144,7 @@ class GenericCodebaseProcessingActivity:
                 envelope.codebase_qualified_name, str(e)
             )
 
-    async def _process_codebase_with_parser(self, envelope: CodebaseProcessingActivityEnvelope, log) -> None:
+    async def _process_codebase_with_parser(self, envelope: CodebaseProcessingActivityEnvelope, log: "Logger") -> None:
         """
         Process codebase using GenericCodebaseParser with streaming Neo4j insertion.
         
