@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.42.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.42.0...code-confluence-flow-bridge-v0.42.1) (2025-07-30)
+
+
+### Bug Fixes
+
+* **activity-executor:** Set default executor for asyncio loop ([5d6f63a](https://github.com/unoplat/unoplat-code-confluence/commit/5d6f63a208a7dd3bc63b2db28e357a786eb03745))
+* **codebase-processing:** Improve type annotations and logging ([f88878d](https://github.com/unoplat/unoplat-code-confluence/commit/f88878d190f46bc89212d8a5a2f40374211b1eaa))
+* **db-operations:** Make asynchronous context manager for postgres handle commit/rollback instead of individual functions ([b213a9c](https://github.com/unoplat/unoplat-code-confluence/commit/b213a9cbaff7c067305ab5c8320575eef81f24ce))
+* **db-operations:** Make asynchronous context manager for postgres handle commit/rollback instead of individual functions ([3350a99](https://github.com/unoplat/unoplat-code-confluence/commit/3350a9967a84a2e0928f34a22390a486dc822ebc))
+* **issue-tracking:** Annotate return type for issue tracking endpoint ([5d6f63a](https://github.com/unoplat/unoplat-code-confluence/commit/5d6f63a208a7dd3bc63b2db28e357a786eb03745))
+* **sse-endpoint:** Annotate return type for SSE endpoint ([5d6f63a](https://github.com/unoplat/unoplat-code-confluence/commit/5d6f63a208a7dd3bc63b2db28e357a786eb03745))
+
 ## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.41.0...code-confluence-flow-bridge-v0.42.0) (2025-07-25)
 
 
