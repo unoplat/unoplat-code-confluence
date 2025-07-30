@@ -10,7 +10,8 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession, 
     async_sessionmaker, 
     async_scoped_session,
-    create_async_engine
+    create_async_engine,
+    AsyncSessionTransaction
 )
 from sqlmodel import SQLModel
 
@@ -54,18 +55,14 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     This provides backward compatibility but uses the scoped session internally.
     Uses async_scoped_session to ensure each asyncio task (including Temporal
     workflows and activities) gets its own session instance, preventing
-    concurrent access errors.
+    concurrent access errors. Uses .begin() for proper transaction management.
     """
     try:
-        async with AsyncScopedSession() as session:
+        session = AsyncScopedSession()
+        async with session.begin():
             yield session
     except Exception as e:
-        # Log pool status if available for debugging
-        try:
-            pool_status = async_engine.pool.status() if hasattr(async_engine.pool, 'status') else "N/A"
-            logger.warning(f"Session error - Pool status: {pool_status}, Error: {e}")
-        except:
-            pass
+        logger.error(f"Session error: {e}")
         raise
     finally:
         # Remove the session from the scope to prevent memory leaks
