@@ -136,7 +136,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             return UnoplatVersion(specifier=constraint)
 
         except Exception as e:
-            activity.logger.warning(f"Error parsing version constraint '{constraint}': {str(e)}")
+            activity.logger.warning("Error parsing version constraint '{}': {}", constraint, str(e))
             return UnoplatVersion()
 
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
@@ -190,7 +190,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                         source_url = constraint["url"]
                         version = UnoplatVersion()  # URL dependencies don't have version constraints
                 else:
-                    activity.logger.warning(f"Skipping invalid dependency specification for {name}")
+                    activity.logger.warning("Skipping invalid dependency specification for {}", name)
                     continue
 
                 tuple_dependency = UnoplatProjectDependency(version=version, extras=extras, source=source, source_url=source_url, source_reference=source_reference, subdirectory=subdirectory)

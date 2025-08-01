@@ -46,7 +46,7 @@ class PipStrategy(PackageManagerStrategy):
             except FileNotFoundError:
                 logger.warning("setup.py not found")
             except Exception as e:
-                logger.error(f"Error parsing setup.py: {str(e)}")
+                logger.error("Error parsing setup.py: {}", str(e))
 
             # Then parse requirements files for additional dependencies
             requirement_files = self._find_requirement_files(workspace)
@@ -74,7 +74,7 @@ class PipStrategy(PackageManagerStrategy):
             return package_metadata
 
         except Exception as e:
-            logger.error(f"Error processing pip metadata: {str(e)}")
+            logger.error("Error processing pip metadata: {}", str(e))
             return self._create_empty_metadata(metadata)
 
     def _parse_all_requirements(self, workspace_path: str) -> Dict[str, UnoplatProjectDependency]:
@@ -88,7 +88,7 @@ class PipStrategy(PackageManagerStrategy):
                 file_deps = self._parse_requirement_file(req_file)
                 all_dependencies.update(file_deps)
             except Exception as e:
-                logger.warning(f"Error parsing {req_file}: {str(e)}")
+                logger.warning("Error parsing {}: {}", req_file, str(e))
 
         return all_dependencies
 

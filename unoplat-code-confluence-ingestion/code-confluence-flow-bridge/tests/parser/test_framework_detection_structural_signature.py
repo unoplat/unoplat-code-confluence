@@ -8,10 +8,10 @@ from pathlib import Path
 import time
 from typing import List, Set
 
-from code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
     StructuralSignature,
 )
-from code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
+from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
     TreeSitterStructuralSignatureExtractor,
 )
 
@@ -36,7 +36,9 @@ class TestFrameworkDetectionStructuralSignature:
         """Test FastAPI framework detection from actual main.py file."""
         assert self.main_py_path.exists(), f"Main.py not found at {self.main_py_path}"
         
-        signature = self.extractor.extract_structural_signature(str(self.main_py_path))
+        with open(self.main_py_path, 'rb') as f:
+            content = f.read()
+        signature = self.extractor.extract_structural_signature(content)
         
         # Debug: Check what we're extracting
         print(f"\nDebug info:")
@@ -84,7 +86,9 @@ class TestFrameworkDetectionStructuralSignature:
         """Test Temporal framework detection from actual workflow files."""
         assert self.repo_workflow_path.exists(), f"Repo workflow not found at {self.repo_workflow_path}"
         
-        signature = self.extractor.extract_structural_signature(str(self.repo_workflow_path))
+        with open(self.repo_workflow_path, 'rb') as f:
+            content = f.read()
+        signature = self.extractor.extract_structural_signature(content)
         
         # Test framework detection
         frameworks = self._detect_frameworks(signature)
@@ -108,7 +112,9 @@ class TestFrameworkDetectionStructuralSignature:
         """Test Temporal framework detection from child workflow file."""
         assert self.codebase_child_workflow_path.exists(), f"Child workflow not found at {self.codebase_child_workflow_path}"
         
-        signature = self.extractor.extract_structural_signature(str(self.codebase_child_workflow_path))
+        with open(self.codebase_child_workflow_path, 'rb') as f:
+            content = f.read()
+        signature = self.extractor.extract_structural_signature(content)
         
         # Test framework detection
         frameworks = self._detect_frameworks(signature)
@@ -126,7 +132,9 @@ class TestFrameworkDetectionStructuralSignature:
         """Test Pydantic detection from actual structural_signature.py file."""
         assert self.structural_signature_path.exists(), f"Structural signature not found at {self.structural_signature_path}"
         
-        signature = self.extractor.extract_structural_signature(str(self.structural_signature_path))
+        with open(self.structural_signature_path, 'rb') as f:
+            content = f.read()
+        signature = self.extractor.extract_structural_signature(content)
         
         # Test framework detection
         frameworks = self._detect_frameworks(signature)
@@ -145,7 +153,9 @@ class TestFrameworkDetectionStructuralSignature:
         """Test advanced Pydantic patterns from actual package metadata file."""
         assert self.package_metadata_path.exists(), f"Package metadata not found at {self.package_metadata_path}"
         
-        signature = self.extractor.extract_structural_signature(str(self.package_metadata_path))
+        with open(self.package_metadata_path, 'rb') as f:
+            content = f.read()
+        signature = self.extractor.extract_structural_signature(content)
         
         # Test framework detection
         frameworks = self._detect_frameworks(signature)
@@ -165,7 +175,9 @@ class TestFrameworkDetectionStructuralSignature:
         """Test SQLAlchemy/SQLModel detection from actual repository data file."""
         assert self.repository_data_path.exists(), f"Repository data not found at {self.repository_data_path}"
         
-        signature = self.extractor.extract_structural_signature(str(self.repository_data_path))
+        with open(self.repository_data_path, 'rb') as f:
+            content = f.read()
+        signature = self.extractor.extract_structural_signature(content)
         
         # Test framework detection
         frameworks = self._detect_frameworks(signature)
@@ -192,7 +204,9 @@ class TestFrameworkDetectionStructuralSignature:
         """Test detection of FastAPI framework in main.py (main.py only defines FastAPI patterns, not models)."""
         assert self.main_py_path.exists(), f"Main.py not found at {self.main_py_path}"
         
-        signature = self.extractor.extract_structural_signature(str(self.main_py_path))
+        with open(self.main_py_path, 'rb') as f:
+            content = f.read()
+        signature = self.extractor.extract_structural_signature(content)
         
         # Test framework detection from main.py (only FastAPI should be detected via structural patterns)
         frameworks = self._detect_frameworks(signature)
@@ -218,7 +232,9 @@ class TestFrameworkDetectionStructuralSignature:
         
         # Time structural signature approach
         start_time = time.time()
-        signature = self.extractor.extract_structural_signature(str(self.main_py_path))
+        with open(self.main_py_path, 'rb') as f:
+            content = f.read()
+        signature = self.extractor.extract_structural_signature(content)
         frameworks_structural = self._detect_frameworks(signature)
         structural_time = time.time() - start_time
         
@@ -262,7 +278,9 @@ class TestFrameworkDetectionStructuralSignature:
                 print(f"Skipping {file_path} - file not found")
                 continue
                 
-            signature = self.extractor.extract_structural_signature(str(file_path))
+            with open(file_path, 'rb') as f:
+                content = f.read()
+            signature = self.extractor.extract_structural_signature(content)
             detected_frameworks = self._detect_frameworks(signature)
             
             results[file_path.name] = {

@@ -539,21 +539,21 @@ class CodeConfluenceGraphDeletion:
             if codebase_qualified_names:
                 codebase_rel_stats = await session.execute_write(self._delete_codebase_relationships_batch_txn, codebase_qualified_names)
                 total_codebase_relationships = sum(codebase_rel_stats.values())
-                logger.info(f"Deleted codebase relationships: {codebase_rel_stats}")
+                logger.info("Deleted codebase relationships: {}", codebase_rel_stats)
             
             # 2. Delete package relationships
             total_package_relationships = 0
             if all_package_qualified_names:
                 package_rel_stats = await session.execute_write(self._delete_package_relationships_batch_txn, all_package_qualified_names)
                 total_package_relationships = sum(package_rel_stats.values())
-                logger.info(f"Deleted package relationships: {package_rel_stats}")
+                logger.info("Deleted package relationships: {}", package_rel_stats)
             
             # 3. Delete file relationships
             total_file_relationships = 0
             if all_file_paths:
                 file_rel_stats = await session.execute_write(self._delete_file_relationships_batch_txn, all_file_paths)
                 total_file_relationships = sum(file_rel_stats.values())
-                logger.info(f"Deleted file relationships: {file_rel_stats}")
+                logger.info("Deleted file relationships: {}", file_rel_stats)
             
             # PHASE 2: Now safely delete nodes in dependency order
             
@@ -602,7 +602,7 @@ class CodeConfluenceGraphDeletion:
             raise
         except Exception as e:
             error_msg = f"Failed to delete repository {qualified_name}"
-            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)}")
+            logger.error("{} | error_type={} | error={}", error_msg, type(e).__name__, str(e))
             
             tb_str = traceback.format_exc()
             
@@ -736,7 +736,7 @@ class CodeConfluenceGraphDeletion:
             raise
         except Exception as e:
             error_msg = f"Failed to delete repository {qualified_name}"
-            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)}")
+            logger.error("{} | error_type={} | error={}", error_msg, type(e).__name__, str(e))
             
             tb_str = traceback.format_exc()
             

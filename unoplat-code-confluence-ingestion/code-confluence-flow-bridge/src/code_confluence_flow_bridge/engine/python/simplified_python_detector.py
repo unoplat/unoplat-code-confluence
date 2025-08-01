@@ -60,7 +60,7 @@ class SimplifiedPythonDetector:
                 all_detections.extend(detections)
 
             except Exception as e:
-                logger.warning(f"Failed to detect feature {spec.feature_key}: {e}")
+                logger.warning("Failed to detect feature {}: {}", spec.feature_key, e)
 
         return all_detections
 
@@ -76,7 +76,7 @@ class SimplifiedPythonDetector:
         elif spec.concept == Concept.INHERITANCE:
             return self._detect_inheritance(signature, spec, aliases)
         else:
-            logger.warning(f"Unsupported concept: {spec.concept}")
+            logger.warning("Unsupported concept: {}", spec.concept)
             return []
 
     def _detect_annotation_like(

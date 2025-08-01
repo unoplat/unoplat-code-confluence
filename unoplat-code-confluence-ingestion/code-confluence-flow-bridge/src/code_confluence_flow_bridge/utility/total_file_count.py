@@ -10,7 +10,7 @@ class TotalFileCount:
     def __init__(self, directory, extension):
         self.directory = directory
         self.extension = extension
-        logger.info(f"FileCounter initialized with directory: {directory} and extension: {extension}")
+        logger.info("FileCounter initialized with directory: {} and extension: {}", directory, extension)
 
     def count_files(self):
         logger.info("Counting files...")
@@ -24,7 +24,7 @@ class TotalFileCount:
         # Use glob.glob with recursive=True to find all files matching the pattern
         files = glob.glob(pattern, recursive=True)
 
-        logger.info(f"Total files found: {len(files)}")
+        logger.info("Total files found: {}", len(files))
 
         # Return the count of files
         return len(files)

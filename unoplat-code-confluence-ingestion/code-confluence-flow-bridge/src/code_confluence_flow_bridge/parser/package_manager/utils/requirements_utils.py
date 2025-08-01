@@ -78,7 +78,7 @@ class RequirementsUtils:
             requirements_paths.append(root_req_txt)
 
         if not requirements_paths:
-            logger.warning(f"No requirements files found in {workspace_path}")
+            logger.warning("No requirements files found in {}", workspace_path)
             return {}
 
         # Parse all found requirement files using requirements-parser
@@ -90,7 +90,7 @@ class RequirementsUtils:
                         if tuple_dependency:
                             dependencies[tuple_dependency[0]] = tuple_dependency[1]
             except Exception as e:
-                logger.error(f"Error parsing {req_file}: {str(e)}")
+                logger.error("Error parsing {}: {}", req_file, str(e))
 
         return dependencies
 
@@ -106,7 +106,7 @@ class RequirementsUtils:
                     name = req.fragment.get("egg")
 
             if not name:
-                logger.warning(f"Could not determine package name from: {req.line}")
+                logger.warning("Could not determine package name from: {}", req.line)
                 return None
 
             # Handle version specs
