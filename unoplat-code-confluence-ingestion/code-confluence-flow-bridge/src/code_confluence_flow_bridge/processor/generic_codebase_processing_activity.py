@@ -15,6 +15,9 @@ from src.code_confluence_flow_bridge.parser.generic_codebase_parser import (
     GenericCodebaseParser,
 )
 from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
+    CodeConfluenceGraph,
+)
 
 import traceback
 from typing import TYPE_CHECKING
@@ -34,8 +37,8 @@ class GenericCodebaseProcessingActivity:
     batch operations for high-performance, memory-efficient processing.
     """
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, code_confluence_graph: CodeConfluenceGraph) -> None:
+        self.code_confluence_graph = code_confluence_graph
 
     @activity.defn
     async def process_codebase_generic(self, envelope: CodebaseProcessingActivityEnvelope) -> None:
@@ -163,7 +166,8 @@ class GenericCodebaseProcessingActivity:
                 codebase_path=envelope.codebase_path,
                 root_packages=envelope.root_packages,
                 programming_language_metadata=envelope.programming_language_metadata,
-                trace_id=envelope.trace_id
+                trace_id=envelope.trace_id,
+                code_confluence_graph=self.code_confluence_graph
             )
 
             # Process with fresh connection - parser will handle its own transactions
@@ -186,9 +190,4 @@ class GenericCodebaseProcessingActivity:
             raise
 
 
-# Activity instance for registration
-generic_codebase_processing_activity = GenericCodebaseProcessingActivity()
-
-
-# Export the activity function for Temporal worker registration
-process_codebase_generic = generic_codebase_processing_activity.process_codebase_generic
+# Note: Activity instances are now created in main.py with proper dependency injection

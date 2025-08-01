@@ -264,7 +264,6 @@ def test_client(service_ports: Dict[str, int]) -> Iterator[TestClient]:
     })
 
     # Wait briefly for app and Temporal worker initialization
-    time.sleep(15)
     with TestClient(app) as client:
         yield client
         # Allow time for async cleanup of streaming responses
@@ -307,6 +306,7 @@ def neo4j_client(service_ports: Dict[str, int]):
     
     # Initialize connection through neomodel
     db.set_connection(url=neo4j_url)
+    
     
     # Yield the db object for direct access
     yield db

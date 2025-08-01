@@ -66,8 +66,8 @@ from src.code_confluence_flow_bridge.processor.db.postgres.credentials import (
     Credentials,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.db import (
-    async_engine,  # local import to avoid cycles
     create_db_and_tables,
+    dispose_current_engine,
     get_session,
     get_session_cm,
 )
@@ -84,7 +84,7 @@ from src.code_confluence_flow_bridge.processor.db.postgres.repository_data impor
     RepositoryWorkflowRun,
 )
 from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import (
-    process_codebase_generic,
+    GenericCodebaseProcessingActivity,
 )
 from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import (
     GitActivity,
@@ -462,7 +462,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Neo4j connection and schema initialized successfully")
     
     # Initialize graph deletion service (reuses the global connection)
-    app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(code_confluence_env=app.state.code_confluence_env)
+    app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(app.state.code_confluence_graph)
     # Note: Don't call initialize() on deletion service since global connection is already established
 
     # Calculate thread pool size based on Temporal best practice: one thread per activity slot plus a buffer
@@ -488,15 +488,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)
 
-    # Create activities without shared graph ingestion instance
-    confluence_git_graph = ConfluenceGitGraph()
+    # Create activities with shared graph instance for managed transactions
+    confluence_git_graph = ConfluenceGitGraph(code_confluence_graph=app.state.code_confluence_graph)
     activities.append(confluence_git_graph.insert_git_repo_into_graph_db)
 
-    codebase_package_ingestion = PackageManagerMetadataIngestion()
+    codebase_package_ingestion = PackageManagerMetadataIngestion(code_confluence_graph=app.state.code_confluence_graph)
     activities.append(codebase_package_ingestion.insert_package_manager_metadata)
     
-    # Add generic codebase processing activity
-    activities.append(process_codebase_generic)
+    # Create generic codebase processing activity with shared graph instance
+    generic_activity = GenericCodebaseProcessingActivity(code_confluence_graph=app.state.code_confluence_graph)
+    activities.append(generic_activity.process_codebase_generic)
     
     # Create database tables during startup
     await create_db_and_tables()
@@ -561,7 +562,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         
         # 5. Dispose SQLAlchemy async engine
         try:
-            await async_engine.dispose()
+            await dispose_current_engine()
             logger.info("SQLAlchemy engine disposed")
         except Exception as exc:
             logger.warning(f"Failed to dispose async engine during shutdown: {exc}")
@@ -1280,9 +1281,11 @@ async def delete_repository(
         qualified_name = f"{repository_owner_name}_{repository_name}"
         
         try:
-            neo4j_stats = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name(
-                qualified_name=qualified_name
-            )
+            async with app.state.code_confluence_graph.get_session() as session:
+                neo4j_stats = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name_managed(
+                    session=session,
+                    qualified_name=qualified_name
+                )
             logger.info(f"Deleted repository from Neo4j: {qualified_name}")
         except ApplicationError as neo4j_error:
             # Log Neo4j error but don't fail if already deleted
@@ -1362,9 +1365,11 @@ async def refresh_repository(
         qualified_name: str = f"{repository_owner_name}_{repository_name}"
         
         try:
-            await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name(
-                qualified_name=qualified_name
-            )
+            async with app.state.code_confluence_graph.get_session() as session:
+                await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name_managed(
+                    session=session,
+                    qualified_name=qualified_name
+                )
             request_logger.info(f"Deleted repository from Neo4j: {qualified_name}")
         except ApplicationError as neo4j_error:
             # Log but don't fail if already deleted
