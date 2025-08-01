@@ -240,4 +240,13 @@ class EnvironmentSettings(BaseSettings):
         alias="FRAMEWORK_DEFINITIONS_PATH",
         description="Absolute path to framework definitions directory containing language-specific definition files"
     )
+    
+    # File processing concurrency configuration
+    codebase_parser_file_processing_concurrency: int = Field(
+        default=3,
+        alias="CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY",
+        description="Maximum number of files to process concurrently during parsing. Controls memory usage and CPU utilization.",
+        ge=1,   # minimum 1 file at a time
+        le=50   # maximum 50 concurrent files
+    )
 

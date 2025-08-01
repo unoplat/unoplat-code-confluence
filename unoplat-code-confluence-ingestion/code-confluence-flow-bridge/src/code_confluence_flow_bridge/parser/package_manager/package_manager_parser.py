@@ -59,7 +59,7 @@ class PackageManagerParser:
         except UnsupportedPackageManagerError as e:
             # Get traceback for detailed error reporting
             tb_str = traceback.format_exc()
-            logger.error(f"Unsupported package manager: {str(e)} | traceback={tb_str}")
+            logger.error("Unsupported package manager: {} | traceback={}", str(e), tb_str)
             
             # Re-raise with comprehensive context
             raise ApplicationError(
@@ -74,7 +74,7 @@ class PackageManagerParser:
         except Exception as e:
             # Get traceback for detailed error reporting
             tb_str = traceback.format_exc()
-            logger.error(f"Failed to parse package metadata: {str(e)} | traceback={tb_str}")
+            logger.error("Failed to parse package metadata: {} | traceback={}", str(e), tb_str)
             
             # Re-raise with comprehensive context
             raise ApplicationError(

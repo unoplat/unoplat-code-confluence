@@ -85,7 +85,7 @@ async def get_framework_features_for_imports(
         return feature_specs
 
     except Exception as e:
-        logger.error(f"Failed to query framework features: {e}")
+        logger.error("Failed to query framework features: {}", e)
         return []
 
 

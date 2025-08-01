@@ -331,5 +331,5 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             return child_result
         
         else:
-            logger.debug(f"Skipping execute_workflow for workflow_type: {workflow_type}")
+            logger.debug("Skipping execute_workflow for workflow_type: {}", workflow_type)
             return await self.next.execute_workflow(input)

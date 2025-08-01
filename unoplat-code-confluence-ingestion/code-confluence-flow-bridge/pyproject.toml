@@ -39,6 +39,7 @@ dependencies = [
     "tree-sitter-language-pack>=0.8.0",
     "typing-extensions>=4.11",
     "sqlalchemy>=2.0.41",
+    "aiofile>=3.9.0",
 ] 
 
 [dependency-groups]

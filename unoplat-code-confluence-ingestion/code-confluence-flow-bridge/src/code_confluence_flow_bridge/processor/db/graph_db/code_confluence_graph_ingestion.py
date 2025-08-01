@@ -339,7 +339,7 @@ class CodeConfluenceGraphIngestion:
                     )
 
                 repo_node = repo_results[0]
-                logger.debug(f"Created repository node: {qualified_name}")
+                logger.debug("Created repository node: {}", qualified_name)
 
                 # Create codebase nodes and establish relationships
                 for codebase in git_repo.codebases:
@@ -368,13 +368,13 @@ class CodeConfluenceGraphIngestion:
                     await self._safe_connect(repo_node, 'codebases', codebase_node)
                     await self._safe_connect(codebase_node, 'git_repository', repo_node)
 
-                logger.debug(f"Successfully ingested repository {qualified_name}")
+                logger.debug("Successfully ingested repository {}", qualified_name)
                 return parent_child_clone_metadata
 
         except Exception as e:
             # Capture detailed error information
             error_msg = f"Failed to insert repository {qualified_name}"
-            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)} | status=failed")
+            logger.error("{} | error_type={} | error={} | status=failed", error_msg, type(e).__name__, str(e))
             
             # Capture the traceback string
             tb_str = traceback.format_exc()
@@ -435,7 +435,7 @@ class CodeConfluenceGraphIngestion:
                     type="REPOSITORY_CREATION_ERROR"
                 )
             
-            logger.debug(f"Created repository node: {qualified_name}")
+            logger.debug("Created repository node: {}", qualified_name)
 
             # Create codebase nodes and relationships using managed transactions
             for codebase in git_repo.codebases:
@@ -468,13 +468,13 @@ class CodeConfluenceGraphIngestion:
                         type="CODEBASE_CREATION_ERROR"
                     )
 
-            logger.debug(f"Successfully ingested repository {qualified_name}")
+            logger.debug("Successfully ingested repository {}", qualified_name)
             return parent_child_clone_metadata
 
         except Exception as e:
             # Capture detailed error information
             error_msg = f"Failed to insert repository {qualified_name}"
-            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)} | status=failed")
+            logger.error("{} | error_type={} | error={} | status=failed", error_msg, type(e).__name__, str(e))
             
             # Capture the traceback string
             tb_str = traceback.format_exc()
@@ -543,14 +543,14 @@ class CodeConfluenceGraphIngestion:
 
             # Connect metadata to codebase using safe connect
             await self._safe_connect(codebase_node, 'package_manager_metadata', metadata_node)
-            logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
+            logger.debug("Successfully inserted package manager metadata for {}", codebase_qualified_name)
 
-            logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
+            logger.debug("Successfully inserted package manager metadata for {}", codebase_qualified_name)
 
         except Exception as e:
             # Capture detailed error information
             error_msg = f"Failed to insert package manager metadata for {codebase_qualified_name}"
-            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)} | status=failed")
+            logger.error("{} | error_type={} | error={} | status=failed", error_msg, type(e).__name__, str(e))
             
             # Capture the traceback string
             tb_str = traceback.format_exc()
@@ -584,17 +584,17 @@ class CodeConfluenceGraphIngestion:
             frameworks_to_create = []
             
             async with get_session_cm() as session:
-                logger.debug(f"Checking frameworks for {codebase_qualified_name}")
+                logger.debug("Checking frameworks for {}", codebase_qualified_name)
                 
                 for pkg_name, _ in package_manager_metadata.dependencies.items():
                     # Only process if a matching Framework exists in Postgres
-                    logger.debug(f"Checking for framework: {pkg_name}")
+                    logger.debug("Checking for framework: {}", pkg_name)
                     stmt = select(PGFramework).where(PGFramework.library == pkg_name)
                     result = await session.execute(stmt)
                     pg_framework = result.scalar_one_or_none()
                     
                     if not pg_framework:
-                        logger.debug(f"Unknown framework: {pkg_name}")
+                        logger.debug("Unknown framework: {}", pkg_name)
                         continue  # Unknown framework – skip
 
                     lang = package_manager_metadata.programming_language
@@ -608,7 +608,7 @@ class CodeConfluenceGraphIngestion:
                     frameworks_to_create.append(framework_dict)
 
             if not frameworks_to_create:
-                logger.debug(f"No frameworks to sync for {codebase_qualified_name}")
+                logger.debug("No frameworks to sync for {}", codebase_qualified_name)
                 return
 
             # Neo4j operations (run within caller's transaction context)
@@ -617,14 +617,14 @@ class CodeConfluenceGraphIngestion:
                 try:
                     codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)
                 except CodeConfluenceCodebase.DoesNotExist:
-                    logger.warning(f"Codebase not found for framework sync: {codebase_qualified_name}")
+                    logger.warning("Codebase not found for framework sync: {}", codebase_qualified_name)
                     return
 
                 # Create framework nodes and relationships
                 for framework_dict in frameworks_to_create:
                     framework_nodes = await self._handle_node_creation(CodeConfluenceFramework, framework_dict)
                     if not framework_nodes:
-                        logger.warning(f"Failed to create framework node: {framework_dict}")
+                        logger.warning("Failed to create framework node: {}", framework_dict)
                         continue
                     framework_node = framework_nodes[0]
 
@@ -632,7 +632,11 @@ class CodeConfluenceGraphIngestion:
                     await self._safe_connect(codebase_node, 'frameworks', framework_node)
                     await self._safe_connect(framework_node, 'codebases', codebase_node)
 
-            logger.debug(f"Successfully synced {len(frameworks_to_create)} frameworks for {codebase_qualified_name}")
+            logger.opt(lazy=True).debug(
+                "Successfully synced {} frameworks for {}",
+                lambda: len(frameworks_to_create),
+                lambda: codebase_qualified_name
+            )
                         
         except Exception as sync_err:
             logger.warning(
@@ -692,12 +696,12 @@ class CodeConfluenceGraphIngestion:
                     type="METADATA_CREATION_ERROR"
                 )
 
-            logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
+            logger.debug("Successfully inserted package manager metadata for {}", codebase_qualified_name)
 
         except Exception as e:
             # Capture detailed error information
             error_msg = f"Failed to insert package manager metadata for {codebase_qualified_name}"
-            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)} | status=failed")
+            logger.error("{} | error_type={} | error={} | status=failed", error_msg, type(e).__name__, str(e))
             
             # Capture the traceback string
             tb_str = traceback.format_exc()
@@ -732,17 +736,17 @@ class CodeConfluenceGraphIngestion:
             frameworks_to_create = []
             
             async with get_session_cm() as pg_session:
-                logger.debug(f"Checking frameworks for {codebase_qualified_name}")
+                logger.debug("Checking frameworks for {}", codebase_qualified_name)
                 
                 for pkg_name, _ in package_manager_metadata.dependencies.items():
                     # Only process if a matching Framework exists in Postgres
-                    logger.debug(f"Checking for framework: {pkg_name}")
+                    logger.debug("Checking for framework: {}", pkg_name)
                     stmt = select(PGFramework).where(PGFramework.library == pkg_name)
                     result = await pg_session.execute(stmt)
                     pg_framework = result.scalar_one_or_none()
                     
                     if not pg_framework:
-                        logger.debug(f"Unknown framework: {pkg_name}")
+                        logger.debug("Unknown framework: {}", pkg_name)
                         continue  # Unknown framework – skip
 
                     lang = package_manager_metadata.programming_language
@@ -757,22 +761,32 @@ class CodeConfluenceGraphIngestion:
                     frameworks_to_create.append(framework_dict)
 
             if not frameworks_to_create:
-                logger.debug(f"No frameworks to sync for {codebase_qualified_name}")
+                logger.debug("No frameworks to sync for {}", codebase_qualified_name)
                 return
 
             # Neo4j operations using managed transactions
-            logger.debug(f"Creating {len(frameworks_to_create)} frameworks for {codebase_qualified_name}")
+            logger.opt(lazy=True).debug(
+                "Creating {} frameworks for {}",
+                lambda: len(frameworks_to_create),
+                lambda: codebase_qualified_name
+            )
             
             # Create framework nodes and relationships using managed transactions
             for framework_data in frameworks_to_create:
-                logger.debug("Creating framework with managed transaction: {}", framework_data)
+                # Level guard to prevent frequent debug logging in tight loop
+                if logger.level("DEBUG").no <= logger._core.min_level:
+                    logger.debug("Creating framework with managed transaction: {}", framework_data)
                 
                 framework_record = await session.execute_write(self._create_framework_and_relationships_txn, framework_data)
                 if not framework_record:
-                    logger.warning(f"Failed to create framework node: {framework_data}")
+                    logger.warning("Failed to create framework node: {}", framework_data)
                     continue
 
-            logger.debug(f"Successfully synced {len(frameworks_to_create)} frameworks for {codebase_qualified_name}")
+            logger.opt(lazy=True).debug(
+                "Successfully synced {} frameworks for {}",
+                lambda: len(frameworks_to_create),
+                lambda: codebase_qualified_name
+            )
                         
         except Exception as sync_err:
             logger.warning(

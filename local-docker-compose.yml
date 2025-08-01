@@ -149,10 +149,11 @@ services:
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
       - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
       - DB_HOST=postgresql
-      - TEMPORAL_DEBUG=true
-      - LOG_LEVEL=DEBUG
+      - TEMPORAL_DEBUG=false
+      - LOG_LEVEL=INFO
       - REPOSITORIES_BASE_PATH=/root/.unoplat/repositories
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
+      - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=3
     depends_on:
       temporal:
         condition: service_healthy

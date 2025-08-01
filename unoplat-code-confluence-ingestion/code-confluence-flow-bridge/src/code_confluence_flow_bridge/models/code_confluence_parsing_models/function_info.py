@@ -5,10 +5,14 @@ from typing import TYPE_CHECKING, List, Optional
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import VariableInfo
+    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import (
+        VariableInfo,
+    )
 else:
     # Import at runtime for Pydantic model resolution
-    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import VariableInfo
+    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import (
+        VariableInfo,
+    )
 
 
 class FunctionInfo(BaseModel):

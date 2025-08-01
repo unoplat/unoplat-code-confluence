@@ -225,13 +225,15 @@ def create_worker(activities: List[Callable], client: Client, activity_executor:
             
             # Log autoscaling configuration
             logger.info(
-                f"Starting Temporal worker with autoscaling pollers enabled. "
-                f"Workflow poller: min={env_settings.temporal_workflow_poller_min}, "
-                f"initial={env_settings.temporal_workflow_poller_initial}, "
-                f"max={env_settings.temporal_workflow_poller_max}. "
-                f"Activity poller: min={env_settings.temporal_activity_poller_min}, "
-                f"initial={env_settings.temporal_activity_poller_initial}, "
-                f"max={env_settings.temporal_activity_poller_max}"
+                "Starting Temporal worker with autoscaling pollers enabled. "
+                "Workflow poller: min={}, initial={}, max={}. "
+                "Activity poller: min={}, initial={}, max={}",
+                env_settings.temporal_workflow_poller_min,
+                env_settings.temporal_workflow_poller_initial,
+                env_settings.temporal_workflow_poller_max,
+                env_settings.temporal_activity_poller_min,
+                env_settings.temporal_activity_poller_initial,
+                env_settings.temporal_activity_poller_max
             )
         else:
             # Use traditional fixed polling configuration
@@ -239,8 +241,10 @@ def create_worker(activities: List[Callable], client: Client, activity_executor:
             
             # Log standard configuration
             logger.info(
-                f"Starting Temporal worker with max_concurrent_activities={env_settings.temporal_max_concurrent_activities}, "
-                f"max_concurrent_activity_task_polls={env_settings.temporal_max_concurrent_activity_task_polls}"
+                "Starting Temporal worker with max_concurrent_activities={}, "
+                "max_concurrent_activity_task_polls={}",
+                env_settings.temporal_max_concurrent_activities,
+                env_settings.temporal_max_concurrent_activity_task_polls
             )
         
         # Create the worker with client as positional argument and other parameters as keyword arguments
@@ -292,12 +296,13 @@ def create_worker(activities: List[Callable], client: Client, activity_executor:
         }
         
         logger.error(
-            f"Failed to start Temporal worker: {str(e)}", 
+            "Failed to start Temporal worker: {}", 
+            str(e),
             extra={"error_context": error_context}
         )
         
         # TODO: fix this exception this should be standard exception as worker exceptions should be application error
-        error_message = f"Failed to start Temporal worker: {str(e)}"
+        error_message = "Failed to start Temporal worker: {}".format(str(e))
         raise ApplicationError(
             error_message,
             type="WORKER_INITIALIZATION_ERROR"
@@ -321,7 +326,7 @@ async def fetch_github_token_from_db(session: AsyncSession) -> str:
         result = await session.execute(select(Credentials))
         credential: Optional[Credentials] = result.scalars().first()
     except Exception as db_error:
-        logger.error(f"Database error while fetching credentials: {db_error}")
+        logger.error("Database error while fetching credentials: {}", db_error)
         raise HTTPException(status_code=500, detail="Database error while fetching credentials")
     
     if not credential:
@@ -330,7 +335,7 @@ async def fetch_github_token_from_db(session: AsyncSession) -> str:
     try:
         return decrypt_token(credential.token_hash)
     except Exception as decrypt_error:
-        logger.error(f"Failed to decrypt token: {decrypt_error}")
+        logger.error("Failed to decrypt token: {}", decrypt_error)
         raise HTTPException(status_code=500, detail="Internal error during authentication token decryption")
 
 
@@ -355,7 +360,7 @@ async def start_workflow(
         id=workflow_id,
         task_queue="unoplat-code-confluence-repository-context-ingestion"
     )
-    logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
+    logger.info("Started workflow. Workflow ID: {}, RunID {}", workflow_handle.id, workflow_handle.result_run_id)
     return workflow_handle
 
 
@@ -444,7 +449,7 @@ async def generate_sse_events(
         
     except Exception as e:
         # Send error event
-        logger.error(f"Detection error: {str(e)}")
+        logger.error("Detection error: {}", str(e))
         yield SSEMessage.error(str(e), error_type="DETECTION_ERROR")
         yield SSEMessage.done()
 
@@ -469,7 +474,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # This ensures we have enough threads to handle all concurrent activities plus overhead
     pool_size = app.state.code_confluence_env.temporal_max_concurrent_activities + 4
     app.state.activity_executor = ThreadPoolExecutor(max_workers=pool_size)
-    logger.info(f"Initialized activity executor with {pool_size} threads (max_concurrent_activities={app.state.code_confluence_env.temporal_max_concurrent_activities} + 4 buffer threads)")
+    logger.info("Initialized activity executor with {} threads (max_concurrent_activities={} + 4 buffer threads)", pool_size, app.state.code_confluence_env.temporal_max_concurrent_activities)
     loop = asyncio.get_running_loop()
     loop.set_default_executor(app.state.activity_executor)
     logger.info("Set default executor for asyncio loop")
@@ -509,9 +514,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             async with get_session_cm() as session:
                 metrics = await framework_loader.load_framework_definitions_at_startup(session)
                 if not metrics.get("skipped"):
-                    logger.info(f"Framework definitions loaded in {metrics['total_time']:.3f}s")
+                    logger.info("Framework definitions loaded in {:.3f}s", metrics['total_time'])
         except Exception as e:
-            logger.error(f"Failed to load framework definitions: {e}")
+            logger.error("Failed to load framework definitions: {}", e)
             if os.getenv("FRAMEWORK_DEFINITIONS_REQUIRED", "false").lower() == "true":
                 raise
     
@@ -548,7 +553,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             await worker_task
             logger.info("Temporal worker shut down successfully")
         except Exception as e:
-            logger.error(f"Error during worker shutdown: {e}")
+            logger.error("Error during worker shutdown: {}", e)
         
         # 3. Temporal client doesn't need explicit disconnect - it cleans up on garbage collection
         
@@ -558,21 +563,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             await app.state.code_confluence_graph.close()
             logger.info("Neo4j global connection closed")
         except Exception as e:
-            logger.error(f"Error closing Neo4j connections: {e}")
+            logger.error("Error closing Neo4j connections: {}", e)
         
         # 5. Dispose SQLAlchemy async engine
         try:
             await dispose_current_engine()
             logger.info("SQLAlchemy engine disposed")
         except Exception as exc:
-            logger.warning(f"Failed to dispose async engine during shutdown: {exc}")
+            logger.warning("Failed to dispose async engine during shutdown: {}", exc)
         
         # 6. Shut down the thread pool executor (after worker is done)
         try:
             app.state.activity_executor.shutdown(wait=True)
             logger.info("Thread pool executor shut down")
         except Exception as e:
-            logger.error(f"Error shutting down thread pool executor: {e}")
+            logger.error("Error shutting down thread pool executor: {}", e)
 
 
 
@@ -594,9 +599,9 @@ app.add_middleware(
 async def monitor_workflow(workflow_handle: WorkflowHandle) -> None:
     try:
         result = await workflow_handle.result()
-        logger.info(f"Workflow completed with result: {result}")
+        logger.info("Workflow completed with result: {}", result)
     except Exception as e:
-        logger.error(f"Workflow failed: {e}")
+        logger.error("Workflow failed: {}", e)
     
 
 @app.post("/ingest-token", status_code=201)
@@ -637,7 +642,7 @@ async def ingest_token(authorization: str = Header(...), session: AsyncSession =
         # Re-raise HTTP exceptions directly
         raise http_ex
     except Exception as e:
-        logger.error(f"Failed to process token: {str(e)}")
+        logger.error("Failed to process token: {}", str(e))
         raise HTTPException(status_code=500, detail="Failed to process authentication token")
 
 @app.put("/update-token", status_code=200)
@@ -660,7 +665,7 @@ async def update_token(authorization: str = Header(...), session: AsyncSession =
         
         return {"message": "Token updated successfully."}
     except Exception as e:
-        logger.error(f"Failed to update token: {str(e)}")
+        logger.error("Failed to update token: {}", str(e))
         raise HTTPException(status_code=500, detail="Failed to update authentication token")
 
 @app.delete("/delete-token", status_code=200)
@@ -692,7 +697,7 @@ async def delete_token(session: AsyncSession = Depends(get_session)) -> Dict[str
         # Re-raise HTTP exceptions directly
         raise http_ex
     except Exception as e:
-        logger.error(f"Failed to delete token: {str(e)}")
+        logger.error("Failed to delete token: {}", str(e))
         raise HTTPException(status_code=500, detail="Failed to delete authentication token")
 
 
@@ -714,7 +719,7 @@ async def get_repos(
         try:
             filter_values_dict = json.loads(filterValues)
         except Exception as e:
-            logger.error(f"Invalid JSON in filterValues: {e}")
+            logger.error("Invalid JSON in filterValues: {}", e)
             raise HTTPException(status_code=400, detail="Invalid JSON in filterValues query parameter")
     if "name" in filter_values_dict:
         search_query = filter_values_dict["name"]
@@ -835,7 +840,7 @@ async def get_repos(
             )
             
     except Exception as e:
-        logger.error(f"GraphQL Error: {str(e)}")
+        logger.error("GraphQL Error: {}", str(e))
         raise HTTPException(status_code=500, detail=f"Failed to fetch repositories: {str(e)}")
 
 @app.post("/start-ingestion", status_code=201)
@@ -858,19 +863,19 @@ async def ingestion(
         actual_path = construct_local_repository_path(folder_name)
         # Update the local_path field with the constructed full path
         repo_request.local_path = actual_path
-        request_logger.info(f"Local repository ingestion - folder: {folder_name}, resolved path: {actual_path}, environment: {get_runtime_environment()}")
+        request_logger.info("Local repository ingestion - folder: {}, resolved path: {}, environment: {}", folder_name, actual_path, get_runtime_environment())
         
         # Extract actual GitHub organization from git remote origin for consistent qualified name generation
         # This ensures PostgreSQL and Neo4j use the same organization name instead of "local"
         original_owner = repo_request.repository_owner_name
         github_organization = extract_github_organization_from_local_repo(actual_path, original_owner)
         repo_request.repository_owner_name = github_organization
-        request_logger.info(f"Local repository GitHub organization - original: {original_owner}, extracted: {github_organization}")
+        request_logger.info("Local repository GitHub organization - original: {}, extracted: {}", original_owner, github_organization)
         
         # Rebuild trace_id with the updated organization to ensure workflow ID consistency
         updated_trace_id = build_trace_id(repo_request.repository_name, github_organization)
         trace_id_var.set(updated_trace_id)
-        request_logger.info(f"Updated trace_id for workflow consistency - new: {updated_trace_id}")
+        request_logger.info("Updated trace_id for workflow consistency - new: {}", updated_trace_id)
     
     # Fetch GitHub token from database for remote repositories (not needed for local)
     if not repo_request.is_local:
@@ -897,7 +902,7 @@ async def ingestion(
     run_id: str = workflow_handle.result_run_id or "none"
     
 
-    request_logger.info(f"Started workflow. Workflow ID: {workflow_handle.id}, RunID {workflow_handle.result_run_id}")
+    request_logger.info("Started workflow. Workflow ID: {}, RunID {}", workflow_handle.id, workflow_handle.result_run_id)
     return {
         "workflow_id": workflow_handle.id or "none",
         "run_id": run_id
@@ -929,8 +934,8 @@ async def get_flag_status(flag_name: str, session: AsyncSession = Depends(get_se
         # Re-raise HTTP exceptions directly
         raise http_ex
     except Exception as e:
-        logger.error(f"Failed to get flag status: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get flag status for {flag_name}")
+        logger.error("Failed to get flag status: {}", str(e))
+        raise HTTPException(status_code=500, detail="Failed to get flag status for {}".format(flag_name))
 
 @app.get("/flags", status_code=200)
 async def get_all_flags(session: AsyncSession = Depends(get_session)) -> List[Dict[str, Any]]:
@@ -954,7 +959,7 @@ async def get_all_flags(session: AsyncSession = Depends(get_session)) -> List[Di
             for flag in flags
         ]
     except Exception as e:
-        logger.error(f"Failed to get flags: {str(e)}")
+        logger.error("Failed to get flags: {}", str(e))
         raise HTTPException(status_code=500, detail="Failed to get flags")
 
 @app.put("/flags/{flag_name}", status_code=200)
@@ -988,8 +993,8 @@ async def set_flag_status(flag_name: str, status: bool, session: AsyncSession = 
             "status": flag.status
         }
     except Exception as e:
-        logger.error(f"Failed to set flag status: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to set flag status for {flag_name}")
+        logger.error("Failed to set flag status: {}", str(e))
+        raise HTTPException(status_code=500, detail="Failed to set flag status for {}".format(flag_name))
 
 # @app.put("/repository-data", status_code=200)
 # async def update_repository_data(
@@ -1030,7 +1035,7 @@ async def get_repository_status(
         
         parent_run = (await session.execute(stmt)).scalar_one_or_none()
         if not parent_run:
-            error_msg = f"Workflow run {workflow_run_id} not found for {repository_name}/{repository_owner_name}"
+            error_msg = "Workflow run {} not found for {}/{}".format(workflow_run_id, repository_name, repository_owner_name)
             raise HTTPException(status_code=404, detail=error_msg)
         
         # Fetch all codebase workflow runs associated with this parent run
@@ -1104,10 +1109,10 @@ async def get_repository_status(
             codebase_status_list=codebase_status_list
         )
     except Exception as e:
-        logger.error(f"Error retrieving repository status: {str(e)}")
+        logger.error("Error retrieving repository status: {}", str(e))
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving repository status: {str(e)}"
+            detail="Error retrieving repository status: {}".format(str(e))
         )
 
 @app.get(
@@ -1132,7 +1137,7 @@ async def get_repository_data(
     if not db_obj:
         raise HTTPException(
             status_code=404,
-            detail=f"Repository data not found for {repository_name}/{repository_owner_name}"
+            detail="Repository data not found for {}/{}".format(repository_name, repository_owner_name)
         )
 
     # Map database CodebaseConfig entries to Pydantic models
@@ -1157,10 +1162,10 @@ async def get_repository_data(
             repository_metadata=codebases,
         )
     except Exception as e:
-        logger.error(f"Error mapping repository data: {str(e)}")
+        logger.error("Error mapping repository data: {}", str(e))
         raise HTTPException(
             status_code=500,
-            detail=f"Error processing repository data for {repository_name}/{repository_owner_name}"
+            detail="Error processing repository data for {}/{}".format(repository_name, repository_owner_name)
         )
 
 @app.get(
@@ -1194,10 +1199,10 @@ async def get_parent_workflow_jobs(session: AsyncSession = Depends(get_session))
         
         return ParentWorkflowJobListResponse(jobs=jobs)
     except Exception as e:
-        logger.error(f"Error retrieving parent workflow jobs: {str(e)}")
+        logger.error("Error retrieving parent workflow jobs: {}", str(e))
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving parent workflow jobs: {str(e)}"
+            detail="Error retrieving parent workflow jobs: {}".format(str(e))
         )
 
 @app.get(
@@ -1229,10 +1234,10 @@ async def get_ingested_repositories(session: AsyncSession = Depends(get_session)
         
         return IngestedRepositoriesListResponse(repositories=repo_list)
     except Exception as e:
-        logger.error(f"Error retrieving ingested repositories: {str(e)}")
+        logger.error("Error retrieving ingested repositories: {}", str(e))
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving ingested repositories: {str(e)}"
+            detail="Error retrieving ingested repositories: {}".format(str(e))
         )
 
 @app.delete("/delete-repository", status_code=200)
@@ -1268,17 +1273,17 @@ async def delete_repository(
         if not db_obj:
             raise HTTPException(
                 status_code=404,
-                detail=f"Repository not found: {repository_owner_name}/{repository_name}"
+                detail="Repository not found: {}/{}".format(repository_owner_name, repository_name)
             )
         
         # Delete from PostgreSQL - cascade will handle related tables
         await session.delete(db_obj)
         await session.commit()
         
-        logger.info(f"Deleted repository from PostgreSQL: {repository_owner_name}/{repository_name}")
+        logger.info("Deleted repository from PostgreSQL: {}/{}", repository_owner_name, repository_name)
         
         # Delete from Neo4j using qualified name format
-        qualified_name = f"{repository_owner_name}_{repository_name}"
+        qualified_name = "{}_{}".format(repository_owner_name, repository_name)
         
         try:
             async with app.state.code_confluence_graph.get_session() as session:
@@ -1286,18 +1291,18 @@ async def delete_repository(
                     session=session,
                     qualified_name=qualified_name
                 )
-            logger.info(f"Deleted repository from Neo4j: {qualified_name}")
+            logger.info("Deleted repository from Neo4j: {}", qualified_name)
         except ApplicationError as neo4j_error:
             # Log Neo4j error but don't fail if already deleted
             if neo4j_error.type == "REPOSITORY_NOT_FOUND":
-                logger.warning(f"Repository not found in Neo4j (may have been already deleted): {qualified_name}")
+                logger.warning("Repository not found in Neo4j (may have been already deleted): {}", qualified_name)
                 neo4j_stats = {"repository_qualified_name": qualified_name, "status": "not_found"}
             else:
                 # For other errors, re-raise
                 raise neo4j_error
         
         return {
-            "message": f"Successfully deleted repository {repository_owner_name}/{repository_name}",
+            "message": "Successfully deleted repository {}/{}".format(repository_owner_name, repository_name),
             "repository_name": repository_name,
             "repository_owner_name": repository_owner_name,
             "neo4j_deletion_stats": neo4j_stats
@@ -1308,16 +1313,16 @@ async def delete_repository(
         raise
     except ApplicationError as e:
         # Handle Neo4j application errors
-        logger.error(f"Neo4j deletion error: {str(e)}")
+        logger.error("Neo4j deletion error: {}", str(e))
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to delete repository from graph database: {str(e)}"
+            detail="Failed to delete repository from graph database: {}".format(str(e))
         )
     except Exception as e:
-        logger.error(f"Error deleting repository: {str(e)}")
+        logger.error("Error deleting repository: {}", str(e))
         raise HTTPException(
             status_code=500,
-            detail=f"Error deleting repository: {str(e)}"
+            detail="Error deleting repository: {}".format(str(e))
         )
 
 @app.post("/refresh-repository", response_model=RefreshRepositoryResponse, status_code=201)
@@ -1354,7 +1359,7 @@ async def refresh_repository(
         if not db_repo:
             raise HTTPException(
                 status_code=404,
-                detail=f"Repository not found in database: {repository_name}/{repository_owner_name}"
+                detail="Repository not found in database: {}/{}".format(repository_name, repository_owner_name)
             )
         
         # Use database values for local repository information
@@ -1362,7 +1367,7 @@ async def refresh_repository(
         local_path = db_repo.local_path
         
         # 2. Delete from Neo4j (reuse existing pattern from delete-repository)
-        qualified_name: str = f"{repository_owner_name}_{repository_name}"
+        qualified_name: str = "{}_{}".format(repository_owner_name, repository_name)
         
         try:
             async with app.state.code_confluence_graph.get_session() as session:
@@ -1370,11 +1375,11 @@ async def refresh_repository(
                     session=session,
                     qualified_name=qualified_name
                 )
-            request_logger.info(f"Deleted repository from Neo4j: {qualified_name}")
+            request_logger.info("Deleted repository from Neo4j: {}", qualified_name)
         except ApplicationError as neo4j_error:
             # Log but don't fail if already deleted
             if neo4j_error.type == "REPOSITORY_NOT_FOUND":
-                request_logger.warning(f"Repository not found in Neo4j: {qualified_name}")
+                request_logger.warning("Repository not found in Neo4j: {}", qualified_name)
             else:
                 raise HTTPException(status_code=500, detail=f"Neo4j deletion failed: {str(neo4j_error)}")
         
@@ -1405,11 +1410,11 @@ async def refresh_repository(
                 raise HTTPException(status_code=404, detail=f"Local repository not found: {validated_path}")
             
             repository_url = f"file://{actual_local_path}"
-            request_logger.info(f"Refreshing local repository: {actual_local_path}")
+            request_logger.info("Refreshing local repository: {}", actual_local_path)
         else:
             repository_url = f"https://github.com/{repository_owner_name}/{repository_name}"
             actual_local_path = None
-            request_logger.info(f"Refreshing GitHub repository: {repository_url}")
+            request_logger.info("Refreshing GitHub repository: {}", repository_url)
         
         # 5. Detect codebases using correct pattern
         detector: PythonCodebaseDetector = PythonCodebaseDetector(github_token=github_token)
@@ -1422,9 +1427,9 @@ async def refresh_repository(
                 # Use GitHub URL for detection
                 detected_codebases = detector.detect_codebases(repository_url)
             
-            request_logger.info(f"Detected {len(detected_codebases)} codebases for {repository_owner_name}/{repository_name}")
+            request_logger.info("Detected {} codebases for {}/{}", len(detected_codebases), repository_owner_name, repository_name)
         except Exception as e:
-            request_logger.error(f"Codebase detection failed: {str(e)}")
+            request_logger.error("Codebase detection failed: {}", str(e))
             raise HTTPException(status_code=500, detail=f"Failed to detect codebases: {str(e)}")
         
         # 6. Build repository request configuration with local support
@@ -1469,7 +1474,7 @@ async def refresh_repository(
         # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        request_logger.error(f"Error refreshing repository: {str(e)}")
+        request_logger.error("Error refreshing repository: {}", str(e))
         raise HTTPException(
             status_code=500,
             detail=f"Error refreshing repository: {str(e)}"
@@ -1541,12 +1546,12 @@ async def detect_codebases_sse(
         # git_url contains just the folder name (e.g., "dspy")
         actual_path = construct_local_repository_path(git_url)
         github_token = ""
-        logger.info(f"Local repository detection - folder: {git_url}, resolved path: {actual_path}, environment: {get_runtime_environment()}")
+        logger.info("Local repository detection - folder: {}, resolved path: {}, environment: {}", git_url, actual_path, get_runtime_environment())
     else:
         # For remote repositories, git_url is the actual GitHub URL
         actual_path = git_url
         github_token = await fetch_github_token_from_db(session)
-        logger.info(f"Remote repository detection - URL: {git_url}")
+        logger.info("Remote repository detection - URL: {}", git_url)
     
     # Create async detector wrapper using existing ThreadPoolExecutor
     detector_wrapper = AsyncDetectorWrapper(app.state.activity_executor, is_local=is_local)
@@ -1615,7 +1620,7 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
                 labels=labels #type: ignore
             )
         except Exception as e:
-            logger.error(f"GitHub API error: {str(e)}")
+            logger.error("GitHub API error: {}", str(e))
             raise HTTPException(
                 status_code=500,
                 detail=f"Failed to create GitHub issue: {str(e)}"
@@ -1678,7 +1683,7 @@ async def create_github_issue(request: GithubIssueSubmissionRequest, session: As
         return issue_tracking_full
             
     except Exception as e:
-        logger.error(f"Error creating GitHub issue: {str(e)}")
+        logger.error("Error creating GitHub issue: {}", str(e))
         # Follow standardized error handling pattern from memories
         workflow_context = {
             "workflow_id": request.parent_workflow_run_id,

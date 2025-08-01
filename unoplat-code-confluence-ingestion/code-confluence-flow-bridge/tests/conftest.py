@@ -314,25 +314,6 @@ def neo4j_client(service_ports: Dict[str, int]):
     # Cleanup connection
     db.close_connection()
 
-
-@pytest.fixture(scope="session")
-def sync_postgres_session(service_ports: Dict[str, int]):
-    """
-    Function-scoped synchronous PostgreSQL session for testing.
-    Tables are already created by test_client fixture.
-    """
-    from tests.utils.sync_db_utils import create_sync_engine, sync_session_scope
-    
-    DB_URL = f"postgresql+psycopg2://postgres:postgres@localhost:{service_ports['postgresql']}/code_confluence"
-    
-    engine = create_sync_engine(DB_URL)
-    
-    # No table creation needed - test_client fixture handles this
-    with sync_session_scope(engine) as session:
-        yield session
-    
-    engine.dispose()
-
         
     
 

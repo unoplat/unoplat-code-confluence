@@ -1,6 +1,7 @@
 from pathlib import Path
 import textwrap
 from typing import Optional
+import json
 
 import pytest
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import StructuralSignature
@@ -48,7 +49,9 @@ class Foo:
     extractor: TreeSitterStructuralSignatureExtractor = TreeSitterStructuralSignatureExtractor(
         language_name
     )
-    signature = extractor.extract_structural_signature(str(file_path))
+    with open(file_path, 'rb') as f:
+        content = f.read()
+    signature = extractor.extract_structural_signature(content)
 
     # 1. Module docstring
     assert signature.module_docstring == "Module docstring"
@@ -107,8 +110,6 @@ class Foo:
     assert "len(value)" in method.function_calls
     
     # Export structural signature to JSON for experimentation
-    import json
-    from pathlib import Path
     
     print(f"Total global variables: {len(signature.global_variables)}")
     print(f"Total functions: {len(signature.functions)}")
@@ -182,7 +183,9 @@ class Person:
     file_path.write_text(complex_code)
 
     extractor = TreeSitterStructuralSignatureExtractor(language_name)
-    sig: StructuralSignature = extractor.extract_structural_signature(str(file_path))
+    with open(file_path, 'rb') as f:
+        content = f.read()
+    sig: StructuralSignature = extractor.extract_structural_signature(content)
 
     # Global variable check
     assert any("CONSTANT_VALUE" in v.signature for v in sig.global_variables)
@@ -333,7 +336,9 @@ class ComplexClass:
     file_path.write_text(edge_case_code)
     
     extractor = TreeSitterStructuralSignatureExtractor(language_name)
-    sig: StructuralSignature = extractor.extract_structural_signature(str(file_path))
+    with open(file_path, 'rb') as f:
+        content = f.read()
+    sig: StructuralSignature = extractor.extract_structural_signature(content)
     
     # Get the complex function
     complex_func = next(fn for fn in sig.functions if "def complex_function" in fn.signature)
@@ -390,8 +395,6 @@ class ComplexClass:
     assert "process(x)" not in method.function_calls  # This is inside helper, not direct
     
     # Export structural signature to JSON for experimentation
-    import json
-    from pathlib import Path
     
     
     print(f"Total global variables: {len(sig.global_variables)}")
@@ -423,7 +426,9 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     
     # Extract structural signature
     extractor = TreeSitterStructuralSignatureExtractor(language_name)
-    signature = extractor.extract_structural_signature(source_file_path)
+    with open(source_file_path, 'rb') as f:
+        content = f.read()
+    signature = extractor.extract_structural_signature(content)
     
     # 1. Module-level verification
     # Module docstring (may have leading/trailing whitespace)
@@ -525,12 +530,11 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     
     # extract_structural_signature - the main public method
     extract_method = method_map["extract_structural_signature"]
-    assert "def extract_structural_signature(self, file_path: str) -> StructuralSignature:" in extract_method.signature
-    assert extract_method.docstring == "Extract structural signature from a source code file."
+    assert "def extract_structural_signature(self, source_bytes: bytes) -> StructuralSignature:" in extract_method.signature
+    assert extract_method.docstring == "Extract structural signature from byte content."
     # Should call various extraction methods
     extract_calls = extract_method.function_calls
-    assert "open(file_path, 'rb')" in extract_calls
-    assert "f.read()" in extract_calls
+    # No file reading operations, just parsing operations
     assert "self.parser.parse(source_bytes)" in extract_calls
     assert "self._extract_module_docstring(root_node, source_bytes)" in extract_calls
     assert "self._extract_global_variables(root_node, source_bytes)" in extract_calls
@@ -575,8 +579,6 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     assert 100 < extract_method.start_line < 110
     
     # 10. Export structural signature to JSON for experimentation
-    import json
-    from pathlib import Path
     
     # Convert to JSON-serializable dict
     signature_dict = signature.model_dump()
@@ -638,7 +640,9 @@ def test_no_duplicate_nested_functions(tmp_path: Path, language_name: str) -> No
     file_path.write_text(test_code)
     
     extractor = TreeSitterStructuralSignatureExtractor(language_name)
-    sig = extractor.extract_structural_signature(str(file_path))
+    with open(file_path, 'rb') as f:
+        content = f.read()
+    sig = extractor.extract_structural_signature(content)
     
     # Helper to assert no duplicates
     def assert_unique_nested(func: FunctionInfo, seen_signatures: Optional[set[str]] = None):
@@ -705,7 +709,9 @@ def test_main_py_structural_signature(language_name: str) -> None:
     
     # Extract structural signature
     extractor = TreeSitterStructuralSignatureExtractor(language_name)
-    signature = extractor.extract_structural_signature(str(main_py_path))
+    with open(main_py_path, 'rb') as f:
+        content = f.read()
+    signature = extractor.extract_structural_signature(content)
     
     # 1. Module-level verification
     # No module docstring expected (starts with imports)
@@ -806,8 +812,6 @@ def test_main_py_structural_signature(language_name: str) -> None:
     assert len(lifespan_fn.nested_functions) == 0, "lifespan should not have nested functions directly"
     
     # 8. Export structural signature to JSON for experimentation
-    import json
-    from pathlib import Path
     
     # Convert to JSON-serializable dict
     signature_dict = signature.model_dump()
@@ -875,7 +879,9 @@ def test_instance_variable_edge_cases(tmp_path: Path, language_name: str) -> Non
     file_path = str(edge_cases_file_path)
     
     extractor = TreeSitterStructuralSignatureExtractor(language_name)
-    signature = extractor.extract_structural_signature(file_path)
+    with open(file_path, 'rb') as f:
+        content = f.read()
+    signature = extractor.extract_structural_signature(content)
     
     # ========================================================================
     # TEST 1: FastAPIApp class - comprehensive instance variable patterns
@@ -1087,8 +1093,6 @@ def test_instance_variable_edge_cases(tmp_path: Path, language_name: str) -> Non
     # Export results for analysis
     # ========================================================================
     
-    import json
-    
     # Convert to JSON-serializable dict
     signature_dict = signature.model_dump()
     
@@ -1141,7 +1145,9 @@ def test_local_variables_not_captured(tmp_path: Path, language_name: str) -> Non
     file_path = str(demo_file_path)
     
     extractor = TreeSitterStructuralSignatureExtractor(language_name)
-    signature = extractor.extract_structural_signature(file_path)
+    with open(file_path, 'rb') as f:
+        content = f.read()
+    signature = extractor.extract_structural_signature(content)
     
     # Get the demo class
     demo_class = next(cls for cls in signature.classes if "class DemoClass" in cls.signature)

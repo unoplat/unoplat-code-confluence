@@ -29,8 +29,9 @@ from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature imp
     TreeSitterStructuralSignatureExtractor,
 )
 
-# No longer need graph_context - using neomodel operations directly with global connection
 import asyncio
+
+# No longer need graph_context - using neomodel operations directly with global connection
 import hashlib
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional, Set
@@ -40,26 +41,19 @@ if TYPE_CHECKING:
         CodeConfluenceGraph,
     )
 
+from aiofile import async_open
 from loguru import logger
+from neo4j import AsyncSession
 from neomodel import (  # type: ignore  # imported lazily to avoid circular deps
     AsyncRelationshipTo,
     AsyncZeroOrMore,
     adb,
 )
-from neo4j import AsyncSession
-from neomodel.exceptions import UniqueProperty  # type: ignore
 from unoplat_code_confluence_commons.graph_models.base_models import (
     ContainsRelationship,
 )
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
     CodeConfluenceCodebase,
-)
-from unoplat_code_confluence_commons.graph_models.code_confluence_file import (
-    CodeConfluenceFile,
-)
-from unoplat_code_confluence_commons.graph_models.code_confluence_framework import (
-    CodeConfluenceFramework,
-    CodeConfluenceFrameworkFeature,
 )
 from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
     CodeConfluencePackage,
@@ -219,48 +213,7 @@ class GenericCodebaseParser:
                     return True
         return False
 
-    async def _handle_node_creation_old(self, node_class, node_dict: Dict[str, Any]):  # type: ignore
-        """
-        Safely create or retrieve a node, handling duplicates gracefully.
-
-        NOTE: Soon to be deprecated - use _handle_node_creation_managed() instead
-
-        Uses create_or_update for atomic operations, falls back to
-        retrieval if UniqueProperty exception occurs.
-        """
-        try:
-            # create_or_update returns a list
-            results = await node_class.create_or_update(node_dict)
-            return results[0] if results else None  # type: ignore
-        except UniqueProperty:
-            # Node exists, retrieve it
-            logger.info(
-                f"Node already exists: {node_class.__name__} with qualified_name={node_dict.get('qualified_name')}. Retrieving existing node."
-            )
-
-            # Try to find by qualified_name (all BaseNode descendants have this)
-            if "qualified_name" in node_dict:
-                existing = await node_class.nodes.filter(
-                    qualified_name=node_dict["qualified_name"]
-                ).first_or_none()
-                if existing:
-                    return existing
-
-            # Try file_path for CodeConfluenceFile
-            if "file_path" in node_dict and node_class == CodeConfluenceFile:
-                existing = await node_class.nodes.filter(
-                    file_path=node_dict["file_path"]
-                ).first_or_none()
-                if existing:
-                    return existing
-
-            logger.warning(
-                f"Could not retrieve existing {node_class.__name__} after UniqueProperty error"
-            )
-            return None
-        except Exception as e:
-            logger.error(f"Unexpected error creating {node_class.__name__}: {e}")
-            raise
+    
 
     async def _handle_node_creation_managed(
         self, session: AsyncSession, node_type: str, node_dict: Dict[str, Any]
@@ -377,16 +330,13 @@ class GenericCodebaseParser:
                 hierarchy[child_q] = parent_q
         return hierarchy
 
-    def calculate_file_checksum(self, file_path: str) -> str:
-        """Calculate MD5 checksum of file content."""
+    def calculate_file_checksum(self, content: bytes) -> str:
+        """Calculate MD5 checksum from byte content."""
         try:
-            with open(file_path, "rb") as f:
-                content = f.read()
-                return hashlib.md5(content).hexdigest()
+            return hashlib.md5(content).hexdigest()
         except Exception as e:
             logger.warning(
-                "Failed to calculate checksum | file_path={} | error={}",
-                file_path,
+                "Failed to calculate checksum | error={}",
                 str(e),
             )
             return ""
@@ -412,21 +362,21 @@ class GenericCodebaseParser:
             UnoplatFile or None if processing fails
         """
         try:
-            # Read file content
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
+            # Read file content once as bytes (async)
+            async with async_open(file_path, "rb") as afp:
+                content_bytes = await afp.read()
+            
+            # Decode to string for text operations
+            content = content_bytes.decode("utf-8")
 
-            # Calculate checksum
-            checksum = self.calculate_file_checksum(file_path)
+            # Calculate checksum from bytes
+            checksum: str = await asyncio.to_thread(self.calculate_file_checksum,content_bytes)
 
-            # Extract structural signature
-            signature = await asyncio.to_thread(
-                self.extractor.extract_structural_signature,  # type: ignore
-                file_path,
-            )
+            # Extract structural signature from bytes (no async needed)
+            signature = await asyncio.to_thread(self.extractor.extract_structural_signature,content_bytes)  # type: ignore
 
             # Extract imports directly from source code
-            imports = self._extract_imports_from_source(content)
+            imports = await asyncio.to_thread(self._extract_imports_from_source,content)
 
             # Detect framework features using the structural signature
             custom_features_list = None
@@ -467,7 +417,11 @@ class GenericCodebaseParser:
         self, package_files: Dict[str, List[str]]
     ) -> AsyncGenerator[UnoplatFile, None]:
         """
-        Generator that yields file processing data for all source files.
+        Generator that yields file processing data with controlled concurrency.
+        
+        Maintains a configurable number of concurrent tasks (default 3), preventing memory explosion
+        while providing parallel processing benefits. Concurrency is controlled by the
+        CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY environment variable.
 
         Args:
             package_files: Map of package name to files
@@ -475,18 +429,62 @@ class GenericCodebaseParser:
         Yields:
             UnoplatFile for each successfully processed file
         """
+        # Log package information
         for package_name, files in package_files.items():
             logger.info(
                 "Processing files in package | package_name={} | file_count={}",
                 package_name,
                 len(files),
             )
-
-            for file_path in files:
-                file_data = await self.extract_file_data(file_path)
-                if file_data:
-                    self.files_processed += 1
-                    yield file_data
+        
+        # Flatten all file paths for processing
+        all_files = [f for files in package_files.values() for f in files]
+        
+        if not all_files:
+            return
+        
+        # Create iterator for lazy evaluation
+        file_iter = iter(all_files)
+        
+        # Get concurrency limit from environment settings
+        concurrency_limit = self.config.codebase_parser_file_processing_concurrency
+        
+        # Start with initial tasks (up to concurrency limit or fewer if less files)
+        active_tasks = set()
+        for _ in range(min(concurrency_limit, len(all_files))):
+            try:
+                file_path = next(file_iter)
+                task = asyncio.create_task(self.extract_file_data(file_path))
+                active_tasks.add(task)
+            except StopIteration:
+                break
+        
+        # Process files in streaming fashion
+        while active_tasks:
+            # Wait for any task to complete
+            done, active_tasks = await asyncio.wait(
+                active_tasks, 
+                return_when=asyncio.FIRST_COMPLETED
+            )
+            
+            # Process completed tasks
+            for task in done:
+                try:
+                    file_data = await task
+                    if file_data:
+                        self.files_processed += 1
+                        yield file_data
+                except Exception as e:
+                    logger.error(f"Task failed during file extraction: {e}")
+            
+            # Start new tasks to maintain pool size
+            while len(active_tasks) < concurrency_limit:
+                try:
+                    file_path = next(file_iter)
+                    task = asyncio.create_task(self.extract_file_data(file_path))
+                    active_tasks.add(task)
+                except StopIteration:
+                    break  # No more files to process
 
     async def create_packages_old(self, package_names: List[str]) -> None:
         """
@@ -511,7 +509,7 @@ class GenericCodebaseParser:
                     )
 
         except Exception as e:
-            logger.error(f"Failed to create packages: {e}")
+            logger.error("Failed to create packages: {}", e)
             raise
 
     async def create_packages_managed(
@@ -550,7 +548,7 @@ class GenericCodebaseParser:
             )
 
         except Exception as e:
-            logger.error(f"Failed to create packages with managed transactions: {e}")
+            logger.error("Failed to create packages with managed transactions: {}", e)
             raise
 
     async def create_package_hierarchy_old(
@@ -586,10 +584,10 @@ class GenericCodebaseParser:
                         f"Connected packages: {parent_pkg_name} -> {child_pkg_name}"
                     )
 
-            logger.info(f"Created {len(package_hierarchy)} package relationships")
+            logger.info("Created {} package relationships", len(package_hierarchy))
 
         except Exception as e:
-            logger.error(f"Failed to create package hierarchy: {e}")
+            logger.error("Failed to create package hierarchy: {}", e)
             raise
 
     async def create_package_hierarchy_managed(
@@ -761,122 +759,6 @@ class GenericCodebaseParser:
                 str(outer_err),
             )
 
-    async def insert_files_old(
-        self, file_data_list: List[UnoplatFile], package_files: Dict[str, List[str]]
-    ) -> None:
-        """
-        Insert files using neomodel.
-
-        NOTE: Soon to be deprecated - use insert_files_managed() instead
-
-        Args:
-            file_data_list: List of UnoplatFile objects
-            package_files: Map of package name to files for determining package relationships
-        """
-        try:
-            # All operations run within the parent transaction context
-            for unoplat_file in file_data_list:
-                # Create file node using helper method
-                file_dict = {
-                    "file_path": unoplat_file.file_path,
-                    "checksum": unoplat_file.checksum,
-                    "structural_signature": unoplat_file.structural_signature.model_dump()
-                    if unoplat_file.structural_signature
-                    else {},
-                    "imports": unoplat_file.imports,
-                }
-
-                # First create or upsert the file node
-                file_node = await self._handle_node_creation(
-                    CodeConfluenceFile, file_dict
-                )
-                if not file_node:
-                    logger.warning(
-                        f"Failed to create/retrieve file node: {unoplat_file.file_path}"
-                    )
-                    continue
-
-                # 🚀 Create Feature nodes and relationships based on detections
-                # Note: Framework nodes are created during package manager metadata ingestion
-                if unoplat_file.custom_features_list:
-                    for det in unoplat_file.custom_features_list:
-                        lang = self.programming_language_metadata.language.value
-                        lib = det.library
-                        feature_key = det.feature_key
-
-                        # Look up existing framework node (should be created during package metadata ingestion)
-                        framework_qualified_name = f"{lang}.{lib}"
-                        try:
-                            framework_node = await CodeConfluenceFramework.nodes.get(
-                                qualified_name=framework_qualified_name
-                            )
-                        except CodeConfluenceFramework.DoesNotExist:
-                            logger.warning(
-                                "Framework not found, skipping feature creation | framework={} | feature={} | file={}",
-                                framework_qualified_name,
-                                feature_key,
-                                unoplat_file.file_path,
-                            )
-                            continue
-
-                        feature_dict = {
-                            "qualified_name": f"{lang}.{lib}.{feature_key}",
-                            "language": lang,
-                            "library": lib,
-                            "feature_key": feature_key,
-                        }
-                        feature_node = await self._handle_node_creation(
-                            CodeConfluenceFrameworkFeature, feature_dict
-                        )
-                        if not feature_node:
-                            continue
-
-                        # Connect framework -> feature
-                        if not await framework_node.features.is_connected(feature_node):
-                            await framework_node.features.connect(feature_node)
-
-                        # Connect file -> feature with line span
-                        try:
-                            if not await file_node.features.is_connected(feature_node):
-                                await file_node.features.connect(
-                                    feature_node,
-                                    {
-                                        "start_line": det.start_line,
-                                        "end_line": det.end_line,
-                                    },
-                                )
-                        except Exception:
-                            pass
-
-                # Find the package for this file
-                package_qualified_name = None
-                for pkg_name, files in package_files.items():
-                    if unoplat_file.file_path in files:
-                        package_qualified_name = pkg_name
-                        break
-
-                if package_qualified_name:
-                    # Get the package and connect
-                    package = await CodeConfluencePackage.nodes.get(
-                        qualified_name=package_qualified_name
-                    )
-
-                    # Establish both directions to keep graph consistent
-                    # (file) -[:PART_OF_PACKAGE]-> (package)
-                    # (package) -[:CONTAINS_FILE]-> (file)
-                    if not await file_node.package.is_connected(package):
-                        await file_node.package.connect(package)
-
-                    if not await package.files.is_connected(file_node):
-                        await package.files.connect(file_node)
-
-                logger.debug(f"Created file: {unoplat_file.file_path}")
-
-            logger.info(f"Inserted {len(file_data_list)} files")
-
-        except Exception as e:
-            logger.error(f"Failed to insert files: {e}")
-            raise
 
     async def insert_files_managed(
         self,
@@ -1008,36 +890,17 @@ class GenericCodebaseParser:
                         )
                     )
 
-                logger.debug(
-                    f"Created file with managed transactions: {unoplat_file.file_path}"
-                )
+                logger.debug("Created file: {}", unoplat_file.file_path)
 
             logger.info(
                 f"Inserted {len(file_data_list)} files using managed transactions"
             )
 
         except Exception as e:
-            logger.error(f"Failed to insert files with managed transactions: {e}")
+            logger.error("Failed to insert files with managed transactions: {}", e)
             raise
 
-    async def process_files(self, package_files: Dict[str, List[str]]) -> None:
-        """
-        Process all files sequentially without batching.
-
-        Args:
-            package_files: Map of package name to files
-        """
-        try:
-            async with adb.transaction:
-                async for file_data in self.extract_files(package_files):
-                    await self.insert_files([file_data], package_files)
-
-            logger.info(f"Processed {self.files_processed} files")
-
-        except Exception as e:
-            logger.error(f"Failed to process files: {e}")
-            raise
-
+    
     async def process_and_insert_codebase(self) -> None:
         """
         Main processing method with managed transactions from shared session pool.

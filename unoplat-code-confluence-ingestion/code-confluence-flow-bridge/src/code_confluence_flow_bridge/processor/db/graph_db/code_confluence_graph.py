@@ -1,13 +1,13 @@
 # Standard Library
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator
-from neo4j import AsyncDriver, AsyncSession
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
 
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 from loguru import logger
+from neo4j import AsyncDriver, AsyncSession
 
 # Third Party
 from neomodel import adb, config  # type: ignore
@@ -54,7 +54,7 @@ class CodeConfluenceGraph:
             self.adb_driver = adb.driver
             logger.info("Successfully connected to Neo4j database")
         except Exception as e:
-            logger.error(f"Failed to connect to Neo4j: {str(e)}")
+            logger.error("Failed to connect to Neo4j: {}", str(e))
             raise
 
     async def close(self) -> None:
@@ -63,7 +63,7 @@ class CodeConfluenceGraph:
             await adb.close_connection()
             logger.info("Successfully closed Neo4j connection")
         except Exception as e:
-            logger.error(f"Error closing Neo4j connection: {str(e)}")
+            logger.error("Error closing Neo4j connection: {}", str(e))
             raise
 
     async def create_schema(self) -> None:
@@ -72,7 +72,7 @@ class CodeConfluenceGraph:
             await adb.install_all_labels()
             logger.info("Successfully installed all labels")
         except Exception as e:
-            logger.error(f"Failed to create schema: {str(e)}")
+            logger.error("Failed to create schema: {}", str(e))
             raise
 
     @asynccontextmanager

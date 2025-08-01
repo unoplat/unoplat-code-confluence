@@ -35,7 +35,7 @@ def cleanup_postgresql_sync(session: Session) -> None:
     - codebase_workflow_run
 
     Args:
-        session: SQLAlchemy synchronous session from sync_postgres_session fixture
+        session: SQLAlchemy synchronous session from get_sync_postgres_session context manager
     """
     try:
         # Fast truncate to remove all rows; CASCADE wipes dependent tables in one shot

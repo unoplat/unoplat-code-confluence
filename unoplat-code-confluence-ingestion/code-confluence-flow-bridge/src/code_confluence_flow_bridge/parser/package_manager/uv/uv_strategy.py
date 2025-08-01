@@ -89,7 +89,7 @@ class UvStrategy(PackageManagerStrategy):
                     extras=extras,  # Now properly handling extras
                 )
             except Exception as e:
-                logger.warning(f"Error processing dependency {dep}: {str(e)}")
+                logger.warning("Error processing dependency {}: {}", dep, str(e))
                 continue
 
         # Process optional dependencies (extras)
@@ -117,7 +117,7 @@ class UvStrategy(PackageManagerStrategy):
                             existing_extras = existing_dep.extras or []
                             existing_dep.extras = list(set(existing_extras + extras))
                 except Exception as e:
-                    logger.warning(f"Error processing optional dependency {dep} in group {group_name}: {str(e)}")
+                    logger.warning("Error processing optional dependency {} in group {}: {}", dep, group_name, str(e))
                     continue
 
         # Process UV-specific sources
@@ -132,7 +132,7 @@ class UvStrategy(PackageManagerStrategy):
                         dependencies[pkg_name].source = "index"
                         dependencies[pkg_name].source_url = self._get_index_url(pyproject_data, source_info["index"])
                 except Exception as e:
-                    logger.warning(f"Error processing source for {pkg_name}: {str(e)}")
+                    logger.warning("Error processing source for {}: {}", pkg_name, str(e))
                     continue
 
         # Process dependency metadata for environment markers

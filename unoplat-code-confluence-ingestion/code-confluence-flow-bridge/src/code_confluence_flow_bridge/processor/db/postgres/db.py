@@ -1,6 +1,6 @@
 # Standard library imports
-import asyncio
 import os
+import asyncio
 from asyncio import current_task
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlmodel import SQLModel
-
 
 # PostgreSQL connection settings - read from environment variables
 DB_USER = os.getenv("DB_USER", "postgres")
@@ -121,7 +120,7 @@ async def get_session() -> AsyncGenerator[async_scoped_session, None]:
             log_ctx.debug("Session transaction started")
             yield scoped_session
             log_ctx.debug("Session transaction finished, changes will be committed on context exit")
-    except Exception as exc:
+    except Exception:
         # Use .exception() to include the full traceback according to Loguru docs.
         log_ctx.exception("Encountered error inside DB session context: {exc}")
         raise
@@ -130,7 +129,7 @@ async def get_session() -> AsyncGenerator[async_scoped_session, None]:
             try:
                 await scoped_session.remove()
                 log_ctx.debug("Scoped session removed from registry (session cleanup complete)")
-            except Exception as cleanup_exc:
+            except Exception:
                 log_ctx.warning("Failed to clean up scoped session: {cleanup_exc}")
 
 
@@ -157,7 +156,7 @@ async def create_db_and_tables() -> None:
         except Exception as e:
             # Handle index already exists errors gracefully
             if "already exists" in str(e):
-                logger.warning(f"Database schema creation encountered existing objects: {e}")
+                logger.warning("Database schema creation encountered existing objects: {}", e)
                 # Continue execution - this is expected in test environments
             else:
                 raise
@@ -176,11 +175,11 @@ async def dispose_current_engine() -> None:
             try:
                 engine, _ = _engine_per_loop[loop_id]
                 await engine.dispose()
-                logger.success(f"Disposed AsyncEngine for current event loop {loop_id}")
+                logger.success("Disposed AsyncEngine for current event loop {}", loop_id)
 
                 # Remove from registry
                 del _engine_per_loop[loop_id]
             except Exception as e:
-                logger.warning(f"Failed to dispose engine for current loop {loop_id}: {e}")
+                logger.warning("Failed to dispose engine for current loop {}: {}", loop_id, e)
         else:
             logger.debug("No engine found for current loop to dispose")
