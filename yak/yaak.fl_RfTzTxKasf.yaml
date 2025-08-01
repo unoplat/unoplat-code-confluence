@@ -2,12 +2,12 @@ type: folder
 model: folder
 id: fl_RfTzTxKasf
 createdAt: 2025-07-17T12:28:55.502847
-updatedAt: 2025-07-17T12:28:55.502848
+updatedAt: 2025-07-25T10:30:08.530931
 workspaceId: wk_KULjx4bEa8
-folderId: fl_ZwwFo3jTXL
+folderId: fl_a9CJGFoCVq
 authentication: {}
 authenticationType: null
 description: ''
 headers: []
 name: token
-sortPriority: -1752755300000.0
+sortPriority: 5000.0

@@ -14,6 +14,9 @@ from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     ConfluenceGitGraphEnvelope,
 )
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
+    CodeConfluenceGraph,
+)
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import (
     CodeConfluenceGraphIngestion,
 )
@@ -28,13 +31,14 @@ from temporalio.exceptions import ApplicationError
 class ConfluenceGitGraph:
     """
     Temporal activity class for GitHub operations.
-    Uses global Neo4j connection managed at application startup.
+    Uses shared Neo4j connection pool via CodeConfluenceGraph instance.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, code_confluence_graph: CodeConfluenceGraph) -> None:
         self.env_settings = EnvironmentSettings()
+        self.code_confluence_graph = code_confluence_graph
         logger.debug(
-            "Initialized ConfluenceGitGraph - using global Neo4j connection"
+            "Initialized ConfluenceGitGraph with shared CodeConfluenceGraph instance"
         )
 
     @activity.defn
@@ -73,9 +77,10 @@ class ConfluenceGitGraph:
                 git_repo.repository_url
             )
             
-            # Use global Neo4j connection
-            graph = CodeConfluenceGraphIngestion(code_confluence_env=self.env_settings)
-            parent_child_clone_metadata = await graph.insert_code_confluence_git_repo(git_repo=git_repo)
+            # Use managed transaction from shared connection pool
+            async with self.code_confluence_graph.get_session() as session:
+                graph = CodeConfluenceGraphIngestion()
+                parent_child_clone_metadata = await graph.insert_code_confluence_git_repo_managed(session=session, git_repo=git_repo)
             
             log.debug(
                 "Successfully inserted git repo into graph db: {} ",
