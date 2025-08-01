@@ -30,6 +30,38 @@ def create_sync_engine(db_url: str):
 
 
 @contextmanager
+def get_sync_postgres_session(port: int):
+    """Yield a standalone Session tied to its own engine.
+
+    A fresh engine and connection are created for each invocation, ensuring
+    that no long-running transaction or lock is kept beyond the scope of the
+    *with* block.  This avoids the ACCESS EXCLUSIVE lock problem we saw when
+    `TRUNCATE … CASCADE` is executed inside a session that stays open for the
+    whole test.
+
+    Args:
+        port: The host port on which the test Postgres instance is listening.
+    """
+    db_url = (
+        f"postgresql+psycopg2://postgres:postgres@localhost:{port}/code_confluence"
+    )
+    engine = create_sync_engine(db_url)
+    SessionLocal = sessionmaker(bind=engine)
+    session = SessionLocal()
+
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+        engine.dispose()
+
+
+
+@contextmanager
 def sync_session_scope(engine):
     """
     Provide a transactional scope with proper cleanup.

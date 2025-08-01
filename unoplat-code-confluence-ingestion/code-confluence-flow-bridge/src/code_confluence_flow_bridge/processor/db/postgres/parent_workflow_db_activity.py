@@ -106,6 +106,7 @@ class ParentWorkflowDbActivity:
                     
                     # Add the new workflow run
                     session.add(workflow_run)
+                    
                     log.success(f"Created workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}")
                     log.debug(
                         "Created workflow run: {} for {}/{}",
@@ -163,6 +164,7 @@ class ParentWorkflowDbActivity:
                 local_path=local_path
             )
             session.add(repository)
+            
             
         return repository
         

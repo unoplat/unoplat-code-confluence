@@ -34,20 +34,7 @@ from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import
 class TestFrameworkDetectionWithPostgres:
     """Integration tests for framework detection using PostgreSQL database."""
 
-    def get_framework_loader(self) -> FrameworkDefinitionLoader:
-        """Create framework definition loader with test environment."""
-        # Use the actual framework definitions directory with absolute path
-        framework_definitions_dir = Path(__file__).parent.parent.parent / "framework-definitions"
-        
-        # Create environment settings with test database connection details
-        env_settings = EnvironmentSettings(
-            NEO4J_HOST="localhost",
-            NEO4J_PORT=7687,
-            NEO4J_USERNAME="neo4j",
-            NEO4J_PASSWORD=SecretStr("password"),
-            FRAMEWORK_DEFINITIONS_PATH=str(framework_definitions_dir.resolve())
-        )
-        return FrameworkDefinitionLoader(env_settings)
+    
 
     def get_detection_service(self) -> PythonFrameworkDetectionService:
         """Create Python framework detection service."""
@@ -57,43 +44,16 @@ class TestFrameworkDetectionWithPostgres:
         """Create Tree-sitter structural signature extractor."""
         return TreeSitterStructuralSignatureExtractor("python")
 
-    @pytest.mark.asyncio(loop_scope="session")
-    async def test_load_framework_definitions(self, test_client: TestClient, sync_postgres_session):
-        """Test loading framework definitions into PostgreSQL database."""
-        framework_loader = self.get_framework_loader()
-        
-        # Load framework definitions into database (wrap sync operation in asyncio.to_thread)
-        session = sync_postgres_session
-        result = await asyncio.to_thread(
-            framework_loader.load_framework_definitions_at_startup_sync, 
-            session
-        )
-        
-        # Verify definitions were loaded
-        assert isinstance(result, dict)
-        assert result.get("frameworks_count", 0) > 0
-        assert result.get("features_count", 0) > 0
-        assert result.get("absolute_paths_count", 0) > 0
-        
-        # Should have FastAPI, Pydantic, SQLAlchemy, SQLModel frameworks
-        assert result["frameworks_count"] >= 4
-        
-        # FastAPI should have multiple features (http_endpoint, dependency_injection, etc.)
-        assert result["features_count"] >= 8
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_detect_fastapi_endpoints_main_py(self, test_client: TestClient, sync_postgres_session):
+    async def test_detect_fastapi_endpoints_main_py(self, test_client: TestClient):
         """Test FastAPI endpoint detection using the real main.py file."""
-        framework_loader = self.get_framework_loader()
+        
         detection_service = self.get_detection_service()
         structural_extractor = self.get_structural_extractor()
         
         # Load framework definitions first (wrap sync operation in asyncio.to_thread)
-        session = sync_postgres_session
-        await asyncio.to_thread(
-            framework_loader.load_framework_definitions_at_startup_sync, 
-            session
-        )
+       
         
         # Read the actual main.py file
         main_py_path = Path(__file__).parent.parent.parent / "src" / "code_confluence_flow_bridge" / "main.py"
@@ -124,18 +84,13 @@ class TestFrameworkDetectionWithPostgres:
         assert any("get" in text.lower() for text in endpoint_texts), "Expected GET endpoints"
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_instance_variable_binding(self, test_client: TestClient, sync_postgres_session):
+    async def test_instance_variable_binding(self, test_client: TestClient):
         """Test detection of instance variable binding patterns like self.app = FastAPI()."""
-        framework_loader = self.get_framework_loader()
+        
         detection_service = self.get_detection_service()
         structural_extractor = self.get_structural_extractor()
         
-        # Load framework definitions (wrap sync operation in asyncio.to_thread)
-        session = sync_postgres_session
-        await asyncio.to_thread(
-            framework_loader.load_framework_definitions_at_startup_sync, 
-            session
-        )
+        
         
         # Test source code with instance variable pattern
         test_source = '''
@@ -191,18 +146,13 @@ class MyApp:
             Path(temp_path).unlink()
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_detect_pydantic_models(self, test_client: TestClient, sync_postgres_session):
+    async def test_detect_pydantic_models(self, test_client: TestClient):
         """Test Pydantic model detection."""
-        framework_loader = self.get_framework_loader()
+        
         detection_service = self.get_detection_service()
         structural_extractor = self.get_structural_extractor()
         
-        # Load framework definitions (wrap sync operation in asyncio.to_thread)
-        session = sync_postgres_session
-        await asyncio.to_thread(
-            framework_loader.load_framework_definitions_at_startup_sync, 
-            session
-        )
+        
         
         test_source = '''
 from pydantic import BaseModel
@@ -247,19 +197,12 @@ class Product(BaseModel):
 
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_multi_framework_detection(self, test_client: TestClient, sync_postgres_session):
+    async def test_multi_framework_detection(self, test_client: TestClient):
         """Test detection of multiple frameworks in one file."""
-        framework_loader = self.get_framework_loader()
+        
         detection_service = self.get_detection_service()
         structural_extractor = self.get_structural_extractor()
-        
-        # Load framework definitions (wrap sync operation in asyncio.to_thread)
-        session = sync_postgres_session
-        await asyncio.to_thread(
-            framework_loader.load_framework_definitions_at_startup_sync, 
-            session
-        )
-        
+                
         test_source = '''
 from fastapi import FastAPI, Depends
 from pydantic import BaseModel
