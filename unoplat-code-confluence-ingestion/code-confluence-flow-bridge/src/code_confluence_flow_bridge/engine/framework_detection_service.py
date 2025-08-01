@@ -2,13 +2,14 @@
 Abstract base class for language-specific framework detection services.
 """
 
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
+    StructuralSignature,
+)
+
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
 from code_confluence_flow_bridge.engine.models import Detection
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
-    StructuralSignature,
-)
 
 
 class FrameworkDetectionService(ABC):

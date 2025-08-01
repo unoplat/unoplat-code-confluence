@@ -103,12 +103,8 @@ class TreeSitterStructuralSignatureExtractor:
 
         return query_strings
     
-    def extract_structural_signature(self, file_path: str) -> StructuralSignature:
-        """Extract structural signature from a source code file."""
-        # Read the file content as bytes for correct offset handling
-        with open(file_path, 'rb') as f:
-            source_bytes = f.read()
-            
+    def extract_structural_signature(self, source_bytes: bytes) -> StructuralSignature:
+        """Extract structural signature from byte content."""
         # Parse the source code (tree-sitter expects bytes)
         tree: tree_sitter.Tree = self.parser.parse(source_bytes)
         root_node: tree_sitter.Node = tree.root_node

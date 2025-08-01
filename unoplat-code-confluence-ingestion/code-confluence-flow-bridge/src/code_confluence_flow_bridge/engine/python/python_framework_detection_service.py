@@ -52,7 +52,7 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
             List of Detection objects for framework features found
         """
         if programming_language.lower() != "python":
-            logger.warning(f"PythonFrameworkDetectionService called with language: {programming_language}")
+            logger.warning("PythonFrameworkDetectionService called with language: {}", programming_language)
             return []
             
         if structural_signature is None:
@@ -79,7 +79,7 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
                 )
             
             if not feature_specs:
-                logger.debug(f"No framework features found for imports: {absolute_paths}")
+                logger.debug("No framework features found for imports: {}", absolute_paths)
                 return []
             
             # Step 3: Use SimplifiedPythonDetector to detect features from structural signature
@@ -89,13 +89,14 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
                 import_aliases
             )
             
-            logger.debug(
-                f"Detected {len(detections)} framework features from "
-                f"{len(feature_specs)} feature specs using structural signature"
+            logger.opt(lazy=True).debug(
+                "Detected {} framework features from {} feature specs using structural signature",
+                lambda: len(detections),
+                lambda: len(feature_specs)
             )
             
             return detections
             
         except Exception as e:
-            logger.error(f"Error in Python framework detection: {e}")
+            logger.error("Error in Python framework detection: {}", e)
             return []

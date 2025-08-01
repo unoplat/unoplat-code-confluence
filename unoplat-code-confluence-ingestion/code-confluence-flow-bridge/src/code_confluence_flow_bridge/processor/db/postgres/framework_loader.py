@@ -15,7 +15,6 @@ from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata i
 )
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
