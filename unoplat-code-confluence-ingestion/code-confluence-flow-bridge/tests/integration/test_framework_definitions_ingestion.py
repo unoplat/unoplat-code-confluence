@@ -24,6 +24,7 @@ from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata i
     Framework,
     FrameworkFeature,
 )
+from tests.utils.sync_db_utils import get_sync_postgres_session
 # Removed unused async_engine import which was causing ImportError after db refactor
 
 # Framework definitions directory
@@ -161,35 +162,35 @@ class TestFrameworkDefinitionsIngestion:
     - Idempotency and concurrent operation safety
     """
 
-    def test_schema_creation_and_structure(self, test_client: TestClient, sync_postgres_session):
+    def test_schema_creation_and_structure(self, test_client: TestClient, service_ports):
 
         """Test that database tables are created correctly with proper structure."""
-        session = sync_postgres_session
-        # Verify all three tables exist
-        result = session.execute(text("""
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public' 
-            AND table_name IN ('framework', 'framework_feature', 'feature_absolute_path')
-            ORDER BY table_name
-        """)) #type: ignore
-        tables = [row[0] for row in result.fetchall()]
-        
-        assert len(tables) == 3, f"Expected 3 tables, got {len(tables)}: {tables}"
-        assert "framework" in tables
-        assert "framework_feature" in tables  
-        assert "feature_absolute_path" in tables
-        
-        # Verify foreign key constraints exist
-        fk_result = session.execute(text("""
-            SELECT constraint_name, table_name 
-            FROM information_schema.table_constraints 
-            WHERE constraint_type = 'FOREIGN KEY'
-            AND table_name IN ('framework_feature', 'feature_absolute_path')
-        """)) #type: ignore
-        foreign_keys = fk_result.fetchall()
-        
-        assert len(foreign_keys) >= 2, f"Expected at least 2 foreign keys, got {len(foreign_keys)}"
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            # Verify all three tables exist
+            result = session.execute(text("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name IN ('framework', 'framework_feature', 'feature_absolute_path')
+                ORDER BY table_name
+            """)) #type: ignore
+            tables = [row[0] for row in result.fetchall()]
+            
+            assert len(tables) == 3, f"Expected 3 tables, got {len(tables)}: {tables}"
+            assert "framework" in tables
+            assert "framework_feature" in tables  
+            assert "feature_absolute_path" in tables
+            
+            # Verify foreign key constraints exist
+            fk_result = session.execute(text("""
+                SELECT constraint_name, table_name 
+                FROM information_schema.table_constraints 
+                WHERE constraint_type = 'FOREIGN KEY'
+                AND table_name IN ('framework_feature', 'feature_absolute_path')
+            """)) #type: ignore
+            foreign_keys = fk_result.fetchall()
+            
+            assert len(foreign_keys) >= 2, f"Expected at least 2 foreign keys, got {len(foreign_keys)}"
 
 
     @pytest.mark.asyncio(loop_scope="session")
@@ -218,165 +219,165 @@ class TestFrameworkDefinitionsIngestion:
                 for field in required_fields:
                     assert field in feature_def, f"Feature {framework_name}.{feature_key} missing {field}"
 
-    def test_bulk_insert_performance(self, test_client: TestClient, sync_postgres_session):
+    def test_bulk_insert_performance(self, test_client: TestClient, service_ports):
         """Test that bulk insert operation meets performance requirements."""
-        session = sync_postgres_session
-        # Load framework definitions
-        framework_data = load_framework_definitions()
-        
-        # Execute optimized seed function
-        metrics = seed_framework_definitions(framework_data, session)
-        
-        # Validate performance (should be well under 5 seconds for our framework data)
-        assert metrics["total_time"] < 5.0, f"Operation took {metrics['total_time']:.3f}s, expected < 5.0s"
-        assert metrics["db_time"] < 3.0, f"Database operations took {metrics['db_time']:.3f}s, expected < 3.0s"
-        
-        # Validate expected data counts
-        assert metrics["frameworks_count"] == 4, f"Expected 4 frameworks, got {metrics['frameworks_count']}"
-        assert metrics["features_count"] == 11, f"Expected 11 features, got {metrics['features_count']}"
-        assert metrics["absolute_paths_count"] == 15, f"Expected 15 absolute paths, got {metrics['absolute_paths_count']}"
-        
-        # Verify data exists in database
-        framework_count = session.scalar(select(func.count(Framework.language))) #type: ignore
-        feature_count = session.scalar(select(func.count(FrameworkFeature.language))) #type: ignore
-        path_count = session.scalar(select(func.count(FeatureAbsolutePath.language))) #type: ignore
-        
-        assert framework_count == 4
-        assert feature_count == 11
-        assert path_count == 15
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            # Load framework definitions
+            framework_data = load_framework_definitions()
+            
+            # Execute optimized seed function
+            metrics = seed_framework_definitions(framework_data, session)
+            
+            # Validate performance (should be well under 5 seconds for our framework data)
+            assert metrics["total_time"] < 5.0, f"Operation took {metrics['total_time']:.3f}s, expected < 5.0s"
+            assert metrics["db_time"] < 3.0, f"Database operations took {metrics['db_time']:.3f}s, expected < 3.0s"
+            
+            # Validate expected data counts
+            assert metrics["frameworks_count"] == 4, f"Expected 4 frameworks, got {metrics['frameworks_count']}"
+            assert metrics["features_count"] == 11, f"Expected 11 features, got {metrics['features_count']}"
+            assert metrics["absolute_paths_count"] == 15, f"Expected 15 absolute paths, got {metrics['absolute_paths_count']}"
+            
+            # Verify data exists in database
+            framework_count = session.scalar(select(func.count(Framework.language))) #type: ignore
+            feature_count = session.scalar(select(func.count(FrameworkFeature.language))) #type: ignore
+            path_count = session.scalar(select(func.count(FeatureAbsolutePath.language))) #type: ignore
+            
+            assert framework_count == 4
+            assert feature_count == 11
+            assert path_count == 15
 
-    def test_foreign_key_relationships(self, test_client: TestClient, sync_postgres_session):
+    def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
-        session = sync_postgres_session
-        framework_data = load_framework_definitions()
-        
-        seed_framework_definitions(framework_data, session)
-        
-        # Test framework -> feature relationship for FastAPI
-        framework_result = session.execute(
-            select(Framework).where(
-                Framework.language == "python",
-                Framework.library == "fastapi"
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            framework_data = load_framework_definitions()
+            
+            seed_framework_definitions(framework_data, session)
+            
+            # Test framework -> feature relationship for FastAPI
+            framework_result = session.execute(
+                select(Framework).where(
+                    Framework.language == "python",
+                    Framework.library == "fastapi"
+                )
             )
-        )
-        framework = framework_result.scalar_one()
-        
-        # Load related features
-        related_features = session.execute(
-            select(FrameworkFeature).where(
-                FrameworkFeature.language == framework.language,
-                FrameworkFeature.library == framework.library
+            framework = framework_result.scalar_one()
+            
+            # Load related features
+            related_features = session.execute(
+                select(FrameworkFeature).where(
+                    FrameworkFeature.language == framework.language,
+                    FrameworkFeature.library == framework.library
+                )
             )
-        )
-        features_list = related_features.scalars().all()
-        
-        assert len(features_list) == 3, f"Expected 3 FastAPI features, got {len(features_list)}"
-        
-        # Test feature -> absolute paths relationship
-        http_endpoint_feature = None
-        for feature in features_list:
-            if feature.feature_key == "http_endpoint":
-                http_endpoint_feature = feature
-                break
-        
-        assert http_endpoint_feature is not None, "FastAPI http_endpoint feature not found"
-        
-        related_paths = session.execute(
-            select(FeatureAbsolutePath).where(
-                FeatureAbsolutePath.language == http_endpoint_feature.language,
-                FeatureAbsolutePath.library == http_endpoint_feature.library,
-                FeatureAbsolutePath.feature_key == http_endpoint_feature.feature_key
+            features_list = related_features.scalars().all()
+            
+            assert len(features_list) == 3, f"Expected 3 FastAPI features, got {len(features_list)}"
+            
+            # Test feature -> absolute paths relationship
+            http_endpoint_feature = None
+            for feature in features_list:
+                if feature.feature_key == "http_endpoint":
+                    http_endpoint_feature = feature
+                    break
+            
+            assert http_endpoint_feature is not None, "FastAPI http_endpoint feature not found"
+            
+            related_paths = session.execute(
+                select(FeatureAbsolutePath).where(
+                    FeatureAbsolutePath.language == http_endpoint_feature.language,
+                    FeatureAbsolutePath.library == http_endpoint_feature.library,
+                    FeatureAbsolutePath.feature_key == http_endpoint_feature.feature_key
+                )
             )
-        )
-        paths_list = related_paths.scalars().all()
-        
-        assert len(paths_list) == 2, f"Expected 2 absolute paths for http_endpoint, got {len(paths_list)}"
-        path_values = [p.absolute_path for p in paths_list]
-        assert "fastapi.FastAPI" in path_values
-        assert "fastapi.applications.FastAPI" in path_values
+            paths_list = related_paths.scalars().all()
+            
+            assert len(paths_list) == 2, f"Expected 2 absolute paths for http_endpoint, got {len(paths_list)}"
+            path_values = [p.absolute_path for p in paths_list]
+            assert "fastapi.FastAPI" in path_values
+            assert "fastapi.applications.FastAPI" in path_values
 
-    def test_concept_and_locator_strategy_validation(self, test_client: TestClient, sync_postgres_session):
+    def test_concept_and_locator_strategy_validation(self, test_client: TestClient, service_ports):
         """Test that concept and locator strategy fields are correctly stored."""
-        session = sync_postgres_session
-        framework_data = load_framework_definitions()
-        
-        seed_framework_definitions(framework_data, session)
-        
-        # Test different concept types
-        concepts_query = session.execute(
-            select(FrameworkFeature.concept, func.count(FrameworkFeature.concept)).group_by(FrameworkFeature.concept)
-        )
-        concepts = dict(concepts_query.fetchall())
-        
-        # Should have all three concept types
-        assert "AnnotationLike" in concepts
-        assert "CallExpression" in concepts
-        assert "Inheritance" in concepts
-        
-        # Test locator strategies
-        strategies_query = session.execute(
-            select(FrameworkFeature.locator_strategy, func.count(FrameworkFeature.locator_strategy)).group_by(FrameworkFeature.locator_strategy)
-        )
-        strategies = dict(strategies_query.fetchall())
-        
-        # Should have both locator strategies
-        assert "Direct" in strategies
-        assert "VariableBound" in strategies
-
-    def test_construct_query_jsonb_storage(self, test_client: TestClient, sync_postgres_session):
-        """Test that construct_query JSONB field is stored and retrieved correctly."""
-        session = sync_postgres_session
-        framework_data = load_framework_definitions()
-        
-        seed_framework_definitions(framework_data, session)
-        
-        # Find FastAPI http_endpoint feature which has construct_query
-        feature_result = session.execute(
-            select(FrameworkFeature).where(
-                FrameworkFeature.library == "fastapi",
-                FrameworkFeature.feature_key == "http_endpoint"
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            framework_data = load_framework_definitions()
+            
+            seed_framework_definitions(framework_data, session)
+            
+            # Test different concept types
+            concepts_query = session.execute(
+                select(FrameworkFeature.concept, func.count(FrameworkFeature.concept)).group_by(FrameworkFeature.concept)
             )
-        )
-        feature = feature_result.scalar_one()
-        
-        assert feature.construct_query is not None
-        assert "method_regex" in feature.construct_query
-        assert feature.construct_query["method_regex"] == "(get|post|put|delete|patch|head|options|trace)"
+            concepts = dict(concepts_query.fetchall())
+            
+            # Should have all three concept types
+            assert "AnnotationLike" in concepts
+            assert "CallExpression" in concepts
+            assert "Inheritance" in concepts
+            
+            # Test locator strategies
+            strategies_query = session.execute(
+                select(FrameworkFeature.locator_strategy, func.count(FrameworkFeature.locator_strategy)).group_by(FrameworkFeature.locator_strategy)
+            )
+            strategies = dict(strategies_query.fetchall())
+            
+            # Should have both locator strategies
+            assert "Direct" in strategies
+            assert "VariableBound" in strategies
 
-    def test_clear_and_repopulate_idempotency(self, test_client: TestClient, sync_postgres_session):
+    def test_construct_query_jsonb_storage(self, test_client: TestClient, service_ports):
+        """Test that construct_query JSONB field is stored and retrieved correctly."""
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            framework_data = load_framework_definitions()
+            
+            seed_framework_definitions(framework_data, session)
+            
+            # Find FastAPI http_endpoint feature which has construct_query
+            feature_result = session.execute(
+                select(FrameworkFeature).where(
+                    FrameworkFeature.library == "fastapi",
+                    FrameworkFeature.feature_key == "http_endpoint"
+                )
+            )
+            feature = feature_result.scalar_one()
+            
+            assert feature.construct_query is not None
+            assert "method_regex" in feature.construct_query
+            assert feature.construct_query["method_regex"] == "(get|post|put|delete|patch|head|options|trace)"
+
+    def test_clear_and_repopulate_idempotency(self, test_client: TestClient, service_ports):
         """Test that multiple runs produce the same result."""
-        session = sync_postgres_session
-        framework_data = load_framework_definitions()
-        
-        # Run seed function multiple times with the same session
-        results = []
-        for i in range(3):
-            _metrics = seed_framework_definitions(framework_data, session)
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            framework_data = load_framework_definitions()
             
-            # Capture current state
-            frameworks = session.execute(select(Framework))
-            features = session.execute(select(FrameworkFeature))
-            paths = session.execute(select(FeatureAbsolutePath))
+            # Run seed function multiple times with the same session
+            results = []
+            for i in range(3):
+                _metrics = seed_framework_definitions(framework_data, session)
+                
+                # Capture current state
+                frameworks = session.execute(select(Framework))
+                features = session.execute(select(FrameworkFeature))
+                paths = session.execute(select(FeatureAbsolutePath))
+                
+                state = {
+                    "frameworks": len(frameworks.scalars().all()),
+                    "features": len(features.scalars().all()),
+                    "paths": len(paths.scalars().all())
+                }
+                results.append(state)
             
-            state = {
-                "frameworks": len(frameworks.scalars().all()),
-                "features": len(features.scalars().all()),
-                "paths": len(paths.scalars().all())
-            }
-            results.append(state)
-        
-        # All results should be identical
-        expected_state = {"frameworks": 4, "features": 11, "paths": 15}
-        for result in results:
-            assert result == expected_state
-        
-        # Verify final state has correct data
-        final_framework = session.execute(
-            select(Framework).where(Framework.library == "pydantic")
-        )
-        fw = final_framework.scalar_one()
-        assert fw.language == "python"
-        assert fw.docs_url == "https://docs.pydantic.dev"
+            # All results should be identical
+            expected_state = {"frameworks": 4, "features": 11, "paths": 15}
+            for result in results:
+                assert result == expected_state
+            
+            # Verify final state has correct data
+            final_framework = session.execute(
+                select(Framework).where(Framework.library == "pydantic")
+            )
+            fw = final_framework.scalar_one()
+            assert fw.language == "python"
+            assert fw.docs_url == "https://docs.pydantic.dev"
 
     @pytest.mark.asyncio(loop_scope="session")
     async def test_real_framework_data_parsing_accuracy(self):

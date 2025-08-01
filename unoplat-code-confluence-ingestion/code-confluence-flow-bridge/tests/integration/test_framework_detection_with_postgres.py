@@ -9,6 +9,7 @@ that works with structural signatures instead of re-parsing source code.
 import asyncio
 from pathlib import Path
 from typing import Dict, List
+import tempfile
 
 import pytest
 from fastapi.testclient import TestClient
@@ -62,7 +63,9 @@ class TestFrameworkDetectionWithPostgres:
         source_code = main_py_path.read_text(encoding="utf-8")
         
         # Extract structural signature
-        structural_signature = structural_extractor.extract_structural_signature(str(main_py_path))
+        with open(main_py_path, 'rb') as f:
+            content = f.read()
+        structural_signature = structural_extractor.extract_structural_signature(content)
         
         # Run framework detection (keep async business logic)
         detections = await detection_service.detect_features(
@@ -112,14 +115,15 @@ class MyApp:
 '''
         
         # Create a temporary file for extraction
-        import tempfile
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
             f.write(test_source)
             temp_path = f.name
         
         try:
             # Extract structural signature
-            structural_signature = structural_extractor.extract_structural_signature(temp_path)
+            with open(temp_path, 'rb') as f:
+                content = f.read()
+            structural_signature = structural_extractor.extract_structural_signature(content)
             
             # Extract imports
             import_strings = extract_imports_from_source(test_source)
@@ -170,13 +174,14 @@ class Product(BaseModel):
     description: str
 '''
         
-        import tempfile
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
             f.write(test_source)
             temp_path = f.name
         
         try:
-            structural_signature = structural_extractor.extract_structural_signature(temp_path)
+            with open(temp_path, 'rb') as f:
+                content = f.read()
+            structural_signature = structural_extractor.extract_structural_signature(content)
             
             import_strings = extract_imports_from_source(test_source)
             
@@ -230,13 +235,14 @@ async def create_user(user: UserModel, db=Depends(get_db)):
     return {"created": True}
 '''
         
-        import tempfile
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
             f.write(test_source)
             temp_path = f.name
         
         try:
-            structural_signature = structural_extractor.extract_structural_signature(temp_path)
+            with open(temp_path, 'rb') as f:
+                content = f.read()
+            structural_signature = structural_extractor.extract_structural_signature(content)
             
             import_strings = extract_imports_from_source(test_source)
             

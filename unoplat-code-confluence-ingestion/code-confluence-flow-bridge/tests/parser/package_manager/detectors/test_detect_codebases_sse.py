@@ -227,7 +227,7 @@ class TestDetectCodebasesSSEIntegration:
             sse_content = stream_sse_response(response)
             events = parse_sse_events(sse_content)
             
-            logger.info(f"Received {len(events)} SSE events")
+            logger.info("Received {} SSE events", len(events))
             
             # Validate event sequence
             assert len(events) >= 4, f"Expected at least 4 events, got {len(events)}"
@@ -244,7 +244,7 @@ class TestDetectCodebasesSSEIntegration:
             
             # Verify we see expected states
             states_seen = {e['data']['state'] for e in progress_events}
-            logger.info(f"Progress states seen: {states_seen}")
+            logger.info("Progress states seen: {}", states_seen)
             
             # Should see at least some of these states
             expected_states = {'initializing', 'cloning', 'analyzing', 'complete'}
@@ -271,7 +271,7 @@ class TestDetectCodebasesSSEIntegration:
             assert 'duration_seconds' in result_data
             assert result_data['error'] is None
             
-            logger.info(f"✓ Result event received with {len(result_data['codebases'])} codebases")
+            logger.info("✓ Result event received with {} codebases", len(result_data['codebases']))
             
             # Check done event
             done_events = [e for e in events if e.get('event') == 'done']
@@ -344,7 +344,7 @@ class TestDetectCodebasesSSEIntegration:
         
         logger.info("Concurrent request results:")
         for result in results:
-            logger.info(f"  - {result['url']}: {result['codebases_count']} codebases in {result['duration']:.2f}s")
+            logger.info("  - {}: {} codebases in {:.2f}s", result['url'], result['codebases_count'], result['duration'])
         
         # Verify all requests completed
         assert len(results) == len(urls)

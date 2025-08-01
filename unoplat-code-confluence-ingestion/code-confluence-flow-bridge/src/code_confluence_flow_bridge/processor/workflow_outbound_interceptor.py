@@ -50,10 +50,11 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
                 }
                 
                 logger.debug(
-                    f"Forwarding headers from workflow to child workflow: {list(headers.keys())}"
+                    "Forwarding headers from workflow to child workflow: {}",
+                    list(headers.keys())
                 )
         except Exception as e:
-            logger.error(f"Error forwarding headers to child workflow: {str(e)}")
+            logger.error("Error forwarding headers to child workflow: {}", str(e))
             # Continue execution even if header forwarding fails
             
         return await self.next.start_child_workflow(input)

@@ -31,9 +31,9 @@ class RuffStrategy(LinterStrategy):
         ]
         
         for path  in locations:
-            logger.info(f"checking config template path if it exists {str(path)}")
+            logger.info("checking config template path if it exists {}", str(path))
             if path.exists():
-                logger.info(f"ruff config path that exists {str(path)}")
+                logger.info("ruff config path that exists {}", str(path))
                 return str(path)
                 
         raise FileNotFoundError("Ruff config template not found in any standard location")
@@ -52,7 +52,7 @@ class RuffStrategy(LinterStrategy):
             '>=3.11,<4.0' -> 'py311'
         """
         try:
-            logger.info(f"Converting Python version '{version_spec}' to Ruff version")
+            logger.info("Converting Python version '{}' to Ruff version", version_spec)
             # Extract the minimum version using regex
             match = re.search(r'>=?\s*(\d+)\.(\d+)', version_spec)
             if match:
@@ -66,11 +66,11 @@ class RuffStrategy(LinterStrategy):
                 return f"py{major}{minor:0>2}"
                 
             # Default to Python 3.9 if no valid version found
-            logger.warning(f"Could not parse Python version from '{version_spec}', defaulting to py39")
+            logger.warning("Could not parse Python version from '{}', defaulting to py39", version_spec)
             return "py39"
             
         except Exception as e:
-            logger.error(f"Error converting Python version '{version_spec}': {e}")
+            logger.error("Error converting Python version '{}': {}", version_spec, e)
             return "py39"
 
     def _create_ruff_config(self, local_workspace_path: str, programming_language_version: str) -> bool:
@@ -106,7 +106,7 @@ class RuffStrategy(LinterStrategy):
             return True
             
         except Exception as e:
-            logger.error(f"Error creating Ruff config: {e}")
+            logger.error("Error creating Ruff config: {}", e)
             return False
 
     def _delete_ruff_sections(self, pyproject_path: str) -> bool:
@@ -150,12 +150,12 @@ class RuffStrategy(LinterStrategy):
             if modified:
                 with open(pyproject_path, 'w', encoding='utf-8') as f:
                     f.write(tomlkit.dumps(doc))
-                logger.info(f"Deleted Ruff sections from {pyproject_path}")
+                logger.info("Deleted Ruff sections from {}", pyproject_path)
                 
             return modified
             
         except Exception as e:
-            logger.error(f"Error handling pyproject.toml: {e}")
+            logger.error("Error handling pyproject.toml: {}", e)
             return False
     
     def lint_codebase(self, local_workspace_path: str, dependencies: Optional[List[str]], programming_language_version: str) -> bool:
@@ -172,7 +172,7 @@ class RuffStrategy(LinterStrategy):
         try:
             # First check and handle existing Ruff config
             pyproject_path = os.path.join(local_workspace_path, "pyproject.toml")
-            logger.info(f"current linting path {pyproject_path}")
+            logger.info("current linting path {}", pyproject_path)
             self._delete_ruff_sections(pyproject_path)
             
             # Create our Ruff configuration
@@ -205,5 +205,5 @@ class RuffStrategy(LinterStrategy):
                 os.chdir(original_dir)
 
         except Exception as e:
-            logger.error(f"Error running Ruff linter: {e}")
+            logger.error("Error running Ruff linter: {}", e)
             return False
