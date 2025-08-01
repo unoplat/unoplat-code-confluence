@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.42.1...code-confluence-flow-bridge-v0.43.0) (2025-08-01)
+
+
+### Features
+
+* **perf:** perf and reliability improvements across neo4j/postgres ([9a93104](https://github.com/unoplat/unoplat-code-confluence/commit/9a931047ffcb525935984d13cb20741de667e358))
+* **perf:** perf and reliability improvements across neo4j/postgres ([4f2b57f](https://github.com/unoplat/unoplat-code-confluence/commit/4f2b57f66a09fb1a743bd060010e86e344a4c9d6))
+
 ## [0.42.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.42.0...code-confluence-flow-bridge-v0.42.1) (2025-07-30)
 
 
