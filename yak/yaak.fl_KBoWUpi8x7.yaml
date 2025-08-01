@@ -2,12 +2,12 @@ type: folder
 model: folder
 id: fl_KBoWUpi8x7
 createdAt: 2025-06-17T11:10:02.241498
-updatedAt: 2025-06-17T11:10:02.241498
+updatedAt: 2025-07-25T10:30:08.529671
 workspaceId: wk_KULjx4bEa8
-folderId: fl_ZwwFo3jTXL
+folderId: fl_a9CJGFoCVq
 authentication: {}
 authenticationType: null
 description: ''
 headers: []
 name: delete
-sortPriority: -1750158500000.0
+sortPriority: 3000.0

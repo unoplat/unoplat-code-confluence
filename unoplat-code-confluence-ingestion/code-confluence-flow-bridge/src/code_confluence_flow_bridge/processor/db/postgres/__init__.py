@@ -1,5 +1,4 @@
-from src.code_confluence_flow_bridge.processor.db.postgres.db import (
-    async_engine as engine,
-)
+# This module provides database utilities for PostgreSQL operations.
+# The async engine is now managed per-event-loop using contextvars.
 
-__all__ = ["engine"]
+__all__ = []

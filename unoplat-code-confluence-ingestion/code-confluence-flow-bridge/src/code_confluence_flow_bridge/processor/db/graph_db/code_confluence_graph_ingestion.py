@@ -10,18 +10,13 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
     UnoplatPackageManagerMetadata,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
-    EnvironmentSettings,
-)
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import (
     ParentChildCloneMetadata,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
-    CodeConfluenceGraph,
-)
 
+import json
 import traceback
-from typing import Any, List, Type
+from typing import Any, Dict, List, Optional, Type
 
 # 🐘 PostgreSQL models for framework lookup
 from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata import (
@@ -29,7 +24,8 @@ from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata i
 )
 from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
 from loguru import logger
-from neomodel import AsyncStructuredNode
+from neo4j import AsyncManagedTransaction, AsyncSession, Record
+from neomodel import AsyncStructuredNode, adb
 from neomodel.exceptions import RequiredProperty, UniqueProperty
 from sqlmodel import select
 from temporalio.exceptions import ApplicationError
@@ -48,10 +44,118 @@ from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository
 
 
 class CodeConfluenceGraphIngestion:
-    def __init__(self, code_confluence_env: EnvironmentSettings):
-        # Reuse the singleton global connection
-        self.code_confluence_graph = CodeConfluenceGraph(code_confluence_env=code_confluence_env)
-        # No longer need to initialize or close - global connection is managed at application level
+
+    async def _create_repository_txn(self, tx: AsyncManagedTransaction, repo_data: Dict[str, Any]) -> Record:
+        """
+        Transaction function for creating or updating CodeConfluenceGitRepository node
+        Based on domain model: repository_url (unique), repository_name, repository_metadata, readme
+        """
+        query = """
+        MERGE (r:CodeConfluenceGitRepository {repository_url: $repository_url})
+        ON CREATE SET 
+            r.qualified_name = $qualified_name,
+            r.repository_name = $repository_name,
+            r.repository_metadata = $repository_metadata,
+            r.readme = $readme
+        ON MATCH SET
+            r.qualified_name = $qualified_name,
+            r.repository_name = $repository_name,
+            r.repository_metadata = $repository_metadata,
+            r.readme = $readme
+        RETURN r
+        """
+        result = await tx.run(query, repo_data)
+        return await result.single()
+
+    async def _create_codebase_and_relationships_txn(self, tx: AsyncManagedTransaction, codebase_data: Dict[str, Any]) -> Record:
+        """
+        Transaction function for creating CodeConfluenceCodebase node and relationships
+        Based on domain model: name, readme, root_packages, codebase_path, programming_language
+        """
+        query = """
+        MATCH (r:CodeConfluenceGitRepository {qualified_name: $repo_qualified_name})
+        MERGE (c:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
+        ON CREATE SET 
+            c.name = $name,
+            c.readme = $readme,
+            c.root_packages = $root_packages,
+            c.codebase_path = $codebase_path
+        ON MATCH SET
+            c.name = $name,
+            c.readme = $readme,
+            c.root_packages = $root_packages,
+            c.codebase_path = $codebase_path
+        MERGE (r)-[:CONTAINS_CODEBASE]->(c)
+        MERGE (c)-[:PART_OF_GIT_REPOSITORY]->(r)
+        RETURN c, r
+        """
+        result = await tx.run(query, codebase_data)
+        return await result.single()
+
+    async def _get_codebase_txn(self, tx: AsyncManagedTransaction, qualified_name: str) -> Optional[Record]:
+        """
+        Transaction function for getting CodeConfluenceCodebase node
+        """
+        query = "MATCH (c:CodeConfluenceCodebase {qualified_name: $qualified_name}) RETURN c"
+        result = await tx.run(query, {"qualified_name": qualified_name})
+        return await result.single()
+
+    async def _create_package_manager_metadata_and_relationship_txn(self, tx: AsyncManagedTransaction, metadata_data: Dict[str, Any]) -> Record:
+        """
+        Transaction function for creating CodeConfluencePackageManagerMetadata node and relationship
+        Based on domain model: dependencies, package_manager, programming_language, etc.
+        """
+        query = """
+        MATCH (c:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
+        MERGE (m:CodeConfluencePackageManagerMetadata {qualified_name: $metadata_qualified_name})
+        ON CREATE SET 
+            m.dependencies = $dependencies,
+            m.package_manager = $package_manager,
+            m.programming_language = $programming_language,
+            m.programming_language_version = $programming_language_version,
+            m.project_version = $project_version,
+            m.description = $description,
+            m.license = $license,
+            m.package_name = $package_name,
+            m.entry_points = $entry_points,
+            m.authors = $authors
+        ON MATCH SET
+            m.dependencies = $dependencies,
+            m.package_manager = $package_manager,
+            m.programming_language = $programming_language,
+            m.programming_language_version = $programming_language_version,
+            m.project_version = $project_version,
+            m.description = $description,
+            m.license = $license,
+            m.package_name = $package_name,
+            m.entry_points = $entry_points,
+            m.authors = $authors
+        MERGE (c)-[:HAS_PACKAGE_MANAGER_METADATA]->(m)
+        RETURN m, c
+        """
+        result = await tx.run(query, metadata_data)
+        return await result.single()
+
+    async def _create_framework_and_relationships_txn(self, tx: AsyncManagedTransaction, framework_data: Dict[str, Any]) -> Record:
+        """
+        Transaction function for creating CodeConfluenceFramework node and bidirectional relationships
+        Based on domain model: qualified_name (unique), language, library
+        """
+        query = """
+        MATCH (c:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
+        MERGE (f:CodeConfluenceFramework {qualified_name: $framework_qualified_name})
+        ON CREATE SET 
+            f.language = $language,
+            f.library = $library
+        ON MATCH SET
+            f.language = $language,
+            f.library = $library
+        MERGE (c)-[:USES_FRAMEWORK]->(f)
+        MERGE (f)-[:USED_BY]->(c)
+        RETURN f, c
+        """
+        result = await tx.run(query, framework_data)
+        return await result.single()
 
     def _get_node_identifier(self, node: Any) -> str:
         """
@@ -207,24 +311,15 @@ class CodeConfluenceGraphIngestion:
             )
             return []
 
-    async def insert_code_confluence_git_repo(self, git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
+    async def _insert_code_confluence_git_repo_old(self, git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
         """
-        Insert a git repository into the graph database
-
-        Args:
-            git_repo: UnoplatGitRepository containing git repository data
-
-        Returns:
-            ParentChildCloneMetadata: Metadata about created nodes
-
-        Raises:
-            ApplicationError: If repository insertion fails
+        OLD METHOD: Insert a git repository into the graph database (legacy implementation)
         """
         qualified_name = f"{git_repo.github_organization}_{git_repo.repository_name}"
         parent_child_clone_metadata = ParentChildCloneMetadata(repository_qualified_name=qualified_name, codebase_qualified_names=[])
 
         try:
-            async with self.code_confluence_graph.transaction:
+            async with adb.transaction:
                 # Create repository node
                 repo_dict = {"qualified_name": qualified_name, "repository_url": git_repo.repository_url, "repository_name": git_repo.repository_name, "repository_metadata": git_repo.repository_metadata, "readme": git_repo.readme, "github_organization": git_repo.github_organization}
 
@@ -297,16 +392,109 @@ class CodeConfluenceGraphIngestion:
                 type="GRAPH_INGESTION_ERROR"
             ) from e
 
-    async def insert_code_confluence_codebase_package_manager_metadata(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
+    async def insert_code_confluence_git_repo_managed(self, session: AsyncSession, git_repo: UnoplatGitRepository) -> ParentChildCloneMetadata:
         """
-        Insert codebase package manager metadata into the graph database.
-        
-        Note: This method runs within the transaction context provided by the caller.
-        Do not create nested transactions as Neo4j does not support them.
+        NEW METHOD: Insert a git repository into the graph database using managed transactions with raw Cypher
 
         Args:
-            codebase_qualified_name: Qualified name of the codebase
-            package_manager_metadata: UnoplatPackageManagerMetadata containing package manager metadata
+            session: Neo4j async session for managed transactions
+            git_repo: UnoplatGitRepository containing git repository data
+
+        Returns:
+            ParentChildCloneMetadata: Metadata about created nodes
+
+        Raises:
+            ApplicationError: If repository insertion fails
+        """
+        qualified_name = f"{git_repo.github_organization}_{git_repo.repository_name}"
+        parent_child_clone_metadata = ParentChildCloneMetadata(repository_qualified_name=qualified_name, codebase_qualified_names=[])
+
+        try:
+            # Create repository node using raw Cypher MERGE - only use properties from domain model
+            repo_data = {
+                "qualified_name": qualified_name, 
+                "repository_url": git_repo.repository_url, 
+                "repository_name": git_repo.repository_name, 
+                "repository_metadata": json.dumps(git_repo.repository_metadata) if git_repo.repository_metadata else "{}", 
+                "readme": git_repo.readme
+                # Note: github_organization not in domain model, using qualified_name pattern instead
+            }
+
+            logger.debug("Creating repository with managed transaction: {}", repo_data)
+            
+            # Execute repository creation using managed transaction
+            repo_record = await session.execute_write(self._create_repository_txn, repo_data)
+            if not repo_record:
+                raise ApplicationError(
+                    f"Failed to create repository node: {qualified_name}",
+                    {"repository": qualified_name},
+                    {"workflow_id": workflow_id_var.get("")},
+                    {"workflow_run_id": workflow_run_id_var.get("")},
+                    {"activity_name": activity_name_var.get("")},
+                    {"activity_id": activity_id_var.get("")},
+                    type="REPOSITORY_CREATION_ERROR"
+                )
+            
+            logger.debug(f"Created repository node: {qualified_name}")
+
+            # Create codebase nodes and relationships using managed transactions
+            for codebase in git_repo.codebases:
+                codebase_qualified_name = f"{qualified_name}_{codebase.name}"
+                parent_child_clone_metadata.codebase_qualified_names.append(codebase_qualified_name)
+
+                codebase_data = {
+                    "codebase_qualified_name": codebase_qualified_name,
+                    "repo_qualified_name": qualified_name,
+                    "name": codebase.name,
+                    "readme": codebase.readme,
+                    "root_packages": codebase.root_packages,
+                    "codebase_path": codebase.codebase_path
+                    # Note: programming_language set separately based on detection
+                }
+
+                logger.debug("Creating codebase with managed transaction: {}", codebase_data)
+
+                # Execute codebase creation and relationships using managed transaction
+                codebase_record = await session.execute_write(self._create_codebase_and_relationships_txn, codebase_data)
+                if not codebase_record:
+                    raise ApplicationError(
+                        f"Failed to create codebase node: {codebase.name}",
+                        {"repository": qualified_name},
+                        {"codebase": codebase.name},
+                        {"workflow_id": workflow_id_var.get("")},
+                        {"workflow_run_id": workflow_run_id_var.get("")},
+                        {"activity_name": activity_name_var.get("")},
+                        {"activity_id": activity_id_var.get("")},
+                        type="CODEBASE_CREATION_ERROR"
+                    )
+
+            logger.debug(f"Successfully ingested repository {qualified_name}")
+            return parent_child_clone_metadata
+
+        except Exception as e:
+            # Capture detailed error information
+            error_msg = f"Failed to insert repository {qualified_name}"
+            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)} | status=failed")
+            
+            # Capture the traceback string
+            tb_str = traceback.format_exc()
+            
+            raise ApplicationError(
+                error_msg,
+                {"repository": qualified_name},
+                {"error": str(e)},
+                {"error_type": type(e).__name__},
+                {"traceback": tb_str},
+                {"workflow_id": workflow_id_var.get("")},
+                {"workflow_run_id": workflow_run_id_var.get("")},
+                {"activity_name": activity_name_var.get("")},
+                {"activity_id": activity_id_var.get("")},
+                type="GRAPH_INGESTION_ERROR"
+            ) from e
+
+    async def _insert_code_confluence_codebase_package_manager_metadata_old(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
+        """
+        OLD METHOD: Insert codebase package manager metadata (legacy implementation)
         """
         try:
             # All operations run within the caller's transaction context
@@ -380,13 +568,12 @@ class CodeConfluenceGraphIngestion:
                 type="PACKAGE_METADATA_ERROR"
             )
 
-    async def sync_frameworks_for_codebase(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
+    async def _sync_frameworks_for_codebase_old(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
         """
         Sync framework nodes based on package dependencies.
-        This method runs OUTSIDE of Neo4j transaction contexts to prevent
-        "got Future attached to a different loop" errors in CI environments.
         
-        PostgreSQL queries and Neo4j operations are kept in separate contexts.
+        PostgreSQL queries run in their own session context (separate from Neo4j).
+        Neo4j operations run within the caller's transaction context.
         
         Args:
             codebase_qualified_name: Qualified name of the codebase
@@ -424,9 +611,9 @@ class CodeConfluenceGraphIngestion:
                 logger.debug(f"No frameworks to sync for {codebase_qualified_name}")
                 return
 
-            # Neo4j operations in a separate transaction
-            async with self.code_confluence_graph.transaction:
-                # Get the codebase node
+            # Neo4j operations (run within caller's transaction context)
+            # Get the codebase node
+            async with adb.transaction:
                 try:
                     codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)
                 except CodeConfluenceCodebase.DoesNotExist:
@@ -444,6 +631,146 @@ class CodeConfluenceGraphIngestion:
                     # Connect codebase → framework
                     await self._safe_connect(codebase_node, 'frameworks', framework_node)
                     await self._safe_connect(framework_node, 'codebases', codebase_node)
+
+            logger.debug(f"Successfully synced {len(frameworks_to_create)} frameworks for {codebase_qualified_name}")
+                        
+        except Exception as sync_err:
+            logger.warning(
+                f"Framework sync failed for codebase {codebase_qualified_name}: {sync_err}",
+            )
+
+    async def insert_code_confluence_codebase_package_manager_metadata_managed(self, session: AsyncSession, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
+        """
+        NEW METHOD: Insert codebase package manager metadata using managed transactions with raw Cypher
+
+        Args:
+            session: Neo4j async session for managed transactions
+            codebase_qualified_name: Qualified name of the codebase
+            package_manager_metadata: UnoplatPackageManagerMetadata containing package manager metadata
+        """
+        try:
+            # First verify codebase exists using managed transaction
+            codebase_record = await session.execute_read(self._get_codebase_txn, codebase_qualified_name)
+            if not codebase_record:
+                raise ApplicationError(
+                    f"Codebase not found: {codebase_qualified_name}", 
+                    {"codebase": codebase_qualified_name},
+                    {"workflow_id": workflow_id_var.get("")},
+                    {"workflow_run_id": workflow_run_id_var.get("")},
+                    {"activity_name": activity_name_var.get("")},
+                    {"activity_id": activity_id_var.get("")},
+                    type="CODEBASE_NOT_FOUND"
+                )
+
+            # Create package manager metadata node and relationship using managed transaction
+            metadata_data = {
+                "codebase_qualified_name": codebase_qualified_name,
+                "metadata_qualified_name": f"{codebase_qualified_name}_package_manager_metadata",
+                "dependencies": json.dumps({k: v.model_dump() for k, v in package_manager_metadata.dependencies.items()}) if package_manager_metadata.dependencies else "{}",
+                "package_manager": package_manager_metadata.package_manager,
+                "programming_language": package_manager_metadata.programming_language,
+                "programming_language_version": package_manager_metadata.programming_language_version,
+                "project_version": package_manager_metadata.project_version,
+                "description": package_manager_metadata.description,
+                "license": json.dumps(package_manager_metadata.license) if package_manager_metadata.license else None,
+                "package_name": package_manager_metadata.package_name,
+                "entry_points": json.dumps(package_manager_metadata.entry_points) if package_manager_metadata.entry_points else "{}",
+                "authors": package_manager_metadata.authors or [],
+            }
+
+            logger.debug("Creating package manager metadata with managed transaction: {}", metadata_data)
+
+            metadata_record = await session.execute_write(self._create_package_manager_metadata_and_relationship_txn, metadata_data)
+            if not metadata_record:
+                raise ApplicationError(
+                    f"Failed to create package manager metadata for {codebase_qualified_name}", 
+                    {"codebase": codebase_qualified_name},
+                    {"workflow_id": workflow_id_var.get("")},
+                    {"workflow_run_id": workflow_run_id_var.get("")},
+                    {"activity_name": activity_name_var.get("")},
+                    {"activity_id": activity_id_var.get("")},
+                    type="METADATA_CREATION_ERROR"
+                )
+
+            logger.debug(f"Successfully inserted package manager metadata for {codebase_qualified_name}")
+
+        except Exception as e:
+            # Capture detailed error information
+            error_msg = f"Failed to insert package manager metadata for {codebase_qualified_name}"
+            logger.error(f"{error_msg} | error_type={type(e).__name__} | error={str(e)} | status=failed")
+            
+            # Capture the traceback string
+            tb_str = traceback.format_exc()
+            
+            raise ApplicationError(
+                error_msg,
+                {"codebase": codebase_qualified_name},
+                {"error": str(e)},
+                {"error_type": type(e).__name__},
+                {"traceback": tb_str},
+                {"workflow_id": workflow_id_var.get("")},
+                {"workflow_run_id": workflow_run_id_var.get("")},
+                {"activity_name": activity_name_var.get("")},
+                {"activity_id": activity_id_var.get("")},
+                type="PACKAGE_METADATA_ERROR"
+            )
+
+    async def sync_frameworks_for_codebase_managed(self, session: AsyncSession, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
+        """
+        NEW METHOD: Sync framework nodes using managed transactions with raw Cypher
+
+        PostgreSQL queries run in their own session context (separate from Neo4j).
+        Neo4j operations use managed transactions.
+
+        Args:
+            session: Neo4j async session for managed transactions
+            codebase_qualified_name: Qualified name of the codebase
+            package_manager_metadata: UnoplatPackageManagerMetadata containing dependencies
+        """
+        try:
+            # PostgreSQL operations (completely separate from Neo4j)
+            frameworks_to_create = []
+            
+            async with get_session_cm() as pg_session:
+                logger.debug(f"Checking frameworks for {codebase_qualified_name}")
+                
+                for pkg_name, _ in package_manager_metadata.dependencies.items():
+                    # Only process if a matching Framework exists in Postgres
+                    logger.debug(f"Checking for framework: {pkg_name}")
+                    stmt = select(PGFramework).where(PGFramework.library == pkg_name)
+                    result = await pg_session.execute(stmt)
+                    pg_framework = result.scalar_one_or_none()
+                    
+                    if not pg_framework:
+                        logger.debug(f"Unknown framework: {pkg_name}")
+                        continue  # Unknown framework – skip
+
+                    lang = package_manager_metadata.programming_language
+                    lib = pg_framework.library
+
+                    framework_dict = {
+                        "codebase_qualified_name": codebase_qualified_name,
+                        "framework_qualified_name": f"{lang}.{lib}",
+                        "language": lang,
+                        "library": lib,
+                    }
+                    frameworks_to_create.append(framework_dict)
+
+            if not frameworks_to_create:
+                logger.debug(f"No frameworks to sync for {codebase_qualified_name}")
+                return
+
+            # Neo4j operations using managed transactions
+            logger.debug(f"Creating {len(frameworks_to_create)} frameworks for {codebase_qualified_name}")
+            
+            # Create framework nodes and relationships using managed transactions
+            for framework_data in frameworks_to_create:
+                logger.debug("Creating framework with managed transaction: {}", framework_data)
+                
+                framework_record = await session.execute_write(self._create_framework_and_relationships_txn, framework_data)
+                if not framework_record:
+                    logger.warning(f"Failed to create framework node: {framework_data}")
+                    continue
 
             logger.debug(f"Successfully synced {len(frameworks_to_create)} frameworks for {codebase_qualified_name}")
                         

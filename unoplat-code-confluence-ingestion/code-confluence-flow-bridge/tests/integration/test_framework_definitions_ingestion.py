@@ -24,9 +24,7 @@ from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata i
     Framework,
     FrameworkFeature,
 )
-from code_confluence_flow_bridge.processor.db.postgres.db import (
-    async_engine,
-)
+# Removed unused async_engine import which was causing ImportError after db refactor
 
 # Framework definitions directory
 FRAMEWORK_DEFINITIONS_DIR = pathlib.Path(__file__).parent.parent.parent / "framework-definitions" / "python"

@@ -22,7 +22,7 @@ with workflow.unsafe.imports_passed_through():
         ActivityRetriesConfig,
     )
     from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import (
-        process_codebase_generic,
+        GenericCodebaseProcessingActivity,
     )
     from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import (
         PackageMetadataActivity,
@@ -129,7 +129,7 @@ class CodebaseChildWorkflow:
         )
 
         await workflow.execute_activity(
-            activity=process_codebase_generic,
+            activity=GenericCodebaseProcessingActivity.process_codebase_generic,
             args=[codebase_processing_envelope],
             start_to_close_timeout=timedelta(weeks=1),
             retry_policy=ActivityRetriesConfig.DEFAULT,
