@@ -3,6 +3,28 @@ Unoplat Code Confluence Commons package.
 Contains models and utilities for code analysis and representation.
 """
 
+from unoplat_code_confluence_commons.base_models import (
+    AnnotationLikeInfo,
+    CallExpressionInfo,
+    ClassInfo,
+    Concept,
+    ConstructQueryConfig,
+    Detection,
+    DetectionResult,
+    FeatureAbsolutePath,
+    FeatureSpec,
+    # Framework SQLModel models
+    Framework,
+    FrameworkFeature,
+    FunctionInfo,
+    InheritanceInfo,
+    LocatorStrategy,
+    StructuralSignature,
+    # Engine Pydantic models
+    TargetLevel,
+    # Structural signature models
+    VariableInfo,
+)
 from unoplat_code_confluence_commons.graph_models import (
     BaseNode,
     CodeConfluenceCodebase,
@@ -14,29 +36,6 @@ from unoplat_code_confluence_commons.graph_models import (
     CodeConfluencePackageManagerMetadata,
     ContainsRelationship,
     UsesFeatureRelationship,
-)
-
-from unoplat_code_confluence_commons.base_models import (
-    # Structural signature models
-    VariableInfo,
-    FunctionInfo,
-    ClassInfo,
-    StructuralSignature,
-    # Engine Pydantic models
-    TargetLevel,
-    LocatorStrategy,
-    Concept,
-    ConstructQueryConfig,
-    FeatureSpec,
-    Detection,
-    DetectionResult,
-    AnnotationLikeInfo,
-    CallExpressionInfo,
-    InheritanceInfo,
-    # Framework SQLModel models
-    Framework,
-    FrameworkFeature,
-    FeatureAbsolutePath,
 )
 
 __all__ = [
