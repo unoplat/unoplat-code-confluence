@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.21.0...unoplat-code-confluence-commons-v0.22.0) (2025-08-03)
+
+
+### Features
+
+* **pyproject.toml:** Increase minimum Python version to 3.10 ([af46383](https://github.com/unoplat/unoplat-code-confluence/commit/af463833baac9d32b7f86b8b964835216f89c9f6))
+* **pyproject.toml:** Increase minimum Python version to 3.10 ([9c8f7f7](https://github.com/unoplat/unoplat-code-confluence/commit/9c8f7f74842a00b58caeb311a9a932de532dd047))
+* Reorganize imports and update build dependencies ([224f981](https://github.com/unoplat/unoplat-code-confluence/commit/224f981784d3d1edec77d0c09fc799c97d586508))
+* **uv.lock:** Update dependencies ([9c8f7f7](https://github.com/unoplat/unoplat-code-confluence/commit/9c8f7f74842a00b58caeb311a9a932de532dd047))
+
 ## [0.21.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.20.0...unoplat-code-confluence-commons-v0.21.0) (2025-07-25)
 
 
