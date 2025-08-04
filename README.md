@@ -118,8 +118,7 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 | GitHub Manual Sync         |  ✓   |             |
 | Local Ingestion            |  ✓   |             |
 | Local Manual Sync          |  ✓   |             |
-| Agents MD Creation         |             ✓
-| Chat With Codebase         |      |      ✓      |
+| Agents MD Creation         |      |       ✓     |
 
 <!-- MAINTAINERS SECTION -->
 ## Maintainers
