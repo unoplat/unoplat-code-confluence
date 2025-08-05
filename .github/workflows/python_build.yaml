@@ -82,6 +82,11 @@ jobs:
 
       - name: Install Ruff
         run: curl -LsSf https://astral.sh/ruff/install.sh | sh
+
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
         
       - name: Install dependencies and run tests
         working-directory: ${{ matrix.project }}
