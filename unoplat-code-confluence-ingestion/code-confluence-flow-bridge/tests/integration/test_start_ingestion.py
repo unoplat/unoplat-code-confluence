@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from code_confluence_flow_bridge.processor.db.postgres.db import dispose_current_engine
+from src.code_confluence_flow_bridge.processor.db.postgres.db import dispose_current_engine
 import pytest
 from fastapi.testclient import TestClient
 from loguru import logger

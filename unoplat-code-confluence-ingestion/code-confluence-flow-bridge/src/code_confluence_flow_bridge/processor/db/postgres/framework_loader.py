@@ -5,10 +5,10 @@ import pathlib
 import time
 from typing import Any, Dict, List, Tuple
 
-from code_confluence_flow_bridge.models.configuration.settings import (
+from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata import (
+from unoplat_code_confluence_commons.base_models import (
     FeatureAbsolutePath,
     Framework,
     FrameworkFeature,

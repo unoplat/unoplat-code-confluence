@@ -49,7 +49,7 @@ def mock_metadata() -> ProgrammingLanguageMetadata:
         language=ProgrammingLanguage.PYTHON,
         package_manager=PackageManagerType.POETRY,
         language_version="3.8.0",
-        role="leaf"
+        
     )
 
 def writepyproject(content: str, tmp_path: Path) -> Path:

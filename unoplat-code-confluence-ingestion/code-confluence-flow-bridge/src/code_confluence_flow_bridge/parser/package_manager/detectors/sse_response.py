@@ -21,14 +21,14 @@ class EventSourceResponse(StreamingResponse):
     helper methods for formatting SSE messages.
     """
     
-    def __init__(
+    def __init__( #type: ignore
         self,
         content: AsyncGenerator[str, None],
         status_code: int = 200,
         headers: Optional[Dict[str, str]] = None,
         media_type: str = "text/event-stream",
-        background = None,
-    ) -> None:
+        background = None, 
+    ) -> None: 
         """
         Initialize EventSourceResponse with SSE-specific headers.
         

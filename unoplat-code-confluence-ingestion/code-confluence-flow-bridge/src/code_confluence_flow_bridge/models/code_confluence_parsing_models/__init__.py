@@ -6,17 +6,17 @@ This package consolidates all Chapi and Chapi Forge models into a single, cohere
 for the Code Confluence parsing system.
 """
 
-# Base utility models
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.class_info import (
+# Base utility models - import from commons
+from unoplat_code_confluence_commons.base_models import (
     ClassInfo,
+    FunctionInfo,
+    StructuralSignature,
+    VariableInfo,
 )
 
 # File processing models
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.file_processing_data import (
     FileProcessingData,
-)
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import (
-    FunctionInfo,
 )
 
 # Structural signature models
@@ -31,9 +31,6 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.proce
 )
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.processing_status import (
     ProcessingStatus,
-)
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
-    StructuralSignature,
 )
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
     UnoplatCodebase,
@@ -59,9 +56,6 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 # Version and dependency models
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_version import (
     UnoplatVersion,
-)
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.variable_info import (
-    VariableInfo,
 )
 
 __all__ = [
