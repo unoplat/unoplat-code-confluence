@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.44.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.44.0...code-confluence-flow-bridge-v0.44.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* deletion fixes, codebase detection perf improvements and misc refactoring ([70cfe88](https://github.com/unoplat/unoplat-code-confluence/commit/70cfe88dcd9810b33436b79ac3ea722856012cb7))
+* deletion fixes, codebase detection perf improvements and misc refactoring ([9e2d40f](https://github.com/unoplat/unoplat-code-confluence/commit/9e2d40f4eda22a1542df88697356b96fd89dcbd9))
+
 ## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.43.0...code-confluence-flow-bridge-v0.44.0) (2025-08-01)
 
 
