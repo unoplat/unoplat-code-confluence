@@ -4,15 +4,15 @@ Service for querying framework features from PostgreSQL database.
 
 from typing import List
 
-from code_confluence_flow_bridge.engine.models import FeatureSpec
-from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata import (
-    FeatureAbsolutePath,
-    FrameworkFeature,
-)
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from unoplat_code_confluence_commons.base_models import (
+    FeatureAbsolutePath,
+    FeatureSpec,
+    FrameworkFeature,
+)
 
 
 async def get_framework_features_for_imports(

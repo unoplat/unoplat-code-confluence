@@ -4,8 +4,7 @@ from typing import Optional
 import json
 
 import pytest
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import StructuralSignature
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import FunctionInfo
+from unoplat_code_confluence_commons.base_models import StructuralSignature, FunctionInfo
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
     TreeSitterStructuralSignatureExtractor,
 )
@@ -573,10 +572,10 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     assert len(extract_functions_method.function_calls) > 10
     
     # 9. Test line number accuracy for a few methods
-    # __init__ should be around line 46 (shifted due to import formatting)
-    assert 40 < init_method.start_line < 55
-    # extract_structural_signature should be around line 104 (shifted due to import formatting)
-    assert 100 < extract_method.start_line < 110
+    # __init__ should be around line 38-46 (shifted due to import changes)
+    assert 35 < init_method.start_line < 50
+    # extract_structural_signature should be around line 100-110 (shifted due to import changes)
+    assert 95 < extract_method.start_line < 115
     
     # 10. Export structural signature to JSON for experimentation
     

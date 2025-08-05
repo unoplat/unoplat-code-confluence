@@ -19,10 +19,10 @@ import traceback
 from typing import Any, Dict, List, Optional, Type
 
 # 🐘 PostgreSQL models for framework lookup
-from code_confluence_flow_bridge.processor.db.postgres.custom_grammar_metadata import (
+from unoplat_code_confluence_commons.base_models import (
     Framework as PGFramework,
 )
-from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
 from loguru import logger
 from neo4j import AsyncManagedTransaction, AsyncSession, Record
 from neomodel import AsyncStructuredNode, adb

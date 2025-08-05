@@ -81,7 +81,6 @@ class CodebaseChildWorkflow:
             language=ProgrammingLanguage(package_manager_metadata.programming_language.lower()),
             package_manager=PackageManagerType(package_manager_metadata.package_manager.lower()),
             language_version=package_manager_metadata.programming_language_version,
-            role="leaf",
         )
 
         log.info("Parsing package metadata")

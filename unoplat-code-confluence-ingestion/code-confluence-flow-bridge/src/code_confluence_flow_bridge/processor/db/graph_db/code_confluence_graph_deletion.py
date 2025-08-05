@@ -60,26 +60,30 @@ class CodeConfluenceGraphDeletion:
     
     async def _get_codebase_packages_txn(self, tx: AsyncManagedTransaction, codebase_qualified_name: str) -> List[Record]:
         """
-        Transaction function to get all packages for a codebase
+        Transaction function to get all packages for a codebase using prefix matching.
+        This ensures we find all packages belonging to the codebase, even if relationships are missing.
         """
         query = """
         MATCH (c:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
-        MATCH (c)-[:CONTAINS_PACKAGE]->(p:CodeConfluencePackage)
+        MATCH (p:CodeConfluencePackage)
+        WHERE p.qualified_name STARTS WITH c.codebase_path
         RETURN p
         """
         result = await tx.run(query, {"codebase_qualified_name": codebase_qualified_name})
         return [record async for record in result]
     
-    async def _get_package_files_txn(self, tx: AsyncManagedTransaction, package_qualified_name: str) -> List[Record]:
+    async def _get_codebase_files_txn(self, tx: AsyncManagedTransaction, codebase_qualified_name: str) -> List[Record]:
         """
-        Transaction function to get all files for a package
+        Transaction function to get all files for a codebase using prefix matching.
+        This ensures we find all files belonging to the codebase, even if relationships are missing.
         """
         query = """
-        MATCH (p:CodeConfluencePackage {qualified_name: $package_qualified_name})
-        MATCH (p)-[:CONTAINS_FILE]->(f:CodeConfluenceFile)
+        MATCH (c:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
+        MATCH (f:CodeConfluenceFile)
+        WHERE f.file_path STARTS WITH c.codebase_path
         RETURN f
         """
-        result = await tx.run(query, {"package_qualified_name": package_qualified_name})
+        result = await tx.run(query, {"codebase_qualified_name": codebase_qualified_name})
         return [record async for record in result]
     
     async def _get_package_subpackages_txn(self, tx: AsyncManagedTransaction, package_qualified_name: str) -> List[Record]:
@@ -96,7 +100,8 @@ class CodeConfluenceGraphDeletion:
     
     async def _get_codebase_metadata_txn(self, tx: AsyncManagedTransaction, codebase_qualified_name: str) -> List[Record]:
         """
-        Transaction function to get all package manager metadata for a codebase
+        Transaction function to get all package manager metadata for a codebase using relationship traversal.
+        This uses the HAS_PACKAGE_MANAGER_METADATA relationship defined in the graph models.
         """
         query = """
         MATCH (c:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
@@ -469,6 +474,8 @@ class CodeConfluenceGraphDeletion:
             ApplicationError: If repository not found or deletion fails
         """
         try:
+            # -- DEBUG: Beginning deletion workflow for repository
+            logger.debug("Graph deletion start for repository: {}", qualified_name)
             # First, check if the repository exists
             repo_record = await session.execute_read(self._get_repository_by_qualified_name_txn, qualified_name)
             if not repo_record:
@@ -495,6 +502,7 @@ class CodeConfluenceGraphDeletion:
             # Get all codebases for the repository
             codebase_records = await session.execute_read(self._get_repository_codebases_txn, qualified_name)
             codebase_qualified_names = [record["c"]["qualified_name"] for record in codebase_records]
+            logger.debug("Found {} codebases for repository {}: {}", len(codebase_qualified_names), qualified_name, codebase_qualified_names)
             
             # For each codebase, collect all entities to delete
             all_file_paths: List[str] = []
@@ -502,35 +510,22 @@ class CodeConfluenceGraphDeletion:
             all_metadata_qualified_names: List[str] = []
             
             for codebase_qn in codebase_qualified_names:
-                # Get metadata nodes
+                # Get metadata nodes using prefix matching
                 metadata_records = await session.execute_read(self._get_codebase_metadata_txn, codebase_qn)
                 metadata_qns = [record["m"]["qualified_name"] for record in metadata_records]
                 all_metadata_qualified_names.extend(metadata_qns)
                 
-                # Get all packages (flat collection, not recursive)
+                # Get all packages using prefix matching (no recursion needed)
                 package_records = await session.execute_read(self._get_codebase_packages_txn, codebase_qn)
                 package_qns = [record["p"]["qualified_name"] for record in package_records]
+                all_package_qualified_names.extend(package_qns)
                 
-                # For each package, get files and subpackages
-                packages_to_process = package_qns.copy()
-                processed_packages: Set[str] = set()
-                
-                while packages_to_process:
-                    current_pkg_qn = packages_to_process.pop(0)
-                    if current_pkg_qn in processed_packages:
-                        continue
-                    processed_packages.add(current_pkg_qn)
-                    all_package_qualified_names.append(current_pkg_qn)
-                    
-                    # Get files for this package
-                    file_records = await session.execute_read(self._get_package_files_txn, current_pkg_qn)
-                    file_paths = [record["f"]["file_path"] for record in file_records]
-                    all_file_paths.extend(file_paths)
-                    
-                    # Get subpackages
-                    subpackage_records = await session.execute_read(self._get_package_subpackages_txn, current_pkg_qn)
-                    subpackage_qns = [record["sp"]["qualified_name"] for record in subpackage_records]
-                    packages_to_process.extend(subpackage_qns)
+                # Get all files using prefix matching on codebase path
+                file_records = await session.execute_read(self._get_codebase_files_txn, codebase_qn)
+                file_paths = [record["f"]["file_path"] for record in file_records]
+                all_file_paths.extend(file_paths)
+            
+            logger.debug("Aggregated counts — files: {}, packages: {}, metadata: {}", len(all_file_paths), len(all_package_qualified_names), len(all_metadata_qualified_names))
             
             # PHASE 1: Delete all relationships BEFORE deleting nodes (Critical for Neo4j constraints)
             

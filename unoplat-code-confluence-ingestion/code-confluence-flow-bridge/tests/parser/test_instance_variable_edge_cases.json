@@ -7,11 +7,6 @@
       "signature": "GLOBAL_CONFIG = {\"debug\": True}"
     },
     {
-      "start_line": 5,
-      "end_line": 5,
-      "signature": "app_instance = None"
-    },
-    {
       "start_line": 227,
       "end_line": 227,
       "signature": "module_config = {\"module\": True}"
@@ -20,6 +15,11 @@
       "start_line": 226,
       "end_line": 226,
       "signature": "ANOTHER_GLOBAL = \"global\""
+    },
+    {
+      "start_line": 5,
+      "end_line": 5,
+      "signature": "app_instance = None"
     }
   ],
   "functions": [
