@@ -2,24 +2,20 @@
 Python-specific framework detection service implementation.
 """
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
-    StructuralSignature,
-)
-
 from typing import List, Optional
 
-from code_confluence_flow_bridge.engine.framework_detection_service import (
+from unoplat_code_confluence_commons.base_models import StructuralSignature, Detection
+from src.code_confluence_flow_bridge.engine.framework_detection_service import (
     FrameworkDetectionService,
 )
-from code_confluence_flow_bridge.engine.models import Detection
-from code_confluence_flow_bridge.engine.python.import_alias_extractor import (
+from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
     build_import_aliases,
 )
-from code_confluence_flow_bridge.engine.python.simplified_python_detector import (
+from src.code_confluence_flow_bridge.engine.python.simplified_python_detector import (
     SimplifiedPythonDetector,
 )
-from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
+from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
     get_framework_features_for_imports,
 )
 from loguru import logger

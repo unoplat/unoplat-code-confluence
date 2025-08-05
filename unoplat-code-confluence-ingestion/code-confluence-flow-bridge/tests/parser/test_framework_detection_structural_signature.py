@@ -8,9 +8,7 @@ from pathlib import Path
 import time
 from typing import List, Set
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
-    StructuralSignature,
-)
+from unoplat_code_confluence_commons.base_models import StructuralSignature
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
     TreeSitterStructuralSignatureExtractor,
 )
@@ -28,7 +26,9 @@ class TestFrameworkDetectionStructuralSignature:
         self.main_py_path = self.base_path / "main.py"
         self.repo_workflow_path = self.base_path / "processor" / "repo_workflow.py"
         self.codebase_child_workflow_path = self.base_path / "processor" / "codebase_child_workflow.py"
-        self.structural_signature_path = self.base_path / "models" / "code_confluence_parsing_models" / "structural_signature.py"
+        # structural_signature.py has been moved to commons, use a different file for testing
+        self.commons_base_path = Path(__file__).parent.parent.parent.parent.parent / "unoplat-code-confluence-commons" / "src" / "unoplat_code_confluence_commons" / "base_models"
+        self.structural_signature_path = self.commons_base_path / "structural_signature.py"
         self.package_metadata_path = self.base_path / "models" / "code_confluence_parsing_models" / "unoplat_package_manager_metadata.py"
         self.repository_data_path = self.base_path / "processor" / "db" / "postgres" / "repository_data.py"
     

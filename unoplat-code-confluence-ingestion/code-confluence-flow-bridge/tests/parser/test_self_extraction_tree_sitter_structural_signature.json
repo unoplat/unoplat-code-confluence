@@ -2,59 +2,59 @@
   "module_docstring": "\nTree-sitter structural signature extractor for code parsing.\n\nThis module provides language-agnostic structural signature extraction using tree-sitter\nwith configurable queries for different programming languages.\n",
   "global_variables": [
     {
-      "start_line": 38,
-      "end_line": 38,
+      "start_line": 30,
+      "end_line": 30,
       "signature": "_LANGUAGE_CACHE: Dict[str, tree_sitter.Language] = {}"
     },
     {
-      "start_line": 40,
-      "end_line": 40,
+      "start_line": 32,
+      "end_line": 32,
       "signature": "_QUERY_CACHE: Dict[str, Dict[str, tree_sitter.Query]] = {}"
     },
     {
-      "start_line": 39,
-      "end_line": 39,
+      "start_line": 31,
+      "end_line": 31,
       "signature": "_PARSER_CACHE: Dict[str, tree_sitter.Parser] = {}"
     }
   ],
   "functions": [],
   "classes": [
     {
-      "start_line": 43,
-      "end_line": 800,
+      "start_line": 35,
+      "end_line": 788,
       "signature": "class TreeSitterStructuralSignatureExtractor:",
       "docstring": "Extracts structural signatures from source code using tree-sitter queries.",
       "vars": [
         {
-          "start_line": 48,
-          "end_line": 48,
+          "start_line": 40,
+          "end_line": 40,
           "signature": "self.config: LanguageConfig = get_config(language_name)"
         },
         {
-          "start_line": 49,
-          "end_line": 49,
+          "start_line": 41,
+          "end_line": 41,
           "signature": "self.language_name: str = language_name"
         },
         {
-          "start_line": 50,
-          "end_line": 50,
+          "start_line": 42,
+          "end_line": 42,
           "signature": "self.language: tree_sitter.Language = self._get_language(language_name)"
         },
         {
-          "start_line": 51,
-          "end_line": 51,
+          "start_line": 43,
+          "end_line": 43,
           "signature": "self.parser: tree_sitter.Parser = self._get_parser(language_name)"
         },
         {
-          "start_line": 52,
-          "end_line": 52,
+          "start_line": 44,
+          "end_line": 44,
           "signature": "self.queries: Dict[str, tree_sitter.Query] = self._get_compiled_queries()"
         }
       ],
       "methods": [
         {
-          "start_line": 46,
-          "end_line": 52,
+          "start_line": 38,
+          "end_line": 44,
           "signature": "def __init__(self, language_name: str = \"python\"):",
           "docstring": "Initialize parser & queries with multi-level caching and lazy compilation.",
           "function_calls": [
@@ -66,35 +66,35 @@
           "nested_functions": [],
           "instance_variables": [
             {
-              "start_line": 48,
-              "end_line": 48,
+              "start_line": 40,
+              "end_line": 40,
               "signature": "self.config: LanguageConfig = get_config(language_name)"
             },
             {
-              "start_line": 49,
-              "end_line": 49,
+              "start_line": 41,
+              "end_line": 41,
               "signature": "self.language_name: str = language_name"
             },
             {
-              "start_line": 50,
-              "end_line": 50,
+              "start_line": 42,
+              "end_line": 42,
               "signature": "self.language: tree_sitter.Language = self._get_language(language_name)"
             },
             {
-              "start_line": 51,
-              "end_line": 51,
+              "start_line": 43,
+              "end_line": 43,
               "signature": "self.parser: tree_sitter.Parser = self._get_parser(language_name)"
             },
             {
-              "start_line": 52,
-              "end_line": 52,
+              "start_line": 44,
+              "end_line": 44,
               "signature": "self.queries: Dict[str, tree_sitter.Query] = self._get_compiled_queries()"
             }
           ]
         },
         {
-          "start_line": 54,
-          "end_line": 59,
+          "start_line": 46,
+          "end_line": 51,
           "signature": "@staticmethod\n    def _get_language(language_name: str) -> tree_sitter.Language:",
           "docstring": "Fetch a tree-sitter Language with caching.",
           "function_calls": [
@@ -104,8 +104,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 61,
-          "end_line": 66,
+          "start_line": 53,
+          "end_line": 58,
           "signature": "@staticmethod\n    def _get_parser(language_name: str) -> tree_sitter.Parser:",
           "docstring": "Fetch a tree-sitter Parser with caching.",
           "function_calls": [
@@ -115,8 +115,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 68,
-          "end_line": 75,
+          "start_line": 60,
+          "end_line": 67,
           "signature": "def _get_compiled_queries(self) -> Dict[str, tree_sitter.Query]:",
           "docstring": "Compile and cache queries for the current language on-demand.",
           "function_calls": [
@@ -128,8 +128,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 77,
-          "end_line": 104,
+          "start_line": 69,
+          "end_line": 96,
           "signature": "def _create_queries(self) -> Dict[str, str]:",
           "docstring": "Return raw query strings keyed by a descriptive name.",
           "function_calls": [
@@ -142,13 +142,11 @@
           "instance_variables": []
         },
         {
-          "start_line": 106,
-          "end_line": 127,
-          "signature": "def extract_structural_signature(self, file_path: str) -> StructuralSignature:",
-          "docstring": "Extract structural signature from a source code file.",
+          "start_line": 98,
+          "end_line": 115,
+          "signature": "def extract_structural_signature(self, source_bytes: bytes) -> StructuralSignature:",
+          "docstring": "Extract structural signature from byte content.",
           "function_calls": [
-            "open(file_path, 'rb')",
-            "f.read()",
             "self.parser.parse(source_bytes)",
             "self._extract_module_docstring(root_node, source_bytes)",
             "self._extract_global_variables(root_node, source_bytes)",
@@ -160,8 +158,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 129,
-          "end_line": 139,
+          "start_line": 117,
+          "end_line": 127,
           "signature": "def _extract_module_docstring(self, root_node: tree_sitter.Node, source: bytes) -> Optional[str]:",
           "docstring": "Extract module-level docstring.",
           "function_calls": [
@@ -174,8 +172,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 141,
-          "end_line": 165,
+          "start_line": 129,
+          "end_line": 153,
           "signature": "def _extract_global_variables(self, root_node: tree_sitter.Node, source: bytes) -> List[VariableInfo]:",
           "docstring": "Extract module-level variable declarations.",
           "function_calls": [
@@ -193,8 +191,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 167,
-          "end_line": 234,
+          "start_line": 155,
+          "end_line": 222,
           "signature": "def _extract_functions(self, root_node: tree_sitter.Node, source: bytes) -> List[FunctionInfo]:",
           "docstring": "Extract module-level function definitions using matches.",
           "function_calls": [
@@ -205,8 +203,8 @@
             "source[func_node.start_byte:func_node.end_byte].decode('utf-8')",
             "signature.split('\\n')",
             "sig_parts.append(line)",
-            "line.rstrip().endswith(':')",
             "line.rstrip()",
+            "line.rstrip().endswith(':')",
             "self.config.cap(\"function\")",
             "self._clean_string_literal(\n                        source[docstring_node.start_byte:docstring_node.end_byte].decode('utf-8')\n                    )",
             "source[docstring_node.start_byte:docstring_node.end_byte].decode('utf-8')",
@@ -223,8 +221,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 236,
-          "end_line": 312,
+          "start_line": 224,
+          "end_line": 300,
           "signature": "def _extract_classes(self, root_node: tree_sitter.Node, source: bytes) -> List[ClassInfo]:",
           "docstring": "Extract class definitions with their methods and variables using matches.",
           "function_calls": [
@@ -244,8 +242,8 @@
             "self._extract_nested_classes_for_node(actual_class_def, source)",
             "class_variables.copy()",
             "set()",
-            "instance_var.signature.split('=')",
             "instance_var.signature.split('=')[0].strip()",
+            "instance_var.signature.split('=')",
             "instance_variables_seen.add(var_key)",
             "all_variables.append(instance_var)",
             "all_variables.sort(key=lambda v: v.start_line)",
@@ -258,8 +256,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 314,
-          "end_line": 352,
+          "start_line": 302,
+          "end_line": 340,
           "signature": "def _extract_class_variables_for_node(self, class_node: tree_sitter.Node, source: bytes) -> List[VariableInfo]:",
           "docstring": "Extract class variables for a specific class node, excluding nested class variables.",
           "function_calls": [
@@ -278,8 +276,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 354,
-          "end_line": 430,
+          "start_line": 342,
+          "end_line": 418,
           "signature": "def _extract_methods_for_node(self, class_node: tree_sitter.Node, source: bytes) -> List[FunctionInfo]:",
           "docstring": "Extract methods for a specific class node using matches, excluding nested class methods.",
           "function_calls": [
@@ -291,8 +289,8 @@
             "source[method_node.start_byte:method_node.end_byte].decode('utf-8')",
             "signature.split('\\n')",
             "sig_parts.append(line)",
-            "line.rstrip()",
             "line.rstrip().endswith(':')",
+            "line.rstrip()",
             "self.config.cap(\"method\")",
             "self._clean_string_literal(\n                        source[docstring_node.start_byte:docstring_node.end_byte].decode('utf-8')\n                    )",
             "source[docstring_node.start_byte:docstring_node.end_byte].decode('utf-8')",
@@ -309,8 +307,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 433,
-          "end_line": 495,
+          "start_line": 421,
+          "end_line": 483,
           "signature": "def _extract_nested_functions_for_node(self, parent_func_node: tree_sitter.Node, source: bytes) -> List[FunctionInfo]:",
           "docstring": "Extract immediate nested functions within a specific function node.\n        \n        This method only extracts functions that are direct children of the parent\n        function, not grandchildren or deeper descendants. Each extracted function\n        is recursively processed to find its own nested functions.\n        ",
           "function_calls": [
@@ -338,8 +336,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 497,
-          "end_line": 504,
+          "start_line": 485,
+          "end_line": 492,
           "signature": "def _is_at_module_level(self, node: tree_sitter.Node) -> bool:",
           "docstring": "Check if a node is at top-level scope using language config.",
           "function_calls": [],
@@ -347,8 +345,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 506,
-          "end_line": 508,
+          "start_line": 494,
+          "end_line": 496,
           "signature": "def _clean_string_literal(self, string_literal: str) -> str:",
           "docstring": "Delegate string cleaning to language config.",
           "function_calls": [
@@ -358,8 +356,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 510,
-          "end_line": 534,
+          "start_line": 498,
+          "end_line": 522,
           "signature": "def _is_immediate_child_function(self, child_node: tree_sitter.Node, parent_func_node: tree_sitter.Node) -> bool:",
           "docstring": "Check if a function node is an immediate child of the parent function.\n        \n        This method traverses upward from the child node through any block nodes\n        to determine if it's directly nested within the parent function, not a\n        grandchild or deeper descendant.\n        \n        Args:\n            child_node: The potential nested function node\n            parent_func_node: The parent function being analyzed\n            \n        Returns:\n            True if child_node is an immediate child of parent_func_node\n        ",
           "function_calls": [],
@@ -367,8 +365,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 540,
-          "end_line": 573,
+          "start_line": 528,
+          "end_line": 561,
           "signature": "def _get_nested_function_ranges(self, func_node: tree_sitter.Node) -> List[Tuple[int, int]]:",
           "docstring": "Get byte ranges of immediate nested functions within a function node.\n        \n        Only returns ranges for functions that are direct children of the given\n        function node, not grandchildren or deeper descendants.\n        \n        Returns:\n            List of (start_byte, end_byte) tuples for each immediate child function.\n        ",
           "function_calls": [
@@ -382,8 +380,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 575,
-          "end_line": 605,
+          "start_line": 563,
+          "end_line": 593,
           "signature": "def _get_nested_class_ranges(self, class_node: tree_sitter.Node) -> List[Tuple[int, int]]:",
           "docstring": "Get byte ranges of immediate nested classes within a class node.\n        \n        Only returns ranges for classes that are direct children of the given\n        class node, not grandchildren or deeper descendants.\n        \n        Returns:\n            List of (start_byte, end_byte) tuples for each immediate child class.\n        ",
           "function_calls": [
@@ -396,8 +394,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 607,
-          "end_line": 658,
+          "start_line": 595,
+          "end_line": 646,
           "signature": "def _extract_function_calls_for_node(self, func_node: tree_sitter.Node, source: bytes, start_line: Optional[int] = None, end_line: Optional[int] = None) -> List[str]:",
           "docstring": "Extract function call names inside a function node via language-specific query.\n\n        This routine relies entirely on the `function_calls` query defined per\n        language. Any language wishing to support call-tracking must provide\n        a `function_calls.scm` under its queries directory and capture the\n        callable expression as `@function_call` (or the language-specific\n        alias specified via :py:meth:`LanguageConfig.cap`).\n        \n        This method now filters out calls that are within nested functions,\n        returning only direct calls within the function body.\n        \n        Args:\n            func_node: The function AST node\n            source: The full source code\n            start_line: Deprecated parameter (kept for compatibility)\n            end_line: Deprecated parameter (kept for compatibility)\n        ",
           "function_calls": [
@@ -414,8 +412,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 660,
-          "end_line": 720,
+          "start_line": 648,
+          "end_line": 708,
           "signature": "def _extract_instance_variables_for_method(self, method_node: tree_sitter.Node, source: bytes) -> List[VariableInfo]:",
           "docstring": "Extract instance variable assignments from a method node.\n\n        This method extracts assignments to instance variables (self.* assignments)\n        within a method body, filtering out assignments within nested functions.\n        \n        Args:\n            method_node: The method AST node\n            source: The full source code\n            \n        Returns:\n            List of VariableInfo objects for instance variable assignments\n        ",
           "function_calls": [
@@ -436,8 +434,8 @@
           "instance_variables": []
         },
         {
-          "start_line": 722,
-          "end_line": 800,
+          "start_line": 710,
+          "end_line": 788,
           "signature": "def _extract_nested_classes_for_node(self, class_node: tree_sitter.Node, source: bytes) -> List[ClassInfo]:",
           "docstring": "Extract nested class definitions within a class node.",
           "function_calls": [
@@ -457,8 +455,8 @@
             "self._extract_nested_classes_for_node(actual_nested_def, source)",
             "class_variables.copy()",
             "set()",
-            "instance_var.signature.split('=')",
             "instance_var.signature.split('=')[0].strip()",
+            "instance_var.signature.split('=')",
             "instance_variables_seen.add(var_key)",
             "all_variables.append(instance_var)",
             "all_variables.sort(key=lambda v: v.start_line)",

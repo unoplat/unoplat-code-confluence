@@ -274,9 +274,8 @@ class GenericCodebaseParser:
                 raise ValueError(f"Unsupported node type: {node_type}")
 
             result = await session.execute_write(lambda tx: tx.run(query, node_dict))
-
             record = await result.single()
-            return record["identifier"] if record else None
+            return record["identifier"] if record else ""
 
         except Exception as e:
             logger.error(
@@ -309,7 +308,11 @@ class GenericCodebaseParser:
         #     package is present in the mapping (even if it contains no source files)
         for pkg_q in list(package_files.keys()):
             current = Path(pkg_q)
-            while current.parent != root_path and current.parent != current:
+            
+            if current == root_path:
+                continue
+            
+            while current != root_path and current.parent != current:
                 current = current.parent
                 package_files.setdefault(current.as_posix(), [])
 
@@ -486,31 +489,6 @@ class GenericCodebaseParser:
                 except StopIteration:
                     break  # No more files to process
 
-    async def create_packages_old(self, package_names: List[str]) -> None:
-        """
-        Create package nodes using neomodel.
-
-        NOTE: Soon to be deprecated - use create_packages_managed() instead
-
-        Args:
-            package_names: List of package qualified names to create
-        """
-        try:
-            # All operations run within the parent transaction context
-            for package_name in package_names:
-                # Extract simple name using pathlib
-                simple_name = Path(package_name).name
-
-                # Create package node using helper method
-                package_dict = {"qualified_name": package_name, "name": simple_name}
-                async with adb.transaction:
-                    await self._handle_node_creation(
-                        CodeConfluencePackage, package_dict
-                    )
-
-        except Exception as e:
-            logger.error("Failed to create packages: {}", e)
-            raise
 
     async def create_packages_managed(
         self, session: "AsyncSession", package_names: List[str]

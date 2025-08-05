@@ -25,7 +25,7 @@ def mock_metadata() -> ProgrammingLanguageMetadata:
         language=ProgrammingLanguage.PYTHON,
         package_manager=PackageManagerType.PIP,
         language_version="3.8.0",
-        role="leaf"
+        
     )
 
 @pytest.fixture
