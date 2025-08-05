@@ -40,6 +40,7 @@ class Signature(BaseModel):
     """
     file: Optional[str] = None          # exact filename to look for
     contains: Optional[str] = None      # substring that must appear in that file
+    contains_absence: Optional[List[str]] = None  # substrings that must NOT appear in file
     glob: Optional[str] = None          # shell-style wildcard pattern
 
 
@@ -71,7 +72,6 @@ class ProgrammingLanguageMetadata(BaseModel):
     language: ProgrammingLanguage
     package_manager: Optional[PackageManagerType] = None
     language_version: Optional[str] = None
-    role: Literal["leaf", "aggregator", "NA"]  # leaf = buildable module
     manifest_path: Optional[str] = None
     project_name: Optional[str] = None
 

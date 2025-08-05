@@ -6,14 +6,13 @@
 # - github_token: Session-scoped fixture providing GitHub PAT token
 
 from tests.utils.graph_assertions import (
+    assert_deletion_stats_accuracy,
+    assert_repository_completely_deleted,
+    capture_repository_state_snapshot,
     count_nodes_by_label,
-    rel_count_by_type,
-    repo_exists,
-    verify_complete_repository_deletion,
 )
 from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
 from tests.utils.sync_db_utils import get_sync_postgres_session
-from tests.utils.temporal_workflow_cleanup import terminate_all_running_workflows
 
 import os
 import asyncio
@@ -454,7 +453,25 @@ class TestDeleteRepositoryEndpoint:
             logger.warning(f"Workflow {workflow_id} timed out but proceeding with deletion test")
 
         # ------------------------------------------------------------------
-        # 6️⃣  Now test the deletion endpoint
+        # 6️⃣  ENHANCED: Capture pre-deletion state snapshot  
+        # ------------------------------------------------------------------
+        repo_qualified_name = f"{repo_request.repository_owner_name}_{repo_request.repository_name}"
+        
+        # Capture comprehensive state before deletion to validate API statistics
+        pre_deletion_snapshot = capture_repository_state_snapshot(neo4j_client, repo_qualified_name)
+        
+        # Log pre-deletion state for debugging
+        logger.info(f"Pre-deletion state for {repo_qualified_name}:")
+        logger.info(f"  Node counts: {pre_deletion_snapshot['node_counts']}")
+        
+        # Sanity check: Ensure we have content to delete
+        packages_count = pre_deletion_snapshot["node_counts"].get("CodeConfluencePackage", 0)
+        files_count = pre_deletion_snapshot["node_counts"].get("CodeConfluenceFile", 0)
+        assert packages_count > 0, f"Sanity check failed: No packages found after ingestion for {repo_qualified_name}"
+        assert files_count > 0, f"Sanity check failed: No files found after ingestion for {repo_qualified_name}"
+        
+        # ------------------------------------------------------------------
+        # 7️⃣  Now test the deletion endpoint
         # ------------------------------------------------------------------
         delete_repo_info = IngestedRepositoryResponse(
             repository_name=repo_request.repository_name,
@@ -471,7 +488,7 @@ class TestDeleteRepositoryEndpoint:
         )
         
         # ------------------------------------------------------------------
-        # 7️⃣  Verify successful deletion
+        # 8️⃣  Verify successful deletion response
         # ------------------------------------------------------------------
         assert delete_response.status_code == 200, f"Deletion failed with status {delete_response.status_code}: {delete_response.text}"
         
@@ -489,12 +506,15 @@ class TestDeleteRepositoryEndpoint:
             assert key in deletion_stats, f"Missing key '{key}' in deletion statistics"
             assert isinstance(deletion_stats[key], int), f"Key '{key}' should be an integer"
         
-        # Verify some items were actually deleted
-        assert deletion_stats["repositories_deleted"] >= 1, "At least one repository should be deleted"
-        
         # Log deletion statistics for debugging
-        logger.info(f"Deletion statistics: {deletion_stats}")
+        logger.info(f"API deletion statistics: {deletion_stats}")
         logger.info(f"Full deletion response: {deletion_response}")
+        
+        # ------------------------------------------------------------------
+        # 9️⃣  ENHANCED: Validate deletion stats against pre-snapshot
+        # ------------------------------------------------------------------
+        # This is the key validation that would have caught the packages_deleted=0 bug
+        assert_deletion_stats_accuracy(deletion_stats, pre_deletion_snapshot)
         
         # ------------------------------------------------------------------
         # 8️⃣  Verify repository is no longer in ingested repositories list
@@ -511,66 +531,23 @@ class TestDeleteRepositoryEndpoint:
         assert not deleted_repo_found, "Deleted repository still appears in ingested repositories list"
         
         # ------------------------------------------------------------------
-        # 🔄  NEW: Comprehensive graph-level verification
+        # 1️⃣1️⃣  ENHANCED: Comprehensive post-deletion verification
         # ------------------------------------------------------------------
-        repo_qualified_name = f"{repo_request.repository_owner_name}_{repo_request.repository_name}"
+        # Use the new comprehensive helper that replaces all the manual verification above
+        assert_repository_completely_deleted(neo4j_client, repo_qualified_name)
         
-        # 1. Verify repository node is completely gone
-        assert not repo_exists(neo4j_client, repo_qualified_name), \
-            f"Repository node {repo_qualified_name} still exists in graph"
+        logger.info(f"✅ Enhanced deletion verification completed successfully for {repo_qualified_name}")
         
-        # 2. ENHANCED: Explicit relationship validation to catch constraint violations early
-        critical_relationships = [
-            "CONTAINS_CODEBASE", "PART_OF_GIT_REPOSITORY", "USES_FRAMEWORK", "USED_BY",
-            "CONTAINS_PACKAGE", "PART_OF_PACKAGE", "PART_OF_CODEBASE", "CONTAINS_FILE",
-            "USES_FEATURE", "HAS_PACKAGE_MANAGER_METADATA"
-        ]
-        
-        relationship_failures = []
-        for rel_type in critical_relationships:
-            count = rel_count_by_type(neo4j_client, rel_type, repo_qualified_name)
-            if count > 0:
-                relationship_failures.append(f"Found {count} residual {rel_type} relationships")
-        
-        if relationship_failures:
-            error_msg = f"❌ CRITICAL: Repository {repo_qualified_name} has residual relationships that will cause constraint violations:\n"
-            error_msg += "\n".join(f"  - {failure}" for failure in relationship_failures)
-            assert False, error_msg
-        
-        logger.info(f"✅ All critical relationships verified as deleted for {repo_qualified_name}")
-        
-        # 3. Verify no related nodes remain (scoped to this repository)
-        verification_results = verify_complete_repository_deletion(neo4j_client, repo_qualified_name)
-        
-        # Assert no issues were found
-        if verification_results["issues"]:
-            error_msg = f"Graph deletion verification failed for {repo_qualified_name}:\n"
-            error_msg += "\n".join(f"  - {issue}" for issue in verification_results["issues"])
-            error_msg += f"\nNode counts: {verification_results['node_counts']}"
-            error_msg += f"\nRelationship counts: {verification_results['relationship_counts']}"
-            if "repository_relationship_counts" in verification_results:
-                error_msg += f"\nRepository-specific relationship counts: {verification_results['repository_relationship_counts']}"
-            assert False, error_msg
-        
-        # 4. Log successful cleanup stats for debugging
-        logger.info(f"Graph verification passed for {repo_qualified_name}")
-        logger.info(f"Final node counts: {verification_results['node_counts']}")
-        logger.info(f"Final relationship counts: {verification_results['relationship_counts']}")
-        if "repository_relationship_counts" in verification_results:
-            logger.info(f"Repository-specific relationship counts: {verification_results['repository_relationship_counts']}")
-        
-        # 5. For single-repository tests, verify complete graph cleanup
-        # (This is aggressive but ensures no test pollution)
+        # Optional: Log residual node counts for test pollution detection
         total_nodes_by_type = {}
         for node_type in ["CodeConfluenceCodebase", "CodeConfluencePackage", "CodeConfluenceFile", "CodeConfluencePackageManagerMetadata"]:
             count = count_nodes_by_label(neo4j_client, node_type)
             total_nodes_by_type[node_type] = count
             
-        # In a clean test environment, these should all be 0 after deletion
         residual_nodes = {k: v for k, v in total_nodes_by_type.items() if v > 0}
         if residual_nodes:
             logger.warning(f"Residual nodes detected (may be from other tests): {residual_nodes}")
-        
-        logger.info("✅ Graph-level deletion verification completed successfully")
+        else:
+            logger.info("✅ Complete graph cleanup verified - no residual nodes detected")
         
         

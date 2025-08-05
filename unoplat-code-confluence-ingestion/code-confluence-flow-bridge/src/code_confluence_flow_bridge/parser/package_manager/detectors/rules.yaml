@@ -1,3 +1,20 @@
+# Package Manager Detection Rules - Version 3
+# 
+# Simplified Python-only rules with ordered evaluation (no weights).
+# Each signature is a homogeneous mapping with peer keys.
+#
+# Schema for each signature:
+#   - file: <string>              - Match exact filename (required if glob not present)
+#   - glob: <string>              - Match shell-style patterns (required if file not present)  
+#   - contains: <string>          - Fixed substring that must appear in file (optional, only valid with file)
+#   - contains_absence: <list>    - Strings that must NOT appear in file (optional, only valid with file)
+#
+# Key principles:
+#   - All signature entries are mappings (no mixed scalar/mapping sequences)
+#   - file, glob, contains, and contains_absence are peer keys at same indentation level
+#   - Managers are evaluated in order: first match wins (no weight calculations)
+#   - Ignores apply to all managers within a language
+
 python:
   # Common directories to ignore during detection
   ignores:
@@ -31,79 +48,33 @@ python:
     - docs/_build
     - site
   
-  # Package managers with priority weights
+  # Package managers in order of evaluation (first match wins)
   managers:
     - manager: uv
-      weight: 3  # Highest priority - newest and most specific
       signatures:
-        - uv.lock
+        # UV lockfile is definitive
+        - file: uv.lock
+        # UV configuration in pyproject.toml
         - file: pyproject.toml
           contains: "[tool.uv]"
-      workspace_field: tool.uv.workspace
-
+      
     - manager: poetry
-      weight: 2  # Medium priority - modern package manager
       signatures:
-        - poetry.lock
+        # Poetry lockfile is definitive
+        - file: poetry.lock
+        # Poetry configuration in pyproject.toml
         - file: pyproject.toml
           contains: "[tool.poetry]"
 
     - manager: pip
-      weight: 1  # Lowest priority - fallback option
       signatures:
-        - requirements.txt
-        - glob: "requirements-*.txt"
-        - setup.py  # Check for traditional setup.py files
-
-
-# Add support for additional languages as needed
-
-java:
-  ignores:
-    - target
-    - .gradle
-    - out
-    - bin
-  managers:
-    - manager: maven
-      weight: 2
-      signatures:
-        - pom.xml
-    - manager: gradle
-      weight: 2
-      signatures:
-        - build.gradle
-        - build.gradle.kts
-
-typescript:
-  ignores:
-    - node_modules
-    - dist
-    - build
-    - out
-    - .next
-    - coverage
-  managers:
-    - manager: pnpm
-      weight: 3
-      signatures:
-        - pnpm-lock.yaml
-    - manager: yarn
-      weight: 2
-      signatures:
-        - yarn.lock
-    - manager: npm
-      weight: 1
-      signatures:
-        - package-lock.json
-        - package.json
-
-golang:
-  ignores:
-    - vendor
-    - bin
-  managers:
-    - manager: go
-      weight: 1
-      signatures:
-        - go.mod
+        # Modern pip with PEP 621 metadata (must have [project] section)
+        - file: pyproject.toml
+          contains: "[project]"
+          contains_absence:
+            - "[tool.poetry]"
+            - "[tool.uv]"
+        # Classic pip requirements files
+        - glob: "requirements*.txt"
+        # Legacy setup.py files
+        - file: setup.py

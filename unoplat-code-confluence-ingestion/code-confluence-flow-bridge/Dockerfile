@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Only tools required to COMPILE wheels
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        git build-essential libpq-dev \
+        git build-essential libpq-dev ripgrep \
     && rm -rf /var/lib/apt/lists/*
 
 # Install runtime tools now – they'll be copied later
@@ -32,7 +32,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Keep git only if the running service needs it
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git \
+    apt-get install -y --no-install-recommends git ripgrep \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

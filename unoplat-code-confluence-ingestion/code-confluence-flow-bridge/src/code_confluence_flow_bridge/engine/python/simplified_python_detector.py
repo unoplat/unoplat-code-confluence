@@ -5,20 +5,13 @@ This module replaces the complex Tree-sitter based detection with direct
 analysis of pre-parsed structural signature data.
 """
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.class_info import (
-    ClassInfo,
-)
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.function_info import (
-    FunctionInfo,
-)
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import (
-    StructuralSignature,
-)
-
 import re
 from typing import Dict, List, Optional, Set
 
-from code_confluence_flow_bridge.engine.models import (
+from unoplat_code_confluence_commons.base_models import (
+    ClassInfo,
+    FunctionInfo,
+    StructuralSignature,
     AnnotationLikeInfo,
     CallExpressionInfo,
     Concept,

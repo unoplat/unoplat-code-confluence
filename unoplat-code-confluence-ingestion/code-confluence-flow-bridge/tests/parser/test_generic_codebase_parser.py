@@ -15,7 +15,7 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
     ProgrammingLanguage,
     ProgrammingLanguageMetadata,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.structural_signature import StructuralSignature
+from unoplat_code_confluence_commons.base_models import StructuralSignature
 from src.code_confluence_flow_bridge.parser.generic_codebase_parser import GenericCodebaseParser
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
 
@@ -87,7 +87,7 @@ class TestGenericCodebaseParserIntegration:
         programming_language_metadata = ProgrammingLanguageMetadata(
             language=ProgrammingLanguage.PYTHON,
             language_version="3.11",
-            role="leaf",
+
         )
 
         # Create CodeConfluenceGraph instance using env_settings
@@ -135,6 +135,7 @@ class TestGenericCodebaseParserIntegration:
         # ------------------------------------------------------------------
         base_path = sample_codebase_dir
         expected_paths = {
+            "codebase_root": base_path.as_posix(),  # The 7th package - root directory
             "root": (base_path / "unoplat_code_confluence_cli").as_posix(),
             "connector": (base_path / "unoplat_code_confluence_cli" / "connector").as_posix(),
             "config": (base_path / "unoplat_code_confluence_cli" / "config").as_posix(),
@@ -152,11 +153,12 @@ class TestGenericCodebaseParserIntegration:
             "MATCH (p:CodeConfluencePackage) RETURN p.qualified_name, p.name ORDER BY p.qualified_name"
         )
         
-        # Expected 6 packages with absolute path qualified names
-        assert len(result) == 6, f"Expected 6 packages, got {len(result)}"
+        # Expected 7 packages with absolute path qualified names (including root directory)
+        assert len(result) == 7, f"Expected 7 packages, got {len(result)}"
         
         package_names = {(row[0], row[1]) for row in result}
         expected_packages = {
+            (expected_paths["codebase_root"], "unoplat-code-confluence-cli"),  # Root directory package
             (expected_paths["root"], "unoplat_code_confluence_cli"),
             (expected_paths["connector"], "connector"),
             (expected_paths["config"], "config"),
