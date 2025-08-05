@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.22.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.22.0...unoplat-code-confluence-commons-v0.22.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* deletion fixes, codebase detection perf improvements and misc refactoring ([70cfe88](https://github.com/unoplat/unoplat-code-confluence/commit/70cfe88dcd9810b33436b79ac3ea722856012cb7))
+* deletion fixes, codebase detection perf improvements and misc refactoring ([9e2d40f](https://github.com/unoplat/unoplat-code-confluence/commit/9e2d40f4eda22a1542df88697356b96fd89dcbd9))
+
 ## [0.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.21.0...unoplat-code-confluence-commons-v0.22.0) (2025-08-03)
 
 
