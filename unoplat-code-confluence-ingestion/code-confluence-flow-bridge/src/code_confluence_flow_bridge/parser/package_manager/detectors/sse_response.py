@@ -42,6 +42,9 @@ class EventSourceResponse(StreamingResponse):
         # Set default SSE headers
         default_headers = {
             "Content-Type": "text/event-stream; charset=utf-8",
+            "cache-control": "no-cache",
+            "connection": "keep-alive",
+            "x-accel-buffering": "no"
         }
         
         # Merge with user-provided headers
