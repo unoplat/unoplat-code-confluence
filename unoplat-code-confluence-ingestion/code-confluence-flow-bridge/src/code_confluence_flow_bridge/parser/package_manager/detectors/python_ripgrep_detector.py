@@ -8,15 +8,6 @@ Maintains the same public interface for seamless migration.
 
 from __future__ import annotations
 
-import os
-from collections import defaultdict
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-
-from aiofile import async_open
-from git import Repo
-import yaml  # type: ignore
-
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     CodebaseConfig,
     FileNode,
@@ -35,7 +26,17 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.ripgrep_ut
     find_python_mains,
 )
 
-#todo: check async/sync operations . it will be important to be performant when we enable batch ingestions or any other batch operations
+import os
+from collections import defaultdict
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+from aiofile import async_open
+from git import Repo
+import yaml  # type: ignore
+
+
+# todo: check async/sync operations . it will be important to be performant when we enable batch ingestions or any other batch operations
 class PythonRipgrepDetector:
     """Fast Python package manager detector using ripgrep and ordered evaluation.
 
@@ -180,20 +181,24 @@ class PythonRipgrepDetector:
         # Detect package managers using breadth-first processing with done_dirs
         detections: Dict[str, str] = {}
         done_dirs: set[str] = set()
-        
+
         # Sort directories by path depth (breadth-first: shorter paths first)
-        sorted_dirs: List[str] = sorted(dirs_to_files.keys(), key=lambda p: len(p.split('/')))
-        
+        sorted_dirs: List[str] = sorted(
+            dirs_to_files.keys(), key=lambda p: len(p.split("/"))
+        )
+
         for directory_path in sorted_dirs:
             # Skip if this directory is nested under a done directory
             if self._is_nested_under_done_dirs(directory_path, done_dirs):
                 continue
-                
+
             files_in_dir: List[str] = dirs_to_files[directory_path]
-            detected_manager: Optional[str] = await self.ordered_detector.detect_manager(
+            detected_manager: Optional[
+                str
+            ] = await self.ordered_detector.detect_manager(
                 directory_path, files_in_dir, repo_path
             )
-            
+
             if detected_manager:
                 detections[directory_path] = detected_manager
                 done_dirs.add(directory_path)
@@ -225,15 +230,21 @@ class PythonRipgrepDetector:
 
         return dict(dirs_to_files)
 
-    def _is_nested_under_done_dirs(self, directory_path: str, done_dirs: set[str]) -> bool:
+    def _is_nested_under_done_dirs(
+        self, directory_path: str, done_dirs: set[str]
+    ) -> bool:
         """Check if directory is nested under any done directory."""
         # Special case: if root directory "." is done, all other dirs are nested under it
         if "." in done_dirs and directory_path != ".":
             return True
-            
+
         # Regular nested directory checking for non-root done_dirs
         for done_dir in done_dirs:
-            if done_dir != "." and directory_path != done_dir and directory_path.startswith(done_dir + "/"):
+            if (
+                done_dir != "."
+                and directory_path != done_dir
+                and directory_path.startswith(done_dir + "/")
+            ):
                 return True
         return False
 
@@ -276,6 +287,7 @@ class PythonRipgrepDetector:
             programming_language_metadata=programming_language_metadata,
         )
 
+    # todo: stick to one format either ssh or https
     def _clone_repository(self, git_url: str, github_token: str) -> str:
         """
         Clone GitHub repository to local path.
@@ -319,5 +331,3 @@ class PythonRipgrepDetector:
             Repo.clone_from(clone_url, local_repo_path, depth=1)
 
         return local_repo_path
-
-
