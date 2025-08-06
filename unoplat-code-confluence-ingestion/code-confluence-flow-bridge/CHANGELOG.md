@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.44.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.44.2...code-confluence-flow-bridge-v0.44.3) (2025-08-06)
+
+
+### Bug Fixes
+
+* Add SSE response headers for better performance ([9b67aeb](https://github.com/unoplat/unoplat-code-confluence/commit/9b67aeb31075b2ee3d892ce4b02776aafe0ef255))
+* Improve SSE response and add error handling ([3722534](https://github.com/unoplat/unoplat-code-confluence/commit/37225349231001390ddfeaa63109ed0928ff6e40))
+* Improve SSE response and add error handling ([f2e25cd](https://github.com/unoplat/unoplat-code-confluence/commit/f2e25cdd02412dac5be10511d46ddf460bdee9b6))
+
 ## [0.44.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.44.1...code-confluence-flow-bridge-v0.44.2) (2025-08-06)
 
 
