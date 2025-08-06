@@ -41,9 +41,6 @@ class EventSourceResponse(StreamingResponse):
         """
         # Set default SSE headers
         default_headers = {
-            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
-            "X-Accel-Buffering": "no",  # Disable Nginx buffering
-            "Connection": "keep-alive",
             "Content-Type": "text/event-stream; charset=utf-8",
         }
         

@@ -36,6 +36,5 @@ class DetectionRequest(BaseModel):
 class DetectionResult(BaseModel):
     """Final result of codebase detection."""
     repository_url: str = Field(description="Repository that was analyzed")
-    duration_seconds: float = Field(description="Total time taken for detection")
     codebases: List[CodebaseConfig] = Field(description="List of detected codebases")
     error: Optional[str] = Field(None, description="Error message if detection failed")
