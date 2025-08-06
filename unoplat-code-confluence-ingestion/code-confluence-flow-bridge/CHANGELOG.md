@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.44.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.44.1...code-confluence-flow-bridge-v0.44.2) (2025-08-06)
+
+
+### Bug Fixes
+
+* linting moved the annotation import ([8e0f17c](https://github.com/unoplat/unoplat-code-confluence/commit/8e0f17c731a1f63de4a668e1f3d4b65066754d6a))
+* linting moved the annotation import ([e2a3978](https://github.com/unoplat/unoplat-code-confluence/commit/e2a3978f396838e7c3ae165512734bb19601243d))
+* Reorder import sections in ruff.toml ([39a50cb](https://github.com/unoplat/unoplat-code-confluence/commit/39a50cba86d21a233b91033b5ab929c9a9c10c87))
+
 ## [0.44.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.44.0...code-confluence-flow-bridge-v0.44.1) (2025-08-05)
 
 
