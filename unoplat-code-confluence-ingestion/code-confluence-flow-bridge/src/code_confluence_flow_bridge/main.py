@@ -1,3 +1,38 @@
+import os
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+import json
+import time
+import traceback
+from typing import (
+    Any,
+    AsyncGenerator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    cast,
+)
+
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi.concurrency import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from github import Github
+from gql import Client as GQLClient, gql
+from gql.transport.aiohttp import AIOHTTPTransport
+import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import QueryableAttribute, selectinload
+from sqlmodel import select
+from temporalio.client import Client, WorkflowHandle
+from temporalio.contrib.pydantic import pydantic_data_converter
+from temporalio.exceptions import ApplicationError
+from temporalio.worker import PollerBehaviorAutoscaling, Worker
+
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     build_trace_id,
@@ -37,12 +72,12 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_m
     DetectionResult,
     DetectionState,
 )
-
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.python_ripgrep_detector import (
     PythonRipgrepDetector,
 )
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import (
     SSEMessage,
+    EventSourceResponse,
 )
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
     ActivityStatusInterceptor,
@@ -112,41 +147,6 @@ from src.code_confluence_flow_bridge.utility.password_utils import (
     decrypt_token,
     encrypt_token,
 )
-
-import os
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
-import json
-import time
-import traceback
-from typing import (
-    Any,
-    AsyncGenerator,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    cast,
-)
-
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
-from fastapi.concurrency import asynccontextmanager
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from github import Github
-from gql import Client as GQLClient, gql
-from gql.transport.aiohttp import AIOHTTPTransport
-import httpx
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import QueryableAttribute, selectinload
-from sqlmodel import select
-from temporalio.client import Client, WorkflowHandle
-from temporalio.contrib.pydantic import pydantic_data_converter
-from temporalio.exceptions import ApplicationError
-from temporalio.worker import PollerBehaviorAutoscaling, Worker
 
 # Setup logging - override imported logger with configured one
 logger = setup_logging(
@@ -407,9 +407,6 @@ async def generate_sse_events(
     )
 
     try:
-        # Start timing
-        start_time = time.time()
-
         # Send cloning/analyzing progress based on whether it's local or remote
         if os.path.exists(git_url):
             yield SSEMessage.format_sse(
@@ -433,9 +430,6 @@ async def generate_sse_events(
         # Run detection directly using the async method
         codebases = await detector.detect_codebases(git_url, github_token)
 
-        # Calculate duration
-        duration = time.time() - start_time
-
         # Send completion progress
         yield SSEMessage.format_sse(
             data={
@@ -449,7 +443,6 @@ async def generate_sse_events(
         # Create and send result
         result = DetectionResult(
             repository_url=git_url,
-            duration_seconds=duration,
             codebases=codebases,
             error=None,
         )
@@ -461,9 +454,6 @@ async def generate_sse_events(
         yield SSEMessage.done()
 
     except Exception as e:
-        # Calculate duration even on error
-        duration = time.time() - start_time if "start_time" in locals() else 0.0
-
         # Send error progress
         yield SSEMessage.format_sse(
             data={
@@ -477,7 +467,6 @@ async def generate_sse_events(
         # Create error result
         result = DetectionResult(
             repository_url=git_url,
-            duration_seconds=duration,
             codebases=[],
             error=str(e),
         )
@@ -534,14 +523,9 @@ async def detect_codebases_sse(
     detector = app.state.python_codebase_detector
 
     # Generate SSE events using the v2 helper function and return StreamingResponse
-    return StreamingResponse(
+    return EventSourceResponse(
         generate_sse_events(actual_path, github_token, detector),
         media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",  # Disable nginx buffering
-        },
     )
 
 
@@ -1924,7 +1908,6 @@ async def create_github_issue(
 
             repo_run.issue_tracking = issue_data
 
-        await session.commit()
         return issue_tracking_full
 
     except Exception as e:
@@ -1957,3 +1940,5 @@ async def create_github_issue(
                 "error_context": error_context,
             },
         )
+
+
