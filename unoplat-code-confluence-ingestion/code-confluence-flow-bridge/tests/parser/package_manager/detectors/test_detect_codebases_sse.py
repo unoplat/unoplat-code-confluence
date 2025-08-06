@@ -268,7 +268,6 @@ class TestDetectCodebasesSSEIntegration:
             assert result_data['repository_url'] == test_repo_url
             assert 'codebases' in result_data
             assert isinstance(result_data['codebases'], list)
-            assert 'duration_seconds' in result_data
             assert result_data['error'] is None
             
             logger.info("✓ Result event received with {} codebases", len(result_data['codebases']))

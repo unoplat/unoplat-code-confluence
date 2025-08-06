@@ -238,7 +238,6 @@ def detect_local_codebases(test_client: TestClient, local_path: str) -> Detectio
         # Validate result structure
         assert "repository_url" in result_data
         assert "codebases" in result_data
-        assert "duration_seconds" in result_data
         assert "error" in result_data
 
         # Parse codebases into CodebaseConfig objects
@@ -250,7 +249,6 @@ def detect_local_codebases(test_client: TestClient, local_path: str) -> Detectio
         # Return structured result
         return DetectionResult(
             repository_url=result_data["repository_url"],
-            duration_seconds=result_data["duration_seconds"],
             codebases=codebases,
             error=result_data.get("error"),
         )
