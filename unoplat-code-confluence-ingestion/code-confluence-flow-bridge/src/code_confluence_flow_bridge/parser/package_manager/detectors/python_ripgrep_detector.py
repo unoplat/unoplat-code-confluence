@@ -8,6 +8,16 @@ Maintains the same public interface for seamless migration.
 
 from __future__ import annotations
 
+import os
+import asyncio
+from collections import defaultdict
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+from aiofile import async_open
+from git import Repo
+import yaml  # type: ignore
+
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     CodebaseConfig,
     FileNode,
@@ -25,15 +35,6 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.ripgrep_ut
     find_files,
     find_python_mains,
 )
-
-import os
-from collections import defaultdict
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-
-from aiofile import async_open
-from git import Repo
-import yaml  # type: ignore
 
 
 # todo: check async/sync operations . it will be important to be performant when we enable batch ingestions or any other batch operations
@@ -132,7 +133,7 @@ class PythonRipgrepDetector:
             repo_path: str = git_url
         else:
             # Remote URL - clone repository
-            repo_path = self._clone_repository(git_url, github_token)
+            repo_path = await asyncio.to_thread(self._clone_repository, git_url, github_token)
 
         # Fast detection using ripgrep with breadth-first processing
         inventory, detections = await self._fast_detect(repo_path)
