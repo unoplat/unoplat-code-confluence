@@ -141,7 +141,7 @@ services:
       - REPOSITORIES_BASE_PATH=/root/.unoplat/repositories
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
       - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.41.0
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.44.1
     depends_on:
       temporal:
         condition: service_healthy
