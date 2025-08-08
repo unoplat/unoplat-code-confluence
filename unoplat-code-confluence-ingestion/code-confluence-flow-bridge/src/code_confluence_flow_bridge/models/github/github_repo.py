@@ -1,4 +1,4 @@
-from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
+from unoplat_code_confluence_commons.base_models import CodebaseConfig
 
 from datetime import datetime
 from enum import Enum

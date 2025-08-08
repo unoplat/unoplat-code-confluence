@@ -40,6 +40,8 @@ from src.code_confluence_flow_bridge.logging.trace_utils import (
 )
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
+)
+from unoplat_code_confluence_commons.base_models import (
     ProgrammingLanguageMetadata,
 )
 from src.code_confluence_flow_bridge.models.github.github_repo import (
@@ -546,7 +548,7 @@ async def detect_codebases_sse(
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive", 
-            "X-Accel-Buffering": "no",  # Disable nginx buffering for real-time streaming
+            "X-Accel-Buffering": "no", 
         },
     )
 
