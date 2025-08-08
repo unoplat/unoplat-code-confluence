@@ -24,6 +24,14 @@ from unoplat_code_confluence_commons.base_models import (
     TargetLevel,
     # Structural signature models
     VariableInfo,
+    # Repository and Programming Language models
+    Repository,
+    CodebaseConfigSQLModel,
+    CodebaseConfig,
+    RepositorySettings,
+    ProgrammingLanguageMetadata,
+    ProgrammingLanguage,
+    PackageManagerType,
 )
 from unoplat_code_confluence_commons.graph_models import (
     BaseNode,
@@ -70,4 +78,12 @@ __all__ = [
     'Framework',
     'FrameworkFeature',
     'FeatureAbsolutePath',
+    # Repository and Programming Language models
+    'Repository',
+    'CodebaseConfigSQLModel',
+    'CodebaseConfig',
+    'RepositorySettings',
+    'ProgrammingLanguageMetadata',
+    'ProgrammingLanguage',
+    'PackageManagerType',
 ]
