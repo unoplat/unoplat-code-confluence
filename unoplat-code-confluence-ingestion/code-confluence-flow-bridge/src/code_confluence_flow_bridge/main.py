@@ -75,9 +75,9 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_m
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.python_ripgrep_detector import (
     PythonRipgrepDetector,
 )
+from sse_starlette.sse import EventSourceResponse
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import (
     SSEMessage,
-    EventSourceResponse,
 )
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
     ActivityStatusInterceptor,
@@ -381,7 +381,7 @@ async def start_workflow(
 
 async def generate_sse_events(
     git_url: str, github_token: str, detector: PythonRipgrepDetector
-) -> AsyncGenerator[str, None]:
+) -> AsyncGenerator[Dict[str, str], None]:
     """
     Generate SSE events for codebase detection progress (v2).
 
@@ -391,10 +391,13 @@ async def generate_sse_events(
         detector: PythonRipgrepDetector instance
 
     Yields:
-        SSE-formatted event strings
+        SSE event dictionaries with event, data, and id keys
     """
+    event_id = 0  # Per-request counter starting from 0
+    
     # Send initial connection event
-    yield SSEMessage.connected()
+    yield SSEMessage.connected(str(event_id))
+    event_id += 1
 
     # Send initial progress
     yield SSEMessage.format_sse(
@@ -404,7 +407,9 @@ async def generate_sse_events(
             "repository_url": git_url,
         },
         event="progress",
+        id=str(event_id)
     )
+    event_id += 1
 
     try:
         # Send cloning/analyzing progress based on whether it's local or remote
@@ -416,7 +421,9 @@ async def generate_sse_events(
                     "repository_url": git_url,
                 },
                 event="progress",
+                id=str(event_id)
             )
+            event_id += 1
         else:
             yield SSEMessage.format_sse(
                 data={
@@ -425,7 +432,9 @@ async def generate_sse_events(
                     "repository_url": git_url,
                 },
                 event="progress",
+                id=str(event_id)
             )
+            event_id += 1
 
         # Run detection directly using the async method
         codebases = await detector.detect_codebases(git_url, github_token)
@@ -438,7 +447,9 @@ async def generate_sse_events(
                 "repository_url": git_url,
             },
             event="progress",
+            id=str(event_id)
         )
+        event_id += 1
 
         # Create and send result
         result = DetectionResult(
@@ -448,10 +459,11 @@ async def generate_sse_events(
         )
 
         # Send result event
-        yield SSEMessage.result(result.model_dump())
+        yield SSEMessage.result(result.model_dump(), str(event_id))
+        event_id += 1
 
         # Send completion event
-        yield SSEMessage.done()
+        yield SSEMessage.done(str(event_id))
 
     except Exception as e:
         # Send error progress
@@ -462,7 +474,9 @@ async def generate_sse_events(
                 "repository_url": git_url,
             },
             event="progress",
+            id=str(event_id)
         )
+        event_id += 1
 
         # Create error result
         result = DetectionResult(
@@ -472,12 +486,14 @@ async def generate_sse_events(
         )
 
         # Send result with error
-        yield SSEMessage.result(result.model_dump())
+        yield SSEMessage.result(result.model_dump(), str(event_id))
+        event_id += 1
 
         # Send error event
         logger.error("Detection error: {}", str(e))
-        yield SSEMessage.error(str(e), error_type="DETECTION_ERROR")
-        yield SSEMessage.done()
+        yield SSEMessage.error(str(e), error_type="DETECTION_ERROR", event_id=str(event_id))
+        event_id += 1
+        yield SSEMessage.done(str(event_id))
 
 
 async def detect_codebases_sse(
@@ -522,10 +538,16 @@ async def detect_codebases_sse(
     # Use the shared PythonCodebaseDetector instance directly
     detector = app.state.python_codebase_detector
 
-    # Generate SSE events using the v2 helper function and return StreamingResponse
+    # Generate SSE events using the v2 helper function and return EventSourceResponse
     return EventSourceResponse(
         generate_sse_events(actual_path, github_token, detector),
-        media_type="text/event-stream",
+        ping=15,  # Keep-alive pings every 15 seconds
+        send_timeout=30,  # Timeout for send operations
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive", 
+            "X-Accel-Buffering": "no",  # Disable nginx buffering for real-time streaming
+        },
     )
 
 
