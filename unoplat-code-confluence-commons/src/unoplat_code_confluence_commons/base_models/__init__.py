@@ -29,6 +29,21 @@ from .framework_models import (
     FeatureAbsolutePath,
 )
 
+# Repository and Programming Language models
+from ..repo_models import (
+    Repository,
+    CodebaseConfig as CodebaseConfigSQLModel,
+)
+from ..programming_language_metadata import (
+    ProgrammingLanguageMetadata,
+    ProgrammingLanguage,
+    PackageManagerType,
+)
+from ..configuration_models import (
+    CodebaseConfig,
+    RepositorySettings,
+)
+
 __all__ = [
     # Structural signature models
     "VariableInfo",
@@ -50,4 +65,12 @@ __all__ = [
     "Framework",
     "FrameworkFeature",
     "FeatureAbsolutePath",
+    # Repository and Programming Language models
+    "Repository",
+    "CodebaseConfigSQLModel",
+    "CodebaseConfig",
+    "RepositorySettings",
+    "ProgrammingLanguageMetadata",
+    "ProgrammingLanguage", 
+    "PackageManagerType",
 ]
