@@ -108,7 +108,10 @@ def parse_sse_events(response_text: str) -> List[Dict[str, Any]]:
     current_event: Dict[str, Any] = {}
 
     for line in response_text.strip().split("\n"):
-        if line.startswith("event:"):
+        line = line.rstrip('\r')  # Handle CRLF line endings
+        if line.startswith("id:"):
+            current_event["id"] = line[3:].strip()
+        elif line.startswith("event:"):
             current_event["event"] = line[6:].strip()
         elif line.startswith("data:"):
             data_str: str = line[5:].strip()

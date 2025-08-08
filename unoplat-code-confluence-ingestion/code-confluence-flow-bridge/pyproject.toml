@@ -36,6 +36,7 @@ dependencies = [
     "typing-extensions>=4.11",
     "sqlalchemy>=2.0.41",
     "aiofile>=3.9.0",
+    "sse-starlette>=3.0.0",
 ] 
 
 [dependency-groups]

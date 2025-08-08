@@ -3,6 +3,8 @@ Server-Sent Events (SSE) Response implementation for FastAPI.
 
 This module provides SSE response classes and utilities for streaming
 real-time updates during codebase detection operations.
+
+Now uses sse-starlette for standards-compliant SSE implementation.
 """
 
 import asyncio
@@ -10,58 +12,11 @@ from datetime import datetime, timezone
 import json
 from typing import Any, AsyncGenerator, Dict, Optional
 
-from fastapi.responses import StreamingResponse
-
-
-class EventSourceResponse(StreamingResponse):
-    """
-    A FastAPI response class for Server-Sent Events (SSE).
-    
-    Automatically sets the correct headers for SSE and provides
-    helper methods for formatting SSE messages.
-    """
-    
-    def __init__( #type: ignore
-        self,
-        content: AsyncGenerator[str, None],
-        status_code: int = 200,
-        headers: Optional[Dict[str, str]] = None,
-        media_type: str = "text/event-stream",
-        background = None, 
-    ) -> None: 
-        """
-        Initialize EventSourceResponse with SSE-specific headers.
-        
-        Args:
-            content: Async generator yielding SSE-formatted strings
-            status_code: HTTP status code
-            headers: Additional headers to include
-            media_type: Content type (defaults to text/event-stream)
-            background: Background tasks to run after response
-        """
-        # Set default SSE headers
-        default_headers = {
-            "Content-Type": "text/event-stream; charset=utf-8",
-            "cache-control": "no-cache",
-            "connection": "keep-alive",
-            "x-accel-buffering": "no"
-        }
-        
-        # Merge with user-provided headers
-        if headers:
-            default_headers.update(headers)
-            
-        super().__init__(
-            content=content,
-            status_code=status_code,
-            headers=default_headers,
-            media_type=media_type,
-            background=background
-        )
+from sse_starlette.sse import EventSourceResponse
 
 
 class SSEMessage:
-    """Helper class for formatting SSE messages."""
+    """Helper class for formatting SSE messages as dictionaries for sse-starlette."""
     
     @staticmethod
     def format_sse(
@@ -69,9 +24,9 @@ class SSEMessage:
         event: Optional[str] = None,
         id: Optional[str] = None,
         retry: Optional[int] = None
-    ) -> str:
+    ) -> Dict[str, str]:
         """
-        Format data as a Server-Sent Event message.
+        Format data as a Server-Sent Event message dictionary for sse-starlette.
         
         Args:
             data: The data to send (will be JSON-encoded if not a string)
@@ -80,29 +35,25 @@ class SSEMessage:
             retry: Optional reconnection time in milliseconds
             
         Returns:
-            Formatted SSE message string
+            Dictionary with event, data, and id keys for sse-starlette
         """
-        lines = []
-        
-        if id is not None:
-            lines.append(f"id: {id}")
-            
-        if event is not None:
-            lines.append(f"event: {event}")
-            
-        if retry is not None:
-            lines.append(f"retry: {retry}")
-            
         # Convert data to JSON if it's not already a string
         if not isinstance(data, str):
             data = json.dumps(data, default=str)
+        
+        result = {
+            "data": data,
+        }
+        
+        if event is not None:
+            result["event"] = event
             
-        # Handle multi-line data
-        for line in data.splitlines():
-            lines.append(f"data: {line}")
+        if id is not None:
+            result["id"] = id
             
-        # SSE messages must end with double newline
-        return "\n".join(lines) + "\n\n"
+        # Note: sse-starlette handles retry directive through other mechanisms
+        
+        return result
     
     @staticmethod
     def comment(text: str) -> str:
@@ -116,14 +67,16 @@ class SSEMessage:
         Returns:
             Formatted SSE comment
         """
+        # Comments in SSE start with : and end with \n\n
         return f": {text}\n\n"
     
     @staticmethod
-    def connected() -> str:
+    def connected(event_id: Optional[str] = None) -> Dict[str, str]:
         """Generate a connection established event."""
         return SSEMessage.format_sse(
             data={"status": "connected"},
-            event="connected"
+            event="connected",
+            id=event_id
         )
     
     @staticmethod
@@ -131,8 +84,9 @@ class SSEMessage:
         current: int,
         total: Optional[int] = None,
         message: str = "",
-        details: Optional[Dict[str, Any]] = None
-    ) -> str:
+        details: Optional[Dict[str, Any]] = None,
+        event_id: Optional[str] = None
+    ) -> Dict[str, str]:
         """
         Generate a progress update event.
         
@@ -141,9 +95,10 @@ class SSEMessage:
             total: Total expected value (for percentage calculation)
             message: Progress message
             details: Additional details to include
+            event_id: Optional event ID
             
         Returns:
-            Formatted SSE progress event
+            SSE progress event dictionary
         """
         data = {
             "current": current,
@@ -158,19 +113,20 @@ class SSEMessage:
         if details:
             data["details"] = details
             
-        return SSEMessage.format_sse(data=data, event="progress")
+        return SSEMessage.format_sse(data=data, event="progress", id=event_id)
     
     @staticmethod
-    def error(error_message: str, error_type: Optional[str] = None) -> str:
+    def error(error_message: str, error_type: Optional[str] = None, event_id: Optional[str] = None) -> Dict[str, str]:
         """
         Generate an error event.
         
         Args:
             error_message: Error message
             error_type: Optional error type/category
+            event_id: Optional event ID
             
         Returns:
-            Formatted SSE error event
+            SSE error event dictionary
         """
         data = {
             "error": error_message,
@@ -180,35 +136,41 @@ class SSEMessage:
         if error_type:
             data["type"] = error_type
             
-        return SSEMessage.format_sse(data=data, event="error")
+        return SSEMessage.format_sse(data=data, event="error", id=event_id)
     
     @staticmethod
-    def result(data: Any) -> str:
+    def result(data: Any, event_id: Optional[str] = None) -> Dict[str, str]:
         """
         Generate a result event.
         
         Args:
             data: Result data
+            event_id: Optional event ID
             
         Returns:
-            Formatted SSE result event
+            SSE result event dictionary
         """
         return SSEMessage.format_sse(
             data=data,
-            event="result"
+            event="result",
+            id=event_id
         )
     
     @staticmethod
-    def done() -> str:
+    def done(event_id: Optional[str] = None) -> Dict[str, str]:
         """
         Generate a completion event.
         
+        Args:
+            event_id: Optional event ID
+            
         Returns:
-            Formatted SSE done event
+            SSE done event dictionary
         """
         return SSEMessage.format_sse(
             data={"status": "complete"},
-            event="done"
+            event="done",
+            id=event_id
         )
 
 
