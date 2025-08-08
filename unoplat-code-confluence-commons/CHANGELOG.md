@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.22.1...unoplat-code-confluence-commons-v0.23.0) (2025-08-08)
+
+
+### Features
+
+* Add repository and programming language models ([94a902e](https://github.com/unoplat/unoplat-code-confluence/commit/94a902ee7e459d59572727215415ccad7923e494))
+* Add repository and programming language models ([fd5acd2](https://github.com/unoplat/unoplat-code-confluence/commit/fd5acd2d2c400332d7afcf8e5e7d27bd2b042ac0))
+
 ## [0.22.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.22.0...unoplat-code-confluence-commons-v0.22.1) (2025-08-05)
 
 
