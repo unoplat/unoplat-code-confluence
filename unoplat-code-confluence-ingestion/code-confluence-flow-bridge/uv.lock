@@ -356,7 +356,7 @@ requires-dist = [
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "tree-sitter-language-pack", specifier = ">=0.8.0" },
     { name = "typing-extensions", specifier = ">=4.11" },
-    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.22.0" },
+    { name = "unoplat-code-confluence-commons", directory = "../../unoplat-code-confluence-commons" },
     { name = "validate-pyproject", extras = ["all"], specifier = ">=0.23" },
 ]
 
@@ -2059,8 +2059,8 @@ wheels = [
 
 [[package]]
 name = "unoplat-code-confluence-commons"
-version = "0.22.0"
-source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.22.0#5725d88c7ba2b176d00dac09efe687fcda06f050" }
+version = "0.22.1"
+source = { directory = "../../unoplat-code-confluence-commons" }
 dependencies = [
     { name = "neomodel" },
     { name = "pydantic" },
@@ -2069,6 +2069,17 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "sqlmodel" },
     { name = "testcontainers", extra = ["neo4j"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "neomodel", specifier = ">=5.4.2,<6" },
+    { name = "pydantic", specifier = ">=2.11.7" },
+    { name = "pytest", specifier = "==8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.0,<0.26" },
+    { name = "sqlalchemy", specifier = ">=2.0.41" },
+    { name = "sqlmodel", specifier = ">=0.0.24" },
+    { name = "testcontainers", extras = ["neo4j"], specifier = ">=3.7.1,<4" },
 ]
 
 [[package]]

@@ -5,7 +5,7 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models impor
     UnoplatProjectDependency,
     UnoplatVersion,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from unoplat_code_confluence_commons.base_models import (
     PackageManagerType,
     ProgrammingLanguageMetadata,
 )
