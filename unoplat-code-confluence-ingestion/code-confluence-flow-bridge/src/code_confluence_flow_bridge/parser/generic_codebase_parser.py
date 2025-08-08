@@ -19,6 +19,8 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 )
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
+)
+from unoplat_code_confluence_commons.base_models import (
     ProgrammingLanguageMetadata,
 )
 from src.code_confluence_flow_bridge.parser.language_configs import (

@@ -10,7 +10,7 @@ from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubH
 from dotenv import load_dotenv
 
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import RepositorySettings
+from unoplat_code_confluence_commons.base_models import RepositorySettings
 from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 
 # Use the example config file path
