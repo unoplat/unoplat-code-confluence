@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Optional
 from fastapi.testclient import TestClient
 from loguru import logger
 import pytest
-from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
+from unoplat_code_confluence_commons.base_models import CodebaseConfig
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoRequestConfiguration,
     IngestedRepositoryResponse,

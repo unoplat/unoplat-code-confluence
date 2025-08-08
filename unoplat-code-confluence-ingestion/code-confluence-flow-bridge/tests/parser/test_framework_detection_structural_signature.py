@@ -30,7 +30,8 @@ class TestFrameworkDetectionStructuralSignature:
         self.commons_base_path = Path(__file__).parent.parent.parent.parent.parent / "unoplat-code-confluence-commons" / "src" / "unoplat_code_confluence_commons" / "base_models"
         self.structural_signature_path = self.commons_base_path / "structural_signature.py"
         self.package_metadata_path = self.base_path / "models" / "code_confluence_parsing_models" / "unoplat_package_manager_metadata.py"
-        self.repository_data_path = self.base_path / "processor" / "db" / "postgres" / "repository_data.py"
+        # Repository and CodebaseConfig models moved to commons package
+        self.repository_data_path = Path(__file__).parent.parent.parent.parent.parent / "unoplat-code-confluence-commons" / "src" / "unoplat_code_confluence_commons" / "repo_models.py"
     
     def test_fastapi_detection_from_real_main_py(self):
         """Test FastAPI framework detection from actual main.py file."""
@@ -172,7 +173,7 @@ class TestFrameworkDetectionStructuralSignature:
         assert "validate_license" in validators, f"validate_license not found in validators: {validators}"
     
     def test_sqlalchemy_detection_from_real_repository_data_py(self):
-        """Test SQLAlchemy/SQLModel detection from actual repository data file."""
+        """Test SQLAlchemy/SQLModel detection from actual repo models file in commons package."""
         assert self.repository_data_path.exists(), f"Repository data not found at {self.repository_data_path}"
         
         with open(self.repository_data_path, 'rb') as f:

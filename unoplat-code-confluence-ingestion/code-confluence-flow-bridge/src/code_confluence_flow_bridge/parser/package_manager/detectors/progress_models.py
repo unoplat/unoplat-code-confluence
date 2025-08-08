@@ -5,7 +5,7 @@ Simple models for tracking detection progress during SSE streaming.
 """
 
 # Import the actual CodebaseConfig model
-from src.code_confluence_flow_bridge.models.configuration.settings import CodebaseConfig
+from unoplat_code_confluence_commons.base_models import CodebaseConfig
 
 from enum import Enum
 from typing import List, Optional

@@ -7,14 +7,14 @@ from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class ProgrammingLanguage(str, Enum):
-    PYTHON = "python"
-
-
-class PackageManagerType(str, Enum):
-    POETRY = "poetry"
-    PIP = "pip"
-    UV = "uv"
+# Import from commons package
+from unoplat_code_confluence_commons.base_models import (
+    ProgrammingLanguage,
+    PackageManagerType,
+    ProgrammingLanguageMetadata,
+    CodebaseConfig,
+    RepositorySettings,
+)
     
 
 
@@ -68,32 +68,7 @@ class CodebaseDetection(BaseModel):
 # EXISTING CONFIGURATION MODELS (BaseModel for JSON config)
 # ──────────────────────────────────────────────────────────────────────────────
 
-class ProgrammingLanguageMetadata(BaseModel):
-    language: ProgrammingLanguage
-    package_manager: Optional[PackageManagerType] = None
-    language_version: Optional[str] = None
-    manifest_path: Optional[str] = None
-    project_name: Optional[str] = None
-
-    
-
-class CodebaseConfig(BaseModel):
-    codebase_folder: str  
-    root_packages: Optional[list[str]] = Field(
-        default=None,
-        description=(
-            "Relative paths (POSIX) to each root package inside codebase_folder."
-        ),
-    )
-    programming_language_metadata: ProgrammingLanguageMetadata
-
-    
-
-
-class RepositorySettings(BaseModel):
-    git_url: str
-    output_path: str
-    codebases: List[CodebaseConfig]
+# RepositorySettings and CodebaseConfig now imported from commons above
 
 
 class LLMProviderConfig(BaseModel):
