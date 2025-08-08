@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.44.3...code-confluence-flow-bridge-v0.45.0) (2025-08-08)
+
+
+### Features
+
+* **sse:** Improve SSE implementation using sse-starlette ([fce33c4](https://github.com/unoplat/unoplat-code-confluence/commit/fce33c44a0e8a548a8044204357224f552ed19a2))
+* **sse:** Improve SSE implementation using sse-starlette ([69bb582](https://github.com/unoplat/unoplat-code-confluence/commit/69bb582da06ea34f65e73f305ba11fc7744fdfb8))
+
 ## [0.44.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.44.2...code-confluence-flow-bridge-v0.44.3) (2025-08-06)
 
 
