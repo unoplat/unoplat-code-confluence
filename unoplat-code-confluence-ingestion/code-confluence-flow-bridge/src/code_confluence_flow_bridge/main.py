@@ -542,7 +542,7 @@ async def detect_codebases_sse(
     return EventSourceResponse(
         generate_sse_events(actual_path, github_token, detector),
         ping=15,  # Keep-alive pings every 15 seconds
-        send_timeout=30,  # Timeout for send operations
+        send_timeout=60,  # Timeout for send operations
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive", 
