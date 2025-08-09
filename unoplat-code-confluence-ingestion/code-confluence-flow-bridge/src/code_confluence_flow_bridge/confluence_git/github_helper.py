@@ -19,6 +19,9 @@ from unoplat_code_confluence_commons.base_models import (
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoRequestConfiguration,
 )
+from src.code_confluence_flow_bridge.utility.environment_utils import (
+    ensure_local_repository_base_path,
+)
 
 import os
 from datetime import datetime
@@ -63,11 +66,10 @@ class GithubHelper:
             # Get repository object
             github_repo = github_client.get_repo(repo_path)
 
-            # Create local directory if it doesn't exist
-            local_path: str = os.path.join(os.path.expanduser("~"), ".unoplat", "repositories")
-            os.makedirs(local_path, exist_ok=True)
+            # Use configured repository base path from environment settings
+            base_path = ensure_local_repository_base_path()
             # Reassign repo_path to the local clone path
-            repo_path = os.path.join(local_path, repo_name)
+            repo_path = os.path.join(str(base_path), repo_name)
 
             # Clone repository if not already cloned, otherwise update it
             if not os.path.exists(repo_path):

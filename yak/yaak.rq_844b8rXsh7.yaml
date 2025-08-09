@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_844b8rXsh7
 createdAt: 2025-06-06T04:54:43.958678
-updatedAt: 2025-06-06T04:55:22.843835
+updatedAt: 2025-08-05T06:40:16.536260
 workspaceId: wk_KULjx4bEa8
 folderId: fl_gqjfAddzF8
 authentication: {}
@@ -14,7 +14,7 @@ headers: []
 method: GET
 name: test-crewai
 sortPriority: 0.001
-url: http://localhost:8000/detect-codebases-sse
+url: http://localhost:8000/detect-codebases-sse/
 urlParameters:
 - enabled: true
   name: git_url

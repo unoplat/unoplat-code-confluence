@@ -9,8 +9,8 @@ from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     CodebaseWorkflowDbActivityEnvelope,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import (
-    CodebaseConfig,
+from unoplat_code_confluence_commons.base_models import (
+    CodebaseConfigSQLModel as CodebaseConfig,
     CodebaseWorkflowRun,
     RepositoryWorkflowRun,
 )
