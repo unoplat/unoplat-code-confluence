@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.23.0...unoplat-code-confluence-commons-v0.24.0) (2025-08-09)
+
+
+### Features
+
+* Add RepositoryWorkflowRun and CodebaseWorkflowRun models ([710af8b](https://github.com/unoplat/unoplat-code-confluence/commit/710af8bbab6cfbc053af4ed97664605cded99a71))
+* Add RepositoryWorkflowRun and CodebaseWorkflowRun models ([1703a07](https://github.com/unoplat/unoplat-code-confluence/commit/1703a07eea473edd82dbd11c305a1f05d8df2214))
+
 ## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.22.1...unoplat-code-confluence-commons-v0.23.0) (2025-08-08)
 
 
