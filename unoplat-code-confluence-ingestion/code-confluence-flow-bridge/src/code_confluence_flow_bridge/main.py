@@ -3,7 +3,6 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
-import time
 import traceback
 from typing import (
     Any,
@@ -28,10 +27,17 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import QueryableAttribute, selectinload
 from sqlmodel import select
+from sse_starlette.sse import EventSourceResponse
 from temporalio.client import Client, WorkflowHandle
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.exceptions import ApplicationError
 from temporalio.worker import PollerBehaviorAutoscaling, Worker
+from unoplat_code_confluence_commons.base_models import (
+    CodebaseWorkflowRun,
+    ProgrammingLanguageMetadata,
+    Repository,
+    RepositoryWorkflowRun,
+)
 
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.logging.trace_utils import (
@@ -40,9 +46,6 @@ from src.code_confluence_flow_bridge.logging.trace_utils import (
 )
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
-)
-from unoplat_code_confluence_commons.base_models import (
-    ProgrammingLanguageMetadata,
 )
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseConfig,
@@ -77,7 +80,6 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_m
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.python_ripgrep_detector import (
     PythonRipgrepDetector,
 )
-from sse_starlette.sse import EventSourceResponse
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import (
     SSEMessage,
 )
@@ -111,11 +113,6 @@ from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader impo
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
     ParentWorkflowDbActivity,
-)
-from src.code_confluence_flow_bridge.processor.db.postgres.repository_data import (
-    CodebaseWorkflowRun,
-    Repository,
-    RepositoryWorkflowRun,
 )
 from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import (
     GenericCodebaseProcessingActivity,
@@ -248,10 +245,12 @@ def create_worker(
 
             # Log standard configuration
             logger.info(
-                "Starting Temporal worker with max_concurrent_activities={}, "
-                "max_concurrent_activity_task_polls={}",
+                """Starting Temporal worker with max_concurrent_activities={}, 
+                max_concurrent_activity_task_polls={},
+                repository base path={}""",
                 env_settings.temporal_max_concurrent_activities,
                 env_settings.temporal_max_concurrent_activity_task_polls,
+                env_settings.repositories_base_path,
             )
 
         # Create the worker with client as positional argument and other parameters as keyword arguments
@@ -770,9 +769,9 @@ async def ingest_token(
         session.add(token_flag)
 
         return {"message": "Token ingested successfully."}
-    except HTTPException as http_ex:
-        # Re-raise HTTP exceptions directly
-        raise http_ex
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 409) without modification
+        raise
     except Exception as e:
         logger.error("Failed to process token: {}", str(e))
         raise HTTPException(
@@ -1491,9 +1490,9 @@ async def delete_repository(
         qualified_name = "{}_{}".format(repository_owner_name, repository_name)
 
         try:
-            async with app.state.code_confluence_graph.get_session() as session:
+            async with app.state.code_confluence_graph.get_session() as neo4j_session:
                 neo4j_stats = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name_managed(
-                    session=session, qualified_name=qualified_name
+                    session=neo4j_session, qualified_name=qualified_name
                 )
             logger.info("Deleted repository from Neo4j: {}", qualified_name)
         except ApplicationError as neo4j_error:
@@ -1585,9 +1584,9 @@ async def refresh_repository(
         qualified_name: str = "{}_{}".format(repository_owner_name, repository_name)
 
         try:
-            async with app.state.code_confluence_graph.get_session() as session:
+            async with app.state.code_confluence_graph.get_session() as neo4j_session:
                 await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name_managed(
-                    session=session, qualified_name=qualified_name
+                    session=neo4j_session, qualified_name=qualified_name
                 )
             request_logger.info("Deleted repository from Neo4j: {}", qualified_name)
         except ApplicationError as neo4j_error:

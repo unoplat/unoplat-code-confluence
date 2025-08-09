@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_v87eKPdXPv
 createdAt: 2025-06-06T04:59:56.140638
-updatedAt: 2025-06-06T05:00:28.286141
+updatedAt: 2025-08-05T06:41:24.975387
 workspaceId: wk_KULjx4bEa8
 folderId: fl_gqjfAddzF8
 authentication: {}
@@ -14,7 +14,7 @@ headers: []
 method: GET
 name: test-dspy
 sortPriority: 0.002
-url: http://localhost:8000/detect-codebases-sse
+url: http://localhost:8000/detect-codebases-sse/
 urlParameters:
 - enabled: true
   name: git_url

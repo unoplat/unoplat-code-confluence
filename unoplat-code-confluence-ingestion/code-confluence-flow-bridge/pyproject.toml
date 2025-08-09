@@ -16,7 +16,7 @@ dependencies = [
     "tomlkit>=0.13.2",
     "pytest>=8.3.5",
     "neomodel>=5.4.2",
-    "unoplat-code-confluence-commons",
+    "unoplat-code-confluence-commons>=0.24.0",
     "packaging>=24.2",
     "validate-pyproject[all]>=0.23",
     "sqlmodel>=0.0.24",
@@ -63,7 +63,7 @@ dev = [
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
 #unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.23.0" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.24.0" }
 
 
 [tool.uv]

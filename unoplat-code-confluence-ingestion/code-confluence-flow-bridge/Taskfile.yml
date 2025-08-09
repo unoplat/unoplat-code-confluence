@@ -1,6 +1,13 @@
 version: "3"
 
 tasks:
+  filesystem-setup:
+    desc: Setup filesystem directories and permissions
+    cmds:
+      - sudo mkdir -p /opt/unoplat/repositories
+      - sudo chown "$USER":staff /opt/unoplat/repositories
+    silent: false
+
   check-temporal-port:
     cmds:
       - |
@@ -92,6 +99,8 @@ tasks:
       OTEL_SERVICE_NAME: "code-confluence-flow-bridge"
       OTEL_PROPAGATORS: "tracecontext,baggage"
       FRAMEWORK_DEFINITIONS_PATH: "../../framework-definitions"
+      TEMPORAL_MAX_CONCURRENT_ACTIVITIES: "3"
+      REPOSITORIES_BASE_PATH: "/opt/unoplat/repositories"
     cmds:
       - uv run fastapi dev
 
