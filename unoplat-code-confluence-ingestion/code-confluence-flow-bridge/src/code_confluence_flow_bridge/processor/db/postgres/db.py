@@ -5,6 +5,8 @@ from asyncio import current_task
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+from fastapi import HTTPException
+
 # Third-party imports
 from loguru import logger
 from sqlalchemy.ext.asyncio import (
@@ -119,18 +121,23 @@ async def get_session() -> AsyncGenerator[async_scoped_session, None]:
         async with scoped_session.begin():
             log_ctx.debug("Session transaction started")
             yield scoped_session
-            log_ctx.debug("Session transaction finished, changes will be committed on context exit")
-    except Exception:
+            log_ctx.debug(
+                "Session transaction finished, changes will be committed on context exit"
+            )
+    except HTTPException:
+        # Let FastAPI handle expected HTTP errors without logging as server errors
+        raise
+    except Exception as exc:
         # Use .exception() to include the full traceback according to Loguru docs.
-        log_ctx.exception("Encountered error inside DB session context: {exc}")
+        log_ctx.exception("Unexpected error inside DB session context: {}", exc)
         raise
     finally:
         if scoped_session is not None:
             try:
                 await scoped_session.remove()
                 log_ctx.debug("Scoped session removed from registry (session cleanup complete)")
-            except Exception:
-                log_ctx.warning("Failed to clean up scoped session: {cleanup_exc}")
+            except Exception as cleanup_exc:
+                log_ctx.warning("Failed to clean up scoped session: {}", cleanup_exc)
 
 
 # Create alias for backwards compatibility

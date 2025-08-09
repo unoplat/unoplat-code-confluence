@@ -81,7 +81,7 @@ class EnvironmentSettings(BaseSettings):
     """Environment variables and secrets"""
 
     model_config = SettingsConfigDict(
-        env_prefix="UNOPLAT_",
+        #env_prefix="UNOPLAT_",
         env_file=(".env.dev", ".env.test", ".env.prod"),
         env_file_encoding="utf-8",
         case_sensitive=True,
@@ -90,12 +90,12 @@ class EnvironmentSettings(BaseSettings):
         env_parse_none_str=None,  # Changed from list to None to fix type error
     )
 
-    neo4j_host: str = Field(default=..., alias="NEO4J_HOST")
+    neo4j_host: str = Field(default="localhost", alias="NEO4J_HOST")
 
-    neo4j_port: int = Field(default=..., alias="NEO4J_PORT")
+    neo4j_port: int = Field(default=7687, alias="NEO4J_PORT")
 
-    neo4j_username: str = Field(default=..., alias="NEO4J_USERNAME")
-    neo4j_password: SecretStr = Field(default=..., alias="NEO4J_PASSWORD")
+    neo4j_username: str = Field(default="neo4j", alias="NEO4J_USERNAME")
+    neo4j_password: SecretStr = Field(default="password", alias="NEO4J_PASSWORD")
 
     neo4j_max_connection_lifetime: int = Field(default=3600, alias="NEO4J_MAX_CONNECTION_LIFETIME", description="The maximum lifetime of a connection to the Neo4j database in seconds")
 

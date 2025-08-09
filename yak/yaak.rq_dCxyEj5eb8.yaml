@@ -1,8 +1,8 @@
 type: http_request
 model: http_request
-id: rq_hSEDgHvSMJ
-createdAt: 2025-06-05T07:26:10.494308
-updatedAt: 2025-06-06T04:55:14.599039
+id: rq_dCxyEj5eb8
+createdAt: 2025-08-04T06:28:05.039161
+updatedAt: 2025-08-05T06:36:29.496426
 workspaceId: wk_KULjx4bEa8
 folderId: fl_gqjfAddzF8
 authentication: {}
@@ -12,15 +12,15 @@ bodyType: null
 description: ''
 headers: []
 method: GET
-name: test-code-confluence
-sortPriority: 0.0
-url: http://localhost:8000/detect-codebases-sse
+name: test_get_code_Confluence_v2
+sortPriority: -0.0001
+url: http://localhost:8000/detect-codebases-sse/
 urlParameters:
 - enabled: true
   name: git_url
   value: https://www.github.com/unoplat/unoplat-code-confluence
-  id: xrXbPIFSBG
+  id: x9h427uTb5
 - enabled: true
   name: ''
   value: ''
-  id: se8SgaGUFw
+  id: e3TgzQUKXv

@@ -150,8 +150,8 @@ services:
       - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
       - DB_HOST=postgresql
       - TEMPORAL_DEBUG=false
-      - LOG_LEVEL=INFO
-      - REPOSITORIES_BASE_PATH=/root/.unoplat/repositories
+      - LOG_LEVEL=DEBUG
+      - REPOSITORIES_BASE_PATH=/opt/unoplat/repositories
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
       - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=3
     depends_on:
@@ -160,7 +160,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ${HOME}/unoplat/repositories:/root/.unoplat/repositories
+      - repositories_data:/opt/unoplat/repositories
     networks:
       - temporal-network
     stdin_open: true
@@ -192,4 +192,6 @@ volumes:
   postgresql_data:
     driver: local
   elasticsearch_data:
+    driver: local
+  repositories_data:
     driver: local 
