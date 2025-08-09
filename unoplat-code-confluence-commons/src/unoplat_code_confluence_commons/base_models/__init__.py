@@ -33,6 +33,8 @@ from .framework_models import (
 from ..repo_models import (
     Repository,
     CodebaseConfig as CodebaseConfigSQLModel,
+    RepositoryWorkflowRun,
+    CodebaseWorkflowRun,
 )
 from ..programming_language_metadata import (
     ProgrammingLanguageMetadata,
@@ -70,6 +72,8 @@ __all__ = [
     "CodebaseConfigSQLModel",
     "CodebaseConfig",
     "RepositorySettings",
+    "RepositoryWorkflowRun",
+    "CodebaseWorkflowRun",
     "ProgrammingLanguageMetadata",
     "ProgrammingLanguage", 
     "PackageManagerType",
