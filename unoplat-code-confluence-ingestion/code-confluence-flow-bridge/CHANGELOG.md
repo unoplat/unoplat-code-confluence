@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.45.0...code-confluence-flow-bridge-v0.46.0) (2025-08-08)
+
+
+### Features
+
+* **code-confluence-flow-bridge:** Update dependencies and imports ([0e24964](https://github.com/unoplat/unoplat-code-confluence/commit/0e24964638eb86078cf9694ce0b7549c0a55f9db))
+* **code-confluence-flow-bridge:** Update dependencies and imports ([223d6d0](https://github.com/unoplat/unoplat-code-confluence/commit/223d6d011d1f900f193ea001c61fcdf7928308ec))
+
+
+### Bug Fixes
+
+* **code-confluence-flow-bridge:** Move repository and codebase config models to commons package ([e6cd2a5](https://github.com/unoplat/unoplat-code-confluence/commit/e6cd2a50a2af49f1839da59ec2cb4681217e5cfc))
+
 ## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.44.3...code-confluence-flow-bridge-v0.45.0) (2025-08-08)
 
 
