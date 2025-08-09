@@ -1,0 +1,13 @@
+type: folder
+model: folder
+id: fl_zukJtBcFCC
+createdAt: 2025-08-07T04:56:22.807310
+updatedAt: 2025-08-07T04:56:22.807311
+workspaceId: wk_KULjx4bEa8
+folderId: fl_Pgb37JQfSX
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: codebase_agent_rules
+sortPriority: -1754542600000.0

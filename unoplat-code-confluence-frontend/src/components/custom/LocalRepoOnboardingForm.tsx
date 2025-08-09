@@ -152,7 +152,7 @@ export function LocalRepoOnboardingForm(): React.ReactElement {
         <CardDescription>
           Select a local Git repository to analyze and configure its codebases. 
           <br />
-          <strong>Note:</strong> Please ensure your repository is located in the directory configured by the backend's <code>REPOSITORIES_BASE_PATH</code> setting.
+          <strong>Note:</strong> Please ensure your repository is located in <code>/opt/unoplat/repositories</code> directory.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -209,8 +209,8 @@ export function LocalRepoOnboardingForm(): React.ReactElement {
                         </TooltipTrigger>
                         <TooltipContent side="right" align="start" className="max-w-[300px] text-sm">
                           <p>
-                            Select a folder that contains a Git repository (.git folder) from the directory configured by the backend's <code>REPOSITORIES_BASE_PATH</code> setting. 
-                            The system will automatically detect the correct path based on your environment and volume mount configuration.
+                            Select a folder that contains a Git repository (.git folder) from the <code>/opt/unoplat/repositories</code> directory. 
+                            The system will automatically detect and construct the correct path for processing your local repository.
                           </p>
                         </TooltipContent>
                       </Tooltip>

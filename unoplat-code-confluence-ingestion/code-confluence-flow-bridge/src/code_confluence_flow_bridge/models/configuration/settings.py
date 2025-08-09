@@ -81,7 +81,7 @@ class EnvironmentSettings(BaseSettings):
     """Environment variables and secrets"""
 
     model_config = SettingsConfigDict(
-        env_prefix="UNOPLAT_",
+        #env_prefix="UNOPLAT_",
         env_file=(".env.dev", ".env.test", ".env.prod"),
         env_file_encoding="utf-8",
         case_sensitive=True,
