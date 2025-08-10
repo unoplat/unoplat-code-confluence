@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.25.0...unoplat-code-confluence-frontend-v1.25.1) (2025-08-09)
+
+
+### Bug Fixes
+
+* docker security posture update , regression fixes for delete/refresh endpoints, update volume mount directory to sync across macos/linux ([96981da](https://github.com/unoplat/unoplat-code-confluence/commit/96981da0ca1df987eecd1c773a2cee8640087192))
+* docker security posture update , regression fixes for delete/refresh endpoints, update volume mount directory to sync across macos/linux ([d4ff81c](https://github.com/unoplat/unoplat-code-confluence/commit/d4ff81c7dd3dc9b43022617eafbf4e011da219d5))
+
 ## [1.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.24.3...unoplat-code-confluence-frontend-v1.25.0) (2025-07-02)
 
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.46.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.46.0...code-confluence-flow-bridge-v0.46.1) (2025-08-09)
+
+
+### Bug Fixes
+
+* **configuration:** Set default Neo4j connection settings ([1a73090](https://github.com/unoplat/unoplat-code-confluence/commit/1a73090376d579cbc0c97d0271043774e4c128b6))
+* docker security posture update , regression fixes for delete/refresh endpoints, update volume mount directory to sync across macos/linux ([96981da](https://github.com/unoplat/unoplat-code-confluence/commit/96981da0ca1df987eecd1c773a2cee8640087192))
+* docker security posture update , regression fixes for delete/refresh endpoints, update volume mount directory to sync across macos/linux ([d4ff81c](https://github.com/unoplat/unoplat-code-confluence/commit/d4ff81c7dd3dc9b43022617eafbf4e011da219d5))
+
 ## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.45.0...code-confluence-flow-bridge-v0.46.0) (2025-08-08)
 
 
