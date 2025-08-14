@@ -4,6 +4,9 @@ from temporalio.exceptions import ActivityError, ApplicationError
 from temporalio.workflow import ChildWorkflowHandle, ParentClosePolicy
 
 with workflow.unsafe.imports_passed_through():
+    import asyncio
+    from datetime import timedelta
+
     from src.code_confluence_flow_bridge.logging.trace_utils import (
         seed_and_bind_logger_from_trace_id,
     )
@@ -25,9 +28,6 @@ with workflow.unsafe.imports_passed_through():
     from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import (
         ConfluenceGitGraph,
     )
-
-    import asyncio
-    from datetime import timedelta
 
 
 with workflow.unsafe.imports_passed_through():

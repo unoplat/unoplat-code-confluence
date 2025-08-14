@@ -1,6 +1,8 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from typing import Dict, Tuple
+
+from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguage,
 )
 from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import (
@@ -12,8 +14,6 @@ from src.code_confluence_flow_bridge.parser.linters.linter_strategy import (
 from src.code_confluence_flow_bridge.parser.linters.python.ruff_strategy import (
     RuffStrategy,
 )
-
-from typing import Dict, Tuple
 
 
 class LinterStrategyFactory:

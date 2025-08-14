@@ -1,3 +1,8 @@
+import traceback
+
+from temporalio import activity
+from temporalio.exceptions import ApplicationError
+
 from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
 from src.code_confluence_flow_bridge.confluence_git.local_git_helper import (
     LocalGitHelper,
@@ -11,11 +16,6 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     GitActivityEnvelope,
 )
-
-import traceback
-
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
 
 
 class GitActivity:

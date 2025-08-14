@@ -1,16 +1,20 @@
-import pytest
-import tomlkit
 from pathlib import Path
 from typing import Dict
 
-from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import PythonPoetryStrategy
-from src.code_confluence_flow_bridge.models.configuration.settings import (
-    ProgrammingLanguageMetadata, 
-    PackageManagerType,
-    ProgrammingLanguage
+import pytest
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatProjectDependency,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import UnoplatProjectDependency
+from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import (
+    PythonPoetryStrategy,
+)
 from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
+import tomlkit
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    PackageManagerType,
+    ProgrammingLanguage,
+    ProgrammingLanguageMetadata,
+)
 
 # Constants
 TEST_DATA_DIR = Path(__file__).parent.parent.parent / "test_data"

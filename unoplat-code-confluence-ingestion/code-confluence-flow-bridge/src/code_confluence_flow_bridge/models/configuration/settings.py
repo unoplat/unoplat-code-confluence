@@ -6,16 +6,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 # Import from commons package
-from unoplat_code_confluence_commons.base_models import (
-    ProgrammingLanguage,
-    PackageManagerType,
-    ProgrammingLanguageMetadata,
-    CodebaseConfig,
-    RepositorySettings,
-)
-    
 
 
 class DatabaseType(str, Enum):
@@ -95,7 +86,7 @@ class EnvironmentSettings(BaseSettings):
     neo4j_port: int = Field(default=7687, alias="NEO4J_PORT")
 
     neo4j_username: str = Field(default="neo4j", alias="NEO4J_USERNAME")
-    neo4j_password: SecretStr = Field(default="password", alias="NEO4J_PASSWORD")
+    neo4j_password: SecretStr = Field(default=SecretStr("password"), alias="NEO4J_PASSWORD")
 
     neo4j_max_connection_lifetime: int = Field(default=3600, alias="NEO4J_MAX_CONNECTION_LIFETIME", description="The maximum lifetime of a connection to the Neo4j database in seconds")
 

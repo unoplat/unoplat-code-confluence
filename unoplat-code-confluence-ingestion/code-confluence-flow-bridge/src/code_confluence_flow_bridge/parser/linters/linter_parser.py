@@ -1,5 +1,7 @@
 
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from typing import List, Optional
+
+from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
 from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import (
@@ -8,8 +10,6 @@ from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter impo
 from src.code_confluence_flow_bridge.parser.linters.linter_factory import (
     LinterStrategyFactory,
 )
-
-from typing import List, Optional
 
 
 class LinterParser:

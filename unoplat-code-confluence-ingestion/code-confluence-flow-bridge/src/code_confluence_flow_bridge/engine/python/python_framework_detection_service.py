@@ -4,7 +4,9 @@ Python-specific framework detection service implementation.
 
 from typing import List, Optional
 
-from unoplat_code_confluence_commons.base_models import StructuralSignature, Detection
+from loguru import logger
+from unoplat_code_confluence_commons.base_models import Detection, StructuralSignature
+
 from src.code_confluence_flow_bridge.engine.framework_detection_service import (
     FrameworkDetectionService,
 )
@@ -18,7 +20,6 @@ from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
 from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
     get_framework_features_for_imports,
 )
-from loguru import logger
 
 
 class PythonFrameworkDetectionService(FrameworkDetectionService):
