@@ -1,12 +1,12 @@
 """Package model for representing packages/modules in the codebase."""
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
-    UnoplatFile,
-)
-
 from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
+
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
+    UnoplatFile,
+)
 
 
 class UnoplatPackage(BaseModel):

@@ -3,7 +3,7 @@
     "sqlmodel": {
       "docs_url": "https://sqlmodel.tiangolo.com",
       "features": {
-        "sqlmodel_base": {
+        "db_data_model": {
           "description": "Base class for SQLModel models combining Pydantic and SQLAlchemy",
           "absolute_paths": [
             "sqlmodel.SQLModel"

@@ -12,8 +12,6 @@ from datetime import datetime, timezone
 import json
 from typing import Any, AsyncGenerator, Dict, Optional
 
-from sse_starlette.sse import EventSourceResponse
-
 
 class SSEMessage:
     """Helper class for formatting SSE messages as dictionaries for sse-starlette."""

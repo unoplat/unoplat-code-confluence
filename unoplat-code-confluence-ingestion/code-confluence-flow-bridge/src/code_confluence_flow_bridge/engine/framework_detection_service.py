@@ -5,7 +5,7 @@ Abstract base class for language-specific framework detection services.
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from unoplat_code_confluence_commons.base_models import StructuralSignature, Detection
+from unoplat_code_confluence_commons.base_models import Detection, StructuralSignature
 
 
 class FrameworkDetectionService(ABC):

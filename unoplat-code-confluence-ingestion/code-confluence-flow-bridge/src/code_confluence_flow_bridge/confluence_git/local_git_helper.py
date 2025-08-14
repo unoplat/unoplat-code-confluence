@@ -1,3 +1,10 @@
+import os
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from git import Repo
+from loguru import logger
+
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
     UnoplatCodebase,
 )
@@ -10,13 +17,6 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoRequestConfiguration,
 )
-
-import os
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-
-from git import Repo
-from loguru import logger
 
 
 class LocalGitHelper:

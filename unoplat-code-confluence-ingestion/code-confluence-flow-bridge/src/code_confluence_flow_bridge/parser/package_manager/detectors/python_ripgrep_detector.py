@@ -16,16 +16,18 @@ from typing import Dict, List, Optional, Tuple
 
 from aiofile import async_open
 from git import Repo
-import yaml  # type: ignore
-
-from src.code_confluence_flow_bridge.models.configuration.settings import (
-    CodebaseConfig,
-    FileNode,
-    LanguageRules,
-    ManagerRule,
+from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
+from unoplat_code_confluence_commons.programming_language_metadata import (
     PackageManagerType,
     ProgrammingLanguage,
     ProgrammingLanguageMetadata,
+)
+import yaml  # type: ignore
+
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    FileNode,
+    LanguageRules,
+    ManagerRule,
     Signature,
 )
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.ordered_detection import (

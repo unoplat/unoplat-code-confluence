@@ -1,3 +1,31 @@
+import json
+import traceback
+from typing import Any, Dict, List, Optional, Type
+
+from loguru import logger
+from neo4j import AsyncManagedTransaction, AsyncSession, Record
+from neomodel import AsyncStructuredNode, adb
+from neomodel.exceptions import RequiredProperty, UniqueProperty
+from sqlmodel import select
+from temporalio.exceptions import ApplicationError
+from unoplat_code_confluence_commons import (
+    CodeConfluencePackageManagerMetadata,
+)
+
+# 🐘 PostgreSQL models for framework lookup
+from unoplat_code_confluence_commons.base_models import (
+    Framework as PGFramework,
+)
+from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
+    CodeConfluenceCodebase,
+)
+from unoplat_code_confluence_commons.graph_models.code_confluence_framework import (
+    CodeConfluenceFramework,
+)
+from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
+    CodeConfluenceGitRepository,
+)
+
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
     activity_name_var,
@@ -13,34 +41,7 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import (
     ParentChildCloneMetadata,
 )
-
-import json
-import traceback
-from typing import Any, Dict, List, Optional, Type
-
-# 🐘 PostgreSQL models for framework lookup
-from unoplat_code_confluence_commons.base_models import (
-    Framework as PGFramework,
-)
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from loguru import logger
-from neo4j import AsyncManagedTransaction, AsyncSession, Record
-from neomodel import AsyncStructuredNode, adb
-from neomodel.exceptions import RequiredProperty, UniqueProperty
-from sqlmodel import select
-from temporalio.exceptions import ApplicationError
-from unoplat_code_confluence_commons import (
-    CodeConfluencePackageManagerMetadata,
-)
-from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
-    CodeConfluenceCodebase,
-)
-from unoplat_code_confluence_commons.graph_models.code_confluence_framework import (
-    CodeConfluenceFramework,
-)
-from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
-    CodeConfluenceGitRepository,
-)
 
 
 class CodeConfluenceGraphIngestion:

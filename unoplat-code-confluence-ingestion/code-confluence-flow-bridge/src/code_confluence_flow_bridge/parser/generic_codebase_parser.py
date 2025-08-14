@@ -5,6 +5,20 @@ This module provides a language-neutral parser that uses TreeSitterStructuralSig
 for AST analysis and ingests results into Neo4j using neomodel operations.
 """
 
+import asyncio
+
+# No longer need graph_context - using neomodel operations directly with global connection
+import hashlib
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional, Set
+
+from unoplat_code_confluence_commons.base_models import (
+    ProgrammingLanguageMetadata,
+)
+
+from src.code_confluence_flow_bridge.detector.data_model_detector import (
+    detect_data_model,
+)
 from src.code_confluence_flow_bridge.engine.framework_detection_service import (
     FrameworkDetectionService,
 )
@@ -20,9 +34,6 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from unoplat_code_confluence_commons.base_models import (
-    ProgrammingLanguageMetadata,
-)
 from src.code_confluence_flow_bridge.parser.language_configs import (
     LanguageConfig,
     get_config,
@@ -30,13 +41,6 @@ from src.code_confluence_flow_bridge.parser.language_configs import (
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
     TreeSitterStructuralSignatureExtractor,
 )
-
-import asyncio
-
-# No longer need graph_context - using neomodel operations directly with global connection
-import hashlib
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional, Set
 
 if TYPE_CHECKING:
     from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
@@ -53,9 +57,6 @@ from neomodel import (  # type: ignore  # imported lazily to avoid circular deps
 )
 from unoplat_code_confluence_commons.graph_models.base_models import (
     ContainsRelationship,
-)
-from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
-    CodeConfluenceCodebase,
 )
 from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
     CodeConfluencePackage,
@@ -118,6 +119,9 @@ class GenericCodebaseParser:
 
         # Language-specific file extensions
         self.file_extensions = self._get_file_extensions()
+        
+        # Initialize components immediately
+        self._initialize_components()
 
         logger.info(
             "Parser initialized | codebase_name={} | language={}",
@@ -383,6 +387,14 @@ class GenericCodebaseParser:
             # Extract imports directly from source code
             imports = await asyncio.to_thread(self._extract_imports_from_source,content)
 
+            # Detect if file contains data models
+            is_data_model = detect_data_model(
+                source_code=content,
+                imports=imports,
+                language=self.programming_language_metadata.language.value,
+                structural_signature=signature
+            )
+
             # Detect framework features using the structural signature
             custom_features_list = None
             if self.framework_detection_service:
@@ -408,6 +420,7 @@ class GenericCodebaseParser:
                 structural_signature=signature,  # Store the actual object, not dict
                 imports=imports,
                 custom_features_list=custom_features_list,
+                is_data_model=is_data_model,
             )
 
             return unoplat_file
@@ -618,64 +631,7 @@ class GenericCodebaseParser:
             )
             raise
 
-    async def _connect_root_packages_old(
-        self, package_files: Dict[str, List[str]]
-    ) -> None:
-        """Connect top-level packages (direct children of the codebase) to the CodeConfluenceCodebase node.
-
-        NOTE: Soon to be deprecated - use _connect_root_packages_managed() instead
-
-        Args:
-            package_files: Map of package qualified names to their file lists.
-        """
-        try:
-            # Import lazily to avoid circular import issues
-            async with adb.transaction:
-                # Fetch the codebase node (it must already exist – created during git ingestion step)
-                codebase_node = await CodeConfluenceCodebase.nodes.get(
-                    qualified_name=self.codebase_name
-                )
-
-                root_package_names = []
-                for pkg_name in package_files.keys():
-                    if Path(pkg_name).parent == self.codebase_path.resolve():
-                        root_package_names.append(pkg_name)
-
-                if not root_package_names:
-                    logger.warning(
-                        "No root packages discovered for codebase {} – skipping relationship creation",
-                        self.codebase_name,
-                    )
-                    return
-
-                for root_pkg in root_package_names:
-                    try:
-                        pkg_node = await CodeConfluencePackage.nodes.get(
-                            qualified_name=root_pkg
-                        )
-                        # Connect both directions using safe pattern
-                        await codebase_node.packages.connect(pkg_node)
-                        await pkg_node.codebase.connect(codebase_node)
-                    except Exception as e:
-                        logger.warning(
-                            "Failed to connect root package {} to codebase {}: {}",
-                            root_pkg,
-                            self.codebase_name,
-                            str(e),
-                        )
-
-                logger.info(
-                    "Connected {} root packages to codebase {}",
-                    len(root_package_names),
-                    self.codebase_name,
-                )
-        except Exception as outer_err:
-            logger.error(
-                "Error while connecting root packages for codebase {}: {}",
-                self.codebase_name,
-                str(outer_err),
-            )
-
+    
     async def _connect_root_packages_managed(
         self, session: AsyncSession, package_files: Dict[str, List[str]]
     ) -> None:
@@ -764,6 +720,7 @@ class GenericCodebaseParser:
                     if unoplat_file.structural_signature
                     else "{}",
                     "imports": unoplat_file.imports or [],
+                    "is_data_model": unoplat_file.is_data_model,
                 }
 
                 # Follow neomodel's create_or_update pattern: MERGE only on required properties (file_path)
@@ -772,11 +729,13 @@ class GenericCodebaseParser:
                 ON CREATE SET 
                     f.checksum = $checksum,
                     f.structural_signature = $structural_signature,
-                    f.imports = $imports
+                    f.imports = $imports,
+                    f.is_data_model = $is_data_model
                 ON MATCH SET 
                     f.checksum = $checksum,
                     f.structural_signature = $structural_signature,
-                    f.imports = $imports
+                    f.imports = $imports,
+                    f.is_data_model = $is_data_model
                 RETURN f
                 """
 
@@ -887,8 +846,6 @@ class GenericCodebaseParser:
         Uses managed transactions to prevent concurrent access conflicts.
         """
         try:
-            self._initialize_components()
-
             logger.info(f"Starting codebase processing: {self.codebase_name}")
 
             # 1. Discover packages and files

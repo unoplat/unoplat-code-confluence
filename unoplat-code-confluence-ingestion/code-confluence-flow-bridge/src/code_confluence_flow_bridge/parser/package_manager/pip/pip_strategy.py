@@ -1,13 +1,20 @@
 # Standard Library
 # First Party
+from pathlib import Path
+from typing import Dict, List, Optional
+
+# Third Party
+from loguru import logger
+from packaging.requirements import Requirement
+from unoplat_code_confluence_commons.base_models import (
+    PackageManagerType,
+    ProgrammingLanguageMetadata,
+)
+
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatPackageManagerMetadata,
     UnoplatProjectDependency,
     UnoplatVersion,
-)
-from unoplat_code_confluence_commons.base_models import (
-    PackageManagerType,
-    ProgrammingLanguageMetadata,
 )
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import (
     PackageManagerStrategy,
@@ -15,13 +22,6 @@ from src.code_confluence_flow_bridge.parser.package_manager.package_manager_stra
 from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser import (
     SetupParser,
 )
-
-from pathlib import Path
-from typing import Dict, List, Optional
-
-# Third Party
-from loguru import logger
-from packaging.requirements import Requirement
 
 
 class PipStrategy(PackageManagerStrategy):

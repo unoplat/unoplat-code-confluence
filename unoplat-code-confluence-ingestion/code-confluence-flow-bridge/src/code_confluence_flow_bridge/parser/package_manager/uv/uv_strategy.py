@@ -1,18 +1,5 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
-    UnoplatPackageManagerMetadata,
-    UnoplatProjectDependency,
-    UnoplatVersion,
-)
-from unoplat_code_confluence_commons.base_models import (
-    ProgrammingLanguageMetadata,
-)
-from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import (
-    PackageManagerStrategy,
-)
-from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
-
 from pathlib import Path
 import tomllib
 from typing import Dict, List, Optional
@@ -20,6 +7,19 @@ from urllib.parse import parse_qs, urlsplit
 
 # Third Party
 from loguru import logger
+from unoplat_code_confluence_commons.base_models import (
+    ProgrammingLanguageMetadata,
+)
+
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatPackageManagerMetadata,
+    UnoplatProjectDependency,
+    UnoplatVersion,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import (
+    PackageManagerStrategy,
+)
+from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 
 class UvStrategy(PackageManagerStrategy):

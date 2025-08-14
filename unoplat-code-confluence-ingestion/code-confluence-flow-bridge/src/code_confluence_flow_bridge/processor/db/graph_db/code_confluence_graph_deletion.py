@@ -1,13 +1,3 @@
-from src.code_confluence_flow_bridge.logging.trace_utils import (
-    activity_id_var,
-    activity_name_var,
-    workflow_id_var,
-    workflow_run_id_var,
-)
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
-    CodeConfluenceGraph,
-)
-
 import traceback
 from typing import Dict, List, Optional, Set, Union
 
@@ -23,6 +13,16 @@ from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository
 )
 from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
     CodeConfluencePackage,
+)
+
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    activity_id_var,
+    activity_name_var,
+    workflow_id_var,
+    workflow_run_id_var,
+)
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
+    CodeConfluenceGraph,
 )
 
 

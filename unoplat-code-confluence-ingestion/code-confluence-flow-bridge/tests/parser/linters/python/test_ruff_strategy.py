@@ -10,7 +10,7 @@ import tomlkit
 from tomlkit.items import Comment, Table
 
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import ProgrammingLanguage
+from unoplat_code_confluence_commons.programming_language_metadata import ProgrammingLanguage
 from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import LinterType
 from src.code_confluence_flow_bridge.parser.linters.linter_factory import LinterStrategyFactory
 from src.code_confluence_flow_bridge.parser.linters.linter_strategy import LinterStrategy

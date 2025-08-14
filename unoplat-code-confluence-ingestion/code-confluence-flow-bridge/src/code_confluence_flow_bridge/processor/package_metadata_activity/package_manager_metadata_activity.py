@@ -1,3 +1,8 @@
+import traceback
+
+from temporalio import activity
+from temporalio.exceptions import ApplicationError
+
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     seed_and_bind_logger_from_trace_id,
 )
@@ -10,11 +15,6 @@ from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_parser import (
     PackageManagerParser,
 )
-
-import traceback
-
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
 
 
 class PackageMetadataActivity:
