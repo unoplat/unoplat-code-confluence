@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.46.1...code-confluence-flow-bridge-v0.47.0) (2025-08-14)
+
+
+### Features
+
+* **codebase-parsing:** Improve package and file parsing ([a72a29b](https://github.com/unoplat/unoplat-code-confluence/commit/a72a29bf7970e9719dac3c2a95f21a7aaa7554b7))
+* **codebase-parsing:** Improve package and file parsing ([efcd5df](https://github.com/unoplat/unoplat-code-confluence/commit/efcd5dfc28f6b0afdcb38f1947765a667d01a3bc))
+
+
+### Bug Fixes
+
+* Improve dataclass detection and update .gitignore ([3c23a7c](https://github.com/unoplat/unoplat-code-confluence/commit/3c23a7cb71398134b082b61a2c912556387ecd08))
+
 ## [0.46.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.46.0...code-confluence-flow-bridge-v0.46.1) (2025-08-09)
 
 
