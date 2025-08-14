@@ -1,3 +1,9 @@
+import traceback
+
+from loguru import logger
+from temporalio import activity
+from temporalio.exceptions import ApplicationError
+
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
     activity_name_var,
@@ -20,12 +26,6 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import (
     CodeConfluenceGraphIngestion,
 )
-
-import traceback
-
-from loguru import logger
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
 
 
 class ConfluenceGitGraph:

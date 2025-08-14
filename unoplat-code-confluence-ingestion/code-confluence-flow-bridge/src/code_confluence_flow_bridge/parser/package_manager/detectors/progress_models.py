@@ -5,12 +5,11 @@ Simple models for tracking detection progress during SSE streaming.
 """
 
 # Import the actual CodebaseConfig model
-from unoplat_code_confluence_commons.base_models import CodebaseConfig
-
 from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
+from unoplat_code_confluence_commons.base_models import CodebaseConfig
 
 
 class DetectionState(str, Enum):

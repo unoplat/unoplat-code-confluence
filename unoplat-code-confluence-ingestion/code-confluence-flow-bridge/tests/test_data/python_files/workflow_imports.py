@@ -8,19 +8,19 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     # First Party (Internal) Imports
     from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_package_manager_metadata import (
-        UnoplatPackageManagerMetadata
-    )
-    from src.code_confluence_flow_bridge.models.configuration.settings import (
-        PackageManagerType,
-        ProgrammingLanguage,
-        ProgrammingLanguageMetadata
+        UnoplatPackageManagerMetadata,
     )
     from src.code_confluence_flow_bridge.processor.codebase_processing.codebase_processing_activity import (
-        CodebaseProcessingActivity
+        CodebaseProcessingActivity,
     )
     from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import (
-        PackageMetadataActivity
+        PackageMetadataActivity,
     )
     from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import (
-        PackageManagerMetadataIngestion
-    ) 
+        PackageManagerMetadataIngestion,
+    )
+    from unoplat_code_confluence_commons.programming_language_metadata import (
+        PackageManagerType,
+        ProgrammingLanguage,
+        ProgrammingLanguageMetadata,
+    )

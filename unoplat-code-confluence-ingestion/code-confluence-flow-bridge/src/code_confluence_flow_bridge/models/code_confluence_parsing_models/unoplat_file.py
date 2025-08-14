@@ -2,8 +2,8 @@
 
 from typing import List, Optional
 
-from unoplat_code_confluence_commons.base_models import StructuralSignature, Detection
 from pydantic import BaseModel, Field
+from unoplat_code_confluence_commons.base_models import Detection, StructuralSignature
 
 
 class UnoplatFile(BaseModel):
@@ -26,4 +26,9 @@ class UnoplatFile(BaseModel):
     custom_features_list: Optional[List[Detection]] = Field(
         default=None,
         description="List of custom features detected in the file"
+    )
+    
+    is_data_model: bool = Field(
+        default=False,
+        description="True if file defines a Python data model (e.g., @dataclass)"
     )

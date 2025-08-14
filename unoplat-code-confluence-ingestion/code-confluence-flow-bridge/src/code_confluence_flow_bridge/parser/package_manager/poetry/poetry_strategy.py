@@ -1,10 +1,20 @@
 # Standard Library
+import os
+from typing import Dict, Optional
+
+from temporalio import activity
+
+# Third Party
+import tomlkit
+from validate_pyproject import api as validator_api
+from validate_pyproject.errors import ValidationError
+
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatPackageManagerMetadata,
     UnoplatProjectDependency,
     UnoplatVersion,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from unoplat_code_confluence_commons.programming_language_metadata import (
     PackageManagerType,
     ProgrammingLanguageMetadata,
 )
@@ -18,16 +28,6 @@ from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser i
     SetupParser,
 )
 from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
-
-import os
-from typing import Dict, Optional
-
-from temporalio import activity
-
-# Third Party
-import tomlkit
-from validate_pyproject import api as validator_api
-from validate_pyproject.errors import ValidationError
 
 
 class PythonPoetryStrategy(PackageManagerStrategy):

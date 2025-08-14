@@ -1,11 +1,5 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
-    UnoplatPackageManagerMetadata,
-    UnoplatProjectDependency,
-    UnoplatVersion,
-)
-
 import os
 import ast
 import configparser
@@ -15,6 +9,12 @@ from packaging.requirements import Requirement
 
 # Third Party
 from temporalio import activity
+
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatPackageManagerMetadata,
+    UnoplatProjectDependency,
+    UnoplatVersion,
+)
 
 
 class SetupParser:
