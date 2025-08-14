@@ -1,15 +1,18 @@
 # Standard Library
 from pathlib import Path
+
 import pytest
+from src.code_confluence_flow_bridge.parser.package_manager.uv.uv_strategy import (
+    UvStrategy,
+)
+from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import (
-    ProgrammingLanguageMetadata,
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    PackageManagerType,
     ProgrammingLanguage,
-    PackageManagerType
+    ProgrammingLanguageMetadata,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.uv.uv_strategy import UvStrategy
-from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 # Constants
 TEST_DATA_DIR = Path(__file__).parent.parent.parent / "test_data"

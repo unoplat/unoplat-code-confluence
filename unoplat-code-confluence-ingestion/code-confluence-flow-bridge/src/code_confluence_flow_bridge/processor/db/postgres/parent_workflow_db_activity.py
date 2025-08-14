@@ -1,3 +1,14 @@
+from datetime import datetime, timezone
+from typing import Optional
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from temporalio import activity
+from unoplat_code_confluence_commons.base_models import (
+    CodebaseConfigSQLModel as CodebaseConfig,
+    Repository,
+    RepositoryWorkflowRun,
+)
+
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     seed_and_bind_logger_from_trace_id,
 )
@@ -9,17 +20,6 @@ from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     ParentWorkflowDbActivityEnvelope,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from unoplat_code_confluence_commons.base_models import (
-    CodebaseConfigSQLModel as CodebaseConfig,
-    Repository,
-    RepositoryWorkflowRun,
-)
-
-from datetime import datetime, timezone
-from typing import Optional
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from temporalio import activity
 
 
 class ParentWorkflowDbActivity:

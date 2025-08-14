@@ -1,10 +1,9 @@
-from unoplat_code_confluence_commons.base_models import CodebaseConfig
-
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
+from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
 
 
 class GitHubOwner(BaseModel):

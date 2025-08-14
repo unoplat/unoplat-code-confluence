@@ -1,8 +1,4 @@
 # Standard Library
-from src.code_confluence_flow_bridge.models.configuration.settings import (
-    EnvironmentSettings,
-)
-
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -11,6 +7,10 @@ from neo4j import AsyncDriver, AsyncSession
 
 # Third Party
 from neomodel import adb, config  # type: ignore
+
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
 
 
 class CodeConfluenceGraph:

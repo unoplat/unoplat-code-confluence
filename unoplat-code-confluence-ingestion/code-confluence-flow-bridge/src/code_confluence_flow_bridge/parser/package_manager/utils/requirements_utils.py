@@ -1,10 +1,5 @@
 # Standard Library
 # First Party
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
-    UnoplatProjectDependency,
-    UnoplatVersion,
-)
-
 import os
 from typing import Dict, Optional, Tuple
 
@@ -13,6 +8,11 @@ from loguru import logger
 # Third Party
 import requirements
 from requirements.requirement import Requirement
+
+from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+    UnoplatProjectDependency,
+    UnoplatVersion,
+)
 
 
 class RequirementsUtils:

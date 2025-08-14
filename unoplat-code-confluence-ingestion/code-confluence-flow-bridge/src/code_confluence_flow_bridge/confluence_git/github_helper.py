@@ -1,3 +1,16 @@
+import os
+from datetime import datetime
+import traceback
+from typing import Any, Dict, List
+
+from git import Repo
+from github import Auth, Github
+from loguru import logger
+from temporalio.exceptions import ApplicationError
+from unoplat_code_confluence_commons.base_models import (
+    ProgrammingLanguageMetadata,
+)
+
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
     activity_name_var,
@@ -13,25 +26,12 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
     UnoplatPackageManagerMetadata,
 )
-from unoplat_code_confluence_commons.base_models import (
-    ProgrammingLanguageMetadata,
-)
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoRequestConfiguration,
 )
 from src.code_confluence_flow_bridge.utility.environment_utils import (
     ensure_local_repository_base_path,
 )
-
-import os
-from datetime import datetime
-import traceback
-from typing import Any, Dict, List
-
-from git import Repo
-from github import Auth, Github
-from loguru import logger
-from temporalio.exceptions import ApplicationError
 
 
 class GithubHelper:

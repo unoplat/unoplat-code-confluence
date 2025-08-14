@@ -5,6 +5,12 @@ This activity replaces the legacy CodebaseProcessingActivity with a new language
 approach that uses TreeSitterStructuralSignatureExtractor and optimized Neo4j streaming ingestion.
 """
 
+import traceback
+from typing import TYPE_CHECKING
+
+from temporalio import activity
+from temporalio.exceptions import ApplicationError
+
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     seed_and_bind_logger_from_trace_id,
 )
@@ -18,12 +24,6 @@ from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterP
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
     CodeConfluenceGraph,
 )
-
-import traceback
-from typing import TYPE_CHECKING
-
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
 
 if TYPE_CHECKING:
     from loguru import Logger

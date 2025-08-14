@@ -8,8 +8,8 @@ or complex tie-breaking logic needed.
 
 from __future__ import annotations
 
-import fnmatch
 import os
+import fnmatch
 from typing import List, Optional
 
 from src.code_confluence_flow_bridge.models.configuration.settings import (

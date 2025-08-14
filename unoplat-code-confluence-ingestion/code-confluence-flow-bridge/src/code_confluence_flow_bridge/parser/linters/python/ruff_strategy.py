@@ -1,7 +1,3 @@
-from src.code_confluence_flow_bridge.parser.linters.linter_strategy import (
-    LinterStrategy,
-)
-
 import os
 from pathlib import Path
 import re
@@ -10,6 +6,10 @@ from typing import Any, List, Optional
 
 from loguru import logger
 import tomlkit
+
+from src.code_confluence_flow_bridge.parser.linters.linter_strategy import (
+    LinterStrategy,
+)
 
 
 class RuffStrategy(LinterStrategy):

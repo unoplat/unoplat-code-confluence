@@ -8,19 +8,19 @@ analysis of pre-parsed structural signature data.
 import re
 from typing import Dict, List, Optional, Set
 
+from loguru import logger
 from unoplat_code_confluence_commons.base_models import (
-    ClassInfo,
-    FunctionInfo,
-    StructuralSignature,
     AnnotationLikeInfo,
     CallExpressionInfo,
+    ClassInfo,
     Concept,
     Detection,
     FeatureSpec,
+    FunctionInfo,
     InheritanceInfo,
     LocatorStrategy,
+    StructuralSignature,
 )
-from loguru import logger
 
 
 class SimplifiedPythonDetector:

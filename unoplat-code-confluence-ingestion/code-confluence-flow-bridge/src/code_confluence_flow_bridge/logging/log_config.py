@@ -1,13 +1,3 @@
-from src.code_confluence_flow_bridge.logging.loguru_oltp_handler import OTLPHandler
-from src.code_confluence_flow_bridge.logging.trace_utils import (
-    activity_id_var,
-    activity_name_var,
-    codebase_local_path_var,
-    trace_id_var,
-    workflow_id_var,
-    workflow_run_id_var,
-)
-
 import os
 import sys
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
@@ -17,6 +7,16 @@ from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+
+from src.code_confluence_flow_bridge.logging.loguru_oltp_handler import OTLPHandler
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    activity_id_var,
+    activity_name_var,
+    codebase_local_path_var,
+    trace_id_var,
+    workflow_id_var,
+    workflow_run_id_var,
+)
 
 if TYPE_CHECKING:
     from loguru import Logger
