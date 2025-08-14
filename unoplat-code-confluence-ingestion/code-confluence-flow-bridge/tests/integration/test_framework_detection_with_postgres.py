@@ -268,10 +268,10 @@ async def create_user(user: UserModel, db=Depends(get_db)):
                 assert len(framework_features["dependency_injection"]) >= 1, "Expected dependency injection"
             
             # Should detect SQLModel models (inheritance detection)
-            sql_model_detections = [d for d in detections if "sqlmodel_base" in d.feature_key.lower()]
+            sql_model_detections = [d for d in detections if "db_data_model" in d.feature_key.lower()]
             assert len(sql_model_detections) == 1, "Expected model detections"
             
-            pydantic_detections = [d for d in detections if "data_model" in d.feature_key.lower()]
+            pydantic_detections = [d for d in detections if d.feature_key.lower() == "data_model"]
             assert len(pydantic_detections) == 1, "Expected model detections"
             
             

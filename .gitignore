@@ -333,3 +333,14 @@ unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/linte
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/python/__pycache__
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/app/jars/scanner_cli-2.2.8-all.jar
 unoplat-code-confluence-frontend/registry-template-v4
+
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+.env
+# OS specific
+
+# Task files
+tasks.json
+tasks/ 
