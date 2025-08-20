@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.47.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.47.1...code-confluence-flow-bridge-v0.47.2) (2025-08-20)
+
+
+### Bug Fixes
+
+* Update unoplat-code-confluence-commons dependency to v0.24.1 ([4bf1637](https://github.com/unoplat/unoplat-code-confluence/commit/4bf163756674d5bf74b6641f5c2f1f9cc247e1dd))
+* Update unoplat-code-confluence-commons dependency to v0.24.1 ([976e08b](https://github.com/unoplat/unoplat-code-confluence/commit/976e08b1a584e29b697a4a12817557a9ad135250))
+
 ## [0.47.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.47.0...code-confluence-flow-bridge-v0.47.1) (2025-08-20)
 
 
