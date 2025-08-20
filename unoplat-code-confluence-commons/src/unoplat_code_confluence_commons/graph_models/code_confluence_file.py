@@ -11,6 +11,7 @@ from neomodel import (
     AsyncRelationshipTo,
     AsyncStructuredNode,
     AsyncZeroOrMore,
+    BooleanProperty,
     JSONProperty,
     StringProperty,
 )
@@ -39,6 +40,7 @@ class CodeConfluenceFile(AsyncStructuredNode):
         default=[]
     )
     class_variables = JSONProperty(default={})
+    has_data_model = BooleanProperty(default=False, index=True)
     # Relationship to framework features detected in this file
       # local import to avoid cycles
 
