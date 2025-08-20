@@ -357,32 +357,32 @@ class TestGenericCodebaseParserIntegration:
                 continue  # allow empty imports for package init files
             assert file_imports is not None, f"File {file_path} missing imports list"
 
-        # 10. Verify is_data_model field for dataclass files
+        # 10. Verify has_data_model field for dataclass files
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) WHERE f.file_path CONTAINS 'user_model.py' "
-            "RETURN f.file_path, f.is_data_model, f.imports"
+            "RETURN f.file_path, f.has_data_model, f.imports"
         )
 
         assert len(result) == 1, "Expected to find user_model.py"
-        _, is_data_model, imports = result[0]
+        _, has_data_model, imports = result[0]
 
         # Verify the file is correctly marked as a data model
-        assert is_data_model is True, "user_model.py should be marked as is_data_model=True"
+        assert has_data_model is True, "user_model.py should be marked as has_data_model=True"
         assert any("dataclass" in imp.lower() for imp in imports), "user_model.py should have dataclass imports"
 
         # 11. Verify non-dataclass files are marked correctly
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) WHERE f.file_path CONTAINS 'api_client.py' "
-            "RETURN f.file_path, f.is_data_model"
+            "RETURN f.file_path, f.has_data_model"
         )
 
         assert len(result) == 1, "Expected to find api_client.py"
-        _, api_is_data_model = result[0]
-        assert api_is_data_model is False, "api_client.py should be marked as is_data_model=False"
+        _, api_has_data_model = result[0]
+        assert api_has_data_model is False, "api_client.py should be marked as has_data_model=False"
 
         # 12. Count total dataclass vs non-dataclass files
         result, _ = neo4j_client.cypher_query(
-            "MATCH (f:CodeConfluenceFile) RETURN f.is_data_model, COUNT(f) as count"
+            "MATCH (f:CodeConfluenceFile) RETURN f.has_data_model, COUNT(f) as count"
         )
 
         dataclass_count = 0
@@ -430,7 +430,7 @@ class TestGenericCodebaseParserIntegration:
         unoplat_file = await parser.extract_file_data(str(dataclass_file))
         
         assert unoplat_file is not None
-        assert unoplat_file.is_data_model is True
+        assert unoplat_file.has_data_model is True
         assert any("dataclass" in imp.lower() for imp in unoplat_file.imports)
         
         # Test non-dataclass file
@@ -438,7 +438,7 @@ class TestGenericCodebaseParserIntegration:
         regular_unoplat_file = await parser.extract_file_data(str(regular_file))
         
         assert regular_unoplat_file is not None
-        assert regular_unoplat_file.is_data_model is False
+        assert regular_unoplat_file.has_data_model is False
         
         logger.info("extract_file_data dataclass detection test passed")
     

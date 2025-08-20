@@ -388,7 +388,7 @@ class GenericCodebaseParser:
             imports = await asyncio.to_thread(self._extract_imports_from_source,content)
 
             # Detect if file contains data models
-            is_data_model = detect_data_model(
+            has_data_model = detect_data_model(
                 source_code=content,
                 imports=imports,
                 language=self.programming_language_metadata.language.value,
@@ -420,7 +420,7 @@ class GenericCodebaseParser:
                 structural_signature=signature,  # Store the actual object, not dict
                 imports=imports,
                 custom_features_list=custom_features_list,
-                is_data_model=is_data_model,
+                has_data_model=has_data_model,
             )
 
             return unoplat_file
@@ -720,7 +720,7 @@ class GenericCodebaseParser:
                     if unoplat_file.structural_signature
                     else "{}",
                     "imports": unoplat_file.imports or [],
-                    "is_data_model": unoplat_file.is_data_model,
+                    "has_data_model": unoplat_file.has_data_model,
                 }
 
                 # Follow neomodel's create_or_update pattern: MERGE only on required properties (file_path)
@@ -730,12 +730,12 @@ class GenericCodebaseParser:
                     f.checksum = $checksum,
                     f.structural_signature = $structural_signature,
                     f.imports = $imports,
-                    f.is_data_model = $is_data_model
+                    f.has_data_model = $has_data_model
                 ON MATCH SET 
                     f.checksum = $checksum,
                     f.structural_signature = $structural_signature,
                     f.imports = $imports,
-                    f.is_data_model = $is_data_model
+                    f.has_data_model = $has_data_model
                 RETURN f
                 """
 
