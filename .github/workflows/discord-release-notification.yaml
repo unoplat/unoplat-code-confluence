@@ -1,0 +1,25 @@
+name: Discord Release Notification
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify-discord:
+    name: Send Discord Notification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Release Notification
+        uses: SethCohen/github-releases-to-discord@v1
+        with:
+          webhook_url: ${{ secrets.DISCORD_UNOPLAT_CODE_CONFLUENCE_WEBHOOK }}
+          color: 2105893
+          username: "Unoplat Release Bot"
+          avatar_url: "https://avatars.githubusercontent.com/${{ github.repository_owner }}"
+          content: "@everyone"
+          footer_title: "Unoplat Code Confluence"
+          footer_icon_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          footer_timestamp: true
+          max_description: 4096
+          remove_github_reference_links: false
+          reduce_headings: false
