@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.47.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.47.0...code-confluence-flow-bridge-v0.47.1) (2025-08-20)
+
+
+### Bug Fixes
+
+* **code-confluence-file:** change to `has_data_model` property from is_data_model ([d26a5e9](https://github.com/unoplat/unoplat-code-confluence/commit/d26a5e9091432397f1aad00d228de7eeb3f10d80))
+* **code-confluence-file:** change to `has_data_model` property from is_data_model ([7152410](https://github.com/unoplat/unoplat-code-confluence/commit/7152410a4c37bdea8467299f260a6af45536bca2))
+
 ## [0.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.46.1...code-confluence-flow-bridge-v0.47.0) (2025-08-14)
 
 
