@@ -28,7 +28,7 @@ class UnoplatFile(BaseModel):
         description="List of custom features detected in the file"
     )
     
-    is_data_model: bool = Field(
+    has_data_model: bool = Field(
         default=False,
-        description="True if file defines a Python data model (e.g., @dataclass)"
+        description="True if file contains classes that are data models (e.g., @dataclass)"
     )
