@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.48.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.47.2...code-confluence-flow-bridge-v0.48.0) (2025-08-22)
+
+
+### Features
+
+* **credentials:** Add support for multi-key credentials to support ai model providers secrets' ([d6abf29](https://github.com/unoplat/unoplat-code-confluence/commit/d6abf29e82cd6e88c97d98bf23780985262e7c70))
+* **credentials:** Add support for multi-key credentials to support ai model providers secrets' ([d1b43f0](https://github.com/unoplat/unoplat-code-confluence/commit/d1b43f01abf15d3ea61a047b7b6e59115673f7df))
+
 ## [0.47.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.47.1...code-confluence-flow-bridge-v0.47.2) (2025-08-20)
 
 
