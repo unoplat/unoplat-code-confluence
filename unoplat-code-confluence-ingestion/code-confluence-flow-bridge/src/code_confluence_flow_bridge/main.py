@@ -320,7 +320,7 @@ def create_worker(
 
 async def fetch_github_token_from_db(session: AsyncSession) -> str:
     """
-    Fetch and decrypt GitHub token from database.
+    Fetch and decrypt GitHub token from database using credential_key.
 
     Args:
         session: Database session
@@ -332,7 +332,9 @@ async def fetch_github_token_from_db(session: AsyncSession) -> str:
         HTTPException: If no credentials found or decryption fails
     """
     try:
-        result = await session.execute(select(Credentials))
+        result = await session.execute(
+            select(Credentials).where(Credentials.credential_key == "github_pat")
+        )
         credential: Optional[Credentials] = result.scalars().first()
     except Exception as db_error:
         logger.error("Database error while fetching credentials: {}", db_error)
@@ -341,7 +343,7 @@ async def fetch_github_token_from_db(session: AsyncSession) -> str:
         )
 
     if not credential:
-        raise HTTPException(status_code=404, detail="No credentials found")
+        raise HTTPException(status_code=404, detail="No GitHub credentials found")
 
     try:
         return decrypt_token(credential.token_hash)
@@ -741,7 +743,9 @@ async def ingest_token(
         encrypted_token: str = encrypt_token(token)
         current_time: datetime = datetime.now(timezone.utc)
 
-        result = await session.execute(select(Credentials))
+        result = await session.execute(
+            select(Credentials).where(Credentials.credential_key == "github_pat")
+        )
         credential: Optional[Credentials] = result.scalars().first()
 
         if credential is not None:
@@ -750,7 +754,11 @@ async def ingest_token(
                 detail="Token already ingested. Use update-token to update it.",
             )
 
-        credential = Credentials(token_hash=encrypted_token, created_at=current_time)
+        credential = Credentials(
+            credential_key="github_pat",
+            token_hash=encrypted_token, 
+            created_at=current_time
+        )
         session.add(credential)
 
         # Set the isTokenSubmitted flag to true
@@ -790,10 +798,12 @@ async def update_token(
         encrypted_token: str = encrypt_token(token)
         current_time: datetime = datetime.now(timezone.utc)
 
-        result = await session.execute(select(Credentials))
+        result = await session.execute(
+            select(Credentials).where(Credentials.credential_key == "github_pat")
+        )
         credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
-            raise HTTPException(status_code=404, detail="No token found to update")
+            raise HTTPException(status_code=404, detail="No GitHub token found to update")
 
         credential.token_hash = encrypted_token
         credential.updated_at = current_time
@@ -811,10 +821,12 @@ async def update_token(
 async def delete_token(session: AsyncSession = Depends(get_session)) -> Dict[str, str]:
     try:
         # Find existing credential
-        result = await session.execute(select(Credentials))
+        result = await session.execute(
+            select(Credentials).where(Credentials.credential_key == "github_pat")
+        )
         credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
-            raise HTTPException(status_code=404, detail="No token found to delete")
+            raise HTTPException(status_code=404, detail="No GitHub token found to delete")
 
         await session.delete(credential)
 
