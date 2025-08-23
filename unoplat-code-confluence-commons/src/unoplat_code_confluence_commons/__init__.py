@@ -32,6 +32,12 @@ from unoplat_code_confluence_commons.base_models import (
     ProgrammingLanguageMetadata,
     ProgrammingLanguage,
     PackageManagerType,
+    # Credentials model
+    Credentials,
+)
+from unoplat_code_confluence_commons.security import (
+    encrypt_token,
+    decrypt_token,
 )
 from unoplat_code_confluence_commons.graph_models import (
     BaseNode,
@@ -86,4 +92,9 @@ __all__ = [
     'ProgrammingLanguageMetadata',
     'ProgrammingLanguage',
     'PackageManagerType',
+    # Credentials model
+    'Credentials',
+    # Security utilities
+    'encrypt_token',
+    'decrypt_token',
 ]
