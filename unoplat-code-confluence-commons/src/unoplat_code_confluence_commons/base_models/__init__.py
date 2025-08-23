@@ -46,6 +46,11 @@ from ..configuration_models import (
     RepositorySettings,
 )
 
+# Credentials model
+from ..credentials import (
+    Credentials,
+)
+
 __all__ = [
     # Structural signature models
     "VariableInfo",
@@ -77,4 +82,6 @@ __all__ = [
     "ProgrammingLanguageMetadata",
     "ProgrammingLanguage", 
     "PackageManagerType",
+    # Credentials model
+    "Credentials",
 ]

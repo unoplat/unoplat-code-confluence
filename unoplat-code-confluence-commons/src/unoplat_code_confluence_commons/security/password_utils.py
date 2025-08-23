@@ -1,3 +1,5 @@
+"""Password and token encryption utilities using Fernet symmetric encryption."""
+
 import os
 
 from cryptography.fernet import Fernet
@@ -15,6 +17,7 @@ _fernet = Fernet(_encryption_key.encode())
 
 # Prefix for encrypted values
 _ENCRYPTED_PREFIX = "ENCRYPTED:"
+
 
 def encrypt_token(token: str) -> str:
     """
@@ -50,4 +53,4 @@ def decrypt_token(stored_token: str) -> str:
         return _fernet.decrypt(encrypted_part.encode()).decode()
     else:
         # Assume this is a plaintext token (not recommended in production)
-        return stored_token 
+        return stored_token
