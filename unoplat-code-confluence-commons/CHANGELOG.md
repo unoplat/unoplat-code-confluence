@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.24.1...unoplat-code-confluence-commons-v0.25.0) (2025-08-23)
+
+
+### Features
+
+* Add Credentials model and password encryption utilities ([d34372b](https://github.com/unoplat/unoplat-code-confluence/commit/d34372b51be929e8f349e64f1808d1fef822cf7d))
+* Add Credentials model and password encryption utilities ([592c828](https://github.com/unoplat/unoplat-code-confluence/commit/592c8283fd6e96c8a06bd4af175524cf05e69dd4))
+
 ## [0.24.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.24.0...unoplat-code-confluence-commons-v0.24.1) (2025-08-20)
 
 
