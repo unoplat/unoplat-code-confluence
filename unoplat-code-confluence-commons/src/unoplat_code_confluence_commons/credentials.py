@@ -1,3 +1,5 @@
+"""Credentials SQLModel for storing encrypted credentials with support for multiple credential types."""
+
 from datetime import datetime
 from typing import Optional
 
@@ -24,4 +26,4 @@ class Credentials(SQLModel, table=True):
         description="Encrypted credential value"
     )
     created_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True))) 
+    updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True)))
