@@ -34,9 +34,14 @@ from temporalio.exceptions import ApplicationError
 from temporalio.worker import PollerBehaviorAutoscaling, Worker
 from unoplat_code_confluence_commons.base_models import (
     CodebaseWorkflowRun,
+    Credentials,
     ProgrammingLanguageMetadata,
     Repository,
     RepositoryWorkflowRun,
+)
+from unoplat_code_confluence_commons.security import (
+    decrypt_token,
+    encrypt_token,
 )
 
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
@@ -98,9 +103,6 @@ from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph
 from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
     ChildWorkflowDbActivity,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.credentials import (
-    Credentials,
-)
 from src.code_confluence_flow_bridge.processor.db.postgres.db import (
     create_db_and_tables,
     dispose_current_engine,
@@ -141,10 +143,6 @@ from src.code_confluence_flow_bridge.utility.environment_utils import (
 )
 from src.code_confluence_flow_bridge.utility.git_remote_utils import (
     extract_github_organization_from_local_repo,
-)
-from src.code_confluence_flow_bridge.utility.password_utils import (
-    decrypt_token,
-    encrypt_token,
 )
 
 # Setup logging - override imported logger with configured one
