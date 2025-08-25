@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.25.0...unoplat-code-confluence-commons-v0.26.0) (2025-08-25)
+
+
+### Features
+
+* **base_models:** add Flag model and import it ([11556e8](https://github.com/unoplat/unoplat-code-confluence/commit/11556e8b590b4ad43e73a90209238d495fe88950))
+* **base_models:** add Flag model and import it ([9152caf](https://github.com/unoplat/unoplat-code-confluence/commit/9152cafb49ae2f61fc871cf889dbc70005780168))
+* **flags:** add SQLModel for feature flags ([9152caf](https://github.com/unoplat/unoplat-code-confluence/commit/9152cafb49ae2f61fc871cf889dbc70005780168))
+
 ## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.24.1...unoplat-code-confluence-commons-v0.25.0) (2025-08-23)
 
 
