@@ -16,7 +16,7 @@ jobs:
           color: 2105893
           username: "Unoplat Release Bot"
           avatar_url: "https://avatars.githubusercontent.com/${{ github.repository_owner }}"
-          content: "@everyone"
+          content: "Certified fresh… until the next release"
           footer_title: "Unoplat Code Confluence"
           footer_icon_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
           footer_timestamp: true
