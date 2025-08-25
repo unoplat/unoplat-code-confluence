@@ -34,6 +34,8 @@ from unoplat_code_confluence_commons.base_models import (
     PackageManagerType,
     # Credentials model
     Credentials,
+    # Flags model
+    Flag,
 )
 from unoplat_code_confluence_commons.security import (
     encrypt_token,
@@ -94,6 +96,8 @@ __all__ = [
     'PackageManagerType',
     # Credentials model
     'Credentials',
+    # Flags model
+    'Flag',
     # Security utilities
     'encrypt_token',
     'decrypt_token',
