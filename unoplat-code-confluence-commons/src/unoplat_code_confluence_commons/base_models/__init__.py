@@ -1,7 +1,7 @@
 """Common Pydantic and SQLModel base models for unoplat-code-confluence projects."""
 
 # Structural signature models
-from .structural_signature import (
+from unoplat_code_confluence_commons.base_models.structural_signature import (
     VariableInfo,
     FunctionInfo, 
     ClassInfo,
@@ -9,7 +9,7 @@ from .structural_signature import (
 )
 
 # Engine Pydantic models
-from .engine_models import (
+from unoplat_code_confluence_commons.base_models.engine_models import (
     TargetLevel,
     LocatorStrategy, 
     Concept,
@@ -23,32 +23,37 @@ from .engine_models import (
 )
 
 # Framework SQLModel models
-from .framework_models import (
+from unoplat_code_confluence_commons.base_models.framework_models import (
     Framework,
     FrameworkFeature,
     FeatureAbsolutePath,
 )
 
 # Repository and Programming Language models
-from ..repo_models import (
+from unoplat_code_confluence_commons.repo_models import (
     Repository,
     CodebaseConfig as CodebaseConfigSQLModel,
     RepositoryWorkflowRun,
     CodebaseWorkflowRun,
 )
-from ..programming_language_metadata import (
+from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
     ProgrammingLanguage,
     PackageManagerType,
 )
-from ..configuration_models import (
+from unoplat_code_confluence_commons.configuration_models import (
     CodebaseConfig,
     RepositorySettings,
 )
 
 # Credentials model
-from ..credentials import (
+from unoplat_code_confluence_commons.credentials import (
     Credentials,
+)
+
+# Flags model
+from unoplat_code_confluence_commons.flags import (
+    Flag,
 )
 
 __all__ = [
@@ -84,4 +89,6 @@ __all__ = [
     "PackageManagerType",
     # Credentials model
     "Credentials",
+    # Flags model
+    "Flag",
 ]
