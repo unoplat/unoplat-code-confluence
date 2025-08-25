@@ -35,6 +35,7 @@ from temporalio.worker import PollerBehaviorAutoscaling, Worker
 from unoplat_code_confluence_commons.base_models import (
     CodebaseWorkflowRun,
     Credentials,
+    Flag,
     ProgrammingLanguageMetadata,
     Repository,
     RepositoryWorkflowRun,
@@ -109,7 +110,6 @@ from src.code_confluence_flow_bridge.processor.db.postgres.db import (
     get_session,
     get_session_cm,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.flags import Flag
 from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
 )
