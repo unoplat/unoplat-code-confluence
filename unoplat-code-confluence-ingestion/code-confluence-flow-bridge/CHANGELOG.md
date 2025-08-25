@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.49.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.49.0...code-confluence-flow-bridge-v0.49.1) (2025-08-25)
+
+
+### Bug Fixes
+
+* Add Flag model to code-confluence-flow-bridge ([ec980e9](https://github.com/unoplat/unoplat-code-confluence/commit/ec980e99eeeb06a75b451ebadb277ebc2f2598b2))
+* Add Flag model to code-confluence-flow-bridge ([8e88530](https://github.com/unoplat/unoplat-code-confluence/commit/8e885300e8e1e4c205017d1faf1a3d53044e6a18))
+
 ## [0.49.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.48.0...code-confluence-flow-bridge-v0.49.0) (2025-08-23)
 
 
