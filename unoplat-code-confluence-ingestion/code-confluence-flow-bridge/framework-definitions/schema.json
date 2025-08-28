@@ -41,6 +41,10 @@
           "format":      "uri",
           "description": "Canonical documentation URL."
         },
+        "description": {
+          "type":        "string",
+          "description": "Human-readable description of the library. This is a short description of the library that is used to describe the library in the documentation."
+        },
         "version": {
           "type":        "string",
           "description": "Library version used to verify patterns (optional)."

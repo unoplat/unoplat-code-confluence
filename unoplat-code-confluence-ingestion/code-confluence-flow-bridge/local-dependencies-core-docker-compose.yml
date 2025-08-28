@@ -1,0 +1,165 @@
+version: "3.5"
+
+services:
+  # PostgreSQL service using Bitnami image
+  postgresql:
+    image: bitnami/postgresql:latest
+    container_name: code-confluence-postgresql
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=code_confluence
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/bitnami/postgresql
+    networks:
+      - code-confluence-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 50m
+        max-file: "3"
+  
+  # Elasticsearch service for Temporal
+  elasticsearch:
+    container_name: temporal-elasticsearch
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    image: elasticsearch:7.17.27
+    networks:
+      - code-confluence-network
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 50m
+        max-file: "3"
+  
+  # Temporal server
+  temporal:
+    container_name: temporal
+    depends_on:
+      - postgresql
+      - elasticsearch
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=postgres
+      - POSTGRES_SEEDS=postgresql
+      - ENABLE_ES=true
+      - ES_SEEDS=elasticsearch
+      - ES_VERSION=v7
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: temporalio/auto-setup:1.26.2
+    networks:
+      - code-confluence-network
+    ports:
+      - "7233:7233"
+    configs:
+      - source: temporal-dynamic-config
+        target: /etc/temporal/config/dynamicconfig/development-sql.yaml
+    healthcheck:
+      test: ["CMD-SHELL", "tctl cluster health | grep -i SERVING || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 50m
+        max-file: "3"
+  
+  # Temporal UI
+  temporal-ui:
+    container_name: temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+      - TEMPORAL_CSRF_COOKIE_INSECURE=True
+    image: temporalio/ui:2.34.0
+    networks:
+      - code-confluence-network
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 50m
+        max-file: "3"
+  
+  # Neo4j graph database
+  neo4j:
+    container_name: neo4j
+    image: graphstack/dozerdb:5.25.1.0-alpha.1
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ${HOME}/neo4j/data:/data
+      - ${HOME}/neo4j/logs:/logs
+      - ${HOME}/neo4j/import:/var/lib/neo4j/import
+      - ${HOME}/neo4j/plugins:/plugins
+    environment:
+      NEO4J_AUTH: neo4j/password
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_apoc_export_file_enabled: "true"
+      NEO4J_apoc_import_file_enabled: "true"
+      NEO4J_dbms_security_procedures_unrestricted: "*"
+    networks:
+      - code-confluence-network
+    healthcheck:
+      test: ["CMD-SHELL", "neo4j status | grep -q 'Neo4j is running' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 50m
+        max-file: "3"
+
+# Add default config for Temporal
+configs:
+  temporal-dynamic-config:
+    content: |
+      system.forceSearchAttributesCacheRefreshOnRead:
+        - value: true
+          constraints: {}
+      limit.maxIDLength:
+        - value: 255
+          constraints: {}
+
+networks:
+  code-confluence-network:
+    driver: bridge
+    name: code-confluence-network
+
+volumes:
+  postgresql_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
