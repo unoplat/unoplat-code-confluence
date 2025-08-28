@@ -2,7 +2,7 @@
   "python": {
     "pydantic": {
       "docs_url": "https://docs.pydantic.dev",
-      "description": "Pydantic is a fast and extensible data validation library for Python that uses type hints to define data schemas, offering powerful validation and serialization with automatic error handling.",
+      "description": "Pydantic is a fast and extensible data validation library for Python that uses type hints to define data schemas, offering validation and serialization with automatic error handling.",
       "features": {
         "data_model": {
           "description": "Base class for Pydantic models with automatic validation",
