@@ -10,6 +10,7 @@ on:
     paths:
       - 'unoplat-code-confluence-commons/**'
       - 'unoplat-code-confluence-ingestion/**'
+      - 'unoplat-code-confluence-query-engine/**'
 
 jobs:
   prepare-matrix:
@@ -42,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: ['unoplat-code-confluence-ingestion/code-confluence-flow-bridge']
+        project: ['unoplat-code-confluence-ingestion/code-confluence-flow-bridge', 'unoplat-code-confluence-query-engine']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
