@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.26.0...unoplat-code-confluence-commons-v0.27.0) (2025-08-28)
+
+
+### Features
+
+* Add framework/library description field ([2b720bf](https://github.com/unoplat/unoplat-code-confluence/commit/2b720bfaae77f79aa4fefce090a43dde39440d6b))
+* Add framework/library description field ([0383eaa](https://github.com/unoplat/unoplat-code-confluence/commit/0383eaa1272af0fd406a88d118a85544e3cccefc))
+
 ## [0.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.25.0...unoplat-code-confluence-commons-v0.26.0) (2025-08-25)
 
 
