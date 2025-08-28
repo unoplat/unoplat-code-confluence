@@ -13,43 +13,69 @@ on:
       - 'unoplat-code-confluence-query-engine/**'
 
 jobs:
-  prepare-matrix:
+  detect-changes:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        path: ['unoplat-code-confluence-commons']
+    permissions:
+      pull-requests: read
+    outputs:
+      commons: ${{ steps.filter.outputs.commons }}
+      flow-bridge: ${{ steps.filter.outputs.flow-bridge }}
+      query-engine: ${{ steps.filter.outputs.query-engine }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Detect changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            commons:
+              - 'unoplat-code-confluence-commons/**'
+            flow-bridge:
+              - 'unoplat-code-confluence-ingestion/code-confluence-flow-bridge/**'
+            query-engine:
+              - 'unoplat-code-confluence-query-engine/**'
+
+  build-commons:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.commons == 'true' }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ GITHUB.HEAD_REF }}
+          ref: ${{ github.head_ref }}
 
       - name: Install python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
-        working-directory: ${{ matrix.path }}
+        working-directory: unoplat-code-confluence-commons
         run: uv sync
+
       - name: Build package
-        working-directory: ${{ matrix.path }}
+        working-directory: unoplat-code-confluence-commons
         run: uv build
         
-  test-uv-projects:
+  test-flow-bridge:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.flow-bridge == 'true' || needs.detect-changes.outputs.commons == 'true' }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project: ['unoplat-code-confluence-ingestion/code-confluence-flow-bridge', 'unoplat-code-confluence-query-engine']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ GITHUB.HEAD_REF }}
+          ref: ${{ github.head_ref }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -90,7 +116,7 @@ jobs:
           sudo apt-get install -y ripgrep
 
       - name: Get package name for coverage
-        working-directory: ${{ matrix.project }}
+        working-directory: unoplat-code-confluence-ingestion/code-confluence-flow-bridge
         id: package
         run: |
           # Extract project name from pyproject.toml and convert hyphens to underscores
@@ -98,25 +124,90 @@ jobs:
           echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
         
       - name: Install dependencies and run tests
-        working-directory: ${{ matrix.project }}
+        working-directory: unoplat-code-confluence-ingestion/code-confluence-flow-bridge
         env:
           GITHUB_PAT_TOKEN: ${{ github.token }} 
         run: |
           uv sync --group test
           uv run --group test pytest --cov=src/${{ steps.package.outputs.name }} --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
 
-      - name: Set sanitized project name
-        id: sanitize
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-flow-bridge
+          path: |
+            unoplat-code-confluence-ingestion/code-confluence-flow-bridge/coverage_reports/
+          retention-days: 7
+    
+  test-query-engine:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.query-engine == 'true' || needs.detect-changes.outputs.commons == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      # 1) Always ensure the Compose v2 plugin is present
+      - name: Set up Docker Compose (v2)
+        uses: docker/setup-compose-action@v1
+        # pin a version if you need repeatability:
+        # with:
+        #   version: '2.37.0'
+
+      # 2) Drop in a shim so legacy tools that expect `docker-compose`
+      #    still work (but use v2 under the hood)
+      - name: Provide docker-compose wrapper for compatibility
+        shell: bash
         run: |
-          # Replace slashes with hyphens and set as output
-          SANITIZED_NAME=$(echo "${{ matrix.project }}" | tr '/' '-')
-          echo "project_name=$SANITIZED_NAME" >> $GITHUB_OUTPUT
+          if ! command -v docker-compose >/dev/null; then
+            echo 'Creating docker-compose wrapper ➜ docker compose "$@"'
+            sudo install -d /usr/local/bin
+            printf '#!/usr/bin/env bash\nexec docker compose "$@"\n' | \
+              sudo tee /usr/local/bin/docker-compose >/dev/null
+            sudo chmod +x /usr/local/bin/docker-compose
+          fi
+          docker compose version
+          docker-compose version   # should output the same version
+
+      - name: Install Ruff
+        run: curl -LsSf https://astral.sh/ruff/install.sh | sh
+
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
+      - name: Get package name for coverage
+        working-directory: unoplat-code-confluence-query-engine
+        id: package
+        run: |
+          # Extract project name from pyproject.toml and convert hyphens to underscores
+          PACKAGE_NAME=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['name'].replace('-', '_'))")
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+        
+      - name: Install dependencies and run tests
+        working-directory: unoplat-code-confluence-query-engine
+        env:
+          GITHUB_PAT_TOKEN: ${{ github.token }} 
+        run: |
+          uv sync --group test
+          uv run --group test pytest --cov=src/${{ steps.package.outputs.name }} --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-reports-${{ steps.sanitize.outputs.project_name }}
+          name: coverage-reports-query-engine
           path: |
-            ${{ matrix.project }}/coverage_reports/
+            unoplat-code-confluence-query-engine/coverage_reports/
           retention-days: 7
-    
