@@ -2,6 +2,7 @@
   "python": {
     "sqlalchemy": {
       "docs_url": "https://docs.sqlalchemy.org",
+      "description": "SQLAlchemy is the Database Toolkit for Python, providing a comprehensive suite of tools for working with databases including an Object Relational Mapper (ORM) and Core expression language for SQL operations.",
       "features": {
         "declarative_base": {
           "description": "Base class for SQLAlchemy declarative models",

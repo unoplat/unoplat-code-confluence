@@ -2,6 +2,7 @@
   "python": {
     "fastapi": {
       "docs_url": "https://fastapi.tiangolo.com",
+      "description": "FastAPI is a modern, fast (high-performance), web framework for building APIs with Python based on standard Python type hints. It provides automatic interactive documentation and is designed for high performance and ease of use.",
       "features": {
         "http_endpoint": {
           "description": "HTTP verb decorator that registers a route handler",
