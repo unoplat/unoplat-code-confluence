@@ -48,10 +48,22 @@ tasks:
       - echo "Waiting for services to be ready..."
       - sleep 10  # Add a brief wait for services to initialize
 
+  start-core-dependencies:
+    desc: Start only core dependencies (without Signoz) using docker-compose
+    cmds:
+      - docker-compose -f local-dependencies-core-docker-compose.yml up -d
+      - echo "Waiting for core services to be ready..."
+      - sleep 10  # Add a brief wait for services to initialize
+
   stop-dependencies:
     desc: Stop all dependencies and remove volumes
     cmds:
       - docker-compose -f local-dependencies-only-docker-compose.yml down --volumes
+
+  stop-core-dependencies:
+    desc: Stop core dependencies and remove volumes
+    cmds:
+      - docker-compose -f local-dependencies-core-docker-compose.yml down --volumes
 
   sync:
     desc: Setup project with dependencies
@@ -104,11 +116,38 @@ tasks:
     cmds:
       - uv run fastapi dev
 
+  run-dev-core:
+    desc: Run FastAPI application in development mode without OTEL
+    deps: [sync]
+    dir: src/code_confluence_flow_bridge
+    env:
+      DB_HOST: "localhost"
+      DB_PORT: "5432"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_NAME: "code_confluence"
+      NEO4J_HOST: "localhost"
+      NEO4J_PORT: "7687"
+      NEO4J_USERNAME: "neo4j"
+      NEO4J_PASSWORD: "password"
+      TEMPORAL_SERVER_ADDRESS: "localhost:7233"
+      FRAMEWORK_DEFINITIONS_PATH: "../../framework-definitions"
+      TEMPORAL_MAX_CONCURRENT_ACTIVITIES: "3"
+      REPOSITORIES_BASE_PATH: "/opt/unoplat/repositories"
+    cmds:
+      - uv run fastapi dev
+
   dev:
     desc: Install dependencies, start required services, and run the application
     cmds:
       - task: start-dependencies
       - task: run-dev
+
+  dev-core:
+    desc: Install dependencies, start core services (without Signoz), and run the application
+    cmds:
+      - task: start-core-dependencies
+      - task: run-dev-core
 
   test:
     desc: Run tests with coverage

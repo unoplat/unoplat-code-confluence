@@ -88,6 +88,7 @@ class FrameworkDefinitionLoader:
         for language, language_data in data.items():
             for library_name, library_data in language_data.items():
                 docs_url = library_data.get("docs_url")
+                description = library_data.get("description")
                 
                 # Create Framework record (deduplicated)
                 framework_key = (language, library_name)
@@ -95,7 +96,8 @@ class FrameworkDefinitionLoader:
                     frameworks.append(Framework(
                         language=language,
                         library=library_name,
-                        docs_url=docs_url
+                        docs_url=docs_url,
+                        description=description
                     ))
                     seen_frameworks.add(framework_key)
                 
