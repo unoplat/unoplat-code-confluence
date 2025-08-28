@@ -10,6 +10,7 @@ on:
     paths:
       - 'unoplat-code-confluence-commons/**'
       - 'unoplat-code-confluence-ingestion/**'
+      - 'unoplat-code-confluence-query-engine/**'
 
 jobs:
   prepare-matrix:
@@ -42,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: ['unoplat-code-confluence-ingestion/code-confluence-flow-bridge']
+        project: ['unoplat-code-confluence-ingestion/code-confluence-flow-bridge', 'unoplat-code-confluence-query-engine']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -87,6 +88,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ripgrep
+
+      - name: Get package name for coverage
+        working-directory: ${{ matrix.project }}
+        id: package
+        run: |
+          # Extract project name from pyproject.toml and convert hyphens to underscores
+          PACKAGE_NAME=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['name'].replace('-', '_'))")
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
         
       - name: Install dependencies and run tests
         working-directory: ${{ matrix.project }}
@@ -94,7 +103,7 @@ jobs:
           GITHUB_PAT_TOKEN: ${{ github.token }} 
         run: |
           uv sync --group test
-          uv run --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
+          uv run --group test pytest --cov=src/${{ steps.package.outputs.name }} --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
 
       - name: Set sanitized project name
         id: sanitize
