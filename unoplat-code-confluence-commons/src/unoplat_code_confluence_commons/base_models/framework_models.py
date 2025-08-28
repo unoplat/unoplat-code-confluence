@@ -20,6 +20,7 @@ class Framework(SQLModel, table=True):
     language: str = Field(primary_key=True, description="Programming language")
     library: str = Field(primary_key=True, description="Library / framework")
     docs_url: Optional[str] = Field(default=None, description="Docs URL")
+    description: Optional[str] = Field(default=None, description="Framework/library description")
 
     # Relationships
     features: List["FrameworkFeature"] = Relationship(
