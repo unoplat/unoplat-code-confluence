@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.50.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.49.1...code-confluence-flow-bridge-v0.50.0) (2025-08-28)
+
+
+### Features
+
+* **framework-definitions:** add descriptions for framework definitions ([312e8d6](https://github.com/unoplat/unoplat-code-confluence/commit/312e8d64645716c09e9ffc185598922b15ae2728))
+* **framework-definitions:** add descriptions for framework definitions ([91bfd85](https://github.com/unoplat/unoplat-code-confluence/commit/91bfd8583b82f2afed7dae5929ab40ad024e1637))
+* Simplify pydantic description in framework-definitions ([70d8d48](https://github.com/unoplat/unoplat-code-confluence/commit/70d8d48a7c8723f824512f514245557dda26bfef))
+
 ## [0.49.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.49.0...code-confluence-flow-bridge-v0.49.1) (2025-08-25)
 
 
