@@ -7,39 +7,35 @@ from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
     ClassInfo,
+    CodebaseConfig,
+    CodebaseConfigSQLModel,
     Concept,
     ConstructQueryConfig,
+    # Credentials model
+    Credentials,
     Detection,
     DetectionResult,
     FeatureAbsolutePath,
     FeatureSpec,
+    # Flags model
+    Flag,
     # Framework SQLModel models
     Framework,
     FrameworkFeature,
     FunctionInfo,
     InheritanceInfo,
     LocatorStrategy,
+    PackageManagerType,
+    ProgrammingLanguage,
+    ProgrammingLanguageMetadata,
+    # Repository and Programming Language models
+    Repository,
+    RepositorySettings,
     StructuralSignature,
     # Engine Pydantic models
     TargetLevel,
     # Structural signature models
     VariableInfo,
-    # Repository and Programming Language models
-    Repository,
-    CodebaseConfigSQLModel,
-    CodebaseConfig,
-    RepositorySettings,
-    ProgrammingLanguageMetadata,
-    ProgrammingLanguage,
-    PackageManagerType,
-    # Credentials model
-    Credentials,
-    # Flags model
-    Flag,
-)
-from unoplat_code_confluence_commons.security import (
-    encrypt_token,
-    decrypt_token,
 )
 from unoplat_code_confluence_commons.graph_models import (
     BaseNode,
@@ -52,6 +48,10 @@ from unoplat_code_confluence_commons.graph_models import (
     CodeConfluencePackageManagerMetadata,
     ContainsRelationship,
     UsesFeatureRelationship,
+)
+from unoplat_code_confluence_commons.security import (
+    decrypt_token,
+    encrypt_token,
 )
 
 __all__ = [

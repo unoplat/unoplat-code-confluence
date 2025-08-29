@@ -1,38 +1,36 @@
+from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
+
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKeyConstraint, String
+from sqlalchemy import CheckConstraint, DateTime, ForeignKeyConstraint, String
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
-class Repository(SQLModel, table=True):
+class Repository(SQLBase):
     """SQLModel for repository table in code_confluence schema."""
     __tablename__ = "repository"
 
-    repository_name: str = Field(primary_key=True, description="The name of the repository")
-    repository_owner_name: str = Field(primary_key=True, description="The name of the repository owner")
-    is_local: bool = Field(default=False, description="Whether this is a local repository")
-    local_path: Optional[str] = Field(default=None, description="Local filesystem path for local repositories")
+    repository_name: Mapped[str] = mapped_column(primary_key=True, comment="The name of the repository")
+    repository_owner_name: Mapped[str] = mapped_column(primary_key=True, comment="The name of the repository owner")
+    is_local: Mapped[bool] = mapped_column(default=False, comment="Whether this is a local repository")
+    local_path: Mapped[Optional[str]] = mapped_column(default=None, comment="Local filesystem path for local repositories")
     
     # Relationships - will be populated after class definitions
-    workflow_runs: List["RepositoryWorkflowRun"] = Relationship(
+    workflow_runs: Mapped[List["RepositoryWorkflowRun"]] = relationship(
         back_populates="repository",
-        sa_relationship_kwargs={
-            "cascade": "all, delete-orphan",
-            "passive_deletes": True,
-        },
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
-    configs: List["CodebaseConfig"] = Relationship(
+    configs: Mapped[List["CodebaseConfig"]] = relationship(
         back_populates="repository",
-        sa_relationship_kwargs={
-            "cascade": "all, delete-orphan",
-            "passive_deletes": True,
-        },
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 
-class CodebaseConfig(SQLModel, table=True):
+class CodebaseConfig(SQLBase):
     """SQLModel for codebase_config table in code_confluence schema."""
     __tablename__ = "codebase_config"
     __table_args__ = (
@@ -43,40 +41,39 @@ class CodebaseConfig(SQLModel, table=True):
         ),
     )
     
-    repository_name: str = Field(
+    repository_name: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="The name of the repository"
+        comment="The name of the repository"
     )
-    repository_owner_name: str = Field(
+    repository_owner_name: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="The name of the repository owner"
+        comment="The name of the repository owner"
     )
-    codebase_folder: str = Field(
+    codebase_folder: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="Path to codebase folder relative to repo root"
+        comment="Path to codebase folder relative to repo root"
     )
-    root_packages: Optional[List[str]] = Field(
+    root_packages: Mapped[Optional[List[str]]] = mapped_column(
+        JSONB,
         default=None,
-        sa_column=Column(JSONB),
-        description="List of root packages within the codebase folder"
+        comment="List of root packages within the codebase folder"
     )
-    programming_language_metadata: Dict[str, Any] = Field(
-        sa_column=Column(JSONB, nullable=False),
-        description="Language-specific metadata for this codebase like programming language, package manager etc"
+    programming_language_metadata: Mapped[Dict[str, Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        comment="Language-specific metadata for this codebase like programming language, package manager etc"
     )
     
     # Relationships
-    repository: Repository = Relationship(back_populates="configs")
-    workflow_runs: List["CodebaseWorkflowRun"] = Relationship(
+    repository: Mapped[Repository] = relationship(back_populates="configs")
+    workflow_runs: Mapped[List["CodebaseWorkflowRun"]] = relationship(
         back_populates="codebase_config",
-        sa_relationship_kwargs={
-            "viewonly": True,
-            "overlaps": "repository_workflow_run,workflow_runs",
-        },
+        viewonly=True,
+        overlaps="repository_workflow_run,workflow_runs",
     )
 
 
-class RepositoryWorkflowRun(SQLModel, table=True):
+class RepositoryWorkflowRun(SQLBase):
     """SQLModel for repository_workflow_run table in code_confluence schema."""
     __tablename__ = "repository_workflow_run"
     __table_args__ = (
@@ -91,59 +88,60 @@ class RepositoryWorkflowRun(SQLModel, table=True):
         ),
     )
     
-    repository_name: str = Field(
+    repository_name: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="The name of the repository"
+        comment="The name of the repository"
     )
-    repository_owner_name: str = Field(
+    repository_owner_name: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="The name of the repository owner"
+        comment="The name of the repository owner"
     )
-    repository_workflow_run_id: str = Field(
+    repository_workflow_run_id: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="The run ID of the repository workflow"
+        comment="The run ID of the repository workflow"
     )
-    repository_workflow_id: str = Field(
-        description="The ID of the repository workflow"
+    repository_workflow_id: Mapped[str] = mapped_column(
+        comment="The ID of the repository workflow"
     )
-    status: str = Field(
-        sa_column=Column(String, nullable=False), 
-        description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING."
+    status: Mapped[str] = mapped_column(
+        String, 
+        nullable=False,
+        comment="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING."
     )
-    error_report: Optional[Dict[str, Any]] = Field(
+    error_report: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
         default=None,
-        sa_column=Column(JSONB),
-        description="Error report if the workflow run failed"
+        comment="Error report if the workflow run failed"
     )
-    issue_tracking: Optional[Dict[str, Any]] = Field(
+    issue_tracking: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
         default=None,
-        sa_column=Column(JSONB),
-        description="GitHub issue tracking info for this repository workflow run"
+        comment="GitHub issue tracking info for this repository workflow run"
     )
     
-    started_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), nullable=False), 
-        description="Timestamp when the workflow run started"
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=False,
+        comment="Timestamp when the workflow run started"
     )
-    completed_at: Optional[datetime] = Field(
-        default=None, 
-        sa_column=Column(DateTime(timezone=True), nullable=True), 
-        description="Timestamp when the workflow run completed"
+    completed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=True,
+        default=None,
+        comment="Timestamp when the workflow run completed"
     )
     
     # Relationships
-    repository: Repository = Relationship(back_populates="workflow_runs")
-    codebase_workflow_runs: List["CodebaseWorkflowRun"] = Relationship(
+    repository: Mapped[Repository] = relationship(back_populates="workflow_runs")
+    codebase_workflow_runs: Mapped[List["CodebaseWorkflowRun"]] = relationship(
         back_populates="repository_workflow_run",
-        sa_relationship_kwargs={
-            "viewonly": True,
-            "overlaps": "codebase_config,workflow_runs",
-            "passive_deletes": True,
-        },
+        viewonly=True,
+        overlaps="codebase_config,workflow_runs",
+        passive_deletes=True,
     )
 
 
-class CodebaseWorkflowRun(SQLModel, table=True):
+class CodebaseWorkflowRun(SQLBase):
     """SQLModel for codebase_workflow_run table in code_confluence schema."""
     __tablename__ = "codebase_workflow_run"
     __table_args__ = (
@@ -167,53 +165,56 @@ class CodebaseWorkflowRun(SQLModel, table=True):
         ),
     )
     
-    repository_name: str = Field(
+    repository_name: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="The name of the repository"
+        comment="The name of the repository"
     )
-    repository_owner_name: str = Field(
+    repository_owner_name: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="The name of the repository owner"
+        comment="The name of the repository owner"
     )
-    codebase_folder: str = Field(
+    codebase_folder: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="FK to codebase_config - path to codebase folder"
+        comment="FK to codebase_config - path to codebase folder"
     )
-    codebase_workflow_run_id: str = Field(
+    codebase_workflow_run_id: Mapped[str] = mapped_column(
         primary_key=True, 
-        description="Unique identifier for this specific run of the codebase workflow"
+        comment="Unique identifier for this specific run of the codebase workflow"
     )
-    codebase_workflow_id: str = Field(
-        description="The ID of the codebase workflow"
+    codebase_workflow_id: Mapped[str] = mapped_column(
+        comment="The ID of the codebase workflow"
     )
-    repository_workflow_run_id: str = Field(
-        description="Link back to parent repository workflow run"
+    repository_workflow_run_id: Mapped[str] = mapped_column(
+        comment="Link back to parent repository workflow run"
     )
-    status: str = Field(
-        sa_column=Column(String, nullable=False), 
-        description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING."
+    status: Mapped[str] = mapped_column(
+        String, 
+        nullable=False,
+        comment="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING."
     )
-    error_report: Optional[Dict[str, Any]] = Field(
+    error_report: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
         default=None,
-        sa_column=Column(JSONB),
-        description="Error report if the workflow run failed"
+        comment="Error report if the workflow run failed"
     )
-    issue_tracking: Optional[Dict[str, Any]] = Field(
+    issue_tracking: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
         default=None,
-        sa_column=Column(JSONB),
-        description="GitHub issue tracking info for this codebase workflow run"
+        comment="GitHub issue tracking info for this codebase workflow run"
     )
     
-    started_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), nullable=False), 
-        description="Timestamp when the workflow run started"
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=False,
+        comment="Timestamp when the workflow run started"
     )
-    completed_at: Optional[datetime] = Field(
-        default=None, 
-        sa_column=Column(DateTime(timezone=True), nullable=True), 
-        description="Timestamp when the workflow run completed"
+    completed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=True,
+        default=None,
+        comment="Timestamp when the workflow run completed"
     )
     
     # Relationships
-    codebase_config: CodebaseConfig = Relationship(back_populates="workflow_runs")
-    repository_workflow_run: RepositoryWorkflowRun = Relationship(back_populates="codebase_workflow_runs")
+    codebase_config: Mapped[CodebaseConfig] = relationship(back_populates="workflow_runs")
+    repository_workflow_run: Mapped[RepositoryWorkflowRun] = relationship(back_populates="codebase_workflow_runs")
