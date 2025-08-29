@@ -6,6 +6,10 @@ from temporalio import activity
 
 # Third Party
 import tomlkit
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    PackageManagerType,
+    ProgrammingLanguageMetadata,
+)
 from validate_pyproject import api as validator_api
 from validate_pyproject.errors import ValidationError
 
@@ -13,10 +17,6 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models impor
     UnoplatPackageManagerMetadata,
     UnoplatProjectDependency,
     UnoplatVersion,
-)
-from unoplat_code_confluence_commons.programming_language_metadata import (
-    PackageManagerType,
-    ProgrammingLanguageMetadata,
 )
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import (
     PackageManagerStrategy,
