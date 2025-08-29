@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.50.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.50.0...code-confluence-flow-bridge-v0.50.1) (2025-08-29)
+
+
+### Bug Fixes
+
+* **sqlbase:** move to sqlbase from sqlmodel for better typing support ([5d9ff91](https://github.com/unoplat/unoplat-code-confluence/commit/5d9ff91bb4d9d038aa1f5b5e58c92f7b592a9412))
+* **sqlbase:** move to sqlbase from sqlmodel for better typing support ([e5d00e6](https://github.com/unoplat/unoplat-code-confluence/commit/e5d00e68e4ed99016909f96adff0b901c323060f))
+* tests based on new sqlachemy base model integration ([515896a](https://github.com/unoplat/unoplat-code-confluence/commit/515896aeed9bdda49ac2617b35d4b328adb31f45))
+
 ## [0.50.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.49.1...code-confluence-flow-bridge-v0.50.0) (2025-08-28)
 
 
