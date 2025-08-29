@@ -8,7 +8,8 @@
           "description": "Base class for SQLAlchemy declarative models",
           "absolute_paths": [
             "sqlalchemy.ext.declarative.declarative_base",
-            "sqlalchemy.orm.declarative_base"
+            "sqlalchemy.orm.declarative_base",
+            "unoplat_code_confluence_commons.base_models.sql_base.SQLBase"
           ],
           "target_level": "class",
           "concept": "Inheritance",
