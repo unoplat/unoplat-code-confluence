@@ -1,8 +1,10 @@
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    ProgrammingLanguageMetadata,
+)
+
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-
-from .programming_language_metadata import ProgrammingLanguageMetadata
 
 
 class CodebaseConfig(BaseModel):

@@ -1,41 +1,45 @@
 """SQLModel models for PostgreSQL framework metadata tables."""
 
+from unoplat_code_confluence_commons.base_models.engine_models import (
+    Concept,
+    ConstructQueryConfig,
+    LocatorStrategy,
+    TargetLevel,
+)
+from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
+
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import Column, Enum as SQLAlchemyEnum, ForeignKeyConstraint, Index
+from sqlalchemy import ForeignKeyConstraint, Index
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlmodel import Field, Relationship, SQLModel
-
-from .engine_models import Concept, ConstructQueryConfig, LocatorStrategy, TargetLevel
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 # ──────────────────────────────────────────────
 # 1️⃣  Parent table: language-library pair
 # ──────────────────────────────────────────────
-class Framework(SQLModel, table=True):
+class Framework(SQLBase):
     """Language-library combo ("python-fastapi", etc.)."""
     __tablename__ = "framework"
     __table_args__ = {"extend_existing": True}
 
-    language: str = Field(primary_key=True, description="Programming language")
-    library: str = Field(primary_key=True, description="Library / framework")
-    docs_url: Optional[str] = Field(default=None, description="Docs URL")
-    description: Optional[str] = Field(default=None, description="Framework/library description")
+    language: Mapped[str] = mapped_column(primary_key=True, comment="Programming language")
+    library: Mapped[str] = mapped_column(primary_key=True, comment="Library / framework")
+    docs_url: Mapped[Optional[str]] = mapped_column(default=None, comment="Docs URL")
+    description: Mapped[Optional[str]] = mapped_column(default=None, comment="Framework/library description")
 
     # Relationships
-    features: List["FrameworkFeature"] = Relationship(
+    features: Mapped[List["FrameworkFeature"]] = relationship(
         back_populates="framework",
-        sa_relationship_kwargs={
-            "cascade": "all, delete-orphan",
-            "passive_deletes": True,
-        },
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 
 # ──────────────────────────────────────────────
 # 2️⃣  Feature metadata  (no absolute_path here)
 # ──────────────────────────────────────────────
-class FrameworkFeature(SQLModel, table=True):
+class FrameworkFeature(SQLBase):
     """Per-feature metadata (one row per feature_key)."""
     __tablename__ = "framework_feature"
     __table_args__ = (
@@ -48,51 +52,41 @@ class FrameworkFeature(SQLModel, table=True):
     )
 
     # Composite PK = language + library + feature_key
-    language: str = Field(primary_key=True)
-    library: str = Field(primary_key=True)
-    feature_key: str = Field(primary_key=True, description="Feature identifier")
+    language: Mapped[str] = mapped_column(primary_key=True)
+    library: Mapped[str] = mapped_column(primary_key=True)
+    feature_key: Mapped[str] = mapped_column(primary_key=True, comment="Feature identifier")
 
     # Core fields with explicit PostgreSQL enum types
-    target_level: TargetLevel = Field(
-        sa_column=Column(
-            SQLAlchemyEnum(TargetLevel, name="targetlevel", native_enum=True),
-            nullable=False
-        ),
-        description="Granularity: function or class"
+    target_level: Mapped[TargetLevel] = mapped_column(
+        nullable=False,
+        comment="Granularity: function or class"
     )
-    concept: Concept = Field(
-        sa_column=Column(
-            SQLAlchemyEnum(Concept, name="concept", native_enum=True),
-            nullable=False
-        ),
-        description="Semantic concept (AnnotationLike, CallExpression, Inheritance)"
+    concept: Mapped[Concept] = mapped_column(
+        nullable=False,
+        comment="Semantic concept (AnnotationLike, CallExpression, Inheritance)"
     )
-    locator_strategy: LocatorStrategy = Field(
-        sa_column=Column(
-            SQLAlchemyEnum(LocatorStrategy, name="locatorstrategy", native_enum=True),
-            nullable=False
-        ),
-        description="VariableBound or Direct"
+    locator_strategy: Mapped[LocatorStrategy] = mapped_column(
+        nullable=False,
+        comment="VariableBound or Direct"
     )
-    construct_query: Optional[Dict[str, Any]] = Field(
+    construct_query: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
+        nullable=True,
         default=None,
-        sa_column=Column(JSONB, nullable=True),
-        description="Language-specific query tweaks for adapter construction",
+        comment="Language-specific query tweaks for adapter construction",
     )
-    description: Optional[str] = Field(default=None)
-    startpoint: bool = Field(
+    description: Mapped[Optional[str]] = mapped_column(default=None)
+    startpoint: Mapped[bool] = mapped_column(
         default=False,
-        description="Indicates whether this feature represents a starting point or entry point in the application"
+        comment="Indicates whether this feature represents a starting point or entry point in the application"
     )
 
     # Relationships
-    framework: Framework = Relationship(back_populates="features")
-    absolute_paths: List["FeatureAbsolutePath"] = Relationship(
+    framework: Mapped[Framework] = relationship(back_populates="features")
+    absolute_paths: Mapped[List["FeatureAbsolutePath"]] = relationship(
         back_populates="feature",
-        sa_relationship_kwargs={
-            "cascade": "all, delete-orphan",
-            "passive_deletes": True,
-        },
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     
     @property
@@ -117,7 +111,7 @@ class FrameworkFeature(SQLModel, table=True):
 # ──────────────────────────────────────────────
 # 3️⃣  Junction table: one row per absolute_path
 # ──────────────────────────────────────────────
-class FeatureAbsolutePath(SQLModel, table=True):
+class FeatureAbsolutePath(SQLBase):
     """Maps each absolute import path to its feature."""
     __tablename__ = "feature_absolute_path"
     __table_args__ = (
@@ -138,10 +132,10 @@ class FeatureAbsolutePath(SQLModel, table=True):
     )
 
     # Composite PK = language + library + feature_key + absolute_path
-    language: str = Field(primary_key=True)
-    library: str = Field(primary_key=True)
-    feature_key: str = Field(primary_key=True)
-    absolute_path: str = Field(primary_key=True, description="Import path")
+    language: Mapped[str] = mapped_column(primary_key=True)
+    library: Mapped[str] = mapped_column(primary_key=True)
+    feature_key: Mapped[str] = mapped_column(primary_key=True)
+    absolute_path: Mapped[str] = mapped_column(primary_key=True, comment="Import path")
 
     # Relationship back to metadata
-    feature: FrameworkFeature = Relationship(back_populates="absolute_paths")
+    feature: Mapped[FrameworkFeature] = relationship(back_populates="absolute_paths")
