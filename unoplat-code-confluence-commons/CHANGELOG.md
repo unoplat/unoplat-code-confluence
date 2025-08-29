@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.27.0...unoplat-code-confluence-commons-v0.27.1) (2025-08-29)
+
+
+### Bug Fixes
+
+* **base_models:** Reorganize and improve base model imports ([258a5ac](https://github.com/unoplat/unoplat-code-confluence/commit/258a5acb040197e70827e5907f3a3d3137fe47da))
+* **base_models:** Reorganize and improve base model imports ([1ef5a72](https://github.com/unoplat/unoplat-code-confluence/commit/1ef5a728b5bc56b81901c9c438409cd8c1f5b129))
+
 ## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.26.0...unoplat-code-confluence-commons-v0.27.0) (2025-08-28)
 
 
