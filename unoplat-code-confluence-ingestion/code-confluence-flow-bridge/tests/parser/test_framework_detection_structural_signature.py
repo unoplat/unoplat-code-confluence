@@ -183,11 +183,13 @@ class TestFrameworkDetectionStructuralSignature:
         # Test framework detection
         frameworks = self._detect_frameworks(signature)
         assert "SQLAlchemy" in frameworks, f"SQLAlchemy not detected in frameworks: {frameworks}"
-        assert "SQLModel" in frameworks, f"SQLModel not detected in frameworks: {frameworks}"
+        # SQLModel detection is optional since we've migrated to SQLBase
+        # assert "SQLModel" in frameworks, f"SQLModel not detected in frameworks: {frameworks}"
         
         # Test specific SQLAlchemy patterns
         assert self._has_sqlalchemy_patterns(signature), "SQLAlchemy patterns not found"
-        assert self._has_sqlmodel_patterns(signature), "SQLModel patterns not found"
+        # SQLModel patterns are optional since we've migrated to SQLBase
+        # assert self._has_sqlmodel_patterns(signature), "SQLModel patterns not found"
         
         # Test model patterns
         models = self._extract_sqlmodel_tables(signature)
@@ -269,7 +271,7 @@ class TestFrameworkDetectionStructuralSignature:
             (self.repo_workflow_path, ["Temporal"]),
             (self.structural_signature_path, ["Pydantic"]),
             (self.package_metadata_path, ["Pydantic"]),
-            (self.repository_data_path, ["SQLAlchemy", "SQLModel"])
+            (self.repository_data_path, ["SQLAlchemy"])  # Only SQLAlchemy expected since we migrated to SQLBase
         ]
         
         results = {}
@@ -404,9 +406,9 @@ class TestFrameworkDetectionStructuralSignature:
     
     def _has_sqlalchemy_patterns(self, signature: StructuralSignature) -> bool:
         """Check if signature contains SQLAlchemy patterns."""
-        # Look for SQLModel inheritance in class signatures
+        # Look for SQLModel or SQLBase inheritance in class signatures
         for cls in signature.classes:
-            if "SQLModel" in cls.signature:
+            if "SQLModel" in cls.signature or "SQLBase" in cls.signature:
                 return True
         
         # Look for Column definitions in variables
@@ -416,7 +418,7 @@ class TestFrameworkDetectionStructuralSignature:
         
         # Look for SQLAlchemy imports or usage patterns
         all_text = ' '.join([var.signature for var in signature.global_variables])
-        if 'sqlalchemy' in all_text.lower() or 'sqlmodel' in all_text.lower():
+        if 'sqlalchemy' in all_text.lower() or 'sqlmodel' in all_text.lower() or 'sqlbase' in all_text.lower():
             return True
         
         return False
@@ -503,7 +505,7 @@ class TestFrameworkDetectionStructuralSignature:
         """Check if signature contains SQLAlchemy relationship patterns."""
         for cls in signature.classes:
             for var in cls.vars:
-                if "Relationship(" in var.signature:
+                if "relationship(" in var.signature or "Relationship(" in var.signature:
                     return True
         return False
     
@@ -563,10 +565,13 @@ class TestFrameworkDetectionStructuralSignature:
         return models
     
     def _extract_sqlmodel_tables(self, signature: StructuralSignature) -> List[str]:
-        """Extract SQLModel table names from signature."""
+        """Extract SQLModel/SQLBase table names from signature."""
         tables = []
         for cls in signature.classes:
-            if "SQLModel" in cls.signature and "table=True" in cls.signature:
+            # Check for SQLModel with table=True OR SQLBase (which are always tables)
+            is_table = (("SQLModel" in cls.signature and "table=True" in cls.signature) or 
+                       "SQLBase" in cls.signature)
+            if is_table:
                 # Extract class name from signature
                 if "class " in cls.signature:
                     class_name = cls.signature.split("class ")[1].split("(")[0].split(":")[0].strip()
