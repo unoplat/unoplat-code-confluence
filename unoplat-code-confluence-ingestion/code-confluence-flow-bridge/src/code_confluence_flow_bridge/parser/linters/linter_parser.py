@@ -4,6 +4,7 @@ from typing import List, Optional
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
+
 from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import (
     LinterType,
 )

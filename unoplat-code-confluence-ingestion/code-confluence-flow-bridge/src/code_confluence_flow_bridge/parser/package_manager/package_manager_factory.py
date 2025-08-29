@@ -6,6 +6,7 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
     PackageManagerType,
     ProgrammingLanguage,
 )
+
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import (
     PackageManagerStrategy,
 )
