@@ -235,7 +235,7 @@ class TestFrameworkDefinitionsIngestion:
             # Validate expected data counts
             assert metrics["frameworks_count"] == 4, f"Expected 4 frameworks, got {metrics['frameworks_count']}"
             assert metrics["features_count"] == 11, f"Expected 11 features, got {metrics['features_count']}"
-            assert metrics["absolute_paths_count"] == 15, f"Expected 15 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 16, f"Expected 16 absolute paths, got {metrics['absolute_paths_count']}"
             
             # Verify data exists in database
             framework_count = session.scalar(select(func.count(Framework.language))) #type: ignore
@@ -244,7 +244,7 @@ class TestFrameworkDefinitionsIngestion:
             
             assert framework_count == 4
             assert feature_count == 11
-            assert path_count == 15
+            assert path_count == 16
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -367,7 +367,7 @@ class TestFrameworkDefinitionsIngestion:
                 results.append(state)
             
             # All results should be identical
-            expected_state = {"frameworks": 4, "features": 11, "paths": 15}
+            expected_state = {"frameworks": 4, "features": 11, "paths": 16}
             for result in results:
                 assert result == expected_state
             
@@ -391,7 +391,7 @@ class TestFrameworkDefinitionsIngestion:
         # Validate parsing results match expected production data
         assert len(frameworks) == 4, f"Expected 4 frameworks, got {len(frameworks)}"
         assert len(features) == 11, f"Expected 11 features, got {len(features)}"
-        assert len(absolute_paths) == 15, f"Expected 15 absolute paths, got {len(absolute_paths)}"
+        assert len(absolute_paths) == 16, f"Expected 16 absolute paths, got {len(absolute_paths)}"
         
         # Test specific framework: FastAPI
         fastapi_framework = next((f for f in frameworks if f.library == "fastapi"), None)

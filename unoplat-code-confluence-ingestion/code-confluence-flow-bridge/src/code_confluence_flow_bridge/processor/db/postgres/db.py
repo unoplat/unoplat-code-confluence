@@ -17,6 +17,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlmodel import SQLModel
+from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
+
 
 # PostgreSQL connection settings - read from environment variables
 DB_USER = os.getenv("DB_USER", "postgres")
@@ -158,7 +160,7 @@ async def create_db_and_tables() -> None:
     # Create all tables if they are missing
     async with engine.begin() as conn:
         try:
-            await conn.run_sync(lambda sync_conn: SQLModel.metadata.create_all(sync_conn, checkfirst=True))
+            await conn.run_sync(lambda sync_conn: SQLBase.metadata.create_all(sync_conn, checkfirst=True))
             logger.success("Database tables created successfully")
         except Exception as e:
             # Handle index already exists errors gracefully
