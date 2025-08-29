@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.50.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.50.1...code-confluence-flow-bridge-v0.50.2) (2025-08-29)
+
+
+### Bug Fixes
+
+* **code-confluence-flow-bridge:** Fix single edge for similar feature to file relationships in graph ([d10ebc0](https://github.com/unoplat/unoplat-code-confluence/commit/d10ebc0a5ce1bf043b3fa5775f025d53f757498a))
+* **code-confluence-flow-bridge:** Fix single edge for similar feature to file relationships in graph ([bd0df4d](https://github.com/unoplat/unoplat-code-confluence/commit/bd0df4dc6dcefaa8c820224dd3036e5f73dd64d3))
+
 ## [0.50.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.50.0...code-confluence-flow-bridge-v0.50.1) (2025-08-29)
 
 
