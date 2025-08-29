@@ -781,8 +781,7 @@ class GenericCodebaseParser:
                         // WITH is required between MERGE (write) and MATCH (read) clauses
                         WITH fw, feat
                         MATCH (f:CodeConfluenceFile {file_path: $file_path})
-                        MERGE (f)-[r:USES_FEATURE]->(feat)
-                        SET r.start_line = $start_line, r.end_line = $end_line
+                        MERGE (f)-[r:USES_FEATURE {start_line: $start_line, end_line: $end_line, match_text: $match_text}]->(feat)
                         
                         RETURN fw, feat, f
                         """
@@ -799,6 +798,7 @@ class GenericCodebaseParser:
                                     "file_path": unoplat_file.file_path,
                                     "start_line": det.start_line,
                                     "end_line": det.end_line,
+                                    "match_text": getattr(det, "match_text", ""),
                                 },
                             )
                         )
