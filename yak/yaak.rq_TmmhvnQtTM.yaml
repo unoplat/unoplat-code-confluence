@@ -1,0 +1,23 @@
+type: http_request
+model: http_request
+id: rq_TmmhvnQtTM
+createdAt: 2025-08-26T06:08:23.403774
+updatedAt: 2025-08-28T04:53:31.780179
+workspaceId: wk_KULjx4bEa8
+folderId: fl_jtBaK7a5pU
+authentication: {}
+authenticationType: null
+body:
+  text: ''
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: dcjrFjIi7i
+method: GET
+name: providers
+sortPriority: -0.0001
+url: http://127.0.0.1:8001/v1/providers
+urlParameters: []

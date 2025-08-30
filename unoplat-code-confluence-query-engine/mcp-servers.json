@@ -1,0 +1,16 @@
+{
+  "context7": {
+    "server_type": "local",
+    "command": ["bunx", "@upstash/context7-mcp"],
+    "args": [],
+    "environment": {},
+    "timeout": 10
+  },
+  "mcp-tasks": {
+    "server_type": "local",
+    "command": ["bunx", "mcp-tasks"],
+    "args": [],
+    "environment": {},
+    "timeout": 10
+  }
+}

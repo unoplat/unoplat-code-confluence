@@ -1,0 +1,177 @@
+version: "3.8"
+
+# Add default config
+configs:
+  temporal-dynamic-config:
+    content: |
+      system.forceSearchAttributesCacheRefreshOnRead:
+        - value: true
+          constraints: {}
+      limit.maxIDLength:
+        - value: 255
+          constraints: {}
+
+services:
+  elasticsearch:
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m
+    image: docker.io/opensearchproject/opensearch:2.14.0
+    networks:
+      - temporal-network
+    expose:
+      - 9200
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  postgresql:
+    image: docker.io/bitnami/postgresql:latest
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=code_confluence
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/bitnami/postgresql
+    networks:
+      - temporal-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  temporal:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=postgres
+      - POSTGRES_SEEDS=postgresql
+      - ENABLE_ES=true
+      - ES_SEEDS=elasticsearch
+      - ES_VERSION=v7
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: docker.io/temporalio/auto-setup:1.26.2
+    networks:
+      - temporal-network
+    ports:
+      - 7233:7233
+    configs:
+      - source: temporal-dynamic-config
+        target: /etc/temporal/config/dynamicconfig/development-sql.yaml
+    healthcheck:
+      test: ["CMD-SHELL", "tctl cluster health | grep -i SERVING || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  temporal-admin-tools:
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: docker.io/temporalio/admin-tools:1.26.2
+    networks:
+      - temporal-network
+    stdin_open: true
+    tty: true
+
+  temporal-ui:
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+      - TEMPORAL_CSRF_COOKIE_INSECURE=True
+    image: docker.io/temporalio/ui:2.34.0
+    networks:
+      - temporal-network
+    ports:
+      - 8081:8080
+
+  neo4j:
+    image: docker.io/graphstack/dozerdb:5.25.1.0-alpha.1
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ${HOME}/neo4j/data:/data
+      - ${HOME}/neo4j/logs:/logs
+      - ${HOME}/neo4j/import:/var/lib/neo4j/import
+      - ${HOME}/neo4j/plugins:/plugins
+    environment:
+      NEO4J_AUTH: neo4j/password
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_apoc_export_file_enabled: "true"
+      NEO4J_apoc_import_file_enabled: "true"
+      NEO4J_dbms_security_procedures_unrestricted: "*"
+    networks:
+      - temporal-network
+    healthcheck:
+      test: ["CMD-SHELL", "neo4j status | grep -q 'Neo4j is running' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  code-confluence-flow-bridge:
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.50.2
+    environment:
+      - NEO4J_HOST=neo4j
+      - NEO4J_PORT=7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=password
+      - TEMPORAL_SERVER_ADDRESS=temporal:7233
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001
+      - DB_HOST=postgresql
+      - TEMPORAL_DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - TOKEN_ENCRYPTION_KEY="0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
+      - REPOSITORIES_BASE_PATH=/opt/unoplat/repositories
+      - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
+      - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
+    depends_on:
+      temporal:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - repositories_data:/opt/unoplat/repositories
+    networks:
+      - temporal-network
+    stdin_open: true
+    tty: true
+
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network
+
+volumes:
+  postgresql_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  repositories_data:
+    driver: local   
