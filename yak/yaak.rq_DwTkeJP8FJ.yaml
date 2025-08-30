@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_DwTkeJP8FJ
 createdAt: 2025-06-06T04:50:08.587406
-updatedAt: 2025-07-18T04:29:07.751728
+updatedAt: 2025-08-28T04:51:39.111702
 workspaceId: wk_KULjx4bEa8
 folderId: fl_RfTzTxKasf
 authentication: {}
@@ -22,5 +22,5 @@ headers:
 method: POST
 name: ingest-token
 sortPriority: 0.0
-url: http://localhost:8000/ingest-token
+url: http://127.0.0.1:8000/ingest-token
 urlParameters: []
