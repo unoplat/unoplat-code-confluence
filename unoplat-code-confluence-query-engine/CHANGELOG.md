@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.2.0...unoplat-code-confluence-query-engine-v0.2.1) (2025-08-30)
+
+
+### Bug Fixes
+
+* main entry point ([52126fb](https://github.com/unoplat/unoplat-code-confluence/commit/52126fb65c7169f0c40ed94cdc3fb9dfa9187bac))
+* main entry point ([ca93eb5](https://github.com/unoplat/unoplat-code-confluence/commit/ca93eb528a682487ac65d3117e33a56ccb4e92a3))
+
 ## [0.2.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.1.1...unoplat-code-confluence-query-engine-v0.2.0) (2025-08-30)
 
 
