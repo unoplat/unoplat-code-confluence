@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_zcJSFbvhRK
 createdAt: 2025-08-26T06:34:22.722423
-updatedAt: 2025-08-28T04:53:21.854117
+updatedAt: 2025-08-30T05:57:42.028089
 workspaceId: wk_KULjx4bEa8
 folderId: fl_jtBaK7a5pU
 authentication: {}
@@ -32,7 +32,7 @@ headers:
   value: ''
   id: sQHXIdUvn2
 method: PUT
-name: set_model-huggingface-kimi
+name: jay-set_model-huggingface-kimi
 sortPriority: -0.0002
 url: http://127.0.0.1:8001/v1/config
 urlParameters: []
