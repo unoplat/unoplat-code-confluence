@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_v59Nw6A6i7
 createdAt: 2025-06-17T13:45:03.379038
-updatedAt: 2025-06-17T13:45:34.249444
+updatedAt: 2025-08-28T04:52:12.603581
 workspaceId: wk_KULjx4bEa8
 folderId: fl_UkSk9aN56L
 authentication: {}
@@ -23,5 +23,5 @@ headers:
 method: POST
 name: ''
 sortPriority: -0.0001
-url: http://localhost:8000/refresh-repository
+url: http://127.0.0.1:8000/refresh-repository
 urlParameters: []

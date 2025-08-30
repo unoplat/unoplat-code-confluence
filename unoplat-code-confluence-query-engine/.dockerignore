@@ -1,0 +1,48 @@
+# Development and build artifacts
+coverage_reports/
+logs/
+src/unoplat_code_confluence_query_engine/logs/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.coverage
+
+# Documentation and development files
+docs/
+experiments/
+tests/
+
+# IDE and environment files
+.vscode/
+.idea/
+.env*
+.git/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (if any)
+node_modules/
+
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Keep essential files by not ignoring them
+!README.md
+!pyproject.toml
+!uv.lock
+!Dockerfile
+!local-dependencies-docker-compose.yml
+!mcp-servers.json
+!mypy.ini
+!ruff.toml
+!Taskfile.yml
