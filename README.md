@@ -82,7 +82,7 @@ Unoplat Code Confluence aims to be the definitive solution for discovering, extr
 
 ### 2. **Context Engineering**
 - **Complete Context Graph**: All essential context—internal/external dependencies, inbound/outbound interfaces, domain models, data stores, and service-to-service links—kept fresh via workflow-based ingestion
-- **Efficient Context Pruning & Sub-task Decomposition**: Dynamic token pruning and hierarchical task breakdown ensure optimal performance across both SOTA closed-source and open-source models
+- **Selective Context Routing & Hierarchical Decomposition**: Route only what matters and break work into scoped steps to boost accuracy and efficiency across tasks.
 
 ### 3. **Enterprise-Grade Reliability**
 - Scalable and reliable processing powered by workflow orchestrator
