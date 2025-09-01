@@ -69,17 +69,34 @@
 <!-- VISION SECTION -->
 ## 🎯 Vision
 
-Unoplat-CodeConfluence aims to be the definitive solution for extracting, understanding, and providing precise code context across repositories and domains. By combining deterministic code grammar with state-of-the-art LLM pipelines, we achieve human-like understanding of codebases in minutes rather than months. Our graph-based architecture ensures relationships and context are preserved at every level.
+Unoplat Code Confluence aims to be the definitive solution for discovering, extracting, ingesting, understanding, and providing precise code context across repositories. By combining deterministic code grammar with state-of-the-art LLM pipelines, we unlock a wide range of use cases around code understanding, maintainability, and collaboration.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- WHY SECTION -->
-## 🌟 Why Unoplat-CodeConfluence?
+## 🌟 Core Principles
 
-- **Deterministic Understanding**: Built on Tree-sitter for reliable, language-agnostic code parsing
-- **Enhanced Onboarding**: Accelerate team onboarding by discovering public and private repositories, automatically detecting codebase structures, and ingesting them through our reliable, high-performance pipelines.
-- **Graph-Based Intelligence**: Query and explore codebases through natural, graphical relationships between components
-- **Deep Dependency Insights**: Comprehensive parsing of package managers as well as any other related metadata reveals true project structure and relationships
+### 1. **Precision First**
+- **[Extensible Language Support](https://github.com/unoplat/unoplat-code-confluence/tree/main/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/queries)**: Modular Tree-sitter based grammar extraction delivers consistent, accurate code context across all programming languages
+- **[Extensible Framework-Aware Parsing](https://docs.unoplat.io/contribution/custom-framework-schema)**: Specialized grammar engines recognize framework and library-specific patterns based on project dependencies
+
+### 2. **Context Engineering**
+- **Complete Context Graph**: All essential context—internal/external dependencies, inbound/outbound interfaces, domain models, data stores, and service-to-service links—kept fresh via workflow-based ingestion
+- **Efficient Context Pruning & Sub-task Decomposition**: Dynamic token pruning and hierarchical task breakdown ensure optimal performance across both SOTA closed-source and open-source models
+
+### 3. **Enterprise-Grade Reliability**
+- Scalable and reliable processing powered by workflow orchestrator
+
+### 4. **Performance Optimization**
+- Optimized algorithms across all aspects of discovery, detection, ingestion and AI-based insights
+
+## 🚀 Use Cases
+
+### In Progress
+- **AGENTS.md-first Context**: Auto-generate machine-readable AGENTS.md per repo and an org index, giving any coding agent a precise source of truth
+
+### Planned
+- **Application Overview**: Comprehensive understanding of application architecture, dependencies, and relationships through graph-based exploration
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -110,15 +127,16 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 
 ### Tasks Status
 
-| Task                       | Done | In Progress |
-|----------------------------|:----:|:-----------:|
-| Repository Discovery       |  ✓   |             |
-| Auto Codebase Detection    |  ✓   |             |
-| GitHub Ingestion           |  ✓   |             |
-| GitHub Manual Sync         |  ✓   |             |
-| Local Ingestion            |  ✓   |             |
-| Local Manual Sync          |  ✓   |             |
-| Agents MD Creation         |      |       ✓     |
+| Task                       | Done | In Progress | Planned |
+|----------------------------|:----:|:-----------:|:-------:|
+| Repository Discovery       |  ✓   |             |         |
+| Auto Codebase Detection    |  ✓   |             |         |
+| GitHub Ingestion           |  ✓   |             |         |
+| GitHub Manual Sync         |  ✓   |             |         |
+| Local Ingestion            |  ✓   |             |         |
+| Local Manual Sync          |  ✓   |             |         |
+| AGENTS.md-first Context    |      |       ✓     |         |
+| Application Overview       |      |             |    ✓    |
 
 <!-- MAINTAINERS SECTION -->
 ## Maintainers
@@ -139,9 +157,11 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- PRODUCT FEEDBACK SECTION -->
-## 💬 Product Feedback
+## 💬 Product Feedback & Alpha Disclaimer
 
-We value your feedback and want to hear from you! Whether you have suggestions, feature requests, or just want to share your experience with Unoplat-CodeConfluence, we're here to listen.
+We want to be transparent about our current state. While we're deeply committed to our core principles and have invested significant engineering effort to uphold them, Unoplat Code Confluence is currently in alpha. Despite our best intentions and rigorous development practices, there may be areas where we haven't fully achieved these principles yet.
+
+We value your feedback and want to hear from you! Whether you have suggestions, feature requests, encounter gaps between our vision and implementation, or just want to share your experience with Unoplat-CodeConfluence, we're here to listen.
 
 **How to reach us:**
 - **Email**: 
@@ -149,8 +169,9 @@ We value your feedback and want to hear from you! Whether you have suggestions, 
   - Secondary: [jayghiya@unoplat.io](mailto:jayghiya@unoplat.io)
 - **Discord**: Join our [community channel](https://discord.com/channels/1131597983058755675/1169968780953260106)
 - **GitHub Issues**: [Create an issue](https://github.com/unoplat/unoplat-code-confluence/issues) for bug reports or feature requests
+- **GitHub Discussions**: [Start a discussion](https://github.com/unoplat/unoplat-code-confluence/discussions) for broader conversations
 
-Your input helps shape the future of Unoplat-CodeConfluence. Don't hesitate to reach out!
+Your feedback is invaluable as we work toward production readiness and helps us prioritize our roadmap to better serve the developer community.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
