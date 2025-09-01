@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.20.0...code-confluence-docs-v0.21.0) (2025-09-01)
+
+
+### Features
+
+* **roadmap:** Extend grammar support and improve context engineering ([dc2f95b](https://github.com/unoplat/unoplat-code-confluence/commit/dc2f95b14572b434a7eee51229662d63c06f531b))
+* **roadmap:** Extend grammar support and improve context engineering ([a4a86dc](https://github.com/unoplat/unoplat-code-confluence/commit/a4a86dc9b6fc235a33e8f2421f33df321e47f4f5))
+
 ## [0.20.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.19.0...code-confluence-docs-v0.20.0) (2025-09-01)
 
 
