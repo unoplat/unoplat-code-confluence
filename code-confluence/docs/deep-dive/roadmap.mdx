@@ -5,27 +5,21 @@ description: "🗺️ Current roadmap and development status of Code Confluence"
 
 # Product Roadmap
 
-> **Transform your development workflow with unprecedented precision, efficiency, reliability and transparency**
-
-Welcome to the Unoplat Code Confluence roadmap. Track our progress as we build the future of intelligent code analysis, discovery, and collaborative development. Our platform empowers developers and teams to understand, navigate, and collaborate on codebases with unprecedented precision.
-
----
-
 ## 🎯 Vision & Mission
 
-**Vision**: To create the most intelligent and intuitive platform for code understanding and collaboration.
+**Vision**: Platform for code understanding, maintainability and collaboration through autonomous intelligence.
 
-**Mission**: Democratize code comprehension and accelerate development workflows through advanced context engineering and AI-powered insights.
+**Mission**: Enable AI agents to understand and act on codebases with precision and efficiency.
 
 ---
 
 ## 📊 Progress Overview
 
-| Feature Category | Progress | Status |
-|------------------|----------|---------|
-| Context Engineering | 25% | 🚧 In Progress |
-| Discovery & Ingestion | 70% | 🚧 In Progress |
-| Chat with Codebase | 30% | 🚧 In Progress |
+| Feature Category | Status |
+|------------------|---------|
+| Context Engineering (Python) | ✅ Stable |
+| Discovery & Ingestion | ✅ Production Ready |
+| AGENTS.md Framework | 🚀 Active Development |
 
 ---
 
@@ -36,10 +30,10 @@ Welcome to the Unoplat Code Confluence roadmap. Track our progress as we build t
 
 Our advanced parsing engine provides deep syntactic and semantic understanding across multiple programming languages.
 
-#### 🚧 **In Progress**
+#### ✅ **Done**
 - **Python Grammar** - Full syntax support with advanced AST parsing
   - Complete language feature coverage
-  - Framework-specific optimizations
+- **[Framework-specific Optimizations](https://docs.unoplat.io/contribution/custom-framework-schema)** - Programming language independent framework support
 
 ---
 
@@ -69,32 +63,23 @@ Direct integration with local development environments for immediate code analys
 
 ---
 
-## 💬 Chat with Codebase
-*AI-powered code interaction and understanding*
+## 🤖 AGENTS.md Initiative
+*Building agents to make repositories AI-ready*
 
-### 🚧 **Intelligent Code Conversation** 
-*Active Development - Beta Phase*
+### 🚀 **Current Focus**
+*Active Development*
 
-Revolutionary chat interface that understands your codebase context and provides actionable insights.
+Building first set of agents to automatically initialize and maintain AGENTS.md files for repositories.
 
-**Current Capabilities**:
-- **Dependency Analysis** - Understanding of dependencies with respective documentation
-- **Precision Code Analysis** - Graphical representation of codebases with all relationships preserved
+**Purpose**: Enable AI coding assistants to better understand and work with any codebase by providing standardized context.
 
-**🚧 Advanced Features in Development**:
-- **Persona Based Assistant**
-  - Onboarding Assistant
-  - Feature Planning Assistant
+**Milestone**: [Code Confluence v1 (Issue #722)](https://github.com/unoplat/unoplat-code-confluence/issues/722)
+
+**Agent Capabilities**:
+- **Repository Analysis** - Analyze repository structure and generate initial AGENTS.md
+- **Context Extraction** - Extract build commands, test procedures, and coding standards
+- **Pattern Recognition** - Identify project-specific patterns and conventions
+- **Maintenance** - Maintain and update AGENTS.md as codebase evolves
+- **AI Assistant Integration** - Provide context for AI coding assistants to work effectively
 
 ---
-
-## 🚀 Upcoming Milestones
-
-### Context Engineering Expansion
-- **Java Grammar** - Enterprise-grade Java support
-- **JavaScript/TypeScript Grammar** - Modern web development support  
-- **Go Grammar** - Cloud-native language support
-
-### Discovery & Integration Enhancement
-- **Automatic PR-based Sync** - Real-time updates via webhook integration
-- **GitLab Native Support** - Full GitLab API integration
