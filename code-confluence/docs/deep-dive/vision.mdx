@@ -5,62 +5,49 @@ description: "🎯 Our mission and vision for Unoplat Code Confluence"
 
 # Vision: The Universal Code Context Engine
 
-import VisionSvg from '@site/static/img/vision.svg';
-
-<div style={{ 
-  marginBottom: "2rem",
-  backgroundColor: "var(--ifm-card-background-color)",
-  padding: "1rem",
-  borderRadius: "8px",
-  boxShadow: "var(--ifm-global-shadow-lw)"
-}}>
-  <VisionSvg 
-    title="Code Confluence Vision"
-    style={{ 
-      width: "100%", 
-      maxWidth: "1130px", 
-      height: "auto",
-      display: "block",
-      margin: "0 auto"
-    }}
-  />
-</div>
 
 ## 🎯 Our Mission
 
-Unoplat Code Confluence aims to be the definitive solution for extracting, understanding, and providing precise code context across repositories and domains. We believe that combining deterministic code grammar with state-of-the-art LLM pipelines can achieve human-like understanding of codebases in minutes rather than months.
+Unoplat Code Confluence aims to be the definitive solution for discovering, extracting, ingesting , understanding, and providing precise code context across repositories. We believe that combining deterministic code grammar with state-of-the-art LLM pipelines can unlock a wide range of usecases around code understanding, maintainability and collaboration.
 
 ## 🌟 Why Unoplat Code Confluence?
 
 ### Core Principles
 
 1. **Precision First**
-   - **Universal Language Support**: Tree-sitter based grammar extraction delivers consistent, accurate code context across all programming languages
-   - **Framework-Aware Parsing**: Specialized grammar engines recognize framework and library-specific patterns based on project dependencies, ensuring contextually relevant code understanding
+   - **[Extensible Language Support](https://github.com/unoplat/unoplat-code-confluence/tree/main/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/queries)**: Modular Tree-sitter based grammar extraction delivers consistent, accurate code context across all programming languages
+   - **[Extensible Framework-Aware Parsing](https://docs.unoplat.io/contribution/custom-framework-schema)**: Specialized grammar engines recognize framework and library-specific patterns based on project dependencies, ensuring contextually relevant code understanding
 
-2. **AI-Powered Understanding**
-   - **Agentic GraphRAG Tools**: Purpose-built AI agents powered by right tools and MCP servers deliver predictable outcomes
-   - **Human-in-the-Loop Approach**: Interactive AI assistance that combines automated analysis with human validation to ensure accuracy and relevance in all conversations
+    
+2. **Context Engineering**
+   - **Complete Context Graph**: All essential context—internal/external dependencies, inbound/outbound interfaces, domain models (entities/events), data stores, and service-to-service links—kept fresh via workflow-based ingestion into the Graph.
+   - **Efficient Context Pruning & Sub-task Decomposition**: Dynamic token pruning and hierarchical task breakdown ensure optimal performance across both SOTA closed-source and open-source models, delivering precise context without overwhelming LLM attention mechanisms. 
 
-3. **Graph Intelligence**
-   - **GraphRAG for Deep Contextual Queries**: Advanced graph-based retrieval augmented generation enables complex code exploration.
-   - **Seamless Workflow-Based Ingestion**: Graph ingestion workflows preserve all critical relationships between code constructs, dependencies, and architectural patterns
-
-4. **Enterprise-Grade Reliability**
+3. **Enterprise-Grade Reliability**
    - Scalable and reliable processing powered by workflow orchestrator.
-   
 
-## 🤝 For Integration Partners
+4. **Performance Optimization**
+   - Optimized algorithms across all aspects of discovery , detection , ingestion and ai based insights.
 
-Unoplat Code Confluence provides:
-- High-precision code and related metadata context API powered by graph-based retrieval
+## 🚀 Use Cases
 
-## 🚀 Future Direction
+### In Progress
+1. **AGENTS.md-first Context**: Auto-generate machine-readable AGENTS.md per repo and an org index, giving any coding agent a precise source of truth.
 
-We are committed to:
-1. Expanding language support beyond Python
-3. Building more integration points with popular development tools
+### Planned
+1. **Application Overview**: Comprehensive understanding of application architecture, dependencies, and relationships through graph-based exploration.
 
-Our vision is to make codebases more accessible, understandable, and maintainable for developers worldwide, whether they're working on small projects or enterprise-scale systems.
+---
+
+## 📋 Alpha Disclaimer
+
+We would want to be transparent about our current state. While we're deeply committed to our core principles and have invested significant engineering effort to uphold them, Unoplat Code Confluence is currently in alpha. Despite our best intentions and rigorous development practices, there may be areas where we haven't fully achieved these principles yet.
+
+If you encounter any gaps between our stated vision and the current implementation, or if you have suggestions for improvement, please don't hesitate to engage with us:
+
+- **Report Issues**: [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues)
+- **Start Discussions**: [GitHub Discussions](https://github.com/unoplat/unoplat-code-confluence/discussions)
+
+Your feedback is invaluable as we work toward production readiness and helps us prioritize our roadmap to better serve the developer community.
 
 > Ready to get started? Check out our [Quick Start Guide](/) to begin your journey with Unoplat Code Confluence.
