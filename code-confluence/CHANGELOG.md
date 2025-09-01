@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.20.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.19.0...code-confluence-docs-v0.20.0) (2025-09-01)
+
+
+### Features
+
+* Enhance vision.mdx with improved content and structure ([3f57dc3](https://github.com/unoplat/unoplat-code-confluence/commit/3f57dc31c9d13a3c4fc57cacdc1d04330fa54375))
+* Enhance vision.mdx with improved content and structure ([08638e4](https://github.com/unoplat/unoplat-code-confluence/commit/08638e4a525bad4c5fe6125fb79e4aec07290626))
+
 ## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.18.0...code-confluence-docs-v0.19.0) (2025-07-18)
 
 
