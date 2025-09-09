@@ -9,6 +9,8 @@ WORKDIR /bun-workspace
 # Copy any bun-related files if they exist (package.json, bun.lockb)
 # This stage can be extended later for Bun dependency management
 COPY package*.json bun.lockb* ./
+# Ensure node_modules directory exists even if no install happens
+RUN mkdir -p /bun-workspace/node_modules
 # Install dependencies if package.json exists
 RUN if [ -f package.json ]; then bun install --frozen-lockfile; else echo "No package.json found, skipping bun install"; fi
 
@@ -65,8 +67,8 @@ COPY --from=bun-stage /usr/local/bin/bunx /usr/local/bin/bunx
 COPY --from=builder --chown=${APP_USER}:${APP_USER} /usr/local /usr/local
 COPY --from=builder --chown=${APP_USER}:${APP_USER} /app /app
 
-# Copy any Bun dependencies if they were installed
-COPY --from=bun-stage --chown=${APP_USER}:${APP_USER} /bun-workspace/node_modules* ./node_modules/ 2>/dev/null || true
+# Copy Bun dependencies; directory always exists from bun-stage
+COPY --from=bun-stage --chown=${APP_USER}:${APP_USER} /bun-workspace/node_modules ./node_modules
 
 # Ensure Bun is accessible to non-root user
 RUN chmod +x /usr/local/bin/bun /usr/local/bin/bunx
