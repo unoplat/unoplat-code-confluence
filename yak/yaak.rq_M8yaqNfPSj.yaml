@@ -1,0 +1,36 @@
+type: http_request
+model: http_request
+id: rq_M8yaqNfPSj
+createdAt: 2025-09-09T06:18:32.221021
+updatedAt: 2025-09-09T06:25:12.440503
+workspaceId: wk_KULjx4bEa8
+folderId: fl_jtBaK7a5pU
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "provider_key" : "openrouter",
+      "model_name" :
+      "moonshotai/kimi-k2-0905"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: aimBYzq2DQ
+- enabled: true
+  name: X-Model-API-Key
+  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RXErRGdxOUppSWFXRld3aVhUd1V5bzZCZERuVHIxSEpWemJweXhWaGVVRnRlaVFQeFhuM0hvdFY4c2k4Ni9SMk1Vc0VTN0tSU0dPbUVERkwrc2Z1N2dnVHhwckhWR0VKK1BBVUxxdG1mK25ieDI0Nnc4Uk5ic2Z5QVYreStqTXBpNHJCYktaZkVWOXF6UE91SWc4YUl2Z3c9PQ') ]}
+  id: GpqDtwVjyC
+- enabled: true
+  name: ''
+  value: ''
+  id: nwzfKebKsB
+method: PUT
+name: jay-set-model-provider-openrouter
+sortPriority: 0.0008
+url: http://127.0.0.1:8001/v1/config
+urlParameters: []

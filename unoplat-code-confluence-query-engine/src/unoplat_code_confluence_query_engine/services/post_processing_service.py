@@ -15,9 +15,6 @@ from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata imp
 from unoplat_code_confluence_query_engine.services.post_processors.business_logic_domain_post_processor import (
     BusinessLogicDomainPostProcessor,
 )
-from unoplat_code_confluence_query_engine.services.post_processors.framework_explorer_post_processor import (
-    FrameworkExplorerPostProcessor,
-)
 from unoplat_code_confluence_query_engine.services.post_processors.post_processor_base import (
     ProcessorDependencies,
 )
@@ -30,7 +27,7 @@ class PostProcessingService:
     def __init__(self, registry: Optional[PostProcessingRegistry] = None) -> None:
         self.registry = registry or PostProcessingRegistry()
         # Register built-in processors
-        self.registry.register("framework_explorer", FrameworkExplorerPostProcessor())
+        #self.registry.register("framework_explorer", FrameworkExplorerPostProcessor())
         self.registry.register("business_logic_domain", BusinessLogicDomainPostProcessor())
 
     async def run(

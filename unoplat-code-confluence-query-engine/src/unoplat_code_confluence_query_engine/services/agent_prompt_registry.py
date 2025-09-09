@@ -23,7 +23,7 @@ class AgentPromptRegistry(PromptProviderProtocol):
         """Initialize registry with all agent prompt templates."""
         self._templates: Dict[str, Callable[..., str]] = {
             "framework_explorer": self._frameworks_prompt,
-            "directory_agent": self._directory_prompt,
+            "project_configuration_agent": self._directory_prompt,
             "development_workflow": self._development_workflow_prompt,
             "business_logic_domain": self._business_logic_domain_prompt,
         }
@@ -95,10 +95,9 @@ class AgentPromptRegistry(PromptProviderProtocol):
         codebase_language: str,
         extra_prompt_context: Optional[Dict[str, Union[BaseModel, list[BaseModel], str]]] = None,
     ) -> str:
-        """Generate prompt for directory_agent."""
+        """Generate prompt for project_configuration_agent."""
         header = (
-            f"Analyze the project structure for repository "
-            f"{repository_qualified_name}. "
+            f"Analyze the project configuration"
             f"Focus ONLY on the codebase '{codebase_name}' located at "
             f"{codebase_path} written in "
             f"{codebase_language}. "

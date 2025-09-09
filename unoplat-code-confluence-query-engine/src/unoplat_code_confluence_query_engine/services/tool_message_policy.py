@@ -23,7 +23,7 @@ class DefaultToolMessagePolicy(ToolMessagePolicyProtocol):
     # Agent-specific result message overrides (exact replicas from existing services)
     RESULT_OVERRIDES = {
         "framework_explorer": "✅ Framework analysis step complete",
-        "directory_agent": "✅ Structure analysis complete",
+        "project_configuration_agent": "✅ Structure analysis complete",
     }
     
     def message_for_tool_call(

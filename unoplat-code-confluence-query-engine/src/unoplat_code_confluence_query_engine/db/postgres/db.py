@@ -34,12 +34,15 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
         )
 
     try:
-        async with AsyncScopedSession.begin():
-            yield AsyncScopedSession
+        # Obtain a task-scoped AsyncSession and yield it
+        session = AsyncScopedSession()
+        async with session.begin():
+            yield session
     except Exception as e:
         logger.error("Session error: Error: {}", e)
         raise
     finally:
+        # Ensure the scoped session is removed for this task
         await AsyncScopedSession.remove()
 
 

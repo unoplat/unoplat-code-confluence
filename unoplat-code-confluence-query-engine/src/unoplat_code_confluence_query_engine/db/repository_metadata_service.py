@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import HTTPException
 from loguru import logger
 from sqlalchemy import select
@@ -7,7 +9,13 @@ from unoplat_code_confluence_commons.base_models import (
     Repository,
 )
 
+from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
+    CodeConfluenceGraphQueryEngine,
+)
 from unoplat_code_confluence_query_engine.db.postgres.db import get_session
+from unoplat_code_confluence_query_engine.models.agent_md_output import (
+    ProgrammingLanguageMetadataOutput,
+)
 from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
     CodebaseMetadata,
     RepositoryRulesetMetadata,
@@ -21,7 +29,7 @@ from unoplat_code_confluence_query_engine.services.package_manager_metadata_serv
 
 
 async def fetch_repository_metadata(
-    owner_name: str, repo_name: str, neo4j_manager
+    owner_name: str, repo_name: str, neo4j_manager: CodeConfluenceGraphQueryEngine
 ) -> RepositoryRulesetMetadata:
     """
     Fetch repository and codebase configuration data from PostgreSQL and resolve
@@ -111,7 +119,7 @@ async def fetch_repository_metadata(
                 absolute_path = relative_path
 
             # Fetch programming language metadata using absolute path (falls back to relative if needed)
-            neo4j_prog_lang_metadata = await fetch_programming_language_metadata(
+            neo4j_prog_lang_metadata: Optional[ProgrammingLanguageMetadataOutput] = await fetch_programming_language_metadata(
                 neo4j_manager, neo4j_qualified_name, absolute_path
             )
 
