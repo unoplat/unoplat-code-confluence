@@ -1,8 +1,8 @@
 type: http_request
 model: http_request
-id: rq_x8hfzLY2oZ
-createdAt: 2025-09-08T06:51:11.354357
-updatedAt: 2025-09-09T11:53:12.516698
+id: rq_pGkRo4AA2f
+createdAt: 2025-09-09T12:13:53.559623
+updatedAt: 2025-09-09T12:14:00.492555
 workspaceId: wk_KULjx4bEa8
 folderId: fl_zukJtBcFCC
 authentication: {}
@@ -12,8 +12,8 @@ bodyType: null
 description: ''
 headers: []
 method: GET
-name: test-project-configuration-kimi-or
-sortPriority: 0.0019
+name: test-project-configuration-dw-kimi-or
+sortPriority: 0.0029
 url: http://localhost:8001/v1/codebase-agent-rules
 urlParameters:
 - enabled: true
