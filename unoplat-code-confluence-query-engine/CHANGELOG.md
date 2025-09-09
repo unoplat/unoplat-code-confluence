@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.2.1...unoplat-code-confluence-query-engine-v0.3.0) (2025-09-09)
+
+
+### Features
+
+* **codebase-agent-rules:** Update project configuration agent handling ([049b41a](https://github.com/unoplat/unoplat-code-confluence/commit/049b41a6804c1512151428da8d01f12a68abcc61))
+* **codebase-agent-rules:** Update project configuration agent handling ([7a35b7c](https://github.com/unoplat/unoplat-code-confluence/commit/7a35b7c591da646c06b7b616273d977638ebee13))
+
 ## [0.2.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.2.0...unoplat-code-confluence-query-engine-v0.2.1) (2025-08-30)
 
 
