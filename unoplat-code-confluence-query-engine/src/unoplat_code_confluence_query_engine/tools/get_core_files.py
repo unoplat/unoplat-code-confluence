@@ -1,9 +1,8 @@
 """Fetch files that contain data models (core business logic roots) for a codebase.
-
+TODO: simplify the pipeline to read file by file instead of getting all files at once.
 This tool returns a normalized list of files that either:
 - Are directly marked as data model files (has_data_model=true), or
 - Use standardized framework features 'data_model' or 'db_data_model'.
-
 Agents should:
 1) Call this tool to get candidate model files
 2) Use read_file_content (get_content_file) to open each file
