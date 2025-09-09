@@ -3,6 +3,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import logfire
 from loguru import logger
 from sqlalchemy import select
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
@@ -69,6 +70,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.neo4j_manager = CodeConfluenceGraphQueryEngine(app.state.settings)
     await app.state.neo4j_manager.connect()
 
+    # initiliase logfire telemetry in dev environment
+    if app.state.settings.logfire_sdk_write_key:
+        logger.info("Initialising logfire telemetry")
+        logfire.configure(token=app.state.settings.logfire_sdk_write_key.get_secret_value(),service_name="unoplat-code-confluence-query-engine",environment=app.state.settings.environment)
+        logfire.instrument_pydantic_ai()        
+
     # Initialize MCP servers
     app.state.mcp_manager = MCPServerManager()
     await app.state.mcp_manager.load_config(app.state.settings.mcp_servers_config_path)
@@ -108,10 +115,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
             # Sanity check for required agents
             required_agents = [
-                "directory_agent",
-                "framework_explorer_agent",
+                "project_configuration_agent",
                 "development_workflow_agent",
                 "business_logic_domain_agent",
+                "context7_agent",
             ]
             missing = [a for a in required_agents if a not in app.state.agents]
             if missing:

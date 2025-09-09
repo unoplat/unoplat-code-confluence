@@ -9,7 +9,6 @@ from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
     CodeConfluenceGraphQueryEngine,
 )
 from unoplat_code_confluence_query_engine.models.agent_md_output import (
-    PackageManagerOutput,
     ProgrammingLanguageMetadataOutput,
 )
 
@@ -83,7 +82,6 @@ async def fetch_programming_language_metadata(
 
             # Extract data from record
             language = record["language"]
-            version = record["version"]
             package_manager = record["package_manager"]
 
             if not language or not package_manager:
@@ -94,14 +92,13 @@ async def fetch_programming_language_metadata(
                 )
                 return None
 
-            # Create PackageManagerOutput using the package_manager value directly from Neo4j
-            package_manager_output = PackageManagerOutput(package_type=package_manager)
+            
+            
 
             # Create and return ProgrammingLanguageMetadataOutput
             return ProgrammingLanguageMetadataOutput(
                 primary_language=language,
-                package_manager=package_manager_output,
-                version_requirement=version,
+                package_manager=package_manager
             )
 
     except Exception as e:

@@ -10,25 +10,25 @@ from unoplat_code_confluence_query_engine.models.agent_dependencies import (
 )
 
 
-class DirectoryTree(BaseModel):
-    """Directory tree structure returned by the eza utility.
+# class DirectoryTree(BaseModel):
+#     """Directory tree structure returned by the eza utility.
     
-    This model represents the formatted output from the eza command-line tool,
-    which provides a tree-like view of directory structure with files and folders.
-    """
+#     This model represents the formatted output from the eza command-line tool,
+#     which provides a tree-like view of directory structure with files and folders.
+#     """
 
-    tree: str = Field(..., description="Formatted directory tree produced by eza")
+#     tree: str = Field(..., description="Formatted directory tree produced by eza")
 
 
 async def get_directory_tree(
     ctx: RunContext[AgentDependencies],
-    depth: Optional[int] = None,
+    depth: int,
     path: Optional[str] = None,
-) -> DirectoryTree:
+) -> str:
     """Get a text-based directory tree for a given directory.
 
     Args:
-        depth: Maximum directory depth to traverse; pass ``None`` for unlimited depth.
+        depth: Maximum directory depth to traverse (must be >= 1).
         path: Absolute path to directory to traverse; defaults to codebase root if not provided.
 
     Returns:
@@ -60,13 +60,12 @@ async def get_directory_tree(
     # Build eza command arguments
     cmd_args = ["eza", "-T", "--group-directories-first"]
 
-    # Add depth limit if specified
-    if depth is not None:
-        if depth < 1:
-            raise ModelRetry(
-                f"Depth must be >= 1. Please provide a valid depth value instead of: {depth}"
-            )
-        cmd_args.extend(["--level", str(depth)])
+    # Validate and add depth limit
+    if depth < 1:
+        raise ModelRetry(
+            f"Depth must be >= 1. Please provide a valid depth value instead of: {depth}"
+        )
+    cmd_args.extend(["--level", str(depth)])
 
     # Add the target path as the final argument
     cmd_args.append(target_path)
@@ -92,7 +91,8 @@ async def get_directory_tree(
 
         # Return the directory tree
         tree_output = stdout.decode("utf-8")
-        return DirectoryTree(tree=tree_output)
+        #return DirectoryTree(tree=tree_output)
+        return tree_output
 
     except FileNotFoundError:
         raise ModelRetry(

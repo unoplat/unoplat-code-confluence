@@ -1,17 +1,17 @@
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from loguru import logger
-from pydantic_ai import Agent, Tool
+from pydantic_ai import Agent, RunContext, Tool
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 
+from unoplat_code_confluence_query_engine.experiments.test_model import code_confluence_project_configuration_agent
 from unoplat_code_confluence_query_engine.models.agent_dependencies import (
     AgentDependencies,
 )
 from unoplat_code_confluence_query_engine.models.agent_md_output import (
     DevelopmentWorkflow,
-    FrameworkLibraryOutput,
-    ProjectStructure,
+    ProjectConfiguration,
 )
 from unoplat_code_confluence_query_engine.services.mcp.mcp_server_manager import (
     MCPServerManager,
@@ -25,17 +25,13 @@ from unoplat_code_confluence_query_engine.tools.get_data_model_files import (
 from unoplat_code_confluence_query_engine.tools.get_directory_tree import (
     get_directory_tree,
 )
-from unoplat_code_confluence_query_engine.tools.get_framework_lib_feature_overview import (
-    get_framework_lib_feature_overview,
-)
 from unoplat_code_confluence_query_engine.tools.get_lib_data import get_lib_data
-from unoplat_code_confluence_query_engine.tools.get_structural_signature import (
-    get_structural_signature,
-)
-from unoplat_code_confluence_query_engine.tools.search_across_codebase import (
-    search_across_codebase,
-)
+from unoplat_code_confluence_query_engine.tools.search_across_codebase import search_across_codebase
 
+
+    # pyright: ignore[reportUndefinedVariable]
+
+    
 
 def create_code_confluence_agents(mcp_server_manager: MCPServerManager, model: Model, model_settings: Optional[ModelSettings] = None) -> Dict[str, Agent]:
     """Create code confluence agents with provided model.
@@ -52,105 +48,24 @@ def create_code_confluence_agents(mcp_server_manager: MCPServerManager, model: M
         "Starting agent registry creation with model_settings present? {}",
         bool(model_settings),
     )
-
-    code_confluence_directory_agent: Agent = Agent(
+    
+    
+    
+    code_confluence_project_configuration_agent: Agent = Agent(
         model,
         model_settings=model_settings,
-        system_prompt="""You are the Code Confluence Directory Agent.
-
-Objective
-- Return only one ProjectStructure object for the repository.
-- Fields:
-  - key_directories: List[KeyDirectory {path, description}]
-  - config_files:   List[ConfigFile   {path, purpose}]
-
-Two-phase workflow
-- Phase 1 — Plan:
-  - Draft a brief internal plan of what to inspect (directories and config files).
-  - Decide where deeper dives are needed and where library documentation lookups may help.
-- Phase 2 — Execute:
-  - Use get_directory_tree and read_file_content to gather details.
-  - If a purpose remains unclear for tools/libraries, use get_lib_data tool to understand configuration and intent
-
-How to work
-- Start with get_directory_tree(depth=3). Increase depth only where needed.
-- Include only meaningful directories for a new contributor:
-  src|lib|app, tests|spec|__tests__, migrations|db/migrations, assets|static|public,
-  docs, config, scripts, ci|.github/workflows, infra|kubernetes|docker.
-- Detect important config files:
-  - Package managers: package.json, requirements.txt, pyproject.toml, go.mod, Cargo.toml, pom.xml, build.gradle
-  - Linters/formatters: .eslintrc*, .pylintrc, .ruff.toml, .rubocop.yml, .prettierrc*, .editorconfig, black/isort configs
-  - Tests: jest.config.*, pytest.ini, phpunit.xml, tox.ini
-  - Build: tsconfig.json, webpack*.config.*, Makefile
-  - Deployment/CI: Dockerfile, docker-compose*.yml, kubernetes/*.yaml, .github/workflows/*
-- Use read_file_content when the purpose is unclear; write a 1–2 sentence purpose.
-
-Rules
-- Use repository-relative paths.
-- Be precise and concise; no speculation.
-- Do not list every folder; include only meaningful key directories.
-- If nothing fits a category, return an empty list for it.
-- Output only the JSON for ProjectStructure, with no extra prose.
-""",
+        system_prompt="<role> Build/CI/Test/Lint/Type Configuration Locator</role>",
         deps_type=AgentDependencies, #type: ignore
         tools=[
             Tool(get_directory_tree, takes_ctx=True, max_retries=6),
-            Tool(read_file_content, takes_ctx=True, max_retries=6)
+            Tool(read_file_content, takes_ctx=True, max_retries=6),
+            Tool(search_across_codebase, takes_ctx=True, max_retries=6)
         ],
-        output_type=ProjectStructure, #type: ignore
+        output_type=ProjectConfiguration, 
         retries=6
     )
     
-    major_framework_libs_explorer: Agent = Agent(
-        model,
-        model_settings=model_settings,
-        system_prompt="""You are the Major Frameworks & Libraries Explorer Agent.
-
-Goal
-- Produce a List[FrameworkLibraryOutput] describing only architectural frameworks/libraries that shape the application: microservices/web, streaming/messaging, batch/ETL, workflow/orchestration, database/ORM layers, frontend SSR/full‑stack frameworks, frontend SPA frameworks.
-
-Strict sequential workflow
-1) Initialize (dedupe base):
-   - Call get_framework_lib_feature_overview.
-   - Build covered = {library.lower() for library in that result}.
-   - You MUST NOT include any library whose lowercased name is in covered.
-
-2) Discover candidates from dependencies:
-   - Read package manifests (pyproject.toml/requirements.txt, package.json, go.mod, etc.) using read_file_content tool locating through get_directory_tree tool.
-   - From dependencies, shortlist candidates likely to be architectural (per categories above). Ignore utilities/testing/styling/UI kits/SDKs.
-
-3) Validate architectural significance using documentation:
-   - For each candidate not in covered: call get_lib_data(lib_name, programming_language).
-   - Extract the library purpose and any grep‑ready patterns (the documentation agent returns overview plus code search patterns).
-   - If the purpose/patterns do not indicate architectural impact, SKIP the candidate.
-
-4) Confirm real usage in this codebase (evidence):
-   - Use search_across_codebase with the patterns to find files with usage locations.
-   - Use get_structural_signature on matched files to identify features and whether any are entry points (HTTP routes/handlers, consumers/workers, workflow definitions/activities, batch runners). Mark is_entry_point=true only when appropriate.
-   - Keep only libraries with at least one confirmed usage location.
-
-5) Emit final output (deduped):
-   - Exclude any library in covered.
-   - For each remaining library, include features_used with concrete locations (absolute file paths) and correct is_entry_point flags.
-
-Output format (exact)
-- Return only JSON for List[FrameworkLibraryOutput]. No prose.
-- Each item must include: name, description (from get_lib_data), documentation_url (if available), and features_used (with at least one location).
-""",
-        deps_type=AgentDependencies, #type: ignore
-        tools=[
-            Tool(get_framework_lib_feature_overview, takes_ctx=True, max_retries=6),
-            Tool(get_directory_tree, takes_ctx=True, max_retries=6),
-            Tool(get_structural_signature, takes_ctx=True, max_retries=6),
-            Tool(read_file_content, takes_ctx=True, max_retries=6),
-            Tool(search_across_codebase, takes_ctx=True, max_retries=6),
-            Tool(get_lib_data, takes_ctx=True, max_retries=6),
-        ],
-        output_type=List[FrameworkLibraryOutput], #type: ignore
-        retries=6,
-        
-    )
-    
+      
     context7_agent: Agent = Agent(
         model,
         model_settings=model_settings,
@@ -253,10 +168,9 @@ Grounding rules:
     )
     
     agents: Dict[str, Agent] = {
-        "directory_agent": code_confluence_directory_agent,
-        "framework_explorer_agent": major_framework_libs_explorer,
-        "context7_agent": context7_agent,
+        "project_configuration_agent": code_confluence_project_configuration_agent,
         "development_workflow_agent": development_workflow_agent,
+        "context7_agent": context7_agent,
         "business_logic_domain_agent": business_logic_domain_agent,
     }
 
@@ -266,3 +180,84 @@ Grounding rules:
     )
 
     return agents
+
+@code_confluence_project_configuration_agent.system_prompt    
+def per_programming_language_configuration_prompt(ctx: RunContext[AgentDependencies]) -> str:
+    
+    common_prompt = (
+        f"<task>Given a codebase path for {ctx.deps.codebase_metadata.codebase_programming_language} programming language scan the directory tree for the current codebase and identify important configuration files for development, testing, linting, formatting, packaging, CI/CD, containers, and infrastructure </task>"
+        f"<context>"
+        f" <categories>"
+        f"   <list>dev,test,lint,format,package,build,deploy,infrastructure</list>"
+        f" </categories>"
+        f"  <general_config_globs><![CDATA["
+        f".editorconfig|.gitignore|.gitattributes|.pre-commit-config.y*|Makefile|Justfile|Taskfile.y*ml|"
+        f"Dockerfile*|.dockerignore|docker-compose.y*ml|"
+        f".github/workflows/*.y*ml|.gitlab-ci.y*ml|.circleci/config.y*ml|azure-pipelines.y*ml|"
+        f"renovate*.json|.renovaterc.*|.dependabot/config.y*ml|.github/dependabot.y*ml|"
+        f"sonar-project.properties|.snyk|.license*|LICENSE|"
+        f"k8s/**.y*ml|kubernetes/**.y*ml|charts/**|Chart.yaml|values*.y*ml|"
+        f"terraform/*.tf|**/.terraform.lock.hcl|ansible.cfg|**/playbooks/**.y*ml|"
+        f"serverless.(y*ml|ts)|template.y*ml|samconfig.toml"
+        f"]]></general_config_globs>"
+    )
+    
+    typescript_config_prompt = (
+        f"<lang name=\"javascript typescript\"><![CDATA["
+        f"package.json|package-lock.json|yarn.lock|pnpm-lock.yaml|bun.lockb|"
+        f"tsconfig*.json|jsconfig.json|"
+        f".eslintrc*|eslint.config.(js|mjs|cjs|ts)|"
+        f".prettier*|prettier.config.*|"
+        f"jest.config.*|vitest.config.*|karma.conf.*|.mocharc.*|nyc.config.*|.nycrc*|"
+        f"babel.config.*|.babelrc*|"
+        f"webpack*.config.*|rollup.config.*|vite.config.*|"
+        f"cypress.config.*|cypress.json|playwright.config.*|"
+        f"nodemon.json|ecosystem.config.*|.nvmrc|.husky/**"
+        f"]]></lang>"
+        f"</context>"
+    )
+    
+    python_config_prompt = (
+        f"<lang name=\"python\"><![CDATA["
+        f"pyproject.toml|setup.cfg|setup.py|requirements*.{{txt,in}}|Pipfile|"
+        f"tox.ini|pytest.ini|.coveragerc|"
+        f".flake8|.pylintrc|mypy.ini|.mypy.ini|pyrightconfig.json|ruff.toml|.ruff.toml|"
+        f"noxfile.py"
+        f"]]></lang>"
+        f"</context>"
+    )
+    
+    java_config_prompt = (
+        f"<lang name=\"java\"><![CDATA["
+        f"pom.xml|settings.xml|build.gradle|build.gradle.kts|settings.gradle|gradle.properties|"
+        f"checkstyle.xml|pmd.xml|spotbugs*.xml"
+        f"]]></lang>"
+        f"</context>"
+    )
+    
+    rust_config_prompt = (
+        f"<lang name=\"rust\"><![CDATA["
+        f"Cargo.toml|Cargo.lock|"
+        f"clippy.toml|rustfmt.toml|.rustfmt.toml|"
+        f"]]></lang>"
+        f"</context>"
+    )
+    
+    step_common_prompt = (
+        f"<steps>"
+        f"<step>Understand directory structure of the codebase based on path provided and get_directory_Tree tool.</step>"
+        f"<step>Match paths inside the codebase path provided against language_config_globs for provided languages and general_config_globs using search_across_codebase tool and/or get_directory_tree </step>"
+        f"<step>Be very certain post matches found read the files using read_file_content tool if required."
+        f"<step>Produce output JSON exactly as requested.</step>"
+        f"</steps>"
+    )
+    if ctx.deps.codebase_metadata.codebase_programming_language == "javascript" or ctx.deps.codebase_metadata.codebase_programming_language == "typescript":
+        return common_prompt + "\n" + typescript_config_prompt + "\n" + step_common_prompt
+    elif ctx.deps.codebase_metadata.codebase_programming_language == "python":
+        return common_prompt + "\n" + python_config_prompt + "\n" + step_common_prompt
+    elif ctx.deps.codebase_metadata.codebase_programming_language == "java":
+        return common_prompt + "\n" + java_config_prompt + "\n" + step_common_prompt
+    elif ctx.deps.codebase_metadata.codebase_programming_language == "rust":
+        return common_prompt + "\n" + rust_config_prompt + "\n" + step_common_prompt
+    else:
+        return common_prompt
