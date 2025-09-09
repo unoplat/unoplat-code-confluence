@@ -9,6 +9,9 @@ from unoplat_code_confluence_query_engine.models.ai_model_config import (
     AiModelConfigIn,
     AiModelConfigOut,
 )
+from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
+    AiModelConfigService,
+)
 from unoplat_code_confluence_query_engine.services.config_hot_reload import (
     update_app_agents,
 )
@@ -77,7 +80,7 @@ async def upsert_ai_model_config(
         HTTPException: If provider is unknown or validation fails
     """
     try:
-        service = request.app.state.ai_model_config_service
+        service: AiModelConfigService = request.app.state.ai_model_config_service
         result = await service.upsert_config(config, api_key=x_model_api_key)
         logger.info("AI model config upserted for provider: {}", config.provider_key)
 

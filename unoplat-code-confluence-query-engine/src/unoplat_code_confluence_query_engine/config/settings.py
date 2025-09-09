@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import Field, SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,10 +12,11 @@ class EnvironmentSettings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file="../../.env.dev",
         env_file_encoding="utf-8",
         case_sensitive=False,
         validate_default=True,
+        extra="ignore"
     )
 
     # PostgreSQL Database Settings
@@ -59,6 +61,16 @@ class EnvironmentSettings(BaseSettings):
     log_level: str = Field(default="DEBUG", alias="LOG_LEVEL")
     log_rotation_size: str = Field(default="10 MB", alias="LOG_ROTATION_SIZE")
     log_retention_days: int = Field(default=30, alias="LOG_RETENTION_DAYS")
+    
+    #LOGFIRE TELEMETRY
+    logfire_sdk_write_key: Optional[SecretStr] = Field(
+        default=None,
+        alias="LOGFIRE_SDK_WRITE_KEY",
+        description="Logfire SDK write key for logging",
+        validate_default=False
+    )
+    
+    environment: str = Field(default="development", alias="ENVIRONMENT")
 
     @computed_field  # type: ignore[prop-decorator]
     @property

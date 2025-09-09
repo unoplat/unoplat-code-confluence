@@ -13,7 +13,7 @@ class AgentExecutionRequest:
     """Request configuration for agent execution.
     
     Args:
-        agent_name: Identifier for the agent (e.g., "framework_explorer", "directory_agent")
+        agent_name: Identifier for the agent (e.g., "framework_explorer", "project_configuration_agent")
         agent: The pydantic-ai Agent instance to run
         fastapi_request: FastAPI request object for accessing app.state dependencies
         event_namespace: Optional override for event prefix in SSE streams

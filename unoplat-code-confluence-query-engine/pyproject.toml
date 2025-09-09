@@ -9,6 +9,7 @@ dependencies = [
     "aiopath>=0.7.7",
     "asyncpg>=0.30.0",
     "fastapi[standard]>=0.116.1",
+    "logfire[fastapi]>=4.4.0",
     "loguru>=0.7.3",
     "neomodel>=5.5.0",
     "pydantic-ai>=0.6.2",

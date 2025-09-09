@@ -1,8 +1,9 @@
 """Service for resolving absolute codebase paths from Neo4j graph database."""
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from loguru import logger
+from neo4j import AsyncManagedTransaction, AsyncResult
 
 from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
     CodeConfluenceGraphQueryEngine,
@@ -121,7 +122,7 @@ class CodebasePathResolver:
         return False
 
     @staticmethod
-    async def _query_codebase_paths(tx, repository_qualified_name: str):
+    async def _query_codebase_paths(tx: AsyncManagedTransaction, repository_qualified_name: str) -> list[dict[str, Any]]:
         """
         Neo4j transaction function to query codebase paths.
 
@@ -139,6 +140,6 @@ class CodebasePathResolver:
                codebase.codebase_path AS codebase_path
         """
 
-        result = await tx.run(query, repo_qualified_name=repository_qualified_name)
-        records = await result.data()
+        result: AsyncResult = await tx.run(query, repo_qualified_name=repository_qualified_name)
+        records: list[dict[str, Any]] = await result.data()
         return records
