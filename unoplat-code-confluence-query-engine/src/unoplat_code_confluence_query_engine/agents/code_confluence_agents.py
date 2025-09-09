@@ -1,11 +1,10 @@
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from loguru import logger
 from pydantic_ai import Agent, RunContext, Tool
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 
-from unoplat_code_confluence_query_engine.experiments.test_model import code_confluence_project_configuration_agent
 from unoplat_code_confluence_query_engine.models.agent_dependencies import (
     AgentDependencies,
 )
@@ -26,14 +25,14 @@ from unoplat_code_confluence_query_engine.tools.get_directory_tree import (
     get_directory_tree,
 )
 from unoplat_code_confluence_query_engine.tools.get_lib_data import get_lib_data
-from unoplat_code_confluence_query_engine.tools.search_across_codebase import search_across_codebase
-
+from unoplat_code_confluence_query_engine.tools.search_across_codebase import (
+    search_across_codebase,
+)
 
     # pyright: ignore[reportUndefinedVariable]
-
     
 
-def create_code_confluence_agents(mcp_server_manager: MCPServerManager, model: Model, model_settings: Optional[ModelSettings] = None) -> Dict[str, Agent]:
+def create_code_confluence_agents(mcp_server_manager: MCPServerManager, model: Model, model_settings: Optional[ModelSettings] = None) -> Dict[str, Agent[Any]]:
     """Create code confluence agents with provided model.
     
     Args:
@@ -49,9 +48,9 @@ def create_code_confluence_agents(mcp_server_manager: MCPServerManager, model: M
         bool(model_settings),
     )
     
+
     
-    
-    code_confluence_project_configuration_agent: Agent = Agent(
+    code_confluence_project_configuration_agent: Agent[AgentDependencies] = Agent(
         model,
         model_settings=model_settings,
         system_prompt="<role> Build/CI/Test/Lint/Type Configuration Locator</role>",
@@ -64,9 +63,18 @@ def create_code_confluence_agents(mcp_server_manager: MCPServerManager, model: M
         output_type=ProjectConfiguration, 
         retries=6
     )
+
+    # Attach dynamic per-language system prompt for configuration
+    try:
+        code_confluence_project_configuration_agent.system_prompt(
+            per_programming_language_configuration_prompt
+        )
+    except NameError:
+        # Function is defined later in the module; safe to ignore if not yet bound at import time
+        pass
     
       
-    context7_agent: Agent = Agent(
+    context7_agent: Agent[None] = Agent(
         model,
         model_settings=model_settings,
         system_prompt="""You are the Context7 Library Documentation Agent.
@@ -136,8 +144,16 @@ Optional fields: description, tool, runner, config_files (list of strings), work
         output_type=DevelopmentWorkflow, #type: ignore
         retries=6
     )
+
+    # Attach dynamic per-language system prompt for development workflow
+    try:
+        development_workflow_agent.system_prompt(
+            per_language_development_workflow_prompt
+        )
+    except NameError:
+        pass
     
-    business_logic_domain_agent: Agent = Agent(
+    business_logic_domain_agent: Agent[AgentDependencies] = Agent(
         model,
         model_settings=model_settings,
         system_prompt="""You are the Business Logic Domain Agent.
@@ -167,7 +183,7 @@ Grounding rules:
         retries=6,
     )
     
-    agents: Dict[str, Agent] = {
+    agents: Dict[str, Agent[Any]] = {
         "project_configuration_agent": code_confluence_project_configuration_agent,
         "development_workflow_agent": development_workflow_agent,
         "context7_agent": context7_agent,
@@ -181,7 +197,6 @@ Grounding rules:
 
     return agents
 
-@code_confluence_project_configuration_agent.system_prompt    
 def per_programming_language_configuration_prompt(ctx: RunContext[AgentDependencies]) -> str:
     
     common_prompt = (
@@ -261,3 +276,57 @@ def per_programming_language_configuration_prompt(ctx: RunContext[AgentDependenc
         return common_prompt + "\n" + rust_config_prompt + "\n" + step_common_prompt
     else:
         return common_prompt
+
+
+def per_language_development_workflow_prompt(ctx: RunContext[AgentDependencies]) -> str:
+    lang = ctx.deps.codebase_metadata.codebase_programming_language
+
+    header = (
+        f"You are the Development Workflow Agent for {lang} programming language with package manager {ctx.deps.codebase_metadata.codebase_package_manager}.\n\n"
+        "Goal: Analyze the important config files provided by the user and return only DevelopmentWorkflow JSON with a unified 'commands' list.\n\n"
+        "Strictly output only JSON, no prose.\n"
+    )
+
+    steps = (
+        "Workflow:\n"
+        "1. Extract runnable commands for build/dev/test/lint/type_check from scripts or config based on package manager and user provided config files related to development workflow.\n"
+        "2. If a config or the tool be it package manager, linter etc is unclear, call get_lib_data with feature_description like 'build command' 'dev command' 'testing commands' or 'lint commands' to extract precise commands for that particular tool.\n"
+    )
+
+    output_contract = (
+        "Output format: DevelopmentWorkflow JSON with a single field 'commands' as a list of CommandSpec.\n"
+        "Each CommandSpec must include: kind (build|dev|test|lint|type_check), command (string). Optional: description, config_files[].\n\n"
+    )
+
+    if lang in ("javascript", "typescript"):
+        lang_hints = (
+            "JavaScript/TypeScript hints:\n"
+            "- Primary: package.json scripts.{build,dev,start,test,lint,typecheck}.\n"
+            "- Configs: tsconfig*.json, eslint.config.*|.eslintrc*, prettier*, jest|vitest|playwright|cypress configs, vite|webpack|rollup configs.\n"
+            "- Common commands: vite build, next build, tsc -b, eslint . --max-warnings 0, vitest run, jest --ci.\n"
+        )
+    elif lang == "python":
+        lang_hints = (
+            "Python hints:\n"
+            "- Manifests/configs: pyproject.toml [tool.pytest, tool.ruff, tool.mypy], tox.ini, pytest.ini, ruff.toml, mypy.ini, Makefile.\n"
+            "- Common commands: python -m build, pytest -q, ruff check ., mypy .\n"
+        )
+    elif lang == "go":
+        lang_hints = (
+            "Go hints:\n"
+            "- Manifests: go.mod; Common: go build ./..., go test ./..., golangci-lint run.\n"
+        )
+    elif lang == "java":
+        lang_hints = (
+            "Java hints:\n"
+            "- Maven/Gradle: pom.xml or build.gradle(.kts); Common: mvn -q -DskipTests=false test, mvn -q package, gradle build, gradle test, checkstyle/spotbugs tasks.\n"
+        )
+    elif lang == "rust":
+        lang_hints = (
+            "Rust hints:\n"
+            "- Cargo.toml; Common: cargo build, cargo test, cargo clippy -- -D warnings.\n"
+        )
+    else:
+        lang_hints = ""
+
+    return header + steps + output_contract + lang_hints

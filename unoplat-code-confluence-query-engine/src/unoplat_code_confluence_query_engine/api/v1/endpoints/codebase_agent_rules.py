@@ -324,29 +324,29 @@ async def generate_sse_events(
         #     event_id += 1
 
         # Stream development workflow analysis events using development_workflow_agent
-        # development_request = AgentExecutionRequest(
-        #     agent_name="development_workflow",
-        #     agent=request.app.state.agents['development_workflow_agent'],
-        #     fastapi_request=request,
-        #     event_namespace="development_workflow",
-        #     extra_prompt_context={"project_structure": project_structure_by_codebase}
-        # )
+        development_request = AgentExecutionRequest(
+            agent_name="development_workflow",
+            agent=request.app.state.agents['development_workflow_agent'],
+            fastapi_request=request,
+            event_namespace="development_workflow",
+            extra_prompt_context={"project_structure": project_structure_by_codebase}
+        )
         
-        # workflow_result_handler = partial(_update_workflow_result, aggregators)
+        workflow_result_handler = partial(_update_workflow_result, aggregators)
         
-        # async for progress_event in _stream_agent(
-        #     request, agent_execution_service, ruleset_metadata, development_request,
-        #     on_result=workflow_result_handler
-        # ):
-        #     sse_event = {
-        #         "event": progress_event["event"],
-        #         "data": json.dumps(progress_event["data"]),
-        #         "id": str(event_id),
-        #     }
-        #     last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
-        #     event_count += 1
-        #     yield sse_event
-        #     event_id += 1
+        async for progress_event in _stream_agent(
+            request, agent_execution_service, ruleset_metadata, development_request,
+            on_result=workflow_result_handler
+        ):
+            sse_event = {
+                "event": progress_event["event"],
+                "data": json.dumps(progress_event["data"]),
+                "id": str(event_id),
+            }
+            last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
+            event_count += 1
+            yield sse_event
+            event_id += 1
 
         # Stream business logic domain analysis events using business_logic_domain_agent
         # business_logic_request = AgentExecutionRequest(

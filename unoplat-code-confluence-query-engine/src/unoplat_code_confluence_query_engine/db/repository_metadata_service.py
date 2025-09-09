@@ -137,6 +137,7 @@ async def fetch_repository_metadata(
                 codebase_name=relative_path,  # Use relative path as identifier
                 codebase_path=absolute_path,  # Use absolute path from Neo4j
                 codebase_programming_language=prog_lang_metadata.language.value,
+                codebase_package_manager=prog_lang_metadata.package_manager.value,
             )
             codebase_metadata_list.append(codebase_metadata)
 
