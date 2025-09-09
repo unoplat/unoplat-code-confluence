@@ -13,6 +13,8 @@
 
 ### Bug Fixes
 
+* **docker:** ensure node_modules directory exists ([27d8fa5](https://github.com/unoplat/unoplat-code-confluence/commit/27d8fa59450589007e1123a37d6968aa43ae593a))
+* **docker:** ensure node_modules directory exists ([ce17cbc](https://github.com/unoplat/unoplat-code-confluence/commit/ce17cbce560f233680163723606bdbd88e162713))
 * git pull explicit no rebase ([dfbbc26](https://github.com/unoplat/unoplat-code-confluence/commit/dfbbc26be5fc790127fb5b731568fa05f119bf9d))
 * main entry point ([52126fb](https://github.com/unoplat/unoplat-code-confluence/commit/52126fb65c7169f0c40ed94cdc3fb9dfa9187bac))
 * main entry point ([ca93eb5](https://github.com/unoplat/unoplat-code-confluence/commit/ca93eb528a682487ac65d3117e33a56ccb4e92a3))
