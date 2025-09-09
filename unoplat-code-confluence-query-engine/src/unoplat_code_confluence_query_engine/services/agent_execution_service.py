@@ -530,7 +530,7 @@ class AgentExecutionService:
                         pass
         except Exception as e:
             # Model request nodes may not always support streaming
-            logger.debug("Model request node streaming not available: {}", e)
+            logger.error("Model request node streaming not available: {}", e)
     
     async def _handle_tool_call_node(
         self,
@@ -588,7 +588,7 @@ class AgentExecutionService:
         event_queue: asyncio.Queue[Dict[str, Any]],
     ) -> None:
         """Emit tool.result event."""
-        tool_name = getattr(event, "tool_name", "unknown")
+        tool_name = event.result.tool_name if event.result.tool_name else "unknown"
         result_preview = (
             str(event.result.content)
             if hasattr(event.result, "content")
@@ -676,7 +676,7 @@ class AgentExecutionService:
         """Get agent-specific prompt start message."""
         messages = {
             "framework_explorer": "Analyzing major frameworks and libraries...",
-            "directory_agent": "Analyzing project structure...",
+            "project_configuration_agent": "Analyzing project structure...",
             "development_workflow": "Analyzing development workflow (build/test/lint/type-check)...",
             "business_logic_domain": "Analyzing business logic domains...",
         }
@@ -686,7 +686,7 @@ class AgentExecutionService:
         """Get agent-specific model request message."""
         messages = {
             "framework_explorer": "Agent is analyzing frameworks and libraries...",
-            "directory_agent": "Agent is analyzing project structure...",
+            "project_configuration_agent": "Agent is analyzing project structure...",
             "development_workflow": "Agent is deriving build, dev, test, lint, and type-check commands...",
             "business_logic_domain": "Agent is grouping core files into business domains...",
         }
@@ -696,7 +696,7 @@ class AgentExecutionService:
         """Get agent-specific completion message."""
         messages = {
             "framework_explorer": "🎉 Major frameworks analysis complete for codebase",
-            "directory_agent": "🎉 Project structure analysis complete for codebase",
+            "project_configuration_agent": "🎉 Project structure analysis complete for codebase",
             "development_workflow": "🎉 Development workflow analysis complete for codebase",
             "business_logic_domain": "🎉 Business logic domain analysis complete for codebase",
         }

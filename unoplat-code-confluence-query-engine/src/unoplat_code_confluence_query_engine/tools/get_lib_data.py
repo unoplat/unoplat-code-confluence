@@ -17,7 +17,7 @@ async def get_lib_data(
 ) -> str:
     """Get concise library/framework documentation summary.
 
-    This tool provides access to Context7-powered library documentation
+    This tool provides access to library documentation
     through a simplified interface. Returns concise 3-5 line summaries.
 
     Args:

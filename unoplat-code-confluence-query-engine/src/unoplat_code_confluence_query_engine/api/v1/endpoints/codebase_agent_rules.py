@@ -10,7 +10,6 @@ from loguru import logger
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
-from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import CodeConfluenceGraphQueryEngine
 from unoplat_code_confluence_query_engine.db.repository_metadata_service import (
     fetch_repository_metadata,
 )
@@ -23,17 +22,14 @@ from unoplat_code_confluence_query_engine.models.agent_md_aggregate import (
 from unoplat_code_confluence_query_engine.models.agent_md_output import (
     BusinessLogicDomain,
     DevelopmentWorkflow,
-    FrameworkLibraryOutput,
-    ProjectStructure,
+    ProgrammingLanguageMetadataOutput,
+    ProjectConfiguration,
 )
 from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
     RepositoryRulesetMetadata,
 )
 from unoplat_code_confluence_query_engine.services.agent_execution_service import (
     AgentExecutionService,
-)
-from unoplat_code_confluence_query_engine.services.framework_baseline_service import (
-    fetch_baseline_frameworks_as_outputs,
 )
 from unoplat_code_confluence_query_engine.services.package_manager_metadata_service import (
     fetch_programming_language_metadata,
@@ -66,62 +62,62 @@ def log_sse_event(connection_id: str, event_count: int, event_type: str,
 
 async def _update_directory_result(
     aggregators: Dict[str, AgentMdAggregate],
-    project_structure_by_codebase: Dict[str, ProjectStructure],
+    project_structure_by_codebase: Dict[str, ProjectConfiguration],
     codebase_name: str,
-    result: ProjectStructure,
+    result: ProjectConfiguration,
 ) -> None:
     """Update directory agent result in aggregator and project structure cache."""
     project_structure_by_codebase[codebase_name] = result
-    aggregators[codebase_name].update_from_directory_agent(result)
+    aggregators[codebase_name].update_from_project_configuration_agent(result)
 
 
-async def _update_framework_result(
-    aggregators: Dict[str, AgentMdAggregate],
-    codebase_name: str,
-    result: list[FrameworkLibraryOutput],
-) -> None:
-    """Update framework explorer result in aggregator."""
-    aggregators[codebase_name].update_from_framework_explorer(result)
+# async def _update_framework_result(
+#     aggregators: Dict[str, AgentMdAggregate],
+#     codebase_name: str,
+#     result: list[FrameworkLibraryOutput],
+# ) -> None:
+#     """Update framework explorer result in aggregator."""
+#     aggregators[codebase_name].update_from_framework_explorer(result)
 
 
-async def _update_framework_result_with_baseline(
-    aggregators: Dict[str, AgentMdAggregate],
-    neo4j_manager: CodeConfluenceGraphQueryEngine,
-    codebase_name: str,
-    result: list[FrameworkLibraryOutput],
-) -> None:
-    """Merge baseline (KG) frameworks with agent novel frameworks and update aggregator.
+# async def _update_framework_result_with_baseline(
+#     aggregators: Dict[str, AgentMdAggregate],
+#     neo4j_manager: CodeConfluenceGraphQueryEngine,
+#     codebase_name: str,
+#     result: list[FrameworkLibraryOutput],
+# ) -> None:
+#     """Merge baseline (KG) frameworks with agent novel frameworks and update aggregator.
 
-    - Prefer baseline entries when names overlap.
-    - Append only novel items not present in baseline (case-insensitive by name).
-    """
-    aggregator = aggregators[codebase_name]
+#     - Prefer baseline entries when names overlap.
+#     - Append only novel items not present in baseline (case-insensitive by name).
+#     """
+#     aggregator = aggregators[codebase_name]
 
-    # Fetch baseline frameworks for this codebase
-    baseline = await fetch_baseline_frameworks_as_outputs(
-        neo4j_manager, aggregator.codebase.codebase_path, aggregator.codebase.codebase_programming_language
-    )
+#     # Fetch baseline frameworks for this codebase
+#     baseline = await fetch_baseline_frameworks_as_outputs(
+#         neo4j_manager, aggregator.codebase.codebase_path, aggregator.codebase.codebase_programming_language
+#     )
 
-    baseline_map = {i.name.strip().lower(): i for i in baseline}
+#     baseline_map = {i.name.strip().lower(): i for i in baseline}
 
-    merged: list[FrameworkLibraryOutput] = list(baseline_map.values())
+#     merged: list[FrameworkLibraryOutput] = list(baseline_map.values())
 
-    added_novel = 0
-    for item in result:
-        key = item.name.strip().lower()
-        if key in baseline_map:
-            continue
-        merged.append(item)
-        added_novel += 1
+#     added_novel = 0
+#     for item in result:
+#         key = item.name.strip().lower()
+#         if key in baseline_map:
+#             continue
+#         merged.append(item)
+#         added_novel += 1
 
-    aggregators[codebase_name].update_from_framework_explorer(merged)
-    logger.debug(
-        "Framework merge for {}: baseline={}, novel_added={}, merged_total={}",
-        codebase_name,
-        len(baseline),
-        added_novel,
-        len(merged),
-    )
+#     aggregators[codebase_name].update_from_framework_explorer(merged)
+#     logger.debug(
+#         "Framework merge for {}: baseline={}, novel_added={}, merged_total={}",
+#         codebase_name,
+#         len(baseline),
+#         added_novel,
+#         len(merged),
+#     )
 
 
 async def _update_workflow_result(
@@ -225,7 +221,8 @@ async def generate_sse_events(
                 {
                     "message": "Initializing agent aggregation...",
                     "repository": ruleset_metadata.repository_qualified_name,
-                }
+                },
+                ensure_ascii=False,
             ),
             "id": str(event_id),
         }
@@ -239,14 +236,14 @@ async def generate_sse_events(
 
         # Initialize per-codebase aggregators
         aggregators: Dict[str, AgentMdAggregate] = {}
-        project_structure_by_codebase: Dict[str, ProjectStructure] = {}
+        project_structure_by_codebase: Dict[str, ProjectConfiguration] = {}
         
         # Pre-fetch programming language metadata for all codebases
         for codebase in ruleset_metadata.codebase_metadata:
             aggregator = AgentMdAggregate(codebase)
             # Use underscore-based qualified name for Neo4j lookups (owner_repo convention)
             underscore_qualified = ruleset_metadata.repository_qualified_name.replace("/", "_")
-            language_metadata = await fetch_programming_language_metadata(
+            language_metadata: Optional[ProgrammingLanguageMetadataOutput] = await fetch_programming_language_metadata(
                 request.app.state.neo4j_manager,
                 underscore_qualified,
                 codebase.codebase_path,
@@ -262,20 +259,20 @@ async def generate_sse_events(
             available_agents = []
         logger.debug("SSE[{}] Available agents at request time: {}", connection_id, available_agents)
 
-        # Stream project structure analysis events using directory_agent
-        if "directory_agent" not in available_agents:
+        # Stream project structure analysis events using project_configuration_agent
+        if "project_configuration_agent" not in available_agents:
             logger.error(
-                "SSE[{}] Missing 'directory_agent' in app.state.agents. Available: {}",
+                "SSE[{}] Missing 'project_configuration_agent' in app.state.agents. Available: {}",
                 connection_id,
                 available_agents,
             )
-            raise RuntimeError("Agents not initialized or missing 'directory_agent'")
+            raise RuntimeError("Agents not initialized or missing 'project_configuration_agent'")
 
         directory_request = AgentExecutionRequest(
-            agent_name="directory_agent",
-            agent=request.app.state.agents['directory_agent'],
+            agent_name="project_configuration_agent",
+            agent=request.app.state.agents['project_configuration_agent'],
             fastapi_request=request,
-            event_namespace="directory_agent"
+            event_namespace="project_configuration_agent"
         )
         
         directory_result_handler = partial(
@@ -288,7 +285,7 @@ async def generate_sse_events(
         ):
             sse_event = {
                 "event": progress_event["event"],
-                "data": json.dumps(progress_event["data"]),
+                "data": json.dumps(progress_event["data"], ensure_ascii=False),
                 "id": str(event_id),
             }
             last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
@@ -296,85 +293,85 @@ async def generate_sse_events(
             yield sse_event
             event_id += 1
 
-        # Stream major frameworks analysis events using framework_explorer_agent
-        framework_request = AgentExecutionRequest(
-            agent_name="framework_explorer",
-            agent=request.app.state.agents['framework_explorer_agent'], 
-            fastapi_request=request,
-            event_namespace="framework_explorer",
-            postprocess_enabled=True,
-        )
+        # TODO: modify this later
+        # framework_request = AgentExecutionRequest(
+        #     agent_name="framework_explorer",
+        #     agent=request.app.state.agents['framework_explorer_agent'], 
+        #     fastapi_request=request,
+        #     event_namespace="framework_explorer",
+        #     postprocess_enabled=True,
+        # )
         
-        # Merge baseline (KG) ∪ novel (agent) per codebase
-        framework_result_handler = partial(
-            _update_framework_result_with_baseline,
-            aggregators,
-            request.app.state.neo4j_manager,
-        )
+        # # Merge baseline (KG) ∪ novel (agent) per codebase
+        # framework_result_handler = partial(
+        #     _update_framework_result_with_baseline,
+        #     aggregators,
+        #     request.app.state.neo4j_manager,
+        # )
         
-        async for progress_event in _stream_agent(
-            request, agent_execution_service, ruleset_metadata, framework_request,
-            on_result=framework_result_handler
-        ):
-            sse_event = {
-                "event": progress_event["event"],
-                "data": json.dumps(progress_event["data"]),
-                "id": str(event_id),
-            }
-            last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
-            event_count += 1
-            yield sse_event
-            event_id += 1
+        # async for progress_event in _stream_agent(
+        #     request, agent_execution_service, ruleset_metadata, framework_request,
+        #     on_result=framework_result_handler
+        # ):
+        #     sse_event = {
+        #         "event": progress_event["event"],
+        #         "data": json.dumps(progress_event["data"]),
+        #         "id": str(event_id),
+        #     }
+        #     last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
+        #     event_count += 1
+        #     yield sse_event
+        #     event_id += 1
 
         # Stream development workflow analysis events using development_workflow_agent
-        development_request = AgentExecutionRequest(
-            agent_name="development_workflow",
-            agent=request.app.state.agents['development_workflow_agent'],
-            fastapi_request=request,
-            event_namespace="development_workflow",
-            extra_prompt_context={"project_structure": project_structure_by_codebase}
-        )
+        # development_request = AgentExecutionRequest(
+        #     agent_name="development_workflow",
+        #     agent=request.app.state.agents['development_workflow_agent'],
+        #     fastapi_request=request,
+        #     event_namespace="development_workflow",
+        #     extra_prompt_context={"project_structure": project_structure_by_codebase}
+        # )
         
-        workflow_result_handler = partial(_update_workflow_result, aggregators)
+        # workflow_result_handler = partial(_update_workflow_result, aggregators)
         
-        async for progress_event in _stream_agent(
-            request, agent_execution_service, ruleset_metadata, development_request,
-            on_result=workflow_result_handler
-        ):
-            sse_event = {
-                "event": progress_event["event"],
-                "data": json.dumps(progress_event["data"]),
-                "id": str(event_id),
-            }
-            last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
-            event_count += 1
-            yield sse_event
-            event_id += 1
+        # async for progress_event in _stream_agent(
+        #     request, agent_execution_service, ruleset_metadata, development_request,
+        #     on_result=workflow_result_handler
+        # ):
+        #     sse_event = {
+        #         "event": progress_event["event"],
+        #         "data": json.dumps(progress_event["data"]),
+        #         "id": str(event_id),
+        #     }
+        #     last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
+        #     event_count += 1
+        #     yield sse_event
+        #     event_id += 1
 
         # Stream business logic domain analysis events using business_logic_domain_agent
-        business_logic_request = AgentExecutionRequest(
-            agent_name="business_logic_domain",
-            agent=request.app.state.agents['business_logic_domain_agent'],
-            fastapi_request=request,
-            event_namespace="business_logic_domain",
-            postprocess_enabled=True,
-        )
+        # business_logic_request = AgentExecutionRequest(
+        #     agent_name="business_logic_domain",
+        #     agent=request.app.state.agents['business_logic_domain_agent'],
+        #     fastapi_request=request,
+        #     event_namespace="business_logic_domain",
+        #     postprocess_enabled=True,
+        # )
 
-        business_logic_result_handler = partial(_update_business_logic_result, aggregators)
+        # business_logic_result_handler = partial(_update_business_logic_result, aggregators)
         
-        async for progress_event in _stream_agent(
-            request, agent_execution_service, ruleset_metadata, business_logic_request,
-            on_result=business_logic_result_handler
-        ):
-            sse_event = {
-                "event": progress_event["event"],
-                "data": json.dumps(progress_event["data"]),
-                "id": str(event_id),
-            }
-            last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
-            event_count += 1
-            yield sse_event
-            event_id += 1
+        # async for progress_event in _stream_agent(
+        #     request, agent_execution_service, ruleset_metadata, business_logic_request,
+        #     on_result=business_logic_result_handler
+        # ):
+        #     sse_event = {
+        #         "event": progress_event["event"],
+        #         "data": json.dumps(progress_event["data"]),
+        #         "id": str(event_id),
+        #     }
+        #     last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
+        #     event_count += 1
+        #     yield sse_event
+        #     event_id += 1
 
         # # Check for disconnection before final event
         if await request.is_disconnected():
@@ -395,7 +392,7 @@ async def generate_sse_events(
         # Emit final repository-level event
         final_event = {
             "event": "final:agent_md_output",
-            "data": json.dumps(final_payload),
+            "data": json.dumps(final_payload, ensure_ascii=False),
             "id": str(event_id),
         }
         last_event_time = log_sse_event(connection_id, event_count, "final:agent_md_output", connection_start, last_event_time)
@@ -412,7 +409,7 @@ async def generate_sse_events(
                    connection_id, duration, event_count)
         yield {
             "event": "error",
-            "data": json.dumps({"message": "Connection cancelled"}),
+            "data": json.dumps({"message": "Connection cancelled"}, ensure_ascii=False),
             "id": str(event_id),
         }
         raise
@@ -422,7 +419,7 @@ async def generate_sse_events(
                     connection_id, duration, e)
         yield {
             "event": "error",
-            "data": json.dumps({"error": str(e)}),
+            "data": json.dumps({"error": str(e)}, ensure_ascii=False),
             "id": str(event_id),
         }
 

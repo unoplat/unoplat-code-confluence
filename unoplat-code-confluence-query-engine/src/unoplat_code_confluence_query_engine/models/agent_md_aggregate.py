@@ -7,13 +7,9 @@ from loguru import logger
 from unoplat_code_confluence_query_engine.models.agent_md_output import (
     AgentMdOutput,
     BusinessLogicDomain,
-    CodebaseMetadataOutput,
-    CodebaseType,
     DevelopmentWorkflow,
-    FrameworkLibraryOutput,
-    PackageManagerOutput,
     ProgrammingLanguageMetadataOutput,
-    ProjectStructure,
+    ProjectConfiguration,
 )
 from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
     CodebaseMetadata,
@@ -31,8 +27,8 @@ class AgentMdAggregate:
         """
         self.codebase = codebase
         self.language_metadata: Optional[ProgrammingLanguageMetadataOutput] = None
-        self.project_structure: Optional[ProjectStructure] = None
-        self.frameworks_libraries: Optional[list[FrameworkLibraryOutput]] = None
+        self.project_configuration: Optional[ProjectConfiguration] = None
+        #self.frameworks_libraries: Optional[list[FrameworkLibraryOutput]] = None
         self.development_workflow: Optional[DevelopmentWorkflow] = None
         self.business_logic: Optional[BusinessLogicDomain] = None
     
@@ -44,23 +40,23 @@ class AgentMdAggregate:
         """
         self.language_metadata = meta
     
-    def update_from_directory_agent(self, project_structure: ProjectStructure) -> None:
-        """Update project structure from directory agent result.
+    def update_from_project_configuration_agent(self, project_structure: ProjectConfiguration) -> None:
+        """Update project structure from project configuration agent result.
         
         Args:
-            project_structure: ProjectStructure BaseModel from directory agent
+            project_structure: ProjectConfiguration BaseModel from project configuration agent
         """
-        self.project_structure = project_structure
+        self.project_configuration = project_structure
         logger.debug("Updated project structure for codebase: {}", self.codebase.codebase_name)
     
-    def update_from_framework_explorer(self, frameworks: list[FrameworkLibraryOutput]) -> None:
-        """Update frameworks and libraries from framework explorer agent result.
+    # def update_from_framework_explorer(self, frameworks: list[FrameworkLibraryOutput]) -> None:
+    #     """Update frameworks and libraries from framework explorer agent result.
         
-        Args:
-            frameworks: List of FrameworkLibraryOutput BaseModels from framework explorer agent (post-processed)
-        """
-        self.frameworks_libraries = frameworks
-        logger.debug("Updated frameworks/libraries for codebase: {}", self.codebase.codebase_name)
+    #     Args:
+    #         frameworks: List of FrameworkLibraryOutput BaseModels from framework explorer agent (post-processed)
+    #     """
+    #     self.frameworks_libraries = frameworks
+    #     logger.debug("Updated frameworks/libraries for codebase: {}", self.codebase.codebase_name)
     
     def update_from_development_workflow(self, workflow: DevelopmentWorkflow) -> None:
         """Update development workflow from development workflow agent result.
@@ -86,55 +82,11 @@ class AgentMdAggregate:
         Returns:
             Complete AgentMdOutput with all required fields populated
         """
-        # Build codebase metadata with defaults
-        codebase_metadata = CodebaseMetadataOutput(
-            name=self.codebase.codebase_name,
-            description=f"Codebase {self.codebase.codebase_name} at {self.codebase.codebase_path}",
-            # TODO: Implement robust codebase_type detection
-            codebase_type=CodebaseType.APPLICATION
-        )
-        
-        # Use fetched language metadata or create default
-        if self.language_metadata:
-            programming_language_metadata = self.language_metadata
-        else:
-            # Create default with primary language from codebase metadata
-            default_package_manager = PackageManagerOutput(package_type="unknown")
-            programming_language_metadata = ProgrammingLanguageMetadataOutput(
-                primary_language=self.codebase.codebase_programming_language,
-                package_manager=default_package_manager,
-                version_requirement=None
-            )
-        
-        # Use parsed project structure or create default
-        project_structure = self.project_structure or ProjectStructure(
-            key_directories=[],
-            config_files=[]
-        )
-        
-        # Use parsed frameworks/libraries or default to empty list
-        major_frameworks_and_libraries = self.frameworks_libraries or []
-        
-        # Use parsed development workflow or create default
-        development_workflow = self.development_workflow or DevelopmentWorkflow(
-            commands=[]
-        )
-        
-        # Use parsed business logic or create default
-        if self.business_logic:
-            critical_business_logic = self.business_logic
-        else:
-            # Create default business logic domain
-            critical_business_logic = BusinessLogicDomain(
-                description=f"Core business logic for {self.codebase.codebase_name}",
-                core_files=[]
-            )
+   
         
         return AgentMdOutput(
-            codebase_metadata=codebase_metadata,
-            programming_language_metadata=programming_language_metadata,
-            project_structure=project_structure,
-            major_frameworks_and_libraries=major_frameworks_and_libraries,
-            development_workflow=development_workflow,
-            critical_business_logic=critical_business_logic
+            programming_language_metadata=self.language_metadata or ProgrammingLanguageMetadataOutput(primary_language=self.codebase.codebase_programming_language, package_manager="unknown"),
+            project_configuration=self.project_configuration or ProjectConfiguration(config_files=[]),
+            development_workflow=self.development_workflow or DevelopmentWorkflow(commands=[]),
+            business_logic=self.business_logic or BusinessLogicDomain(description=f"Core business logic for {self.codebase.codebase_name} could not be performed due to an error", core_files=[])
         )
