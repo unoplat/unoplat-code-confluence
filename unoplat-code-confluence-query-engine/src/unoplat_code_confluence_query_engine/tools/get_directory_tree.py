@@ -63,7 +63,7 @@ async def get_directory_tree(
     # Validate and add depth limit
     if depth < 1:
         raise ModelRetry(
-            f"Depth must be >= 1. Please provide a valid depth value instead of: {depth}"
+            f"Depth should be >= 1. Please provide a valid depth value instead of: {depth}"
         )
     cmd_args.extend(["--level", str(depth)])
 
