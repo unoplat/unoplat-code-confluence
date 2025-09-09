@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_zcJSFbvhRK
 createdAt: 2025-08-26T06:34:22.722423
-updatedAt: 2025-09-09T06:22:52.782722
+updatedAt: 2025-09-09T10:28:48.705027
 workspaceId: wk_KULjx4bEa8
 folderId: fl_jtBaK7a5pU
 authentication: {}
@@ -12,9 +12,9 @@ body:
     {
       "provider_key" : "huggingface",
       "model_name" :
-      "zai-org/GLM-4.5",
+      "Qwen/Qwen3-Coder-480B-A35B-Instruct",
       "provider_name":
-      "nebius"
+      "novita"
     }
 bodyType: application/json
 description: ''

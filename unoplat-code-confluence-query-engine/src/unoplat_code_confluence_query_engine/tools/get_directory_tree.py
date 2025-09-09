@@ -2,13 +2,11 @@ import asyncio
 from typing import Optional
 
 from aiopath import AsyncPath
-from pydantic import BaseModel, Field
 from pydantic_ai import ModelRetry, RunContext
 
 from unoplat_code_confluence_query_engine.models.agent_dependencies import (
     AgentDependencies,
 )
-
 
 # class DirectoryTree(BaseModel):
 #     """Directory tree structure returned by the eza utility.
