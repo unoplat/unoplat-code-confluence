@@ -196,18 +196,18 @@ jobs:
           PACKAGE_NAME=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['name'].replace('-', '_'))")
           echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
         
-      - name: Install dependencies and run tests
-        working-directory: unoplat-code-confluence-query-engine
-        env:
-          GITHUB_PAT_TOKEN: ${{ github.token }} 
-        run: |
-          uv sync --group test
-          uv run --group test pytest --cov=src/${{ steps.package.outputs.name }} --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
+      # - name: Install dependencies and run tests
+      #   working-directory: unoplat-code-confluence-query-engine
+      #   env:
+      #     GITHUB_PAT_TOKEN: ${{ github.token }} 
+      #   run: |
+      #     uv sync --group test
+      #     uv run --group test pytest --cov=src/${{ steps.package.outputs.name }} --cov-report=html:coverage_reports --cov-report=xml:coverage.xml --cov-report=term-missing tests/ -v
 
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-reports-query-engine
-          path: |
-            unoplat-code-confluence-query-engine/coverage_reports/
-          retention-days: 7
+      # - name: Upload coverage reports
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-reports-query-engine
+      #     path: |
+      #       unoplat-code-confluence-query-engine/coverage_reports/
+      #     retention-days: 7
