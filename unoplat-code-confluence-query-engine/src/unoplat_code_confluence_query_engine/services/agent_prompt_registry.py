@@ -130,16 +130,16 @@ class AgentPromptRegistry(PromptProviderProtocol):
             "3. For unclear tools, use get_lib_data with queries like 'What are the commands for [tool] as a linter/test-runner/build-tool'\n"
             "4. Extract actual commands from scripts or apply language defaults\n"
             "5. Output strictly the DevelopmentWorkflow JSON with no prose\n\n"
-            
+
             "Language-specific patterns:\n"
             "- JavaScript/TypeScript: package.json scripts.{build,test,lint}, config files like .eslintrc*, jest.config.*\n"
             "- Python: pyproject.toml [tool.*], Makefile, tox.ini, pytest.ini, common commands like 'ruff check', 'pytest'\n"
             "- Go: go.mod, 'go build ./...', 'go test ./...', 'golangci-lint run'\n"
             "- Java: pom.xml/build.gradle, 'mvn test', 'gradle build', checkstyle/spotbugs configs\n\n"
-            
+
             "Output format: Only the JSON for DevelopmentWorkflow with a single field 'commands' as a list of CommandSpec entries.\n"
             "Each CommandSpec must include: kind (one of build, dev, test, lint, type_check), command (string). Optional fields: \n"
-            "description, tool, runner, config_files (list of strings), working_directory."
+            "description and config_files (list of strings)."
         )
         
         return header + additional_context + instructions
