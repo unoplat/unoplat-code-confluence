@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.6.0...unoplat-code-confluence-query-engine-v0.7.0) (2025-09-09)
+
+
+### Features
+
+* **agent_md_output_development_workflow:** optimise development workflow sub agent ([9cbbd56](https://github.com/unoplat/unoplat-code-confluence/commit/9cbbd5619a5e64af62b216a3dbea6d569b0420b9))
+* **agent_md_output_development_workflow:** optimise development workflow sub agent ([86e0e28](https://github.com/unoplat/unoplat-code-confluence/commit/86e0e28c8083a3b692fd288952759ccb99b855d1))
+
 ## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.5.0...unoplat-code-confluence-query-engine-v0.6.0) (2025-09-09)
 
 
