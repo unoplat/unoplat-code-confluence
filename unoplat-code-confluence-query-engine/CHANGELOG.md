@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.7.0...unoplat-code-confluence-query-engine-v0.8.0) (2025-09-10)
+
+
+### Features
+
+* **agent-prompt:** enhance business logic domain agent ([48ffc7a](https://github.com/unoplat/unoplat-code-confluence/commit/48ffc7a73184c6be50bde8008e3151c5a0de6519))
+* **agent-prompt:** enhance business logic domain agent ([7d3c464](https://github.com/unoplat/unoplat-code-confluence/commit/7d3c464f5204e04e99a2343980e41399417f29a9))
+
 ## [0.7.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.6.0...unoplat-code-confluence-query-engine-v0.7.0) (2025-09-09)
 
 
