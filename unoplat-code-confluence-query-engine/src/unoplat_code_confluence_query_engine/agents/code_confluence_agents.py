@@ -9,6 +9,7 @@ from unoplat_code_confluence_query_engine.models.agent_dependencies import (
     AgentDependencies,
 )
 from unoplat_code_confluence_query_engine.models.agent_md_output import (
+    BusinessLogicDomain,
     DevelopmentWorkflow,
     ProjectConfiguration,
 )
@@ -105,36 +106,10 @@ Always provide exactly 5 lines maximum. Keep responses factual and based on offi
        retries=6
     )
     
-    development_workflow_agent: Agent = Agent(
+    development_workflow_agent: Agent[AgentDependencies] = Agent(
         model,
         model_settings=model_settings,
-        system_prompt="""You are the Development Workflow Agent.
-
-Goal: Analyze the codebase and return only DevelopmentWorkflow JSON with a unified 'commands' list (CommandSpec).
-
-Input Context:
-- Repository details and ProjectStructure JSON (if provided)
-- File system access via tools
-
-Workflow:
-1. Parse embedded ProjectStructure JSON to identify config files and directories
-2. Read package manifests (package.json, pyproject.toml, go.mod, etc.)
-3. For unclear tools found in dependencies, use get_lib_data with feature_description like: "commands" or "testing commands" to understand tool usage
-4. Extract actual commands from scripts sections or config files
-5. Apply language-specific defaults when needed
-6. Output only DevelopmentWorkflow JSON, no prose
-
-Language-specific patterns:
-- JavaScript/TypeScript: Check package.json scripts.{build,test,lint}, configs like .eslintrc*, jest.config.*
-- Python: Check pyproject.toml [tool.*], Makefile, tox.ini, pytest.ini. Common: ruff check, pytest, python -m build
-- Go: Check go.mod, common: go build ./..., go test ./..., golangci-lint run
-- Java: Check pom.xml/build.gradle, common: mvn test, gradle build, checkstyle
-- Rust: Check Cargo.toml, common: cargo build, cargo test, clippy
-
-Output format: Only JSON for DevelopmentWorkflow with one field 'commands' as List[CommandSpec].
-Each item must at least include: kind (build|dev|test|lint|type_check), command (string).
-Optional fields: description, tool, runner, config_files (list of strings), working_directory.
-""",
+        system_prompt="<role> Development Workflow Synthesizer</role>",
         deps_type=AgentDependencies, #type: ignore
         tools=[
             Tool(get_directory_tree, takes_ctx=True, max_retries=6),
@@ -158,28 +133,36 @@ Optional fields: description, tool, runner, config_files (list of strings), work
         model_settings=model_settings,
         system_prompt="""You are the Business Logic Domain Agent.
 
-Goal: Identify the single critical business logic domain for this codebase and return a concise description string (not JSON).
+Goal: Identify the single critical business logic domain for this codebase and return strictly BusinessLogicDomain JSON.
 
 Strict workflow:
-1) Call get_data_model_files to retrieve candidate files that contain data models (has_data_model or 'data_model'/'db_data_model' features)
-2) For each returned file path:
+1) Call get_data_model_files to retrieve candidate files that contain data models (both application and database data models)
+2) Create a coverage checklist from ALL returned file paths and process UNTIL NONE REMAIN:
+   - Maintain two lists: remaining_files (to do) and processed_files (done). Do not produce final output until remaining_files is empty.
+   - For each file in remaining_files, do:
    - Use read_file_content (get_content_file) to open and inspect the file
    - Identify the relevant data model definitions (classes or structures) and their purpose
-3) After visiting all files, analyze the overall business domain they represent
-4) Output ONLY a brief description string (2–4 sentences) that captures the core business domain
+   - Record a short responsibility per file when clear; if uncertain after inspection, set responsibility to null (but still include the file)
+   - Move the file from remaining_files to processed_files and continue
+   - If the file is very large, read only the portions with definitions (e.g., class, dataclass, BaseModel, @Entity, schema) and proceed
+   - If a tool call fails, retry up to 2 times; on persistent failure, include the file with responsibility=null
+3) After visiting ALL files (remaining_files must be empty), analyze the overall business domain they represent
+4) Output ONLY valid BusinessLogicDomain JSON with fields:
+   - description: 2–4 sentences summarizing the domain nouns, core processes, and primary purpose
+   - data_models: list of { path, responsibility } that includes EVERY path returned by get_data_model_files (responsibility may be null if uncertain)
+   - Sort data_models by path ascending for determinism
 
 Grounding rules:
 - Do not invent files; use only file paths returned by get_data_model_files
 - Analysis must be based on inspected code, not assumptions
-- Return only the description text, no JSON, no additional formatting
-- Keep description concise and representative of the business domain
+- Output must be valid JSON with exactly the required fields. No extra fields or prose.
 """,
         deps_type=AgentDependencies, #type: ignore
         tools=[
             Tool(get_data_model_files, takes_ctx=True, max_retries=6),
             Tool(read_file_content, takes_ctx=True, max_retries=6),
         ],
-        output_type=str, #type: ignore
+        output_type=BusinessLogicDomain,
         retries=6,
     )
     

@@ -51,5 +51,6 @@ async def get_data_model_files(
             f"Unexpected error retrieving data model files for {codebase_path}: {str(e)}"
         )
     finally:
-        await ctx.deps.neo4j_conn_manager.close()
-
+        # Do not close the shared Neo4j connection manager here; lifecycle is managed at the app level.
+        # Closing it here can break subsequent DB-dependent steps (e.g., post-processing or repeated tool calls).
+        pass
