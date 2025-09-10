@@ -143,6 +143,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         if flag:
             flag.status = config is not None
         else:
+            
             session.add(Flag(name="isModelConfigured", status=config is not None))
 
     yield

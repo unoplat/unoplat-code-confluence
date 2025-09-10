@@ -268,7 +268,7 @@ async def generate_sse_events(
             )
             raise RuntimeError("Agents not initialized or missing 'project_configuration_agent'")
 
-        directory_request = AgentExecutionRequest(
+        project_configuration_request = AgentExecutionRequest(
             agent_name="project_configuration_agent",
             agent=request.app.state.agents['project_configuration_agent'],
             fastapi_request=request,
@@ -280,7 +280,7 @@ async def generate_sse_events(
         )
         
         async for progress_event in _stream_agent(
-            request, agent_execution_service, ruleset_metadata, directory_request,
+            request, agent_execution_service, ruleset_metadata, project_configuration_request,
             on_result=directory_result_handler
         ):
             sse_event = {
@@ -349,29 +349,29 @@ async def generate_sse_events(
             event_id += 1
 
         # Stream business logic domain analysis events using business_logic_domain_agent
-        # business_logic_request = AgentExecutionRequest(
-        #     agent_name="business_logic_domain",
-        #     agent=request.app.state.agents['business_logic_domain_agent'],
-        #     fastapi_request=request,
-        #     event_namespace="business_logic_domain",
-        #     postprocess_enabled=True,
-        # )
+        business_logic_request = AgentExecutionRequest(
+            agent_name="business_logic_domain",
+            agent=request.app.state.agents['business_logic_domain_agent'],
+            fastapi_request=request,
+            event_namespace="business_logic_domain",
+            postprocess_enabled=True,
+        )
 
-        # business_logic_result_handler = partial(_update_business_logic_result, aggregators)
+        business_logic_result_handler = partial(_update_business_logic_result, aggregators)
         
-        # async for progress_event in _stream_agent(
-        #     request, agent_execution_service, ruleset_metadata, business_logic_request,
-        #     on_result=business_logic_result_handler
-        # ):
-        #     sse_event = {
-        #         "event": progress_event["event"],
-        #         "data": json.dumps(progress_event["data"]),
-        #         "id": str(event_id),
-        #     }
-        #     last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
-        #     event_count += 1
-        #     yield sse_event
-        #     event_id += 1
+        async for progress_event in _stream_agent(
+            request, agent_execution_service, ruleset_metadata, business_logic_request,
+            on_result=business_logic_result_handler
+        ):
+            sse_event = {
+                "event": progress_event["event"],
+                "data": json.dumps(progress_event["data"]),
+                "id": str(event_id),
+            }
+            last_event_time = log_sse_event(connection_id, event_count, progress_event["event"], connection_start, last_event_time)
+            event_count += 1
+            yield sse_event
+            event_id += 1
 
         # # Check for disconnection before final event
         if await request.is_disconnected():

@@ -156,8 +156,22 @@ class AgentPromptRegistry(PromptProviderProtocol):
         header = (
             f"Identify the single critical business logic domain for repository {repository_qualified_name}. "
             f"Focus ONLY on the codebase '{codebase_name}' located at {codebase_path} written in {codebase_language}. "
-            f"Return only JSON for BusinessLogicDomain with fields: domain (optional), description, core_files[]."
+            f"Return strictly BusinessLogicDomain JSON with fields: description (string, 2–4 sentences) and data_models (array of CoreFile: path, responsibility). No extra fields, no prose, no code fences.\n\n"
+        )
+
+        instructions = (
+            "Workflow:\n"
+            "1) Call get_data_model_files to list ALL candidate data model files and create a coverage checklist.\n"
+            "2) Process UNTIL the checklist is empty: for each remaining file, call read_file_content, extract model intent, and set a short responsibility (or null if uncertain).\n"
+            "   - Keep two lists: remaining_files and processed_files. Do not produce final JSON until remaining_files is empty.\n"
+            "   - If a tool call fails, retry up to 2 times; on persistent failure, include the file with responsibility=null and continue.\n"
+            "   - Prefer reading only relevant parts (definitions/classes/schemas) if files are large.\n"
+            "3) Determine the dominant business domain from ALL inspected models.\n"
+            "4) Output valid JSON matching BusinessLogicDomain. data_models MUST include EVERY path returned by get_data_model_files. Sort by path ascending. If no files are returned, set data_models: [] and provide a cautious description.\n\n"
+
+            "Output schema (JSON only):\n"
+            '{"description": "string", "data_models": [{"path": "string", "responsibility": "string|null"}]}'
         )
         
         additional_context = self._format_additional_context(extra_prompt_context)
-        return header + additional_context
+        return header + additional_context + instructions

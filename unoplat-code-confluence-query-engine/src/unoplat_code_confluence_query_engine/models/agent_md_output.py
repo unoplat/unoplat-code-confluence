@@ -211,10 +211,10 @@ class CommandSpec(BaseModel):
 
 
 class CoreFile(BaseModel):
-    """Core business logic file details."""
+    """Core business logic data model details."""
 
     path: str = Field(..., description="File path")
-    responsibility: Optional[str] = Field(None, description="File's responsibility (optional)")
+    responsibility: Optional[str] = Field(None, description="Responsibilities of data models covered in the file")
 
     model_config = ConfigDict(extra="forbid")
 
@@ -223,7 +223,7 @@ class BusinessLogicDomain(BaseModel):
     """Business logic domain details."""
 
     description: str = Field(..., description="Domain description based on data models across the codebase")
-    core_files: List[CoreFile] = Field(..., description="Core files for this domain")
+    data_models: List[CoreFile] = Field(..., description="Data models for this domain")
 
     model_config = ConfigDict(extra="forbid")
 
