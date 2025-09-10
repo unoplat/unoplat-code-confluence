@@ -88,5 +88,5 @@ class AgentMdAggregate:
             programming_language_metadata=self.language_metadata or ProgrammingLanguageMetadataOutput(primary_language=self.codebase.codebase_programming_language, package_manager="unknown"),
             project_configuration=self.project_configuration or ProjectConfiguration(config_files=[]),
             development_workflow=self.development_workflow or DevelopmentWorkflow(commands=[]),
-            business_logic=self.business_logic or BusinessLogicDomain(description=f"Core business logic for {self.codebase.codebase_name} could not be performed due to an error", core_files=[])
+            business_logic=self.business_logic or BusinessLogicDomain(description=f"Core business logic for {self.codebase.codebase_name} could not be performed due to an error", data_models=[])
         )
