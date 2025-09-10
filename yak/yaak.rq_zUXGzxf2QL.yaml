@@ -1,0 +1,30 @@
+type: http_request
+model: http_request
+id: rq_zUXGzxf2QL
+createdAt: 2025-09-10T11:39:44.542736
+updatedAt: 2025-09-10T11:39:55.726030
+workspaceId: wk_KULjx4bEa8
+folderId: fl_zukJtBcFCC
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: test-business-logic-kimi-or
+sortPriority: 0.0029
+url: http://localhost:8001/v1/codebase-agent-rules
+urlParameters:
+- enabled: true
+  name: owner_name
+  value: unoplat
+  id: XVEctDb8wq
+- enabled: true
+  name: repo_name
+  value: unoplat-code-confluence
+  id: 3apksU6Xei
+- enabled: true
+  name: ''
+  value: ''
+  id: zfTZmKzX25
