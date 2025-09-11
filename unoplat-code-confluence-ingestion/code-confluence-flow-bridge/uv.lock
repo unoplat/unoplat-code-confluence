@@ -271,7 +271,7 @@ wheels = [
 
 [[package]]
 name = "code-confluence-flow-bridge"
-version = "0.50.1"
+version = "0.50.2"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofile" },
