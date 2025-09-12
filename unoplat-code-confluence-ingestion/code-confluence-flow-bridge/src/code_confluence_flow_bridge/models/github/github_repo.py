@@ -4,6 +4,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    ProgrammingLanguageMetadata,
+)
 
 
 class GitHubOwner(BaseModel):
@@ -229,5 +232,21 @@ class RefreshRepositoryResponse(BaseModel):
     repository_owner_name: str = Field(description="The name of the repository owner")
     workflow_id: str = Field(description="The ID of the started workflow")
     run_id: str = Field(description="The run ID of the started workflow")
-    
+
+
+class CodebaseMetadataResponse(BaseModel):
+    """Response model for individual codebase metadata."""
+    codebase_folder: str = Field(description="Path to codebase folder relative to repo root")
+    programming_language_metadata: ProgrammingLanguageMetadata = Field(
+        description="Language-specific metadata for this codebase"
+    )
+
+
+class CodebaseMetadataListResponse(BaseModel):
+    """Response model containing list of codebase metadata for a repository."""
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    codebases: List[CodebaseMetadataResponse] = Field(
+        description="List of codebase configurations with metadata"
+    )
     
