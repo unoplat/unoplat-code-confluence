@@ -55,6 +55,8 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
 )
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseConfig,
+    CodebaseMetadataListResponse,
+    CodebaseMetadataResponse,
     CodebaseStatus,
     CodebaseStatusList,
     ErrorReport,
@@ -1366,6 +1368,77 @@ async def get_repository_data(
             status_code=500,
             detail="Error processing repository data for {}/{}".format(
                 repository_name, repository_owner_name
+            ),
+        )
+
+
+@app.get(
+    "/codebase-metadata",
+    response_model=CodebaseMetadataListResponse,
+)
+async def get_codebase_metadata(
+    repository_name: str = Query(..., description="The name of the repository"),
+    repository_owner_name: str = Query(
+        ..., description="The name of the repository owner"
+    ),
+    session: AsyncSession = Depends(get_session),
+) -> CodebaseMetadataListResponse:
+    """
+    Get codebase folders and their metadata for a specific repository.
+    
+    Returns a list of all codebases configured for the repository with their
+    folder paths and programming language metadata.
+    """
+    # Fetch repository with codebase configs
+    db_obj: Repository | None = await session.get(
+        Repository,
+        (repository_name, repository_owner_name),
+        options=[selectinload(cast(QueryableAttribute[Any], Repository.configs))],
+    )
+    
+    if not db_obj:
+        raise HTTPException(
+            status_code=404,
+            detail="Repository not found: {}/{}".format(
+                repository_owner_name, repository_name
+            ),
+        )
+    
+    try:
+        # Map database CodebaseConfig entries to response models
+        codebase_metadata = [
+            CodebaseMetadataResponse(
+                codebase_folder=config.codebase_folder,
+                programming_language_metadata=ProgrammingLanguageMetadata(
+                    language=config.programming_language_metadata["language"],
+                    package_manager=config.programming_language_metadata.get(
+                        "package_manager"
+                    ),
+                    language_version=config.programming_language_metadata.get(
+                        "language_version"
+                    ),
+                    manifest_path=config.programming_language_metadata.get(
+                        "manifest_path"
+                    ),
+                    project_name=config.programming_language_metadata.get(
+                        "project_name"
+                    ),
+                ),
+            )
+            for config in db_obj.configs
+        ]
+        
+        return CodebaseMetadataListResponse(
+            repository_name=db_obj.repository_name,
+            repository_owner_name=db_obj.repository_owner_name,
+            codebases=codebase_metadata,
+        )
+    except Exception as e:
+        logger.error("Error mapping codebase metadata: {}", str(e))
+        raise HTTPException(
+            status_code=500,
+            detail="Error processing codebase metadata for {}/{}".format(
+                repository_owner_name, repository_name
             ),
         )
 
