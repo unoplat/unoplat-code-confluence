@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.51.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.50.2...code-confluence-flow-bridge-v0.51.0) (2025-09-12)
+
+
+### Features
+
+* **github:** add codebase metadata API endpoint ([b16d5ee](https://github.com/unoplat/unoplat-code-confluence/commit/b16d5ee5291656ebb516da167740b221b1144753))
+* **github:** add codebase metadata API endpoint ([35a4f03](https://github.com/unoplat/unoplat-code-confluence/commit/35a4f031f2556c9633178f875b49b2279a7fc82d))
+
 ## [0.50.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.50.1...code-confluence-flow-bridge-v0.50.2) (2025-08-29)
 
 
