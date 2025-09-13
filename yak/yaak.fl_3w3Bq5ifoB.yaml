@@ -1,0 +1,13 @@
+type: folder
+model: folder
+id: fl_3w3Bq5ifoB
+createdAt: 2025-09-12T10:24:51.536913
+updatedAt: 2025-09-12T10:25:01.218093
+workspaceId: wk_KULjx4bEa8
+folderId: fl_zukJtBcFCC
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: failed-workflow
+sortPriority: 0.0

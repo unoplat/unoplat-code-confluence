@@ -1,0 +1,13 @@
+type: folder
+model: folder
+id: fl_rzJP6yCPrb
+createdAt: 2025-09-11T07:55:00.997791
+updatedAt: 2025-09-12T10:25:01.221350
+workspaceId: wk_KULjx4bEa8
+folderId: fl_zukJtBcFCC
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: development-workflow
+sortPriority: 1000.0

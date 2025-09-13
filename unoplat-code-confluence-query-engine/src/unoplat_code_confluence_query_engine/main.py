@@ -97,7 +97,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if config:
         try:
             model_factory = ModelFactory()
-            model, model_settings = await model_factory.build(config)
+            model, model_settings = await model_factory.build(config, app.state.settings)
             app.state.model = model
             logger.debug(
                 "Initializing agents with model: {}/{} and settings present? {}",

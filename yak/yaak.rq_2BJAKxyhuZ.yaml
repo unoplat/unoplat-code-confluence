@@ -2,9 +2,9 @@ type: http_request
 model: http_request
 id: rq_2BJAKxyhuZ
 createdAt: 2025-09-09T10:13:50.144465
-updatedAt: 2025-09-09T10:13:53.623828
+updatedAt: 2025-09-11T07:54:44.829278
 workspaceId: wk_KULjx4bEa8
-folderId: fl_zukJtBcFCC
+folderId: fl_gehuijp3vB
 authentication: {}
 authenticationType: null
 body: {}
@@ -13,7 +13,7 @@ description: ''
 headers: []
 method: GET
 name: test-project-configuration-z
-sortPriority: 0.0029
+sortPriority: 500.0
 url: http://localhost:8001/v1/codebase-agent-rules
 urlParameters:
 - enabled: true

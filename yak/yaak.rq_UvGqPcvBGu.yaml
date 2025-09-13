@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_UvGqPcvBGu
 createdAt: 2025-08-07T04:56:27.785874
-updatedAt: 2025-08-21T05:02:49.910564
+updatedAt: 2025-09-13T05:45:00.077364
 workspaceId: wk_KULjx4bEa8
 folderId: fl_zukJtBcFCC
 authentication: {}
@@ -12,8 +12,8 @@ bodyType: null
 description: ''
 headers: []
 method: GET
-name: test-agents-md-agent
-sortPriority: -0.0001
+name: test-agent-pc-dw-bl-xai-grok-code-fast-1-or
+sortPriority: 4000.0
 url: http://localhost:8001/v1/codebase-agent-rules
 urlParameters:
 - enabled: true
