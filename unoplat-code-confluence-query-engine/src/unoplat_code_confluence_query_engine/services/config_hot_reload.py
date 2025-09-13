@@ -27,6 +27,7 @@ from unoplat_code_confluence_query_engine.services.model_factory import ModelFac
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
+    from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 
 # Global state for tracking configuration changes and model instances
 _config_invalidated = False
@@ -128,7 +129,7 @@ def _invalidate_config_on_commit(session: Session) -> None:
         # Don't raise - event handlers should not break post-commit cleanup
 
 
-async def get_current_model() -> Tuple[Optional[Model], Optional[ModelSettings]]:
+async def get_current_model(settings: Optional["EnvironmentSettings"] = None) -> Tuple[Optional[Model], Optional[ModelSettings]]:
     """Get the current AI model, rebuilding if configuration changed.
 
     NOTE: In the current setup, agents are explicitly refreshed after PUT
@@ -170,7 +171,12 @@ async def get_current_model() -> Tuple[Optional[Model], Optional[ModelSettings]]
         logger.info("Building AI model from config: provider={}, model={}", 
                    config.provider_key, config.model_name)
         
-        _current_model, _current_model_settings = await _model_factory.build(config)
+        # Use provided settings or fall back to creating new instance
+        if settings is None:
+            from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
+            settings = EnvironmentSettings()
+        
+        _current_model, _current_model_settings = await _model_factory.build(config, settings)
         _config_invalidated = False
         
         logger.info("AI model rebuilt successfully")
@@ -241,7 +247,7 @@ async def update_app_agents(app: "FastAPI") -> None:
     """
     try:
         # Get the current model (will rebuild if needed)
-        current_model, current_model_settings = await get_current_model()
+        current_model, current_model_settings = await get_current_model(app.state.settings)
         
         if current_model is None:
             logger.warning("No model configuration available, keeping existing agents")

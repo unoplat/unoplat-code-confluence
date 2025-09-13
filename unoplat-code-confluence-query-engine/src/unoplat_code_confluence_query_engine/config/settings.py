@@ -71,7 +71,53 @@ class EnvironmentSettings(BaseSettings):
         validate_default=False
     )
     
+    # HTTP Retry Settings
+    retry_enabled: bool = Field(
+        default=False,
+        alias="HTTP_RETRY_ENABLED",
+        description="Enable HTTP retry logic for AI model providers"
+    )
+    retry_max_attempts: int = Field(
+        default=3,
+        alias="HTTP_RETRY_MAX_ATTEMPTS",
+        description="Maximum number of retry attempts",
+        ge=1,
+        le=10
+    )
+    retry_base_wait: float = Field(
+        default=1.0,
+        alias="HTTP_RETRY_BASE_WAIT",
+        description="Base wait time in seconds for exponential backoff",
+        ge=0.1,
+        le=10.0
+    )
+    retry_max_wait: int = Field(
+        default=60,
+        alias="HTTP_RETRY_MAX_WAIT",
+        description="Maximum wait time in seconds between retries",
+        ge=1,
+        le=300
+    )
+    retry_timeout: float = Field(
+        default=30.0,
+        alias="HTTP_RETRY_TIMEOUT",
+        description="HTTP request timeout in seconds",
+        ge=5.0,
+        le=300.0
+    )
+    retry_status_codes: str = Field(
+        default="429,502,503,504",
+        alias="HTTP_RETRY_STATUS_CODES",
+        description="Comma-separated list of HTTP status codes to retry"
+    )
+    
     environment: str = Field(default="development", alias="ENVIRONMENT")
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def retry_status_codes_list(self) -> list[int]:
+        """Parse retry status codes string into list of integers."""
+        return [int(code.strip()) for code in self.retry_status_codes.split(",")]
 
     @computed_field  # type: ignore[prop-decorator]
     @property

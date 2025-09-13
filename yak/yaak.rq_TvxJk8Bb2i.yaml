@@ -1,0 +1,30 @@
+type: http_request
+model: http_request
+id: rq_TvxJk8Bb2i
+createdAt: 2025-09-11T13:59:07.338829
+updatedAt: 2025-09-11T14:01:57.387961
+workspaceId: wk_KULjx4bEa8
+folderId: fl_tWB8DnsPeJ
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: ''
+sortPriority: 0.0
+url: http://127.0.0.1:8000/codebase-metadata
+urlParameters:
+- enabled: true
+  name: repository_name
+  value: unoplat-code-confluence
+  id: ZEm2bzUeEQ
+- enabled: true
+  name: repository_owner_name
+  value: unoplat
+  id: N9dEszUS9t
+- enabled: true
+  name: ''
+  value: ''
+  id: Eit0xwQ6bZ

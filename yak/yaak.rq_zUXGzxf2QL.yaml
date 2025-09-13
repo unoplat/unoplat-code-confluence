@@ -2,9 +2,9 @@ type: http_request
 model: http_request
 id: rq_zUXGzxf2QL
 createdAt: 2025-09-10T11:39:44.542736
-updatedAt: 2025-09-10T11:39:55.726030
+updatedAt: 2025-09-11T07:55:43.539225
 workspaceId: wk_KULjx4bEa8
-folderId: fl_zukJtBcFCC
+folderId: fl_q8Ei6cSdtj
 authentication: {}
 authenticationType: null
 body: {}
@@ -13,7 +13,7 @@ description: ''
 headers: []
 method: GET
 name: test-business-logic-kimi-or
-sortPriority: 0.0029
+sortPriority: 0.0
 url: http://localhost:8001/v1/codebase-agent-rules
 urlParameters:
 - enabled: true

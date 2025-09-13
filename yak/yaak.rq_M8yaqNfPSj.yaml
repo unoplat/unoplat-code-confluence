@@ -2,9 +2,9 @@ type: http_request
 model: http_request
 id: rq_M8yaqNfPSj
 createdAt: 2025-09-09T06:18:32.221021
-updatedAt: 2025-09-09T10:12:29.599883
+updatedAt: 2025-09-12T04:41:13.695753
 workspaceId: wk_KULjx4bEa8
-folderId: fl_jtBaK7a5pU
+folderId: fl_ed4G8NrPdv
 authentication: {}
 authenticationType: null
 body:
@@ -31,6 +31,6 @@ headers:
   id: nwzfKebKsB
 method: PUT
 name: jay-set-model-provider-openrouter-kimi
-sortPriority: 0.0008
+sortPriority: 1000.0
 url: http://127.0.0.1:8001/v1/config
 urlParameters: []
