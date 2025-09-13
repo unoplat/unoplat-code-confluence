@@ -1,8 +1,8 @@
 type: http_request
 model: http_request
-id: rq_UJzEMvCDBP
-createdAt: 2025-09-09T10:12:33.106172
-updatedAt: 2025-09-12T04:41:13.693807
+id: rq_eCsfXX3RPG
+createdAt: 2025-09-12T12:36:13.583557
+updatedAt: 2025-09-12T12:36:24.930433
 workspaceId: wk_KULjx4bEa8
 folderId: fl_ed4G8NrPdv
 authentication: {}
@@ -12,7 +12,7 @@ body:
     {
       "provider_key" : "openrouter",
       "model_name" :
-      "z-ai/glm-4.5"
+      "x-ai/grok-code-fast-1"
     }
 bodyType: application/json
 description: ''
@@ -30,7 +30,7 @@ headers:
   value: ''
   id: nwzfKebKsB
 method: PUT
-name: jay-set-model-provider-openrouter-z
-sortPriority: 0.0
+name: jay-set-model-provider-openrouter-grok-code-fast
+sortPriority: 1000.001
 url: http://127.0.0.1:8001/v1/config
 urlParameters: []

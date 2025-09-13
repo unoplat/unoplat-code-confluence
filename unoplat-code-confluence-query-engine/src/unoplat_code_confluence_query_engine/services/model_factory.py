@@ -1,7 +1,10 @@
 """Factory for creating Pydantic AI models from configuration."""
 
 import os
-from typing import Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
+
+if TYPE_CHECKING:
+    from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 
 from loguru import logger
 from pydantic_ai.models.anthropic import AnthropicModel
@@ -35,6 +38,9 @@ from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
 from unoplat_code_confluence_query_engine.services.credentials_service import (
     CredentialsService,
 )
+from unoplat_code_confluence_query_engine.utils.retry_http_client import (
+    create_retry_client,
+)
 
 # Union type for all supported Pydantic AI models
 ModelType = Union[
@@ -53,12 +59,16 @@ class ModelFactory:
     
     @staticmethod
     async def build(
-        config: AiModelConfig, session: Optional[AsyncSession] = None
+        config: AiModelConfig, 
+        settings: "EnvironmentSettings",
+        session: Optional[AsyncSession] = None
     ) -> Tuple[ModelType, Optional[ModelSettings]]:
         """Build Pydantic AI model from configuration.
         
         Args:
             config: AI model configuration from database
+            settings: Environment settings for retry configuration
+            session: Optional database session
             
         Returns:
             Tuple of (model instance, optional settings)
@@ -67,10 +77,10 @@ class ModelFactory:
             ValueError: If provider is unknown or required credentials are missing
         """
         
-        # Build settings if configured
-        settings = None
+        # Build model settings if configured
+        model_settings = None
         if config.temperature or config.top_p or config.max_tokens:
-            settings = ModelSettings(
+            model_settings = ModelSettings(
                 temperature=config.temperature,
                 top_p=config.top_p,
                 max_tokens=config.max_tokens
@@ -81,11 +91,18 @@ class ModelFactory:
         # Get API key from credentials (will be None for providers that don't need it)
         model_api_key = await credentials_service.get_credential("model_api_key", session=session)
         
+        # Create retry HTTP client based on environment settings
+        retry_client = create_retry_client(settings)
+        
         # Native providers - all support both environment variables and direct API key passing
         if config.provider_key == "openai":
             if model_api_key:
                 # Use custom provider with explicit API key
-                provider = OpenAIProvider(api_key=model_api_key)
+                # supports custom http client through http_client parameter
+                if retry_client:
+                    provider = OpenAIProvider(api_key=model_api_key, http_client=retry_client)
+                else:
+                    provider = OpenAIProvider(api_key=model_api_key)
                 model = OpenAIModel(config.model_name, provider=provider)
             else:
                 # Fall back to environment variable OPENAI_API_KEY
@@ -95,7 +112,11 @@ class ModelFactory:
         elif config.provider_key == "anthropic":
             if model_api_key:
                 # Use custom provider with explicit API key
-                provider = AnthropicProvider(api_key=model_api_key)
+                # supports custom http client through http_client parameter
+                if retry_client:
+                    provider = AnthropicProvider(api_key=model_api_key, http_client=retry_client)
+                else:
+                    provider = AnthropicProvider(api_key=model_api_key)
                 model = AnthropicModel(config.model_name, provider=provider)
             else:
                 # Fall back to environment variable ANTHROPIC_API_KEY
@@ -115,7 +136,11 @@ class ModelFactory:
         elif config.provider_key == "groq":
             if model_api_key:
                 # Use custom provider with explicit API key
-                provider = GroqProvider(api_key=model_api_key)
+                # supports custom http client through http_client parameter
+                if retry_client:
+                    provider = GroqProvider(api_key=model_api_key, http_client=retry_client)
+                else:
+                    provider = GroqProvider(api_key=model_api_key)
                 model = GroqModel(config.model_name, provider=provider)
             else:
                 # Fall back to environment variable GROQ_API_KEY
@@ -125,7 +150,11 @@ class ModelFactory:
         elif config.provider_key == "mistral":
             if model_api_key:
                 # Use custom provider with explicit API key
-                provider = MistralProvider(api_key=model_api_key)
+                # supports custom http client through http_client parameter
+                if retry_client:
+                    provider = MistralProvider(api_key=model_api_key, http_client=retry_client)
+                else:
+                    provider = MistralProvider(api_key=model_api_key)
                 model = MistralModel(config.model_name, provider=provider)
             else:
                 # Fall back to environment variable MISTRAL_API_KEY
@@ -135,7 +164,11 @@ class ModelFactory:
         elif config.provider_key == "cohere":
             if model_api_key:
                 # Use custom provider with explicit API key
-                provider = CohereProvider(api_key=model_api_key)
+                # supports custom http client through http_client parameter
+                if retry_client:
+                    provider = CohereProvider(api_key=model_api_key, http_client=retry_client)
+                else:
+                    provider = CohereProvider(api_key=model_api_key)
                 model = CohereModel(config.model_name, provider=provider)
             else:
                 # Fall back to environment variable CO_API_KEY
@@ -150,6 +183,7 @@ class ModelFactory:
                 # Set HF_TOKEN environment variable instead of passing API key directly
                 os.environ["HF_TOKEN"] = model_api_key
                 
+                # supports custom http client through http_client parameter
                 if provider_name:
                     provider = HuggingFaceProvider(provider_name=provider_name)
                     logger.info(f"Created HuggingFace model with provider {provider_name}: {config.model_name}")
@@ -173,65 +207,72 @@ class ModelFactory:
         elif config.provider_key == "deepseek":
             if not model_api_key:
                 raise ValueError("DeepSeek requires model_api_key")
-            model = OpenAIModel(
-                config.model_name,
-                provider=DeepSeekProvider(api_key=model_api_key)
-            )
+            if retry_client:
+                provider = DeepSeekProvider(api_key=model_api_key, http_client=retry_client)
+            else:
+                provider = DeepSeekProvider(api_key=model_api_key)
+            model = OpenAIModel(config.model_name, provider=provider)
             logger.info(f"Created DeepSeek model: {config.model_name}")
             
         elif config.provider_key == "openrouter":
             if not model_api_key:
                 raise ValueError("OpenRouter requires model_api_key")
-            model = OpenAIModel(
-                config.model_name,
-                provider=OpenRouterProvider(api_key=model_api_key)
-            )
+            if retry_client:
+                provider = OpenRouterProvider(api_key=model_api_key, http_client=retry_client)
+            else:
+                provider = OpenRouterProvider(api_key=model_api_key)
+            model = OpenAIModel(config.model_name, provider=provider)
             logger.info(f"Created OpenRouter model: {config.model_name}")
             
         elif config.provider_key == "fireworks":
             if not model_api_key:
                 raise ValueError("Fireworks requires model_api_key")
-            model = OpenAIModel(
-                config.model_name,
-                provider=FireworksProvider(api_key=model_api_key)
-            )
+            if retry_client:
+                provider = FireworksProvider(api_key=model_api_key, http_client=retry_client)
+            else:
+                provider = FireworksProvider(api_key=model_api_key)
+            model = OpenAIModel(config.model_name, provider=provider)
             logger.info(f"Created Fireworks model: {config.model_name}")
             
         elif config.provider_key == "together":
             if not model_api_key:
                 raise ValueError("Together AI requires model_api_key")
-            model = OpenAIModel(
-                config.model_name,
-                provider=TogetherProvider(api_key=model_api_key)
-            )
+            if retry_client:
+                provider = TogetherProvider(api_key=model_api_key, http_client=retry_client)
+            else:
+                provider = TogetherProvider(api_key=model_api_key)
+            model = OpenAIModel(config.model_name, provider=provider)
             logger.info(f"Created Together AI model: {config.model_name}")
             
         elif config.provider_key == "github":
-            # GitHub now uses unified model_api_key 
+            # GitHub now uses unified model_api_key
             if not model_api_key:
                 raise ValueError("GitHub Models requires model_api_key")
-            model = OpenAIModel(
-                config.model_name,
-                provider=GitHubProvider(api_key=model_api_key)
-            )
+            if retry_client:
+                provider = GitHubProvider(api_key=model_api_key, http_client=retry_client)
+            else:
+                provider = GitHubProvider(api_key=model_api_key)
+            model = OpenAIModel(config.model_name, provider=provider)
             logger.info(f"Created GitHub model: {config.model_name}")
             
         elif config.provider_key == "vercel":
             if not model_api_key:
                 raise ValueError("Vercel requires model_api_key")
-            model = OpenAIModel(
-                config.model_name,
-                provider=VercelProvider(api_key=model_api_key)
-            )
+            if retry_client:
+                provider = VercelProvider(api_key=model_api_key, http_client=retry_client)
+            else:
+                provider = VercelProvider(api_key=model_api_key)
+            model = OpenAIModel(config.model_name, provider=provider)
             logger.info(f"Created Vercel model: {config.model_name}")
             
         elif config.provider_key == "grok":
             if not model_api_key:
                 raise ValueError("Grok requires model_api_key")
-            model = OpenAIModel(
-                config.model_name,
-                provider=GrokProvider(api_key=model_api_key)
-            )
+            if retry_client:
+                provider = GrokProvider(api_key=model_api_key, http_client=retry_client)
+            else:
+                provider = GrokProvider(api_key=model_api_key)
+            model = OpenAIModel(config.model_name, provider=provider)
             logger.info(f"Created Grok model: {config.model_name}")
             
         elif config.provider_key == "azure":
@@ -245,14 +286,20 @@ class ModelFactory:
             if not azure_endpoint or not api_version:
                 raise ValueError("Azure requires azure_endpoint and api_version in extra_config")
             
-            model = OpenAIModel(
-                config.model_name,  # deployment name
-                provider=AzureProvider(
+            if retry_client:
+                provider = AzureProvider(
+                    azure_endpoint=azure_endpoint,
+                    api_version=api_version,
+                    api_key=model_api_key,
+                    http_client=retry_client
+                )
+            else:
+                provider = AzureProvider(
                     azure_endpoint=azure_endpoint,
                     api_version=api_version,
                     api_key=model_api_key
                 )
-            )
+            model = OpenAIModel(config.model_name, provider=provider)
             logger.info(f"Created Azure OpenAI model: {config.model_name}")
             
         elif config.provider_key == "ollama":
@@ -267,4 +314,4 @@ class ModelFactory:
         else:
             raise ValueError(f"Unknown provider: {config.provider_key}")
             
-        return model, settings
+        return model, model_settings

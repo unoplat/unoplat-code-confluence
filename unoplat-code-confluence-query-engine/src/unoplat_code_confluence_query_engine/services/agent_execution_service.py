@@ -241,14 +241,31 @@ class AgentExecutionService:
                 final_output = self._extract_agent_result(agent_run.result)
         
         except UnexpectedModelBehavior as e:
-            log_agent_error(
-                e,
-                context={
-                    "agent_name": request.agent_name,
-                    "codebase": codebase.codebase_name,
-                    "repository": repository_qualified_name,
-                },
-            )
+            # Enrich context with model/provider info when available
+            model_context: Dict[str, Any] = {
+                "agent_name": request.agent_name,
+                "codebase": codebase.codebase_name,
+                "repository": repository_qualified_name,
+                "codebase_path": codebase.codebase_path,
+                "language": getattr(codebase, "codebase_programming_language", None),
+                "event_namespace": request.event_namespace,
+                "agent_retries": getattr(request.agent, "retries", None),
+                "prompt_chars": len(user_message) if isinstance(user_message, str) else None,
+            }
+            try:
+                cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config()  # type: ignore[attr-defined]
+                if cfg:
+                    model_context.update(
+                        {
+                            "model_provider": cfg.provider_key,
+                            "model_name": cfg.model_name,
+                            "provider_name": getattr(cfg, "provider_name", None),
+                        }
+                    )
+            except Exception as cfg_err:  # noqa: BLE001
+                logger.debug("Could not fetch model config for error context: {}", cfg_err)
+
+            log_agent_error(e, context=model_context, messages=nodes)
             final_output = f"Agent execution failed: {str(e)}"
         
         # Optional post-processing
@@ -308,7 +325,23 @@ class AgentExecutionService:
         """Run streaming agent for a single codebase and push events to queue."""
         event_namespace = request.event_namespace or request.agent_name
         
-        logger.debug("Starting agent {} for codebase {}", request.agent_name, codebase.codebase_name)
+        # Log model/provider context if available
+        try:
+            cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config()  # type: ignore[attr-defined]
+            if cfg:
+                logger.info(
+                    "Starting {} for {} using model {}/{} (provider_name={}), retries={}",
+                    request.agent_name,
+                    codebase.codebase_name,
+                    cfg.provider_key,
+                    cfg.model_name,
+                    getattr(cfg, "provider_name", None),
+                    getattr(request.agent, "retries", None),
+                )
+            else:
+                logger.debug("Starting agent {} for codebase {} (no model config)", request.agent_name, codebase.codebase_name)
+        except Exception as cfg_err:  # noqa: BLE001
+            logger.debug("Starting agent {} for codebase {} (model config unavailable: {})", request.agent_name, codebase.codebase_name, cfg_err)
         
         # Create agent dependencies using app.state
         agent_deps = self._create_agent_dependencies(
@@ -401,7 +434,14 @@ class AgentExecutionService:
             
             except UnexpectedModelBehavior as e:
                 final_output = await self._handle_agent_error(
-                    e, request, codebase, repository_qualified_name, event_namespace, event_queue
+                    e,
+                    request,
+                    codebase,
+                    repository_qualified_name,
+                    event_namespace,
+                    event_queue,
+                    nodes,
+                    user_message,
                 )
                 
                 # Send empty result event for consistency
@@ -491,7 +531,7 @@ class AgentExecutionService:
             "event": f"{codebase.codebase_name}:{event_namespace}:prompt.start",
             "data": {
                 "message": self._get_prompt_start_message(agent_name),
-                "prompt_preview": prompt_text[:200] if len(prompt_text) > 200 else prompt_text,
+                "prompt_preview": self._clip_text(prompt_text),
                 "timestamp": datetime.now().isoformat(),
             },
         })
@@ -563,7 +603,7 @@ class AgentExecutionService:
     ) -> None:
         """Emit tool.call event."""
         tool_name = event.part.tool_name
-        args_preview = str(event.part.args)
+        args_preview = self._clip_text(str(event.part.args))
         
         message = self.tool_message_policy.message_for_tool_call(
             request.agent_name, tool_name, args_preview
@@ -589,7 +629,7 @@ class AgentExecutionService:
     ) -> None:
         """Emit tool.result event."""
         tool_name = event.result.tool_name if event.result.tool_name else "unknown"
-        result_preview = (
+        result_preview = self._clip_text(
             str(event.result.content)
             if hasattr(event.result, "content")
             else "Result received"
@@ -617,16 +657,35 @@ class AgentExecutionService:
         repository_qualified_name: str,
         event_namespace: str,
         event_queue: asyncio.Queue[Dict[str, Any]],
+        messages: List[Any] | None = None,
+        user_message: Any | None = None,
     ) -> str:
         """Handle agent execution error and emit error event."""
-        log_agent_error(
-            error,
-            context={
-                "agent_name": request.agent_name,
-                "codebase": codebase.codebase_name,
-                "repository": repository_qualified_name,
-            },
-        )
+        # Enrich context with model/provider info when available
+        model_context: Dict[str, Any] = {
+            "agent_name": request.agent_name,
+            "codebase": codebase.codebase_name,
+            "repository": repository_qualified_name,
+            "codebase_path": codebase.codebase_path,
+            "language": getattr(codebase, "codebase_programming_language", None),
+            "event_namespace": event_namespace,
+            "agent_retries": getattr(request.agent, "retries", None),
+            "prompt_chars": len(user_message) if isinstance(user_message, str) else None,
+        }
+        try:
+            cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config()  # type: ignore[attr-defined]
+            if cfg:
+                model_context.update(
+                    {
+                        "model_provider": cfg.provider_key,
+                        "model_name": cfg.model_name,
+                        "provider_name": getattr(cfg, "provider_name", None),
+                    }
+                )
+        except Exception as cfg_err:  # noqa: BLE001
+            logger.debug("Could not fetch model config for error context: {}", cfg_err)
+
+        log_agent_error(error, context=model_context, messages=messages)
         
         await event_queue.put({
             "event": f"{codebase.codebase_name}:{event_namespace}:error",
@@ -701,3 +760,17 @@ class AgentExecutionService:
             "business_logic_domain": "🎉 Business logic domain analysis complete for codebase",
         }
         return messages.get(agent_name, f"🎉 {agent_name} analysis complete for codebase")
+    
+    def _clip_text(self, text: str, max_length: int = 300) -> str:
+        """Clip text to maximum length with ellipsis if truncated.
+        
+        Args:
+            text: Text to clip
+            max_length: Maximum allowed length (default 300)
+            
+        Returns:
+            Clipped text with ellipsis if truncated
+        """
+        if len(text) <= max_length:
+            return text
+        return text[:max_length - 3] + "..."
