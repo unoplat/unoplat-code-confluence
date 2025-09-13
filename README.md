@@ -159,14 +159,8 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/).
 <!-- PRODUCT FEEDBACK SECTION -->
 ## 💬 Product Feedback & Alpha Disclaimer
 
-We want to be transparent about our current state. While we're deeply committed to our core principles and have invested significant engineering effort to uphold them, Unoplat Code Confluence is currently in alpha. Despite our best intentions and rigorous development practices, there may be areas where we haven't fully achieved these principles yet.
+Unoplat Code Confluence is in alpha. We’re building for our own daily use first, prioritizing stability and bug fixes. We’re collecting feedback now and will act on it once the core is solid. Early adopters welcome. Expect rapid changes and rough edges.
 
-We value your feedback and want to hear from you! Whether you have suggestions, feature requests, encounter gaps between our vision and implementation, or just want to share your experience with Unoplat-CodeConfluence, we're here to listen.
-
-**How to reach us:**
-- **Email**: 
-  - Primary: [vipinskumar@unoplat.io](mailto:vipinskumar@unoplat.io)
-  - Secondary: [jayghiya@unoplat.io](mailto:jayghiya@unoplat.io)
 - **Discord**: Join our [community channel](https://discord.com/channels/1131597983058755675/1169968780953260106)
 - **GitHub Issues**: [Create an issue](https://github.com/unoplat/unoplat-code-confluence/issues) for bug reports or feature requests
 - **GitHub Discussions**: [Start a discussion](https://github.com/unoplat/unoplat-code-confluence/discussions) for broader conversations
