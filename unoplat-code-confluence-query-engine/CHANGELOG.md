@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.8.0...unoplat-code-confluence-query-engine-v0.9.0) (2025-09-13)
+
+
+### Features
+
+* introduce retriable client and fixed stale data for provider w.r.t additional arguments ([7551fa9](https://github.com/unoplat/unoplat-code-confluence/commit/7551fa9a1e80519dd7cc24724eedac80ddcc76c3))
+* introduce retriable client and fixed stale data for provider w.r.t additional arguments ([c209d2d](https://github.com/unoplat/unoplat-code-confluence/commit/c209d2d1bded1b5c4d968a3edb621578317fd230))
+
 ## [0.8.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.7.0...unoplat-code-confluence-query-engine-v0.8.0) (2025-09-10)
 
 
