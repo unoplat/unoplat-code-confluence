@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.10.0...unoplat-code-confluence-query-engine-v0.11.0) (2025-09-15)
+
+
+### Features
+
+* **config:** improve config hot reload handling and introduce mock sse endpoint for ui testing as not all providers support prompt caching ([d2d8dcb](https://github.com/unoplat/unoplat-code-confluence/commit/d2d8dcb5952405cd0c5a44718974422a29cb15d9))
+* **config:** improve config hot reload handling and introduce mock sse endpoint for ui testing as not all providers support prompt caching ([7808688](https://github.com/unoplat/unoplat-code-confluence/commit/78086884d580d4e90e07732b28ea2ebe24b5287a))
+* **experiments:** add mock SSE server ([7808688](https://github.com/unoplat/unoplat-code-confluence/commit/78086884d580d4e90e07732b28ea2ebe24b5287a))
+
+
+### Bug Fixes
+
+* **models:** correct typo in app_interfaces field ([7808688](https://github.com/unoplat/unoplat-code-confluence/commit/78086884d580d4e90e07732b28ea2ebe24b5287a))
+
 ## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.9.0...unoplat-code-confluence-query-engine-v0.10.0) (2025-09-15)
 
 
