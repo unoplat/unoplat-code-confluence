@@ -329,7 +329,7 @@ class AgentMdOutput(BaseModel):
         ..., description="Critical business logic domains"
     )
     #TODO: remove optional when ready
-    app_interaces: Optional[Interfaces] = Field(
+    app_interfaces: Optional[Interfaces] = Field(
         default=None, description="Inbound or/and outboundInteraces used in the codebase"
     )
 

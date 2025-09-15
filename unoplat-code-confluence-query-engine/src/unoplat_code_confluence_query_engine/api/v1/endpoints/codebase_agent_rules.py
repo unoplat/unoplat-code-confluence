@@ -38,6 +38,17 @@ from unoplat_code_confluence_query_engine.services.package_manager_metadata_serv
 router = APIRouter(prefix="/v1", tags=["codebase-rules"])
 
 
+def build_repo_agent_event_name(
+    repository_qualified_name: str, agent_name: str, event_type: str
+) -> str:
+    """Construct a namespaced SSE event string as repo:agent:event_type.
+
+    Using repository-qualified name first ensures uniqueness across concurrent
+    SSE connections for different repositories.
+    """
+    return f"{repository_qualified_name}:{agent_name}:{event_type}"
+
+
 def log_sse_event(connection_id: str, event_count: int, event_type: str, 
                   connection_start: float, last_event_time: float) -> float:
     """Log SSE event details for debugging timeout issues."""
@@ -215,8 +226,13 @@ async def generate_sse_events(
         event_id = 0
 
         # Send initial status event
+        initial_event_name = build_repo_agent_event_name(
+            ruleset_metadata.repository_qualified_name,
+            "aggregated_final_summary_agent",
+            "status",
+        )
         initial_event = {
-            "event": "status",
+            "event": initial_event_name,
             "data": json.dumps(
                 {
                     "message": "Initializing agent aggregation...",
@@ -226,7 +242,7 @@ async def generate_sse_events(
             ),
             "id": str(event_id),
         }
-        last_event_time = log_sse_event(connection_id, event_count, "status", connection_start, last_event_time)
+        last_event_time = log_sse_event(connection_id, event_count, initial_event_name, connection_start, last_event_time)
         event_count += 1
         yield initial_event
         event_id += 1
@@ -391,12 +407,17 @@ async def generate_sse_events(
             final_payload["codebases"][codebase_name] = final_model.model_dump_json(exclude_none=True)  # type: ignore
         
         # Emit final repository-level event
+        final_event_name = build_repo_agent_event_name(
+            ruleset_metadata.repository_qualified_name,
+            "aggregated_final_summary_agent",
+            "agent_md_output",
+        )
         final_event = {
-            "event": "final:agent_md_output",
+            "event": final_event_name,
             "data": json.dumps(final_payload, ensure_ascii=False),
             "id": str(event_id),
         }
-        last_event_time = log_sse_event(connection_id, event_count, "final:agent_md_output", connection_start, last_event_time)
+        last_event_time = log_sse_event(connection_id, event_count, final_event_name, connection_start, last_event_time)
         event_count += 1
         yield final_event
         
@@ -408,8 +429,13 @@ async def generate_sse_events(
         duration = time.time() - connection_start
         logger.info("SSE[{}] Connection cancelled after {:.2f}s, {} events sent",
                    connection_id, duration, event_count)
+        error_event_name = build_repo_agent_event_name(
+            ruleset_metadata.repository_qualified_name,
+            "aggregated_final_summary_agent",
+            "error",
+        )
         yield {
-            "event": "error",
+            "event": error_event_name,
             "data": json.dumps({"message": "Connection cancelled"}, ensure_ascii=False),
             "id": str(event_id),
         }
@@ -418,8 +444,13 @@ async def generate_sse_events(
         duration = time.time() - connection_start
         logger.error("SSE[{}] Connection error after {:.2f}s: {}",
                     connection_id, duration, e)
+        error_event_name = build_repo_agent_event_name(
+            ruleset_metadata.repository_qualified_name,
+            "aggregated_final_summary_agent",
+            "error",
+        )
         yield {
-            "event": "error",
+            "event": error_event_name,
             "data": json.dumps({"error": str(e)}, ensure_ascii=False),
             "id": str(event_id),
         }
