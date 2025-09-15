@@ -1,0 +1,30 @@
+type: http_request
+model: http_request
+id: rq_ZCT8QECJLF
+createdAt: 2025-09-15T11:23:47.226515
+updatedAt: 2025-09-15T11:24:59.927451
+workspaceId: wk_KULjx4bEa8
+folderId: fl_zukJtBcFCC
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: mock-test-agent-pc-dw-bl-xai-grok-code-fast-1-or-all-codebases
+sortPriority: 4000.001
+url: http://localhost:8002/v1/codebase-agent-rules
+urlParameters:
+- enabled: true
+  name: owner_name
+  value: unoplat
+  id: XVEctDb8wq
+- enabled: true
+  name: repo_name
+  value: unoplat-code-confluence
+  id: 3apksU6Xei
+- enabled: true
+  name: ''
+  value: ''
+  id: zfTZmKzX25
