@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.25.1...unoplat-code-confluence-frontend-v1.26.0) (2025-09-15)
+
+
+### Features
+
+* **package:** add Agents.md first draft with help of @mdxeditor/editor and @radix-ui/react-progress, @radix-ui/react-scroll-area, @tailwindcss/typography and sse client handling ([47c1041](https://github.com/unoplat/unoplat-code-confluence/commit/47c1041a813fdef2efc0d929af7562e891119538))
+* **package:** add Agents.md first draft with help of @mdxeditor/editor and @radix-ui/react-progress, @radix-ui/react-scroll-area, @tailwindcss/typography and sse client handling ([9890e54](https://github.com/unoplat/unoplat-code-confluence/commit/9890e54b1648b0353dd390a58c319deeac06dd7c))
+
 ## [1.25.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.25.0...unoplat-code-confluence-frontend-v1.25.1) (2025-08-09)
 
 
