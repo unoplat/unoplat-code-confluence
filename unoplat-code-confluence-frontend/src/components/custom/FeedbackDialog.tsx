@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Textarea } from "../ui/textarea";
@@ -174,6 +174,9 @@ export function FeedbackDialog({
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{getDialogTitle()}</DialogTitle>
+            <DialogDescription>
+              Submit feedback about errors to create a GitHub issue for tracking and resolution.
+            </DialogDescription>
           </DialogHeader>
 
           <Card className="w-full">

@@ -182,7 +182,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
         <DataTableColumnHeader column={column} title="Actions" />
       ),
       cell: ({ row, table }): React.ReactNode => (
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
