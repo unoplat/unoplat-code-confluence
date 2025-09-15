@@ -27,6 +27,7 @@ from unoplat_code_confluence_query_engine.services.model_factory import ModelFac
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
+
     from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 
 # Global state for tracking configuration changes and model instances
@@ -173,7 +174,9 @@ async def get_current_model(settings: Optional["EnvironmentSettings"] = None) ->
         
         # Use provided settings or fall back to creating new instance
         if settings is None:
-            from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
+            from unoplat_code_confluence_query_engine.config.settings import (
+                EnvironmentSettings,
+            )
             settings = EnvironmentSettings()
         
         _current_model, _current_model_settings = await _model_factory.build(config, settings)
