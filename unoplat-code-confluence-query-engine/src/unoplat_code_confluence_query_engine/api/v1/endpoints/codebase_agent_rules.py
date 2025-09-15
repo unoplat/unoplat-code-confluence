@@ -388,7 +388,7 @@ async def generate_sse_events(
         for codebase_name, aggregator in aggregators.items():
             final_model = aggregator.to_final_model()
             # Exclude optional fields that are None to avoid nulls in SSE payload
-            final_payload["codebases"][codebase_name] = final_model.model_dump(exclude_none=True)  # type: ignore
+            final_payload["codebases"][codebase_name] = final_model.model_dump_json(exclude_none=True)  # type: ignore
         
         # Emit final repository-level event
         final_event = {
