@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.9.0...unoplat-code-confluence-query-engine-v0.10.0) (2025-09-15)
+
+
+### Features
+
+* **local-dependencies-docker-compose.yml:** Bump code-confluence-flow-bridge to 0.51.0 ([3452505](https://github.com/unoplat/unoplat-code-confluence/commit/3452505c79635de89895adddeae51e18c6d6999e))
+* **yak/yaak.rq_UvGqPcvBGu.yaml:** Update request name ([3452505](https://github.com/unoplat/unoplat-code-confluence/commit/3452505c79635de89895adddeae51e18c6d6999e))
+
+
+### Bug Fixes
+
+* Serialize model to JSON in codebase_agent_rules ([8624093](https://github.com/unoplat/unoplat-code-confluence/commit/86240933c3c830ce7615c3e0ee81cf818d64c3ed))
+* **unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/api/v1/endpoints/codebase_agent_rules.py:** Exclude optional fields with None values ([3452505](https://github.com/unoplat/unoplat-code-confluence/commit/3452505c79635de89895adddeae51e18c6d6999e))
+* **unoplat-code-confluence-query-engine:** Bump version to 0.9.0 ([a3ea5e5](https://github.com/unoplat/unoplat-code-confluence/commit/a3ea5e5a1389cc280a0789238220d09404ed02fe))
+* **unoplat-code-confluence-query-engine:** Bump version to 0.9.0 ([3452505](https://github.com/unoplat/unoplat-code-confluence/commit/3452505c79635de89895adddeae51e18c6d6999e))
+
 ## [0.9.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.8.0...unoplat-code-confluence-query-engine-v0.9.0) (2025-09-13)
 
 
