@@ -54,6 +54,12 @@ tasks:
       - task: start-dependencies
       - task: run-dev
 
+  mock-sse:
+    desc: Run mock SSE server (replays docs/sse-agent-results.txt) on port 8002
+    dir: experiments
+    cmds:
+      - uv run fastapi dev mock_sse_server.py --port 8002
+
   test:
     desc: Run tests with coverage
     dir: .

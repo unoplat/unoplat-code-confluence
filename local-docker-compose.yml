@@ -165,6 +165,31 @@ services:
       - temporal-network
     stdin_open: true
     tty: true
+  unoplat-code-confluence-query-engine:
+    # container_name: unoplat-code-confluence-query-engine
+    build:
+      context: ./unoplat-code-confluence-query-engine
+      dockerfile: Dockerfile
+    environment:
+      - NEO4J_HOST=neo4j
+      - NEO4J_PORT=7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=password
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=code_confluence
+    ports:
+      - "8001:8000"
+    networks:
+      - temporal-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+
   unoplat-code-confluence-frontend:
     # container_name: unoplat-code-confluence-frontend
     depends_on:
