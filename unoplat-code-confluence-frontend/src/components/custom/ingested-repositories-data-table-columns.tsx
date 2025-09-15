@@ -10,8 +10,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, RefreshCw, Trash2, ExternalLink, FolderOpen, GitBranch } from 'lucide-react';
+import { MoreHorizontal, RefreshCw, Trash2, ExternalLink, FolderOpen, GitBranch, FileText } from 'lucide-react';
 import { StatusBadge } from '@/components/custom/StatusBadge';
+import { useAgentGenerationUIStore } from '@/stores/useAgentGenerationUIStore';
 
 interface ColumnOptions {
   setRowAction: React.Dispatch<React.SetStateAction<{
@@ -128,8 +129,9 @@ export function getIngestedRepositoriesColumns({ setRowAction }: ColumnOptions):
         <DataTableColumnHeader column={column} title="Actions" />
       ),
       cell: ({ row }) => {
+        const openDialog = useAgentGenerationUIStore((s) => s.openDialog);
         return (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -141,6 +143,15 @@ export function getIngestedRepositoriesColumns({ setRowAction }: ColumnOptions):
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={() => openDialog(row.original)}
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Generate Agents.md
+                <StatusBadge status="alpha" size="sm" className="ml-1" />
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={() => setRowAction({ row, variant: 'refresh' })}
                 className="gap-2"

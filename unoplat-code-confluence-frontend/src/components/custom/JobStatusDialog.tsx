@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { DataTable } from '../data-table';
@@ -213,6 +213,9 @@ export function JobStatusDialog({ open, onOpenChange, job }: JobStatusDialogProp
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Repository Status Details</DialogTitle>
+            <DialogDescription>
+              View detailed status information for repository ingestion and processing workflows.
+            </DialogDescription>
           </DialogHeader>
           
           {isLoading ? (

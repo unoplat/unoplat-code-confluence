@@ -85,7 +85,7 @@ export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: 
         <DataTableColumnHeader column={column} title="Actions" icon={<HugeiconsIcon icon={TouchInteraction01Icon} />} />
       ),
       cell: ({ row }): React.ReactNode => (
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
