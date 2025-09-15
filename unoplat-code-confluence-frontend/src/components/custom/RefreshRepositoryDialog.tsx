@@ -31,14 +31,18 @@ export function RefreshRepositoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Refresh Repository
-            <StatusBadge status="alpha" size="sm" />
+          <DialogTitle asChild>
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Refresh Repository
+              <StatusBadge status="alpha" size="sm" />
+            </div>
           </DialogTitle>
-          <DialogDescription>
-            This will trigger a re-ingestion of the repository. This feature is in <StatusBadge status="alpha" size="sm" className="inline-flex mx-1" />
-            and may take some time to complete.
+          <DialogDescription asChild>
+            <div>
+              This will trigger a re-ingestion of the repository. This feature is in <StatusBadge status="alpha" size="sm" className="inline-flex mx-1" />
+              and may take some time to complete.
+            </div>
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -49,10 +53,10 @@ export function RefreshRepositoryDialog({
             </p>
           </div>
           <div className="rounded-md bg-muted p-3">
-            <p className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               <strong>Note:</strong> The refresh process will run in the background.
               You can continue using the application while it processes.
-            </p>
+            </div>
           </div>
         </div>
         <DialogFooter>

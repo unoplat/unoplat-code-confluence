@@ -18,6 +18,8 @@ import { getIngestedRepositoriesColumns } from './ingested-repositories-data-tab
 import { RefreshRepositoryDialog } from './RefreshRepositoryDialog';
 import { DeleteRepositoryDialog } from './DeleteRepositoryDialog';
 import { toast } from 'sonner';
+import { useAgentGenerationUIStore } from '@/stores/useAgentGenerationUIStore';
+import { GenerateAgentsDialog } from '@/components/custom/GenerateAgentsDialog';
 
 import type { IngestedRepository } from '../../types';
 import { 
@@ -37,6 +39,9 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [isRefreshDialogOpen, setIsRefreshDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const isGenerationDialogOpen = useAgentGenerationUIStore((s) => s.isDialogOpen);
+  const selectedRepository = useAgentGenerationUIStore((s) => s.selectedRepository);
+  const closeGenerationDialog = useAgentGenerationUIStore((s) => s.closeDialog);
   
   const queryClient = useQueryClient();
 
@@ -178,6 +183,12 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
         onOpenChange={handleDialogClose}
         onConfirm={handleDeleteConfirm}
         repository={rowAction?.row.original || null}
+      />
+
+      <GenerateAgentsDialog
+        repository={selectedRepository}
+        open={isGenerationDialogOpen}
+        onOpenChange={closeGenerationDialog}
       />
     </div>
   );
