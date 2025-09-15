@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Check } from "lucide-react";
 import { IssueTracking } from "../../types";
@@ -41,6 +41,9 @@ export function IssueCreatedDialog({
           <DialogTitle className="text-center text-lg font-semibold">
             Issue created #{issue_number}
           </DialogTitle>
+          <DialogDescription className="text-center">
+            Your feedback has been submitted as a GitHub issue for tracking and resolution.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-4 text-center">
           <p className="text-sm text-muted-foreground mb-4">

@@ -89,6 +89,11 @@ export interface CodebaseConfig {
   }>;
 }
 
+// Response shape for /codebase-metadata endpoint
+export interface CodebaseMetadataResponse {
+  codebases: CodebaseConfig[];
+}
+
 // Backend-compatible repository configuration request
 export interface GitHubRepoRequestConfiguration {
   repository_name: string;

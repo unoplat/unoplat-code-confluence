@@ -32,14 +32,18 @@ export function DeleteRepositoryDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <Trash2 className="h-4 w-4 text-destructive" />
-            Delete Repository
-            <StatusBadge status="beta" size="sm" />
+          <AlertDialogTitle asChild>
+            <div className="flex items-center gap-2">
+              <Trash2 className="h-4 w-4 text-destructive" />
+              Delete Repository
+              <StatusBadge status="beta" size="sm" />
+            </div>
           </AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the ingested
-            repository data from our system.
+          <AlertDialogDescription asChild>
+            <div>
+              This action cannot be undone. This will permanently delete the ingested
+              repository data from our system.
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-4 py-4">
@@ -50,10 +54,10 @@ export function DeleteRepositoryDialog({
             </p>
           </div>
           <div className="rounded-md bg-destructive/10 p-3">
-            <p className="text-sm text-destructive">
+            <div className="text-sm text-destructive">
               <strong>Warning:</strong> This feature is in <StatusBadge status="beta" size="sm" className="inline-flex mx-1" />. All associated data
               including code analysis, dependencies, and metadata will be removed.
-            </p>
+            </div>
           </div>
         </div>
         <AlertDialogFooter>
