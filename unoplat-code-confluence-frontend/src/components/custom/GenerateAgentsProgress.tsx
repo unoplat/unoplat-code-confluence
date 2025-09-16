@@ -69,12 +69,12 @@ export function GenerateAgentsProgress({ repository, codebaseIds }: GenerateAgen
                 </div>
               </div>
               <ScrollArea className="h-64 w-full border rounded-md">
-                <div className="p-3 space-y-2">
+                <div className="p-3 space-y-2 overflow-x-hidden">
                   {events.length === 0 && (
                     <div className="text-sm text-muted-foreground">Waiting for events…</div>
                   )}
                   {events.map((e, idx) => (
-                    <div key={idx} className="text-xs break-words whitespace-pre-wrap">
+                    <div key={idx} className="text-xs whitespace-pre-wrap break-all max-w-full">
                       {isSSEEventData(e.data) ? e.data.message : JSON.stringify(e.data)}
                     </div>
                   ))}
