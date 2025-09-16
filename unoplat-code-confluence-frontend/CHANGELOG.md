@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.26.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.26.0...unoplat-code-confluence-frontend-v1.26.1) (2025-09-16)
+
+
+### Bug Fixes
+
+* **agent-tracking-generation:** fix agent progress tracking and display ([f54c713](https://github.com/unoplat/unoplat-code-confluence/commit/f54c713e8beb8a64d26b4adbdacc87c07f2dcb6a))
+* **agent-tracking-generation:** fix agent progress tracking and display ([e6e7d7c](https://github.com/unoplat/unoplat-code-confluence/commit/e6e7d7cfe1f405210cd47539a395a5ffaf72c2a2))
+
 ## [1.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.25.1...unoplat-code-confluence-frontend-v1.26.0) (2025-09-15)
 
 
