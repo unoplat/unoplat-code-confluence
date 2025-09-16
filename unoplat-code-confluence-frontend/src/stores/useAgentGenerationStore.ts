@@ -1,7 +1,37 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { getCodebaseAgentRules } from '@/lib/api';
-import type { AgentType, ActivityType, CodebaseProgress, SSEEvent, AggregatedAgentsMdEventData, AggregatedSSEEvent, AgentMdOutput } from '@/types/sse';
+import type {
+  AgentType,
+  ActivityType,
+  CodebaseProgress,
+  SSEEvent,
+  AggregatedAgentsMdEventData,
+  AggregatedSSEEvent,
+  AgentMdOutput,
+  SSEEventData,
+  AgentProgress,
+} from '@/types/sse';
+
+const TRACKED_AGENTS: AgentType[] = [
+  'project_configuration_agent',
+  'development_workflow',
+  'business_logic_domain',
+];
+
+const TRACKED_AGENT_SET = new Set<AgentType>(TRACKED_AGENTS);
+
+const AGENT_COMPLETION_WEIGHT = (count: number): number => (count / TRACKED_AGENTS.length) * 100;
+
+const countCompletedAgents = (agents: Map<AgentType, AgentProgress>): number => {
+  let completed = 0;
+  agents.forEach((agent) => {
+    if (agent.status === 'completed') {
+      completed += 1;
+    }
+  });
+  return completed;
+};
 
 interface AgentGenerationState {
   connection: EventSource | null;
@@ -89,10 +119,20 @@ export const useAgentGenerationStore = create<AgentGenerationState>()(
       set(() => {
         const map = new Map<string, CodebaseProgress>();
         codebaseIds.forEach((id) => {
+          const agents = new Map<AgentType, AgentProgress>();
+          TRACKED_AGENTS.forEach((agent) => {
+            agents.set(agent, {
+              agentType: agent,
+              status: 'idle',
+              events: [] as SSEEventData[],
+              progress: 0,
+            });
+          });
+
           map.set(id, {
             codebaseId: id,
             codebaseName: id,
-            agents: new Map(),
+            agents,
             overallProgress: 0,
             status: 'initializing',
             events: [],
@@ -115,7 +155,18 @@ export const useAgentGenerationStore = create<AgentGenerationState>()(
             existing || {
               codebaseId: parsed.codebase,
               codebaseName: parsed.codebase,
-              agents: new Map(),
+              agents: (() => {
+                const agents = new Map<AgentType, AgentProgress>();
+                TRACKED_AGENTS.forEach((agent) => {
+                  agents.set(agent, {
+                    agentType: agent,
+                    status: 'idle',
+                    events: [] as SSEEventData[],
+                    progress: 0,
+                  });
+                });
+                return agents;
+              })(),
               overallProgress: 0,
               status: 'initializing',
               events: [],
@@ -125,20 +176,41 @@ export const useAgentGenerationStore = create<AgentGenerationState>()(
           cb.events.push(event);
 
           const activity = parsed.activity;
-          if (activity === 'tool.result' || activity === 'result' || activity === 'complete') {
-            cb.overallProgress = Math.min(100, cb.overallProgress + 3);
+
+          if (activity === 'complete' && parsed.agent && TRACKED_AGENT_SET.has(parsed.agent)) {
+            const agent = cb.agents.get(parsed.agent) ?? {
+              agentType: parsed.agent,
+              status: 'idle',
+              events: [] as SSEEventData[],
+              progress: 0,
+            };
+
+            agent.status = 'completed';
+            agent.progress = 100;
+            agent.lastActivity = 'complete';
+            agent.lastUpdate = new Date();
+            agent.events.push(event.data as SSEEventData);
+            cb.agents.set(parsed.agent, agent);
+
+            const completedAgents = countCompletedAgents(cb.agents);
+            const progress = AGENT_COMPLETION_WEIGHT(completedAgents);
+            cb.overallProgress = Math.min(100, Number(progress.toFixed(2)));
+            cb.status = completedAgents === TRACKED_AGENTS.length ? 'completed' : 'processing';
           } else if (activity === 'status' && (event.data as unknown as { message?: string })?.message?.toLowerCase()?.includes('complete')) {
             cb.overallProgress = 100;
             cb.status = 'completed';
-          } else {
+          } else if (activity && activity !== 'status') {
             cb.status = 'processing';
           }
 
           codebases.set(parsed.codebase, cb);
 
           const arr = Array.from(codebases.values());
-          const total = arr.reduce((sum, c) => sum + (c.overallProgress || 0), 0);
-          const overall = arr.length ? Math.floor(total / arr.length) : 0;
+          const totalCompletedAgents = arr.reduce((sum, c) => sum + countCompletedAgents(c.agents), 0);
+          const expectedCompleteEvents = arr.length * TRACKED_AGENTS.length;
+          const overall = expectedCompleteEvents
+            ? Math.min(100, Number(((totalCompletedAgents / expectedCompleteEvents) * 100).toFixed(2)))
+            : 0;
           return { codebases, events, overallProgress: overall };
         }
 
@@ -167,5 +239,3 @@ export const useAgentGenerationStore = create<AgentGenerationState>()(
     },
   }))
 );
-
-
