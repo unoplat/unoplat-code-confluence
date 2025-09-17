@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { getCodebaseAgentRules } from '@/lib/api';
+import { getCodebaseAgentRules, type RepositoryAgentSnapshot } from '@/lib/api';
 import type {
   AgentType,
   ActivityType,
@@ -49,6 +49,11 @@ interface AgentGenerationState {
   aggregated: AggregatedAgentsMdEventData | null;
   parsedCodebases: Record<string, AgentMdOutput> | null;
 
+  // New state for existing snapshot handling
+  existingSnapshot: RepositoryAgentSnapshot | null;
+  hasExistingSnapshot: boolean;
+  isRerunning: boolean;
+
   connect: (ownerName: string, repoName: string, codebaseIds: string[]) => void;
   disconnect: () => void;
   reset: () => void;
@@ -58,6 +63,11 @@ interface AgentGenerationState {
   ) => void;
   initializeFromMetadata: (codebaseIds: string[]) => void;
   setAggregated: (data: AggregatedAgentsMdEventData) => void;
+
+  // New methods for existing snapshot handling
+  loadExistingSnapshot: (snapshot: RepositoryAgentSnapshot) => void;
+  clearSnapshot: () => void;
+  startRerun: () => void;
 }
 
 export const useAgentGenerationStore = create<AgentGenerationState>()(
@@ -76,6 +86,11 @@ export const useAgentGenerationStore = create<AgentGenerationState>()(
     isComplete: false,
     aggregated: null,
     parsedCodebases: null,
+
+    // Initialize new state for existing snapshot handling
+    existingSnapshot: null,
+    hasExistingSnapshot: false,
+    isRerunning: false,
 
     connect: (ownerName: string, repoName: string, codebaseIds: string[]) => {
       const { disconnect, addEvent, initializeFromMetadata, setAggregated } = get();
@@ -113,6 +128,9 @@ export const useAgentGenerationStore = create<AgentGenerationState>()(
         aggregated: null,
         parsedCodebases: null,
         error: null,
+        existingSnapshot: null,
+        hasExistingSnapshot: false,
+        isRerunning: false,
       }),
 
     initializeFromMetadata: (codebaseIds: string[]) => {
@@ -236,6 +254,53 @@ export const useAgentGenerationStore = create<AgentGenerationState>()(
         isComplete: true,
         overallProgress: 100,
       }));
+    },
+
+    loadExistingSnapshot: (snapshot) => {
+      // Parse stringified JSON for each codebase from the snapshot
+      const parsedCodebases: Record<string, AgentMdOutput> = {};
+
+      for (const [codebaseName, jsonString] of Object.entries(snapshot.codebases)) {
+        try {
+          parsedCodebases[codebaseName] = JSON.parse(jsonString) as AgentMdOutput;
+        } catch (error) {
+          console.error(`Failed to parse JSON for codebase ${codebaseName}:`, error);
+        }
+      }
+
+      set({
+        existingSnapshot: snapshot,
+        hasExistingSnapshot: true,
+        parsedCodebases,
+        isComplete: true,
+        overallProgress: 100,
+        isRerunning: false,
+      });
+    },
+
+    clearSnapshot: () => {
+      set({
+        existingSnapshot: null,
+        hasExistingSnapshot: false,
+        parsedCodebases: null,
+        isComplete: false,
+        overallProgress: 0,
+        isRerunning: false,
+      });
+    },
+
+    startRerun: () => {
+      set({
+        existingSnapshot: null,
+        hasExistingSnapshot: false,
+        parsedCodebases: null,
+        isComplete: false,
+        overallProgress: 0,
+        isRerunning: true,
+        events: [],
+        codebases: new Map(),
+        error: null,
+      });
     },
   }))
 );
