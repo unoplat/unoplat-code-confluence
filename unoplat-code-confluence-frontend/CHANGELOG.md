@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.26.1...unoplat-code-confluence-frontend-v1.27.0) (2025-09-17)
+
+
+### Features
+
+* **agents:** add support for existing agent snapshot ([d0be956](https://github.com/unoplat/unoplat-code-confluence/commit/d0be956e9583c8a706d2a2d5604e11957c2b4df9))
+* **agents:** add support for existing agent snapshot ([a6ccf7a](https://github.com/unoplat/unoplat-code-confluence/commit/a6ccf7aa1e00c88eaec71064e7431d1b6e2ae01f))
+
 ## [1.26.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.26.0...unoplat-code-confluence-frontend-v1.26.1) (2025-09-16)
 
 
