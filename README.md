@@ -81,8 +81,8 @@ Unoplat Code Confluence aims to be the definitive solution for discovering, extr
 - **[Extensible Framework-Aware Parsing](https://docs.unoplat.io/contribution/custom-framework-schema)**: Specialized grammar engines recognize framework and library-specific patterns based on project dependencies
 
 ### 2. **Context Engineering**
-- **Complete Context Graph**: All essential context—internal/external dependencies, inbound/outbound interfaces, domain models, data stores, and service-to-service links—kept fresh via workflow-based ingestion
-- **Selective Context Routing & Hierarchical Decomposition**: Route only what matters and break work into scoped steps to boost accuracy and efficiency across tasks.
+- **Complete Context Graph**: All essential context—internal/external dependencies, inbound/outbound interfaces, domain models, data stores will be preserved.
+- **Selective Context Routing & Hierarchical Decomposition**: Route only what matters to boost accuracy and efficiency across tasks. For example our structural signature focuses on declarations and important bits of function such as function calls instead of passing the entire content of function.
 
 ### 3. **Enterprise-Grade Reliability**
 - Scalable and reliable processing powered by workflow orchestrator
