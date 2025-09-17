@@ -3,7 +3,7 @@ from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKeyConstraint, String
+from sqlalchemy import CheckConstraint, DateTime, ForeignKeyConstraint, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,6 +27,12 @@ class Repository(SQLBase):
         back_populates="repository",
         cascade="all, delete-orphan",
         passive_deletes=True,
+    )
+    agent_md_snapshot: Mapped[Optional["RepositoryAgentMdSnapshot"]] = relationship(
+        back_populates="repository",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        uselist=False,
     )
 
 
@@ -218,3 +224,45 @@ class CodebaseWorkflowRun(SQLBase):
     # Relationships
     codebase_config: Mapped[CodebaseConfig] = relationship(back_populates="workflow_runs")
     repository_workflow_run: Mapped[RepositoryWorkflowRun] = relationship(back_populates="codebase_workflow_runs")
+
+
+class RepositoryAgentMdSnapshot(SQLBase):
+    """SQLModel for repository_agent_md_snapshot table in code_confluence schema."""
+    __tablename__ = "repository_agent_md_snapshot"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["repository_name", "repository_owner_name"],
+            ["repository.repository_name", "repository.repository_owner_name"],
+            ondelete="CASCADE",
+        ),
+    )
+
+    repository_name: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="The name of the repository"
+    )
+    repository_owner_name: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="The name of the repository owner"
+    )
+    agent_md_output: Mapped[Dict[str, Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        comment="Complete final payload from generate_sse_events() containing per-codebase agent data"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
+        nullable=False,
+        comment="Timestamp when the row was first inserted"
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+        comment="Timestamp when the latest overwrite occurred"
+    )
+
+    # Relationships
+    repository: Mapped["Repository"] = relationship(back_populates="agent_md_snapshot")
