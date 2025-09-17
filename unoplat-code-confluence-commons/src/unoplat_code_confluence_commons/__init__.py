@@ -37,6 +37,9 @@ from unoplat_code_confluence_commons.base_models import (
     # Structural signature models
     VariableInfo,
 )
+from unoplat_code_confluence_commons.repo_models import (
+    RepositoryAgentMdSnapshot,
+)
 from unoplat_code_confluence_commons.graph_models import (
     BaseNode,
     CodeConfluenceCodebase,
@@ -94,6 +97,7 @@ __all__ = [
     'ProgrammingLanguageMetadata',
     'ProgrammingLanguage',
     'PackageManagerType',
+    'RepositoryAgentMdSnapshot',
     # Credentials model
     'Credentials',
     # Flags model
