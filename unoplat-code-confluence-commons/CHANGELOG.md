@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.27.1...unoplat-code-confluence-commons-v0.28.0) (2025-09-17)
+
+
+### Features
+
+* **repo_models:** Add RepositoryAgentMdSnapshot model ([9db3f6a](https://github.com/unoplat/unoplat-code-confluence/commit/9db3f6a03d92358f8156c3a86a722cc775d9bfc2))
+* **repo_models:** Add RepositoryAgentMdSnapshot model ([5a87198](https://github.com/unoplat/unoplat-code-confluence/commit/5a87198b492793f19ff9c3c45aa85127f4da6305))
+
 ## [0.27.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.27.0...unoplat-code-confluence-commons-v0.27.1) (2025-08-29)
 
 
