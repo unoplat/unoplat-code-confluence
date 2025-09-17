@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.52.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.51.0...code-confluence-flow-bridge-v0.52.0) (2025-09-17)
+
+
+### Features
+
+* **agent_md_output:** upgrade unoplat-code-confluence-commons to v0.28.0 and endpoint for retrieval ([1cda97f](https://github.com/unoplat/unoplat-code-confluence/commit/1cda97fab3cf571290940b89415c0942f22b5c64))
+* **agent_md_output:** upgrade unoplat-code-confluence-commons to v0.28.0 and endpoint for retrieval ([8c9903b](https://github.com/unoplat/unoplat-code-confluence/commit/8c9903b0e7ab9939c81c1900c6955d9b1f49a9b6))
+
 ## [0.51.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.50.2...code-confluence-flow-bridge-v0.51.0) (2025-09-12)
 
 
