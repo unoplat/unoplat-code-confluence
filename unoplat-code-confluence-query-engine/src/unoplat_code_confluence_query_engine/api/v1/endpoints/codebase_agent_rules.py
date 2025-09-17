@@ -2,14 +2,18 @@ import asyncio
 from functools import partial
 import json
 import time
-from typing import AsyncGenerator, Awaitable, Callable, Dict, Optional, Union
+from typing import Any, AsyncGenerator, Awaitable, Callable, Dict, Optional, Union
 import uuid
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from loguru import logger
 from pydantic import BaseModel
+from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert
 from sse_starlette.sse import EventSourceResponse
+from unoplat_code_confluence_commons.repo_models import RepositoryAgentMdSnapshot
 
+from unoplat_code_confluence_query_engine.db.postgres.db import get_session
 from unoplat_code_confluence_query_engine.db.repository_metadata_service import (
     fetch_repository_metadata,
 )
@@ -420,9 +424,35 @@ async def generate_sse_events(
         last_event_time = log_sse_event(connection_id, event_count, final_event_name, connection_start, last_event_time)
         event_count += 1
         yield final_event
-        
-        logger.info("SSE[{}] Final aggregated event emitted for {} codebases", 
+
+        logger.info("SSE[{}] Final aggregated event emitted for {} codebases",
                    connection_id, len(aggregators))
+
+        # Persist the final payload to PostgreSQL using upsert
+        try:
+            async with get_session() as session:
+                repo_parts = ruleset_metadata.repository_qualified_name.split("/")
+                owner_name = repo_parts[0]
+                repo_name = repo_parts[1]
+
+                stmt = insert(RepositoryAgentMdSnapshot).values(
+                    repository_name=repo_name,
+                    repository_owner_name=owner_name,
+                    agent_md_output=final_payload,
+                )
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=["repository_name", "repository_owner_name"],
+                    set_=dict(
+                        agent_md_output=stmt.excluded.agent_md_output,
+                        modified_at=func.now()
+                    )
+                )
+                await session.execute(stmt)
+                logger.info("SSE[{}] Agent snapshot persisted for repository {}/{}",
+                           connection_id, owner_name, repo_name)
+        except Exception as persist_error:
+            logger.error("SSE[{}] Failed to persist agent snapshot: {}",
+                        connection_id, persist_error)
 
     except asyncio.CancelledError:
         # Enhanced: Better cancellation handling for sse-starlette 3.0.2
@@ -509,4 +539,50 @@ async def get_codebase_agent_rules(
         raise
     except Exception as e:
         logger.error("Unexpected error in get_codebase_agent_rules: {}", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get("/repository-agent-snapshot")
+async def get_repository_agent_snapshot(
+    owner_name: str = Query(..., description="Repository owner name"),
+    repo_name: str = Query(..., description="Repository name"),
+) -> Dict[str, Any]:
+    """
+    Retrieve the latest agent-generated metadata snapshot for a repository.
+
+    This endpoint fetches the most recent agent MD output that was generated
+    during the /codebase-agent-rules execution and persisted to PostgreSQL.
+
+    Args:
+        owner_name: Repository owner name
+        repo_name: Repository name
+
+    Returns:
+        Dictionary containing the complete agent MD output with per-codebase data
+
+    Raises:
+        HTTPException: 404 if no snapshot exists, 500 for server errors
+    """
+    try:
+        async with get_session() as session:
+            stmt = select(RepositoryAgentMdSnapshot).where(
+                RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
+                RepositoryAgentMdSnapshot.repository_name == repo_name
+            )
+            result = await session.execute(stmt)
+            snapshot = result.scalar_one_or_none()
+
+            if snapshot is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No agent snapshot found for repository {owner_name}/{repo_name}"
+                )
+
+            logger.info("Retrieved agent snapshot for repository {}/{}", owner_name, repo_name)
+            return snapshot.agent_md_output
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error retrieving agent snapshot for {}/{}: {}", owner_name, repo_name, e)
         raise HTTPException(status_code=500, detail="Internal server error")
