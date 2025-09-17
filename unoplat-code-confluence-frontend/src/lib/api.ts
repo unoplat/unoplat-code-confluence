@@ -737,3 +737,40 @@ export const deleteRepository = async (repository: import('../types').IngestedRe
     throw handleApiError(error);
   }
 };
+
+/**
+ * Repository agent snapshot interface
+ */
+export interface RepositoryAgentSnapshot {
+  repository: string;
+  codebases: Record<string, string>; // codebase_name -> JSON string of AgentMdOutput
+}
+
+/**
+ * Fetch existing repository agent snapshot from the backend
+ *
+ * @param ownerName - Repository owner name
+ * @param repoName - Repository name
+ * @returns Promise with repository agent snapshot or null if not found
+ */
+export async function getRepositoryAgentSnapshot(
+  ownerName: string,
+  repoName: string
+): Promise<RepositoryAgentSnapshot | null> {
+  try {
+    const params = {
+      owner_name: ownerName,
+      repo_name: repoName,
+    };
+    const response: AxiosResponse<RepositoryAgentSnapshot> = await axios.get(
+      `${env.queryEngineUrl}/v1/repository-agent-snapshot`,
+      { params }
+    );
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    }
+    throw handleApiError(error);
+  }
+}
