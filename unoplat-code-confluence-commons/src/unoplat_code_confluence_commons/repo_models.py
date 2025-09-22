@@ -1,11 +1,27 @@
-from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
-
 from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKeyConstraint, String, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Enum as SQLEnum,
+    ForeignKeyConstraint,
+    String,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
+
+
+class RepoAgentSnapshotStatus(Enum):
+    """Lifecycle status for repository agent markdown snapshot persistence."""
+
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    ERROR = "ERROR"
 
 
 class Repository(SQLBase):
@@ -245,10 +261,27 @@ class RepositoryAgentMdSnapshot(SQLBase):
         primary_key=True,
         comment="The name of the repository owner"
     )
+    events: Mapped[Dict[str, Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        comment="Events and progress captured during agent execution",
+    )
+
     agent_md_output: Mapped[Dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
-        comment="Complete final payload from generate_sse_events() containing per-codebase agent data"
+        comment="Complete final payload from agent execution containing per-codebase agent data",
+    )
+    status: Mapped[RepoAgentSnapshotStatus] = mapped_column(
+        SQLEnum(
+            RepoAgentSnapshotStatus,
+            name="repo_agent_snapshot_status",
+            native_enum=False,
+        ),
+        default=RepoAgentSnapshotStatus.RUNNING,
+        nullable=False,
+        comment="Lifecycle status for the snapshot: RUNNING, COMPLETED, or ERROR",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
