@@ -14,6 +14,7 @@ jobs:
     outputs:
       release_created: ${{ steps.release_action_plan.outputs.releases_created }}
       matrix: ${{ steps.create-matrix.outputs.matrix }}   # noqa: unknown-context
+      has_docker_images: ${{ steps.create-matrix.outputs.has_docker_images }}
     steps:
     - name: Checkout our repository
       uses: actions/checkout@v2
@@ -61,8 +62,15 @@ jobs:
             return { path, image_name, version };
           }).filter(item => item !== null);
           
-          console.log("Final Docker Matrix:", includeArray);
-          core.setOutput('matrix', JSON.stringify({ include: includeArray }));
+          const hasDockerImages = includeArray.length > 0;
+          // Prevent empty matrix error by adding a sentinel if needed
+          const matrixObj = hasDockerImages
+            ? { include: includeArray }
+            : { include: [{ path: '__skip__', image_name: '__skip__', version: '0' }] };
+
+          console.log("Final Docker Matrix:", matrixObj.include);
+          core.setOutput('matrix', JSON.stringify(matrixObj));
+          core.setOutput('has_docker_images', hasDockerImages.toString());
 
   release-docker-image:
     name: Build and Push Docker Image
@@ -71,7 +79,7 @@ jobs:
     permissions: 
       contents: read
       packages: write
-    if: needs.main-pr-merge.outputs.release_created == 'true'
+    if: needs.main-pr-merge.outputs.release_created == 'true' && needs.main-pr-merge.outputs.has_docker_images == 'true'
     strategy:
       matrix: ${{ fromJson(needs.main-pr-merge.outputs.matrix) }}  # noqa: unknown-context
     steps:
