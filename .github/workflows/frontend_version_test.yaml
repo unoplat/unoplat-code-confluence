@@ -6,7 +6,7 @@ on:
       - synchronize
       - reopened
     branches:
-      - main
+      - dev
     paths:
       - 'unoplat-code-confluence-frontend/**'
 
