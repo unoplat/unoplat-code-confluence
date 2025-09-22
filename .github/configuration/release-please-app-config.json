@@ -1,0 +1,11 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "changelog-path": "APP_CHANGELOG.md",
+      "include-component-in-tag": true,
+      "component": "unoplat-code-confluence",
+      "package-name": "unoplat-code-confluence"
+    }
+  }
+}
