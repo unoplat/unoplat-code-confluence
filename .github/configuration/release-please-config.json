@@ -31,5 +31,6 @@
             "include-component-in-tag": true,
             "component": "unoplat-code-confluence-query-engine"
         }
+  
     }
 }
