@@ -38,6 +38,7 @@ from unoplat_code_confluence_commons.base_models import (
     VariableInfo,
 )
 from unoplat_code_confluence_commons.repo_models import (
+    RepoAgentSnapshotStatus,
     RepositoryAgentMdSnapshot,
 )
 from unoplat_code_confluence_commons.graph_models import (
@@ -98,6 +99,7 @@ __all__ = [
     'ProgrammingLanguage',
     'PackageManagerType',
     'RepositoryAgentMdSnapshot',
+    'RepoAgentSnapshotStatus',
     # Credentials model
     'Credentials',
     # Flags model
