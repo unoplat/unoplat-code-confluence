@@ -1,13 +1,13 @@
-name: Merge with main branch
+name: Merge with dev branch
 
 on:
   pull_request:
     types: [closed]
     branches:
-      - main
+      - dev
 
 jobs:
-  main-pr-merge:
+  dev-pr-merge:
     if: github.event.pull_request.merged == true
     permissions: write-all
     runs-on: ubuntu-latest
@@ -19,7 +19,7 @@ jobs:
     - name: Checkout our repository
       uses: actions/checkout@v2
       with:
-        ref: main
+        ref: dev
 
     - name: Configure Git
       run: |
@@ -34,7 +34,7 @@ jobs:
         config-file: .github/configuration/release-please-config.json
         manifest-file: .github/configuration/release-please-manifest.json
         include-component-in-tag: true
-        target-branch: main
+        target-branch: dev
         
     - name: Create matrix for release    
       id: create-matrix
@@ -75,18 +75,18 @@ jobs:
   release-docker-image:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: main-pr-merge
+    needs: dev-pr-merge
     permissions: 
       contents: read
       packages: write
-    if: needs.main-pr-merge.outputs.release_created == 'true' && needs.main-pr-merge.outputs.has_docker_images == 'true'
+    if: needs.dev-pr-merge.outputs.release_created == 'true' && needs.dev-pr-merge.outputs.has_docker_images == 'true'
     strategy:
-      matrix: ${{ fromJson(needs.main-pr-merge.outputs.matrix) }}  # noqa: unknown-context
+      matrix: ${{ fromJson(needs.dev-pr-merge.outputs.matrix) }}  # noqa: unknown-context
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: dev
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
