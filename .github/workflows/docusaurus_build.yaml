@@ -10,6 +10,7 @@ on:
       - 'code-confluence/**'
     branches:
       - main
+      - dev
 
 jobs:
   test-docusaurus-build:
