@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.28.0...unoplat-code-confluence-commons-v0.29.0) (2025-09-22)
+
+
+### Features
+
+* **repo-models:** Add RepoAgentSnapshotStatus enum and update RepositoryAgentMdSnapshot ([0ae85f7](https://github.com/unoplat/unoplat-code-confluence/commit/0ae85f791a51ecd9713f2055e2d50e1d1e1989ab))
+* **repo-models:** Add RepoAgentSnapshotStatus enum and update RepositoryAgentMdSnapshot ([037675a](https://github.com/unoplat/unoplat-code-confluence/commit/037675a1b502292f220cbcfd0d9201d29075b509))
+
 ## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.27.1...unoplat-code-confluence-commons-v0.28.0) (2025-09-17)
 
 
