@@ -6,7 +6,7 @@ This directory contains GitHub Actions workflows for the Unoplat Code Confluence
 
 ### Python Build (`python_build.yaml`)
 
-This workflow runs on pull requests to the `main` branch that include changes to Python projects:
+This workflow runs on pull requests to the `dev` branch that include changes to Python projects:
 - `unoplat-code-confluence-commons`
 - `unoplat-code-confluence-ingestion`
 
@@ -17,7 +17,7 @@ It performs the following tasks:
 
 ### Docusaurus Build (`docusaurus_build.yaml`)
 
-This workflow runs on pull requests to the `main` branch that include changes to the Docusaurus documentation site:
+This workflow runs on pull requests to the `dev` branch that include changes to the Docusaurus documentation site:
 - `code-confluence`
 
 It performs the following tasks:
