@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional
 
 from pydantic import Field, SecretStr, computed_field
@@ -112,6 +113,32 @@ class EnvironmentSettings(BaseSettings):
     )
     
     environment: str = Field(default="development", alias="ENVIRONMENT")
+
+    # Mock SSE Settings
+    mock_sse_enabled: bool = Field(
+        default=False,
+        alias="MOCK_SSE_ENABLED",
+        description="Enable mock SSE mode for testing without running actual agents"
+    )
+    mock_sse_delay_seconds: float = Field(
+        default=0.5,
+        alias="MOCK_SSE_DELAY_SECONDS",
+        description="Artificial delay between mock SSE events",
+        ge=0.0,
+        le=2.0
+    )
+    mock_sse_log_path: str = Field(
+        default="/Users/jayghiya/Documents/unoplat/unoplat-code-confluence/unoplat-code-confluence-query-engine/docs/mock/database-agent-events.json",
+    
+        alias="MOCK_SSE_LOG_PATH",
+        description="Path to mock workflow events JSON"
+    )
+
+    mock_sse_result_path: str = Field(
+        default="/Users/jayghiya/Documents/unoplat/unoplat-code-confluence/unoplat-code-confluence-query-engine/docs/mock/agent-md-result.json",
+        alias="MOCK_SSE_RESULT_PATH",
+        description="Path to mock final agent MD result JSON"
+    )
 
     @computed_field  # type: ignore[prop-decorator]
     @property
