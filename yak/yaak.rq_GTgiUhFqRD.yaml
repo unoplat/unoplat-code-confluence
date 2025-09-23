@@ -1,8 +1,8 @@
 type: http_request
 model: http_request
-id: rq_ZCT8QECJLF
-createdAt: 2025-09-15T11:23:47.226515
-updatedAt: 2025-09-18T06:49:48.694609
+id: rq_GTgiUhFqRD
+createdAt: 2025-09-23T04:41:42.077063
+updatedAt: 2025-09-23T04:41:52.962444
 workspaceId: wk_KULjx4bEa8
 folderId: fl_zukJtBcFCC
 authentication: {}
@@ -12,9 +12,9 @@ bodyType: null
 description: ''
 headers: []
 method: GET
-name: mock-test-agent-pc-dw-bl-xai-grok-code-fast-1-or-all-codebases
+name: test-agent-pc-dw-bl-xai-grok-code-fast-1-or-all-codebases
 sortPriority: 4000.001
-url: http://localhost:8001/v1/codebase-agent-rules
+url: http://localhost:8001/v1/codebase-agent-runs
 urlParameters:
 - enabled: true
   name: owner_name
