@@ -41,6 +41,7 @@ services:
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=postgres
       - POSTGRESQL_DATABASE=code_confluence
+      - POSTGRESQL_EXTRA_FLAGS=-c wal_level=logical
     ports:
       - "5432:5432"
     volumes:
@@ -53,6 +54,21 @@ services:
       timeout: 5s
       retries: 5
   
+
+  electric:
+    image: docker.io/electricsql/electric:latest
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/code_confluence?sslmode=disable
+      # Not suitable for production. Only use insecure mode in development or if you've otherwise secured the Electric API.
+      # See https://electric-sql.com/docs/guides/security
+      ELECTRIC_INSECURE: true
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
+
   temporal:
     depends_on:
       elasticsearch:
@@ -134,7 +150,7 @@ services:
       retries: 5
 
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.51.0
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.53.0
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
