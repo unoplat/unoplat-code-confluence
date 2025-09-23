@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.12.0...unoplat-code-confluence-query-engine-v0.13.0) (2025-09-23)
+
+
+### Features
+
+* move to local sync based workflow for real time updates for agent based workflows ([e4e4288](https://github.com/unoplat/unoplat-code-confluence/commit/e4e4288caed30e80a6417e2837b64e3305e702a4))
+* move to local sync based workflow for real time updates for agent based workflows ([bb7970d](https://github.com/unoplat/unoplat-code-confluence/commit/bb7970d56bab6941e2600bb3244bc7b6bfd1f603))
+
 ## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.11.0...unoplat-code-confluence-query-engine-v0.12.0) (2025-09-17)
 
 
