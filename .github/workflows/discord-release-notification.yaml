@@ -9,12 +9,51 @@ jobs:
     name: Send Discord Notification
     runs-on: ubuntu-latest
     steps:
-      - name: Send Discord Release Notification
+      - name: Determine release target
+        id: release_meta
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = context.payload.release;
+            if (!release) {
+              throw new Error('Expected release payload but none was found.');
+            }
+
+            const tagName = release.tag_name ?? '';
+            if (!tagName) {
+              throw new Error('Release tag name is missing from the payload.');
+            }
+
+            const component = tagName.split('-v')[0];
+            const isAppRelease = component === 'unoplat-code-confluence';
+
+            core.info(`Parsed component '${component}' from tag '${tagName}'.`);
+            core.setOutput('component', component);
+            core.setOutput('is_app_release', isAppRelease ? 'true' : 'false');
+
+      - name: Send Discord Release Notification for component
+        if: steps.release_meta.outputs.is_app_release != 'true'
         uses: SethCohen/github-releases-to-discord@v1
         with:
           webhook_url: ${{ secrets.DISCORD_UNOPLAT_CODE_CONFLUENCE_WEBHOOK }}
           color: 2105893
-          username: "Unoplat Release Bot"
+          username: "Unoplat Component Release Bot"
+          avatar_url: "https://avatars.githubusercontent.com/${{ github.repository_owner }}"
+          content: "Certified fresh… until the next release"
+          footer_title: "Unoplat Code Confluence Component"
+          footer_icon_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          footer_timestamp: true
+          max_description: 4096
+          remove_github_reference_links: false
+          reduce_headings: false
+      
+      - name: Send Discord Release Notification for App
+        if: steps.release_meta.outputs.is_app_release == 'true'
+        uses: SethCohen/github-releases-to-discord@v1
+        with:
+          webhook_url: ${{ secrets.DISCORD_APP_RELEASE_WEBHOOK }}
+          color: 9075499
+          username: "Unoplat App Release Bot"
           avatar_url: "https://avatars.githubusercontent.com/${{ github.repository_owner }}"
           content: "Certified fresh… until the next release"
           footer_title: "Unoplat Code Confluence"
@@ -22,4 +61,4 @@ jobs:
           footer_timestamp: true
           max_description: 4096
           remove_github_reference_links: false
-          reduce_headings: false
+          reduce_headings: false    
