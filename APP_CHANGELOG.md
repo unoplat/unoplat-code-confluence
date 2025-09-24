@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.10.0...unoplat-code-confluence-v0.11.0) (2025-09-24)
+
+
+### Features
+
+* move to local sync based workflow for real time updates for agent based workflows ([e4e4288](https://github.com/unoplat/unoplat-code-confluence/commit/e4e4288caed30e80a6417e2837b64e3305e702a4))
+
+
+### Bug Fixes
+
+* app release channel ([8f32c22](https://github.com/unoplat/unoplat-code-confluence/commit/8f32c222087d029a8f70a36b819bd5934182c59b))
+* **discord-notification:** Enhance release notification logic ([842ade5](https://github.com/unoplat/unoplat-code-confluence/commit/842ade5f794badff04e466be0a9ac4549ae247a4))
+* **discord-notification:** Enhance release notification logic ([7174e87](https://github.com/unoplat/unoplat-code-confluence/commit/7174e87c66a36c0e52fe91ab3361c9881bf4e581))
+
 ## [0.10.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.9.0...unoplat-code-confluence-v0.10.0) (2025-09-22)
 
 
