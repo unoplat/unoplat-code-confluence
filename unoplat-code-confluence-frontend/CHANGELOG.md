@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.27.0...unoplat-code-confluence-frontend-v1.28.0) (2025-09-26)
+
+
+### Features
+
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([b220132](https://github.com/unoplat/unoplat-code-confluence/commit/b220132e74a693febb56d99a199c54d3e9ca9d60))
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([629e453](https://github.com/unoplat/unoplat-code-confluence/commit/629e453dd4e84bb118cc4ee67da45380c8479f34))
+
 ## [1.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.26.1...unoplat-code-confluence-frontend-v1.27.0) (2025-09-17)
 
 
