@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.13.0...unoplat-code-confluence-query-engine-v0.14.0) (2025-09-26)
+
+
+### Features
+
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([b220132](https://github.com/unoplat/unoplat-code-confluence/commit/b220132e74a693febb56d99a199c54d3e9ca9d60))
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([629e453](https://github.com/unoplat/unoplat-code-confluence/commit/629e453dd4e84bb118cc4ee67da45380c8479f34))
+
 ## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.12.0...unoplat-code-confluence-query-engine-v0.13.0) (2025-09-23)
 
 
