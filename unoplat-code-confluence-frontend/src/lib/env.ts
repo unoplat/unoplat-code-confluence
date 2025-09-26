@@ -22,6 +22,10 @@ export interface Env {
    */
   workflowOrchestratorUrl: string;
   /**
+   * Electric SQL base URL used for TanStack DB shape streams
+   */
+  electricBaseUrl: string;
+  /**
    * Enable verbose SSE debug logging in frontend (Vite flag: VITE_DEBUG_SSE)
    */
   debugSse: boolean;
@@ -35,5 +39,6 @@ export const env: Env = {
   queryEngineUrl: import.meta.env.VITE_QUERY_ENGINE_URL || 'http://127.0.0.1:8001',
   workflowOrchestratorUrl: import.meta.env.VITE_WORKFLOW_ORCHESTRATOR_URL || 'http://127.0.0.1:8081',
   knowledgeGraphUrl: import.meta.env.VITE_KNOWLEDGE_GRAPH_URL || 'http://127.0.0.1:7474',
+  electricBaseUrl: import.meta.env.VITE_ELECTRIC_BASE_URL || 'http://127.0.0.1:3000',
   debugSse: String(import.meta.env.VITE_DEBUG_SSE).toLowerCase() === 'true',
-}; 
+};
