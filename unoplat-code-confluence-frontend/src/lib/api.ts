@@ -1,7 +1,6 @@
 import { env } from './env';
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse, RefreshRepositoryResponse, CodebaseMetadataResponse } from '../types';
-import type { AgentType, ActivityType, SSEEvent, AggregatedSSEEvent, AggregatedAgentsMdEventData } from '@/types/sse';
 
 // Re-export types from '../types' for consumers
 export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse, RefreshRepositoryResponse };
@@ -485,199 +484,6 @@ export const detectCodebasesSSE = async (options: DetectCodebasesOptions): Promi
   });
 };
 
-// ===================================
-// GENERATE AGENTS.MD - SSE + METADATA
-// ===================================
-
-export type ParsedEventInfo = {
-  codebase?: string;
-  agent?: AgentType;
-  activity?: ActivityType | 'status';
-};
-
-export interface CodebaseAgentRulesOptions {
-  ownerName: string;
-  repoName: string;
-  codebaseIds: string[];
-  agents?: AgentType[];
-  activities?: ActivityType[];
-  onEvent?: (event: SSEEvent, parsed: ParsedEventInfo) => void;
-  onAggregated?: (event: AggregatedSSEEvent) => void;
-  onError?: (error: Error) => void;
-  signal?: AbortSignal;
-}
-
-// Simple counter to tag EventSource connections for debugging
-let __sseConnectionCounter = 0;
-
-export const getCodebaseAgentRules = (options: CodebaseAgentRulesOptions): EventSource => {
-  const {
-    ownerName,
-    repoName,
-    codebaseIds,
-    agents = ['project_configuration_agent', 'development_workflow', 'business_logic_domain'],
-    activities = ['prompt.start', 'model.request', 'tool.call', 'tool.result', 'result', 'complete'],
-    onEvent,
-    onAggregated,
-    onError,
-    signal,
-  } = options;
-
-  const logDebug = (...args: unknown[]): void => {
-    // Avoid noisy logs in production unless explicitly enabled
-    
-      // Prefix for easy filtering in console
-      console.log('[SSE]', ...args);
-    
-  };
-
-  const url = `${env.queryEngineUrl}/v1/codebase-agent-rules?owner_name=${encodeURIComponent(ownerName)}&repo_name=${encodeURIComponent(repoName)}`;
-  const connectionId = ++__sseConnectionCounter;
-  const ctx = {
-    connectionId,
-    createdAt: Date.now(),
-    onopenCount: 0,
-    totalEvents: 0,
-    lastEventAt: 0,
-    namedEventCounter: {} as Record<string, number>,
-    recent: [] as Array<{ name: string; id: string; ts: number }>,
-  };
-  const markEvent = (name: string, id: string) => {
-    ctx.totalEvents += 1;
-    ctx.lastEventAt = Date.now();
-    ctx.namedEventCounter[name] = (ctx.namedEventCounter[name] || 0) + 1;
-    ctx.recent.push({ name, id, ts: Date.now() });
-    if (ctx.recent.length > 10) ctx.recent.shift();
-  };
-
-  logDebug('Opening EventSource', { connectionId, url, ownerName, repoName, codebaseCount: codebaseIds.length });
-  const eventSource = new EventSource(url);
-  eventSource.onopen = () => {
-    ctx.onopenCount += 1;
-    logDebug('EventSource.onopen', {
-      connectionId,
-      attempt: ctx.onopenCount,
-      readyState: eventSource.readyState,
-      ts: new Date().toISOString(),
-    });
-  };
-
-  // Use ownerName/repoName directly as repository qualified name
-  const repositoryQualifiedName = `${ownerName}/${repoName}`;
-  let aggregatedListenerRegistered = false;
-
-  // Register aggregated listener immediately if onAggregated callback is provided
-  if (onAggregated && !aggregatedListenerRegistered) {
-    const aggregatedEventName = `${repositoryQualifiedName}:aggregated_final_summary_agent:agent_md_output`;
-    logDebug('Registering aggregated listener', { aggregatedEventName });
-    eventSource.addEventListener(aggregatedEventName, (aggEvt: MessageEvent) => {
-      try {
-        const lastId = (aggEvt as unknown as { lastEventId?: string }).lastEventId || '0';
-        logDebug('aggregated event received', { event: aggregatedEventName, lastEventId: lastId, length: typeof aggEvt.data === 'string' ? aggEvt.data.length : 0 });
-        const parsed = JSON.parse(aggEvt.data) as AggregatedAgentsMdEventData;
-        const aggEvent: AggregatedSSEEvent = {
-          id: parseInt(lastId),
-          event: aggregatedEventName,
-          data: parsed,
-        };
-        markEvent(aggregatedEventName, lastId);
-        onAggregated?.(aggEvent);
-
-        // Close the EventSource connection after receiving the final aggregated event
-        logDebug('Closing EventSource after aggregated event received');
-        eventSource.close();
-      } catch (err) {
-        onError?.(new Error(`Failed to parse aggregated event ${aggregatedEventName}: ${String(err)}`));
-        const snippet = typeof (aggEvt as MessageEvent)?.data === 'string' ? (aggEvt as MessageEvent).data.slice(0, 200) : undefined;
-        logDebug('aggregated event parse error', { error: String(err), snippet });
-      }
-    });
-    aggregatedListenerRegistered = true;
-  }
-
-  eventSource.addEventListener('status', (event: MessageEvent) => {
-    try {
-      const lastEventId = (event as unknown as { lastEventId?: string }).lastEventId || '0';
-      logDebug('status event received', { lastEventId, length: typeof event.data === 'string' ? event.data.length : 0 });
-      const sseEvent: SSEEvent = {
-        id: parseInt(lastEventId),
-        event: 'status',
-        data: JSON.parse(event.data),
-      } as SSEEvent;
-      markEvent('status', lastEventId);
-      onEvent?.(sseEvent, { activity: 'status' });
-    } catch (err) {
-      onError?.(new Error(`Failed to parse status event: ${String(err)}`));
-      const snippet = typeof (event as MessageEvent)?.data === 'string' ? (event as MessageEvent).data.slice(0, 200) : undefined;
-      logDebug('status event parse error', { error: String(err), snippet });
-    }
-  });
-
-  codebaseIds.forEach((codebase) => {
-    agents.forEach((agent) => {
-      activities.forEach((activity) => {
-        const eventName = `${codebase}:${agent}:${activity}`;
-        logDebug('Registering listener', { eventName });
-        eventSource.addEventListener(eventName, (event: MessageEvent) => {
-          try {
-            const lastEventId = (event as unknown as { lastEventId?: string }).lastEventId || '0';
-            logDebug('named event received', { event: eventName, lastEventId, length: typeof event.data === 'string' ? event.data.length : 0 });
-            const sseEvent: SSEEvent = {
-              id: parseInt(lastEventId),
-              event: eventName,
-              data: JSON.parse(event.data),
-            } as SSEEvent;
-            markEvent(eventName, lastEventId);
-            onEvent?.(sseEvent, { codebase, agent, activity });
-          } catch (err) {
-            onError?.(new Error(`Failed to parse event ${eventName}: ${String(err)}`));
-            const snippet = typeof (event as MessageEvent)?.data === 'string' ? (event as MessageEvent).data.slice(0, 200) : undefined;
-            logDebug('named event parse error', { event: eventName, error: String(err), snippet });
-          }
-        });
-      });
-    });
-  });
-
-  eventSource.onerror = () => {
-    // Allow EventSource to auto-reconnect; don't close here.
-    const now = Date.now();
-    const msSinceLast = ctx.lastEventAt ? now - ctx.lastEventAt : null;
-    const uptimeMs = now - ctx.createdAt;
-    const last = ctx.recent[ctx.recent.length - 1];
-    const lastWasComplete = last?.name?.endsWith(':complete') ?? false;
-    // Build a compact per-type summary, avoid flooding the console
-    const byTypeSummary = Object.entries(ctx.namedEventCounter)
-      .slice(0, 20)
-      .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {} as Record<string, number>);
-
-    logDebug('EventSource.onerror', {
-      connectionId: ctx.connectionId,
-      attempt: ctx.onopenCount,
-      readyState: eventSource.readyState,
-      uptimeMs,
-      msSinceLastEvent: msSinceLast,
-      totalEvents: ctx.totalEvents,
-      lastEventName: last?.name,
-      lastEventId: last?.id,
-      lastWasComplete,
-      recentEvents: ctx.recent.slice(-5),
-      byTypeSummary,
-      ts: new Date(now).toISOString(),
-    });
-    onError?.(new Error('SSE connection failed'));
-  };
-
-  if (signal) {
-    signal.addEventListener('abort', () => {
-      logDebug('Abort signal received, closing EventSource');
-      eventSource.close();
-    });
-  }
-
-  return eventSource;
-};
-
 export async function getCodebaseMetadata(
   repositoryOwnerName: string,
   repositoryName: string
@@ -738,11 +544,44 @@ export const deleteRepository = async (repository: import('../types').IngestedRe
   }
 };
 
+export type RepoAgentSnapshotStatus = 'RUNNING' | 'COMPLETED' | 'ERROR';
+
+export interface RepositoryWorkflowRunResponse {
+  repository_workflow_run_id: string;
+}
+
+export async function startRepositoryAgentRun(ownerName: string, repoName: string): Promise<RepositoryWorkflowRunResponse> {
+  try {
+    const params = {
+      owner_name: ownerName,
+      repo_name: repoName,
+    };
+
+    const response: AxiosResponse<RepositoryWorkflowRunResponse> = await axios.get(
+      `${env.queryEngineUrl}/v1/codebase-agent-rules`,
+      { params }
+    );
+
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+}
+
+interface RepositoryAgentSnapshotResponse {
+  status: RepoAgentSnapshotStatus;
+  agent_md_output: {
+    repository?: string;
+    codebases?: Record<string, string>;
+  } | null;
+}
+
 /**
- * Repository agent snapshot interface
+ * Repository agent snapshot normalized for frontend consumption.
  */
 export interface RepositoryAgentSnapshot {
-  repository: string;
+  status: RepoAgentSnapshotStatus;
+  repository?: string;
   codebases: Record<string, string>; // codebase_name -> JSON string of AgentMdOutput
 }
 
@@ -762,11 +601,17 @@ export async function getRepositoryAgentSnapshot(
       owner_name: ownerName,
       repo_name: repoName,
     };
-    const response: AxiosResponse<RepositoryAgentSnapshot> = await axios.get(
+    const response: AxiosResponse<RepositoryAgentSnapshotResponse> = await axios.get(
       `${env.queryEngineUrl}/v1/repository-agent-snapshot`,
       { params }
     );
-    return response.data;
+    const { status, agent_md_output } = response.data;
+
+    return {
+      status,
+      repository: agent_md_output?.repository,
+      codebases: agent_md_output?.codebases ?? {},
+    };
   } catch (error: unknown) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       return null;

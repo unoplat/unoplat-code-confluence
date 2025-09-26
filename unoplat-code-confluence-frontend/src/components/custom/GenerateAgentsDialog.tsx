@@ -1,14 +1,21 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type { IngestedRepository, CodebaseMetadataResponse } from '@/types';
-import { getCodebaseMetadata, getRepositoryAgentSnapshot } from '@/lib/api';
+import {
+  getCodebaseMetadata,
+  getRepositoryAgentSnapshot,
+  startRepositoryAgentRun,
+  type RepositoryAgentSnapshot,
+  type RepoAgentSnapshotStatus,
+} from '@/lib/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
-import { useAgentGenerationStore } from '@/stores/useAgentGenerationStore';
 import { GenerateAgentsProgress } from '@/components/custom/GenerateAgentsProgress';
 import { Button } from '@/components/ui/button';
 import { GenerateAgentsPreview } from '@/components/custom/GenerateAgentsPreview';
 import { codebasesToMarkdown } from '@/lib/agent-md-to-markdown';
+import { useRepositoryAgentSnapshot } from '@/features/repository-agent-snapshots/hooks';
+import { parseAgentMdOutputsFromSnapshot } from '@/features/repository-agent-snapshots/transformers';
 
 interface GenerateAgentsDialogProps {
   repository: IngestedRepository | null;
@@ -17,16 +24,8 @@ interface GenerateAgentsDialogProps {
 }
 
 export function GenerateAgentsDialog({ repository, open, onOpenChange }: GenerateAgentsDialogProps): React.ReactElement | null {
-  const connect = useAgentGenerationStore((s) => s.connect);
-  const parsedCodebases = useAgentGenerationStore((s) => s.parsedCodebases);
-  const hasExistingSnapshot = useAgentGenerationStore((s) => s.hasExistingSnapshot);
-  const loadExistingSnapshot = useAgentGenerationStore((s) => s.loadExistingSnapshot);
-  const startRerun = useAgentGenerationStore((s) => s.startRerun);
-  const reset = useAgentGenerationStore((s) => s.reset);
-
   const [isPreviewOpen, setIsPreviewOpen] = React.useState<boolean>(false);
-  const [isCheckingExisting, setIsCheckingExisting] = React.useState<boolean>(false);
-  const [shouldConnect, setShouldConnect] = React.useState<boolean>(false);
+  const [kickOffErrorMessage,setKickOffErrorMessage] = React.useState<string | null>(null);
 
   const { data, isLoading } = useQuery<CodebaseMetadataResponse>({
     enabled: open && !!repository,
@@ -39,83 +38,122 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
     staleTime: 60_000,
   });
 
-  // Check for existing agents.md when dialog opens
+  const {
+    data: snapshot,
+    isLoading: isSnapshotLoading,
+    refetch: refetchSnapshot,
+  } = useQuery<RepositoryAgentSnapshot | null>({
+    enabled: open && !!repository,
+    queryKey: ['repository-agent-snapshot', repository?.repository_owner_name, repository?.repository_name],
+    queryFn: () =>
+      getRepositoryAgentSnapshot(
+        repository!.repository_owner_name,
+        repository!.repository_name
+      ),
+    refetchOnWindowFocus: false
+  });
+  const scope = repository
+    ? { owner: repository.repository_owner_name, repository: repository.repository_name }
+    : null;
+
+  const {
+    parsedSnapshot,
+    isLoading: isLiveLoading,
+    isError: isLiveError,
+    isReady: isLiveReady,
+    status: liveStatus,
+    collection,
+  } = useRepositoryAgentSnapshot(scope);
+
+  const startRunMutation = useMutation({
+    mutationFn: async () => {
+      if (!repository) {
+        throw new Error('Repository is required to start agent generation');
+      }
+
+      return startRepositoryAgentRun(repository.repository_owner_name, repository.repository_name);
+    },
+    onSuccess: () => {
+      void refetchSnapshot();
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Failed to start repository workflow';
+      setKickOffErrorMessage(message);
+    },
+  });
+
+
   React.useEffect(() => {
     if (!open || !repository) {
       return;
     }
 
-    let isActive = true;
-
-    setIsCheckingExisting(true);
-    setShouldConnect(false);
-
-    // Check for existing snapshot
-    getRepositoryAgentSnapshot(
-      repository.repository_owner_name,
-      repository.repository_name
-    )
-      .then((snapshot) => {
-        if (!isActive) {
-          return;
-        }
-
-        if (snapshot) {
-          // Load existing snapshot
-          loadExistingSnapshot(snapshot);
-          setShouldConnect(false);
-        } else {
-          // No existing snapshot, should connect
-          setShouldConnect(true);
-        }
-      })
-      .catch((error) => {
-        if (!isActive) {
-          return;
-        }
-
-        console.error('Failed to check existing snapshot:', error);
-        // On error, proceed with connection
-        setShouldConnect(true);
-      })
-      .finally(() => {
-        if (isActive) {
-          setIsCheckingExisting(false);
-        }
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [open, repository, loadExistingSnapshot]);
-
-  // Connect to SSE only when shouldConnect is true
-  React.useEffect(() => {
-    if (shouldConnect && repository && data?.codebases?.length) {
-      const ids = data.codebases.map((c) => c.codebase_folder);
-      connect(repository.repository_owner_name, repository.repository_name, ids);
+    if (!data?.codebases?.length) {
+      return;
     }
-  }, [shouldConnect, repository, data, connect]);
 
-  // Reset state when dialog closes
-  React.useEffect(() => {
-    if (!open) {
-      reset();
-      setShouldConnect(false);
-      setIsCheckingExisting(false);
+    
+      if ( startRunMutation.isPending || startRunMutation.isSuccess) {
+      return;
     }
-  }, [open, reset]);
 
-  const handleRerun = (): void => {
-    if (repository && data?.codebases?.length) {
-      startRerun();
-      setShouldConnect(true);
+    if (isSnapshotLoading) {
+      return;
     }
-  };
+
+    if (snapshot === null) {
+      startRunMutation.mutate();
+    } 
+  }, [
+    open,
+    repository,
+    data?.codebases,
+    startRunMutation.isPending,
+    startRunMutation.isSuccess,
+    isSnapshotLoading,
+    snapshot,
+    startRunMutation,
+  ]);
+
+  const { markdownByCodebase: fallbackMarkdown } = React.useMemo(
+    () => parseAgentMdOutputsFromSnapshot(snapshot),
+    [snapshot]
+  );
 
   if (!repository) {
     return null;
   }
+
+  const codebaseIds = data?.codebases?.map((c) => c.codebase_folder) ?? [];
+  const isCheckingExisting = isSnapshotLoading && snapshot === undefined;
+
+  const currentStatus: RepoAgentSnapshotStatus | 'IDLE' =
+    parsedSnapshot?.status ?? snapshot?.status ?? 'IDLE';
+
+  const hasExistingSnapshot = (parsedSnapshot?.status ?? snapshot?.status) === 'COMPLETED';
+  const isSnapshotRunning = currentStatus === 'RUNNING';
+  const isSnapshotError = (parsedSnapshot?.status ?? snapshot?.status) === 'ERROR';
+  const showRerunButton = hasExistingSnapshot || isSnapshotError;
+  const rerunLabel = isSnapshotError && !hasExistingSnapshot ? 'Retry Operation' : 'Re-run Operation';
+  const showExistingMessage =
+    !isCheckingExisting && !isSnapshotRunning && hasExistingSnapshot && currentStatus === 'COMPLETED';
+
+  const snapshotMarkdown = parsedSnapshot?.markdownByCodebase;
+  const previewCodebases = snapshotMarkdown && Object.keys(snapshotMarkdown).length > 0
+    ? snapshotMarkdown
+    : Object.keys(fallbackMarkdown).length > 0
+      ? fallbackMarkdown
+      : null;
+
+  const previewContent = previewCodebases
+    ? codebasesToMarkdown(previewCodebases, {
+        title: `AGENTS.md - ${repository.repository_owner_name}/${repository.repository_name}`,
+      })
+    : null;
+
+  const handleRerun = (): void => {
+    startRunMutation.mutate();
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -139,56 +177,113 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
             <div className="text-sm">Checking for existing agents.md output...</div>
           )}
 
-          {!isCheckingExisting && hasExistingSnapshot && !shouldConnect && (
-            <div className="space-y-4">
-              <div className="text-sm text-green-600">
-                ✓ Agents.md already present
-              </div>
-              <div className="text-sm text-muted-foreground">
-                You can preview the existing result or re-run the generation.
-              </div>
+          {!isCheckingExisting && isSnapshotError && (
+            <div className="space-y-2">
+              <div className="text-sm text-red-600">The previous generation ended with an error.</div>
+              <div className="text-sm text-muted-foreground">Re-run the operation when you are ready.</div>
             </div>
           )}
 
-          {!isCheckingExisting && !hasExistingSnapshot && isLoading && (
+          {!isCheckingExisting && currentStatus !== 'RUNNING' && !hasExistingSnapshot && isLoading && (
             <div className="text-sm">Detecting codebases...</div>
           )}
 
-          {!isCheckingExisting && !hasExistingSnapshot && !isLoading && (!data?.codebases || data.codebases.length === 0) && (
+          {!isCheckingExisting && currentStatus !== 'RUNNING' && !hasExistingSnapshot && !isLoading && codebaseIds.length === 0 && (
             <div className="text-sm">No codebases detected.</div>
           )}
 
-          {!isCheckingExisting && shouldConnect && data?.codebases?.length ? (
+          {kickOffErrorMessage ? (
+            <div className="text-sm text-red-600" role="alert">
+              {kickOffErrorMessage}
+            </div>
+          ) : null}
+
+          {isLiveLoading && !isLiveReady ? (
+            <div className="text-sm">Preparing live snapshot...</div>
+          ) : null}
+
+          {isLiveError ? (
+            <div className="space-y-2" role="alert">
+              <div className="text-sm text-red-600">
+                Electric sync encountered an error.
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const restart = async (): Promise<void> => {
+                      if (!collection) {
+                        return;
+                      }
+
+                      await collection.cleanup();
+                      if (collection.utils.clearError) {
+                        collection.utils.clearError();
+                      }
+                      await collection.preload();
+                    };
+
+                    void restart();
+                  }}
+                >
+                  Retry Sync
+                </Button>
+                <div className="text-xs text-muted-foreground">
+                  Status: {liveStatus}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {!isCheckingExisting && codebaseIds.length > 0 ? (
             <GenerateAgentsProgress
               repository={repository}
-              codebaseIds={data.codebases.map((c) => c.codebase_folder)}
+              snapshot={parsedSnapshot}
+              codebaseIds={codebaseIds}
+              isSyncing={isLiveLoading || isSnapshotRunning}
             />
           ) : null}
         </div>
 
-        <div className="mt-4 flex items-center justify-end gap-2">
-          {hasExistingSnapshot && !shouldConnect && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleRerun}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          {showExistingMessage ? (
+            <div
+              className="flex items-center gap-2 rounded-md bg-green-50 px-2 py-1 text-sm text-green-600"
+              title="You can preview the existing result or re-run the generation."
             >
-              Re-run Operation
-            </Button>
+              <span aria-hidden="true">✓</span>
+              <span>Agents.md present</span>
+            </div>
+          ) : (
+            <div className="flex-1" />
           )}
 
-          <Button
-            size="sm"
-            disabled={!parsedCodebases}
-            onClick={() => setIsPreviewOpen(true)}
-          >
-            Preview Result
-          </Button>
+          <div className="flex items-center gap-2">
+            {showRerunButton && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isSnapshotRunning}
+                onClick={handleRerun}
+              >
+                {rerunLabel}
+              </Button>
+            )}
+
+            <Button
+              size="sm"
+              disabled={!previewCodebases || isSnapshotRunning}
+              onClick={() => setIsPreviewOpen(true)}
+            >
+              Preview Result
+            </Button>
+          </div>
         </div>
 
-        {parsedCodebases ? (
+        {previewContent ? (
           <GenerateAgentsPreview
-            content={codebasesToMarkdown(parsedCodebases, { title: `AGENTS.md - ${repository.repository_owner_name}/${repository.repository_name}` })}
+            content={previewContent}
             fileName="AGENTS.md"
             open={isPreviewOpen}
             onOpenChange={setIsPreviewOpen}
@@ -198,4 +293,3 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
     </Dialog>
   );
 }
-
