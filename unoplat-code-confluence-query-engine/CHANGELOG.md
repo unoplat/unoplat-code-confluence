@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.14.0...unoplat-code-confluence-query-engine-v0.15.0) (2025-09-29)
+
+
+### Features
+
+* **api:** update AI model config endpoints ([3db21d3](https://github.com/unoplat/unoplat-code-confluence/commit/3db21d3f6ee311c40f416460dd32de1480ca25ae))
+
+
+### Bug Fixes
+
+* **docker:** update PostgreSQL image and configuration ([e51f4ea](https://github.com/unoplat/unoplat-code-confluence/commit/e51f4eaed01ccb310c3ca2fc4a08dd29d5cb4cb0))
+
 ## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.13.0...unoplat-code-confluence-query-engine-v0.14.0) (2025-09-26)
 
 
