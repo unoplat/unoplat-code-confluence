@@ -91,7 +91,7 @@ export const generateProviderConfigSchema = (provider: ModelProviderDefinition) 
     let modelSchema: z.ZodTypeAny = z.string();
 
     if (modelField.required) {
-      modelSchema = modelSchema.min(1, `${modelField.label} is required`);
+      modelSchema = (modelSchema as z.ZodString).min(1, `${modelField.label} is required`);
     } else {
       modelSchema = modelSchema.optional();
     }
