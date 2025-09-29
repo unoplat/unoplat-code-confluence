@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/c
 import { Button } from '../components/ui/button';
 import { Github, Trash2 } from 'lucide-react';
 import { deleteGitHubToken } from '../lib/api';
-import { useToast } from '../components/ui/use-toast';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +25,6 @@ export default function SettingsPage(): React.ReactElement {
   const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   // const [isDeleting, setIsDeleting] = useState<boolean>(false); // Removed isDeleting state
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { tokenQuery } = useAuthData(); // Use the auth data hook
 
@@ -105,7 +104,7 @@ export default function SettingsPage(): React.ReactElement {
             </div>
           </CardHeader>
         </Card>
-        {/* Add more Card sections here if needed for future settings */}
+
       </div>
       {/* GitHub Token Popup */}
       <GitHubTokenPopup 

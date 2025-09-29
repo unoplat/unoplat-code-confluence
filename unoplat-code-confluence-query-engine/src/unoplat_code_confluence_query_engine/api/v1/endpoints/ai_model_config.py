@@ -1,6 +1,6 @@
 """AI model configuration API endpoints."""
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from fastapi import APIRouter, Header, HTTPException, Request, status
 from loguru import logger
@@ -18,12 +18,13 @@ from unoplat_code_confluence_query_engine.services.config_hot_reload import (
 from unoplat_code_confluence_query_engine.services.provider_catalog import (
     ProviderCatalog,
     ProviderSchema,
+    ProviderSchemaPublic,
 )
 
 router = APIRouter(prefix="/v1", tags=["ai-model-config"])
 
 
-@router.get("/config", response_model=AiModelConfigOut)
+@router.get("/model-config", response_model=AiModelConfigOut)
 async def get_ai_model_config(request: Request) -> AiModelConfigOut:
     """Get the current AI model configuration.
 
@@ -60,7 +61,7 @@ async def get_ai_model_config(request: Request) -> AiModelConfigOut:
         )
 
 
-@router.put("/config", response_model=AiModelConfigOut)
+@router.put("/model-config", response_model=AiModelConfigOut)
 async def upsert_ai_model_config(
     request: Request,
     config: AiModelConfigIn,
@@ -110,7 +111,7 @@ async def upsert_ai_model_config(
         )
 
 
-@router.delete("/config")
+@router.delete("/model-config")
 async def delete_ai_model_config(request: Request) -> Dict[str, Any]:
     """Delete the current AI model configuration.
 
@@ -142,15 +143,15 @@ async def delete_ai_model_config(request: Request) -> Dict[str, Any]:
         )
 
 
-@router.get("/providers", response_model=List[ProviderSchema])
-async def list_providers() -> List[ProviderSchema]:
+@router.get("/providers", response_model=Dict[str, ProviderSchemaPublic])
+async def list_providers() -> Dict[str, ProviderSchemaPublic]:
     """List all available AI model providers with full schemas.
 
     Returns:
-        List of ProviderSchema objects
+        Mapping of provider_key to ProviderSchemaPublic
     """
     try:
-        providers = ProviderCatalog.list_providers()
+        providers = ProviderCatalog.list_providers_map()
         logger.info("Retrieved {} available providers", len(providers))
         return providers
 

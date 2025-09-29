@@ -20,10 +20,29 @@ class ProviderField(BaseModel):
 
 class ProviderSchema(BaseModel):
     """Schema for a provider's configuration."""
-    
+
     provider_key: str
     display_name: str
     kind: str  # native | openai_compat
+    model_field: Dict[str, Any]
+    fields: List[ProviderField]
+
+    def to_public(self) -> "ProviderSchemaPublic":
+        """Return a variant without the redundant provider_key field."""
+
+        return ProviderSchemaPublic(
+            display_name=self.display_name,
+            kind=self.kind,
+            model_field=self.model_field,
+            fields=self.fields,
+        )
+
+
+class ProviderSchemaPublic(BaseModel):
+    """Public-facing provider schema shape without provider_key for API responses."""
+
+    display_name: str
+    kind: str
     model_field: Dict[str, Any]
     fields: List[ProviderField]
 
@@ -107,7 +126,7 @@ class ProviderCatalog:
         ),
         "deepseek": ProviderSchema(
             provider_key="deepseek",
-            display_name="DeepSeek (OpenAI-compatible)",
+            display_name="DeepSeek ",
             kind="openai_compat",
             model_field={"label": "Model name", "placeholder": "deepseek-chat", "required": True},
             fields=[
@@ -116,7 +135,7 @@ class ProviderCatalog:
         ),
         "openrouter": ProviderSchema(
             provider_key="openrouter",
-            display_name="OpenRouter (OpenAI-compatible)",
+            display_name="OpenRouter",
             kind="openai_compat",
             model_field={"label": "Model name", "placeholder": "google/gemini-2.5-pro-preview", "required": True},
             fields=[
@@ -125,7 +144,7 @@ class ProviderCatalog:
         ),
         "fireworks": ProviderSchema(
             provider_key="fireworks",
-            display_name="Fireworks (OpenAI-compatible)",
+            display_name="Fireworks",
             kind="openai_compat",
             model_field={"label": "Model name", "placeholder": "accounts/fireworks/models/qwq-32b", "required": True},
             fields=[
@@ -143,7 +162,7 @@ class ProviderCatalog:
         ),
         "github": ProviderSchema(
             provider_key="github",
-            display_name="GitHub Models (OpenAI-compatible)",
+            display_name="GitHub Models",
             kind="openai_compat",
             model_field={"label": "Model name", "placeholder": "xai/grok-3-mini", "required": True},
             fields=[
@@ -153,7 +172,7 @@ class ProviderCatalog:
         ),
         "vercel": ProviderSchema(
             provider_key="vercel",
-            display_name="Vercel AI Gateway (OpenAI-compatible)",
+            display_name="Vercel AI Gateway",
             kind="openai_compat",
             model_field={"label": "Model name", "placeholder": "gpt-4o", "required": True},
             fields=[
@@ -162,7 +181,7 @@ class ProviderCatalog:
         ),
         "grok": ProviderSchema(
             provider_key="grok",
-            display_name="Grok / xAI (OpenAI-compatible)",
+            display_name="Grok / xAI",
             kind="openai_compat",
             model_field={"label": "Model name", "placeholder": "grok-3-mini", "required": True},
             fields=[
@@ -171,7 +190,7 @@ class ProviderCatalog:
         ),
         "ollama": ProviderSchema(
             provider_key="ollama",
-            display_name="Ollama / OpenAI-compatible",
+            display_name="Ollama / OpenAI",
             kind="openai_compat",
             model_field={"label": "Model name", "placeholder": "llama3.2", "required": True},
             fields=[
@@ -179,9 +198,10 @@ class ProviderCatalog:
                              placeholder="http://localhost:11434/v1", required=True)
             ]
         ),
+        
         "azure": ProviderSchema(
             provider_key="azure",
-            display_name="Azure OpenAI (OpenAI-compatible)",
+            display_name="Azure OpenAI",
             kind="openai_compat",
             model_field={"label": "Deployment name", "placeholder": "my-gpt4o-deployment", 
                         "required": True, "help": "Use your Azure OpenAI deployment name as the model."},
@@ -209,11 +229,17 @@ class ProviderCatalog:
     @classmethod
     def list_providers(cls) -> List[ProviderSchema]:
         """Return full provider schemas.
-        
+
         Returns:
             List of ProviderSchema objects for all providers
         """
         return list(cls.PROVIDERS.values())
+
+    @classmethod
+    def list_providers_map(cls) -> Dict[str, ProviderSchemaPublic]:
+        """Return provider schemas keyed by provider for faster lookups."""
+
+        return {key: schema.to_public() for key, schema in cls.PROVIDERS.items()}
 
     @classmethod
     def get_provider_kind(cls, provider_key: str) -> Optional[str]:
