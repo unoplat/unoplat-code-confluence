@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.0...unoplat-code-confluence-frontend-v1.29.1) (2025-09-29)
+
+
+### Bug Fixes
+
+* **AppSidebar:** Improve sidebar responsiveness ([2c0230b](https://github.com/unoplat/unoplat-code-confluence/commit/2c0230ba259e1c2c92da16553944478f71d41abc))
+* **model-config:** add required validation to schema generator ([38ab5cb](https://github.com/unoplat/unoplat-code-confluence/commit/38ab5cbc3875ac95cc5b65bd6fbe47bab98fa35e))
+* **model-config:** add required validation to schema generator ([cc2a400](https://github.com/unoplat/unoplat-code-confluence/commit/cc2a40094c1975fccbaba83a4c91d8e0c173ee61))
+* **schema-generator:** add model field validation ([a821960](https://github.com/unoplat/unoplat-code-confluence/commit/a821960792591a90013068e4477aa9fd0694c16c))
+* **schema-generator:** Implement schema generation ([2c0230b](https://github.com/unoplat/unoplat-code-confluence/commit/2c0230ba259e1c2c92da16553944478f71d41abc))
+* **schema-generator:** Improve handling of required string fields ([21a5f18](https://github.com/unoplat/unoplat-code-confluence/commit/21a5f18208cb548b53615eed70830e2a981d0ec5))
+
 ## [1.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.28.0...unoplat-code-confluence-frontend-v1.29.0) (2025-09-29)
 
 
