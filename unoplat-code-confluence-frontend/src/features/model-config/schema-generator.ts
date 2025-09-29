@@ -92,15 +92,10 @@ export const generateProviderConfigSchema = (provider: ModelProviderDefinition) 
   // Add model field validation (model_field is BaseFieldDefinition, no default property)
   if (provider.model_field) {
     const modelField = provider.model_field;
-    let modelSchema: z.ZodTypeAny = z.string();
-
-    if (modelField.required) {
-      if (isStringSchema(modelSchema)) {
-        modelSchema = modelSchema.min(1, `${modelField.label} is required`);
-      }
-    } else {
-      modelSchema = modelSchema.optional();
-    }
+    const baseModelSchema = z.string();
+    const modelSchema = modelField.required
+      ? baseModelSchema.min(1, `${modelField.label} is required`)
+      : baseModelSchema.optional();
 
     schemaFields[MODEL_NAME_FIELD] = modelSchema;
   }
