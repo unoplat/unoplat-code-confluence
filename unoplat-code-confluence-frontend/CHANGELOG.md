@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.28.0...unoplat-code-confluence-frontend-v1.29.0) (2025-09-29)
+
+
+### Features
+
+* **provider-schema:** enable multiple model providers configuration and minor ux changes ([b668b6e](https://github.com/unoplat/unoplat-code-confluence/commit/b668b6e1311f44e38f99408238ea0e6419da6f72))
+
 ## [1.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.27.0...unoplat-code-confluence-frontend-v1.28.0) (2025-09-26)
 
 
