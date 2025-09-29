@@ -36,16 +36,16 @@ services:
       start_period: 30s
 
   postgresql:
-    image: docker.io/bitnami/postgresql:latest
+    image: docker.io/library/postgres:17
     environment:
-      - POSTGRESQL_USERNAME=postgres
-      - POSTGRESQL_PASSWORD=postgres
-      - POSTGRESQL_DATABASE=code_confluence
-      - POSTGRESQL_EXTRA_FLAGS=-c wal_level=logical -c listen_addresses=*
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=code_confluence
+    command: postgres -c wal_level=logical -c listen_addresses=*
     ports:
       - "5432:5432"
     volumes:
-      - postgresql_data:/bitnami/postgresql
+      - postgresql_data:/var/lib/postgresql/data
     networks:
       - temporal-network
     healthcheck:
