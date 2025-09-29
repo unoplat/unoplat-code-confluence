@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.15.0...unoplat-code-confluence-query-engine-v0.15.1) (2025-09-29)
+
+
+### Bug Fixes
+
+* **deps:** update cohere, openai, pydantic-ai, and related packages ([85ee9c7](https://github.com/unoplat/unoplat-code-confluence/commit/85ee9c7fee9b6fde9bc40c74085ca09c60035da0))
+* **deps:** update cohere, openai, pydantic-ai, and related packages ([f10a05b](https://github.com/unoplat/unoplat-code-confluence/commit/f10a05b64e167a98c9d85aae4b5c3ed184b2ecd3))
+
 ## [0.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.14.0...unoplat-code-confluence-query-engine-v0.15.0) (2025-09-29)
 
 
