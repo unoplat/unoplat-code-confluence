@@ -64,6 +64,9 @@ export function GenerateAgentsProgress({ repository, snapshot, codebaseIds, isSy
 
   const overallProgress = snapshot?.overallProgress ?? 0;
   const waitingForEvents = events.length === 0;
+  const isSingleRootCodebase = codebaseNames.length === 1 && codebaseNames[0] === '.';
+
+  const getDisplayName = (name: string) => name === '.' ? 'Root' : name;
 
   return (
     <div className="flex flex-col gap-4 h-full">
@@ -82,23 +85,25 @@ export function GenerateAgentsProgress({ repository, snapshot, codebaseIds, isSy
       </Card>
 
       <Card className="p-4 flex-1 min-h-0 flex flex-col">
-        <div className="flex items-center justify-center mb-4">
-          <Select value={active} onValueChange={setActive}>
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Select codebase" />
-            </SelectTrigger>
-            <SelectContent>
-              {codebaseNames.map((name) => (
-                <SelectItem key={name} value={name}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!isSingleRootCodebase && (
+          <div className="flex items-center justify-center mb-4">
+            <Select value={active} onValueChange={setActive}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select codebase" />
+              </SelectTrigger>
+              <SelectContent>
+                {codebaseNames.map((name) => (
+                  <SelectItem key={name} value={name}>
+                    {getDisplayName(name)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="flex flex-col gap-3 flex-1 min-h-0">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">{active}</div>
+            <div className="text-sm font-medium">{getDisplayName(active)}</div>
             <div className="w-1/2">
               <Progress value={progress} />
             </div>

@@ -1,6 +1,8 @@
 import { env } from './env';
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse, RefreshRepositoryResponse, CodebaseMetadataResponse } from '../types';
+import { providerCatalogSchema } from '@/features/model-config/provider-schema';
+import { ModelProviderDefinition, ProviderCatalogRecord } from '@/features/model-config/types';
 
 // Re-export types from '../types' for consumers
 export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse, RefreshRepositoryResponse };
@@ -11,9 +13,18 @@ export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgr
  * Collection of API service functions for backend communication.
  */
 
-// Create axios instance with default configuration
+// Create axios instance for ingestion service
 const apiClient: AxiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
+  timeout: 10000, // 10 seconds timeout
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Create axios instance for query engine service
+const queryEngineClient: AxiosInstance = axios.create({
+  baseURL: env.queryEngineUrl,
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
@@ -619,3 +630,100 @@ export async function getRepositoryAgentSnapshot(
     throw handleApiError(error);
   }
 }
+
+// Model Configuration API
+
+/**
+ * Response from the model configuration endpoint
+ */
+export interface ModelConfigResponse {
+  provider_key: string;
+  model_name: string;
+  provider_name?: string | null;
+  provider_kind?: string;
+  base_url?: string | null;
+  profile_key?: string | null;
+  extra_config?: Record<string, unknown>;
+  temperature?: number | null;
+  top_p?: number | null;
+  max_tokens?: number | null;
+  has_api_key: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Request body for saving model provider configuration
+ */
+export interface SaveModelConfigRequest {
+  provider_key: string;
+  model_name: string;
+  model_api_key?: string; // API key for the provider (goes in header)
+  [key: string]: unknown; // Additional provider-specific fields
+}
+
+/**
+ * Fetch model providers from the query engine
+ * Backend returns a record/object with provider keys as keys
+ * We transform it to an array with backfilled provider_key for frontend use
+ *
+ * @returns Promise with array of model provider definitions
+ */
+export const getModelProviders = async (): Promise<ModelProviderDefinition[]> => {
+  try {
+    const response: AxiosResponse<ProviderCatalogRecord> = await queryEngineClient.get('/v1/providers');
+
+    // Parse the record response
+    const providersRecord = providerCatalogSchema.parse(response.data);
+
+    // Transform to array with backfilled provider_key
+    const providersArray = Object.entries(providersRecord).map(([key, provider]) => ({
+      ...provider,
+      provider_key: key, // Backfill the provider_key from the record key
+    })) as ModelProviderDefinition[];
+
+    return providersArray;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Fetch existing model configuration from the query engine
+ *
+ * @returns Promise with the model configuration or null if not configured
+ */
+export const getModelConfig = async (): Promise<ModelConfigResponse | null> => {
+  try {
+    const response: AxiosResponse<ModelConfigResponse> = await queryEngineClient.get('/v1/model-config');
+    return response.data;
+  } catch (error: unknown) {
+    // Return null if no config exists (404)
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    }
+    throw handleApiError(error);
+  }
+};
+
+/**
+ * Save model provider configuration to the query engine
+ *
+ * @param config - Configuration data including provider key, model name, and provider-specific fields
+ * @returns Promise with the API response
+ */
+export const saveModelProviderConfig = async (config: Record<string, unknown>): Promise<ApiResponse> => {
+  try {
+    // Extract API key for header, remove from body
+    const { model_api_key, ...bodyConfig } = config;
+
+    const response: AxiosResponse<ApiResponse> = await queryEngineClient.put('/v1/model-config', bodyConfig, {
+      headers: {
+        'X-Model-API-Key': (model_api_key as string) || '',
+      },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
