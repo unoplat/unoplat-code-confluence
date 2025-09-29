@@ -43,6 +43,8 @@ const getBaseSchema = (fieldType: string, enumOptions?: string[] | null): z.ZodT
  * @param field - The field definition from provider metadata
  * @returns Complete Zod schema for the field
  */
+const isStringSchema = (schema: z.ZodTypeAny): schema is z.ZodString => schema instanceof z.ZodString;
+
 const createFieldSchema = (field: ProviderConfigFieldDefinition): z.ZodTypeAny => {
   // Start with base schema for the field type
   let schema = getBaseSchema(field.type, field.enum);
@@ -50,11 +52,13 @@ const createFieldSchema = (field: ProviderConfigFieldDefinition): z.ZodTypeAny =
   // Handle required vs optional fields
   if (field.required) {
     // Apply minimum validations for required fields
-    if (field.type === FIELD_TYPES.TEXT ||
-        field.type === FIELD_TYPES.PASSWORD ||
-        field.type === FIELD_TYPES.URL ||
-        field.type === FIELD_TYPES.TEXTAREA) {
-      schema = (schema as z.ZodString).min(1, `${field.label} is required`);
+    if (isStringSchema(schema) && (
+      field.type === FIELD_TYPES.TEXT ||
+      field.type === FIELD_TYPES.PASSWORD ||
+      field.type === FIELD_TYPES.URL ||
+      field.type === FIELD_TYPES.TEXTAREA
+    )) {
+      schema = schema.min(1, `${field.label} is required`);
     } else if (field.type === FIELD_TYPES.NUMBER) {
       // For numbers, we just ensure it's not NaN after coercion
       schema = (schema as z.ZodNumber).refine((val) => !isNaN(val), {
@@ -88,13 +92,10 @@ export const generateProviderConfigSchema = (provider: ModelProviderDefinition) 
   // Add model field validation (model_field is BaseFieldDefinition, no default property)
   if (provider.model_field) {
     const modelField = provider.model_field;
-    let modelSchema: z.ZodTypeAny = z.string();
-
-    if (modelField.required) {
-      modelSchema = modelSchema.min(1, `${modelField.label} is required`);
-    } else {
-      modelSchema = modelSchema.optional();
-    }
+    const baseModelSchema = z.string();
+    const modelSchema = modelField.required
+      ? baseModelSchema.min(1, `${modelField.label} is required`)
+      : baseModelSchema.optional();
 
     schemaFields[MODEL_NAME_FIELD] = modelSchema;
   }
