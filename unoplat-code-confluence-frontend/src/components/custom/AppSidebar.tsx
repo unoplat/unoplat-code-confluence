@@ -111,6 +111,13 @@ export function AppSidebar(): React.ReactElement {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="Model Providers">
+                        <Link to="/settings/model-providers" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
+                          <span className="text-sm font-medium">Model Providers</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Developer Mode">
                         <Link to="/settings/developer" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
                           <span className="text-sm font-medium">Developer Mode</span>
