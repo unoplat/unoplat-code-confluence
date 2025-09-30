@@ -1189,6 +1189,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@electric-sql/client@npm:^1.0.10":
+  version: 1.0.10
+  resolution: "@electric-sql/client@npm:1.0.10"
+  dependencies:
+    "@microsoft/fetch-event-source": "npm:^2.0.1"
+    "@rollup/rollup-darwin-arm64": "npm:^4.18.1"
+  dependenciesMeta:
+    "@rollup/rollup-darwin-arm64":
+      optional: true
+  checksum: 10c0/2a781cdd97e82e8ec368da8bb8fd408914d978c322af6fcbdf7b24010396a6109236629fe5de7f6f6bde218dab270c085639ac10f26cbc0a176366a6d141b1a3
+  languageName: node
+  linkType: hard
+
 "@esbuild/aix-ppc64@npm:0.25.2":
   version: 0.25.2
   resolution: "@esbuild/aix-ppc64@npm:0.25.2"
@@ -2310,6 +2323,13 @@ __metadata:
     react: ">= 18 || >= 19"
     react-dom: ">= 18 || >= 19"
   checksum: 10c0/a5b5b7cf7a7fde3a95ae23ee54784e405f42e844257c91748c9dda94f458edb9359f74f9e8a7f21120cd5c52056e6e6367111388658189f654f2b5aad5cd3af9
+  languageName: node
+  linkType: hard
+
+"@microsoft/fetch-event-source@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@microsoft/fetch-event-source@npm:2.0.1"
+  checksum: 10c0/38c69e9b9990e6cee715c7bbfa2752f943b42575acadb36facf19bb831f1520c469f854277439154258e0e1dc8650cc85038230d1f451e3f6b62e8faeaa1126c
   languageName: node
   linkType: hard
 
@@ -3483,6 +3503,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-radio-group@npm:^1.3.8":
+  version: 1.3.8
+  resolution: "@radix-ui/react-radio-group@npm:1.3.8"
+  dependencies:
+    "@radix-ui/primitive": "npm:1.1.3"
+    "@radix-ui/react-compose-refs": "npm:1.1.2"
+    "@radix-ui/react-context": "npm:1.1.2"
+    "@radix-ui/react-direction": "npm:1.1.1"
+    "@radix-ui/react-presence": "npm:1.1.5"
+    "@radix-ui/react-primitive": "npm:2.1.3"
+    "@radix-ui/react-roving-focus": "npm:1.1.11"
+    "@radix-ui/react-use-controllable-state": "npm:1.2.2"
+    "@radix-ui/react-use-previous": "npm:1.1.1"
+    "@radix-ui/react-use-size": "npm:1.1.1"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 10c0/23af8e8b833da1fc4aa4e67c3607dedee4fc5b39278d2e2b820bec7f7b3c0891b006a8a35c57ba436ddf18735bbd8dad9a598d14632a328753a875fde447975c
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-roving-focus@npm:1.1.11":
   version: 1.1.11
   resolution: "@radix-ui/react-roving-focus@npm:1.1.11"
@@ -4282,6 +4330,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rollup/rollup-darwin-arm64@npm:^4.18.1":
+  version: 4.52.2
+  resolution: "@rollup/rollup-darwin-arm64@npm:4.52.2"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@sec-ant/readable-stream@npm:^0.4.1":
   version: 0.4.1
   resolution: "@sec-ant/readable-stream@npm:0.4.1"
@@ -4329,6 +4384,13 @@ __metadata:
     zod: "npm:^3.24.4"
     zustand: "npm:^5.0.4"
   checksum: 10c0/0581bc448442f79fa652c437f371d202c50091983ad792e10e98d575a4c7ac655c6b06219878ec384a6b52ad56bef246ce03ea39a0b8a0bb10780e0459f4a14a
+  languageName: node
+  linkType: hard
+
+"@standard-schema/spec@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@standard-schema/spec@npm:1.0.0"
+  checksum: 10c0/a1ab9a8bdc09b5b47aa8365d0e0ec40cc2df6437be02853696a0e377321653b0d3ac6f079a8c67d5ddbe9821025584b1fb71d9cc041a6666a96f1fadf2ece15f
   languageName: node
   linkType: hard
 
@@ -4506,6 +4568,46 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/db-ivm@npm:0.1.7":
+  version: 0.1.7
+  resolution: "@tanstack/db-ivm@npm:0.1.7"
+  dependencies:
+    fractional-indexing: "npm:^3.2.0"
+    sorted-btree: "npm:^1.8.1"
+  peerDependencies:
+    typescript: ">=4.7"
+  checksum: 10c0/69522b3501447b60db5da3022ed5d976995f2e49b5a06d6588944565471cbd5261ac9f4d2b7b8f29013cac3ece58ab2e180d0e38a6a9b8ae6db749619ff0e7f3
+  languageName: node
+  linkType: hard
+
+"@tanstack/db@npm:0.3.2":
+  version: 0.3.2
+  resolution: "@tanstack/db@npm:0.3.2"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    "@tanstack/db-ivm": "npm:0.1.7"
+  peerDependencies:
+    typescript: ">=4.7"
+  checksum: 10c0/8a283554d14827648a3d8b9c2bb91b67f828253556c654d86e383e92dc479fab65f58c516fc7b5eb51d8d6f42ada0fb1daa088a4785d882c98d2ea55cb174003
+  languageName: node
+  linkType: hard
+
+"@tanstack/electric-db-collection@npm:^0.1.23":
+  version: 0.1.23
+  resolution: "@tanstack/electric-db-collection@npm:0.1.23"
+  dependencies:
+    "@electric-sql/client": "npm:^1.0.10"
+    "@standard-schema/spec": "npm:^1.0.0"
+    "@tanstack/db": "npm:0.3.2"
+    "@tanstack/store": "npm:^0.7.5"
+    debug: "npm:^4.4.1"
+  peerDependencies:
+    "@electric-sql/client": ^1.0.0
+    typescript: ">=4.7"
+  checksum: 10c0/9163f28cba7e3e5d417b8ff83880a5055332010ce35afd8ae9e10af17826bfcd70823415c9ac9ab72f4afe1212606c0f432af2b8de1d44c61fd979cf0480e5c1
+  languageName: node
+  linkType: hard
+
 "@tanstack/form-core@npm:0.42.1":
   version: 0.42.1
   resolution: "@tanstack/form-core@npm:0.42.1"
@@ -4538,10 +4640,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-db-collection@npm:^0.2.20":
+  version: 0.2.20
+  resolution: "@tanstack/query-db-collection@npm:0.2.20"
+  dependencies:
+    "@standard-schema/spec": "npm:^1.0.0"
+    "@tanstack/db": "npm:0.3.2"
+  peerDependencies:
+    "@tanstack/query-core": ^5.0.0
+    typescript: ">=4.7"
+  checksum: 10c0/237ddb9d26f3cd6f16e3470e90c0707fd87a8957f486d0f00a9f5faa6aa915b83bfe8def99081a6c8777c282aaa4701dd48095d47a4a638e7af0d2a3ef0c8440
+  languageName: node
+  linkType: hard
+
 "@tanstack/query-devtools@npm:5.80.0":
   version: 5.80.0
   resolution: "@tanstack/query-devtools@npm:5.80.0"
   checksum: 10c0/2210bd390a769f1cfaf0343e66c7ec9c0a8fca982fa7853428c3c7f7da438c3380b841e8e065603f4e8449d52237a80d4877fc5299995e76e18bd44d5143acfc
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-db@npm:^0.1.21":
+  version: 0.1.21
+  resolution: "@tanstack/react-db@npm:0.1.21"
+  dependencies:
+    "@tanstack/db": "npm:0.3.2"
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 10c0/d39817bad5a296c9f0b602cc5aec097999e15a46817ed1a489b037bc08fd15f962e229f5facd291603d3c083029894875be4d9ea1355e29a82e53c80de31da2d
   languageName: node
   linkType: hard
 
@@ -4779,6 +4906,13 @@ __metadata:
   version: 0.7.1
   resolution: "@tanstack/store@npm:0.7.1"
   checksum: 10c0/bc1ebf0e8ced2717ec89b7bfac94da436fd23b0ea485b7805b594bee6c6870d67e1184efd5f140cd8d64d9192ee09adad155abea9a2f5bc1ba96f21645299cd8
+  languageName: node
+  linkType: hard
+
+"@tanstack/store@npm:^0.7.5":
+  version: 0.7.7
+  resolution: "@tanstack/store@npm:0.7.7"
+  checksum: 10c0/bf90fa957bd97336d7dbc0d7b87379b5fe4baea030efef8a93fe4e49ac1c8bc929247d1a9f84b16a1642e386b67fe53be14df8d5415efdf85f83733ccdf8877a
   languageName: node
   linkType: hard
 
@@ -5989,6 +6123,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"debug@npm:^4.4.1":
+  version: 4.4.3
+  resolution: "debug@npm:4.4.3"
+  dependencies:
+    ms: "npm:^2.1.3"
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 10c0/d79136ec6c83ecbefd0f6a5593da6a9c91ec4d7ddc4b54c883d6e71ec9accb5f67a1a5e96d00a328196b5b5c86d365e98d8a3a70856aaf16b4e7b1985e67f5a6
+  languageName: node
+  linkType: hard
+
 "decode-formdata@npm:^0.9.0":
   version: 0.9.0
   resolution: "decode-formdata@npm:0.9.0"
@@ -7006,6 +7152,13 @@ __metadata:
   version: 4.3.7
   resolution: "fraction.js@npm:4.3.7"
   checksum: 10c0/df291391beea9ab4c263487ffd9d17fed162dbb736982dee1379b2a8cc94e4e24e46ed508c6d278aded9080ba51872f1bc5f3a5fd8d7c74e5f105b508ac28711
+  languageName: node
+  linkType: hard
+
+"fractional-indexing@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "fractional-indexing@npm:3.2.0"
+  checksum: 10c0/d4d477c2ba369346ef0f03a4776bd78a3426e2778c23f8fd9dd3f51f9a851280bfc412c9bd970de55f1d21b831899f4c7f75f7fb72ae7f92b189eee962564005
   languageName: node
   linkType: hard
 
@@ -9168,6 +9321,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-themes@npm:^0.4.6":
+  version: 0.4.6
+  resolution: "next-themes@npm:0.4.6"
+  peerDependencies:
+    react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+  checksum: 10c0/83590c11d359ce7e4ced14f6ea9dd7a691d5ce6843fe2dc520fc27e29ae1c535118478d03e7f172609c41b1ef1b8da6b8dd2d2acd6cd79cac1abbdbd5b99f2c4
+  languageName: node
+  linkType: hard
+
 "next-tick@npm:^1.1.0":
   version: 1.1.0
   resolution: "next-tick@npm:1.1.0"
@@ -10558,13 +10721,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sonner@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "sonner@npm:2.0.3"
+"sonner@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "sonner@npm:2.0.7"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
     react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
-  checksum: 10c0/59f84142f7a692dd1ec90e6df2003a70ff0b325eaef1d5dd17ad250e7f992b71053824f1a7ab3912f8c4caa5ce30523a096b5f5108b3e8ae13f906048691aca1
+  checksum: 10c0/6966ab5e892ed6aab579a175e4a24f3b48747f0fc21cb68c3e33cb41caa7a0eebeb098c210545395e47a18d585eb8734ae7dd12d2bd18c8a3294a1ee73f997d9
+  languageName: node
+  linkType: hard
+
+"sorted-btree@npm:^1.8.1":
+  version: 1.8.1
+  resolution: "sorted-btree@npm:1.8.1"
+  checksum: 10c0/96b1d920ad40bc9dfcf13698a209532cebe50fa063426d59bd9a862930ab025afec5c5597c254724403b5107f7b7ca91572565f4efc2214ce05d9c617c6b1142
   languageName: node
   linkType: hard
 
@@ -11434,6 +11604,7 @@ __metadata:
     "@radix-ui/react-label": "npm:^2.1.2"
     "@radix-ui/react-popover": "npm:^1.1.10"
     "@radix-ui/react-progress": "npm:^1.1.7"
+    "@radix-ui/react-radio-group": "npm:^1.3.8"
     "@radix-ui/react-scroll-area": "npm:^1.2.10"
     "@radix-ui/react-select": "npm:^2.1.6"
     "@radix-ui/react-separator": "npm:^1.1.3"
@@ -11446,6 +11617,9 @@ __metadata:
     "@stagewise/toolbar-react": "npm:^0.1.2"
     "@tailwindcss/postcss": "npm:^4.0.17"
     "@tailwindcss/typography": "npm:^0.5.16"
+    "@tanstack/electric-db-collection": "npm:^0.1.23"
+    "@tanstack/query-db-collection": "npm:^0.2.20"
+    "@tanstack/react-db": "npm:^0.1.21"
     "@tanstack/react-form": "npm:^1.12.3"
     "@tanstack/react-query": "npm:^5.80.7"
     "@tanstack/react-query-devtools": "npm:^5.80.7"
@@ -11476,6 +11650,7 @@ __metadata:
     lucide-react: "npm:^0.488.0"
     motion: "npm:^12.6.3"
     nanoid: "npm:^5.1.5"
+    next-themes: "npm:^0.4.6"
     nuqs: "npm:^2.4.1"
     postcss: "npm:8.4.35"
     react: "npm:^19.0.0"
@@ -11485,7 +11660,7 @@ __metadata:
     react-markdown: "npm:^10.1.0"
     shadcn: "npm:^3.2.1"
     shadcn-ui: "npm:^0.9.5"
-    sonner: "npm:^2.0.3"
+    sonner: "npm:^2.0.7"
     tailwind-merge: "npm:^3.0.2"
     tailwindcss: "npm:3.4.1"
     tailwindcss-animate: "npm:^1.0.7"

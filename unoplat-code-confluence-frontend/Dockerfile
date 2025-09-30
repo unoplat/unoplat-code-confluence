@@ -20,8 +20,8 @@ RUN yarn cache clean && yarn install --refresh-lockfile
 # Copy the rest of the project files
 COPY . .
 
-# Build the Vite project
-RUN yarn build
+# Build the Vite project using production configuration
+RUN yarn build --mode prod
 
 # Stage 2: Serve the built files using Nginx
 FROM nginx:alpine

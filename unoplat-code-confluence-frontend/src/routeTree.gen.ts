@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as SettingsModelProvidersRouteImport } from './routes/settings.model-providers'
 import { Route as SettingsDeveloperRouteImport } from './routes/settings.developer'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppRepositoryOperationsRouteImport } from './routes/_app.repositoryOperations'
@@ -26,6 +27,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const SettingsModelProvidersRoute = SettingsModelProvidersRouteImport.update({
+  id: '/settings/model-providers',
+  path: '/settings/model-providers',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsDeveloperRoute = SettingsDeveloperRouteImport.update({
   id: '/settings/developer',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
+  '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
+  '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/_app/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
+  '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
+    | '/settings/model-providers'
     | '/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
+    | '/settings/model-providers'
     | '/'
   id:
     | '__root__'
@@ -115,12 +126,14 @@ export interface FileRouteTypes {
     | '/_app/repositoryOperations'
     | '/_app/settings'
     | '/settings/developer'
+    | '/settings/model-providers'
     | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   SettingsDeveloperRoute: typeof SettingsDeveloperRoute
+  SettingsModelProvidersRoute: typeof SettingsModelProvidersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/settings/model-providers': {
+      id: '/settings/model-providers'
+      path: '/settings/model-providers'
+      fullPath: '/settings/model-providers'
+      preLoaderRoute: typeof SettingsModelProvidersRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/settings/developer': {
       id: '/settings/developer'
@@ -207,6 +227,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   SettingsDeveloperRoute: SettingsDeveloperRoute,
+  SettingsModelProvidersRoute: SettingsModelProvidersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

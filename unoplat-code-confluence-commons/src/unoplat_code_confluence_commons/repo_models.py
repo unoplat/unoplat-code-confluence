@@ -1,3 +1,5 @@
+from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
+
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
@@ -12,8 +14,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 
 
 class RepoAgentSnapshotStatus(Enum):
@@ -159,7 +159,6 @@ class RepositoryWorkflowRun(SQLBase):
         back_populates="repository_workflow_run",
         viewonly=True,
         overlaps="codebase_config,workflow_runs",
-        passive_deletes=True,
     )
 
 

@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.15.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.15.1...unoplat-code-confluence-query-engine-v0.15.2) (2025-09-30)
+
+
+### Bug Fixes
+
+* **unoplat-code-confluence-query-engine:** raw strings for system prompts and also modified dockerfile to now use official postgresql instead of bitnami ([896b1ef](https://github.com/unoplat/unoplat-code-confluence/commit/896b1ef30dcf9b750c282efd70b3fcf7cf3d079d))
+
+## [0.15.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.15.0...unoplat-code-confluence-query-engine-v0.15.1) (2025-09-29)
+
+
+### Bug Fixes
+
+* **deps:** update cohere, openai, pydantic-ai, and related packages ([85ee9c7](https://github.com/unoplat/unoplat-code-confluence/commit/85ee9c7fee9b6fde9bc40c74085ca09c60035da0))
+* **deps:** update cohere, openai, pydantic-ai, and related packages ([f10a05b](https://github.com/unoplat/unoplat-code-confluence/commit/f10a05b64e167a98c9d85aae4b5c3ed184b2ecd3))
+
+## [0.15.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.14.0...unoplat-code-confluence-query-engine-v0.15.0) (2025-09-29)
+
+
+### Features
+
+* **api:** update AI model config endpoints ([3db21d3](https://github.com/unoplat/unoplat-code-confluence/commit/3db21d3f6ee311c40f416460dd32de1480ca25ae))
+
+
+### Bug Fixes
+
+* **docker:** update PostgreSQL image and configuration ([e51f4ea](https://github.com/unoplat/unoplat-code-confluence/commit/e51f4eaed01ccb310c3ca2fc4a08dd29d5cb4cb0))
+
+## [0.14.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.13.0...unoplat-code-confluence-query-engine-v0.14.0) (2025-09-26)
+
+
+### Features
+
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([b220132](https://github.com/unoplat/unoplat-code-confluence/commit/b220132e74a693febb56d99a199c54d3e9ca9d60))
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([629e453](https://github.com/unoplat/unoplat-code-confluence/commit/629e453dd4e84bb118cc4ee67da45380c8479f34))
+
 ## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.12.0...unoplat-code-confluence-query-engine-v0.13.0) (2025-09-23)
 
 

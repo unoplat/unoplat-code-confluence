@@ -8,7 +8,7 @@ import { Separator } from "../ui/separator";
 import { useMutation } from "@tanstack/react-query";
 import type { FlattenedCodebaseRun, UiErrorReport, IssueType, GithubRepoStatus, IssueTracking, IssueStatus } from "../../types";
 import ReactMarkdown from "react-markdown";
-import { toast } from "../ui/use-toast";
+import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Label } from "../ui/label";
 
