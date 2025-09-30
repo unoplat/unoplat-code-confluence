@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.15.1...unoplat-code-confluence-query-engine-v0.15.2) (2025-09-30)
+
+
+### Bug Fixes
+
+* **unoplat-code-confluence-query-engine:** raw strings for system prompts and also modified dockerfile to now use official postgresql instead of bitnami ([896b1ef](https://github.com/unoplat/unoplat-code-confluence/commit/896b1ef30dcf9b750c282efd70b3fcf7cf3d079d))
+
 ## [0.15.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.15.0...unoplat-code-confluence-query-engine-v0.15.1) (2025-09-29)
 
 

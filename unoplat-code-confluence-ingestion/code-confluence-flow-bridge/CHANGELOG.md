@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.53.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.53.0...code-confluence-flow-bridge-v0.53.1) (2025-09-30)
+
+
+### Bug Fixes
+
+* **docker:** update PostgreSQL image and configuration ([2b5a90b](https://github.com/unoplat/unoplat-code-confluence/commit/2b5a90be535500921eed96c8a97deaa85e5358be))
+* **docker:** Update PostgreSQL image and configuration ([95d9242](https://github.com/unoplat/unoplat-code-confluence/commit/95d92421f2a79e6d6b658e44fd91b27e165a43f1))
+* **github_helper:** Improve handling of local branch and uncommitted changes ([c5959f3](https://github.com/unoplat/unoplat-code-confluence/commit/c5959f3d98971af38992eada893ef4077f3d3449))
+
 ## [0.53.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.52.0...code-confluence-flow-bridge-v0.53.0) (2025-09-22)
 
 
