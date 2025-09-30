@@ -73,6 +73,9 @@ COPY --from=bun-stage --chown=${APP_USER}:${APP_USER} /bun-workspace/node_module
 # Ensure Bun is accessible to non-root user
 RUN chmod +x /usr/local/bin/bun /usr/local/bin/bunx
 
+# Create logs directory with proper ownership for non-root user
+RUN mkdir -p /app/logs && chown -R ${APP_USER}:${APP_USER} /app/logs
+
 # Drop privileges to non-root user
 USER ${APP_USER}
 

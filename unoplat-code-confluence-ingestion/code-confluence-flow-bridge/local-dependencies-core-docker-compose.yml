@@ -3,16 +3,16 @@ version: "3.5"
 services:
   # PostgreSQL service using Bitnami image
   postgresql:
-    image: bitnami/postgresql:latest
-    container_name: code-confluence-postgresql
+    image: docker.io/library/postgres:17
     environment:
-      - POSTGRESQL_USERNAME=postgres
-      - POSTGRESQL_PASSWORD=postgres
-      - POSTGRESQL_DATABASE=code_confluence
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=code_confluence
+    command: postgres -c wal_level=logical -c listen_addresses=*
     ports:
       - "5432:5432"
     volumes:
-      - postgresql_data:/bitnami/postgresql
+      - postgresql_data:/var/lib/postgresql/data
     networks:
       - code-confluence-network
     healthcheck:

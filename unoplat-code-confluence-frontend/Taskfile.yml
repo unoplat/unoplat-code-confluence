@@ -17,7 +17,7 @@ tasks:
     desc: Build the application
     deps: [install]
     cmds:
-      - yarn build
+      - yarn build --mode prod
     sources:
       - src/**/*
       - public/**/*
@@ -30,7 +30,7 @@ tasks:
     desc: Start development environment
     deps: [install]
     cmds:
-      - yarn dev
+      - yarn dev --mode dev
 
   docker:
     desc: Build and run docker container locally
