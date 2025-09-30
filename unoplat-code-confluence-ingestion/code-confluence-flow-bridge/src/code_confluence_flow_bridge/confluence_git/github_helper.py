@@ -83,18 +83,31 @@ class GithubHelper:
                 local_repo = Repo(repo_path)
 
                 try:
-                    # Ensure we're on the default branch
-                    default_branch = github_repo.default_branch
-                    logger.debug("Checking out default branch | branch={} | repo_path={}", default_branch, repo_path)
-                    local_repo.git.checkout(default_branch)
-
-                    # Check if there are uncommitted changes
+                    # Check if there are uncommitted changes and stash them before fetch/checkout
                     if local_repo.is_dirty(untracked_files=True):
                         logger.info("Found uncommitted changes, stashing | repo_path={} | status=stashing", repo_path)
                         # Create stash message with available context
                         stash_msg = f"Auto-stash before pull - workflow: {workflow_run_id_var.get('')} - {datetime.now().isoformat()}"
                         stash_result = local_repo.git.stash("save", "--include-untracked", stash_msg)
                         logger.debug("Stash result | result={} | repo_path={}", stash_result, repo_path)
+
+                    # Fetch latest refs from remote
+                    logger.debug("Fetching from remote | repo_path={}", repo_path)
+                    local_repo.git.fetch("origin")
+
+                    # Ensure we're on the default branch
+                    default_branch = github_repo.default_branch
+                    logger.debug("Checking out default branch | branch={} | repo_path={}", default_branch, repo_path)
+
+                    # Check if branch exists locally
+                    local_branches = [ref.name for ref in local_repo.heads]
+                    if default_branch not in local_branches:
+                        # Branch doesn't exist locally, create tracking branch from remote
+                        logger.debug("Branch does not exist locally, creating tracking branch | branch={} | repo_path={}", default_branch, repo_path)
+                        local_repo.git.checkout("-b", default_branch, f"origin/{default_branch}")
+                    else:
+                        # Branch exists locally, just checkout
+                        local_repo.git.checkout(default_branch)
 
                     # Pull latest changes
                     logger.info("Pulling latest changes | repo_path={} | status=pulling", repo_path)

@@ -36,16 +36,17 @@ services:
       retries: 5
       start_period: 30s
   postgresql:
-    image: docker.io/bitnami/postgresql:latest
+    image: docker.io/library/postgres:17
     # container_name: code-confluence-postgresql
     environment:
-      - POSTGRESQL_USERNAME=postgres
-      - POSTGRESQL_PASSWORD=postgres
-      - POSTGRESQL_DATABASE=code_confluence
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=code_confluence
+    command: postgres -c wal_level=logical -c listen_addresses=*
     ports:
       - "5432:5432"
     volumes:
-      - postgresql_data:/bitnami/postgresql
+      - postgresql_data:/var/lib/postgresql/data
     networks:
       - temporal-network
     healthcheck:
@@ -53,7 +54,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  
+
+
+  electric:
+    image: docker.io/electricsql/electric:latest
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgresql:5432/code_confluence?sslmode=disable
+      # Not suitable for production. Only use insecure mode in development or if you've otherwise secured the Electric API.
+      # See https://electric-sql.com/docs/guides/security
+      ELECTRIC_INSECURE: true
+    ports:
+      - "3001:3000"
+    networks:
+      - temporal-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
+
   temporal:
     # container_name: temporal
     depends_on:
@@ -137,23 +155,21 @@ services:
       timeout: 5s
       retries: 5
   code-confluence-flow-bridge:
-    # container_name: code-confluence-flow-bridge
-    build:
-      context: ./unoplat-code-confluence-ingestion/code-confluence-flow-bridge
-      dockerfile: Dockerfile
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.53.1
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
       - NEO4J_USERNAME=neo4j
       - NEO4J_PASSWORD=password
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
-      - ALLOWED_ORIGINS=http://unoplat-code-confluence-frontend:3000,http://localhost:3000
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001,http://localhost:5173,http://127.0.0.1:3000
       - DB_HOST=postgresql
-      - TEMPORAL_DEBUG=false
+      - TEMPORAL_DEBUG=true
       - LOG_LEVEL=DEBUG
+      - TOKEN_ENCRYPTION_KEY="0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
       - REPOSITORIES_BASE_PATH=/opt/unoplat/repositories
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
-      - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=3
+      - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
     depends_on:
       temporal:
         condition: service_healthy
@@ -166,10 +182,10 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    # container_name: unoplat-code-confluence-query-engine
-    build:
-      context: ./unoplat-code-confluence-query-engine
-      dockerfile: Dockerfile
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.15.2
+    # build:
+    #   context: ./unoplat-code-confluence-query-engine
+    #   dockerfile: Dockerfile
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
@@ -180,8 +196,11 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=code_confluence
+      - TOKEN_ENCRYPTION_KEY=0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ=
     ports:
       - "8001:8000"
+    volumes:
+      - query_engine_logs:/app/logs
     networks:
       - temporal-network
     depends_on:
@@ -191,16 +210,12 @@ services:
         condition: service_healthy
 
   unoplat-code-confluence-frontend:
-    # container_name: unoplat-code-confluence-frontend
+    # build:
+    #   context: ./unoplat-code-confluence-frontend
+    #   dockerfile: Dockerfile
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.29.2
     depends_on:
       - code-confluence-flow-bridge
-    build:
-      context: ./unoplat-code-confluence-frontend
-      dockerfile: Dockerfile
-    environment:
-      - VITE_API_BASE_URL=http://code-confluence-flow-bridge:8000
-      - VITE_WORKFLOW_ORCHESTRATOR_URL=http://temporal-ui:8080
-      - VITE_KNOWLEDGE_GRAPH_URL=http://neo4j:7474
     ports:
       - "3000:80"
     networks:
@@ -219,4 +234,6 @@ volumes:
   elasticsearch_data:
     driver: local
   repositories_data:
+    driver: local
+  query_engine_logs:
     driver: local 

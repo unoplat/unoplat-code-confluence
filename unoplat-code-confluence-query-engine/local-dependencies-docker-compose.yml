@@ -36,16 +36,16 @@ services:
       start_period: 30s
 
   postgresql:
-    image: docker.io/bitnami/postgresql:latest
+    image: docker.io/library/postgres:17
     environment:
-      - POSTGRESQL_USERNAME=postgres
-      - POSTGRESQL_PASSWORD=postgres
-      - POSTGRESQL_DATABASE=code_confluence
-      - POSTGRESQL_EXTRA_FLAGS=-c wal_level=logical
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=code_confluence
+    command: postgres -c wal_level=logical -c listen_addresses=*
     ports:
       - "5432:5432"
     volumes:
-      - postgresql_data:/bitnami/postgresql
+      - postgresql_data:/var/lib/postgresql/data
     networks:
       - temporal-network
     healthcheck:
@@ -58,12 +58,14 @@ services:
   electric:
     image: docker.io/electricsql/electric:latest
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/code_confluence?sslmode=disable
+      DATABASE_URL: postgresql://postgres:postgres@postgresql:5432/code_confluence?sslmode=disable
       # Not suitable for production. Only use insecure mode in development or if you've otherwise secured the Electric API.
       # See https://electric-sql.com/docs/guides/security
       ELECTRIC_INSECURE: true
     ports:
       - "3000:3000"
+    networks:
+      - temporal-network
     depends_on:
       postgresql:
         condition: service_healthy

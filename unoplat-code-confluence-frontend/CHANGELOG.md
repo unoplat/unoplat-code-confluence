@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.29.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.1...unoplat-code-confluence-frontend-v1.29.2) (2025-09-30)
+
+
+### Bug Fixes
+
+* **vite-env:** pick env as per environment ([1c76fba](https://github.com/unoplat/unoplat-code-confluence/commit/1c76fbae99ff568e09a35a9315c9d93b8f380029))
+
+## [1.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.0...unoplat-code-confluence-frontend-v1.29.1) (2025-09-29)
+
+
+### Bug Fixes
+
+* **AppSidebar:** Improve sidebar responsiveness ([2c0230b](https://github.com/unoplat/unoplat-code-confluence/commit/2c0230ba259e1c2c92da16553944478f71d41abc))
+* **model-config:** add required validation to schema generator ([38ab5cb](https://github.com/unoplat/unoplat-code-confluence/commit/38ab5cbc3875ac95cc5b65bd6fbe47bab98fa35e))
+* **model-config:** add required validation to schema generator ([cc2a400](https://github.com/unoplat/unoplat-code-confluence/commit/cc2a40094c1975fccbaba83a4c91d8e0c173ee61))
+* **schema-generator:** add model field validation ([a821960](https://github.com/unoplat/unoplat-code-confluence/commit/a821960792591a90013068e4477aa9fd0694c16c))
+* **schema-generator:** Implement schema generation ([2c0230b](https://github.com/unoplat/unoplat-code-confluence/commit/2c0230ba259e1c2c92da16553944478f71d41abc))
+* **schema-generator:** Improve handling of required string fields ([21a5f18](https://github.com/unoplat/unoplat-code-confluence/commit/21a5f18208cb548b53615eed70830e2a981d0ec5))
+
+## [1.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.28.0...unoplat-code-confluence-frontend-v1.29.0) (2025-09-29)
+
+
+### Features
+
+* **provider-schema:** enable multiple model providers configuration and minor ux changes ([b668b6e](https://github.com/unoplat/unoplat-code-confluence/commit/b668b6e1311f44e38f99408238ea0e6419da6f72))
+
+## [1.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.27.0...unoplat-code-confluence-frontend-v1.28.0) (2025-09-26)
+
+
+### Features
+
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([b220132](https://github.com/unoplat/unoplat-code-confluence/commit/b220132e74a693febb56d99a199c54d3e9ca9d60))
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([629e453](https://github.com/unoplat/unoplat-code-confluence/commit/629e453dd4e84bb118cc4ee67da45380c8479f34))
+
 ## [1.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.26.1...unoplat-code-confluence-frontend-v1.27.0) (2025-09-17)
 
 
