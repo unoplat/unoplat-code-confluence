@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.11.0...unoplat-code-confluence-v0.12.0) (2025-09-30)
+
+
+### Features
+
+* agents md alpha release ([da13f8e](https://github.com/unoplat/unoplat-code-confluence/commit/da13f8ef4196b6ffaddde3d3064da074111eeca9))
+* agents md alpha release ([5338da5](https://github.com/unoplat/unoplat-code-confluence/commit/5338da5e02a7d9da31935eba231eec24dc24d0dc))
+* **api:** update AI model config endpoints ([3db21d3](https://github.com/unoplat/unoplat-code-confluence/commit/3db21d3f6ee311c40f416460dd32de1480ca25ae))
+* **provider-schema:** enable multiple model providers configuration and minor ux changes ([b668b6e](https://github.com/unoplat/unoplat-code-confluence/commit/b668b6e1311f44e38f99408238ea0e6419da6f72))
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([b220132](https://github.com/unoplat/unoplat-code-confluence/commit/b220132e74a693febb56d99a199c54d3e9ca9d60))
+* **ui-optimistic-realtime-updates:** enable real time sync between frontend and backend ([629e453](https://github.com/unoplat/unoplat-code-confluence/commit/629e453dd4e84bb118cc4ee67da45380c8479f34))
+
+
+### Bug Fixes
+
+* **AppSidebar:** Improve sidebar responsiveness ([2c0230b](https://github.com/unoplat/unoplat-code-confluence/commit/2c0230ba259e1c2c92da16553944478f71d41abc))
+* **deps:** update cohere, openai, pydantic-ai, and related packages ([85ee9c7](https://github.com/unoplat/unoplat-code-confluence/commit/85ee9c7fee9b6fde9bc40c74085ca09c60035da0))
+* **deps:** update cohere, openai, pydantic-ai, and related packages ([f10a05b](https://github.com/unoplat/unoplat-code-confluence/commit/f10a05b64e167a98c9d85aae4b5c3ed184b2ecd3))
+* **docker:** update PostgreSQL image and configuration ([2b5a90b](https://github.com/unoplat/unoplat-code-confluence/commit/2b5a90be535500921eed96c8a97deaa85e5358be))
+* **docker:** update PostgreSQL image and configuration ([e51f4ea](https://github.com/unoplat/unoplat-code-confluence/commit/e51f4eaed01ccb310c3ca2fc4a08dd29d5cb4cb0))
+* **docker:** Update PostgreSQL image and configuration ([95d9242](https://github.com/unoplat/unoplat-code-confluence/commit/95d92421f2a79e6d6b658e44fd91b27e165a43f1))
+* **github_helper:** Improve handling of local branch and uncommitted changes ([c5959f3](https://github.com/unoplat/unoplat-code-confluence/commit/c5959f3d98971af38992eada893ef4077f3d3449))
+* **model-config:** add required validation to schema generator ([38ab5cb](https://github.com/unoplat/unoplat-code-confluence/commit/38ab5cbc3875ac95cc5b65bd6fbe47bab98fa35e))
+* **model-config:** add required validation to schema generator ([cc2a400](https://github.com/unoplat/unoplat-code-confluence/commit/cc2a40094c1975fccbaba83a4c91d8e0c173ee61))
+* remove the passive relationship as it does not make sense as it is  meaningless on viewonly relationships ([dca947e](https://github.com/unoplat/unoplat-code-confluence/commit/dca947e9291ce2f738d7f68cb043ed47861cdf4d))
+* **schema-generator:** add model field validation ([a821960](https://github.com/unoplat/unoplat-code-confluence/commit/a821960792591a90013068e4477aa9fd0694c16c))
+* **schema-generator:** Implement schema generation ([2c0230b](https://github.com/unoplat/unoplat-code-confluence/commit/2c0230ba259e1c2c92da16553944478f71d41abc))
+* **schema-generator:** Improve handling of required string fields ([21a5f18](https://github.com/unoplat/unoplat-code-confluence/commit/21a5f18208cb548b53615eed70830e2a981d0ec5))
+* **unoplat-code-confluence-query-engine:** raw strings for system prompts and also modified dockerfile to now use official postgresql instead of bitnami ([896b1ef](https://github.com/unoplat/unoplat-code-confluence/commit/896b1ef30dcf9b750c282efd70b3fcf7cf3d079d))
+* **vite-env:** pick env as per environment ([1c76fba](https://github.com/unoplat/unoplat-code-confluence/commit/1c76fbae99ff568e09a35a9315c9d93b8f380029))
+
 ## [0.11.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.10.0...unoplat-code-confluence-v0.11.0) (2025-09-24)
 
 
