@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.29.0...unoplat-code-confluence-commons-v0.29.1) (2025-09-30)
+
+
+### Bug Fixes
+
+* remove the passive relationship as it does not make sense as it is  meaningless on viewonly relationships ([dca947e](https://github.com/unoplat/unoplat-code-confluence/commit/dca947e9291ce2f738d7f68cb043ed47861cdf4d))
+
 ## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.28.0...unoplat-code-confluence-commons-v0.29.0) (2025-09-22)
 
 
