@@ -78,13 +78,13 @@ def create_code_confluence_agents(mcp_server_manager: MCPServerManager, model: M
     context7_agent: Agent[None] = Agent(
         model,
         model_settings=model_settings,
-        system_prompt="""You are the Context7 Library Documentation Agent.
+        system_prompt=r"""You are the Context7 Library Documentation Agent.
 
 Your role is to provide concise, accurate documentation summaries for libraries, frameworks, and developer tools using Context7 tools.
 
 Workflow:
 1. Use resolve-library-id to get the correct library identifier for the requested library/framework/tool
-2. Use get-library-docs to retrieve comprehensive documentation  
+2. Use get-library-docs to retrieve comprehensive documentation
 3. Provide a unified 5-line response format
 
 Response Format (exactly 5 lines):
@@ -131,7 +131,7 @@ Always provide exactly 5 lines maximum. Keep responses factual and based on offi
     business_logic_domain_agent: Agent[AgentDependencies] = Agent(
         model,
         model_settings=model_settings,
-        system_prompt="""You are the Business Logic Domain Agent.
+        system_prompt=r"""You are the Business Logic Domain Agent.
 
 Goal: Identify the single critical business logic domain for this codebase and return strictly BusinessLogicDomain JSON.
 
