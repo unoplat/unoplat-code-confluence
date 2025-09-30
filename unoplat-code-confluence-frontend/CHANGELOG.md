@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.1...unoplat-code-confluence-frontend-v1.29.2) (2025-09-30)
+
+
+### Bug Fixes
+
+* **vite-env:** pick env as per environment ([1c76fba](https://github.com/unoplat/unoplat-code-confluence/commit/1c76fbae99ff568e09a35a9315c9d93b8f380029))
+
 ## [1.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.0...unoplat-code-confluence-frontend-v1.29.1) (2025-09-29)
 
 
