@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   useReactTable,
@@ -20,12 +20,14 @@ import { DeleteRepositoryDialog } from './DeleteRepositoryDialog';
 import { toast } from 'sonner';
 import { useAgentGenerationUIStore } from '@/stores/useAgentGenerationUIStore';
 import { GenerateAgentsDialog } from '@/components/custom/GenerateAgentsDialog';
+import { useModelConfig } from '@/hooks/useModelConfig';
 
 import type { IngestedRepository } from '../../types';
 import { 
   getIngestedRepositories, 
   refreshRepository, 
-  deleteRepository 
+  deleteRepository, 
+  getModelConfig,
 } from '@/lib/api';
 
 interface RowAction {
@@ -42,8 +44,10 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
   const isGenerationDialogOpen = useAgentGenerationUIStore((s) => s.isDialogOpen);
   const selectedRepository = useAgentGenerationUIStore((s) => s.selectedRepository);
   const closeGenerationDialog = useAgentGenerationUIStore((s) => s.closeDialog);
+  const openGenerationDialog = useAgentGenerationUIStore((s) => s.openDialog);
   
   const queryClient = useQueryClient();
+  const modelConfigQuery = useModelConfig();
 
   // Fetch ingested repositories
   const {
@@ -92,9 +96,34 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
   });
 
   // Build columns with row action setter
+  const handleGenerateAgents = useCallback(async (repository: IngestedRepository) => {
+    try {
+      let config = modelConfigQuery.data;
+
+      if (typeof config === 'undefined') {
+        config = await queryClient.fetchQuery({
+          queryKey: ['model-config'],
+          queryFn: getModelConfig,
+        });
+      }
+
+      if (!config) {
+        toast.error('Please set model provider in model providers setting.');
+        return;
+      }
+
+      openGenerationDialog(repository);
+    } catch (fetchError) {
+      toast.error('Unable to verify model provider configuration. Please try again.');
+    }
+  }, [modelConfigQuery.data, openGenerationDialog, queryClient]);
+
   const columns = useMemo(() => {
-    return getIngestedRepositoriesColumns({ setRowAction });
-  }, []);
+    return getIngestedRepositoriesColumns({
+      setRowAction,
+      onGenerateAgents: handleGenerateAgents,
+    });
+  }, [handleGenerateAgents, setRowAction]);
 
   // Initialize TanStack Table
   const table = useReactTable({
