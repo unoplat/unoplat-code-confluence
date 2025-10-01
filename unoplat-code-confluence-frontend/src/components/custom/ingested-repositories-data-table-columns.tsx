@@ -12,16 +12,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, RefreshCw, Trash2, ExternalLink, FolderOpen, GitBranch, FileText } from 'lucide-react';
 import { StatusBadge } from '@/components/custom/StatusBadge';
-import { useAgentGenerationUIStore } from '@/stores/useAgentGenerationUIStore';
 
 interface ColumnOptions {
   setRowAction: React.Dispatch<React.SetStateAction<{
     row: import('@tanstack/react-table').Row<IngestedRepository>;
     variant: 'refresh' | 'delete';
   } | null>>;
+  onGenerateAgents: (repository: IngestedRepository) => void | Promise<void>;
 }
 
-export function getIngestedRepositoriesColumns({ setRowAction }: ColumnOptions): ColumnDef<IngestedRepository>[] {
+export function getIngestedRepositoriesColumns({ setRowAction, onGenerateAgents }: ColumnOptions): ColumnDef<IngestedRepository>[] {
   return [
     {
       accessorKey: 'repository_name',
@@ -129,7 +129,6 @@ export function getIngestedRepositoriesColumns({ setRowAction }: ColumnOptions):
         <DataTableColumnHeader column={column} title="Actions" />
       ),
       cell: ({ row }) => {
-        const openDialog = useAgentGenerationUIStore((s) => s.openDialog);
         return (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -144,7 +143,7 @@ export function getIngestedRepositoriesColumns({ setRowAction }: ColumnOptions):
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onSelect={() => openDialog(row.original)}
+                onSelect={() => { void onGenerateAgents(row.original); }}
                 className="gap-2"
               >
                 <FileText className="h-4 w-4" />
