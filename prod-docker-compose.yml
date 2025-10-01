@@ -8,7 +8,7 @@ configs:
         - value: true
           constraints: {}
       limit.maxIDLength:
-        - value: 255
+        - value̋: 255
           constraints: {}
 
 services:
@@ -192,6 +192,7 @@ services:
       - "8001:8000"
     volumes:
       - query_engine_logs:/app/logs
+      - repositories_data:/opt/unoplat/repositories
     networks:
       - temporal-network
     depends_on:
@@ -201,7 +202,7 @@ services:
         condition: service_healthy
 
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.29.2
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.29.3
     depends_on:
       - code-confluence-flow-bridge
     ports:
