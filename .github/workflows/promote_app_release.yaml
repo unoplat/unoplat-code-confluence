@@ -8,7 +8,7 @@ on:
 
 jobs:
   app-release:
-    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'dev'
+    if: ${{ github.event.pull_request.merged == true && (github.event.pull_request.head.ref == 'dev' || startsWith(github.event.pull_request.head.ref, 'release-please--')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
