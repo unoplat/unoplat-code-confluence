@@ -28,6 +28,7 @@ export const useSaveModelConfig = () => {
     onSuccess: (data) => {
       // Invalidate and refetch provider data
       queryClient.invalidateQueries({ queryKey: ['model-providers'] });
+      queryClient.invalidateQueries({ queryKey: ['model-config'] });
 
       // Show success toast
       toast.success(data.message || 'Provider configuration saved successfully');
