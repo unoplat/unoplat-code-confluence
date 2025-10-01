@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.12.0...unoplat-code-confluence-v0.13.0) (2025-10-01)
+
+
+### Features
+
+* **prod-docker-compose:** increase max ID length and add repository data volume ([644bfc6](https://github.com/unoplat/unoplat-code-confluence/commit/644bfc60081d79ed76763756cf5cfee8d6eb079f))
+* **prod-docker-compose:** increase max ID length and add repository data volume ([dd66b51](https://github.com/unoplat/unoplat-code-confluence/commit/dd66b51b88700d8977f46bc65c09f9d08c91bf7d))
+
+
+### Bug Fixes
+
+* **model-router:** do not allow agent md functionality without model provider setup and fix bug for model provider not invalidating tanstack query cache resulting in old data post update ([26d890e](https://github.com/unoplat/unoplat-code-confluence/commit/26d890edb3757a7f81b2427953e0511e77debfee))
+* **model-router:** do not allow agent md functionality without model provider setup and fix bug for model provider not invalidating tanstack query cache resulting in old data post update ([ac595fd](https://github.com/unoplat/unoplat-code-confluence/commit/ac595fdac197cf5df57617078a6404b89ac9f60b))
+
 ## [0.12.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.11.0...unoplat-code-confluence-v0.12.0) (2025-09-30)
 
 
