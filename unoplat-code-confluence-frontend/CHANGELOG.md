@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.29.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.2...unoplat-code-confluence-frontend-v1.29.3) (2025-10-01)
+
+
+### Bug Fixes
+
+* **model-router:** do not allow agent md functionality without model provider setup and fix bug for model provider not invalidating tanstack query cache resulting in old data post update ([26d890e](https://github.com/unoplat/unoplat-code-confluence/commit/26d890edb3757a7f81b2427953e0511e77debfee))
+* **model-router:** do not allow agent md functionality without model provider setup and fix bug for model provider not invalidating tanstack query cache resulting in old data post update ([ac595fd](https://github.com/unoplat/unoplat-code-confluence/commit/ac595fdac197cf5df57617078a6404b89ac9f60b))
+
 ## [1.29.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.1...unoplat-code-confluence-frontend-v1.29.2) (2025-09-30)
 
 
