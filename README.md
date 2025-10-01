@@ -27,8 +27,14 @@
   <p align="center">
     <img src="https://img.shields.io/badge/Status-ALPHA-orange" alt="Status" />
     <img src="https://img.shields.io/badge/License-AGPL%203.0-blue" alt="License" />
+    <a href="https://github.com/unoplat/unoplat-code-confluence/stargazers">
+      <img src="https://img.shields.io/github/stars/unoplat/unoplat-code-confluence?style=social" alt="Star on GitHub" />
+    </a>
+    <a href="https://youtu.be/fRBV_f9fDKc?si=XYKkDv4IBGoFBS9u">
+      <img src="https://img.shields.io/badge/Watch%20demo-YouTube?logo=youtube" alt="Watch the demo" />
+    </a>
   </p>
-  
+
   <!-- SOCIAL SHIELDS -->
   <p align="center">
     <a href="https://discord.com/channels/1131597983058755675/1169968780953260106">
@@ -43,6 +49,22 @@
   </p>
 </div>
 
+<!-- DEMO SECTION -->
+<a id="demo-agentsmd-first-context"></a>
+## 🎥 Demo: Agents.md-first Context
+
+<p align="center">
+  <a href="https://youtu.be/fRBV_f9fDKc?si=XYKkDv4IBGoFBS9u" target="_blank">
+    <img src="https://img.youtube.com/vi/fRBV_f9fDKc/maxresdefault.jpg" alt="Agents.md demo video" width="900">
+  </a>
+  <br />
+  <a href="https://github.com/unoplat/unoplat-code-confluence/stargazers"><b>Like this? Star the repo</b> ⭐</a>
+  ·
+  <a href="https://youtu.be/fRBV_f9fDKc?si=XYKkDv4IBGoFBS9u">Watch on YouTube</a>
+</p>
+
+**What’s in the demo:** automatic `AGENTS.md` generation per repo and an org index that gives any coding agent a precise source of truth.
+
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
@@ -51,6 +73,7 @@
     <li><a href="#-why-unoplat-codeconfluence">Why Unoplat-CodeConfluence?</a></li>
     <li><a href="#-for-knowledge-engine-and-ai-coding-assistants">For Knowledge Engine and AI Coding Assistants</a></li>
     <li><a href="#-getting-started">Getting Started</a></li>
+    <li><a href="#demo-agentsmd-first-context">Demo</a></li>
     <li><a href="#project-status">Project Status</a>
       <ul>
         <li><a href="#programming-language-support">Programming Language Support</a></li>
@@ -178,4 +201,3 @@ Unoplat-CodeConfluence is licensed under the [GNU Affero General Public License 
 
 <!-- ANCHOR FOR BACK TO TOP LINKS -->
 <a name="top"></a>
-
