@@ -248,16 +248,21 @@ class TestDetectCodebasesSSEIntegration:
             # Verify we see expected states
             states_seen = {e['data']['state'] for e in progress_events}
             logger.info("Progress states seen: {}", states_seen)
-            
+
             # Should see at least some of these states
             expected_states = {'initializing', 'cloning', 'analyzing', 'complete'}
             assert len(states_seen.intersection(expected_states)) > 0
+
+            languages_seen = {e['data']['language'] for e in progress_events}
+            logger.info("Progress languages seen: {}", languages_seen)
+            assert 'python' in languages_seen
             
             # All progress events should have required fields
             for event in progress_events:
                 assert 'state' in event['data']
                 assert 'message' in event['data']
                 assert 'repository_url' in event['data']
+                assert 'language' in event['data']
                 assert event['data']['repository_url'] == test_repo_url
             
             logger.info("✓ Progress events validated")
