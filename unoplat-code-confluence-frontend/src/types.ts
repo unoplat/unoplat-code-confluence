@@ -269,7 +269,7 @@ export const LANGUAGE_PACKAGE_MANAGERS: Record<string, string[]> = {
   python: ['uv', 'pip', 'poetry'],
   // Add more languages as needed
   javascript: ['npm', 'yarn', 'pnpm'],
-  typescript: ['npm', 'yarn', 'pnpm'],
+  typescript: ['npm', 'yarn', 'pnpm', 'bun'],
   java: ['maven', 'gradle'],
   rust: ['cargo'],
 };

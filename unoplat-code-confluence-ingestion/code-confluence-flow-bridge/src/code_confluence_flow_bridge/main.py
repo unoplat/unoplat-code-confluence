@@ -91,6 +91,9 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.python_rip
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import (
     SSEMessage,
 )
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.typescript_ripgrep_detector import (
+    TypeScriptRipgrepDetector,
+)
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
     ActivityStatusInterceptor,
 )
@@ -382,121 +385,87 @@ async def start_workflow(
     return workflow_handle
 
 
-async def generate_sse_events(
-    git_url: str, github_token: str, detector: PythonRipgrepDetector
+async def generate_multilanguage_events(
+    git_url: str,
+    github_token: str,
+    detectors: Dict[str, Any],
 ) -> AsyncGenerator[Dict[str, str], None]:
-    """
-    Generate SSE events for codebase detection progress (v2).
-
-    Args:
-        git_url: GitHub repository URL or local path
-        github_token: GitHub authentication token
-        detector: PythonRipgrepDetector instance
-
-    Yields:
-        SSE event dictionaries with event, data, and id keys
-    """
-    event_id = 0  # Per-request counter starting from 0
-    
-    # Send initial connection event
+    """Stream SSE progress/results for all configured detectors."""
+    event_id = 0
     yield SSEMessage.connected(str(event_id))
     event_id += 1
 
-    # Send initial progress
-    yield SSEMessage.format_sse(
-        data={
-            "state": DetectionState.INITIALIZING.value,
-            "message": "Starting codebase detection...",
-            "repository_url": git_url,
-        },
-        event="progress",
-        id=str(event_id)
-    )
-    event_id += 1
+    aggregated_codebases: List[CodebaseConfig] = []
+    errors: Dict[str, str] = {}
 
-    try:
-        # Send cloning/analyzing progress based on whether it's local or remote
+    for language, detector in detectors.items():
+        initial_state = {
+            "state": DetectionState.INITIALIZING.value,
+            "message": f"Starting {language} codebase detection...",
+            "repository_url": git_url,
+            "language": language,
+        }
+        yield SSEMessage.format_sse(data=initial_state, event="progress", id=str(event_id))
+        event_id += 1
+
         if os.path.exists(git_url):
-            yield SSEMessage.format_sse(
-                data={
-                    "state": DetectionState.ANALYZING.value,
-                    "message": "Analyzing local repository...",
-                    "repository_url": git_url,
-                },
-                event="progress",
-                id=str(event_id)
-            )
+            analyzing_state = {
+                "state": DetectionState.ANALYZING.value,
+                "message": f"Analyzing local {language} repository...",
+                "repository_url": git_url,
+                "language": language,
+            }
+            yield SSEMessage.format_sse(data=analyzing_state, event="progress", id=str(event_id))
             event_id += 1
         else:
-            yield SSEMessage.format_sse(
-                data={
-                    "state": DetectionState.CLONING.value,
-                    "message": "Cloning repository...",
-                    "repository_url": git_url,
-                },
-                event="progress",
-                id=str(event_id)
-            )
+            cloning_state = {
+                "state": DetectionState.CLONING.value,
+                "message": f"Cloning {language} repository...",
+                "repository_url": git_url,
+                "language": language,
+            }
+            yield SSEMessage.format_sse(data=cloning_state, event="progress", id=str(event_id))
             event_id += 1
 
-        # Run detection directly using the async method
-        codebases = await detector.detect_codebases(git_url, github_token)
-
-        # Send completion progress
-        yield SSEMessage.format_sse(
-            data={
+        try:
+            codebases = await detector.detect_codebases(git_url, github_token)
+        except Exception as exc:  # broad so we can report failure and continue
+            errors[language] = str(exc)
+            logger.error(
+                "Codebase detection failed | language={} | repo={} | error={}",
+                language,
+                git_url,
+                exc,
+            )
+            failure_state = {
                 "state": DetectionState.COMPLETE.value,
-                "message": f"Detection completed. Found {len(codebases)} codebases.",
+                "message": f"{language.capitalize()} detection failed: {exc}",
                 "repository_url": git_url,
-            },
-            event="progress",
-            id=str(event_id)
-        )
+                "language": language,
+            }
+            yield SSEMessage.format_sse(data=failure_state, event="progress", id=str(event_id))
+            event_id += 1
+            continue
+
+        aggregated_codebases.extend(codebases)
+
+        completion_state = {
+            "state": DetectionState.COMPLETE.value,
+            "message": f"{language.capitalize()} detection completed. Found {len(codebases)} codebases.",
+            "repository_url": git_url,
+            "language": language,
+        }
+        yield SSEMessage.format_sse(data=completion_state, event="progress", id=str(event_id))
         event_id += 1
 
-        # Create and send result
-        result = DetectionResult(
-            repository_url=git_url,
-            codebases=codebases,
-            error=None,
-        )
-
-        # Send result event
-        yield SSEMessage.result(result.model_dump(), str(event_id))
-        event_id += 1
-
-        # Send completion event
-        yield SSEMessage.done(str(event_id))
-
-    except Exception as e:
-        # Send error progress
-        yield SSEMessage.format_sse(
-            data={
-                "state": DetectionState.COMPLETE.value,
-                "message": f"Detection failed: {str(e)}",
-                "repository_url": git_url,
-            },
-            event="progress",
-            id=str(event_id)
-        )
-        event_id += 1
-
-        # Create error result
-        result = DetectionResult(
-            repository_url=git_url,
-            codebases=[],
-            error=str(e),
-        )
-
-        # Send result with error
-        yield SSEMessage.result(result.model_dump(), str(event_id))
-        event_id += 1
-
-        # Send error event
-        logger.error("Detection error: {}", str(e))
-        yield SSEMessage.error(str(e), error_type="DETECTION_ERROR", event_id=str(event_id))
-        event_id += 1
-        yield SSEMessage.done(str(event_id))
+    result = DetectionResult(
+        repository_url=git_url,
+        codebases=aggregated_codebases,
+        error=None if not errors else json.dumps(errors),
+    )
+    yield SSEMessage.result(result.model_dump(), str(event_id))
+    event_id += 1
+    yield SSEMessage.done(str(event_id))
 
 
 async def detect_codebases_sse(
@@ -509,8 +478,9 @@ async def detect_codebases_sse(
     """
     Server-Sent Events endpoint for real-time codebase detection progress (v2).
 
-    Streams progress updates during Python codebase auto-detection from GitHub repositories
-    or local Git repositories. Uses FastAPI's StreamingResponse with proper SSE formatting.
+    Streams progress updates during codebase auto-detection for the selected language from
+    GitHub repositories or local Git repositories. Uses FastAPI's StreamingResponse with
+    proper SSE formatting.
 
     Args:
         git_url: GitHub repository URL or folder name for local repository
@@ -527,23 +497,27 @@ async def detect_codebases_sse(
         actual_path = construct_local_repository_path(git_url)
         github_token = ""
         logger.info(
-            "Local repository detection - folder: {}, resolved path: {}, environment: {}",
+            "Local repository detection | folder={} | resolved_path={} | environment={} | languages={}",
             git_url,
             actual_path,
             get_runtime_environment(),
+            list(app.state.codebase_detectors.keys()),
         )
     else:
         # For remote repositories, git_url is the actual GitHub URL
         actual_path = git_url
         github_token = await fetch_github_token_from_db(session)
-        logger.info("Remote repository detection - URL: {}", git_url)
+        logger.info(
+            "Remote repository detection | url={} | languages={}",
+            git_url,
+            list(app.state.codebase_detectors.keys()),
+        )
 
-    # Use the shared PythonCodebaseDetector instance directly
-    detector = app.state.python_codebase_detector
+    detectors: Dict[str, Any] = app.state.codebase_detectors
 
     # Generate SSE events using the v2 helper function and return EventSourceResponse
     return EventSourceResponse(
-        generate_sse_events(actual_path, github_token, detector),
+        generate_multilanguage_events(actual_path, github_token, detectors),
         ping=15,  # Keep-alive pings every 15 seconds
         send_timeout=60,  # Timeout for send operations
         headers={
@@ -572,6 +546,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.python_codebase_detector = PythonRipgrepDetector()
     await app.state.python_codebase_detector.initialize_rules()
     logger.info("PythonRipgrepDetector initialized successfully")
+
+    # Initialize shared TypeScript detector instance
+    app.state.typescript_codebase_detector = TypeScriptRipgrepDetector()
+    await app.state.typescript_codebase_detector.initialize_rules()
+    logger.info("TypeScriptRipgrepDetector initialized successfully")
+
+    # Fast lookup for detectors by language key
+    app.state.codebase_detectors = {
+        "python": app.state.python_codebase_detector,
+        "typescript": app.state.typescript_codebase_detector,
+    }
 
     # Initialize graph deletion service (reuses the global connection)
     app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(
@@ -2046,5 +2031,3 @@ async def create_github_issue(
                 "error_context": error_context,
             },
         )
-
-
