@@ -35,7 +35,7 @@ DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 
 # Global registry to store engines per event loop with thread-safe access
 # This ensures each event loop gets its own AsyncEngine instance while sharing
-# engines across all tasks within the same loop (fixing Temporal activity timeouts)
+# engines across all tasks ithin the same loop (fixing Temporal activity timeouts)
 _engine_per_loop: dict[int, tuple[AsyncEngine, async_sessionmaker]] = {}
 _engine_lock = asyncio.Lock()
 
