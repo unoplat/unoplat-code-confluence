@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.15.2...unoplat-code-confluence-query-engine-v0.16.0) (2025-10-04)
+
+
+### Features
+
+* **package-manager:** Add TypeScript package manager detection ([9cff38b](https://github.com/unoplat/unoplat-code-confluence/commit/9cff38bbf0349556a714402b3cfe7bc371c3a2fb))
+* **package-manager:** Add TypeScript package manager detection ([ab4d9a5](https://github.com/unoplat/unoplat-code-confluence/commit/ab4d9a55dbdb05122631b24672df235736508a4d))
+
 ## [0.15.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.15.1...unoplat-code-confluence-query-engine-v0.15.2) (2025-09-30)
 
 
