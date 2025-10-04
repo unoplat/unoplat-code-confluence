@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.54.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.53.1...code-confluence-flow-bridge-v0.54.0) (2025-10-04)
+
+
+### Features
+
+* **package-manager:** Add TypeScript package manager detection ([9cff38b](https://github.com/unoplat/unoplat-code-confluence/commit/9cff38bbf0349556a714402b3cfe7bc371c3a2fb))
+* **package-manager:** Add TypeScript package manager detection ([ab4d9a5](https://github.com/unoplat/unoplat-code-confluence/commit/ab4d9a55dbdb05122631b24672df235736508a4d))
+
+
+### Bug Fixes
+
+* Update function signature test for generate events method ([008eebc](https://github.com/unoplat/unoplat-code-confluence/commit/008eebc2bb18824932606fdb7b39ed5b74c5c818))
+
 ## [0.53.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.53.0...code-confluence-flow-bridge-v0.53.1) (2025-09-30)
 
 
