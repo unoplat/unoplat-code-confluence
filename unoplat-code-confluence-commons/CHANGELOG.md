@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.29.1...unoplat-code-confluence-commons-v0.30.0) (2025-10-04)
+
+
+### Features
+
+* **metadata:** Add TypeScript and JavaScript package managers ([64d8368](https://github.com/unoplat/unoplat-code-confluence/commit/64d8368d2867a3a6d955fa3efbbef4461c90dfb4))
+* **metadata:** Add TypeScript and JavaScript package managers ([de5b9b3](https://github.com/unoplat/unoplat-code-confluence/commit/de5b9b31d8a1b2fc682973587cf2f86631c13a4f))
+
 ## [0.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.29.0...unoplat-code-confluence-commons-v0.29.1) (2025-09-30)
 
 
