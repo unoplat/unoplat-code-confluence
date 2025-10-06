@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.55.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.54.0...code-confluence-flow-bridge-v0.55.0) (2025-10-06)
+
+
+### Features
+
+* **package-manager:** Optimize metadata storage and serialization ([21130a9](https://github.com/unoplat/unoplat-code-confluence/commit/21130a93fc17949986aa0c5ece151886ad2c5045))
+
+
+### Bug Fixes
+
+* **pip:** migrate to grouped dependencies, add PEP 503/735 normalization, fix -r includes mis-grouping bug ([855405b](https://github.com/unoplat/unoplat-code-confluence/commit/855405b5f5402b886729578a155c00b46f7d7327))
+* **poetry:** migrate to grouped dependency structure and add Poetry 1.2+  include-groups support ([3aae96a](https://github.com/unoplat/unoplat-code-confluence/commit/3aae96a4ca08ee3d83d7b9c014f8ee26fe9d4bb7))
+* **uv:** migrate to grouped dependency structure and add dependency-groups section support and modify tests ([379d203](https://github.com/unoplat/unoplat-code-confluence/commit/379d203f4c764936f0d2eb5d16ffb6bb5c971b4d))
+
 ## [0.54.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.53.1...code-confluence-flow-bridge-v0.54.0) (2025-10-04)
 
 
