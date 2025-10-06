@@ -19,9 +19,6 @@ from unoplat_code_confluence_commons.base_models import (
 from unoplat_code_confluence_commons.graph_models.code_confluence_codebase import (
     CodeConfluenceCodebase,
 )
-from unoplat_code_confluence_commons.graph_models.code_confluence_framework import (
-    CodeConfluenceFramework,
-)
 from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
     CodeConfluenceGitRepository,
 )
@@ -101,36 +98,73 @@ class CodeConfluenceGraphIngestion:
         result = await tx.run(query, {"qualified_name": qualified_name})
         return await result.single()
 
+    def _build_package_manager_metadata_payload(
+        self, metadata: UnoplatPackageManagerMetadata
+    ) -> Dict[str, Any]:
+        """
+        Build simplified payload for package manager metadata node.
+
+        Returns dict with:
+        - dependencies (JSON string): Serialized grouped dependencies
+        - package_manager (str): Package manager type
+        - programming_language (str): Programming language
+        - other_metadata (JSON string): All other non-empty fields
+        """
+        # Serialize grouped dependencies
+        dependencies_json = json.dumps({
+            group: {pkg: dep.model_dump() for pkg, dep in packages.items()}
+            for group, packages in metadata.dependencies.items()
+        }) if metadata.dependencies else "{}"
+
+        # Build other_metadata from non-empty fields only
+        other_fields = {}
+        field_mapping = {
+            "programming_language_version": metadata.programming_language_version,
+            "project_version": metadata.project_version,
+            "description": metadata.description,
+            "license": metadata.license,
+            "package_name": metadata.package_name,
+            "entry_points": metadata.entry_points,
+            "scripts": metadata.scripts,
+            "binaries": metadata.binaries,
+            "authors": metadata.authors,
+            "homepage": metadata.homepage,
+            "repository": metadata.repository,
+            "documentation": metadata.documentation,
+            "keywords": metadata.keywords,
+            "maintainers": metadata.maintainers,
+            "readme": metadata.readme,
+        }
+
+        for key, value in field_mapping.items():
+            if value is not None and value != [] and value != {}:
+                other_fields[key] = value
+
+        return {
+            "dependencies": dependencies_json,
+            "package_manager": metadata.package_manager,
+            "programming_language": metadata.programming_language,
+            "other_metadata": json.dumps(other_fields) if other_fields else "{}",
+        }
+
     async def _create_package_manager_metadata_and_relationship_txn(self, tx: AsyncManagedTransaction, metadata_data: Dict[str, Any]) -> Record:
         """
-        Transaction function for creating CodeConfluencePackageManagerMetadata node and relationship
-        Based on domain model: dependencies, package_manager, programming_language, etc.
+        Transaction function for creating CodeConfluencePackageManagerMetadata node and relationship.
+        Now stores only 4 core fields: dependencies, other_metadata, package_manager, programming_language.
         """
         query = """
         MATCH (c:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
         MERGE (m:CodeConfluencePackageManagerMetadata {qualified_name: $metadata_qualified_name})
-        ON CREATE SET 
+        ON CREATE SET
             m.dependencies = $dependencies,
+            m.other_metadata = $other_metadata,
             m.package_manager = $package_manager,
-            m.programming_language = $programming_language,
-            m.programming_language_version = $programming_language_version,
-            m.project_version = $project_version,
-            m.description = $description,
-            m.license = $license,
-            m.package_name = $package_name,
-            m.entry_points = $entry_points,
-            m.authors = $authors
+            m.programming_language = $programming_language
         ON MATCH SET
             m.dependencies = $dependencies,
+            m.other_metadata = $other_metadata,
             m.package_manager = $package_manager,
-            m.programming_language = $programming_language,
-            m.programming_language_version = $programming_language_version,
-            m.project_version = $project_version,
-            m.description = $description,
-            m.license = $license,
-            m.package_name = $package_name,
-            m.entry_points = $entry_points,
-            m.authors = $authors
+            m.programming_language = $programming_language
         MERGE (c)-[:HAS_PACKAGE_MANAGER_METADATA]->(m)
         RETURN m, c
         """
@@ -514,18 +548,14 @@ class CodeConfluenceGraphIngestion:
                 )
 
             # Create package manager metadata node
+            payload = self._build_package_manager_metadata_payload(package_manager_metadata)
+
             metadata_dict = {
                 "qualified_name": f"{codebase_qualified_name}_package_manager_metadata",
-                "dependencies": {k: v.model_dump() for k, v in package_manager_metadata.dependencies.items()},
-                "package_manager": package_manager_metadata.package_manager,
-                "programming_language": package_manager_metadata.programming_language,
-                "programming_language_version": package_manager_metadata.programming_language_version,
-                "project_version": package_manager_metadata.project_version,
-                "description": package_manager_metadata.description,
-                "license": package_manager_metadata.license,
-                "package_name": package_manager_metadata.package_name,
-                "entry_points": package_manager_metadata.entry_points,
-                "authors": package_manager_metadata.authors or [],
+                "dependencies": json.loads(payload["dependencies"]),  # Convert back to dict for neomodel
+                "other_metadata": json.loads(payload["other_metadata"]),
+                "package_manager": payload["package_manager"],
+                "programming_language": payload["programming_language"],
             }
 
             metadata_results = await self._handle_node_creation(CodeConfluencePackageManagerMetadata, metadata_dict)
@@ -569,81 +599,6 @@ class CodeConfluenceGraphIngestion:
                 type="PACKAGE_METADATA_ERROR"
             )
 
-    async def _sync_frameworks_for_codebase_old(self, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
-        """
-        Sync framework nodes based on package dependencies.
-        
-        PostgreSQL queries run in their own session context (separate from Neo4j).
-        Neo4j operations run within the caller's transaction context.
-        
-        Args:
-            codebase_qualified_name: Qualified name of the codebase
-            package_manager_metadata: UnoplatPackageManagerMetadata containing dependencies
-        """
-        try:
-            # PostgreSQL operations (completely separate from Neo4j)
-            frameworks_to_create = []
-            
-            async with get_session_cm() as session:
-                logger.debug("Checking frameworks for {}", codebase_qualified_name)
-                
-                for pkg_name, _ in package_manager_metadata.dependencies.items():
-                    # Only process if a matching Framework exists in Postgres
-                    logger.debug("Checking for framework: {}", pkg_name)
-                    stmt = select(PGFramework).where(PGFramework.library == pkg_name)
-                    result = await session.execute(stmt)
-                    pg_framework = result.scalar_one_or_none()
-                    
-                    if not pg_framework:
-                        logger.debug("Unknown framework: {}", pkg_name)
-                        continue  # Unknown framework – skip
-
-                    lang = package_manager_metadata.programming_language
-                    lib = pg_framework.library
-
-                    framework_dict = {
-                        "qualified_name": f"{lang}.{lib}",
-                        "language": lang,
-                        "library": lib,
-                    }
-                    frameworks_to_create.append(framework_dict)
-
-            if not frameworks_to_create:
-                logger.debug("No frameworks to sync for {}", codebase_qualified_name)
-                return
-
-            # Neo4j operations (run within caller's transaction context)
-            # Get the codebase node
-            async with adb.transaction:
-                try:
-                    codebase_node = await CodeConfluenceCodebase.nodes.get(qualified_name=codebase_qualified_name)
-                except CodeConfluenceCodebase.DoesNotExist:
-                    logger.warning("Codebase not found for framework sync: {}", codebase_qualified_name)
-                    return
-
-                # Create framework nodes and relationships
-                for framework_dict in frameworks_to_create:
-                    framework_nodes = await self._handle_node_creation(CodeConfluenceFramework, framework_dict)
-                    if not framework_nodes:
-                        logger.warning("Failed to create framework node: {}", framework_dict)
-                        continue
-                    framework_node = framework_nodes[0]
-
-                    # Connect codebase → framework
-                    await self._safe_connect(codebase_node, 'frameworks', framework_node)
-                    await self._safe_connect(framework_node, 'codebases', codebase_node)
-
-            logger.opt(lazy=True).debug(
-                "Successfully synced {} frameworks for {}",
-                lambda: len(frameworks_to_create),
-                lambda: codebase_qualified_name
-            )
-                        
-        except Exception as sync_err:
-            logger.warning(
-                f"Framework sync failed for codebase {codebase_qualified_name}: {sync_err}",
-            )
-
     async def insert_code_confluence_codebase_package_manager_metadata_managed(self, session: AsyncSession, codebase_qualified_name: str, package_manager_metadata: UnoplatPackageManagerMetadata) -> None:
         """
         NEW METHOD: Insert codebase package manager metadata using managed transactions with raw Cypher
@@ -668,19 +623,12 @@ class CodeConfluenceGraphIngestion:
                 )
 
             # Create package manager metadata node and relationship using managed transaction
+            payload = self._build_package_manager_metadata_payload(package_manager_metadata)
+
             metadata_data = {
                 "codebase_qualified_name": codebase_qualified_name,
                 "metadata_qualified_name": f"{codebase_qualified_name}_package_manager_metadata",
-                "dependencies": json.dumps({k: v.model_dump() for k, v in package_manager_metadata.dependencies.items()}) if package_manager_metadata.dependencies else "{}",
-                "package_manager": package_manager_metadata.package_manager,
-                "programming_language": package_manager_metadata.programming_language,
-                "programming_language_version": package_manager_metadata.programming_language_version,
-                "project_version": package_manager_metadata.project_version,
-                "description": package_manager_metadata.description,
-                "license": json.dumps(package_manager_metadata.license) if package_manager_metadata.license else None,
-                "package_name": package_manager_metadata.package_name,
-                "entry_points": json.dumps(package_manager_metadata.entry_points) if package_manager_metadata.entry_points else "{}",
-                "authors": package_manager_metadata.authors or [],
+                **payload
             }
 
             logger.debug("Creating package manager metadata with managed transaction: {}", metadata_data)
@@ -738,8 +686,10 @@ class CodeConfluenceGraphIngestion:
             
             async with get_session_cm() as pg_session:
                 logger.debug("Checking frameworks for {}", codebase_qualified_name)
-                
-                for pkg_name, _ in package_manager_metadata.dependencies.items():
+
+                # Only check default group for framework detection
+                default_dependencies = package_manager_metadata.dependencies.get("default", {})
+                for pkg_name, _ in default_dependencies.items():
                     # Only process if a matching Framework exists in Postgres
                     logger.debug("Checking for framework: {}", pkg_name)
                     stmt = select(PGFramework).where(PGFramework.library == pkg_name)
