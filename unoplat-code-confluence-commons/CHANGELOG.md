@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.30.0...unoplat-code-confluence-commons-v0.31.0) (2025-10-06)
+
+
+### Features
+
+* **metadata:** Consolidate package metadata into single property ([6b42b73](https://github.com/unoplat/unoplat-code-confluence/commit/6b42b73e49390158c450c3210eabc25da78a68a6))
+* **metadata:** Consolidate package metadata into single property ([9023fdf](https://github.com/unoplat/unoplat-code-confluence/commit/9023fdf264117353cde68caad48458424362a852))
+
 ## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.29.1...unoplat-code-confluence-commons-v0.30.0) (2025-10-04)
 
 
