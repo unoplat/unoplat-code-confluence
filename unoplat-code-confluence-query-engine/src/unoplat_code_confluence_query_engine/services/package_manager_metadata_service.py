@@ -32,7 +32,7 @@ async def _fetch_package_manager_metadata_txn(
     -[:CONTAINS_CODEBASE]->(codebase:CodeConfluenceCodebase {codebase_path: $codebase_path})
     -[:HAS_PACKAGE_MANAGER_METADATA]->(pm:CodeConfluencePackageManagerMetadata)
     RETURN pm.programming_language as language,
-           pm.other_metadata.programming_language_version as version,
+           apoc.convert.fromJsonMap(pm.other_metadata)['programming_language_version'] as version,
            pm.package_manager as package_manager
     LIMIT 1
     """
