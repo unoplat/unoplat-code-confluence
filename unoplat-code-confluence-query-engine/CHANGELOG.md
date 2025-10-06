@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.16.0...unoplat-code-confluence-query-engine-v0.17.0) (2025-10-06)
+
+
+### Features
+
+* **package-manager:** Optimize metadata storage and serialization ([21130a9](https://github.com/unoplat/unoplat-code-confluence/commit/21130a93fc17949986aa0c5ece151886ad2c5045))
+
+
+### Bug Fixes
+
+* **package-metadata:** Parse programming language version from JSON ([c7b2fd5](https://github.com/unoplat/unoplat-code-confluence/commit/c7b2fd5f55a35ec77c89f0c18d9f578b4867ea89))
+
 ## [0.16.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.15.2...unoplat-code-confluence-query-engine-v0.16.0) (2025-10-04)
 
 
