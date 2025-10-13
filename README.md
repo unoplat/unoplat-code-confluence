@@ -119,7 +119,7 @@ Unoplat Code Confluence aims to be the definitive solution for discovering, extr
 - **AGENTS.md-first Context**: Auto-generate machine-readable AGENTS.md per repo and an org index, giving any coding agent a precise source of truth
 
 ### Planned
-- **Application Overview**: Comprehensive understanding of application architecture, dependencies, and relationships through graph-based exploration
+- **Application Overview**: Comprehensive understanding of application architecture.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
