@@ -12,7 +12,6 @@ from unoplat_code_confluence_query_engine.services.agent_execution_service impor
     AgentExecutionService,
 )
 
-
 router = APIRouter(prefix="/v1", tags=["codebase-rules"])
 
 
