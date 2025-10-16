@@ -5,29 +5,36 @@
 # - test_client: Session-scoped TestClient fixture with proper configuration
 # - github_token: Session-scoped fixture providing GitHub PAT token
 
+import os
 import asyncio
 import json
-import os
+from pathlib import Path
 import subprocess
 import time
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from src.code_confluence_flow_bridge.processor.db.postgres.db import dispose_current_engine
-import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
-from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
-
-from unoplat_code_confluence_commons.base_models import CodebaseConfig
-from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration, IngestedRepositoryResponse
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import DetectionResult
+import pytest
+from src.code_confluence_flow_bridge.models.github.github_repo import (
+    GitHubRepoRequestConfiguration,
+    IngestedRepositoryResponse,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import (
+    DetectionResult,
+)
+from src.code_confluence_flow_bridge.processor.db.postgres.db import (
+    dispose_current_engine,
+)
 from src.code_confluence_flow_bridge.utility.environment_utils import (
     construct_local_repository_path,
 )
-from tests.utils.temporal_workflow_cleanup import terminate_all_running_workflows
+from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
+from unoplat_code_confluence_commons.base_models import CodebaseConfig
+
 from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
 from tests.utils.sync_db_utils import get_sync_postgres_session
+from tests.utils.temporal_workflow_cleanup import terminate_all_running_workflows
 
 # ---------------------------------------------------------------------------
 # REPOSITORY PATH HELPER

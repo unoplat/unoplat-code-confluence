@@ -8,19 +8,23 @@ from pathlib import Path
 import time
 from typing import List, Set
 
-from unoplat_code_confluence_commons.base_models import StructuralSignature
-from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
-    TreeSitterStructuralSignatureExtractor,
+from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
+    build_python_extractor_config,
 )
+from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
+    TreeSitterPythonStructuralSignatureExtractor,
+)
+from unoplat_code_confluence_commons.base_models import PythonStructuralSignature
 
 
-class TestFrameworkDetectionStructuralSignature:
+class TestFrameworkDetectionPythonStructuralSignature:
     """Test framework detection using structural signature patterns from real production code."""
     
     def setup_method(self):
         """Set up test fixtures."""
-        self.extractor = TreeSitterStructuralSignatureExtractor()
-        
+        config = build_python_extractor_config()
+        self.extractor = TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
+
         # Define paths to real source files
         self.base_path = Path(__file__).parent.parent.parent / "src" / "code_confluence_flow_bridge"
         self.main_py_path = self.base_path / "main.py"
@@ -28,7 +32,7 @@ class TestFrameworkDetectionStructuralSignature:
         self.codebase_child_workflow_path = self.base_path / "processor" / "codebase_child_workflow.py"
         # structural_signature.py has been moved to commons, use a different file for testing
         self.commons_base_path = Path(__file__).parent.parent.parent.parent.parent / "unoplat-code-confluence-commons" / "src" / "unoplat_code_confluence_commons" / "base_models"
-        self.structural_signature_path = self.commons_base_path / "structural_signature.py"
+        self.structural_signature_path = self.commons_base_path / "python_structural_signature.py"
         self.package_metadata_path = self.base_path / "models" / "code_confluence_parsing_models" / "unoplat_package_manager_metadata.py"
         # Repository and CodebaseConfig models moved to commons package
         self.repository_data_path = Path(__file__).parent.parent.parent.parent.parent / "unoplat-code-confluence-commons" / "src" / "unoplat_code_confluence_commons" / "repo_models.py"
@@ -148,7 +152,7 @@ class TestFrameworkDetectionStructuralSignature:
         # Test model patterns
         models = self._extract_pydantic_models(signature)
         assert len(models) >= 1, f"Expected at least 1 Pydantic model, found {len(models)}"
-        assert "StructuralSignature" in models, f"StructuralSignature not found in models: {models}"
+        assert "PythonStructuralSignature" in models, f"PythonStructuralSignature not found in models: {models}"
     
     def test_advanced_pydantic_from_real_package_metadata_py(self):
         """Test advanced Pydantic patterns from actual package metadata file."""
@@ -305,7 +309,7 @@ class TestFrameworkDetectionStructuralSignature:
             print(f"  Additional: {result['detected'] - result['expected']}")
     
     # Helper methods for framework detection
-    def _detect_frameworks(self, signature: StructuralSignature) -> Set[str]:
+    def _detect_frameworks(self, signature: PythonStructuralSignature) -> Set[str]:
         """Detect frameworks from structural signature."""
         frameworks = set()
         
@@ -367,7 +371,7 @@ class TestFrameworkDetectionStructuralSignature:
         
         return frameworks
     
-    def _has_fastapi_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_fastapi_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains FastAPI patterns."""
         # Look for FastAPI app creation
         for var in signature.global_variables:
@@ -381,7 +385,7 @@ class TestFrameworkDetectionStructuralSignature:
         
         return False
     
-    def _has_temporal_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_temporal_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains Temporal patterns."""
         # Look for workflow/activity decorators in function signatures
         for func in signature.functions:
@@ -395,7 +399,7 @@ class TestFrameworkDetectionStructuralSignature:
         
         return False
     
-    def _has_pydantic_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_pydantic_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains Pydantic patterns."""
         # Look for BaseModel inheritance in class signatures
         for cls in signature.classes:
@@ -404,7 +408,7 @@ class TestFrameworkDetectionStructuralSignature:
         
         return False
     
-    def _has_sqlalchemy_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_sqlalchemy_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains SQLAlchemy patterns."""
         # Look for SQLModel or SQLBase inheritance in class signatures
         for cls in signature.classes:
@@ -423,14 +427,14 @@ class TestFrameworkDetectionStructuralSignature:
         
         return False
     
-    def _has_sqlmodel_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_sqlmodel_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains SQLModel patterns."""
         for cls in signature.classes:
             if "SQLModel" in cls.signature and "table=True" in cls.signature:
                 return True
         return False
     
-    def _has_pydantic_field_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_pydantic_field_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains Pydantic Field patterns."""
         for cls in signature.classes:
             for var in cls.vars:
@@ -438,7 +442,7 @@ class TestFrameworkDetectionStructuralSignature:
                     return True
         return False
     
-    def _has_pydantic_validators(self, signature: StructuralSignature) -> bool:
+    def _has_pydantic_validators(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains Pydantic validator patterns."""
         for cls in signature.classes:
             for method in cls.methods:
@@ -446,7 +450,7 @@ class TestFrameworkDetectionStructuralSignature:
                     return True
         return False
     
-    def _has_middleware_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_middleware_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains middleware patterns."""
         for func in signature.functions:
             for call in func.function_calls:
@@ -454,14 +458,14 @@ class TestFrameworkDetectionStructuralSignature:
                     return True
         return False
     
-    def _has_dependency_injection_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_dependency_injection_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains dependency injection patterns."""
         for func in signature.functions:
             if "Depends(" in func.signature:
                 return True
         return False
     
-    def _has_activity_execution_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_activity_execution_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains Temporal activity execution patterns."""
         # Check module-level functions
         for func in signature.functions:
@@ -477,7 +481,7 @@ class TestFrameworkDetectionStructuralSignature:
                         return True
         return False
     
-    def _has_child_workflow_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_child_workflow_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains child workflow patterns."""
         # Check module-level functions
         for func in signature.functions:
@@ -493,7 +497,7 @@ class TestFrameworkDetectionStructuralSignature:
                         return True
         return False
     
-    def _has_temporal_client_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_temporal_client_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains Temporal client patterns."""
         for func in signature.functions:
             for call in func.function_calls:
@@ -501,7 +505,7 @@ class TestFrameworkDetectionStructuralSignature:
                     return True
         return False
     
-    def _has_relationship_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_relationship_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains SQLAlchemy relationship patterns."""
         for cls in signature.classes:
             for var in cls.vars:
@@ -509,7 +513,7 @@ class TestFrameworkDetectionStructuralSignature:
                     return True
         return False
     
-    def _has_constraint_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_constraint_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains SQLAlchemy constraint patterns."""
         for cls in signature.classes:
             for var in cls.vars:
@@ -517,7 +521,7 @@ class TestFrameworkDetectionStructuralSignature:
                     return True
         return False
     
-    def _has_complex_field_types(self, signature: StructuralSignature) -> bool:
+    def _has_complex_field_types(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains complex Pydantic field types."""
         for cls in signature.classes:
             for var in cls.vars:
@@ -525,14 +529,14 @@ class TestFrameworkDetectionStructuralSignature:
                     return True
         return False
     
-    def _has_async_patterns(self, signature: StructuralSignature) -> bool:
+    def _has_async_patterns(self, signature: PythonStructuralSignature) -> bool:
         """Check if signature contains async patterns."""
         for func in signature.functions:
             if "async def" in func.signature:
                 return True
         return False
     
-    def _extract_api_endpoints(self, signature: StructuralSignature) -> List[str]:
+    def _extract_api_endpoints(self, signature: PythonStructuralSignature) -> List[str]:
         """Extract API endpoints from signature."""
         endpoints = []
         for func in signature.functions:
@@ -542,7 +546,7 @@ class TestFrameworkDetectionStructuralSignature:
                         endpoints.append(f"@app.{method}")
         return endpoints
     
-    def _extract_temporal_workflows(self, signature: StructuralSignature) -> List[str]:
+    def _extract_temporal_workflows(self, signature: PythonStructuralSignature) -> List[str]:
         """Extract Temporal workflow names from signature."""
         workflows = []
         for cls in signature.classes:
@@ -553,7 +557,7 @@ class TestFrameworkDetectionStructuralSignature:
                     workflows.append(class_name)
         return workflows
     
-    def _extract_pydantic_models(self, signature: StructuralSignature) -> List[str]:
+    def _extract_pydantic_models(self, signature: PythonStructuralSignature) -> List[str]:
         """Extract Pydantic model names from signature."""
         models = []
         for cls in signature.classes:
@@ -564,7 +568,7 @@ class TestFrameworkDetectionStructuralSignature:
                     models.append(class_name)
         return models
     
-    def _extract_sqlmodel_tables(self, signature: StructuralSignature) -> List[str]:
+    def _extract_sqlmodel_tables(self, signature: PythonStructuralSignature) -> List[str]:
         """Extract SQLModel/SQLBase table names from signature."""
         tables = []
         for cls in signature.classes:
@@ -578,7 +582,7 @@ class TestFrameworkDetectionStructuralSignature:
                     tables.append(class_name)
         return tables
     
-    def _extract_pydantic_validators(self, signature: StructuralSignature) -> List[str]:
+    def _extract_pydantic_validators(self, signature: PythonStructuralSignature) -> List[str]:
         """Extract Pydantic validator method names from signature."""
         validators = []
         for cls in signature.classes:

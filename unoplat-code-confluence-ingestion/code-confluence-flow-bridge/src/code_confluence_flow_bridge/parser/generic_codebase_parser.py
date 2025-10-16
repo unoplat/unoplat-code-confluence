@@ -1,29 +1,15 @@
-"""
-Generic codebase parser with language-agnostic Tree-Sitter extraction and Neo4j ingestion.
-
-This module provides a language-neutral parser that uses TreeSitterStructuralSignatureExtractor
-for AST analysis and ingests results into Neo4j using neomodel operations.
-"""
-
-import asyncio
+"""Generic codebase parser with language-agnostic Tree-Sitter extraction and Neo4j ingestion."""
 
 # No longer need graph_context - using neomodel operations directly with global connection
-import hashlib
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional, Set
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from unoplat_code_confluence_commons.base_models import (
     ProgrammingLanguageMetadata,
 )
 
-from src.code_confluence_flow_bridge.detector.data_model_detector import (
-    detect_data_model,
-)
 from src.code_confluence_flow_bridge.engine.framework_detection_service import (
     FrameworkDetectionService,
-)
-from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
-    extract_imports_from_source,
 )
 from src.code_confluence_flow_bridge.engine.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
@@ -34,12 +20,14 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.parser.language_configs import (
-    LanguageConfig,
-    get_config,
+from src.code_confluence_flow_bridge.parser.language_processors.base import (
+    LanguageCodebaseProcessor,
 )
-from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
-    TreeSitterStructuralSignatureExtractor,
+from src.code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
+    LanguageProcessorContext,
+)
+from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
+    PythonLanguageProcessor,
 )
 
 if TYPE_CHECKING:
@@ -47,7 +35,6 @@ if TYPE_CHECKING:
         CodeConfluenceGraph,
     )
 
-from aiofile import async_open
 from loguru import logger
 from neo4j import AsyncSession
 from neomodel import (  # type: ignore  # imported lazily to avoid circular deps
@@ -67,9 +54,10 @@ class GenericCodebaseParser:
     """
     Language-agnostic codebase parser with Neo4j ingestion.
 
-    Uses TreeSitterStructuralSignatureExtractor for AST analysis and neomodel
-    for all database operations. This implementation prioritizes simplicity
-    and correctness over performance optimization.
+    Delegates structural extraction to language-specific processors
+    (e.g., PythonLanguageProcessor wraps TreeSitterPythonStructuralSignatureExtractor).
+    Uses neomodel for all database operations. This implementation prioritizes
+    simplicity and correctness over performance optimization.
     """
 
     def __init__(
@@ -101,9 +89,7 @@ class GenericCodebaseParser:
         self.trace_id = trace_id
         self.code_confluence_graph = code_confluence_graph
 
-        # Initialize components (deferred to avoid import issues)
-        self.extractor = None
-        self.language_config: Optional[LanguageConfig] = None
+        # Initialize framework detection service (deferred to avoid import issues)
         self.framework_detection_service: Optional[FrameworkDetectionService] = None
 
         # Use provided environment settings or fall back to environment variables
@@ -117,11 +103,11 @@ class GenericCodebaseParser:
         self.files_processed = 0
         self.packages_created = 0
 
-        # Language-specific file extensions
-        self.file_extensions = self._get_file_extensions()
-        
         # Initialize components immediately
         self._initialize_components()
+        self.language_processor: LanguageCodebaseProcessor = (
+            self._initialize_language_processor()
+        )
 
         logger.info(
             "Parser initialized | codebase_name={} | language={}",
@@ -129,25 +115,9 @@ class GenericCodebaseParser:
             self.programming_language_metadata.language,
         )
 
-    def _get_file_extensions(self) -> Set[str]:
-        """Get file extensions for the programming language."""
-        extension_map = {
-            "python": {".py"},
-            "java": {".java"},
-            "typescript": {".ts", ".tsx"},
-            "go": {".go"},
-        }
-        return extension_map.get(self.programming_language_metadata.language, {".py"})
 
     def _initialize_components(self) -> None:
-        """Initialize extractor components (lazy loading)."""
-        if self.extractor is None:
-            # Import here to avoid circular imports
-
-            self.extractor = TreeSitterStructuralSignatureExtractor(
-                self.programming_language_metadata.language.value
-            )  # type: ignore
-
+        """Initialize supporting services and apply runtime patches."""
         # ----------------------------------------------------------------------------------
         # Ensure that the CodeConfluencePackage.sub_packages relationship is **directed**
         # so that querying `pkg.sub_packages` only returns true child packages and not
@@ -178,23 +148,6 @@ class GenericCodebaseParser:
                 cardinality=AsyncZeroOrMore,
             )  # type: ignore[assignment]
 
-        # Load language configuration
-        if self.language_config is None:
-            try:
-                self.language_config = get_config(
-                    self.programming_language_metadata.language.value
-                )
-                logger.debug(
-                    "Loaded language config for {} with ignored files: {}",
-                    self.programming_language_metadata.language.value,
-                    self.language_config.ignored_files,
-                )
-            except KeyError:
-                logger.warning(
-                    "No language configuration found for {}",
-                    self.programming_language_metadata.language.value,
-                )
-
         # Initialize framework detection service based on language
         if self.framework_detection_service is None:
             if self.programming_language_metadata.language.value == "python":
@@ -207,17 +160,57 @@ class GenericCodebaseParser:
                     self.programming_language_metadata.language.value,
                 )
 
+    def _initialize_language_processor(self) -> LanguageCodebaseProcessor:
+        """Instantiate language-specific processor.
+
+        Raises:
+            ValueError: If the language is not supported (no processor available)
+        """
+        language_key = self.programming_language_metadata.language.value
+        processor_map: Dict[str, type[LanguageCodebaseProcessor]] = {
+            "python": PythonLanguageProcessor,
+            # Add other languages as they become available:
+            # "typescript": TypeScriptLanguageProcessor,
+            # "java": JavaLanguageProcessor,
+            # "go": GoLanguageProcessor,
+        }
+        processor_cls = processor_map.get(language_key)
+        if not processor_cls:
+            supported_languages = ", ".join(processor_map.keys())
+            raise ValueError(
+                f"Unsupported language for codebase processing: '{language_key}'. "
+                f"Supported languages: {supported_languages}. "
+                f"To add support for {language_key}, implement a {language_key.capitalize()}LanguageProcessor."
+            )
+
+        context = LanguageProcessorContext(
+            codebase_name=self.codebase_name,
+            codebase_path=self.codebase_path,
+            root_packages=self.root_packages,
+            programming_language_metadata=self.programming_language_metadata,
+            env_config=self.config,
+            framework_detection_service=self.framework_detection_service,
+            concurrency_limit=self.config.codebase_parser_file_processing_concurrency,
+            increment_files_processed=self._increment_files_processed,
+        )
+        processor = processor_cls(context)
+        logger.debug(
+            "Initialized {} language processor | extensions={}",
+            language_key,
+            processor.supported_extensions
+        )
+        return processor
+
     def _should_ignore_file(self, file_path: Path) -> bool:
-        """Check if file should be ignored based on language configuration."""
-        if self.language_config and self.language_config.ignored_files:
-            # Check exact filename match
-            if file_path.name in self.language_config.ignored_files:
-                return True
-            # Check for suffix match (e.g., for .d.ts files)
-            for ignored in self.language_config.ignored_files:
-                if ignored.startswith(".") and file_path.name.endswith(ignored):
-                    return True
-        return False
+        """Check if file should be ignored based on language processor rules.
+
+        Args:
+            file_path: Path to the file to check
+
+        Returns:
+            True if file should be ignored, False otherwise
+        """
+        return self.language_processor.should_ignore(file_path)
 
     
 
@@ -290,20 +283,29 @@ class GenericCodebaseParser:
             raise
 
     def discover_packages(self) -> Dict[str, List[str]]:
-        """Discover packages by absolute directory path (Linux/Posix)."""
+        """Discover packages by absolute directory path (Linux/Posix).
+
+        Uses language processor's supported_extensions to filter files.
+
+        Returns:
+            Dict mapping package path (absolute) to list of file paths
+        """
         logger.info(
-            "Discovering packages | codebase_path={} | language={}",
+            "Discovering packages | codebase_path={} | language={} | extensions={}",
             self.codebase_path,
             self.programming_language_metadata.language.value,
+            self.language_processor.supported_extensions,
         )
 
         root_path = self.codebase_path.resolve()
         package_files: Dict[str, List[str]] = {}
+        supported_extensions = self.language_processor.supported_extensions
 
         # 1️⃣ walk every source file and group by its parent directory (absolute path)
         for file_path in root_path.rglob("*"):
-            if file_path.is_file() and file_path.suffix in self.file_extensions:
+            if file_path.is_file() and file_path.suffix in supported_extensions:
                 if self._should_ignore_file(file_path):
+                    logger.debug("Ignoring file: {}", file_path)
                     continue
 
                 pkg_path = file_path.parent.resolve()
@@ -314,10 +316,10 @@ class GenericCodebaseParser:
         #     package is present in the mapping (even if it contains no source files)
         for pkg_q in list(package_files.keys()):
             current = Path(pkg_q)
-            
+
             if current == root_path:
                 continue
-            
+
             while current != root_path and current.parent != current:
                 current = current.parent
                 package_files.setdefault(current.as_posix(), [])
@@ -339,171 +341,9 @@ class GenericCodebaseParser:
                 hierarchy[child_q] = parent_q
         return hierarchy
 
-    def calculate_file_checksum(self, content: bytes) -> str:
-        """Calculate MD5 checksum from byte content."""
-        try:
-            return hashlib.md5(content).hexdigest()
-        except Exception as e:
-            logger.warning(
-                "Failed to calculate checksum | error={}",
-                str(e),
-            )
-            return ""
-
-    def _extract_imports_from_source(self, source_code: str) -> List[str]:
-        """Extract import statements directly from source code using tree-sitter."""
-        try:
-            return extract_imports_from_source(
-                source_code, self.programming_language_metadata.language.value
-            )
-        except Exception as e:
-            logger.error("Failed to extract imports | error={}", str(e))
-            return []
-
-    async def extract_file_data(self, file_path: str) -> Optional[UnoplatFile]:
-        """
-        Extract structural signature and metadata for a single file.
-
-        Args:
-            file_path: Path to the source file
-
-        Returns:
-            UnoplatFile or None if processing fails
-        """
-        try:
-            # Read file content once as bytes (async)
-            async with async_open(file_path, "rb") as afp:
-                content_bytes = await afp.read()
-            
-            # Decode to string for text operations
-            content = content_bytes.decode("utf-8")
-
-            # Calculate checksum from bytes
-            checksum: str = await asyncio.to_thread(self.calculate_file_checksum,content_bytes)
-
-            # Extract structural signature from bytes (no async needed)
-            signature = await asyncio.to_thread(self.extractor.extract_structural_signature,content_bytes)  # type: ignore
-
-            # Extract imports directly from source code
-            imports = await asyncio.to_thread(self._extract_imports_from_source,content)
-
-            # Detect if file contains data models
-            has_data_model = detect_data_model(
-                source_code=content,
-                imports=imports,
-                language=self.programming_language_metadata.language.value,
-                structural_signature=signature
-            )
-
-            # Detect framework features using the structural signature
-            custom_features_list = None
-            if self.framework_detection_service:
-                try:
-                    detections = await self.framework_detection_service.detect_features(
-                        source_code=content,
-                        imports=imports,
-                        structural_signature=signature,
-                        programming_language=self.programming_language_metadata.language.value,
-                    )
-                    custom_features_list = detections if detections else None
-                except Exception as e:
-                    logger.warning(
-                        "Framework feature detection failed | file_path={} | error={}",
-                        file_path,
-                        str(e),
-                    )
-
-            # Create UnoplatFile instance
-            unoplat_file = UnoplatFile(
-                file_path=file_path,
-                checksum=checksum,
-                structural_signature=signature,  # Store the actual object, not dict
-                imports=imports,
-                custom_features_list=custom_features_list,
-                has_data_model=has_data_model,
-            )
-
-            return unoplat_file
-
-        except Exception as e:
-            logger.error(
-                "Failed to process file | file_path={} | error={}", file_path, str(e)
-            )
-            return None
-
-    async def extract_files(
-        self, package_files: Dict[str, List[str]]
-    ) -> AsyncGenerator[UnoplatFile, None]:
-        """
-        Generator that yields file processing data with controlled concurrency.
-        
-        Maintains a configurable number of concurrent tasks (default 3), preventing memory explosion
-        while providing parallel processing benefits. Concurrency is controlled by the
-        CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY environment variable.
-
-        Args:
-            package_files: Map of package name to files
-
-        Yields:
-            UnoplatFile for each successfully processed file
-        """
-        # Log package information
-        for package_name, files in package_files.items():
-            logger.info(
-                "Processing files in package | package_name={} | file_count={}",
-                package_name,
-                len(files),
-            )
-        
-        # Flatten all file paths for processing
-        all_files = [f for files in package_files.values() for f in files]
-        
-        if not all_files:
-            return
-        
-        # Create iterator for lazy evaluation
-        file_iter = iter(all_files)
-        
-        # Get concurrency limit from environment settings
-        concurrency_limit = self.config.codebase_parser_file_processing_concurrency
-        
-        # Start with initial tasks (up to concurrency limit or fewer if less files)
-        active_tasks = set()
-        for _ in range(min(concurrency_limit, len(all_files))):
-            try:
-                file_path = next(file_iter)
-                task = asyncio.create_task(self.extract_file_data(file_path))
-                active_tasks.add(task)
-            except StopIteration:
-                break
-        
-        # Process files in streaming fashion
-        while active_tasks:
-            # Wait for any task to complete
-            done, active_tasks = await asyncio.wait(
-                active_tasks, 
-                return_when=asyncio.FIRST_COMPLETED
-            )
-            
-            # Process completed tasks
-            for task in done:
-                try:
-                    file_data = await task
-                    if file_data:
-                        self.files_processed += 1
-                        yield file_data
-                except Exception as e:
-                    logger.error(f"Task failed during file extraction: {e}")
-            
-            # Start new tasks to maintain pool size
-            while len(active_tasks) < concurrency_limit:
-                try:
-                    file_path = next(file_iter)
-                    task = asyncio.create_task(self.extract_file_data(file_path))
-                    active_tasks.add(task)
-                except StopIteration:
-                    break  # No more files to process
-
+    def _increment_files_processed(self, count: int) -> None:
+        """Increment processed files counter."""
+        self.files_processed += count
 
     async def create_packages_managed(
         self, session: "AsyncSession", package_names: List[str]
@@ -899,7 +739,7 @@ class GenericCodebaseParser:
             package_files: Map of package name to files
         """
         try:
-            async for file_data in self.extract_files(package_files):
+            async for file_data in self.language_processor.iter_files(package_files):
                 await self.insert_files_managed(session, [file_data], package_files)
 
             logger.info(
