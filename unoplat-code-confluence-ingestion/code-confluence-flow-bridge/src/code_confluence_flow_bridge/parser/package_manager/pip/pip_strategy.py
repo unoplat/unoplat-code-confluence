@@ -1,8 +1,7 @@
 # Standard Library
-import re
-
 # First Party
 from pathlib import Path
+import re
 from typing import Any, Dict, List, Optional, Set
 
 # Third Party

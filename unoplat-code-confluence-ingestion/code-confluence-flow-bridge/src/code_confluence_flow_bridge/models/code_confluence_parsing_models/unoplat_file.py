@@ -1,9 +1,13 @@
 """File model for representing individual source code files."""
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
-from unoplat_code_confluence_commons.base_models import Detection, StructuralSignature
+from unoplat_code_confluence_commons.base_models import (
+    Detection,
+    PythonStructuralSignature,
+    TypeScriptStructuralSignature,
+)
 
 
 class UnoplatFile(BaseModel):
@@ -14,9 +18,11 @@ class UnoplatFile(BaseModel):
         default=None, 
         description="Optional content checksum for change tracking"
     )
-    structural_signature: Optional[StructuralSignature] = Field(
+    structural_signature: Optional[
+        Union[PythonStructuralSignature, TypeScriptStructuralSignature]
+    ] = Field(
         default=None,
-        description="Structural signature capturing the high-level outline of the file including global variables and class variables"
+        description="Language-specific structural signature capturing the high-level outline of the file",
     )
     imports: List[str] = Field(
         default_factory=list,

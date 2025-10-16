@@ -12,14 +12,14 @@ from loguru import logger
 from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
-    ClassInfo,
     Concept,
     Detection,
     FeatureSpec,
-    FunctionInfo,
     InheritanceInfo,
     LocatorStrategy,
-    StructuralSignature,
+    PythonClassInfo,
+    PythonFunctionInfo,
+    PythonStructuralSignature,
 )
 
 
@@ -28,7 +28,7 @@ class SimplifiedPythonDetector:
 
     def detect_from_structural_signature(
         self,
-        structural_signature: StructuralSignature,
+        structural_signature: PythonStructuralSignature,
         feature_specs: List[FeatureSpec],
         import_aliases: Dict[str, str],
     ) -> List[Detection]:
@@ -58,7 +58,7 @@ class SimplifiedPythonDetector:
         return all_detections
 
     def _detect_feature(
-        self, signature: StructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
     ) -> List[Detection]:
         """Detect a single feature using the appropriate concept method."""
 
@@ -73,7 +73,7 @@ class SimplifiedPythonDetector:
             return []
 
     def _detect_annotation_like(
-        self, signature: StructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
     ) -> List[Detection]:
         """
         Detect decorator patterns like @app.get("/path") using function signatures.
@@ -113,8 +113,8 @@ class SimplifiedPythonDetector:
         return detections
 
     def _collect_nested_functions_recursively(
-        self, func: FunctionInfo
-    ) -> List[FunctionInfo]:
+        self, func: PythonFunctionInfo
+    ) -> List[PythonFunctionInfo]:
         """Recursively collect all nested functions within a function."""
         nested_functions = []
 
@@ -128,7 +128,7 @@ class SimplifiedPythonDetector:
         return nested_functions
 
     def _extract_decorators_from_function(
-        self, func: FunctionInfo, spec: FeatureSpec, bound_variables: Set[str]
+        self, func: PythonFunctionInfo, spec: FeatureSpec, bound_variables: Set[str]
     ) -> List[Detection]:
         """Extract decorators from a function signature."""
         detections: List[Detection] = []
@@ -173,7 +173,7 @@ class SimplifiedPythonDetector:
         return detections
 
     def _detect_call_expression(
-        self, signature: StructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
     ) -> List[Detection]:
         """
         Detect function call patterns using pre-computed function_calls lists.
@@ -236,7 +236,7 @@ class SimplifiedPythonDetector:
         return False
 
     def _detect_inheritance(
-        self, signature: StructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
     ) -> List[Detection]:
         """
         Detect class inheritance patterns by parsing class signatures.
@@ -316,7 +316,7 @@ class SimplifiedPythonDetector:
         return False
 
     def _find_bound_variables(
-        self, signature: StructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
     ) -> Set[str]:
         """
         Find variables that are bound to framework constructors.
@@ -384,7 +384,7 @@ class SimplifiedPythonDetector:
         return match.group(1) if match else None
 
     def _find_instance_variables_from_constructor_calls(
-        self, class_info: ClassInfo, spec: FeatureSpec, aliases: Dict[str, str]
+        self, class_info: PythonClassInfo, spec: FeatureSpec, aliases: Dict[str, str]
     ) -> Set[str]:
         """
         Find instance variables created from constructor calls in __init__ methods.

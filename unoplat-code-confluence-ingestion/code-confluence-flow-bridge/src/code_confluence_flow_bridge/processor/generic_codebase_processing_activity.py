@@ -131,13 +131,16 @@ class GenericCodebaseProcessingActivity:
 
             if lint_success:
                 log.info(
-                    "Linting completed successfully | codebase_qualified_name={}",
-                    envelope.codebase_qualified_name
+                    "Linting completed successfully | codebase_qualified_name={} | programming_language={}",
+                    envelope.codebase_qualified_name,
+                    envelope.programming_language_metadata.language.value
                 )
             else:
                 log.warning(
-                    "Linting completed with issues | codebase_qualified_name={}",
-                    envelope.codebase_qualified_name
+                    "Linting skipped or completed with issues | codebase_qualified_name={} | programming_language={} | "
+                    "Check if linter is configured for this language",
+                    envelope.codebase_qualified_name,
+                    envelope.programming_language_metadata.language.value
                 )
 
         except Exception as e:

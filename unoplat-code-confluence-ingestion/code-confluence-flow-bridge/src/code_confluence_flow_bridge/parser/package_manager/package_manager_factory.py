@@ -7,6 +7,9 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguage,
 )
 
+from src.code_confluence_flow_bridge.parser.package_manager.node.node_package_manager_strategy import (
+    NodePackageManagerStrategy,
+)
 from src.code_confluence_flow_bridge.parser.package_manager.package_manager_strategy import (
     PackageManagerStrategy,
 )
@@ -27,6 +30,7 @@ class PackageManagerStrategyFactory:
         (ProgrammingLanguage.PYTHON, PackageManagerType.POETRY): PythonPoetryStrategy,
         (ProgrammingLanguage.PYTHON, PackageManagerType.PIP): PipStrategy,
         (ProgrammingLanguage.PYTHON, PackageManagerType.UV): UvStrategy,
+        (ProgrammingLanguage.TYPESCRIPT, PackageManagerType.NPM): NodePackageManagerStrategy,
     }
     
     # Map string names to PackageManagerType enum values
@@ -34,6 +38,7 @@ class PackageManagerStrategyFactory:
         "poetry": PackageManagerType.POETRY,
         "pip": PackageManagerType.PIP,
         "uv": PackageManagerType.UV,
+        "npm": PackageManagerType.NPM,
     }
 
     @classmethod
