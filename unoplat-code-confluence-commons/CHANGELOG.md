@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.31.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.1...unoplat-code-confluence-commons-v0.31.2) (2025-10-16)
+
+
+### Bug Fixes
+
+* Remove unused TypeScriptPropertyInfo import ([7d8b4f2](https://github.com/unoplat/unoplat-code-confluence/commit/7d8b4f27587e82b730e948f38d4f3bed7c160b1f))
+* Remove unused TypeScriptPropertyInfo import ([0660b77](https://github.com/unoplat/unoplat-code-confluence/commit/0660b776cebfa8f7bf67481e8c47bf96602724d8))
+
 ## [0.31.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.0...unoplat-code-confluence-commons-v0.31.1) (2025-10-16)
 
 
