@@ -51,17 +51,17 @@ INTEGRATION TEST FLOW:
 """
 
 # Standard Library
+from concurrent.futures import ThreadPoolExecutor
 import functools
 import json
-from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List
 from pathlib import Path
+from typing import Dict, List
 
 # Third Party
 import docker
-import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
+import pytest
 
 # Note: Fixtures are now auto-discovered from tests/conftest.py
 

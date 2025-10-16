@@ -34,11 +34,11 @@ TEST REPOSITORY:
 import json
 from typing import Dict, List
 
-# Third Party
-import pytest
 from fastapi.testclient import TestClient
 from loguru import logger
 
+# Third Party
+import pytest
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONSTANTS

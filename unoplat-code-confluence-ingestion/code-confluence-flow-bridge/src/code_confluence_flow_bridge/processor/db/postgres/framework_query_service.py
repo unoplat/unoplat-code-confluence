@@ -6,7 +6,7 @@ from typing import List
 
 from loguru import logger
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_scoped_session
 from sqlalchemy.orm import selectinload
 from unoplat_code_confluence_commons.base_models import (
     FeatureAbsolutePath,
@@ -16,7 +16,7 @@ from unoplat_code_confluence_commons.base_models import (
 
 
 async def get_framework_features_for_imports(
-    session: AsyncSession, language: str, imports: List[str]
+    session: async_scoped_session, language: str, imports: List[str]
 ) -> List[FeatureSpec]:
     """
     Query framework features that match the given imports for a specific language.
@@ -90,7 +90,7 @@ async def get_framework_features_for_imports(
 
 
 async def get_all_framework_features_for_language(
-    session: AsyncSession, language: str
+    session: async_scoped_session, language: str
 ) -> List[FeatureSpec]:
     """
     Query all framework features for a specific language.

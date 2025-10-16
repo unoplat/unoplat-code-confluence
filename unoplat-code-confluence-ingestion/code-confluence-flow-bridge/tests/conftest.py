@@ -7,33 +7,39 @@ discovered by pytest and made available to all test files.
 
 # Standard Library
 import os
+from pathlib import Path
 import shutil
 import socket
 import subprocess
 import time
-from pathlib import Path
 from typing import Dict, Iterator
 
 # Third Party
 import docker
+from dotenv import load_dotenv
+from fastapi.testclient import TestClient
+from loguru import logger
+from neomodel import adb
 from pydantic import SecretStr
 import pytest
 import pytest_asyncio
 import requests
-from dotenv import load_dotenv
-from fastapi.testclient import TestClient
-from loguru import logger
-from sqlmodel import SQLModel
-from testcontainers.compose import DockerCompose
-from neomodel import adb
-# Local
-from src.code_confluence_flow_bridge.main import app
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import CodeConfluenceGraph
+from sqlalchemy import text
+
 # from tests.utils.db_cleanup import cleanup_postgresql_data
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy import text
 from sqlalchemy.schema import CreateTable
+from sqlmodel import SQLModel
+
+# Local
+from src.code_confluence_flow_bridge.main import app
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
+from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
+    CodeConfluenceGraph,
+)
+from testcontainers.compose import DockerCompose
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent

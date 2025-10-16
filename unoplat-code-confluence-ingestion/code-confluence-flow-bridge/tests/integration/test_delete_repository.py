@@ -5,15 +5,6 @@
 # - test_client: Session-scoped TestClient fixture with proper configuration
 # - github_token: Session-scoped fixture providing GitHub PAT token
 
-from tests.utils.graph_assertions import (
-    assert_deletion_stats_accuracy,
-    assert_repository_completely_deleted,
-    capture_repository_state_snapshot,
-    count_nodes_by_label,
-)
-from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
-from tests.utils.sync_db_utils import get_sync_postgres_session
-
 import os
 import asyncio
 import json
@@ -25,7 +16,6 @@ from typing import Any, Dict, List, Optional
 from fastapi.testclient import TestClient
 from loguru import logger
 import pytest
-from unoplat_code_confluence_commons.base_models import CodebaseConfig
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoRequestConfiguration,
     IngestedRepositoryResponse,
@@ -34,6 +24,16 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_m
     DetectionResult,
 )
 from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
+from unoplat_code_confluence_commons.base_models import CodebaseConfig
+
+from tests.utils.graph_assertions import (
+    assert_deletion_stats_accuracy,
+    assert_repository_completely_deleted,
+    capture_repository_state_snapshot,
+    count_nodes_by_label,
+)
+from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
+from tests.utils.sync_db_utils import get_sync_postgres_session
 
 # ---------------------------------------------------------------------------
 # HELPER FUNCTIONS FROM test_start_ingestion.py
