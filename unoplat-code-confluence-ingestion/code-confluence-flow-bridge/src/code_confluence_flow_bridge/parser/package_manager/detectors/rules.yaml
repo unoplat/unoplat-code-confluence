@@ -37,6 +37,12 @@ python:
     # Test and coverage
     - htmlcov
     - .coverage
+    # Test directories
+    - test
+    - tests
+    - __tests__
+    - spec
+    - specs
     # IDE and tools
     - .idea
     - .vscode
@@ -95,6 +101,12 @@ typescript:
     - .pnp.loader.mjs
     - .bun
     - .cache
+    # Test directories
+    - test
+    - tests
+    - __tests__
+    - spec
+    - specs
 
   managers:
     # Bun - modern runtime with built-in package manager
