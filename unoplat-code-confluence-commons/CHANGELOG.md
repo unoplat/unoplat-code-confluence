@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.31.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.0...unoplat-code-confluence-commons-v0.31.1) (2025-10-16)
+
+
+### Bug Fixes
+
+* **base_models:** Restructure structural signature models ([9bf5b3c](https://github.com/unoplat/unoplat-code-confluence/commit/9bf5b3c3b661527d8788e42dda474a6f05553432))
+* **base_models:** Restructure structural signature models ([20db068](https://github.com/unoplat/unoplat-code-confluence/commit/20db068941a80479f45eb08e0442fadd5268a30b))
+
 ## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.30.0...unoplat-code-confluence-commons-v0.31.0) (2025-10-06)
 
 
