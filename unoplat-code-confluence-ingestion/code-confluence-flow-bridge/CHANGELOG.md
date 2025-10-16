@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.56.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.55.0...code-confluence-flow-bridge-v0.56.0) (2025-10-16)
+
+
+### Features
+
+* **parser:** Add base language processor and context classes , improved design to extend code grammar, add npm, yarn, bun common core package metadata parsing and ingestion and updated tree sitter language pack apis for better reliability for new versions ([124d693](https://github.com/unoplat/unoplat-code-confluence/commit/124d6932b1c8e9ff360ed96e5879d1e48edb56d5))
+* **parser:** Add base language processor and context classes , improved design to extend code grammar, add npm, yarn, bun common core package metadata parsing and ingestion and updated tree sitter language pack apis for better reliability for new versions ([4c46e4a](https://github.com/unoplat/unoplat-code-confluence/commit/4c46e4a166f6ad0ddda3e058f9755c7ef1d7432c))
+
+
+### Bug Fixes
+
+* Update unoplat-code-confluence-commons to v0.31.2 ([956b029](https://github.com/unoplat/unoplat-code-confluence/commit/956b0293bcbc554d8772a9f1ca0a3b5b0a64ff8b))
+
 ## [0.55.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.54.0...code-confluence-flow-bridge-v0.55.0) (2025-10-06)
 
 
