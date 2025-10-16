@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import asyncio
+import json
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -38,6 +39,8 @@ from src.code_confluence_flow_bridge.parser.package_manager.detectors.ordered_de
 )
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.ripgrep_utils import (
     find_files,
+    find_files_with_content,
+    parse_package_json_dependencies,
 )
 
 
@@ -164,23 +167,51 @@ class TypeScriptRipgrepDetector:
             )
 
             if detected_manager:
-                detections[directory_path] = detected_manager
-                done_dirs.add(directory_path)
+                # Validate this is actually TypeScript, not just JavaScript
+                is_typescript = await self._is_typescript_project(
+                    directory_path, repo_path
+                )
+
+                if is_typescript:
+                    # Only add to detections AND done_dirs when valid TypeScript
+                    # This ensures JavaScript-only parents don't block nested TypeScript detection
+                    detections[directory_path] = detected_manager
+                    done_dirs.add(directory_path)
+                    logger.debug(
+                        f"TypeScript codebase detected: {directory_path} ({detected_manager})"
+                    )
+                else:
+                    # Skip both detections and done_dirs for JavaScript-only projects
+                    # This allows the loop to continue to nested directories
+                    logger.debug(
+                        f"Skipping JavaScript-only directory: {directory_path}"
+                    )
 
         return inventory, detections
 
     def _extract_file_patterns(self) -> List[str]:
-        """Collect unique file/glob patterns used in the rules."""
+        """
+        Collect unique file/glob patterns used in the rules.
+
+        Includes both package manager signature files and TypeScript-specific
+        files needed for validation (tsconfig*.json).
+        """
         if not self.language_rules:
             return []
 
         patterns: set[str] = set()
+
+        # Extract patterns from package manager rules
         for manager_rule in self.language_rules.managers:
             for signature in manager_rule.signatures:
                 if signature.file:
                     patterns.add(signature.file)
                 if signature.glob:
                     patterns.add(signature.glob)
+
+        # Add TypeScript-specific patterns for validation
+        # These are needed by _has_tsconfig() to detect TypeScript projects
+        patterns.add("tsconfig*.json")
 
         return list(patterns)
 
@@ -205,6 +236,122 @@ class TypeScriptRipgrepDetector:
                 and directory_path.startswith(done_dir + "/")
             ):
                 return True
+        return False
+
+    async def _has_typescript_dependency(
+        self, directory_path: str, repo_path: str
+    ) -> bool:
+        """
+        Check if directory contains package.json with typescript in dependencies.
+
+        Uses ripgrep to find candidate package.json files containing "typescript"
+        (with quotes), then parses JSON to verify typescript is in actual
+        dependency sections (dependencies, devDependencies, peerDependencies,
+        optionalDependencies). This avoids false positives from keywords,
+        descriptions, or other fields.
+
+        Args:
+            directory_path: Directory to check (relative to repo root)
+            repo_path: Absolute path to repository root
+
+        Returns:
+            True if package.json has typescript in dependency sections, False otherwise
+        """
+        try:
+            # Step 1: Use ripgrep to find candidate package.json files
+            # Search for "typescript" with quotes to reduce false positives
+            candidates: List[str] = await find_files_with_content(
+                '"typescript"', "package.json", repo_path
+            )
+
+            if not candidates:
+                return False
+
+            # Step 2: Filter candidates to current directory only
+            # Build expected package.json path for this directory
+            if directory_path == ".":
+                expected_package_json = "package.json"
+            else:
+                expected_package_json = os.path.join(directory_path, "package.json")
+
+            # Check if our directory's package.json is in candidates
+            if expected_package_json not in candidates:
+                return False
+
+            # Step 3: Parse JSON to verify typescript is in dependency sections
+            package_json_abs_path = os.path.join(repo_path, expected_package_json)
+            has_typescript = await parse_package_json_dependencies(
+                package_json_abs_path
+            )
+
+            return has_typescript
+
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            # If file doesn't exist or is invalid JSON, not a valid TypeScript project
+            logger.debug(
+                f"Error checking typescript dependency in {directory_path}: {e}"
+            )
+            return False
+
+    async def _has_tsconfig(self, directory_path: str, repo_path: str) -> bool:
+        """
+        Check if directory contains TypeScript configuration files.
+
+        Looks for tsconfig.json or variants like tsconfig.build.json,
+        tsconfig.test.json, etc.
+
+        Args:
+            directory_path: Directory to check (relative to repo root)
+            repo_path: Absolute path to repository root
+
+        Returns:
+            True if tsconfig files found in directory, False otherwise
+        """
+        # Find all tsconfig*.json files in repository
+        tsconfig_files: List[str] = await find_files(["tsconfig*.json"], repo_path)
+
+        if not tsconfig_files:
+            return False
+
+        # Check if any tsconfig file is in the current directory
+        for tsconfig_path in tsconfig_files:
+            # Get directory of tsconfig file
+            tsconfig_dir = os.path.dirname(tsconfig_path) or "."
+
+            if tsconfig_dir == directory_path:
+                return True
+
+        return False
+
+    async def _is_typescript_project(
+        self, directory_path: str, repo_path: str
+    ) -> bool:
+        """
+        Determine if directory is a TypeScript project using ordered checks.
+
+        Evaluation order (first match wins):
+        1. Has typescript in package.json dependencies (most definitive, checked first)
+        2. Has tsconfig.json or variants (fallback for global TypeScript installs)
+
+        Args:
+            directory_path: Directory to check (relative to repo root)
+            repo_path: Absolute path to repository root
+
+        Returns:
+            True if directory is TypeScript project, False if JavaScript-only
+        """
+        # Check 1: TypeScript dependency (fast and definitive)
+        if await self._has_typescript_dependency(directory_path, repo_path):
+            logger.debug(f"TypeScript detected via dependency in {directory_path}")
+            return True
+
+        # Check 2: tsconfig file (fallback for global installs)
+        if await self._has_tsconfig(directory_path, repo_path):
+            logger.debug(f"TypeScript detected via tsconfig in {directory_path}")
+            return True
+
+        # Not a TypeScript project
+        logger.debug(f"JavaScript-only project detected in {directory_path}")
         return False
 
     async def _build_codebase_config(
