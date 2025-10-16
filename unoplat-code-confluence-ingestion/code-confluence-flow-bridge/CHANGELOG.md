@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.56.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.56.0...code-confluence-flow-bridge-v0.56.1) (2025-10-16)
+
+
+### Bug Fixes
+
+* **version:** update ignore rules for reliable codebase detection across typescript and python ([7caa4d2](https://github.com/unoplat/unoplat-code-confluence/commit/7caa4d24aecf7aea24ac97c576aa469bd7bb893f))
+
 ## [0.56.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.55.0...code-confluence-flow-bridge-v0.56.0) (2025-10-16)
 
 
