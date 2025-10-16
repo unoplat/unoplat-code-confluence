@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.56.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.56.1...code-confluence-flow-bridge-v0.56.2) (2025-10-16)
+
+
+### Bug Fixes
+
+* **typescript:** Improve TypeScript project detection ([77a47c3](https://github.com/unoplat/unoplat-code-confluence/commit/77a47c3ce2f4948655ca62b523c9f5d112226893))
+* **typescript:** Improve TypeScript project detection ([98103ac](https://github.com/unoplat/unoplat-code-confluence/commit/98103ace7290a086f23b1661207669834916b7d6))
+
 ## [0.56.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.56.0...code-confluence-flow-bridge-v0.56.1) (2025-10-16)
 
 
