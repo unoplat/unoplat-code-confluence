@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.17.0...unoplat-code-confluence-query-engine-v0.17.1) (2025-10-16)
+
+
+### Bug Fixes
+
+* update schema , improved local dev experience through tasks Add better logging. ([ffd98e9](https://github.com/unoplat/unoplat-code-confluence/commit/ffd98e96afc32553ce4b30de1908f44993965d3d))
+* update schema , improved local dev experience through tasks Add better logging. ([73d1a24](https://github.com/unoplat/unoplat-code-confluence/commit/73d1a241c75394839e853d5de9e4ec0fdf48fe08))
+
 ## [0.17.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.16.0...unoplat-code-confluence-query-engine-v0.17.0) (2025-10-06)
 
 
