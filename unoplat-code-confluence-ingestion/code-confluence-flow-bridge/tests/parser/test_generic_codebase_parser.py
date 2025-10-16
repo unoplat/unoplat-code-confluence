@@ -13,17 +13,17 @@ import pytest
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from unoplat_code_confluence_commons.programming_language_metadata import (
-    ProgrammingLanguage,
-    ProgrammingLanguageMetadata,
-)
 from src.code_confluence_flow_bridge.parser.generic_codebase_parser import (
     GenericCodebaseParser,
 )
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
     CodeConfluenceGraph,
 )
-from unoplat_code_confluence_commons.base_models import StructuralSignature
+from unoplat_code_confluence_commons.base_models import PythonStructuralSignature
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    ProgrammingLanguage,
+    ProgrammingLanguageMetadata,
+)
 
 # Note: Removed neomodel graph model imports to avoid NodeClassNotDefined errors
 # when using raw Cypher queries for verification. Models are still used via raw Cypher.
@@ -265,9 +265,9 @@ class TestGenericCodebaseParserIntegration:
         if signature:  # Only check if structural signature extraction worked
             # Parse using Pydantic model for type safety
             if isinstance(signature, str):
-                signature_data = StructuralSignature.model_validate_json(signature)
+                signature_data = PythonStructuralSignature.model_validate_json(signature)
             else:
-                signature_data = StructuralSignature.model_validate(signature)
+                signature_data = PythonStructuralSignature.model_validate(signature)
             assert signature_data.classes is not None, "Structural signature should have classes"
             assert len(signature_data.classes) >= 1, "Should have at least 1 class"
             # Check if AppConfig class exists in the class signatures
@@ -285,9 +285,9 @@ class TestGenericCodebaseParserIntegration:
 
         # NEW: Ensure imports, global variables, functions, and classes are captured in structural signature
         if isinstance(generator_signature, str):
-            gen_sig = StructuralSignature.model_validate_json(generator_signature)
+            gen_sig = PythonStructuralSignature.model_validate_json(generator_signature)
         else:
-            gen_sig = StructuralSignature.model_validate(generator_signature or {})
+            gen_sig = PythonStructuralSignature.model_validate(generator_signature or {})
 
         # a. Validate global variables contain GLOBAL_CONSTANT
         gen_global_vars = [gv.signature for gv in gen_sig.global_variables]
@@ -324,9 +324,9 @@ class TestGenericCodebaseParserIntegration:
 
         # NEW: verify structural signature functions for __main__.py
         if isinstance(main_structural_signature, str):
-            main_sig = StructuralSignature.model_validate_json(main_structural_signature)
+            main_sig = PythonStructuralSignature.model_validate_json(main_structural_signature)
         else:
-            main_sig = StructuralSignature.model_validate(main_structural_signature or {})
+            main_sig = PythonStructuralSignature.model_validate(main_structural_signature or {})
         main_functions = [fn.signature for fn in main_sig.functions]
         assert any("def start_ingestion_process" in sig for sig in main_functions), (
             "__main__.py structural signature should capture start_ingestion_process function"
@@ -338,9 +338,9 @@ class TestGenericCodebaseParserIntegration:
         # 8. Extended structural signature validation for settings.py (reuse from section 5)
         # settings.py data already retrieved in section 5
         if isinstance(signature, str):
-            settings_sig = StructuralSignature.model_validate_json(signature)
+            settings_sig = PythonStructuralSignature.model_validate_json(signature)
         else:
-            settings_sig = StructuralSignature.model_validate(signature or {})
+            settings_sig = PythonStructuralSignature.model_validate(signature or {})
         settings_classes = [cl.signature for cl in settings_sig.classes]
         assert any("class AppConfig" in sig for sig in settings_classes), (
             "settings.py structural signature should capture AppConfig class"
@@ -427,15 +427,15 @@ class TestGenericCodebaseParserIntegration:
         
         # Test dataclass file
         dataclass_file = sample_codebase_dir / "unoplat_code_confluence_cli" / "models" / "user_model.py"
-        unoplat_file = await parser.extract_file_data(str(dataclass_file))
-        
+        unoplat_file = await parser.language_processor.extract_file_data(str(dataclass_file))
+
         assert unoplat_file is not None
         assert unoplat_file.has_data_model is True
         assert any("dataclass" in imp.lower() for imp in unoplat_file.imports)
-        
+
         # Test non-dataclass file
         regular_file = sample_codebase_dir / "unoplat_code_confluence_cli" / "connector" / "api_client.py"
-        regular_unoplat_file = await parser.extract_file_data(str(regular_file))
+        regular_unoplat_file = await parser.language_processor.extract_file_data(str(regular_file))
         
         assert regular_unoplat_file is not None
         assert regular_unoplat_file.has_data_model is False

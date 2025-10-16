@@ -8,26 +8,29 @@ that works with structural signatures instead of re-parsing source code.
 
 import asyncio
 from pathlib import Path
-from typing import Dict, List
 import tempfile
+from typing import Dict, List
 
-import pytest
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
-
+import pytest
+from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
+    extract_imports_from_source,
+)
 from src.code_confluence_flow_bridge.engine.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
+from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
+    build_python_extractor_config,
+)
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
-    TreeSitterStructuralSignatureExtractor,
+    TreeSitterPythonStructuralSignatureExtractor,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
-)
-from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
-    build_import_aliases,
-    extract_imports_from_source,
 )
 
 
@@ -41,9 +44,10 @@ class TestFrameworkDetectionWithPostgres:
         """Create Python framework detection service."""
         return PythonFrameworkDetectionService()
 
-    def get_structural_extractor(self) -> TreeSitterStructuralSignatureExtractor:
+    def get_structural_extractor(self) -> TreeSitterPythonStructuralSignatureExtractor:
         """Create Tree-sitter structural signature extractor."""
-        return TreeSitterStructuralSignatureExtractor("python")
+        config = build_python_extractor_config()
+        return TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
 
 
     @pytest.mark.asyncio(loop_scope="session")

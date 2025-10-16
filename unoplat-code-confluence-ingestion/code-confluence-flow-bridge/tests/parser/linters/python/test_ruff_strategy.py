@@ -1,19 +1,27 @@
 # Standard Library
 import os
-import shutil
 from pathlib import Path
+import shutil
 from typing import Dict, List
 
 # Third Party
 import pytest
+from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import (
+    LinterType,
+)
+from src.code_confluence_flow_bridge.parser.linters.linter_factory import (
+    LinterStrategyFactory,
+)
+from src.code_confluence_flow_bridge.parser.linters.linter_strategy import (
+    LinterStrategy,
+)
 import tomlkit
 from tomlkit.items import Comment, Table
 
 # First Party
-from unoplat_code_confluence_commons.programming_language_metadata import ProgrammingLanguage
-from src.code_confluence_flow_bridge.models.workflow.code_confluence_linter import LinterType
-from src.code_confluence_flow_bridge.parser.linters.linter_factory import LinterStrategyFactory
-from src.code_confluence_flow_bridge.parser.linters.linter_strategy import LinterStrategy
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    ProgrammingLanguage,
+)
 
 
 class TestRuffStrategy:

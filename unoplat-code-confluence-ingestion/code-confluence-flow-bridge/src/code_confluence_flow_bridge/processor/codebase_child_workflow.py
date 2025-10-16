@@ -68,14 +68,6 @@ class CodebaseChildWorkflow:
 
         log.info(f"Starting codebase workflow for {codebase_qualified_name}")
         
-        
-        # #TODO: repository_name: str,
-        # repository_owner_name: str,
-        # codebase_name: str,
-        # workflow_id: str,
-        # workflow_run_id: str,
-        # trace_id: str
-        
         # 1. Parse package metadata
         log.info(f"Creating programming language metadata for {package_manager_metadata.programming_language}")
         programming_language_metadata = ProgrammingLanguageMetadata(
