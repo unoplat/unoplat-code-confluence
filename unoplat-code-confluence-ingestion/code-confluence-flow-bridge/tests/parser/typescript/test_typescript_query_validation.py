@@ -50,7 +50,7 @@ def typescript_query_dir() -> Path:
 def typescript_ast_sample_path() -> Path:
     """Fixture providing path to TypeScript AST sample file."""
     test_file = Path(__file__)
-    sample_path = test_file.parent.parent.parent.parent / "experiments" / "typescript_ast_sample.ts"
+    sample_path = test_file.parent.parent.parent / "test_data" / "typescript_files" / "typescript_ast_sample.ts"
     assert sample_path.exists(), f"TypeScript AST sample not found at {sample_path}"
     return sample_path
 
