@@ -31,6 +31,9 @@ class PackageManagerStrategyFactory:
         (ProgrammingLanguage.PYTHON, PackageManagerType.PIP): PipStrategy,
         (ProgrammingLanguage.PYTHON, PackageManagerType.UV): UvStrategy,
         (ProgrammingLanguage.TYPESCRIPT, PackageManagerType.NPM): NodePackageManagerStrategy,
+        (ProgrammingLanguage.TYPESCRIPT, PackageManagerType.YARN): NodePackageManagerStrategy,
+        (ProgrammingLanguage.TYPESCRIPT, PackageManagerType.PNPM): NodePackageManagerStrategy,
+        (ProgrammingLanguage.TYPESCRIPT, PackageManagerType.BUN): NodePackageManagerStrategy,
     }
     
     # Map string names to PackageManagerType enum values
@@ -39,6 +42,9 @@ class PackageManagerStrategyFactory:
         "pip": PackageManagerType.PIP,
         "uv": PackageManagerType.UV,
         "npm": PackageManagerType.NPM,
+        "yarn": PackageManagerType.YARN,
+        "pnpm": PackageManagerType.PNPM,
+        "bun": PackageManagerType.BUN,
     }
 
     @classmethod
