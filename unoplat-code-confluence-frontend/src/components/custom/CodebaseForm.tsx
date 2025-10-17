@@ -286,6 +286,16 @@ export function CodebaseForm({
             value={field.state.value}
             onValueChange={(value) => {
               field.handleChange(value);
+              const packageFieldName = `${getFieldName('programming_language_metadata')}.package_manager`;
+              const availableManagers = LANGUAGE_PACKAGE_MANAGERS[value] ?? [];
+              const currentManager = parentForm.store.state.values?.codebases?.[index]?.programming_language_metadata?.package_manager;
+
+              if (!currentManager || !availableManagers.includes(currentManager)) {
+                parentForm.setFieldValue(
+                  packageFieldName,
+                  availableManagers[0] ?? ""
+                );
+              }
             }}
             disabled={disabled}
           >
