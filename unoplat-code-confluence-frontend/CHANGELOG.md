@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.30.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.0...unoplat-code-confluence-frontend-v1.30.1) (2025-10-17)
+
+
+### Bug Fixes
+
+* **codebase-form:** Auto-update package manager on language change ([963cb31](https://github.com/unoplat/unoplat-code-confluence/commit/963cb31b817a0f85b51a72f030bbb8921a22b5c2))
+* **codebase-form:** Dynamically render language package managers ([50d7102](https://github.com/unoplat/unoplat-code-confluence/commit/50d71027cfbc6bd00e6608cf3ab3e2b02f8611f2))
+* **codebase-form:** Dynamically render language package managers ([8e4ddf7](https://github.com/unoplat/unoplat-code-confluence/commit/8e4ddf71bc5912de8a405b5d44186d257f44dd97))
+
 ## [1.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.3...unoplat-code-confluence-frontend-v1.30.0) (2025-10-04)
 
 
