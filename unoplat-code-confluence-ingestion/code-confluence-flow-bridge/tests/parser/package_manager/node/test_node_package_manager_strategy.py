@@ -37,6 +37,34 @@ def node_metadata() -> ProgrammingLanguageMetadata:
     )
 
 
+@pytest.fixture(
+    params=[
+        PackageManagerType.NPM,
+        PackageManagerType.YARN,
+        PackageManagerType.PNPM,
+        PackageManagerType.BUN,
+    ]
+)
+def node_metadata_all_managers(request) -> ProgrammingLanguageMetadata:
+    """Create metadata for all TypeScript package managers.
+
+    Parametrized fixture that tests NodePackageManagerStrategy with:
+    - NPM
+    - YARN
+    - PNPM
+    - BUN
+
+    This ensures the strategy works correctly regardless of which
+    TypeScript package manager is detected.
+    """
+    return ProgrammingLanguageMetadata(
+        language=ProgrammingLanguage.TYPESCRIPT,
+        package_manager=request.param,
+        language_version=None,
+        manifest_path="package.json",
+    )
+
+
 @pytest.fixture
 def library_package_dir(tmp_path: Path) -> Path:
     """Write library package.json to temporary directory."""
@@ -98,3 +126,29 @@ def test_application_package_engine_fallback(node_strategy: NodePackageManagerSt
     overrides = metadata.dependencies["override"]
     assert overrides["lodash"].version.specifier == "^4.17.21"
     assert overrides["axios"].version.specifier == "^1.6.2"
+
+
+def test_all_typescript_package_managers(node_strategy: NodePackageManagerStrategy, node_metadata_all_managers: ProgrammingLanguageMetadata, library_package_dir: Path) -> None:
+    """Verify NodePackageManagerStrategy works with all TypeScript package managers.
+
+    This test uses a parametrized fixture to test with NPM, YARN, PNPM, and BUN.
+    The strategy should process metadata correctly regardless of which package
+    manager is specified, as they all use package.json as the manifest.
+    """
+    metadata = node_strategy.process_metadata(str(library_package_dir), node_metadata_all_managers)
+
+    # Verify core metadata fields are processed correctly
+    assert metadata.package_name == "@unoplat/example-library"
+    assert metadata.project_version == "2.3.1"
+    assert "comprehensive test library package" in metadata.description
+
+    # Verify package manager value is preserved in metadata
+    expected_pm = node_metadata_all_managers.package_manager.value if node_metadata_all_managers.package_manager else "unknown"
+    assert metadata.package_manager == expected_pm
+
+    # Verify dependencies are parsed correctly regardless of package manager
+    deps = metadata.dependencies
+    assert "default" in deps
+    assert "dev" in deps
+    assert deps["default"]["chalk"].version.specifier == "^5.3.0"
+    assert deps["dev"]["typescript"].version.specifier == "^5.3.0"
