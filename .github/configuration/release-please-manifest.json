@@ -3,6 +3,6 @@
   "code-confluence": "0.21.0",
   "unoplat-code-confluence-query-engine": "0.17.1",
   ".": "0.9.0",
-  "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": "0.56.2",
+  "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": "0.56.3",
   "unoplat-code-confluence-frontend": "1.30.0"
 }

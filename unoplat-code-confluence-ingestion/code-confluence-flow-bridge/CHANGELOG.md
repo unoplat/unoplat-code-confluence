@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.56.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.56.2...code-confluence-flow-bridge-v0.56.3) (2025-10-17)
+
+
+### Bug Fixes
+
+* **package-manager:** common data parsing for typescript across yarn , bun , pnpm and npm and comprehensive package manager tests for TypeScript ([26611b9](https://github.com/unoplat/unoplat-code-confluence/commit/26611b9955516b93e431847e4afbffd5e645eab5))
+* **package-manager:** common data parsing for typescript across yarn , bun , pnpm and npm and comprehensive package manager tests for TypeScript ([5dc1a0b](https://github.com/unoplat/unoplat-code-confluence/commit/5dc1a0b64cd290111f1f6337f150c3f8205ff228))
+
 ## [0.56.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.56.1...code-confluence-flow-bridge-v0.56.2) (2025-10-16)
 
 
