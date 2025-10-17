@@ -297,7 +297,14 @@ export function CodebaseForm({
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="python">Python</SelectItem>
+              {Object.keys(LANGUAGE_PACKAGE_MANAGERS).map((langKey) => {
+                const label = langKey.charAt(0).toUpperCase() + langKey.slice(1);
+                return (
+                  <SelectItem key={langKey} value={langKey}>
+                    {label}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         )}
