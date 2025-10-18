@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.2...unoplat-code-confluence-commons-v0.32.0) (2025-10-18)
+
+
+### Features
+
+* **base_models:** Add DataModelPosition for tracking model locations for precise context engineering around data models ([93f9b2c](https://github.com/unoplat/unoplat-code-confluence/commit/93f9b2c4e7b2d1b15fe10145eb9d713cdda09806))
+* **base_models:** Add DataModelPosition for tracking model locations for precise context engineering around data models ([3d7c6ef](https://github.com/unoplat/unoplat-code-confluence/commit/3d7c6efd8731561675edd7b852603a8d2e1f7f5e))
+
 ## [0.31.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.1...unoplat-code-confluence-commons-v0.31.2) (2025-10-16)
 
 
