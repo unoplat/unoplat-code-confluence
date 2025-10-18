@@ -561,21 +561,24 @@ class GenericCodebaseParser:
                     else "{}",
                     "imports": unoplat_file.imports or [],
                     "has_data_model": unoplat_file.has_data_model,
+                    "data_model_positions": unoplat_file.data_model_positions.model_dump_json(),
                 }
 
                 # Follow neomodel's create_or_update pattern: MERGE only on required properties (file_path)
                 create_file_query = """
                 MERGE (f:CodeConfluenceFile {file_path: $file_path})
-                ON CREATE SET 
+                ON CREATE SET
                     f.checksum = $checksum,
                     f.structural_signature = $structural_signature,
                     f.imports = $imports,
-                    f.has_data_model = $has_data_model
-                ON MATCH SET 
+                    f.has_data_model = $has_data_model,
+                    f.data_model_positions = $data_model_positions
+                ON MATCH SET
                     f.checksum = $checksum,
                     f.structural_signature = $structural_signature,
                     f.imports = $imports,
-                    f.has_data_model = $has_data_model
+                    f.has_data_model = $has_data_model,
+                    f.data_model_positions = $data_model_positions
                 RETURN f
                 """
 
