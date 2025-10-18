@@ -381,6 +381,8 @@ class TestGenericCodebaseParserIntegration:
         assert api_has_data_model is False, "api_client.py should be marked as has_data_model=False"
 
         # 12. Count total dataclass vs non-dataclass files
+        # NOTE: Currently only detects @dataclass decorators, not Pydantic BaseModel inheritance
+        # settings.py uses BaseModel and is NOT detected as a data model (expected behavior for now)
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) RETURN f.has_data_model, COUNT(f) as count"
         )
@@ -393,8 +395,8 @@ class TestGenericCodebaseParserIntegration:
             else:
                 non_dataclass_count = row[1]
 
-        assert dataclass_count == 2, f"Expected 1 dataclass file, got {dataclass_count}"
-        assert non_dataclass_count == 4, f"Expected 5 non-dataclass files, got {non_dataclass_count}"  # __main__.py, api_client.py, settings.py, generator.py, helpers.py
+        assert dataclass_count == 1, f"Expected 1 dataclass file (user_model.py), got {dataclass_count}"
+        assert non_dataclass_count == 5, f"Expected 5 non-dataclass files (__main__.py, api_client.py, settings.py, generator.py, helpers.py), got {non_dataclass_count}"
 
         logger.info(f"Data model detection test passed: {dataclass_count} dataclass files, {non_dataclass_count} regular files")
         logger.info(
