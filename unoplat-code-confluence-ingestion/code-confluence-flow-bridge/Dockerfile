@@ -13,7 +13,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Install runtime tools now – they'll be copied later
-RUN pip install --no-cache-dir uv ruff
+RUN pip install --no-cache-dir uv
 
 WORKDIR /app
 COPY pyproject.toml ./
