@@ -20,7 +20,6 @@ from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
 from src.code_confluence_flow_bridge.parser.generic_codebase_parser import (
     GenericCodebaseParser,
 )
-from src.code_confluence_flow_bridge.parser.linters.linter_parser import LinterParser
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
     CodeConfluenceGraph,
 )
@@ -78,10 +77,7 @@ class GenericCodebaseProcessingActivity:
                 codebase_qualified_name, codebase_path, programming_language_metadata.language.value
             )
 
-            # 1. Lint the codebase using existing LinterParser for consistency
-            await self._lint_codebase(envelope, log)
-
-            # 2. Process codebase with new parser (direct Neo4j insertion, no return)
+            # Process codebase with parser (AST generation and parsing, direct Neo4j insertion)
             await self._process_codebase_with_parser(envelope, log)
 
             log.info(
@@ -107,47 +103,6 @@ class GenericCodebaseProcessingActivity:
                     "activity_name": "process_codebase_generic",
                     "traceback": traceback.format_exc()
                 }
-            )
-
-    async def _lint_codebase(self, envelope: CodebaseProcessingActivityEnvelope, log: "Logger") -> None:
-        """
-        Lint the codebase using existing LinterParser for consistency.
-        
-        Args:
-            envelope: Activity envelope with codebase parameters
-        """
-        try:
-            log.info(
-                "Starting linting for codebase | codebase_qualified_name={} | programming_language={}",
-                envelope.codebase_qualified_name, envelope.programming_language_metadata.language.value
-            )
-
-            linter = LinterParser()
-            lint_success = linter.lint_codebase(
-                envelope.codebase_path,
-                envelope.dependencies,
-                envelope.programming_language_metadata
-            )
-
-            if lint_success:
-                log.info(
-                    "Linting completed successfully | codebase_qualified_name={} | programming_language={}",
-                    envelope.codebase_qualified_name,
-                    envelope.programming_language_metadata.language.value
-                )
-            else:
-                log.warning(
-                    "Linting skipped or completed with issues | codebase_qualified_name={} | programming_language={} | "
-                    "Check if linter is configured for this language",
-                    envelope.codebase_qualified_name,
-                    envelope.programming_language_metadata.language.value
-                )
-
-        except Exception as e:
-            # Log warning but don't fail the entire processing
-            log.warning(
-                "Linting failed, continuing with parsing | codebase_qualified_name={} | error={}",
-                envelope.codebase_qualified_name, str(e)
             )
 
     async def _process_codebase_with_parser(self, envelope: CodebaseProcessingActivityEnvelope, log: "Logger") -> None:

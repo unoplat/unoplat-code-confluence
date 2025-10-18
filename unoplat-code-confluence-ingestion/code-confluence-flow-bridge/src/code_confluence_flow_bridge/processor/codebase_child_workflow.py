@@ -106,9 +106,9 @@ class CodebaseChildWorkflow:
         )
         
         programming_language_metadata.language_version = parsed_metadata.programming_language_version
-         
-        # 3. Process codebase with the generic parser (linting, AST generation, parsing)
-        log.info("Processing codebase using generic parser (revamp) mode")
+
+        # 3. Process codebase with the generic parser (AST generation, parsing)
+        log.info("Processing codebase using generic parser (AST generation and parsing)")
 
         codebase_processing_envelope = CodebaseProcessingActivityEnvelope(
             root_packages=root_packages,

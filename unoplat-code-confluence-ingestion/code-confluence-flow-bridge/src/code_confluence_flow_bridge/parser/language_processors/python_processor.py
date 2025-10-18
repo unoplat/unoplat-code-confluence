@@ -170,7 +170,7 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
                 self._extract_imports, content
             )
 
-            has_data_model = detect_data_model(
+            data_model_detected, data_model_positions = detect_data_model(
                 source_code=content,
                 imports=imports,
                 language=metadata.language.value,
@@ -201,7 +201,8 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
                 structural_signature=signature,
                 imports=imports,
                 custom_features_list=custom_features_list,
-                has_data_model=has_data_model,
+                has_data_model=data_model_detected,
+                data_model_positions=data_model_positions,
             )
 
         except Exception as exc:  # pylint: disable=broad-exception-caught
