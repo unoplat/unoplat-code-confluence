@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.57.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.56.3...code-confluence-flow-bridge-v0.57.0) (2025-10-18)
+
+
+### Features
+
+* **python-typescript-grammar-context-engineering:** Extract precise data model positions for TypeScript and Python files for precise ([2297666](https://github.com/unoplat/unoplat-code-confluence/commit/22976661260330303504f898c56937ed971ba3ae))
+* **python-typescript-grammar-context-engineering:** Extract precise data model positions for TypeScript and Python files for precise ([3682393](https://github.com/unoplat/unoplat-code-confluence/commit/368239331cedc8409b25b975160284ebdc7ad6f9))
+
+
+### Bug Fixes
+
+* test assertions ([82f2810](https://github.com/unoplat/unoplat-code-confluence/commit/82f2810ef38769438b3bc2015920e0d970e31f76))
+
 ## [0.56.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.56.2...code-confluence-flow-bridge-v0.56.3) (2025-10-17)
 
 
