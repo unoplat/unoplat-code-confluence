@@ -41,6 +41,7 @@ class CodeConfluenceFile(AsyncStructuredNode):
     )
     class_variables = JSONProperty(default={})
     has_data_model = BooleanProperty(default=False, index=True)
+    data_model_positions = JSONProperty(default={})
     # Relationship to framework features detected in this file
       # local import to avoid cycles
 
