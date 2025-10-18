@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 from unoplat_code_confluence_commons.base_models import (
+    DataModelPosition,
     Detection,
     PythonStructuralSignature,
     TypeScriptStructuralSignature,
@@ -12,10 +13,10 @@ from unoplat_code_confluence_commons.base_models import (
 
 class UnoplatFile(BaseModel):
     """Represents individual source code files."""
-    
+
     file_path: str = Field(description="Absolute file path")
     checksum: Optional[str] = Field(
-        default=None, 
+        default=None,
         description="Optional content checksum for change tracking"
     )
     structural_signature: Optional[
@@ -28,13 +29,18 @@ class UnoplatFile(BaseModel):
         default_factory=list,
         description="List of imports in the file"
     )
-    
+
     custom_features_list: Optional[List[Detection]] = Field(
         default=None,
         description="List of custom features detected in the file"
     )
-    
+
     has_data_model: bool = Field(
         default=False,
         description="True if file contains classes that are data models (e.g., @dataclass)"
+    )
+
+    data_model_positions: DataModelPosition = Field(
+        default_factory=DataModelPosition,
+        description="Positions of data models detected in the file"
     )

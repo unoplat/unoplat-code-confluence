@@ -16,7 +16,6 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlmodel import SQLModel
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 
 # PostgreSQL connection settings - read from environment variables
