@@ -1,5 +1,10 @@
 """Common Pydantic and SQLModel base models for unoplat-code-confluence projects."""
 
+# Data model position models
+from unoplat_code_confluence_commons.base_models.data_model_position import (
+    DataModelPosition,
+)
+
 # Structural signature models
 # Engine Pydantic models
 from unoplat_code_confluence_commons.base_models.engine_models import (
@@ -87,6 +92,8 @@ from unoplat_code_confluence_commons.repo_models import (
 )
 
 __all__ = [
+    # Data model position models
+    "DataModelPosition",
     # Python Structural signature models
     "PythonVariableInfo",
     "PythonFunctionInfo",
