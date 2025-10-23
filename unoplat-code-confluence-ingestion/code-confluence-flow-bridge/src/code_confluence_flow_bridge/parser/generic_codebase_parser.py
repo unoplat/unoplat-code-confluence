@@ -2,7 +2,7 @@
 
 # No longer need graph_context - using neomodel operations directly with global connection
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 from unoplat_code_confluence_commons.base_models import (
     ProgrammingLanguageMetadata,
@@ -37,17 +37,7 @@ if TYPE_CHECKING:
 
 from loguru import logger
 from neo4j import AsyncSession
-from neomodel import (  # type: ignore  # imported lazily to avoid circular deps
-    AsyncRelationshipTo,
-    AsyncZeroOrMore,
-    adb,
-)
-from unoplat_code_confluence_commons.graph_models.base_models import (
-    ContainsRelationship,
-)
-from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
-    CodeConfluencePackage,
-)
+# Note: persistence relies on raw Cypher via the Neo4j driver—graph models are not imported here.
 
 
 class GenericCodebaseParser:
@@ -101,7 +91,6 @@ class GenericCodebaseParser:
 
         # Metrics tracking
         self.files_processed = 0
-        self.packages_created = 0
 
         # Initialize components immediately
         self._initialize_components()
@@ -117,37 +106,7 @@ class GenericCodebaseParser:
 
 
     def _initialize_components(self) -> None:
-        """Initialize supporting services and apply runtime patches."""
-        # ----------------------------------------------------------------------------------
-        # Ensure that the CodeConfluencePackage.sub_packages relationship is **directed**
-        # so that querying `pkg.sub_packages` only returns true child packages and not
-        # its parent packages. The version of `unoplat_code_confluence_commons` currently
-        # exposes `sub_packages` as an undirected `AsyncRelationship`, which results in
-        # symmetric traversal (child → parent as well as parent → child). The integration
-        # tests bundled with this repository expect a *directed* edge from parent → child.
-        # Runtime monkey-patching is used here to avoid modifying the external library.
-        # ----------------------------------------------------------------------------------
-        existing_rel = getattr(CodeConfluencePackage, "sub_packages", None)
-
-        # Patch only if it is undirected; we detect this heuristically by checking the type name
-        if existing_rel.__class__.__name__ != "AsyncRelationshipTo":  # type: ignore[attr-defined]
-            logger.debug(
-                "Patching CodeConfluencePackage.sub_packages to be directed (AsyncRelationshipTo)"
-            )
-
-            # Use the actual class object here (or an absolute import path) so that
-            # `neomodel` doesn't attempt a relative import that points to the
-            # *current* module (``src.code_confluence_flow_bridge.parser``), which
-            # resulted in a ``ModuleNotFoundError`` during traversal installation
-            # inside the async matcher. Passing the class object avoids the string
-            # import resolution step altogether and guarantees the correct target.
-            CodeConfluencePackage.sub_packages = AsyncRelationshipTo(
-                CodeConfluencePackage,  # type: ignore[arg-type]
-                "CONTAINS_PACKAGE",
-                model=ContainsRelationship,
-                cardinality=AsyncZeroOrMore,
-            )  # type: ignore[assignment]
-
+        """Initialize supporting services."""
         # Initialize framework detection service based on language
         if self.framework_detection_service is None:
             if self.programming_language_metadata.language.value == "python":
@@ -212,335 +171,47 @@ class GenericCodebaseParser:
         """
         return self.language_processor.should_ignore(file_path)
 
-    
-
-    async def _handle_node_creation_managed(
-        self, session: AsyncSession, node_type: str, node_dict: Dict[str, Any]
-    ) -> str:
-        """
-        Safely create or retrieve a node using managed transactions with raw Cypher MERGE operations.
-
-        Args:
-            session: Neo4j async session from connection pool
-            node_type: Node type (e.g., "CodeConfluencePackage", "CodeConfluenceFile")
-            node_dict: Dictionary containing node properties
-
-        Returns:
-            Node qualified_name or identifier
-        """
-        try:
-            if node_type == "CodeConfluencePackage":
-                query = """
-                MERGE (n:CodeConfluencePackage {qualified_name: $qualified_name})
-                ON CREATE SET 
-                    n.name = $name,
-                    n.created_at = datetime(),
-                    n.updated_at = datetime()
-                ON MATCH SET 
-                    n.updated_at = datetime()
-                RETURN n.qualified_name as identifier
-                """
-            elif node_type == "CodeConfluenceFile":
-                query = """
-                MERGE (n:CodeConfluenceFile {file_path: $file_path})
-                ON CREATE SET 
-                    n.checksum = $checksum,
-                    n.structural_signature = $structural_signature,
-                    n.imports = $imports,
-                    n.created_at = datetime(),
-                    n.updated_at = datetime()
-                ON MATCH SET 
-                    n.checksum = $checksum,
-                    n.structural_signature = $structural_signature,
-                    n.imports = $imports,
-                    n.updated_at = datetime()
-                RETURN n.file_path as identifier
-                """
-            elif node_type == "CodeConfluenceFrameworkFeature":
-                query = """
-                MERGE (n:CodeConfluenceFrameworkFeature {qualified_name: $qualified_name})
-                ON CREATE SET 
-                    n.language = $language,
-                    n.library = $library,
-                    n.feature_key = $feature_key,
-                    n.created_at = datetime(),
-                    n.updated_at = datetime()
-                ON MATCH SET 
-                    n.updated_at = datetime()
-                RETURN n.qualified_name as identifier
-                """
-            else:
-                raise ValueError(f"Unsupported node type: {node_type}")
-
-            result = await session.execute_write(lambda tx: tx.run(query, node_dict))
-            record = await result.single()
-            return record["identifier"] if record else ""
-
-        except Exception as e:
-            logger.error(
-                f"Unexpected error creating {node_type} with managed transactions: {e}"
-            )
-            raise
-
-    def discover_packages(self) -> Dict[str, List[str]]:
-        """Discover packages by absolute directory path (Linux/Posix).
-
-        Uses language processor's supported_extensions to filter files.
-
-        Returns:
-            Dict mapping package path (absolute) to list of file paths
-        """
+    def discover_source_files(self) -> List[str]:
+        """Discover source files under the codebase root filtered by supported extensions."""
         logger.info(
-            "Discovering packages | codebase_path={} | language={} | extensions={}",
+            "Discovering source files | codebase_path={} | language={} | extensions={}",
             self.codebase_path,
             self.programming_language_metadata.language.value,
             self.language_processor.supported_extensions,
         )
 
         root_path = self.codebase_path.resolve()
-        package_files: Dict[str, List[str]] = {}
         supported_extensions = self.language_processor.supported_extensions
+        discovered_files: List[str] = []
 
-        # 1️⃣ walk every source file and group by its parent directory (absolute path)
         for file_path in root_path.rglob("*"):
-            if file_path.is_file() and file_path.suffix in supported_extensions:
-                if self._should_ignore_file(file_path):
-                    logger.debug("Ignoring file: {}", file_path)
-                    continue
-
-                pkg_path = file_path.parent.resolve()
-                pkg_qname = pkg_path.as_posix()  # absolute path string
-                package_files.setdefault(pkg_qname, []).append(str(file_path.resolve()))
-
-        # 2️⃣ ensure that every ancestor folder between the repo root and any discovered
-        #     package is present in the mapping (even if it contains no source files)
-        for pkg_q in list(package_files.keys()):
-            current = Path(pkg_q)
-
-            if current == root_path:
+            if not file_path.is_file():
+                continue
+            if file_path.suffix not in supported_extensions:
+                continue
+            if self._should_ignore_file(file_path):
+                logger.debug("Ignoring file: {}", file_path)
                 continue
 
-            while current != root_path and current.parent != current:
-                current = current.parent
-                package_files.setdefault(current.as_posix(), [])
+            discovered_files.append(str(file_path.resolve()))
+
+        discovered_files.sort()
 
         logger.info(
-            "Discovered packages with source files | package_count={}",
-            len(package_files),
+            "Discovered source files | file_count={}",
+            len(discovered_files),
         )
-        return package_files
-
-    def build_package_hierarchy(
-        self, package_files: Dict[str, List[str]]
-    ) -> Dict[str, str]:
-        """Map child-package absolute path → parent absolute path."""
-        hierarchy: Dict[str, str] = {}
-        for child_q in package_files.keys():
-            parent_q = Path(child_q).parent.as_posix()
-            if parent_q in package_files:
-                hierarchy[child_q] = parent_q
-        return hierarchy
+        return discovered_files
 
     def _increment_files_processed(self, count: int) -> None:
         """Increment processed files counter."""
         self.files_processed += count
-
-    async def create_packages_managed(
-        self, session: "AsyncSession", package_names: List[str]
-    ) -> None:
-        """
-        Create package nodes using managed transactions with raw Cypher MERGE operations.
-
-        Args:
-            session: Neo4j async session from connection pool
-            package_names: List of package qualified names to create
-        """
-        try:
-            for package_name in package_names:
-                # Extract simple name using pathlib
-                simple_name = Path(package_name).name
-
-                # Create package using raw Cypher MERGE following neomodel's create_or_update pattern
-                # MERGE only on required properties (qualified_name), then use ON CREATE/MATCH SET
-                create_package_query = """
-                MERGE (p:CodeConfluencePackage {qualified_name: $qualified_name})
-                ON CREATE SET p.name = $name
-                ON MATCH SET p.name = $name
-                RETURN p
-                """
-
-                await session.execute_write(
-                    lambda tx: tx.run(
-                        create_package_query,
-                        {"qualified_name": package_name, "name": simple_name},
-                    )
-                )
-
-            logger.info(
-                f"Created/updated {len(package_names)} packages using managed transactions"
-            )
-
-        except Exception as e:
-            logger.error("Failed to create packages with managed transactions: {}", e)
-            raise
-
-    async def create_package_hierarchy_old(
-        self, package_hierarchy: Dict[str, str]
-    ) -> None:
-        """
-        Create package parent-child relationships using neomodel.
-
-        NOTE: Soon to be deprecated - use create_package_hierarchy_managed() instead
-
-        Args:
-            package_hierarchy: Map of child package to parent package
-        """
-        if not package_hierarchy:
-            return
-
-        try:
-            for child_pkg_name, parent_pkg_name in package_hierarchy.items():
-                async with adb.transaction:
-                    # Get parent and child packages
-                    parent = await CodeConfluencePackage.nodes.get(
-                        qualified_name=parent_pkg_name
-                    )
-                    child = await CodeConfluencePackage.nodes.get(
-                        qualified_name=child_pkg_name
-                    )
-
-                    # Connect them using the sub_packages relationship
-                    await parent.sub_packages.connect(child)
-                    await child.parent_package.connect(parent)
-
-                    logger.debug(
-                        f"Connected packages: {parent_pkg_name} -> {child_pkg_name}"
-                    )
-
-            logger.info("Created {} package relationships", len(package_hierarchy))
-
-        except Exception as e:
-            logger.error("Failed to create package hierarchy: {}", e)
-            raise
-
-    async def create_package_hierarchy_managed(
-        self, session: AsyncSession, package_hierarchy: Dict[str, str]
-    ) -> None:
-        """
-        Create package parent-child relationships using managed transactions with raw Cypher MERGE operations.
-
-        Args:
-            session: Neo4j async session from connection pool
-            package_hierarchy: Map of child package to parent package
-        """
-        if not package_hierarchy:
-            return
-
-        try:
-            for child_pkg_name, parent_pkg_name in package_hierarchy.items():
-                # Create package hierarchy relationships using raw Cypher MERGE
-                create_hierarchy_query = """
-                MATCH (parent:CodeConfluencePackage {qualified_name: $parent_qualified_name})
-                MATCH (child:CodeConfluencePackage {qualified_name: $child_qualified_name})
-                MERGE (parent)-[:CONTAINS_PACKAGE]->(child)
-                MERGE (child)-[:PART_OF_PACKAGE]->(parent)
-                RETURN parent, child
-                """
-
-                await session.execute_write(
-                    lambda tx: tx.run(
-                        create_hierarchy_query,
-                        {
-                            "parent_qualified_name": parent_pkg_name,
-                            "child_qualified_name": child_pkg_name,
-                        },
-                    )
-                )
-
-                logger.debug(
-                    f"Connected packages: {parent_pkg_name} -> {child_pkg_name}"
-                )
-
-            logger.info(
-                f"Created {len(package_hierarchy)} package relationships using managed transactions"
-            )
-
-        except Exception as e:
-            logger.error(
-                f"Failed to create package hierarchy with managed transactions: {e}"
-            )
-            raise
-
-    
-    async def _connect_root_packages_managed(
-        self, session: AsyncSession, package_files: Dict[str, List[str]]
-    ) -> None:
-        """Connect top-level packages (direct children of the codebase) to the CodeConfluenceCodebase node using managed transactions.
-
-        Args:
-            session: Neo4j async session from connection pool
-            package_files: Map of package qualified names to their file lists.
-        """
-        try:
-            # Identify root packages (direct children of codebase path)
-            root_package_names = []
-            for pkg_name in package_files.keys():
-                if Path(pkg_name).parent == self.codebase_path.resolve():
-                    root_package_names.append(pkg_name)
-
-            if not root_package_names:
-                logger.warning(
-                    "No root packages discovered for codebase {} – skipping relationship creation",
-                    self.codebase_name,
-                )
-                return
-
-            # Connect root packages to codebase using raw Cypher MERGE
-            for root_pkg in root_package_names:
-                try:
-                    connect_root_query = """
-                    MATCH (codebase:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
-                    MATCH (pkg:CodeConfluencePackage {qualified_name: $package_qualified_name})
-                    MERGE (codebase)-[:CONTAINS_PACKAGE]->(pkg)
-                    MERGE (pkg)-[:PART_OF_CODEBASE]->(codebase)
-                    RETURN codebase, pkg
-                    """
-
-                    await session.execute_write(
-                        lambda tx: tx.run(
-                            connect_root_query,
-                            {
-                                "codebase_qualified_name": self.codebase_name,
-                                "package_qualified_name": root_pkg,
-                            },
-                        )
-                    )
-                except Exception as e:
-                    logger.warning(
-                        "Failed to connect root package {} to codebase {}: {}",
-                        root_pkg,
-                        self.codebase_name,
-                        str(e),
-                    )
-
-            logger.info(
-                "Connected {} root packages to codebase {} using managed transactions",
-                len(root_package_names),
-                self.codebase_name,
-            )
-        except Exception as outer_err:
-            logger.error(
-                "Error while connecting root packages for codebase {} with managed transactions: {}",
-                self.codebase_name,
-                str(outer_err),
-            )
 
 
     async def insert_files_managed(
         self,
         session: AsyncSession,
         file_data_list: List[UnoplatFile],
-        package_files: Dict[str, List[str]],
     ) -> None:
         """
         Insert files using managed transactions with raw Cypher MERGE operations.
@@ -548,7 +219,6 @@ class GenericCodebaseParser:
         Args:
             session: Neo4j async session from connection pool
             file_data_list: List of UnoplatFile objects
-            package_files: Map of package name to files for determining package relationships
         """
         try:
             for unoplat_file in file_data_list:
@@ -646,31 +316,23 @@ class GenericCodebaseParser:
                             )
                         )
 
-                # Connect file to its package
-                package_qualified_name = None
-                for pkg_name, files in package_files.items():
-                    if unoplat_file.file_path in files:
-                        package_qualified_name = pkg_name
-                        break
+                connect_file_codebase_query = """
+                MATCH (f:CodeConfluenceFile {file_path: $file_path})
+                MATCH (c:CodeConfluenceCodebase {qualified_name: $codebase_qualified_name})
+                MERGE (c)-[:CONTAINS_FILE]->(f)
+                MERGE (f)-[:PART_OF_CODEBASE]->(c)
+                RETURN f, c
+                """
 
-                if package_qualified_name:
-                    connect_file_package_query = """
-                    MATCH (f:CodeConfluenceFile {file_path: $file_path})
-                    MATCH (p:CodeConfluencePackage {qualified_name: $package_qualified_name})
-                    MERGE (f)-[:PART_OF_PACKAGE]->(p)
-                    MERGE (p)-[:CONTAINS_FILE]->(f)
-                    RETURN f, p
-                    """
-
-                    await session.execute_write(
-                        lambda tx: tx.run(
-                            connect_file_package_query,
-                            {
-                                "file_path": unoplat_file.file_path,
-                                "package_qualified_name": package_qualified_name,
-                            },
-                        )
+                await session.execute_write(
+                    lambda tx: tx.run(
+                        connect_file_codebase_query,
+                        {
+                            "file_path": unoplat_file.file_path,
+                            "codebase_qualified_name": self.codebase_name,
+                        },
                     )
+                )
 
                 logger.debug("Created file: {}", unoplat_file.file_path)
 
@@ -691,10 +353,10 @@ class GenericCodebaseParser:
         try:
             logger.info(f"Starting codebase processing: {self.codebase_name}")
 
-            # 1. Discover packages and files
-            package_files = self.discover_packages()
+            # 1. Discover all source files within the codebase
+            file_paths = self.discover_source_files()
 
-            if not package_files:
+            if not file_paths:
                 logger.warning(f"No source files found in {self.codebase_path}")
                 return
 
@@ -707,24 +369,13 @@ class GenericCodebaseParser:
             async with self.code_confluence_graph.get_session() as session:
                 logger.debug("Started managed Neo4j session for codebase processing")
 
-                # 2. Create all packages
-                await self.create_packages_managed(session, list(package_files.keys()))
-
-                # 3. Create package hierarchy
-                hierarchy = self.build_package_hierarchy(package_files)
-                await self.create_package_hierarchy_managed(session, hierarchy)
-
-                # 3b. Connect root-level packages (depth-1) to the CodeConfluenceCodebase node
-                await self._connect_root_packages_managed(session, package_files)
-
-                # 4. Process and insert files
-                await self.process_files_managed(session, package_files)
+                # 2. Process and insert files
+                await self.process_files_managed(session, file_paths)
 
                 logger.debug("Completed all Neo4j operations within managed session")
 
             logger.info(
-                f"Completed codebase processing: {self.files_processed} files, "
-                f"{self.packages_created} packages"
+                f"Completed codebase processing: {self.files_processed} files"
             )
 
         except Exception as e:
@@ -732,18 +383,18 @@ class GenericCodebaseParser:
             raise
 
     async def process_files_managed(
-        self, session: AsyncSession, package_files: Dict[str, List[str]]
+        self, session: AsyncSession, file_paths: List[str]
     ) -> None:
         """
         Process all files sequentially using managed transactions.
 
         Args:
             session: Neo4j async session from connection pool
-            package_files: Map of package name to files
+            file_paths: List of file paths to process
         """
         try:
-            async for file_data in self.language_processor.iter_files(package_files):
-                await self.insert_files_managed(session, [file_data], package_files)
+            async for file_data in self.language_processor.iter_files(file_paths):
+                await self.insert_files_managed(session, [file_data])
 
             logger.info(
                 f"Processed {self.files_processed} files using managed transactions"
