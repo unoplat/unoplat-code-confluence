@@ -114,8 +114,10 @@ class GenericCodebaseProcessingActivity:
         """
         try:
             log.info(
-                "Starting generic parser processing | codebase_qualified_name={} | root_packages={} | programming_language={}",
-                envelope.codebase_qualified_name, envelope.root_packages, envelope.programming_language_metadata.language.value
+                "Starting generic parser processing | codebase_qualified_name={} | programming_language={} | root_packages={} ",
+                envelope.codebase_qualified_name,
+                envelope.programming_language_metadata.language.value,
+                envelope.root_packages,
             )
 
             # Create parser instance
@@ -132,18 +134,17 @@ class GenericCodebaseProcessingActivity:
             await parser.process_and_insert_codebase()
                     
             log.info(
-                "Parser processing completed successfully | codebase_qualified_name={} | files_processed={} | packages_created={}",
-                envelope.codebase_qualified_name, 
+                "Parser processing completed successfully | codebase_qualified_name={} | files_processed={}",
+                envelope.codebase_qualified_name,
                 getattr(parser, 'files_processed', 0),
-                getattr(parser, 'packages_created', 0)
             )
 
         except Exception as e:
             log.error(
-                "Failed to process codebase | codebase_qualified_name={} | error={} | files_processed={} | packages_created={}",
-                envelope.codebase_qualified_name, str(e),
+                "Failed to process codebase | codebase_qualified_name={} | error={} | files_processed={}",
+                envelope.codebase_qualified_name,
+                str(e),
                 getattr(parser, 'files_processed', 0) if 'parser' in locals() else 0,
-                getattr(parser, 'packages_created', 0) if 'parser' in locals() else 0
             )
             raise
 

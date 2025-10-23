@@ -5,6 +5,13 @@ This module replaces the complex Tree-sitter based detection with direct
 analysis of pre-parsed structural signature data.
 """
 
+# TODO: Class decorator detection not yet implemented
+# Currently only function-level decorators are supported (target_level="function")
+# Future work: Add support for class decorators when target_level="class"
+# - Detect decorators on class definitions (e.g., @dataclass, @pydantic.validator)
+# - Parse class signatures to find decorator patterns
+# - Set start_line to decorator, end_line to end of class body
+
 import re
 from typing import Dict, List, Optional, Set
 
@@ -160,8 +167,8 @@ class SimplifiedPythonDetector:
                 library=spec.library,
                 match_text=full_decorator,
                 start_line=func.start_line,
-                end_line=func.start_line,  # Decorators are usually single line
-                object=obj_path,
+                end_line=func.end_line,  # Capture from decorator to end of function
+                bound_object=obj_path,
                 annotation_name=method_name,
                 metadata={
                     "concept": "AnnotationLike",

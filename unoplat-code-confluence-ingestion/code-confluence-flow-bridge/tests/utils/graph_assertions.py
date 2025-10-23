@@ -84,7 +84,7 @@ def count_relationships_by_type(neo4j_client, relationship_type: str) -> int:
     
     Args:
         neo4j_client: Neomodel database instance
-        relationship_type: Type of relationship (e.g., 'USES_FEATURE', 'PART_OF_PACKAGE')
+        relationship_type: Type of relationship (e.g., 'USES_FEATURE', 'PART_OF_CODEBASE')
         
     Returns:
         Number of relationships of the specified type
@@ -170,7 +170,6 @@ def verify_complete_repository_deletion(neo4j_client, repo_qualified_name: str) 
     # Check for specific node types that should be cleaned up
     node_labels_to_check = [
         "CodeConfluenceCodebase",
-        "CodeConfluencePackage", 
         "CodeConfluenceFile",
         "CodeConfluencePackageManagerMetadata"
     ]
@@ -199,8 +198,7 @@ def get_all_graph_model_labels() -> List[str]:
     """
     return [
         "CodeConfluenceGitRepository",
-        "CodeConfluenceCodebase", 
-        "CodeConfluencePackage",
+        "CodeConfluenceCodebase",
         "CodeConfluenceFile",
         "CodeConfluencePackageManagerMetadata",
         "CodeConfluenceFramework",
@@ -247,8 +245,8 @@ def assert_deletion_stats_accuracy(deletion_stats: Dict[str, int], pre_snapshot:
     """
     Validate API deletion statistics against actual pre-deletion graph state.
     
-    This is the key validation that would have caught the packages_deleted=0 bug
-    by comparing what the API reports vs what actually existed in the graph.
+    This is the key validation that compares what the API reports vs what actually
+    existed in the graph.
     
     Args:
         deletion_stats: API response deletion statistics
@@ -260,8 +258,7 @@ def assert_deletion_stats_accuracy(deletion_stats: Dict[str, int], pre_snapshot:
     # Map API deletion stat keys to graph model labels
     stat_to_label_mapping = {
         "repositories_deleted": "CodeConfluenceGitRepository",
-        "codebases_deleted": "CodeConfluenceCodebase", 
-        "packages_deleted": "CodeConfluencePackage",
+        "codebases_deleted": "CodeConfluenceCodebase",
         "files_deleted": "CodeConfluenceFile",
         "metadata_deleted": "CodeConfluencePackageManagerMetadata",
     }
@@ -279,12 +276,8 @@ def assert_deletion_stats_accuracy(deletion_stats: Dict[str, int], pre_snapshot:
                 )
     
     # Also validate that we had some content to delete (sanity check)
-    packages_count = pre_snapshot["node_counts"].get("CodeConfluencePackage", 0)
     files_count = pre_snapshot["node_counts"].get("CodeConfluenceFile", 0)
-    
-    if packages_count == 0:
-        mismatches.append("Sanity check failed: No packages existed after ingestion to delete")
-    
+
     if files_count == 0:
         mismatches.append("Sanity check failed: No files existed after ingestion to delete")
     
