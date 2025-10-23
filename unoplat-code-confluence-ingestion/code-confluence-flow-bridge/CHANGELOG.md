@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.57.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.57.0...code-confluence-flow-bridge-v0.57.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* **parser:** Refactor GenericCodebaseParser to focus on file insertion ([be17754](https://github.com/unoplat/unoplat-code-confluence/commit/be17754ab8a80b276820b205e37f0c9859e2b6b2))
+* **parser:** Refactor parser to focus on file insertion ([c0bd597](https://github.com/unoplat/unoplat-code-confluence/commit/c0bd5974bbe8298b1a8e9a6931bf0eae850c1cca))
+
 ## [0.57.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.56.3...code-confluence-flow-bridge-v0.57.0) (2025-10-18)
 
 
