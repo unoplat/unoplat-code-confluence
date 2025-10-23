@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.0...unoplat-code-confluence-commons-v0.32.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* **graph-models:** Remove CodeConfluencePackage and update relationships ([417692d](https://github.com/unoplat/unoplat-code-confluence/commit/417692d82efdcf7ae8b2c96fa7c8c54e1d4b3982))
+* **graph-models:** Remove CodeConfluencePackage and update relationships ([92b75da](https://github.com/unoplat/unoplat-code-confluence/commit/92b75da0aea46d832f9f5c27a6fc1d19769e1bca))
+
 ## [0.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.2...unoplat-code-confluence-commons-v0.32.0) (2025-10-18)
 
 
