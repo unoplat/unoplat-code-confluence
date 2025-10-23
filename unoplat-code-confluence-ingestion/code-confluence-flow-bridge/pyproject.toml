@@ -1,7 +1,7 @@
 [project]
 name = "code-confluence-flow-bridge"
 version = "0.57.0"
-description = "Bridge between Code Confluence User and Ingestion Workflow" 
+description = "Bridge between Code Confluence User and Ingestion Workflow"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -36,7 +36,7 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "aiofile>=3.9.0",
     "sse-starlette>=3.0.0",
-] 
+]
 
 [dependency-groups]
 test = [
@@ -62,7 +62,7 @@ dev = [
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
 #unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.32.0" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.32.1" }
 
 
 [tool.uv]
@@ -83,4 +83,3 @@ pythonpath = ["src"]
 markers = [
     "integration: integration tests connecting to external services",
 ]
-

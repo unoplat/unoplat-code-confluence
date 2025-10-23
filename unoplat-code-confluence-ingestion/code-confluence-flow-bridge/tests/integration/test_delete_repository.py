@@ -466,9 +466,7 @@ class TestDeleteRepositoryEndpoint:
         logger.info(f"  Node counts: {pre_deletion_snapshot['node_counts']}")
         
         # Sanity check: Ensure we have content to delete
-        packages_count = pre_deletion_snapshot["node_counts"].get("CodeConfluencePackage", 0)
         files_count = pre_deletion_snapshot["node_counts"].get("CodeConfluenceFile", 0)
-        assert packages_count > 0, f"Sanity check failed: No packages found after ingestion for {repo_qualified_name}"
         assert files_count > 0, f"Sanity check failed: No files found after ingestion for {repo_qualified_name}"
         
         # ------------------------------------------------------------------
@@ -502,7 +500,12 @@ class TestDeleteRepositoryEndpoint:
         deletion_stats = deletion_response["neo4j_deletion_stats"]
         
         # Check that deletion statistics contain expected keys
-        expected_keys = ["repositories_deleted", "codebases_deleted", "packages_deleted", "files_deleted", "metadata_deleted"]
+        expected_keys = [
+            "repositories_deleted",
+            "codebases_deleted",
+            "files_deleted",
+            "metadata_deleted",
+        ]
         for key in expected_keys:
             assert key in deletion_stats, f"Missing key '{key}' in deletion statistics"
             assert isinstance(deletion_stats[key], int), f"Key '{key}' should be an integer"
@@ -514,7 +517,6 @@ class TestDeleteRepositoryEndpoint:
         # ------------------------------------------------------------------
         # 9️⃣  ENHANCED: Validate deletion stats against pre-snapshot
         # ------------------------------------------------------------------
-        # This is the key validation that would have caught the packages_deleted=0 bug
         assert_deletion_stats_accuracy(deletion_stats, pre_deletion_snapshot)
         
         # ------------------------------------------------------------------
@@ -541,7 +543,11 @@ class TestDeleteRepositoryEndpoint:
         
         # Optional: Log residual node counts for test pollution detection
         total_nodes_by_type = {}
-        for node_type in ["CodeConfluenceCodebase", "CodeConfluencePackage", "CodeConfluenceFile", "CodeConfluencePackageManagerMetadata"]:
+        for node_type in [
+            "CodeConfluenceCodebase",
+            "CodeConfluenceFile",
+            "CodeConfluencePackageManagerMetadata",
+        ]:
             count = count_nodes_by_label(neo4j_client, node_type)
             total_nodes_by_type[node_type] = count
             
