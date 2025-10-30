@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.2...unoplat-code-confluence-frontend-v1.30.3) (2025-10-30)
+
+
+### Bug Fixes
+
+* migrate to Bun for package management, vite v7 for build , dev server, upgraded to tailwind v4 and updated shadcn and custom components based on migration, upgraded typescript, moved shadcn custom registry to its own repository, streamline frontend architecture, removed manual codebase detection step, removed local github repository support, introduced eslint and prettier with non conflicting rules for linting and formatting for better agentic experience ([d409c41](https://github.com/unoplat/unoplat-code-confluence/commit/d409c416afad86ba4acb270c39fbb32105ed5f4f))
+
 ## [1.30.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.1...unoplat-code-confluence-frontend-v1.30.2) (2025-10-23)
 
 
