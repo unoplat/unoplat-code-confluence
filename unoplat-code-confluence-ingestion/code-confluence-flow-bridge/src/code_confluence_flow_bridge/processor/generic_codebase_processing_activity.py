@@ -67,8 +67,7 @@ class GenericCodebaseProcessingActivity:
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             activity_id=activity_id,
-            activity_name=activity_name,
-            codebase_local_path=codebase_path
+            activity_name=activity_name
         )
         
         try:
