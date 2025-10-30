@@ -7,11 +7,10 @@
 
 import os
 import asyncio
-import json
 from pathlib import Path
 import subprocess
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi.testclient import TestClient
 from loguru import logger
@@ -20,11 +19,10 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoRequestConfiguration,
     IngestedRepositoryResponse,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import (
-    DetectionResult,
+from src.code_confluence_flow_bridge.utility.environment_utils import (
+    construct_local_repository_path,
 )
 from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
-from unoplat_code_confluence_commons.base_models import CodebaseConfig
 
 from tests.utils.graph_assertions import (
     assert_deletion_stats_accuracy,
@@ -93,162 +91,6 @@ def get_repository_path() -> str:
             f"Repository root could not be determined. Git error: {e}. "
             f"No repository indicators found starting from: {current_path}"
         )
-
-
-def parse_sse_events(response_text: str) -> List[Dict[str, Any]]:
-    """
-    Parse SSE response text into structured events.
-
-    Args:
-        response_text: Raw SSE response text with event stream format
-
-    Returns:
-        List of parsed SSE events with event type and data
-    """
-    events: List[Dict[str, Any]] = []
-    current_event: Dict[str, Any] = {}
-
-    for line in response_text.strip().split("\n"):
-        line = line.rstrip('\r')  # Handle CRLF line endings
-        if line.startswith("id:"):
-            current_event["id"] = line[3:].strip()
-        elif line.startswith("event:"):
-            current_event["event"] = line[6:].strip()
-        elif line.startswith("data:"):
-            data_str: str = line[5:].strip()
-            try:
-                current_event["data"] = json.loads(data_str)
-            except json.JSONDecodeError:
-                current_event["data"] = data_str
-        elif line.startswith(":"):
-            # Comment line
-            current_event["comment"] = line[1:].strip()
-        elif line == "" and current_event:
-            # Empty line signals end of event
-            events.append(current_event)
-            current_event = {}
-
-    # Don't forget the last event if no trailing empty line
-    if current_event:
-        events.append(current_event)
-
-    return events
-
-
-def stream_sse_response(response) -> str:
-    """
-    Collect SSE stream into a single string.
-
-    Args:
-        response: HTTP response object with streaming capability
-
-    Returns:
-        Complete SSE response as string
-    """
-    chunks: List[str] = []
-    try:
-        for chunk in response.iter_text():
-            chunks.append(chunk)
-    finally:
-        # Ensure the response iterator is fully consumed
-        pass
-    return "".join(chunks)
-
-
-def detect_local_codebases(test_client: TestClient, local_path: str) -> DetectionResult:
-    """
-    Detect codebases in local repository using SSE endpoint.
-
-    Args:
-        test_client: FastAPI test client instance
-        local_path: Absolute path to local repository
-
-    Returns:
-        DetectionResult with codebases and metadata
-
-    Raises:
-        AssertionError: If SSE response is invalid or missing required events
-    """
-    # Extract just the folder name from the absolute path
-    # The SSE endpoint expects a folder name when is_local=true, not an absolute path
-    folder_name = os.path.basename(local_path)
-    
-    with test_client.stream("GET", "/detect-codebases-sse", params={"git_url": folder_name, "is_local": "true"}) as response:
-        assert response.status_code == 200, f"SSE request failed: {response.text}"
-        assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
-        assert response.headers["cache-control"] == "no-cache"
-        assert response.headers["connection"] == "keep-alive"
-
-        # Collect and parse SSE events
-        sse_content: str = stream_sse_response(response)
-        events: List[Dict[str, Any]] = parse_sse_events(sse_content)
-
-        # Validate event sequence
-        assert len(events) >= 4, f"Expected at least 4 events, got {len(events)}"
-
-        # Check for required event types
-        event_types: set[str] = {event.get("event", "") for event in events}
-        required_events: set[str] = {"connected", "progress", "result", "done"}
-        assert required_events.issubset(event_types), f"Missing required events: {required_events - event_types}"
-
-        # Extract result event
-        result_events: List[Dict[str, Any]] = [e for e in events if e.get("event") == "result"]
-        assert len(result_events) == 1, f"Expected 1 result event, got {len(result_events)}"
-
-        result_data: Dict[str, Any] = result_events[0]["data"]
-
-        # Validate result structure
-        assert "repository_url" in result_data
-        assert "codebases" in result_data
-        assert "error" in result_data
-
-        # Parse codebases into CodebaseConfig objects
-        codebases: List[CodebaseConfig] = []
-        for codebase_data in result_data["codebases"]:
-            codebase = CodebaseConfig.model_validate(codebase_data)
-            codebases.append(codebase)
-
-        # Return structured result
-        return DetectionResult(
-            repository_url=result_data["repository_url"],
-            codebases=codebases,
-            error=result_data.get("error"),
-        )
-
-
-def create_repo_request_from_detection(
-    detection_result: DetectionResult, repository_name: str, repository_owner_name: str
-) -> GitHubRepoRequestConfiguration:
-    """
-    Create GitHubRepoRequestConfiguration from SSE detection results.
-
-    Args:
-        detection_result: Result from SSE codebase detection
-        repository_name: Name of the repository
-        repository_owner_name: Owner/organization name
-
-    Returns:
-        Properly structured Pydantic model for ingestion endpoint
-    """
-    # Extract just the folder name from the absolute path for local repositories
-    # This matches the UI behavior where only relative folder names are sent
-    repository_url = detection_result.repository_url
-    if repository_url.startswith('/') or repository_url.startswith('file://'):
-        # This is an absolute path, extract just the folder name
-        folder_name = os.path.basename(repository_url.replace('file://', ''))
-        local_path = folder_name
-    else:
-        # Already a relative path or URL
-        local_path = repository_url
-    
-    return GitHubRepoRequestConfiguration(
-        repository_name=repository_name,
-        repository_git_url=detection_result.repository_url,
-        repository_owner_name=repository_owner_name,
-        repository_metadata=detection_result.codebases,
-        is_local=True,
-        local_path=local_path,  # Now contains just the folder name
-    )
 
 
 async def monitor_workflow_completion(workflow_id: str, run_id: str, temporal_address: str, timeout_seconds: int = 300) -> WorkflowExecutionStatus:
@@ -378,21 +220,23 @@ class TestDeleteRepositoryEndpoint:
     ) -> None:
         """
         Test complete local repository deletion flow:
-        1. Detect local repository codebases
-        2. Ingest the repository
-        3. Wait for workflow completion
-        4. Delete the repository
-        5. Verify deletion statistics
+        1. Ingest the repository with auto-detection
+        2. Wait for workflow completion
+        3. Delete the repository
+        4. Verify deletion statistics
+
+        This test validates the new 1-step flow where codebase detection happens automatically
+        within the start-ingestion endpoint when repository_metadata is None.
         """
         # Clean up databases using context manager for isolated sessions
         with get_sync_postgres_session(service_ports["postgresql"]) as session:
             cleanup_postgresql_sync(session)
         cleanup_neo4j_sync(neo4j_client)
-        
-        
+
+
         # Temporal address for workflow monitoring
         temporal_address = f"localhost:{service_ports['temporal']}"
-        
+
         # ------------------------------------------------------------------
         # 1️⃣  Ensure token is ingested (idempotent)
         # ------------------------------------------------------------------
@@ -401,26 +245,25 @@ class TestDeleteRepositoryEndpoint:
             headers={"Authorization": f"Bearer {github_token}"},
         )
         assert token_resp.status_code in (201, 409), token_resp.text
-        
+
         # ------------------------------------------------------------------
-        # 2️⃣  Get local repository path and detect codebases
+        # 2️⃣  Get local repository path and create ingestion request with auto-detection
         # ------------------------------------------------------------------
         local_repo_path: str = get_repository_path()
-        detection_result: DetectionResult = detect_local_codebases(test_client, local_repo_path)
+        folder_name = os.path.basename(local_repo_path)
 
-        # Validate detection succeeded
-        assert detection_result.error is None, f"Detection failed: {detection_result.error}"
-        assert len(detection_result.codebases) > 0, "No codebases detected"
+        # Create request WITHOUT repository_metadata to trigger auto-detection
+        repo_request = GitHubRepoRequestConfiguration(
+            repository_name="unoplat-code-confluence",
+            repository_git_url=construct_local_repository_path(folder_name),
+            repository_owner_name="unoplat",
+            repository_metadata=None,  # Triggers auto-detection
+            is_local=True,
+            local_path=folder_name
+        )
 
         # ------------------------------------------------------------------
-        # 3️⃣  Create GitHubRepoRequestConfiguration from detection results
-        # ------------------------------------------------------------------
-        repo_request: GitHubRepoRequestConfiguration = create_repo_request_from_detection(
-            detection_result=detection_result, repository_name="unoplat-code-confluence", repository_owner_name="unoplat")
-        
-
-        # ------------------------------------------------------------------
-        # 4️⃣  Submit ingestion request
+        # 3️⃣  Submit ingestion request (auto-detection happens internally)
         # ------------------------------------------------------------------
         ingestion_resp = test_client.post("/start-ingestion", json=repo_request.model_dump())
         assert ingestion_resp.status_code == 201, f"Ingestion failed: {ingestion_resp.text}"
@@ -430,7 +273,7 @@ class TestDeleteRepositoryEndpoint:
         run_id: str = ingestion_payload["run_id"]
 
         # ------------------------------------------------------------------
-        # 5️⃣  Monitor workflow execution (with shorter timeout for testing)
+        # 4️⃣  Monitor workflow execution (with shorter timeout for testing)
         # ------------------------------------------------------------------
         try:
             final_status: WorkflowExecutionStatus = await monitor_workflow_completion(
@@ -454,7 +297,7 @@ class TestDeleteRepositoryEndpoint:
             logger.warning(f"Workflow {workflow_id} timed out but proceeding with deletion test")
 
         # ------------------------------------------------------------------
-        # 6️⃣  ENHANCED: Capture pre-deletion state snapshot  
+        # 5️⃣  ENHANCED: Capture pre-deletion state snapshot
         # ------------------------------------------------------------------
         repo_qualified_name = f"{repo_request.repository_owner_name}_{repo_request.repository_name}"
         
@@ -468,9 +311,9 @@ class TestDeleteRepositoryEndpoint:
         # Sanity check: Ensure we have content to delete
         files_count = pre_deletion_snapshot["node_counts"].get("CodeConfluenceFile", 0)
         assert files_count > 0, f"Sanity check failed: No files found after ingestion for {repo_qualified_name}"
-        
+
         # ------------------------------------------------------------------
-        # 7️⃣  Now test the deletion endpoint
+        # 6️⃣  Now test the deletion endpoint
         # ------------------------------------------------------------------
         delete_repo_info = IngestedRepositoryResponse(
             repository_name=repo_request.repository_name,
@@ -485,9 +328,9 @@ class TestDeleteRepositoryEndpoint:
             url="/delete-repository",
             json=delete_repo_info.model_dump()
         )
-        
+
         # ------------------------------------------------------------------
-        # 8️⃣  Verify successful deletion response
+        # 7️⃣  Verify successful deletion response
         # ------------------------------------------------------------------
         assert delete_response.status_code == 200, f"Deletion failed with status {delete_response.status_code}: {delete_response.text}"
         
@@ -513,14 +356,14 @@ class TestDeleteRepositoryEndpoint:
         # Log deletion statistics for debugging
         logger.info(f"API deletion statistics: {deletion_stats}")
         logger.info(f"Full deletion response: {deletion_response}")
-        
+
         # ------------------------------------------------------------------
-        # 9️⃣  ENHANCED: Validate deletion stats against pre-snapshot
+        # 8️⃣  ENHANCED: Validate deletion stats against pre-snapshot
         # ------------------------------------------------------------------
         assert_deletion_stats_accuracy(deletion_stats, pre_deletion_snapshot)
-        
+
         # ------------------------------------------------------------------
-        # 8️⃣  Verify repository is no longer in ingested repositories list
+        # 9️⃣  Verify repository is no longer in ingested repositories list
         # ------------------------------------------------------------------
         repos_resp = test_client.get("/get/ingestedRepositories")
         assert repos_resp.status_code == 200, f"Failed to get ingested repositories: {repos_resp.text}"
@@ -532,9 +375,9 @@ class TestDeleteRepositoryEndpoint:
             for repo in ingested_repos
         )
         assert not deleted_repo_found, "Deleted repository still appears in ingested repositories list"
-        
+
         # ------------------------------------------------------------------
-        # 1️⃣1️⃣  ENHANCED: Comprehensive post-deletion verification
+        # 1️⃣0️⃣  ENHANCED: Comprehensive post-deletion verification
         # ------------------------------------------------------------------
         # Use the new comprehensive helper that replaces all the manual verification above
         assert_repository_completely_deleted(neo4j_client, repo_qualified_name)

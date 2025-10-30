@@ -31,6 +31,7 @@ class UnoplatPackageManagerMetadata(BaseModel):
     keywords: List[str] = Field(default_factory=list, description="List of keywords/tags for the project")
     maintainers: List[str] = Field(default_factory=list, description="List of project maintainers")
     readme: Optional[str] = Field(default=None, description="Path to or content of the project's README file")
+    manifest_path: Optional[str] = Field(default=None, description="Path to the package manifest relative to repository root")
     
     @field_validator('license', mode='before')
     @classmethod

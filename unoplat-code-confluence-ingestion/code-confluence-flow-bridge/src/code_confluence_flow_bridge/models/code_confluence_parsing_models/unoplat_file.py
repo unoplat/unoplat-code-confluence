@@ -16,8 +16,7 @@ class UnoplatFile(BaseModel):
 
     file_path: str = Field(description="Absolute file path")
     checksum: Optional[str] = Field(
-        default=None,
-        description="Optional content checksum for change tracking"
+        default=None, description="Optional content checksum for change tracking"
     )
     structural_signature: Optional[
         Union[PythonStructuralSignature, TypeScriptStructuralSignature]
@@ -25,22 +24,18 @@ class UnoplatFile(BaseModel):
         default=None,
         description="Language-specific structural signature capturing the high-level outline of the file",
     )
-    imports: List[str] = Field(
-        default_factory=list,
-        description="List of imports in the file"
+    imports: Optional[List[str]] = Field(
+        default_factory=list, description="List of imports in the file"
     )
-
     custom_features_list: Optional[List[Detection]] = Field(
-        default=None,
-        description="List of custom features detected in the file"
+        default=None, description="List of custom features detected in the file"
     )
-
     has_data_model: bool = Field(
         default=False,
-        description="True if file contains classes that are data models (e.g., @dataclass)"
+        description="True if file contains classes that are data models (e.g., @dataclass)",
     )
 
     data_model_positions: DataModelPosition = Field(
         default_factory=DataModelPosition,
-        description="Positions of data models detected in the file"
+        description="Positions of data models detected in the file",
     )
