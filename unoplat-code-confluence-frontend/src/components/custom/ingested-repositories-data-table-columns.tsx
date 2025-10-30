@@ -1,52 +1,57 @@
-import React from 'react';
-import type { ColumnDef } from '@tanstack/react-table';
-import type { IngestedRepository } from '../../types';
-import { DataTableColumnHeader } from '@/components/data-table-column-header';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { IngestedRepository } from "../../types";
+import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, RefreshCw, Trash2, ExternalLink, FolderOpen, GitBranch, FileText } from 'lucide-react';
-import { StatusBadge } from '@/components/custom/StatusBadge';
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreHorizontal,
+  RefreshCw,
+  Trash2,
+  ExternalLink,
+  GitBranch,
+  FileText,
+} from "lucide-react";
+import { StatusBadge } from "@/components/custom/StatusBadge";
 
 interface ColumnOptions {
-  setRowAction: React.Dispatch<React.SetStateAction<{
-    row: import('@tanstack/react-table').Row<IngestedRepository>;
-    variant: 'refresh' | 'delete';
-  } | null>>;
+  setRowAction: React.Dispatch<
+    React.SetStateAction<{
+      row: import("@tanstack/react-table").Row<IngestedRepository>;
+      variant: "refresh" | "delete";
+    } | null>
+  >;
   onGenerateAgents: (repository: IngestedRepository) => void | Promise<void>;
 }
 
-export function getIngestedRepositoriesColumns({ setRowAction, onGenerateAgents }: ColumnOptions): ColumnDef<IngestedRepository>[] {
+export function getIngestedRepositoriesColumns({
+  setRowAction,
+  onGenerateAgents,
+}: ColumnOptions): ColumnDef<IngestedRepository>[] {
   return [
     {
-      accessorKey: 'repository_name',
+      accessorKey: "repository_name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Repository Name" />
       ),
       cell: ({ row }) => {
-        const { repository_name, repository_owner_name, is_local } = row.original;
-        
-        if (is_local) {
-          return (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{repository_name}</span>
-            </div>
-          );
-        }
-        
+        const { repository_name, repository_owner_name } =
+          row.original;
+
         const githubUrl = `https://github.com/${repository_owner_name}/${repository_name}`;
         return (
           <div className="flex items-center gap-2">
-            <a 
-              href={githubUrl} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
             >
               <span>{repository_name}</span>
               <ExternalLink className="h-3 w-3" />
@@ -55,44 +60,41 @@ export function getIngestedRepositoriesColumns({ setRowAction, onGenerateAgents 
         );
       },
       meta: {
-        label: 'Repository',
-        placeholder: 'Search repository...',
-        variant: 'text',
-        shortcut: 's',
+        label: "Repository",
+        placeholder: "Search repository...",
+        variant: "text",
+        shortcut: "s",
       },
       enableSorting: true,
       enableColumnFilter: true,
     },
     {
-      accessorKey: 'is_local',
+      accessorKey: "repository_provider",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Type" />
+        <DataTableColumnHeader column={column} title="Provider" />
       ),
       cell: ({ row }) => {
-        const isLocal = row.original.is_local;
+        const provider = row.original.repository_provider;
+        const providerLabel = provider === "github_open" ? "GitHub" : provider.replace(/_/g, " ");
         return (
           <div className="flex items-center gap-2">
-            {isLocal ? (
-              <>
-                <FolderOpen className="h-4 w-4 text-amber-500" />
-                <span className="text-sm text-amber-600 font-medium">Local</span>
-              </>
-            ) : (
-              <>
-                <GitBranch className="h-4 w-4 text-gray-600" />
-                <span className="text-sm text-gray-600 font-medium">GitHub</span>
-              </>
-            )}
+            <GitBranch className="h-4 w-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-600 capitalize">
+              {providerLabel}
+            </span>
           </div>
         );
       },
       meta: {
-        label: 'Type',
-        placeholder: 'Filter by type...',
-        variant: 'select',
+        label: "Provider",
+        placeholder: "Filter by provider...",
+        variant: "select",
         options: [
-          { label: 'Local', value: 'true' },
-          { label: 'GitHub', value: 'false' },
+          { label: "GitHub", value: "github_open" },
+          { label: "GitHub Enterprise", value: "github_enterprise" },
+          { label: "GitLab", value: "gitlab" },
+          { label: "GitLab Self-Hosted", value: "gitlab_self_hosted" },
+          { label: "Bitbucket", value: "bitbucket" },
         ],
       },
       enableSorting: true,
@@ -102,29 +104,29 @@ export function getIngestedRepositoriesColumns({ setRowAction, onGenerateAgents 
       },
     },
     {
-      accessorKey: 'repository_owner_name',
+      accessorKey: "repository_owner_name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Owner" />
       ),
       cell: ({ row }) => {
         return (
           <div className="flex items-center">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               {row.original.repository_owner_name}
             </span>
           </div>
         );
       },
       meta: {
-        label: 'Owner',
-        placeholder: 'Filter by owner...',
-        variant: 'text',
+        label: "Owner",
+        placeholder: "Filter by owner...",
+        variant: "text",
       },
       enableSorting: true,
       enableColumnFilter: true,
     },
     {
-      id: 'actions',
+      id: "actions",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Actions" />
       ),
@@ -132,18 +134,16 @@ export function getIngestedRepositoriesColumns({ setRowAction, onGenerateAgents 
         return (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 p-0"
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onSelect={() => { void onGenerateAgents(row.original); }}
+                onSelect={() => {
+                  void onGenerateAgents(row.original);
+                }}
                 className="gap-2"
               >
                 <FileText className="h-4 w-4" />
@@ -152,7 +152,7 @@ export function getIngestedRepositoriesColumns({ setRowAction, onGenerateAgents 
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: 'refresh' })}
+                onSelect={() => setRowAction({ row, variant: "refresh" })}
                 className="gap-2"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -161,8 +161,8 @@ export function getIngestedRepositoriesColumns({ setRowAction, onGenerateAgents 
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: 'delete' })}
-                className="gap-2 text-destructive focus:text-destructive"
+                onSelect={() => setRowAction({ row, variant: "delete" })}
+                className="text-destructive focus:text-destructive gap-2"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
