@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.17.2...unoplat-code-confluence-query-engine-v0.18.0) (2025-10-30)
+
+
+### Features
+
+* **code-confluence:** Enhance data model file retrieval and processing to reduce context by minimum of 2x for better result of understanding domain ([31c3eb4](https://github.com/unoplat/unoplat-code-confluence/commit/31c3eb4817e035159f6561965ce2d937c3a4e588))
+
+
+### Bug Fixes
+
+* **provider_catalog:** fix inference providers for hugging face ([728547c](https://github.com/unoplat/unoplat-code-confluence/commit/728547c8bb20ae5b7fa53c3d6c7554b675a84673))
+
+
+### Documentation
+
+* **readme:** Enhance development setup and troubleshooting guide ([03be005](https://github.com/unoplat/unoplat-code-confluence/commit/03be0050ad24157fcc71adcaec89722aa142fdf6))
+
 ## [0.17.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.17.1...unoplat-code-confluence-query-engine-v0.17.2) (2025-10-23)
 
 
