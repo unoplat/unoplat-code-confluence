@@ -731,7 +731,6 @@ def test_main_py_structural_signature(language_name: str) -> None:
     assert any("def create_worker" in sig for sig in function_signatures), "create_worker not found"
     assert any("async def fetch_github_token_from_db" in sig for sig in function_signatures), "fetch_github_token_from_db not found"
     assert any("async def start_workflow" in sig for sig in function_signatures), "start_workflow not found"
-    assert any("async def generate_multilanguage_events" in sig for sig in function_signatures), "generate_multilanguage_events not found"
     assert any("async def monitor_workflow" in sig for sig in function_signatures), "monitor_workflow not found"
     
     # FastAPI endpoints

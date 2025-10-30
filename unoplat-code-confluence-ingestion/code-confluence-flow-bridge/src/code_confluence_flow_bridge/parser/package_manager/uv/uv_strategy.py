@@ -66,6 +66,7 @@ class UvStrategy(PackageManagerStrategy):
                     programming_language=metadata.language.value,
                     package_manager=package_manager_value,
                     dependencies={"default": {}},
+                    manifest_path=metadata.manifest_path,
                 )
            
             with open(pyproject_path, "rb") as f:
@@ -196,6 +197,7 @@ class UvStrategy(PackageManagerStrategy):
             keywords=project_data.get("keywords", []),
             maintainers=normalize_authors(project_data.get("maintainers", [])),
             readme=project_data.get("readme"),
+            manifest_path=metadata.manifest_path,
         )
 
     def _parse_dependency(self, dep_string: str) -> tuple[str, Optional[str], Optional[List[str]]]:
