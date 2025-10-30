@@ -7,22 +7,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Install dependencies
-yarn install
+bun install
 
 # Development
-yarn dev          # Start dev server at http://localhost:5173
+vite              # Start dev server at http://localhost:5173
 
 # Build & Deploy
-yarn build        # TypeScript check + production build
+vite build        # TypeScript check + production build
 yarn preview      # Preview production build
 
 # Code Quality
-yarn lint         # Run ESLint
+bun eslint .                    # Run ESLint on all files
+bun eslint src/path/to/file.tsx # Run ESLint on individual file
 
 # Task Runner (alternative)
 task dev          # Start development environment
 task build        # Build with dependency tracking
 task docker       # Build and run Docker container
+task outdated     # Review outdated packages (uses bun outdated)
 ```
 
 ## Architecture Overview
@@ -194,4 +196,4 @@ Following the official shadcn/ui patterns and registry guidelines:
 - API base URL configured via `VITE_UNOPLAT_CODE_CONFLUENCE_API_BASE_URL`
 - TypeScript path alias: `@/*` maps to `./src/*`
 - Requires Node.js >= 20.0.0
-- Uses Yarn 4.8.1 (Berry)
+- Uses Bun 1.3.1+ for package management

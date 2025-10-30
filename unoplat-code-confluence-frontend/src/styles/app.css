@@ -26,18 +26,19 @@
     --ring: 0.6104 0.0767 299.7335;
     --radius: 0.55rem;
     --sidebar-width: 14rem;
-    --sidebar-background: 215 14% 95%;  /* gray-100 */
-    --sidebar-foreground: 0.3651 0.0325 287.0807;  /* gray-800 */
-    --sidebar-primary: 0.6104 0.0767 299.7335;      /* gray-500 - For icons/inactive */
-    --sidebar-primary-foreground: 0.9777 0.0041 301.4256; /* gray-100 - Text on primary (icons) */
-    --sidebar-accent: 0.8841 0.0355 285.6502;      /* gray-200 - For active/hover bg */
-    --sidebar-accent-foreground: 0.3394 0.0441 1.7583; /* gray-800 - Text on accent bg */
-    --sidebar-border: 0.8719 0.0198 302.1690;      /* gray-200 - Border */
-    --sidebar-ring: 0.6104 0.0767 299.7335;        /* gray-200 - Ring */
+    --sidebar-width-icon: 3rem;
+    --sidebar-background: 215 14% 95%; /* gray-100 */
+    --sidebar-foreground: 0.3651 0.0325 287.0807; /* gray-800 */
+    --sidebar-primary: 0.6104 0.0767 299.7335; /* For icons/inactive */
+    --sidebar-primary-foreground: 0.9777 0.0041 301.4256; /* Text on primary (icons) */
+    --sidebar-accent: 0.8841 0.0355 285.6502; /* For active/hover bg */
+    --sidebar-accent-foreground: 0.3394 0.0441 1.7583; /* Text on accent bg */
+    --sidebar-border: 0.8719 0.0198 302.169; /* Border */
+    --sidebar-ring: 0.6104 0.0767 299.7335; /* Ring */
     --chart-1: 0.6104 0.0767 299.7335;
     --chart-2: 0.7276 0.0721 285.3778;
-    --chart-3: 0.7321 0.0749 169.8670;
-    --chart-4: 0.8540 0.0882 76.8292;
+    --chart-3: 0.7321 0.0749 169.867;
+    --chart-4: 0.854 0.0882 76.8292;
     --chart-5: 0.7857 0.0645 258.0839;
     --sidebar: 0.9554 0.0082 301.3541;
     --font-sans: Geist, sans-serif;
@@ -93,11 +94,12 @@
     --sidebar-ring: 0.7058 0.0777 302.0489;
     --chart-1: 0.7058 0.0777 302.0489;
     --chart-2: 0.8391 0.0692 2.6681;
-    --chart-3: 0.7321 0.0749 169.8670;
-    --chart-4: 0.8540 0.0882 76.8292;
+    --chart-3: 0.7321 0.0749 169.867;
+    --chart-4: 0.854 0.0882 76.8292;
     --chart-5: 0.7857 0.0645 258.0839;
     --radius: 0.55rem;
-    --sidebar: 0.1985 0.0200 293.6639;
+    --sidebar-width-icon: 3rem;
+    --sidebar: 0.1985 0.02 293.6639;
     --font-sans: Geist, sans-serif;
     --font-serif: "Lora", Georgia, serif;
     --font-mono: "Fira Code", "Courier New", monospace;
@@ -111,11 +113,16 @@
     --spacing: 0.25rem;
     --shadow-2xs: 1px 2px 5px 1px hsl(0 0% 0% / 0.03);
     --shadow-xs: 1px 2px 5px 1px hsl(0 0% 0% / 0.03);
-    --shadow-sm: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
-    --shadow: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
-    --shadow-md: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 2px 4px 0px hsl(0 0% 0% / 0.06);
-    --shadow-lg: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 4px 6px 0px hsl(0 0% 0% / 0.06);
-    --shadow-xl: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 8px 10px 0px hsl(0 0% 0% / 0.06);
+    --shadow-sm:
+      1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
+    --shadow:
+      1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
+    --shadow-md:
+      1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 2px 4px 0px hsl(0 0% 0% / 0.06);
+    --shadow-lg:
+      1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 4px 6px 0px hsl(0 0% 0% / 0.06);
+    --shadow-xl:
+      1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 8px 10px 0px hsl(0 0% 0% / 0.06);
     --shadow-2xl: 1px 2px 5px 1px hsl(0 0% 0% / 0.15);
   }
   .theme {
@@ -143,96 +150,102 @@
   }
 }
 
-/* MDXEditor dark mode fixes */
-@layer components {
-  .dark .mdx-editor-wrapper,
-  .dark .mdx-editor-content,
-  .dark [data-editor="true"] {
-    color: oklch(var(--foreground)) !important;
-  }
+/*
+  ---break---
+*/
+
+/*
+  ---break---
+*/
+
+/*
+  IMPORTANT: Using @theme inline to create CSS custom properties
+  that can be accessed at runtime with var(--color-*).
+
+  The 'inline' keyword is required when referencing other CSS variables
+  to enable proper runtime resolution and theme switching.
   
-  .dark .mdx-editor-wrapper .mdxeditor-rich-text-editor,
-  .dark .mdx-editor-content .mdxeditor-rich-text-editor,
-  .dark [data-editor="true"] .mdxeditor-rich-text-editor {
-    color: oklch(var(--foreground)) !important;
+  These reference the base :root variables defined above for theme switching.
+  See: https://tailwindcss.com/docs/theme#referencing-other-variables
+*/
+@theme inline {
+  --color-border: oklch(var(--border));
+  --color-input: oklch(var(--input));
+  --color-ring: oklch(var(--ring));
+  --color-background: oklch(var(--background));
+  --color-foreground: oklch(var(--foreground));
+
+  --color-primary: oklch(var(--primary));
+  --color-primary-foreground: oklch(var(--primary-foreground));
+  --color-primary-hover: oklch(var(--primary-hover));
+
+  --color-secondary: oklch(var(--secondary));
+  --color-secondary-foreground: oklch(var(--secondary-foreground));
+
+  --color-destructive: oklch(var(--destructive));
+  --color-destructive-foreground: oklch(var(--destructive-foreground));
+
+  --color-muted: oklch(var(--muted));
+  --color-muted-foreground: oklch(var(--muted-foreground));
+
+  --color-accent: oklch(var(--accent));
+  --color-accent-foreground: oklch(var(--accent-foreground));
+
+  --color-popover: oklch(var(--popover));
+  --color-popover-foreground: oklch(var(--popover-foreground));
+
+  --color-card: oklch(var(--card));
+  --color-card-foreground: oklch(var(--card-foreground));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: oklch(var(--sidebar-foreground));
+  --color-sidebar-primary: oklch(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: oklch(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: oklch(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: oklch(var(--sidebar-accent-foreground));
+  --color-sidebar-border: oklch(var(--sidebar-border));
+  --color-sidebar-ring: oklch(var(--sidebar-ring));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  /*
+  ---break---
+*/
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
   }
-  
-  .dark .mdx-editor-wrapper p,
-  .dark .mdx-editor-wrapper h1,
-  .dark .mdx-editor-wrapper h2,
-  .dark .mdx-editor-wrapper h3,
-  .dark .mdx-editor-wrapper h4,
-  .dark .mdx-editor-wrapper h5,
-  .dark .mdx-editor-wrapper h6,
-  .dark .mdx-editor-wrapper li,
-  .dark .mdx-editor-wrapper span,
-  .dark .mdx-editor-wrapper div,
-  .dark .mdx-editor-wrapper strong,
-  .dark .mdx-editor-wrapper em,
-  .dark .mdx-editor-wrapper a,
-  .dark .mdx-editor-content p,
-  .dark .mdx-editor-content h1,
-  .dark .mdx-editor-content h2,
-  .dark .mdx-editor-content h3,
-  .dark .mdx-editor-content h4,
-  .dark .mdx-editor-content h5,
-  .dark .mdx-editor-content h6,
-  .dark .mdx-editor-content li,
-  .dark .mdx-editor-content span,
-  .dark .mdx-editor-content div,
-  .dark .mdx-editor-content strong,
-  .dark .mdx-editor-content em,
-  .dark .mdx-editor-content a,
-  .dark [data-editor="true"] p,
-  .dark [data-editor="true"] h1,
-  .dark [data-editor="true"] h2,
-  .dark [data-editor="true"] h3,
-  .dark [data-editor="true"] h4,
-  .dark [data-editor="true"] h5,
-  .dark [data-editor="true"] h6,
-  .dark [data-editor="true"] li,
-  .dark [data-editor="true"] span,
-  .dark [data-editor="true"] div,
-  .dark [data-editor="true"] strong,
-  .dark [data-editor="true"] em,
-  .dark [data-editor="true"] a {
-    color: oklch(var(--foreground)) !important;
+  /*
+  ---break---
+*/
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
-  
-  .dark .mdx-editor-wrapper blockquote,
-  .dark .mdx-editor-content blockquote,
-  .dark [data-editor="true"] blockquote {
-    color: oklch(var(--muted-foreground)) !important;
-    border-left-color: oklch(var(--border)) !important;
+}
+
+/*
+  ---break---
+*/
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-  
-  .dark .mdx-editor-wrapper code,
-  .dark .mdx-editor-content code,
-  .dark [data-editor="true"] code {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-  
-  .dark .mdx-editor-wrapper pre,
-  .dark .mdx-editor-content pre,
-  .dark [data-editor="true"] pre {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-  
-  .dark .mdx-editor-wrapper table,
-  .dark .mdx-editor-content table,
-  .dark [data-editor="true"] table {
-    border-color: oklch(var(--border)) !important;
-  }
-  
-  .dark .mdx-editor-wrapper th,
-  .dark .mdx-editor-wrapper td,
-  .dark .mdx-editor-content th,
-  .dark .mdx-editor-content td,
-  .dark [data-editor="true"] th,
-  .dark [data-editor="true"] td {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
+  body {
+    @apply bg-background text-foreground;
   }
 }
