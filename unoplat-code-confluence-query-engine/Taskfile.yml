@@ -97,10 +97,10 @@ tasks:
       - uv run --group dev ruff check src/ --fix
 
   typecheck:
-    desc: Run mypy type checker on the codebase
+    desc: Run basedpyright type checker on the codebase
     dir: .
     cmds:
-      - uv run --group dev mypy src/
+      - uv run --group dev basedpyright src/
 
   format:
     desc: Format code using ruff
