@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.1...unoplat-code-confluence-commons-v0.32.2) (2025-10-30)
+
+
+### Bug Fixes
+
+* remove support for local codebase (not in scope right now ) ([e238e91](https://github.com/unoplat/unoplat-code-confluence/commit/e238e919131c93293748f19dd6570f3ffa478a4c))
+* remove support for local codebase (not in scope right now ) ([44b22d1](https://github.com/unoplat/unoplat-code-confluence/commit/44b22d1391d201a6ee0f996dc2d5d39516c6ca76))
+
 ## [0.32.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.0...unoplat-code-confluence-commons-v0.32.1) (2025-10-23)
 
 
