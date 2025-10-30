@@ -69,7 +69,8 @@ class PipStrategy(PackageManagerStrategy):
                 dependencies={"default": {}},  # Seed default bucket
                 programming_language=metadata.language.value,
                 package_manager=package_manager_value,
-                programming_language_version=metadata.language_version
+                programming_language_version=metadata.language_version,
+                manifest_path=metadata.manifest_path,
             )
 
             workspace = Path(local_workspace_path)
@@ -253,7 +254,8 @@ class PipStrategy(PackageManagerStrategy):
             dependencies={"default": {}},  # Initialize default bucket
             programming_language=metadata.language.value,
             package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.PIP.value,
-            programming_language_version=metadata.language_version
+            programming_language_version=metadata.language_version,
+            manifest_path=metadata.manifest_path,
         )
 
     def _find_requirement_files(self, workspace: Path) -> List[Path]:

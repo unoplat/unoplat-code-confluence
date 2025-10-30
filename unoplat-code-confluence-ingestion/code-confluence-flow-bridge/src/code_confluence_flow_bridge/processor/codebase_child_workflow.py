@@ -62,8 +62,7 @@ class CodebaseChildWorkflow:
         log = seed_and_bind_logger_from_trace_id(
             trace_id=trace_id,
             workflow_id=workflow_id,
-            workflow_run_id=workflow_run_id,
-            codebase_local_path=codebase_path
+            workflow_run_id=workflow_run_id
         )
 
         log.info(f"Starting codebase workflow for {codebase_qualified_name}")
@@ -74,6 +73,7 @@ class CodebaseChildWorkflow:
             language=ProgrammingLanguage(package_manager_metadata.programming_language.lower()),
             package_manager=PackageManagerType(package_manager_metadata.package_manager.lower()),
             language_version=package_manager_metadata.programming_language_version,
+            manifest_path=package_manager_metadata.manifest_path,
         )
 
         log.info("Parsing package metadata")

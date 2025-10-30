@@ -87,6 +87,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 keywords=poetry_data.get("keywords", []),
                 maintainers=poetry_data.get("maintainers", []),
                 readme=poetry_data.get("readme"),
+                manifest_path=metadata.manifest_path,
             )
 
         except Exception as e:
@@ -105,7 +106,12 @@ class PythonPoetryStrategy(PackageManagerStrategy):
 
         grouped_dependencies.setdefault("default", {})
 
-        package_manager = UnoplatPackageManagerMetadata(dependencies=dict(grouped_dependencies), programming_language=metadata.language.value, package_manager=PackageManagerType.PIP.value)
+        package_manager = UnoplatPackageManagerMetadata(
+            dependencies=dict(grouped_dependencies),
+            programming_language=metadata.language.value,
+            package_manager=PackageManagerType.PIP.value,
+            manifest_path=metadata.manifest_path,
+        )
         try:
             return SetupParser.parse_setup_file(local_workspace_path, package_manager)
         except FileNotFoundError:
@@ -181,7 +187,13 @@ class PythonPoetryStrategy(PackageManagerStrategy):
 
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information"""
-        return UnoplatPackageManagerMetadata(dependencies={"default": {}}, programming_language=metadata.language.value, package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value, programming_language_version=metadata.language_version)
+        return UnoplatPackageManagerMetadata(
+            dependencies={"default": {}},
+            programming_language=metadata.language.value,
+            package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value,
+            programming_language_version=metadata.language_version,
+            manifest_path=metadata.manifest_path,
+        )
 
     def _parse_dependencies(self, deps_dict: Dict) -> Dict[str, UnoplatProjectDependency]:
         dependencies = {}

@@ -29,6 +29,9 @@ from src.code_confluence_flow_bridge.parser.language_processors.language_process
 from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
     PythonLanguageProcessor,
 )
+from src.code_confluence_flow_bridge.parser.language_processors.typescript_processor import (
+    TypeScriptLanguageProcessor,
+)
 
 if TYPE_CHECKING:
     from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
@@ -37,6 +40,7 @@ if TYPE_CHECKING:
 
 from loguru import logger
 from neo4j import AsyncSession
+
 # Note: persistence relies on raw Cypher via the Neo4j driver—graph models are not imported here.
 
 
@@ -128,8 +132,7 @@ class GenericCodebaseParser:
         language_key = self.programming_language_metadata.language.value
         processor_map: Dict[str, type[LanguageCodebaseProcessor]] = {
             "python": PythonLanguageProcessor,
-            # Add other languages as they become available:
-            # "typescript": TypeScriptLanguageProcessor,
+            "typescript": TypeScriptLanguageProcessor,
             # "java": JavaLanguageProcessor,
             # "go": GoLanguageProcessor,
         }

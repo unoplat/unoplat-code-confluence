@@ -114,8 +114,7 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
                     extras=parsed_spec["extras"],
                 )
 
-        # Instantiate UnoplatPackageManagerMetadata
-        # Note: manifest_path is already in ProgrammingLanguageMetadata, not duplicated here
+        # Instantiate UnoplatPackageManagerMetadata (metadata_fields contains manifest_path, scripts, etc.)
         package_manager_value = expected_pm if expected_pm != "unknown" else "unknown"
 
         return UnoplatPackageManagerMetadata(
@@ -317,6 +316,7 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
             "maintainers": maintainers,
             "license": manifest.license,
             "readme": manifest.readme,
+            "manifest_path": manifest.manifest_path,
         }
 
     def _infer_typescript_version(
