@@ -1,27 +1,20 @@
-# Stage 1: Build the Vite project using Node 20 and Yarn
-FROM node:20 AS builder
+# Stage 1: Build the Vite project using Bun
+FROM oven/bun:1.3.1 AS builder
 
 # Set working directory inside the container
 WORKDIR /src
 
-# Copy package.json first to leverage Docker cache for dependencies
-COPY package.json yarn.lock ./
-
-# Copy .yarn directory from local filesystem
-COPY .yarnrc.yml ./
-COPY .yarn ./.yarn
-
-# Enable Corepack to manage Yarn version
-RUN corepack enable
+# Copy package.json and bun.lock first to leverage Docker cache for dependencies
+COPY package.json bun.lock ./
 
 # Install dependencies
-RUN yarn cache clean && yarn install --refresh-lockfile
+RUN bun install --frozen-lockfile
 
 # Copy the rest of the project files
 COPY . .
 
 # Build the Vite project using production configuration
-RUN yarn build --mode prod
+RUN bun run build --mode prod
 
 # Stage 2: Serve the built files using Nginx
 FROM nginx:alpine

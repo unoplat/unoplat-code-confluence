@@ -1,5 +1,5 @@
-import React from 'react';
-import { ModelConfigurationSection } from '@/features/model-config/components/ModelConfigurationSection';
+import React from "react";
+import { ModelConfigurationSection } from "@/features/model-config/components/ModelConfigurationSection";
 
 /**
  * Settings sub-page dedicated to model provider configuration

@@ -1,17 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from '@tanstack/react-form';
-import { submitGitHubToken, updateGitHubToken, ApiError, ApiResponse } from '../../lib/api';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Dialog, DialogContent, DialogDescription } from '../ui/dialog';
-import { Github, X, ExternalLink, Key } from 'lucide-react';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { buildGitHubPatLink } from '@/lib/github-token-utils';
-import { Separator } from '../ui/separator';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "@tanstack/react-form";
+import {
+  submitGitHubToken,
+  updateGitHubToken,
+  ApiError,
+  ApiResponse,
+} from "../../lib/api";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { Dialog, DialogContent, DialogDescription } from "../ui/dialog";
+import { Github, X, ExternalLink, Key } from "lucide-react";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { buildGitHubPatLink } from "@/lib/github-token-utils";
+import { Separator } from "../ui/separator";
 
 interface GitHubTokenPopupProps {
   open: boolean;
@@ -22,31 +27,32 @@ interface GitHubTokenPopupProps {
 
 /**
  * GitHub Token Popup Component
- * 
+ *
  * This component serves as a popup for GitHub token entry and updates
  */
 export default function GitHubTokenPopup({
   open,
   onClose,
   isUpdate = false,
-  onSuccess
+  onSuccess,
 }: GitHubTokenPopupProps): React.ReactElement {
-  console.log('[GitHubTokenPopup] Rendering with props:', { open, isUpdate });
-  
+  console.log("[GitHubTokenPopup] Rendering with props:", { open, isUpdate });
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [error, setError] = useState<ApiError | null>(null);
   const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
   const [isSuccessful, setIsSuccessful] = useState<boolean>(false);
-  
+
   // Use Zustand store for token status
   const tokenStatus = useAuthStore((state) => state.tokenStatus);
-  
 
   // Auto-open dialog when token is not submitted (let parent control open prop)
   useEffect(() => {
     if (tokenStatus && !tokenStatus.status && !formSubmitted && !isSuccessful) {
-      console.log('[GitHubTokenPopup] Token not submitted, should open dialog (parent should control)');
+      console.log(
+        "[GitHubTokenPopup] Token not submitted, should open dialog (parent should control)",
+      );
       // Parent should set open=true
     }
   }, [tokenStatus, formSubmitted, isSuccessful]);
@@ -54,90 +60,101 @@ export default function GitHubTokenPopup({
   // Create form instance
   const form = useForm({
     defaultValues: {
-      patToken: '',
+      patToken: "",
     },
     onSubmit: async ({ value }): Promise<void> => {
-      console.log('[GitHubTokenPopup] Form submitted with value length:', value.patToken ? value.patToken.length : 0);
-      
+      console.log(
+        "[GitHubTokenPopup] Form submitted with value length:",
+        value.patToken ? value.patToken.length : 0,
+      );
+
       const token: string = value.patToken.trim();
       if (!token) {
-        console.log('[GitHubTokenPopup] Token is empty, showing error');
+        console.log("[GitHubTokenPopup] Token is empty, showing error");
         setError({
-          message: 'Please enter a valid PAT token',
-          isAxiosError: false
+          message: "Please enter a valid PAT token",
+          isAxiosError: false,
         });
         return;
       }
-      
+
       setFormSubmitted(true);
       setError(null);
-      
-      console.log('[GitHubTokenPopup] Calling mutation with token');
+
+      console.log("[GitHubTokenPopup] Calling mutation with token");
       try {
         await tokenMutation.mutateAsync(token);
       } catch (err) {
-        console.error('[GitHubTokenPopup] Mutation threw error:', err);
+        console.error("[GitHubTokenPopup] Mutation threw error:", err);
         // Error handling is done in mutation's onError
       }
     },
   });
-  
+
   const tokenMutation = useMutation<ApiResponse, ApiError, string>({
-    mutationFn: (token: string) => isUpdate ? updateGitHubToken(token) : submitGitHubToken(token),
+    mutationFn: (token: string) =>
+      isUpdate ? updateGitHubToken(token) : submitGitHubToken(token),
     onSuccess: async (): Promise<void> => {
-      console.log('[GitHubTokenPopup] Mutation successful, clearing error and resetting form');
+      console.log(
+        "[GitHubTokenPopup] Mutation successful, clearing error and resetting form",
+      );
       setError(null);
       form.reset();
       setFormSubmitted(false);
       setIsSuccessful(true);
-      
+
       try {
-        console.log('[GitHubTokenPopup] Fetching updated token status');
+        console.log("[GitHubTokenPopup] Fetching updated token status");
         // Invalidate the token query to refresh the token status
-        await queryClient.invalidateQueries({ queryKey: ['flags', 'isTokenSubmitted'] });
+        await queryClient.invalidateQueries({
+          queryKey: ["flags", "isTokenSubmitted"],
+        });
         // Also invalidate user data since token has changed
-        await queryClient.invalidateQueries({ queryKey: ['githubUser'] });
-        
+        await queryClient.invalidateQueries({ queryKey: ["githubUser"] });
+
         if (onSuccess) {
-          console.log('[GitHubTokenPopup] Calling onSuccess callback');
+          console.log("[GitHubTokenPopup] Calling onSuccess callback");
           onSuccess();
         }
-        
+
         // Always close dialog after success
         onClose();
-        
+
         if (!isUpdate && !onSuccess) {
-          console.log('[GitHubTokenPopup] Navigating to /onboarding');
-          navigate({ to: '/onboarding' });
+          console.log("[GitHubTokenPopup] Navigating to /onboarding");
+          navigate({ to: "/onboarding" });
         }
       } catch (error) {
-        console.error('[GitHubTokenPopup] Error fetching token status:', error);
+        console.error("[GitHubTokenPopup] Error fetching token status:", error);
         setFormSubmitted(false);
         setIsSuccessful(false);
       }
     },
     onError: (error: unknown): void => {
-      console.error('[GitHubTokenPopup] Mutation error:', error);
+      console.error("[GitHubTokenPopup] Mutation error:", error);
       setFormSubmitted(false);
       setIsSuccessful(false);
-      
+
       if ((error as ApiError).message) {
-        console.log('[GitHubTokenPopup] Setting API error:', (error as ApiError).message);
+        console.log(
+          "[GitHubTokenPopup] Setting API error:",
+          (error as ApiError).message,
+        );
         setError(error as ApiError);
       } else {
-        console.log('[GitHubTokenPopup] Setting generic error');
+        console.log("[GitHubTokenPopup] Setting generic error");
         setError({
-          message: 'Failed to submit token. Please try again.',
-          isAxiosError: false
+          message: "Failed to submit token. Please try again.",
+          isAxiosError: false,
         });
       }
-    }
+    },
   });
 
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      console.log('[GitHubTokenPopup] Dialog opened, initializing form');
+      console.log("[GitHubTokenPopup] Dialog opened, initializing form");
       // Only reset if not currently submitting
       if (!formSubmitted) {
         setError(null);
@@ -149,7 +166,7 @@ export default function GitHubTokenPopup({
 
   // Handle dialog closing
   const handleClose = (): void => {
-    console.log('[GitHubTokenPopup] handleClose called');
+    console.log("[GitHubTokenPopup] handleClose called");
     // Reset form state
     setError(null);
     form.reset();
@@ -160,17 +177,17 @@ export default function GitHubTokenPopup({
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onOpenChange={(open: boolean): void => {
-        console.log('[GitHubTokenPopup] Dialog onOpenChange:', open);
+        console.log("[GitHubTokenPopup] Dialog onOpenChange:", open);
         if (!open) {
           handleClose();
         }
       }}
     >
       <DialogContent className="sm:max-w-lg">
-        <div className="absolute right-4 top-4">
+        <div className="absolute top-4 right-4">
           <Button
             variant="ghost"
             size="icon"
@@ -184,21 +201,23 @@ export default function GitHubTokenPopup({
         <DialogDescription className="sr-only">
           Enter your GitHub Personal Access Token to authenticate with GitHub.
         </DialogDescription>
-        <div className="flex flex-col gap-6 items-center p-2">
-          <div className="flex items-center justify-center gap-3 w-full">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <Github className="h-5 w-5 text-primary" />
+        <div className="flex flex-col items-center gap-6 p-2">
+          <div className="flex w-full items-center justify-center gap-3">
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+              <Github className="text-primary h-5 w-5" />
             </div>
             <h2 className="text-xl font-semibold">GitHub Authentication</h2>
           </div>
-          
+
           {error && (
             <Alert variant="destructive" className="w-full">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>
                 {error.message}
                 {error.statusCode && (
-                  <span className="block text-xs mt-1">Status: {error.statusCode}</span>
+                  <span className="mt-1 block text-xs">
+                    Status: {error.statusCode}
+                  </span>
                 )}
               </AlertDescription>
             </Alert>
@@ -206,22 +225,18 @@ export default function GitHubTokenPopup({
 
           {/* Step indicator or instructions */}
           <div className="w-full space-y-4">
-            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+            <div className="bg-muted/50 space-y-3 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-sm font-semibold text-primary">1</span>
+                <div className="bg-primary/10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                  <span className="text-primary text-sm font-semibold">1</span>
                 </div>
                 <div className="flex-1 space-y-2">
                   <h3 className="font-medium">Generate a GitHub Token</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Click the button below to open GitHub and create a new Personal Access Token with the required permissions.
+                  <p className="text-muted-foreground text-sm">
+                    Click the button below to open GitHub and create a new
+                    Personal Access Token with the required permissions.
                   </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    asChild
-                  >
+                  <Button variant="outline" size="sm" className="gap-2" asChild>
                     <a
                       href={buildGitHubPatLink()}
                       target="_blank"
@@ -248,16 +263,18 @@ export default function GitHubTokenPopup({
 
             <Separator />
 
-            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+            <div className="bg-muted/50 space-y-3 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-sm font-semibold text-primary">2</span>
+                <div className="bg-primary/10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                  <span className="text-primary text-sm font-semibold">2</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium mb-3">Paste Your Token</h3>
+                  <h3 className="mb-3 font-medium">Paste Your Token</h3>
                   <form
                     onSubmit={(e: React.FormEvent<HTMLFormElement>): void => {
-                      console.log('[GitHubTokenPopup] Form onSubmit event triggered');
+                      console.log(
+                        "[GitHubTokenPopup] Form onSubmit event triggered",
+                      );
                       e.preventDefault();
                       e.stopPropagation();
                       void form.handleSubmit();
@@ -268,15 +285,24 @@ export default function GitHubTokenPopup({
                       name="patToken"
                       validators={{
                         onChange: ({ value }): string | undefined => {
-                          const result: string | undefined = value.trim() === '' ? 'A GitHub token is required' : undefined;
-                          console.log('[GitHubTokenPopup] Field validation:', result ? 'invalid' : 'valid');
+                          const result: string | undefined =
+                            value.trim() === ""
+                              ? "A GitHub token is required"
+                              : undefined;
+                          console.log(
+                            "[GitHubTokenPopup] Field validation:",
+                            result ? "invalid" : "valid",
+                          );
                           return result;
                         },
                       }}
                     >
                       {(field): React.ReactElement => (
                         <div className="space-y-2">
-                          <Label htmlFor={`github-${field.name}`} className="text-sm font-medium">
+                          <Label
+                            htmlFor={`github-${field.name}`}
+                            className="text-sm font-medium"
+                          >
                             GitHub Personal Access Token
                           </Label>
                           <Input
@@ -285,8 +311,10 @@ export default function GitHubTokenPopup({
                             name={field.name}
                             value={field.state.value}
                             onBlur={field.handleBlur}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-                              console.log('[GitHubTokenPopup] Input changed');
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ): void => {
+                              console.log("[GitHubTokenPopup] Input changed");
                               field.handleChange(e.target.value);
                               // Clear the error state when user types
                               if (error) {
@@ -298,32 +326,58 @@ export default function GitHubTokenPopup({
                             autoComplete="off"
                           />
                           {field.state.meta.errors ? (
-                            <p className="text-sm text-destructive">
+                            <p className="text-destructive text-sm">
                               {field.state.meta.errors}
                             </p>
                           ) : (
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-muted-foreground text-xs">
                               Your token will be encrypted and stored securely.
                             </p>
                           )}
                         </div>
                       )}
                     </form.Field>
-                    
+
                     <form.Subscribe
-                      selector={(state) => [state.canSubmit, state.isSubmitting, tokenMutation.isPending, formSubmitted] as [boolean, boolean, boolean, boolean]}
+                      selector={(state) =>
+                        [
+                          state.canSubmit,
+                          state.isSubmitting,
+                          tokenMutation.isPending,
+                          formSubmitted,
+                        ] as [boolean, boolean, boolean, boolean]
+                      }
                     >
                       {(tuple): React.ReactElement => {
-                        const [canSubmit, isSubmitting, isMutating, isFormSubmitted] = tuple as [boolean, boolean, boolean, boolean];
-                        console.log('[GitHubTokenPopup] Button state:', { canSubmit, isSubmitting, isMutating, isFormSubmitted });
-                        
+                        const [
+                          canSubmit,
+                          isSubmitting,
+                          isMutating,
+                          isFormSubmitted,
+                        ] = tuple as [boolean, boolean, boolean, boolean];
+                        console.log("[GitHubTokenPopup] Button state:", {
+                          canSubmit,
+                          isSubmitting,
+                          isMutating,
+                          isFormSubmitted,
+                        });
+
                         return (
-                          <Button 
-                            type="submit" 
-                            disabled={!canSubmit || isSubmitting || isMutating || isFormSubmitted}
+                          <Button
+                            type="submit"
+                            disabled={
+                              !canSubmit ||
+                              isSubmitting ||
+                              isMutating ||
+                              isFormSubmitted
+                            }
                             className="w-full"
                           >
-                            {isSubmitting || isMutating ? 'Submitting...' : isUpdate ? 'Update Token' : 'Submit Token'}
+                            {isSubmitting || isMutating
+                              ? "Submitting..."
+                              : isUpdate
+                                ? "Update Token"
+                                : "Submit Token"}
                           </Button>
                         );
                       }}
@@ -337,4 +391,4 @@ export default function GitHubTokenPopup({
       </DialogContent>
     </Dialog>
   );
-} 
+}

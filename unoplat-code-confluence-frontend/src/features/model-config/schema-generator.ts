@@ -1,6 +1,9 @@
-import { z } from 'zod';
-import type { ModelProviderDefinition, ProviderConfigFieldDefinition } from './types';
-import { MODEL_NAME_FIELD, FIELD_TYPES } from './constants';
+import { z } from "zod";
+import type {
+  ModelProviderDefinition,
+  ProviderConfigFieldDefinition,
+} from "./types";
+import { MODEL_NAME_FIELD, FIELD_TYPES } from "./constants";
 
 /**
  * Creates a base Zod schema for a field type, handling TanStack Form's string inputs
@@ -10,7 +13,10 @@ import { MODEL_NAME_FIELD, FIELD_TYPES } from './constants';
  * @param enumOptions - For select fields, the available options
  * @returns Base Zod schema for the field type
  */
-const getBaseSchema = (fieldType: string, enumOptions?: string[] | null): z.ZodTypeAny => {
+const getBaseSchema = (
+  fieldType: string,
+  enumOptions?: string[] | null,
+): z.ZodTypeAny => {
   switch (fieldType) {
     case FIELD_TYPES.NUMBER:
       // Use coerce to handle string inputs from HTML forms
@@ -20,7 +26,7 @@ const getBaseSchema = (fieldType: string, enumOptions?: string[] | null): z.ZodT
       return z.boolean();
 
     case FIELD_TYPES.URL:
-      return z.string().url('Please enter a valid URL');
+      return z.string().url("Please enter a valid URL");
 
     case FIELD_TYPES.SELECT:
       if (enumOptions && enumOptions.length > 0) {
@@ -43,21 +49,25 @@ const getBaseSchema = (fieldType: string, enumOptions?: string[] | null): z.ZodT
  * @param field - The field definition from provider metadata
  * @returns Complete Zod schema for the field
  */
-const isStringSchema = (schema: z.ZodTypeAny): schema is z.ZodString => schema instanceof z.ZodString;
+const isStringSchema = (schema: z.ZodTypeAny): schema is z.ZodString =>
+  schema instanceof z.ZodString;
 
-const createFieldSchema = (field: ProviderConfigFieldDefinition): z.ZodTypeAny => {
+const createFieldSchema = (
+  field: ProviderConfigFieldDefinition,
+): z.ZodTypeAny => {
   // Start with base schema for the field type
   let schema = getBaseSchema(field.type, field.enum);
 
   // Handle required vs optional fields
   if (field.required) {
     // Apply minimum validations for required fields
-    if (isStringSchema(schema) && (
-      field.type === FIELD_TYPES.TEXT ||
-      field.type === FIELD_TYPES.PASSWORD ||
-      field.type === FIELD_TYPES.URL ||
-      field.type === FIELD_TYPES.TEXTAREA
-    )) {
+    if (
+      isStringSchema(schema) &&
+      (field.type === FIELD_TYPES.TEXT ||
+        field.type === FIELD_TYPES.PASSWORD ||
+        field.type === FIELD_TYPES.URL ||
+        field.type === FIELD_TYPES.TEXTAREA)
+    ) {
       schema = schema.min(1, `${field.label} is required`);
     } else if (field.type === FIELD_TYPES.NUMBER) {
       // For numbers, we just ensure it's not NaN after coercion
@@ -86,7 +96,9 @@ const createFieldSchema = (field: ProviderConfigFieldDefinition): z.ZodTypeAny =
  * @param provider - The provider definition containing field metadata
  * @returns Complete Zod schema for validating provider configuration
  */
-export const generateProviderConfigSchema = (provider: ModelProviderDefinition) => {
+export const generateProviderConfigSchema = (
+  provider: ModelProviderDefinition,
+) => {
   const schemaFields: Record<string, z.ZodTypeAny> = {};
 
   // Add model field validation (model_field is BaseFieldDefinition, no default property)
@@ -115,12 +127,14 @@ export const generateProviderConfigSchema = (provider: ModelProviderDefinition) 
  * @param provider - The provider definition
  * @returns Object with default values for form initialization
  */
-export const getProviderConfigDefaults = (provider: ModelProviderDefinition): Record<string, unknown> => {
+export const getProviderConfigDefaults = (
+  provider: ModelProviderDefinition,
+): Record<string, unknown> => {
   const defaults: Record<string, unknown> = {};
 
   // Set model field default (BaseFieldDefinition doesn't have default, use empty string)
   if (provider.model_field?.required) {
-    defaults[MODEL_NAME_FIELD] = '';
+    defaults[MODEL_NAME_FIELD] = "";
   }
 
   // Set provider field defaults (ProviderConfigFieldDefinition has default property)
@@ -134,10 +148,10 @@ export const getProviderConfigDefaults = (provider: ModelProviderDefinition): Re
           defaults[field.key] = false;
           break;
         case FIELD_TYPES.NUMBER:
-          defaults[field.key] = '';  // Empty string, will be coerced to number
+          defaults[field.key] = ""; // Empty string, will be coerced to number
           break;
         default:
-          defaults[field.key] = '';
+          defaults[field.key] = "";
           break;
       }
     }
@@ -150,4 +164,6 @@ export const getProviderConfigDefaults = (provider: ModelProviderDefinition): Re
  * Type helper to infer the schema type from a provider definition
  * Provides TypeScript type safety for form values
  */
-export type ProviderConfigInput = z.infer<ReturnType<typeof generateProviderConfigSchema>>;
+export type ProviderConfigInput = z.infer<
+  ReturnType<typeof generateProviderConfigSchema>
+>;

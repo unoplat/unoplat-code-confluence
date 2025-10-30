@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import {
   Sidebar,
   SidebarHeader,
@@ -10,52 +10,63 @@ import {
   SidebarRail,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarGroupContent
-} from '../ui/sidebar'
+  SidebarGroupContent,
+} from "../ui/sidebar";
 import {
   Collapsible,
   CollapsibleTrigger,
-  CollapsibleContent
-} from '../ui/collapsible'
-import { Link } from '@tanstack/react-router'
-import { Settings, ChevronRight, LifeBuoy, Handshake, FolderKanban } from 'lucide-react'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { NavUser } from './NavUser'
-
+  CollapsibleContent,
+} from "../ui/collapsible";
+import { Link } from "@tanstack/react-router";
+import {
+  Settings,
+  ChevronRight,
+  LifeBuoy,
+  Handshake,
+  FolderKanban,
+} from "lucide-react";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { NavUser } from "./NavUser";
 
 export function AppSidebar(): React.ReactElement {
-  const { user, tokenStatus } = useAuthStore()
-  
+  const { user, tokenStatus } = useAuthStore();
 
   // Only show user info in footer when token is valid and user data exists
-  const showUserInfo = tokenStatus?.status && user
+  const showUserInfo = tokenStatus?.status && user;
 
   return (
     <Sidebar
       side="left"
       collapsible="icon"
       variant="sidebar"
-      className="group max-w-[14rem] w-full"
+      className="group w-full max-w-[14rem]"
     >
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
           {/* <img src={logoUnoplat} alt="Unoplat Code Confluence" className="h-8 w-8 object-contain" /> */}
-          <h1 className="font-semibold text-lg truncate bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Code Confluence</h1>
+          <h1 className="truncate bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-lg font-semibold text-transparent">
+            Code Confluence
+          </h1>
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <div className="px-2 space-y-1">
+        <div className="space-y-1 px-2">
           {/* Workspace Group */}
           <Collapsible className="group/collapsible" defaultOpen>
             <SidebarGroup>
               <SidebarGroupLabel
                 asChild
-                className="text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer group-data-[collapsible=icon]:!opacity-100 group-data-[collapsible=icon]:!mt-0"
+                className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer text-sm group-data-[collapsible=icon]:!mt-0 group-data-[collapsible=icon]:!opacity-100"
               >
                 <CollapsibleTrigger className="flex w-full items-center font-semibold group-data-[collapsible=icon]:justify-center">
                   <FolderKanban className="h-4 w-4" aria-hidden />
-                  <span className="ml-2 group-data-[collapsible=icon]:hidden">Workspace</span>
-                  <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" aria-hidden />
+                  <span className="ml-2 group-data-[collapsible=icon]:hidden">
+                    Workspace
+                  </span>
+                  <ChevronRight
+                    className="ml-auto h-4 w-4 transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90"
+                    aria-hidden
+                  />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
               <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
@@ -63,22 +74,40 @@ export function AppSidebar(): React.ReactElement {
                   <SidebarMenu>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Onboarding">
-                        <Link to="/onboarding" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
-                          <span className="text-sm font-medium">Onboarding</span>
+                        <Link
+                          to="/onboarding"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">
+                            Onboarding
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Ingestion Management">
-                        <Link to="/repositoryManagement" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
-                          <span className="text-sm font-medium">Ingestion Management</span>
+                        <Link
+                          to="/repositoryManagement"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">
+                            Ingestion Management
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Repository Operations">
-                        <Link to="/repositoryOperations" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
-                          <span className="text-sm font-medium">Repository Operations</span>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="Repository Operations"
+                      >
+                        <Link
+                          to="/repositoryOperations"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">
+                            Repository Operations
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -92,12 +121,17 @@ export function AppSidebar(): React.ReactElement {
             <SidebarGroup>
               <SidebarGroupLabel
                 asChild
-                className="text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer group-data-[collapsible=icon]:!opacity-100 group-data-[collapsible=icon]:!mt-0"
+                className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer text-sm group-data-[collapsible=icon]:!mt-0 group-data-[collapsible=icon]:!opacity-100"
               >
                 <CollapsibleTrigger className="flex w-full items-center font-semibold group-data-[collapsible=icon]:justify-center">
                   <Settings className="h-4 w-4" aria-hidden />
-                  <span className="ml-2 group-data-[collapsible=icon]:hidden">Settings</span>
-                  <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" aria-hidden />
+                  <span className="ml-2 group-data-[collapsible=icon]:hidden">
+                    Settings
+                  </span>
+                  <ChevronRight
+                    className="ml-auto h-4 w-4 transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90"
+                    aria-hidden
+                  />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
               <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
@@ -105,22 +139,37 @@ export function AppSidebar(): React.ReactElement {
                   <SidebarMenu>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Settings">
-                        <Link to="/settings" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
-                          <span className="text-sm font-medium">GitHub Configuration</span>
+                        <Link
+                          to="/settings"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">
+                            GitHub Configuration
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Model Providers">
-                        <Link to="/settings/model-providers" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
-                          <span className="text-sm font-medium">Model Providers</span>
+                        <Link
+                          to="/settings/model-providers"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">
+                            Model Providers
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Developer Mode">
-                        <Link to="/settings/developer" className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center">
-                          <span className="text-sm font-medium">Developer Mode</span>
+                        <Link
+                          to="/settings/developer"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">
+                            Developer Mode
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -134,12 +183,17 @@ export function AppSidebar(): React.ReactElement {
             <SidebarGroup>
               <SidebarGroupLabel
                 asChild
-                className="text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer group-data-[collapsible=icon]:!opacity-100 group-data-[collapsible=icon]:!mt-0"
+                className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer text-sm group-data-[collapsible=icon]:!mt-0 group-data-[collapsible=icon]:!opacity-100"
               >
                 <CollapsibleTrigger className="flex w-full items-center font-semibold group-data-[collapsible=icon]:justify-center">
                   <LifeBuoy className="h-4 w-4" aria-hidden />
-                  <span className="ml-2 group-data-[collapsible=icon]:hidden">Help & Support</span>
-                  <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" aria-hidden />
+                  <span className="ml-2 group-data-[collapsible=icon]:hidden">
+                    Help & Support
+                  </span>
+                  <ChevronRight
+                    className="ml-auto h-4 w-4 transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90"
+                    aria-hidden
+                  />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
               <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
@@ -147,25 +201,29 @@ export function AppSidebar(): React.ReactElement {
                   <SidebarMenu>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Discord Community">
-                        <a 
-                          href="https://discord.com/channels/1131597983058755675/1169968780953260106" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                        <a
+                          href="https://discord.com/channels/1131597983058755675/1169968780953260106"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
                         >
-                          <span className="text-sm font-medium">Discord Community</span>
+                          <span className="text-sm font-medium">
+                            Discord Community
+                          </span>
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Report an Issue">
-                         <a 
-                          href="https://github.com/unoplat/unoplat-code-confluence/issues" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                        <a
+                          href="https://github.com/unoplat/unoplat-code-confluence/issues"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
                         >
-                          <span className="text-sm font-medium">Report an Issue</span>
+                          <span className="text-sm font-medium">
+                            Report an Issue
+                          </span>
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -179,19 +237,27 @@ export function AppSidebar(): React.ReactElement {
             <SidebarGroup>
               <SidebarGroupLabel
                 asChild
-                className="text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer group-data-[collapsible=icon]:!opacity-100 group-data-[collapsible=icon]:!mt-0"
+                className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer text-sm group-data-[collapsible=icon]:!mt-0 group-data-[collapsible=icon]:!opacity-100"
               >
                 <CollapsibleTrigger className="flex w-full items-center font-semibold group-data-[collapsible=icon]:justify-center">
                   <Handshake className="h-4 w-4" aria-hidden />
-                  <span className="ml-2 group-data-[collapsible=icon]:hidden">Unoplat Connect</span>
-                  <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" aria-hidden />
+                  <span className="ml-2 group-data-[collapsible=icon]:hidden">
+                    Unoplat Connect
+                  </span>
+                  <ChevronRight
+                    className="ml-auto h-4 w-4 transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90"
+                    aria-hidden
+                  />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
               <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
                 <SidebarGroupContent>
                   <SidebarMenu>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="LinkedIn: Dive into our latest updates">
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="LinkedIn: Dive into our latest updates"
+                      >
                         <a
                           href="https://www.linkedin.com/company/unoplat"
                           target="_blank"
@@ -203,14 +269,19 @@ export function AppSidebar(): React.ReactElement {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="X/Twitter: Follow us for real-time insights">
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="X/Twitter: Follow us for real-time insights"
+                      >
                         <a
                           href="https://x.com/unoplatio"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
                         >
-                          <span className="text-sm font-medium">X / Twitter</span>
+                          <span className="text-sm font-medium">
+                            X / Twitter
+                          </span>
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -229,5 +300,5 @@ export function AppSidebar(): React.ReactElement {
       {/* Add the sidebar rail for dragging/resizing */}
       <SidebarRail />
     </Sidebar>
-  )
-} 
+  );
+}
