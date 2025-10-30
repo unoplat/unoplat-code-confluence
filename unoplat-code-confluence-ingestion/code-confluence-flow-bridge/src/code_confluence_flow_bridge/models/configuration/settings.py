@@ -216,3 +216,59 @@ class EnvironmentSettings(BaseSettings):
         le=50   # maximum 50 concurrent files
     )
 
+    # GitHub App manifest onboarding configuration
+    github_app_manifest_template_path: str = Field(
+        default="/opt/unoplat/github-app-config/manifest-template.json",
+        alias="GITHUB_APP_MANIFEST_TEMPLATE_PATH",
+        description="Absolute path to the GitHub App manifest template file mounted into the container."
+    )
+
+    github_app_name: str = Field(
+        default="Unoplat Code Confluence",
+        alias="GITHUB_APP_NAME",
+        description="Default name applied to the GitHub App manifest when the template omits a name."
+    )
+
+    github_app_homepage_url: Optional[str] = Field(
+        default=None,
+        alias="GITHUB_APP_HOMEPAGE_URL",
+        description="Fallback homepage URL injected into the manifest when not provided by the template or request."
+    )
+
+    github_app_description: Optional[str] = Field(
+        default=None,
+        alias="GITHUB_APP_DESCRIPTION",
+        description="Fallback description applied to the manifest when not provided elsewhere."
+    )
+
+    github_app_redirect_path: str = Field(
+        default="/integrations/github/app-manifest/callback",
+        alias="GITHUB_APP_REDIRECT_PATH",
+        description="Path exposed by this service to receive GitHub's manifest conversion callback."
+    )
+
+    github_app_webhook_path: str = Field(
+        default="/integrations/github/webhook",
+        alias="GITHUB_APP_WEBHOOK_PATH",
+        description="Path exposed by this service to receive GitHub webhook deliveries."
+    )
+
+    github_app_owner_type: Literal["user", "organization"] = Field(
+        default="user",
+        alias="GITHUB_APP_OWNER_TYPE",
+        description="Default owner type used when building installation URLs ('user' or 'organization')."
+    )
+
+    github_app_owner: Optional[str] = Field(
+        default=None,
+        alias="GITHUB_APP_OWNER",
+        description="Default GitHub username or organization slug to register the app under when omitted in requests."
+    )
+
+    github_app_manifest_state_ttl_minutes: int = Field(
+        default=30,
+        alias="GITHUB_APP_MANIFEST_STATE_TTL_MINUTES",
+        description="Time-to-live for stored manifest states awaiting GitHub callbacks.",
+        ge=1,
+        le=1440,
+    )

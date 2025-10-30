@@ -8,6 +8,7 @@ import re
 from typing import Dict, List, Optional, Tuple
 
 import tree_sitter
+from tree_sitter import QueryCursor
 from tree_sitter_language_pack import get_language, get_parser
 from unoplat_code_confluence_commons.base_models import (
     DataModelPosition,
@@ -23,7 +24,13 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
     """Detects TypeScript data models (interfaces, types, Zod schemas, class-validator, etc.)."""
 
     _LANGUAGE_NAME = "typescript"
-    _TYPES_QUERY_PATH = Path(__file__).resolve().parents[2] / "parser" / "queries" / "typescript" / "types.scm"
+    _TYPES_QUERY_PATH = (
+        Path(__file__).resolve().parents[2]
+        / "parser"
+        / "queries"
+        / "typescript"
+        / "types.scm"
+    )
 
     def detect(
         self,
@@ -84,7 +91,11 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
         positions: Dict[str, Tuple[int, int]] = {}
 
         for type_alias in signature_obj.type_aliases:
-            if type_alias.signature is None or type_alias.start_line is None or type_alias.end_line is None:
+            if (
+                type_alias.signature is None
+                or type_alias.start_line is None
+                or type_alias.end_line is None
+            ):
                 continue
             alias_name = self._extract_declared_name(
                 type_alias.signature, keyword="type"
@@ -108,9 +119,15 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
         return positions
 
     def _detect_with_tree_sitter(self, source_code: str) -> Dict[str, Tuple[int, int]]:
-        """Run the types.scm query to extract interface/type alias ranges."""
+        """Run the types.scm query to extract interface/type alias ranges.
+
+        Uses the modern tree-sitter Query API with QueryCursor for executing queries.
+        Reference: https://tree-sitter.github.io/py-tree-sitter/classes/tree_sitter.QueryCursor.html
+        """
         try:
-            parser, query = _get_typescript_parser_and_query(self._TYPES_QUERY_PATH, self._LANGUAGE_NAME)
+            parser, query = _get_typescript_parser_and_query(
+                self._TYPES_QUERY_PATH, self._LANGUAGE_NAME
+            )
         except Exception:
             return {}
 
@@ -120,18 +137,28 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
 
         positions: Dict[str, Tuple[int, int]] = {}
 
-        for node, capture_name in query.captures(root_node):
-            if capture_name == "type_alias":
-                name = self._extract_name_from_node(
-                    node, source_bytes, fallback_keyword="type"
-                )
-            elif capture_name == "interface":
-                name = self._extract_name_from_node(
-                    node, source_bytes, fallback_keyword="interface"
-                )
-            else:
-                name = None
+        # Create QueryCursor and execute query using captures() method
+        # captures() returns dict[str, list[Node]] where keys are capture names
+        # Reference: https://tree-sitter.github.io/py-tree-sitter/classes/tree_sitter.QueryCursor.html#tree_sitter.QueryCursor.captures
+        cursor = QueryCursor(query)
+        captures_dict = cursor.captures(root_node)  # type: ignore[attr-defined]
 
+        # Process type_alias captures
+        for node in captures_dict.get("type_alias", []):
+            name = self._extract_name_from_node(
+                node, source_bytes, fallback_keyword="type"
+            )
+            if name:
+                positions[name] = (
+                    node.start_point[0] + 1,
+                    node.end_point[0] + 1,
+                )
+
+        # Process interface captures
+        for node in captures_dict.get("interface", []):
+            name = self._extract_name_from_node(
+                node, source_bytes, fallback_keyword="interface"
+            )
             if name:
                 positions[name] = (
                     node.start_point[0] + 1,
@@ -154,7 +181,9 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
 
     def _slice_source(self, source_bytes: bytes, node: tree_sitter.Node) -> str:
         """Slice raw source text for a node."""
-        return source_bytes[node.start_byte : node.end_byte].decode("utf-8", errors="ignore")
+        return source_bytes[node.start_byte : node.end_byte].decode(
+            "utf-8", errors="ignore"
+        )
 
     @staticmethod
     def _extract_declared_name(signature: str, keyword: str) -> Optional[str]:
@@ -172,9 +201,14 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
 def _get_typescript_parser_and_query(
     query_path: Path, language_name: str
 ) -> Tuple[tree_sitter.Parser, tree_sitter.Query]:
-    """Load the TypeScript parser and compile the types.scm query (cached)."""
+    """Load the TypeScript parser and compile the types.scm query (cached).
+
+    Uses the modern tree-sitter Query API: tree_sitter.Query(language, source)
+    Reference: https://tree-sitter.github.io/py-tree-sitter/classes/tree_sitter.Query.html
+    """
     language = get_language(language_name)  # type: ignore[arg-type]
     parser = get_parser(language_name)  # type: ignore[arg-type]
     query_source = query_path.read_text(encoding="utf-8")
-    query = language.query(query_source)
+    # Use tree_sitter.Query constructor instead of deprecated language.query()
+    query = tree_sitter.Query(language, query_source)
     return parser, query
