@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.58.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.57.1...code-confluence-flow-bridge-v0.58.0) (2025-10-30)
+
+
+### Features
+
+* enable typescript native data model extraction grammar support with start line and end line ([8efe033](https://github.com/unoplat/unoplat-code-confluence/commit/8efe033c484e6941037a7e282a8ae45a3815d0fc))
+* **github-app:** Add GitHub App manifest and webhook handling (not integrated with frontend and not tested yet) ([988ffe5](https://github.com/unoplat/unoplat-code-confluence/commit/988ffe519a9f85b7a3a1d6887a8a228f6993f0db))
+
+
+### Bug Fixes
+
+* **detection:** Simplify codebase detection and remove SSE streaming ([6fec78b](https://github.com/unoplat/unoplat-code-confluence/commit/6fec78b1633966f281c3b241aa099fd1cd4055dc))
+* remove support for local repository parsing ([2f8be69](https://github.com/unoplat/unoplat-code-confluence/commit/2f8be69c2a1de7ab8b631822a1214ac9699fcf65))
+
 ## [0.57.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.57.0...code-confluence-flow-bridge-v0.57.1) (2025-10-23)
 
 
