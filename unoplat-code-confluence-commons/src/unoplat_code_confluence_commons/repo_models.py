@@ -24,14 +24,28 @@ class RepoAgentSnapshotStatus(Enum):
     ERROR = "ERROR"
 
 
+class RepositoryProvider(Enum):
+    """Git provider type for repositories."""
+
+    GITHUB_OPEN = "github_open"
+    GITHUB_ENTERPRISE = "github_enterprise"
+    GITLAB = "gitlab"
+    GITLAB_SELF_HOSTED = "gitlab_self_hosted"
+    BITBUCKET = "bitbucket"
+
+
 class Repository(SQLBase):
     """SQLModel for repository table in code_confluence schema."""
     __tablename__ = "repository"
 
     repository_name: Mapped[str] = mapped_column(primary_key=True, comment="The name of the repository")
     repository_owner_name: Mapped[str] = mapped_column(primary_key=True, comment="The name of the repository owner")
-    is_local: Mapped[bool] = mapped_column(default=False, comment="Whether this is a local repository")
-    local_path: Mapped[Optional[str]] = mapped_column(default=None, comment="Local filesystem path for local repositories")
+    repository_provider: Mapped[RepositoryProvider] = mapped_column(
+        SQLEnum(RepositoryProvider, name="repository_provider_type", native_enum=False),
+        default=RepositoryProvider.GITHUB_OPEN,
+        nullable=False,
+        comment="Git provider type for this repository (e.g., GitHub, GitLab, Bitbucket)"
+    )
     
     # Relationships - will be populated after class definitions
     workflow_runs: Mapped[List["RepositoryWorkflowRun"]] = relationship(
