@@ -15,11 +15,9 @@ import {
   type RepositoryDataTableRef,
 } from "../components/custom/RepositoryDataTable";
 import GitHubTokenPopup from "../components/custom/GitHubTokenPopup";
-import { LocalRepoOnboardingForm } from "../components/custom/LocalRepoOnboardingForm";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useAuthData } from "@/hooks/use-auth-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StatusBadge } from "@/components/custom/StatusBadge";
 
 export default function OnboardingPage(): React.ReactElement {
   console.log("[OnboardingPage] Rendering OnboardingPage component");
@@ -71,14 +69,10 @@ export default function OnboardingPage(): React.ReactElement {
     tokenStatus?.status,
   );
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
+    <div className="container mx-auto max-w-7xl space-y-8 px-4 py-8">
       <Tabs defaultValue="github" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="mb-6">
           <TabsTrigger value="github">GitHub Repository</TabsTrigger>
-          <TabsTrigger value="local" className="flex items-center gap-2">
-            Local Repository
-            <StatusBadge status="alpha" size="sm" />
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="github">
@@ -149,10 +143,6 @@ export default function OnboardingPage(): React.ReactElement {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="local">
-          <LocalRepoOnboardingForm />
         </TabsContent>
       </Tabs>
 

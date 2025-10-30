@@ -1,7 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,42 +15,48 @@ import {
   getSortedRowModel,
   ColumnFiltersState,
   SortingState,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 
-import { DataTable } from '@/components/data-table';
-import { DataTableToolbar } from '@/components/data-table-toolbar';
-import { getIngestedRepositoriesColumns } from './ingested-repositories-data-table-columns';
-import { RefreshRepositoryDialog } from './RefreshRepositoryDialog';
-import { DeleteRepositoryDialog } from './DeleteRepositoryDialog';
-import { toast } from 'sonner';
-import { useAgentGenerationUIStore } from '@/stores/useAgentGenerationUIStore';
-import { GenerateAgentsDialog } from '@/components/custom/GenerateAgentsDialog';
-import { useModelConfig } from '@/hooks/useModelConfig';
+import { DataTable } from "@/components/data-table";
+import { DataTableToolbar } from "@/components/data-table-toolbar";
+import { getIngestedRepositoriesColumns } from "./ingested-repositories-data-table-columns";
+import { RefreshRepositoryDialog } from "./RefreshRepositoryDialog";
+import { DeleteRepositoryDialog } from "./DeleteRepositoryDialog";
+import { toast } from "sonner";
+import { useAgentGenerationUIStore } from "@/stores/useAgentGenerationUIStore";
+import { GenerateAgentsDialog } from "@/components/custom/GenerateAgentsDialog";
+import { useModelConfig } from "@/hooks/useModelConfig";
 
-import type { IngestedRepository } from '../../types';
-import { 
-  getIngestedRepositories, 
-  refreshRepository, 
-  deleteRepository, 
+import type { IngestedRepository } from "../../types";
+import {
+  getIngestedRepositories,
+  refreshRepository,
+  deleteRepository,
   getModelConfig,
-} from '@/lib/api';
+} from "@/lib/api";
 
 interface RowAction {
-  row: import('@tanstack/react-table').Row<IngestedRepository>;
-  variant: 'refresh' | 'delete';
+  row: import("@tanstack/react-table").Row<IngestedRepository>;
+  variant: "refresh" | "delete";
 }
 
 export function IngestedRepositoriesDataTable(): React.ReactElement {
+  "use no memo";
+
   const [rowAction, setRowAction] = useState<RowAction | null>(null);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [isRefreshDialogOpen, setIsRefreshDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const isGenerationDialogOpen = useAgentGenerationUIStore((s) => s.isDialogOpen);
-  const selectedRepository = useAgentGenerationUIStore((s) => s.selectedRepository);
+  const isGenerationDialogOpen = useAgentGenerationUIStore(
+    (s) => s.isDialogOpen,
+  );
+  const selectedRepository = useAgentGenerationUIStore(
+    (s) => s.selectedRepository,
+  );
   const closeGenerationDialog = useAgentGenerationUIStore((s) => s.closeDialog);
   const openGenerationDialog = useAgentGenerationUIStore((s) => s.openDialog);
-  
+
   const queryClient = useQueryClient();
   const modelConfigQuery = useModelConfig();
 
@@ -55,15 +66,15 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['ingestedRepositories'],
+    queryKey: ["ingestedRepositories"],
     queryFn: getIngestedRepositories,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchInterval: 1000 * 5, // Refetch every 5 seconds
     placeholderData: keepPreviousData,
-    refetchOnMount: 'always',
+    refetchOnMount: "always",
     initialData: { repositories: [] },
     // Prevent re-renders during background fetches
-    notifyOnChangeProps: ['data', 'error'],
+    notifyOnChangeProps: ["data", "error"],
     refetchIntervalInBackground: true,
   });
 
@@ -71,11 +82,11 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
 
   // Refresh mutation
   const refreshMutation = useMutation({
-    mutationFn: (repository: IngestedRepository) => 
+    mutationFn: (repository: IngestedRepository) =>
       refreshRepository(repository),
     onSuccess: () => {
       toast.success("Repository has been successfully submitted for refresh");
-      queryClient.invalidateQueries({ queryKey: ['ingestedRepositories'] });
+      queryClient.invalidateQueries({ queryKey: ["ingestedRepositories"] });
     },
     onError: () => {
       toast.error("Unable to refresh the repository. Please try again.");
@@ -84,11 +95,11 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (repository: IngestedRepository) => 
+    mutationFn: (repository: IngestedRepository) =>
       deleteRepository(repository),
     onSuccess: () => {
       toast.success("The repository has been deleted successfully.");
-      queryClient.invalidateQueries({ queryKey: ['ingestedRepositories'] });
+      queryClient.invalidateQueries({ queryKey: ["ingestedRepositories"] });
     },
     onError: () => {
       toast.error("Unable to delete the repository. Please try again.");
@@ -96,27 +107,32 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
   });
 
   // Build columns with row action setter
-  const handleGenerateAgents = useCallback(async (repository: IngestedRepository) => {
-    try {
-      let config = modelConfigQuery.data;
+  const handleGenerateAgents = useCallback(
+    async (repository: IngestedRepository) => {
+      try {
+        let config = modelConfigQuery.data;
 
-      if (typeof config === 'undefined') {
-        config = await queryClient.fetchQuery({
-          queryKey: ['model-config'],
-          queryFn: getModelConfig,
-        });
+        if (typeof config === "undefined") {
+          config = await queryClient.fetchQuery({
+            queryKey: ["model-config"],
+            queryFn: getModelConfig,
+          });
+        }
+
+        if (!config) {
+          toast.error("Please set model provider in model providers setting.");
+          return;
+        }
+
+        openGenerationDialog(repository);
+      } catch (fetchError) {
+        toast.error(
+          "Unable to verify model provider configuration. Please try again.",
+        );
       }
-
-      if (!config) {
-        toast.error('Please set model provider in model providers setting.');
-        return;
-      }
-
-      openGenerationDialog(repository);
-    } catch (fetchError) {
-      toast.error('Unable to verify model provider configuration. Please try again.');
-    }
-  }, [modelConfigQuery.data, openGenerationDialog, queryClient]);
+    },
+    [modelConfigQuery.data, openGenerationDialog, queryClient],
+  );
 
   const columns = useMemo(() => {
     return getIngestedRepositoriesColumns({
@@ -144,15 +160,16 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
         pageSize: 7,
       },
     },
-    getRowId: (row: IngestedRepository) => `${row.repository_owner_name}/${row.repository_name}`,
+    getRowId: (row: IngestedRepository) =>
+      `${row.repository_owner_name}/${row.repository_name}`,
   });
 
   // Handle row actions
   useEffect(() => {
     if (rowAction) {
-      if (rowAction.variant === 'refresh') {
+      if (rowAction.variant === "refresh") {
         setIsRefreshDialogOpen(true);
-      } else if (rowAction.variant === 'delete') {
+      } else if (rowAction.variant === "delete") {
         setIsDeleteDialogOpen(true);
       }
     }
@@ -182,8 +199,8 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-destructive">
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-destructive text-sm">
           Failed to load repositories. Please try again.
         </p>
       </div>
@@ -191,12 +208,8 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4">
-      <DataTable
-        table={table}
-        isLoading={isLoading}
-        actionBar={null}
-      >
+    <div className="mx-auto w-full max-w-7xl px-4">
+      <DataTable table={table} isLoading={isLoading} actionBar={null}>
         <DataTableToolbar table={table} />
       </DataTable>
 

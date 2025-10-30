@@ -1,14 +1,14 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { SubmittedJobsDataTable } from '@/components/custom/SubmittedJobsDataTable';
-import React from 'react';
+import { createFileRoute } from "@tanstack/react-router";
+import { SubmittedJobsDataTable } from "@/components/custom/SubmittedJobsDataTable";
+import React from "react";
 
-export const Route = createFileRoute('/_app/repositoryManagement')({
+export const Route = createFileRoute("/_app/repositoryManagement")({
   component: RepositoryManagementPage,
   beforeLoad: () => {
     return {
-      getTitle: () => 'Ingestion Management'
+      getTitle: () => "Ingestion Management",
     };
-  }
+  },
 });
 
 function RepositoryManagementPage(): React.ReactElement {
