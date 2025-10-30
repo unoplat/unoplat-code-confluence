@@ -4,12 +4,6 @@ from typing import Dict, List, Optional, Union
 from loguru import logger
 from neo4j import AsyncManagedTransaction, AsyncSession, Record
 from temporalio.exceptions import ApplicationError
-from unoplat_code_confluence_commons.graph_models.code_confluence_file import (
-    CodeConfluenceFile,
-)
-from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
-    CodeConfluenceGitRepository,
-)
 
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
