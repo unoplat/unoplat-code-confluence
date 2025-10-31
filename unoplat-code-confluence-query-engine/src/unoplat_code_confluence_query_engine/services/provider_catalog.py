@@ -146,7 +146,7 @@ class ProviderCatalog:
             display_name="Hugging Face Inference",
             kind="native",
             model_field={
-                "label": "Model repo",
+                "label": "Model Name",
                 "placeholder": "Qwen/Qwen3-235B-A22B",
                 "required": True,
             },

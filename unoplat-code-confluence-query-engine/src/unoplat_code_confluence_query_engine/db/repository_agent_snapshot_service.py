@@ -168,7 +168,10 @@ class RepositoryAgentSnapshotWriter:
 
             if not updated:
                 logger.error(
-                    "Failed to append event for %s/%s codebase=%s", self.owner_name, self.repo_name, delta.codebase_delta.codebase_name
+                    "Failed to append event for %s/%s codebase=%s",
+                    self.owner_name,
+                    self.repo_name,
+                    delta.codebase_delta.codebase_name,
                 )
                 raise ValueError(
                     f"Codebase {delta.codebase_delta.codebase_name} is not initialized in events document"
@@ -212,12 +215,9 @@ class RepositoryAgentSnapshotWriter:
     async def fetch_events(self) -> dict[str, object] | None:
         """Fetch the current events document for diagnostics or fallback flows."""
         async with get_session() as session:
-            stmt = (
-                select(RepositoryAgentMdSnapshot.events)
-                .where(
-                    RepositoryAgentMdSnapshot.repository_owner_name == self.owner_name,
-                    RepositoryAgentMdSnapshot.repository_name == self.repo_name,
-                )
+            stmt = select(RepositoryAgentMdSnapshot.events).where(
+                RepositoryAgentMdSnapshot.repository_owner_name == self.owner_name,
+                RepositoryAgentMdSnapshot.repository_name == self.repo_name,
             )
             result = await session.execute(stmt)
             row = result.scalar_one_or_none()
