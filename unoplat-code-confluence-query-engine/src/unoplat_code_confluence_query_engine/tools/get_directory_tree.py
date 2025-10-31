@@ -10,7 +10,7 @@ from unoplat_code_confluence_query_engine.models.agent_dependencies import (
 
 # class DirectoryTree(BaseModel):
 #     """Directory tree structure returned by the eza utility.
-    
+
 #     This model represents the formatted output from the eza command-line tool,
 #     which provides a tree-like view of directory structure with files and folders.
 #     """
@@ -89,7 +89,7 @@ async def get_directory_tree(
 
         # Return the directory tree
         tree_output = stdout.decode("utf-8")
-        #return DirectoryTree(tree=tree_output)
+        # return DirectoryTree(tree=tree_output)
         return tree_output
 
     except FileNotFoundError:

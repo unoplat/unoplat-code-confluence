@@ -35,7 +35,7 @@ async def get_lib_data(
         await get_lib_data(ctx, "pytest", "python", feature_description="testing commands")
         await get_lib_data(ctx, "react", "javascript", feature_description="hooks")
     """
-    
+
     try:
         # Use the service to get documentation with the Context7 agent
         result = await ctx.deps.library_documentation_service.get_library_documentation(
@@ -44,10 +44,12 @@ async def get_lib_data(
             programming_language=programming_language,
             feature_description=feature_description,
         )
-        
+
         return result
-        
+
     except Exception as e:
         # Return a helpful error message
-        error_context = f" for feature '{feature_description}'" if feature_description else ""
+        error_context = (
+            f" for feature '{feature_description}'" if feature_description else ""
+        )
         return f"Error retrieving documentation for {lib_name}{error_context}: {str(e)}"

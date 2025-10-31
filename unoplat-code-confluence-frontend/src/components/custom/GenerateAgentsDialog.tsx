@@ -191,6 +191,24 @@ export function GenerateAgentsDialog({
     startRunMutation.mutate();
   };
 
+  const handleDownloadAll = (): void => {
+    if (!previewContent) {
+      return;
+    }
+
+    const blob = new Blob([previewContent], {
+      type: "text/markdown;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "AGENTS.md";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -200,7 +218,7 @@ export function GenerateAgentsDialog({
         <DialogHeader>
           <DialogTitle>Generate Agents.md</DialogTitle>
           <DialogDescription>
-            Generate precise metadata for your repository's AI agents and
+            Generate precise metadata for your repository&apos;s AI agents and
             workflows.
           </DialogDescription>
         </DialogHeader>
@@ -332,12 +350,13 @@ export function GenerateAgentsDialog({
           </div>
         </div>
 
-        {previewContent ? (
+        {previewCodebases ? (
           <GenerateAgentsPreview
-            content={previewContent}
-            fileName="AGENTS.md"
+            codebases={previewCodebases}
+            repositoryName={`${repository.repository_owner_name}/${repository.repository_name}`}
             open={isPreviewOpen}
             onOpenChange={setIsPreviewOpen}
+            onDownloadAll={handleDownloadAll}
           />
         ) : null}
       </DialogContent>

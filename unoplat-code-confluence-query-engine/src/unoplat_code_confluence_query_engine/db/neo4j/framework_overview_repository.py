@@ -68,9 +68,7 @@ async def _txn_get_framework_with_features(
     RETURN fw.library as library,
            features
     """
-    result = await tx.run(
-        query, {"codebase_path": codebase_path, "library": library}
-    )
+    result = await tx.run(query, {"codebase_path": codebase_path, "library": library})
     record = await result.single()
     if not record:
         return {"library": library, "features": []}
@@ -98,5 +96,3 @@ async def db_get_framework_with_features(
         return await session.execute_read(
             _txn_get_framework_with_features, codebase_path, library
         )
-
-

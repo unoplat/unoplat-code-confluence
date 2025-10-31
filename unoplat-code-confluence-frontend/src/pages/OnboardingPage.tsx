@@ -72,7 +72,7 @@ export default function OnboardingPage(): React.ReactElement {
     <div className="container mx-auto max-w-7xl space-y-8 px-4 py-8">
       <Tabs defaultValue="github" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="github">GitHub Repository</TabsTrigger>
+          <TabsTrigger value="github">GitHub</TabsTrigger>
         </TabsList>
 
         <TabsContent value="github">

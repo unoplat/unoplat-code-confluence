@@ -15,10 +15,10 @@ from unoplat_code_confluence_query_engine.utils.agent_logs import (
 
 class LibraryDocumentationService:
     """Service for retrieving concise library/framework documentation using Context7 agent."""
-    
+
     def __init__(self, logs_dir: Optional[Union[str, Path]] = None) -> None:
         """Initialize the library documentation service.
-        
+
         Args:
             logs_dir: Directory path for storing execution logs and nodes
         """
@@ -38,14 +38,14 @@ class LibraryDocumentationService:
     ) -> str:
         """
         Get concise library/framework documentation summary.
-        
+
         Args:
             context7_agent: Pre-configured Context7 agent with MCP toolset
             lib_name: Name of the library/framework
             programming_language: Programming language context (required)
             feature_description: Optional specific feature name or functionality description
             tool_type: Optional hint for developer tools (linter, test-runner, build-tool, etc.)
-            
+
         Returns:
             Concise summary of the library/framework or feature.
             For developer tools, returns commands and config information.
@@ -88,24 +88,24 @@ class LibraryDocumentationService:
             # Run the Context7 agent with iterative pattern for node tracking
             nodes: List[Any] = []
             final_result = None
-            
+
             async with context7_agent.iter(user_message) as agent_run:
                 async for node in agent_run:
                     nodes.append(node)
-                
+
                 final_result = agent_run.result
-            
+
             # Save nodes to JSON for debugging
             context = f"{lib_name}_{programming_language}"
             if feature_description:
                 context += f"_{feature_description.replace(' ', '_')}"
-            
+
             await save_nodes_to_json(
                 self.logs_dir,
                 filename_prefix=f"agent_run_context7_{context.replace('/', '_')}",
                 nodes=nodes,
             )
-            
+
             # Extract and return the response
             if final_result and final_result.output:
                 return str(final_result.output)
@@ -114,13 +114,10 @@ class LibraryDocumentationService:
 
         except Exception as e:
             logger.error(
-                "Error retrieving library documentation for {}: {}",
-                lib_name,
-                str(e)
+                "Error retrieving library documentation for {}: {}", lib_name, str(e)
             )
             # Return a fallback message
             if feature_description:
                 return f"Documentation unavailable for '{feature_description}' in {lib_name}"
             else:
                 return f"Documentation unavailable for {lib_name}"
-    
