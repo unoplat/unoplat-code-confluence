@@ -24,8 +24,9 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Release Please (app bundle)
-        id: release_app
+      - name: Release Please (prepare app release PR)
+        if: ${{ github.event.pull_request.head.ref == 'dev' }}
+        id: release_app_pr
         uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.PAT }}
@@ -33,3 +34,16 @@ jobs:
           manifest-file: .github/configuration/release-please-app-manifest.json
           include-component-in-tag: true
           target-branch: main
+          skip-github-release: true
+
+      - name: Release Please (publish app release)
+        if: ${{ startsWith(github.event.pull_request.head.ref, 'release-please--') }}
+        id: release_app_publish
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.PAT }}
+          config-file: .github/configuration/release-please-app-config.json
+          manifest-file: .github/configuration/release-please-app-manifest.json
+          include-component-in-tag: true
+          target-branch: main
+          skip-github-pull-request: true
