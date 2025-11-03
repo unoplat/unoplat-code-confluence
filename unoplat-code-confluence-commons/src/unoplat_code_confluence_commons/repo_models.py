@@ -286,6 +286,12 @@ class RepositoryAgentMdSnapshot(SQLBase):
         nullable=False,
         comment="Complete final payload from agent execution containing per-codebase agent data",
     )
+    statistics: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=None,
+        comment="Aggregated usage and pricing statistics for the latest agent workflow",
+    )
     status: Mapped[RepoAgentSnapshotStatus] = mapped_column(
         SQLEnum(
             RepoAgentSnapshotStatus,
