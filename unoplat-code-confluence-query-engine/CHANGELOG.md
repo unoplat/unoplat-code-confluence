@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.19.0...unoplat-code-confluence-query-engine-v0.20.0) (2025-11-03)
+
+
+### Features
+
+* **workflow:** Enhance agent execution with usage statistics tracking ([c68e53e](https://github.com/unoplat/unoplat-code-confluence/commit/c68e53ef83243b55a8fbb0dc330891517b80d086))
+
 ## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.18.0...unoplat-code-confluence-query-engine-v0.19.0) (2025-11-03)
 
 
