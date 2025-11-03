@@ -32,7 +32,7 @@ async def read_file_content(
             "Attempting to read file: {} (lines {}-{})",
             file_path,
             start_line or "start",
-            end_line or "end"
+            end_line or "end",
         )
     else:
         logger.debug("Attempting to read file: {}", file_path)
@@ -61,7 +61,9 @@ async def read_file_content(
 
     # Validate line range parameters
     if start_line is not None and start_line < 1:
-        logger.debug("File read failed - invalid start_line {}: must be >= 1", start_line)
+        logger.debug(
+            "File read failed - invalid start_line {}: must be >= 1", start_line
+        )
         raise ModelRetry(
             "start_line must be >= 1. Please provide a valid line number starting from 1."
         )
@@ -76,7 +78,7 @@ async def read_file_content(
         logger.debug(
             "File read failed - invalid line range: start_line {} > end_line {}",
             start_line,
-            end_line
+            end_line,
         )
         raise ModelRetry(
             "start_line cannot be greater than end_line. Please provide a valid line range."
@@ -90,7 +92,7 @@ async def read_file_content(
                 logger.debug(
                     "Successfully read entire file: {} ({} characters)",
                     file_path,
-                    len(content)
+                    len(content),
                 )
                 return content
             else:
@@ -115,7 +117,7 @@ async def read_file_content(
                         "File read failed - start_line {} exceeds file length {} for: {}",
                         start_line,
                         line_num,
-                        file_path
+                        file_path,
                     )
                     raise ModelRetry(
                         f"The file has only {line_num} lines, but you requested to start from line {start_line}. Please adjust the line range."
@@ -128,7 +130,7 @@ async def read_file_content(
                     end_line or line_num,
                     file_path,
                     len(lines),
-                    len(result)
+                    len(result),
                 )
                 return result
 
@@ -138,7 +140,9 @@ async def read_file_content(
             f"Permission denied reading file: {file_path}. Please check file permissions or choose a different file."
         )
     except UnicodeDecodeError as e:
-        logger.debug("File read failed - unicode decode error for: {} ({})", file_path, e)
+        logger.debug(
+            "File read failed - unicode decode error for: {} ({})", file_path, e
+        )
         raise ModelRetry(
             f"Unable to decode file as UTF-8: {file_path}. The file might be binary or use a different encoding. Please try a different file."
         )

@@ -42,12 +42,40 @@ export const agentMdOutputSchema = z
 
 export type AgentMdOutputRecord = z.infer<typeof agentMdOutputSchema>;
 
+export const usageStatisticsSchema = z.object({
+  requests: z.number().default(0),
+  tool_calls: z.number().default(0),
+  input_tokens: z.number().default(0),
+  output_tokens: z.number().default(0),
+  cache_write_tokens: z.number().default(0),
+  cache_read_tokens: z.number().default(0),
+  total_tokens: z.number().default(0),
+  estimated_cost_usd: z.number().nullable().optional(),
+});
+
+export type UsageStatistics = z.infer<typeof usageStatisticsSchema>;
+
+export const workflowStatisticsSchema = z.object({
+  total_requests: z.number().default(0),
+  total_tool_calls: z.number().default(0),
+  total_input_tokens: z.number().default(0),
+  total_output_tokens: z.number().default(0),
+  total_cache_write_tokens: z.number().default(0),
+  total_cache_read_tokens: z.number().default(0),
+  total_tokens: z.number().default(0),
+  total_estimated_cost_usd: z.number().nullable().optional(),
+  by_codebase: z.record(z.string(), usageStatisticsSchema).default({}),
+});
+
+export type WorkflowStatistics = z.infer<typeof workflowStatisticsSchema>;
+
 export const repositoryAgentSnapshotRowSchema = z.object({
   repository_name: z.string(),
   repository_owner_name: z.string(),
   status: z.enum(["RUNNING", "COMPLETED", "ERROR"]),
   events: repositoryAgentEventsEnvelopeSchema.nullable().optional(),
   agent_md_output: agentMdOutputSchema.nullable().optional(),
+  statistics: workflowStatisticsSchema.nullable().optional(),
   created_at: z.string(),
   modified_at: z.string(),
 });

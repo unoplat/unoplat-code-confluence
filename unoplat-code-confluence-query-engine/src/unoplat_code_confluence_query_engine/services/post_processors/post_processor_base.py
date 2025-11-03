@@ -7,7 +7,7 @@ from typing import Any, Protocol, TypeVar
 
 class ProcessorDependencies:
     """Simplified dependencies for post-processors."""
-    
+
     def __init__(
         self,
         *,
@@ -26,7 +26,7 @@ T_out = TypeVar("T_out", covariant=True)
 
 class PostProcessorProtocol(Protocol[T_in, T_out]):
     """Protocol for agent output post-processors."""
-    
+
     async def process(
         self,
         *,
@@ -34,5 +34,3 @@ class PostProcessorProtocol(Protocol[T_in, T_out]):
         deps: ProcessorDependencies,
     ) -> T_out:
         """Transform agent's raw output into final result."""
-
-

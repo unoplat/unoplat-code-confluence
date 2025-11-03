@@ -11,7 +11,7 @@ from unoplat_code_confluence_query_engine.services.post_processors.post_processo
 
 class PostProcessingRegistry:
     """Registry for managing post-processors by agent name."""
-    
+
     def __init__(self) -> None:
         self._processors: Dict[str, PostProcessorProtocol] = {}
 

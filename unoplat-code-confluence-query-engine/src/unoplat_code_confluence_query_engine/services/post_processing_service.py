@@ -27,8 +27,10 @@ class PostProcessingService:
     def __init__(self, registry: Optional[PostProcessingRegistry] = None) -> None:
         self.registry = registry or PostProcessingRegistry()
         # Register built-in processors
-        #self.registry.register("framework_explorer", FrameworkExplorerPostProcessor())
-        self.registry.register("business_logic_domain", BusinessLogicDomainPostProcessor())
+        # self.registry.register("framework_explorer", FrameworkExplorerPostProcessor())
+        self.registry.register(
+            "business_logic_domain", BusinessLogicDomainPostProcessor()
+        )
 
     async def run(
         self,
@@ -43,7 +45,7 @@ class PostProcessingService:
         processor = self.registry.get(agent_name)
         if not processor:
             return agent_output
-        
+
         # Adapt old interface to new simplified processor interface
         processor_deps = ProcessorDependencies(
             codebase_path=codebase.codebase_path,
@@ -54,5 +56,3 @@ class PostProcessingService:
             agent_output=agent_output,
             deps=processor_deps,
         )
-
-
