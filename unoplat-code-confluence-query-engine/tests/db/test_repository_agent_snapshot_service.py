@@ -39,8 +39,8 @@ def create_test_repository(sync_session, owner: str, name: str) -> None:
     """Create minimal repository row for testing."""
     sync_session.execute(
         text("""
-            INSERT INTO repository (repository_owner_name, repository_name, repository_provider)
-            VALUES (:owner, :name, 'github_open')
+            INSERT INTO repository (repository_owner_name, repository_name, is_local)
+            VALUES (:owner, :name, false)
             ON CONFLICT DO NOTHING
         """),
         {"owner": owner, "name": name}
@@ -52,7 +52,7 @@ def get_snapshot_data(sync_session, owner: str, name: str) -> Optional[Dict]:
     """Fetch complete row from repository_agent_md_snapshot."""
     result = sync_session.execute(
         text("""
-            SELECT events, agent_md_output, statistics, status, created_at, modified_at
+            SELECT events, agent_md_output, status, created_at, modified_at
             FROM repository_agent_md_snapshot
             WHERE repository_owner_name = :owner AND repository_name = :name
         """),
@@ -63,10 +63,9 @@ def get_snapshot_data(sync_session, owner: str, name: str) -> Optional[Dict]:
         return {
             "events": row[0],
             "agent_md_output": row[1],
-            "statistics": row[2],
-            "status": row[3],
-            "created_at": row[4],
-            "modified_at": row[5]
+            "status": row[2],
+            "created_at": row[3],
+            "modified_at": row[4]
         }
     return None
 
@@ -250,7 +249,7 @@ async def test_append_event_updates_events_json_and_timestamp(seeded_db, writer)
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_complete_run_updates_status_and_output(seeded_db, writer):
-    """Test that complete_run updates status to COMPLETED and sets agent_md_output and statistics."""
+    """Test that complete_run updates status to COMPLETED and sets agent_md_output."""
     # Setup: initialize snapshot
     await writer.begin_run(
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
@@ -263,7 +262,7 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
         initial_snapshot = get_snapshot_data(session, TEST_OWNER, TEST_REPO)
         initial_modified_at = initial_snapshot["modified_at"]
 
-    # Complete the run with statistics
+    # Complete the run
     final_payload = {
         "agents_md": {
             "architecture": "Clean architecture pattern",
@@ -272,30 +271,7 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
         "summary": "Analysis completed"
     }
 
-    statistics_payload = {
-        "total_requests": 5,
-        "total_tool_calls": 12,
-        "total_input_tokens": 1500,
-        "total_output_tokens": 800,
-        "total_cache_write_tokens": 200,
-        "total_cache_read_tokens": 300,
-        "total_tokens": 2300,
-        "total_estimated_cost_usd": 0.05,
-        "by_codebase": {
-            TEST_CODEBASE_1: {
-                "requests": 5,
-                "tool_calls": 12,
-                "input_tokens": 1500,
-                "output_tokens": 800,
-                "cache_write_tokens": 200,
-                "cache_read_tokens": 300,
-                "total_tokens": 2300,
-                "estimated_cost_usd": 0.05
-            }
-        }
-    }
-
-    await writer.complete_run(final_payload=final_payload, statistics_payload=statistics_payload)
+    await writer.complete_run(final_payload=final_payload)
 
     # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
@@ -306,14 +282,6 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
 
         # Check agent_md_output updated
         assert snapshot["agent_md_output"] == final_payload
-
-        # Check statistics updated
-        assert snapshot["statistics"] is not None
-        assert snapshot["statistics"]["total_requests"] == 5
-        assert snapshot["statistics"]["total_tool_calls"] == 12
-        assert snapshot["statistics"]["total_tokens"] == 2300
-        assert snapshot["statistics"]["total_estimated_cost_usd"] == 0.05
-        assert TEST_CODEBASE_1 in snapshot["statistics"]["by_codebase"]
 
         # Check timestamp updated
         assert snapshot["modified_at"] > initial_modified_at

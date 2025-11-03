@@ -1,7 +1,6 @@
 """Unified agent execution service consolidating duplicated logic."""
 
 import asyncio
-from dataclasses import asdict
 from datetime import datetime
 from functools import partial
 from pathlib import Path
@@ -40,11 +39,6 @@ from unoplat_code_confluence_query_engine.models.agent_md_output import (
     ProgrammingLanguageMetadataOutput,
     ProjectConfiguration,
 )
-from unoplat_code_confluence_query_engine.models.agent_usage_statistics import (
-    UsageStatistics,
-    UsageSummary,
-    WorkflowStatistics,
-)
 from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
     CodebaseMetadata,
     RepositoryRulesetMetadata,
@@ -76,6 +70,7 @@ from unoplat_code_confluence_query_engine.utils.agent_error_logger import (
 from unoplat_code_confluence_query_engine.utils.agent_logs import (
     get_logs_subdir,
     resolve_logs_dir,
+    save_nodes_to_json,
 )
 
 # Removed _normalize_object_for_json and _convert_to_json_string functions
@@ -253,7 +248,6 @@ class AgentExecutionService:
 
         project_structure_by_codebase: Dict[str, ProjectConfiguration] = {}
         event_id = 0
-        workflow_usage: Dict[str, Dict[str, UsageSummary]] = {}
 
         try:
             project_configuration_request = AgentExecutionRequest(
@@ -269,14 +263,13 @@ class AgentExecutionService:
                 project_structure_by_codebase,
             )
 
-            event_id, project_config_usage = await self._collect_agent_stream(
+            event_id = await self._collect_agent_stream(
                 ruleset_metadata=ruleset_metadata,
                 exec_request=project_configuration_request,
                 progress_tracker=progress_tracker,
                 starting_event_id=event_id,
                 on_result=directory_result_handler,
             )
-            workflow_usage["project_configuration_agent"] = project_config_usage
 
             development_request = AgentExecutionRequest(
                 agent_name="development_workflow",
@@ -293,14 +286,13 @@ class AgentExecutionService:
                 aggregators,
             )
 
-            event_id, development_workflow_usage = await self._collect_agent_stream(
+            event_id = await self._collect_agent_stream(
                 ruleset_metadata=ruleset_metadata,
                 exec_request=development_request,
                 progress_tracker=progress_tracker,
                 starting_event_id=event_id,
                 on_result=workflow_result_handler,
             )
-            workflow_usage["development_workflow"] = development_workflow_usage
 
             business_logic_request = AgentExecutionRequest(
                 agent_name="business_logic_domain",
@@ -315,27 +307,22 @@ class AgentExecutionService:
                 aggregators,
             )
 
-            event_id, business_logic_usage = await self._collect_agent_stream(
+            event_id = await self._collect_agent_stream(
                 ruleset_metadata=ruleset_metadata,
                 exec_request=business_logic_request,
                 progress_tracker=progress_tracker,
                 starting_event_id=event_id,
                 on_result=business_logic_handler,
             )
-            workflow_usage["business_logic_domain"] = business_logic_usage
 
             await progress_tracker.append_final_events(event_id)
 
-            final_payload, statistics_payload = self._build_final_payload(
+            final_payload = self._build_final_payload(
                 ruleset_metadata=ruleset_metadata,
                 aggregators=aggregators,
-                workflow_usage=workflow_usage,
             )
 
-            await snapshot_writer.complete_run(
-                final_payload=final_payload,
-                statistics_payload=statistics_payload,
-            )
+            await snapshot_writer.complete_run(final_payload=final_payload)
         except Exception as execution_error:  # noqa: BLE001
             logger.exception(
                 "Workflow {} for {}/{} failed: {}",
@@ -469,11 +456,10 @@ class AgentExecutionService:
         progress_tracker: RepositoryEventProgressTracker,
         starting_event_id: int,
         on_result: Optional[Callable[[str, Any], Awaitable[None]]] = None,
-    ) -> tuple[int, Dict[str, UsageSummary]]:
+    ) -> int:
         """Collect streaming events for a single agent and persist them."""
 
         event_id = starting_event_id
-        agent_usage_data: Dict[str, UsageSummary] = {}
 
         async for progress_event in self.run_stream(
             ruleset_metadata,
@@ -494,33 +480,6 @@ class AgentExecutionService:
                         if result_payload is not None:
                             await on_result(codebase_name, result_payload)
 
-            # Capture usage statistics from completion events
-            if event_name and event_name.endswith(":complete"):
-                parts = event_name.split(":", 2)
-                if len(parts) == 3:
-                    codebase_name = parts[0]
-                    usage = event_data.get("usage")
-                    cost_usd = event_data.get("cost_usd")
-
-                    if usage is not None:
-                        agent_usage_data[codebase_name] = UsageSummary(
-                            usage=usage,
-                            cost_usd=cost_usd,
-                        )
-                        # Log what was collected
-                        total_tokens = (
-                            usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
-                            if isinstance(usage, dict)
-                            else "unknown"
-                        )
-                        cost_str = f"{cost_usd:.6f}" if cost_usd is not None else "N/A"
-                        logger.info(
-                            "Collected usage for codebase {}: tokens={}, cost=${} USD",
-                            codebase_name,
-                            total_tokens,
-                            cost_str,
-                        )
-
             await progress_tracker.persist_codebase_event(
                 event_name,
                 event_data,
@@ -528,7 +487,7 @@ class AgentExecutionService:
             )
             event_id += 1
 
-        return (event_id, agent_usage_data)
+        return event_id
 
     async def _initialize_aggregators(
         self,
@@ -598,112 +557,12 @@ class AgentExecutionService:
 
         aggregators[codebase_name].update_from_business_logic(result)
 
-    def _build_workflow_statistics(
-        self,
-        *,
-        workflow_usage: Dict[str, Dict[str, UsageSummary]],
-    ) -> Dict[str, Any]:
-        """Build workflow statistics by aggregating usage across agents per codebase.
-
-        Args:
-            workflow_usage: Nested dict: {agent_name: {codebase_name: UsageSummary}}
-
-        Returns:
-            Statistics payload with per-codebase and total aggregations
-        """
-        # Log statistics building start
-        logger.info("Building workflow statistics from {} agents", len(workflow_usage))
-        for agent_name, codebase_usages in workflow_usage.items():
-            logger.debug("Agent {}: {} codebases with usage data", agent_name, len(codebase_usages))
-
-        # Aggregate per codebase across all agents
-        codebase_stats: Dict[str, UsageStatistics] = {}
-
-        # Collect all codebase names
-        all_codebases: set[str] = set()
-        for agent_usage in workflow_usage.values():
-            all_codebases.update(agent_usage.keys())
-
-        # Aggregate usage for each codebase
-        for codebase_name in all_codebases:
-            total_requests = 0
-            total_input_tokens = 0
-            total_output_tokens = 0
-            total_cache_write_tokens = 0
-            total_cache_read_tokens = 0
-            total_tool_calls = 0
-            total_cost = 0.0
-
-            for agent_usage in workflow_usage.values():
-                if codebase_name in agent_usage:
-                    summary = agent_usage[codebase_name]
-                    usage = summary.usage
-
-                    total_requests += usage.get("requests", 0)
-                    total_input_tokens += usage.get("input_tokens", 0)
-                    total_output_tokens += usage.get("output_tokens", 0)
-                    total_cache_write_tokens += usage.get("cache_write_tokens", 0)
-                    total_cache_read_tokens += usage.get("cache_read_tokens", 0)
-                    total_tool_calls += usage.get("tool_calls", 0)
-
-                    if summary.cost_usd is not None:
-                        total_cost += summary.cost_usd
-
-            codebase_stats[codebase_name] = UsageStatistics(
-                requests=total_requests,
-                input_tokens=total_input_tokens,
-                output_tokens=total_output_tokens,
-                cache_write_tokens=total_cache_write_tokens,
-                cache_read_tokens=total_cache_read_tokens,
-                total_tokens=total_input_tokens + total_output_tokens,
-                tool_calls=total_tool_calls,
-                estimated_cost_usd=total_cost if total_cost > 0 else None,
-            )
-
-        # Calculate workflow totals from codebase stats
-        workflow_stats = WorkflowStatistics(
-            total_requests=sum(s.requests for s in codebase_stats.values()),
-            total_input_tokens=sum(s.input_tokens for s in codebase_stats.values()),
-            total_output_tokens=sum(s.output_tokens for s in codebase_stats.values()),
-            total_cache_write_tokens=sum(
-                s.cache_write_tokens for s in codebase_stats.values()
-            ),
-            total_cache_read_tokens=sum(
-                s.cache_read_tokens for s in codebase_stats.values()
-            ),
-            total_tokens=sum(s.total_tokens for s in codebase_stats.values()),
-            total_tool_calls=sum(s.tool_calls for s in codebase_stats.values()),
-            total_estimated_cost_usd=sum(
-                s.estimated_cost_usd
-                for s in codebase_stats.values()
-                if s.estimated_cost_usd is not None
-            )
-            or None,
-            by_codebase=codebase_stats,
-        )
-
-        # Log statistics summary
-        cost_str = (
-            f"{workflow_stats.total_estimated_cost_usd:.6f}"
-            if workflow_stats.total_estimated_cost_usd is not None
-            else "N/A"
-        )
-        logger.info(
-            "Workflow statistics generated: total_tokens={}, total_requests={}, total_cost=${} USD",
-            workflow_stats.total_tokens,
-            workflow_stats.total_requests,
-            cost_str,
-        )
-
-        return workflow_stats.model_dump(exclude_none=True)
-
     def _build_final_payload(
         self,
         *,
         ruleset_metadata: RepositoryRulesetMetadata,
         aggregators: Dict[str, AgentMdAggregate],
-        workflow_usage: Dict[str, Dict[str, UsageSummary]],
-    ) -> tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
+    ) -> Dict[str, Any]:
         """Build the final payload persisted in the snapshot row."""
 
         payload: Dict[str, Any] = {
@@ -717,20 +576,7 @@ class AgentExecutionService:
                 exclude_none=True
             )
 
-        # Build statistics payload
-        statistics_payload: Optional[Dict[str, Any]] = None
-        try:
-            statistics_payload = self._build_workflow_statistics(
-                workflow_usage=workflow_usage
-            )
-        except Exception as stats_error:  # noqa: BLE001
-            logger.warning(
-                "Failed to build workflow statistics for {}: {}",
-                ruleset_metadata.repository_qualified_name,
-                stats_error,
-            )
-
-        return (payload, statistics_payload)
+        return payload
 
     @staticmethod
     def _parse_repository_name(repository_qualified_name: str) -> tuple[str, str]:
@@ -910,6 +756,7 @@ class AgentExecutionService:
             extra_prompt_context=extra_context,
         )
 
+        nodes: List[Any] = []
         final_output: Union[BaseModel, List[BaseModel], str, None] = None
         agent_retries = (
             request.agent.retries if hasattr(request.agent, "retries") else None
@@ -917,8 +764,11 @@ class AgentExecutionService:
         codebase_language = codebase.codebase_programming_language
 
         try:
-            result = await request.agent.run(user_message, deps=agent_deps)
-            final_output = self._extract_agent_result(result)
+            async with request.agent.iter(user_message, deps=agent_deps) as agent_run:
+                async for node in agent_run:
+                    nodes.append(node)
+
+                final_output = self._extract_agent_result(agent_run.result)
 
         except UnexpectedModelBehavior as e:
             # Enrich context with model/provider info when available
@@ -949,7 +799,7 @@ class AgentExecutionService:
                     "Could not fetch model config for error context: {}", cfg_err
                 )
 
-            log_agent_error(e, context=model_context, messages=None)
+            log_agent_error(e, context=model_context, messages=nodes)
             final_output = f"Agent execution failed: {str(e)}"
 
         # Optional post-processing
@@ -967,6 +817,16 @@ class AgentExecutionService:
                 logger.warning(
                     "Post-processing failed for {}: {}", request.agent_name, e
                 )
+
+        # Save execution nodes
+        await save_nodes_to_json(
+            self.logs_dir,
+            filename_prefix=(
+                f"agent_run_{request.agent_name}_"
+                f"{repository_qualified_name}_{codebase.codebase_name.replace('/', '_')}"
+            ),
+            nodes=nodes,
+        )
 
         return {"codebase_path": codebase.codebase_name, "output": final_output}
 
@@ -1061,9 +921,8 @@ class AgentExecutionService:
             extra_prompt_context=extra_context,
         )
 
+        nodes: List[Any] = []
         final_output: Union[BaseModel, List[BaseModel], str, None] = None
-        usage_dict: Optional[Dict[str, int]] = None
-        cost_usd: Optional[float] = None
 
         try:
             try:
@@ -1071,6 +930,7 @@ class AgentExecutionService:
                     user_message, deps=agent_deps
                 ) as agent_run:
                     async for node in agent_run:
+                        nodes.append(node)
                         await self._process_agent_node(
                             node,
                             agent_run,
@@ -1081,44 +941,6 @@ class AgentExecutionService:
                         )
 
                     final_output = self._extract_agent_result(agent_run.result)
-
-                    # Capture usage information
-                    run_usage = agent_run.usage()  # Returns RunUsage dataclass
-                    usage_dict = asdict(
-                        run_usage
-                    )  # Convert to dict for JSON serialization
-
-                    # Calculate cost if available
-                    if agent_run.result is not None:
-                        try:
-                            price_calc = agent_run.result.response.cost()
-                            cost_usd = float(price_calc.total_price)
-                            # Log successful cost calculation
-                            logger.info(
-                                "Cost estimation successful for {}/{}: ${:.6f} USD (input: ${:.6f}, output: ${:.6f}), model: {}",
-                                request.agent_name,
-                                codebase.codebase_name,
-                                cost_usd,
-                                float(price_calc.input_price) if hasattr(price_calc, 'input_price') else 0.0,
-                                float(price_calc.output_price) if hasattr(price_calc, 'output_price') else 0.0,
-                                agent_run.result.response.model_name if hasattr(agent_run.result.response, 'model_name') else "unknown",
-                            )
-                        except LookupError:
-                            logger.warning(
-                                "Cost estimation unavailable for {}/{} - model/provider combination not found in gen-ai-prices database. "
-                                "Cost will not be included in statistics. Model: {}",
-                                request.agent_name,
-                                codebase.codebase_name,
-                                agent_run.result.response.model_name if hasattr(agent_run.result.response, 'model_name') else "unknown",
-                            )
-                        except Exception as exc:  # noqa: BLE001
-                            logger.warning(
-                                "Unable to calculate cost for {} ({}): {}. Model: {}",
-                                request.agent_name,
-                                codebase.codebase_name,
-                                exc,
-                                agent_run.result.response.model_name if hasattr(agent_run.result.response, 'model_name') else "unknown",
-                            )
 
                     logger.info(
                         "Agent {} completed for codebase {} with output: {}",
@@ -1187,8 +1009,6 @@ class AgentExecutionService:
                         )
 
             except UnexpectedModelBehavior as e:
-                usage_dict = None
-                cost_usd = None
                 final_output = await self._handle_agent_error(
                     e,
                     request,
@@ -1196,7 +1016,7 @@ class AgentExecutionService:
                     repository_qualified_name,
                     event_namespace,
                     event_queue,
-                    None,
+                    nodes,
                     user_message,
                 )
 
@@ -1212,8 +1032,6 @@ class AgentExecutionService:
                     }
                 )
             except Exception as e:
-                usage_dict = None
-                cost_usd = None
                 # Handle any other exception
                 logger.error(
                     "Unexpected error in agent {} for codebase {}: {}",
@@ -1244,14 +1062,19 @@ class AgentExecutionService:
                     }
                 )
 
+            # Save execution nodes
+            await save_nodes_to_json(
+                self.logs_dir,
+                filename_prefix=(
+                    f"agent_run_{request.agent_name}_"
+                    f"{repository_qualified_name}_{codebase.codebase_name.replace('/', '_')}"
+                ),
+                nodes=nodes,
+            )
+
             # Send completion event
             await self._send_completion_event(
-                codebase,
-                event_namespace,
-                request.agent_name,
-                event_queue,
-                usage_dict=usage_dict,
-                cost_usd=cost_usd,
+                codebase, event_namespace, request.agent_name, event_queue
             )
 
         finally:
@@ -1510,35 +1333,16 @@ class AgentExecutionService:
         event_namespace: str,
         agent_name: str,
         event_queue: asyncio.Queue[Dict[str, Any]],
-        usage_dict: Optional[Dict[str, int]] = None,
-        cost_usd: Optional[float] = None,
     ) -> None:
         """Send completion event for the codebase."""
-        completion_data: Dict[str, Any] = {
-            "message": self._get_completion_message(agent_name),
-            "codebase": codebase.codebase_name,
-            "timestamp": datetime.now().isoformat(),
-        }
-
-        # Add usage and cost if available
-        if usage_dict:
-            completion_data["usage"] = usage_dict
-            logger.debug(
-                "Adding usage to completion event for {}: requests={}, tokens={}",
-                codebase.codebase_name,
-                usage_dict.get("requests", 0),
-                usage_dict.get("input_tokens", 0) + usage_dict.get("output_tokens", 0),
-            )
-        if cost_usd is not None:
-            completion_data["cost_usd"] = cost_usd
-            logger.debug("Adding cost to completion event for {}: ${:.6f}", codebase.codebase_name, cost_usd)
-        else:
-            logger.debug("No cost data available for completion event for {}", codebase.codebase_name)
-
         await event_queue.put(
             {
                 "event": f"{codebase.codebase_name}:{event_namespace}:complete",
-                "data": completion_data,
+                "data": {
+                    "message": self._get_completion_message(agent_name),
+                    "codebase": codebase.codebase_name,
+                    "timestamp": datetime.now().isoformat(),
+                },
             }
         )
 

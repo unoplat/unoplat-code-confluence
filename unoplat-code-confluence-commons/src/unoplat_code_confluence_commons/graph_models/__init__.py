@@ -20,6 +20,9 @@ from unoplat_code_confluence_commons.graph_models.code_confluence_framework impo
 from unoplat_code_confluence_commons.graph_models.code_confluence_git_repository import (
     CodeConfluenceGitRepository,
 )
+from unoplat_code_confluence_commons.graph_models.code_confluence_package import (
+    CodeConfluencePackage,
+)
 from unoplat_code_confluence_commons.graph_models.code_confluence_package_manager_metadata import (
     CodeConfluencePackageManagerMetadata,
 )
@@ -32,6 +35,7 @@ __all__ = [
     'CodeConfluenceFramework',
     'CodeConfluenceFrameworkFeature',
     'CodeConfluenceGitRepository',
+    'CodeConfluencePackage',
     'CodeConfluencePackageManagerMetadata',
     'UsesFeatureRelationship'
 ]

@@ -53,6 +53,7 @@ services:
       timeout: 5s
       retries: 5
 
+
   electric:
     image: docker.io/electricsql/electric:latest
     environment:
@@ -67,6 +68,7 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
+
 
   temporal:
     depends_on:
@@ -147,7 +149,7 @@ services:
       timeout: 5s
       retries: 5
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.59.0
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.53.1
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
@@ -174,7 +176,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.20.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.15.2
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
@@ -200,7 +202,7 @@ services:
         condition: service_healthy
 
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.31.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.29.3
     depends_on:
       - code-confluence-flow-bridge
     ports:

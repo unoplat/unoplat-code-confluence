@@ -1,10 +1,7 @@
 import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
-import {
-  useForm as useTanstackForm,
-  type AnyFieldApi,
-} from "@tanstack/react-form";
+import { useForm as useTanstackForm, type AnyFieldApi } from "@tanstack/react-form";
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -18,10 +15,7 @@ interface FormProps extends React.HTMLAttributes<HTMLFormElement> {
 }
 
 const Form = React.forwardRef<HTMLFormElement, FormProps>(
-  (
-    { form, children, className, onSubmit, ...props },
-    ref,
-  ): React.ReactElement => {
+  ({ form, children, className, onSubmit, ...props }, ref): React.ReactElement => {
     return (
       <form
         ref={ref}
@@ -39,7 +33,7 @@ const Form = React.forwardRef<HTMLFormElement, FormProps>(
         {children}
       </form>
     );
-  },
+  }
 );
 Form.displayName = "Form";
 
@@ -51,12 +45,11 @@ type FormFieldContextValue = {
 
 // Form field context
 const FormFieldContext = React.createContext<FormFieldContextValue | undefined>(
-  undefined,
+  undefined
 );
 
 // Field component
-interface FormFieldProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
+interface FormFieldProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
   name: string;
   // Using any for FormApi to avoid complex generic type issues
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,18 +71,18 @@ const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
         })}
       </div>
     );
-  },
+  }
 );
 FormField.displayName = "FormField";
 
 // Hook to use form field
 const useFormField = (): FormFieldContextValue => {
   const fieldContext = React.useContext(FormFieldContext);
-
+  
   if (!fieldContext) {
     throw new Error("useFormField should be used within <FormField>");
   }
-
+  
   return fieldContext;
 };
 
@@ -99,7 +92,7 @@ type FormItemContextValue = {
 };
 
 const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue,
+  {} as FormItemContextValue
 );
 
 // Form item component
@@ -178,7 +171,7 @@ const FormDescription = React.forwardRef<
     <p
       ref={ref}
       id={formDescriptionId}
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   );
@@ -193,7 +186,7 @@ const FormMessage = React.forwardRef<
   const { fieldApi } = useFormField();
   const { id } = React.useContext(FormItemContext);
   const formMessageId = `${id}-form-item-message`;
-
+  
   const errors = fieldApi.state.meta.errors;
   const body = errors.length > 0 ? errors[0] : children;
 
@@ -205,7 +198,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("text-destructive text-sm font-medium", className)}
+      className={cn("text-sm font-medium text-destructive", className)}
       {...props}
     >
       {body}
@@ -225,4 +218,4 @@ export {
   FormMessage,
   FormField,
   useTanstackForm,
-};
+}; 

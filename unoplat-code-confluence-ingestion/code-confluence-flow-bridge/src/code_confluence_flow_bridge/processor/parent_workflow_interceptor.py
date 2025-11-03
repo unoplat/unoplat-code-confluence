@@ -83,7 +83,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     "codebase_folder": config.codebase_folder,
                     "programming_language_metadata": config.programming_language_metadata.model_dump()
                 }
-                for config in (envelope.repo_request.repository_metadata or [])
+                for config in envelope.repo_request.repository_metadata
             ]
             
             # Set headers with trace_id and codebase configs as Payload messages
@@ -114,7 +114,8 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 trace_id=envelope.trace_id,
                 repository_metadata=envelope.repo_request.repository_metadata,
                 status=JobStatus.RUNNING.value,
-                repository_provider=envelope.repo_request.repository_provider
+                is_local=envelope.repo_request.is_local,
+                local_path=envelope.repo_request.local_path
             )
             await workflow.execute_activity(
                 activity=ParentWorkflowDbActivity.update_repository_workflow_status,
@@ -173,7 +174,8 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     repository_metadata=envelope.repo_request.repository_metadata,
                     status=status,
                     error_report=error_report,
-                    repository_provider=envelope.repo_request.repository_provider
+                    is_local=envelope.repo_request.is_local,
+                    local_path=envelope.repo_request.local_path
                 )
                 await workflow.execute_activity(
                     activity=ParentWorkflowDbActivity.update_repository_workflow_status,
@@ -310,7 +312,9 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                         workflow_run_id=parent_workflow_run_id,
                         trace_id=child_trace_id,
                         status=JobStatus.FAILED.value,
-                        error_report=None
+                        error_report=None,
+                        is_local=False,
+                        local_path=None
                     )
                     await workflow.execute_activity(
                         activity=ParentWorkflowDbActivity.update_repository_workflow_status,

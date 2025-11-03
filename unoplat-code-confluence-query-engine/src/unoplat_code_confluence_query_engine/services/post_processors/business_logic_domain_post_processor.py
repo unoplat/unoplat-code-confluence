@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import List, Union
+
 from loguru import logger
 
 from unoplat_code_confluence_query_engine.db.neo4j.business_logic_repository import (
@@ -17,57 +19,70 @@ from unoplat_code_confluence_query_engine.services.post_processors.post_processo
 )
 
 
-class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicDomain]):
-    """Post-processor for business logic domain agent output.
-
-    The agent returns only a description string. This processor:
-    1. Fetches all data model files from Neo4j
-    2. Creates CoreFile entries for each file path
-    3. Returns complete BusinessLogicDomain with description + data_models
-    """
-
+class BusinessLogicDomainPostProcessor(PostProcessorProtocol[Union[str, BusinessLogicDomain], BusinessLogicDomain]):
+    """Post-processor for business logic domain agent output."""
+    
     async def process(
         self,
         *,
-        agent_output: str,
+        agent_output: Union[str, BusinessLogicDomain],
         deps: ProcessorDependencies,
     ) -> BusinessLogicDomain:
-        """Process business logic domain agent output by enriching with data model files.
+        """Process business logic domain agent output by adding/enriching data models.
 
-        Args:
-            agent_output: Plain text description of the business domain (2-4 sentences)
-            deps: Processor dependencies including Neo4j connection manager
-
-        Returns:
-            Complete BusinessLogicDomain with description and data_models list
+        Accepts either:
+        - str: description only; builds BusinessLogicDomain with data_models from Neo4j
+        - BusinessLogicDomain: returns the model, enriching data_models from Neo4j if empty
         """
         try:
-            description = str(agent_output).strip().strip('"')
+            # If already a model, possibly enrich it and return
+            if isinstance(agent_output, BusinessLogicDomain):
+                existing = agent_output
+                try:
+                    file_paths: List[str] = await db_get_data_model_files(
+                        deps.neo4j_conn_manager, deps.codebase_path
+                    )
+                except Exception as e:
+                    logger.warning("Could not fetch data model files from Neo4j: {}", e)
+                    file_paths = []
 
+                if not existing.data_models:
+                    existing.data_models = [
+                        CoreFile(path=fp, responsibility=None) for fp in file_paths
+                    ]
+                return existing
+
+            # Otherwise treat output as description string
+            description = str(agent_output).strip().strip('"')
+            
+            # Get data model files from database
             try:
-                span_map = await db_get_data_model_files(
+                file_paths: List[str] = await db_get_data_model_files(
                     deps.neo4j_conn_manager, deps.codebase_path
                 )
             except Exception as e:
                 logger.warning("Could not fetch data model files from Neo4j: {}", e)
-                span_map = {}
-
-            file_paths = sorted(span_map.keys())
+                file_paths = []
+            
+            # Create CoreFile objects without static responsibility
             data_models = [
-                CoreFile(path=file_path, responsibility=None)
-                for file_path in file_paths
+                CoreFile(path=file_path, responsibility=None) for file_path in file_paths
             ]
-
-            return BusinessLogicDomain(
+            
+            # Create the final BusinessLogicDomain model
+            business_logic_domain = BusinessLogicDomain(
                 description=description,
                 data_models=data_models,
             )
-
+            
+            # Return BaseModel directly instead of JSON string
+            return business_logic_domain
+            
         except Exception as e:
             logger.error("Error in BusinessLogicDomainPostProcessor: {}", e)
+            # Return minimal valid structure if processing fails
             description = (
                 str(agent_output).strip().strip('"')
-                if agent_output
-                else "Business logic domain"
+                if agent_output else "Business logic domain"
             )
             return BusinessLogicDomain(description=description, data_models=[])

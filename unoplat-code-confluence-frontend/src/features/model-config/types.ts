@@ -6,25 +6,25 @@ export type {
   ProviderConfigFieldDefinition,
   ModelProviderDefinition,
   ProviderCatalogRecord,
-} from "./provider-schema";
+} from './provider-schema';
 
 // Import for use in additional types
-import type {
-  ModelProviderDefinition,
-  ProviderFieldPrimitive,
-} from "./provider-schema";
+import type { ModelProviderDefinition, ProviderFieldPrimitive } from './provider-schema';
 
 // Additional utility types for the UI layer
-export type ModelProviderKind = "native" | "openai_compat" | (string & {});
+export type ModelProviderKind =
+  | 'native'
+  | 'openai_compat'
+  | (string & {});
 
 export type ProviderFieldType =
-  | "text"
-  | "password"
-  | "select"
-  | "url"
-  | "textarea"
-  | "number"
-  | "boolean"
+  | 'text'
+  | 'password'
+  | 'select'
+  | 'url'
+  | 'textarea'
+  | 'number'
+  | 'boolean'
   | (string & {});
 
 export type ModelProviderDefinitions = readonly ModelProviderDefinition[];

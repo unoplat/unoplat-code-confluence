@@ -1,7 +1,6 @@
 # Standard Library
 from typing import List, Optional
 
-
 class ComplexProcessor:
     """A class that demonstrates internal imports in various locations."""
     
@@ -14,9 +13,12 @@ class ComplexProcessor:
         # Multiple internal imports in method body
         from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import (
             ImportedName as Name,
-            UnoplatImport as Import,
+            UnoplatImport as Import
         )
-        from src.code_confluence_flow_bridge.models.code import Class, Function
+        from src.code_confluence_flow_bridge.models.code import (
+            Function,
+            Class
+        )
         
         # Use the imported types
         self.imports: List[Import] = []
@@ -25,9 +27,7 @@ class ComplexProcessor:
     def analyze_code(self) -> Optional[str]:
         # Conditional import
         if not hasattr(self, '_analyzer'):
-            from src.code_confluence_flow_bridge.analyzer.code_analyzer import (
-                CodeAnalyzer,
-            )
+            from src.code_confluence_flow_bridge.analyzer.code_analyzer import CodeAnalyzer
             self._analyzer = CodeAnalyzer()
         return self._analyzer.analyze()
 
@@ -44,8 +44,4 @@ except ImportError:
     FEATURE_ENABLED = False
 
 # Import with multiple items on same line
-from src.code_confluence_flow_bridge.models.base import (
-    BaseConfig as Config,
-    BaseModel,
-    BaseSchema,
-)
+from src.code_confluence_flow_bridge.models.base import BaseModel, BaseSchema, BaseConfig as Config 

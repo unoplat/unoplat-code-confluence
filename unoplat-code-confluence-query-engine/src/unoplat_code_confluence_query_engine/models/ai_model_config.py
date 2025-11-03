@@ -9,14 +9,12 @@ from pydantic import BaseModel, Field
 
 class ProviderKind(str, Enum):
     """Provider kind enumeration."""
-
     NATIVE = "native"
     OPENAI_COMPAT = "openai_compat"
 
 
 class AiModelConfigBase(BaseModel):
     """Base model with common AI configuration fields."""
-
     provider_key: str
     model_name: str
     # Optional top-level hint for providers that support a nested provider (e.g., HuggingFace)
@@ -33,13 +31,11 @@ class AiModelConfigBase(BaseModel):
 
 class AiModelConfigIn(AiModelConfigBase):
     """Input model for creating/updating AI configuration."""
-
     pass
 
 
 class AiModelConfigOut(AiModelConfigBase):
     """Output model for AI configuration (no secrets)."""
-
     has_api_key: bool = False
     created_at: datetime
     updated_at: datetime

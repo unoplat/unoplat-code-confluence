@@ -1,45 +1,33 @@
-import React from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
-import { ProviderSelector } from "./ProviderSelector";
-import { ModelConfigForm } from "./ModelConfigForm";
-import { useModelProviders } from "@/hooks/useModelProviders";
-import { useModelConfig } from "@/hooks/useModelConfig";
-import type { ModelProviderDefinition } from "../types";
+import React from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
+import { ProviderSelector } from './ProviderSelector';
+import { ModelConfigForm } from './ModelConfigForm';
+import { useModelProviders } from '@/hooks/useModelProviders';
+import { useModelConfig } from '@/hooks/useModelConfig';
+import type { ModelProviderDefinition } from '../types';
 
 /**
  * Main container component for model provider configuration
  * Handles provider selection, configuration forms, and state management
  */
 export function ModelConfigurationSection(): React.ReactElement {
-  const [selectedProviderKey, setSelectedProviderKey] = React.useState<
-    string | undefined
-  >();
+  const [selectedProviderKey, setSelectedProviderKey] = React.useState<string | undefined>();
 
   const {
     data: providers = [],
     isLoading,
     error,
-    refetch,
+    refetch
   } = useModelProviders();
 
   const { data: existingConfig } = useModelConfig();
 
   // Auto-select provider when existing config loads
   React.useEffect(() => {
-    if (
-      existingConfig?.provider_key &&
-      !selectedProviderKey &&
-      providers.length > 0
-    ) {
+    if (existingConfig?.provider_key && !selectedProviderKey && providers.length > 0) {
       setSelectedProviderKey(existingConfig.provider_key);
     }
   }, [existingConfig, selectedProviderKey, providers]);
@@ -47,15 +35,11 @@ export function ModelConfigurationSection(): React.ReactElement {
   const errorMessage = error
     ? error instanceof Error
       ? error.message
-      : "Unexpected error occurred while loading providers."
+      : 'Unexpected error occurred while loading providers.'
     : null;
 
-  const selectedProvider = React.useMemo<
-    ModelProviderDefinition | undefined
-  >(() => {
-    return providers.find(
-      (provider) => provider.provider_key === selectedProviderKey,
-    );
+  const selectedProvider = React.useMemo<ModelProviderDefinition | undefined>(() => {
+    return providers.find((provider) => provider.provider_key === selectedProviderKey);
   }, [providers, selectedProviderKey]);
 
   const handleProviderChange = (providerKey: string) => {
@@ -77,16 +61,13 @@ export function ModelConfigurationSection(): React.ReactElement {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6">
-        <Card className="border-border bg-card shadow-md">
-          <CardHeader className="mx-auto max-w-4xl px-8 py-6">
+        <Card className="shadow-md border-border bg-card">
+          <CardHeader className="max-w-4xl mx-auto px-8 py-6">
             <div className="flex items-center justify-between space-x-6">
               <div className="space-y-2">
-                <CardTitle className="text-xl font-semibold tracking-tight">
-                  Model Provider Configuration
-                </CardTitle>
-                <CardDescription className="text-muted-foreground text-base leading-relaxed">
-                  Configure AI model providers for code intelligence features
-                  and set up API credentials.
+                <CardTitle className="text-xl font-semibold tracking-tight">Model Provider Configuration</CardTitle>
+                <CardDescription className="text-base text-muted-foreground leading-relaxed">
+                  Configure AI model providers for code intelligence features and set up API credentials.
                 </CardDescription>
               </div>
               <div className="min-w-[240px]">
@@ -113,7 +94,7 @@ export function ModelConfigurationSection(): React.ReactElement {
                   />
                 ) : (
                   !isLoading && (
-                    <div className="border-muted text-muted-foreground flex flex-col items-center gap-2 rounded-md border border-dashed p-4 text-xs">
+                    <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-muted p-4 text-xs text-muted-foreground">
                       <AlertCircle className="h-4 w-4" />
                       <span>No providers available</span>
                       <Button variant="outline" size="sm" onClick={handleRetry}>
@@ -124,8 +105,8 @@ export function ModelConfigurationSection(): React.ReactElement {
                 )}
 
                 {isLoading && (
-                  <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                    <div className="border-muted h-3 w-3 animate-spin rounded-full border-2 border-t-transparent" />
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted border-t-transparent" />
                     Loading providers...
                   </div>
                 )}
@@ -134,14 +115,14 @@ export function ModelConfigurationSection(): React.ReactElement {
           </CardHeader>
 
           {selectedProvider && (
-            <CardContent className="mx-auto max-w-4xl px-8 pt-0 pb-6">
+            <CardContent className="px-8 pt-0 pb-6 max-w-4xl mx-auto">
               <ModelConfigForm
                 key={selectedProvider.provider_key}
                 provider={selectedProvider}
                 existingConfig={existingConfig}
                 onCancel={handleFormCancel}
                 onSuccess={handleFormSuccess}
-                className="border-0 bg-transparent p-0 shadow-none"
+                className="border-0 shadow-none bg-transparent p-0"
               />
             </CardContent>
           )}

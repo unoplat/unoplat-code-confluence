@@ -101,6 +101,26 @@ def ensure_local_repository_base_path() -> Path:
     return base_path
 
 
+def validate_local_repository_path(folder_name: str) -> tuple[bool, str]:
+    """
+    Validate that a local repository path exists and contains a Git repository.
+    
+    Args:
+        folder_name: The name of the repository folder
+        
+    Returns:
+        tuple[bool, str]: (is_valid, full_path)
+            - is_valid: True if path exists and contains .git directory
+            - full_path: The constructed full path to the repository
+    """
+    full_path = construct_local_repository_path(folder_name)
+    repo_path = Path(full_path)
+    git_path = repo_path / ".git"
+    
+    is_valid = repo_path.exists() and git_path.exists()
+    return is_valid, full_path
+
+
 def get_environment_info() -> dict[str, Union[str, bool]]:
     """
     Get comprehensive environment information for debugging.

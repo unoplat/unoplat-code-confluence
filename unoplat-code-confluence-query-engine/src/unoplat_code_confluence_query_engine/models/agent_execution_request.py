@@ -11,7 +11,7 @@ from pydantic_ai import Agent
 @dataclass
 class AgentExecutionRequest:
     """Request configuration for agent execution.
-
+    
     Args:
         agent_name: Identifier for the agent (e.g., "framework_explorer", "project_configuration_agent")
         agent: The pydantic-ai Agent instance to run
@@ -19,7 +19,6 @@ class AgentExecutionRequest:
         event_namespace: Optional override for event prefix in SSE streams
         extra_prompt_context: Optional extra context to pass to prompt registry
     """
-
     agent_name: str
     agent: Agent[Any, Any]
     fastapi_request: Request
@@ -31,7 +30,7 @@ class AgentExecutionRequest:
 
 class PromptProviderProtocol(Protocol):
     """Protocol for providing agent-specific prompt templates."""
-
+    
     def get_user_message(
         self,
         agent_name: str,
@@ -39,9 +38,7 @@ class PromptProviderProtocol(Protocol):
         codebase_name: str,
         codebase_path: str,
         codebase_language: str,
-        extra_prompt_context: Optional[
-            Dict[str, Union[BaseModel, list[BaseModel], str]]
-        ] = None,
+        extra_prompt_context: Optional[Dict[str, Union[BaseModel, list[BaseModel], str]]] = None,
     ) -> str:
         """Generate user message prompt for the given agent and codebase context."""
         ...
@@ -49,13 +46,20 @@ class PromptProviderProtocol(Protocol):
 
 class ToolMessagePolicyProtocol(Protocol):
     """Protocol for providing consistent tool call/result messages."""
-
+    
     def message_for_tool_call(
-        self, agent_name: str, tool_name: str, args_preview: str
+        self, 
+        agent_name: str, 
+        tool_name: str, 
+        args_preview: str
     ) -> str:
         """Generate message when agent calls a tool."""
         ...
-
-    def message_for_tool_result(self, agent_name: str, tool_name: str) -> str:
+    
+    def message_for_tool_result(
+        self, 
+        agent_name: str, 
+        tool_name: str
+    ) -> str:
         """Generate message when tool call completes."""
         ...

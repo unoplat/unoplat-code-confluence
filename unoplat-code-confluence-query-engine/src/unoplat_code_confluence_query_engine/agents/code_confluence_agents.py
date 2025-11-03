@@ -9,6 +9,7 @@ from unoplat_code_confluence_query_engine.models.agent_dependencies import (
     AgentDependencies,
 )
 from unoplat_code_confluence_query_engine.models.agent_md_output import (
+    BusinessLogicDomain,
     DevelopmentWorkflow,
     ProjectConfiguration,
 )
@@ -29,21 +30,17 @@ from unoplat_code_confluence_query_engine.tools.search_across_codebase import (
     search_across_codebase,
 )
 
-# pyright: ignore[reportUndefinedVariable]
+    # pyright: ignore[reportUndefinedVariable]
+    
 
-
-def create_code_confluence_agents(
-    mcp_server_manager: MCPServerManager,
-    model: Model,
-    model_settings: Optional[ModelSettings] = None,
-) -> Dict[str, Agent[Any]]:
+def create_code_confluence_agents(mcp_server_manager: MCPServerManager, model: Model, model_settings: Optional[ModelSettings] = None) -> Dict[str, Agent[Any]]:
     """Create code confluence agents with provided model.
-
+    
     Args:
         mcp_server_manager: MCP server manager for tool integration
         model: Configured Pydantic AI model instance (required - no default fallback)
         model_settings: Optional model settings to apply to all agents
-
+        
     Returns:
         Dictionary of agent names to Agent instances
     """
@@ -51,20 +48,21 @@ def create_code_confluence_agents(
         "Starting agent registry creation with model_settings present? {}",
         bool(model_settings),
     )
+    
 
+    
     code_confluence_project_configuration_agent: Agent[AgentDependencies] = Agent(
         model,
         model_settings=model_settings,
         system_prompt="<role> Build/CI/Test/Lint/Type Configuration Locator</role>",
-        deps_type=AgentDependencies,  # type: ignore
+        deps_type=AgentDependencies, #type: ignore
         tools=[
             Tool(get_directory_tree, takes_ctx=True, max_retries=6),
             Tool(read_file_content, takes_ctx=True, max_retries=6),
-            Tool(search_across_codebase, takes_ctx=True, max_retries=6),
-            Tool(get_lib_data, takes_ctx=True, max_retries=6),
+            Tool(search_across_codebase, takes_ctx=True, max_retries=6)
         ],
-        output_type=ProjectConfiguration,
-        retries=6,
+        output_type=ProjectConfiguration, 
+        retries=6
     )
 
     # Attach dynamic per-language system prompt for configuration
@@ -75,7 +73,8 @@ def create_code_confluence_agents(
     except NameError:
         # Function is defined later in the module; safe to ignore if not yet bound at import time
         pass
-
+    
+      
     context7_agent: Agent[None] = Agent(
         model,
         model_settings=model_settings,
@@ -102,23 +101,23 @@ Response Format (exactly 5 lines):
 
 Always provide exactly 5 lines maximum. Keep responses factual and based on official documentation only.
 """,
-        toolsets=[mcp_server_manager.get_server_by_name("context7")],  # type: ignore
+        toolsets=[mcp_server_manager.get_server_by_name("context7")], #type: ignore
         output_type=str,
-        retries=6,
+       retries=6
     )
-
+    
     development_workflow_agent: Agent[AgentDependencies] = Agent(
         model,
         model_settings=model_settings,
         system_prompt="<role> Development Workflow Synthesizer</role>",
-        deps_type=AgentDependencies,  # type: ignore
+        deps_type=AgentDependencies, #type: ignore
         tools=[
             Tool(get_directory_tree, takes_ctx=True, max_retries=6),
             Tool(read_file_content, takes_ctx=True, max_retries=6),
             Tool(get_lib_data, takes_ctx=True, max_retries=6),
         ],
-        output_type=DevelopmentWorkflow,  # type: ignore
-        retries=6,
+        output_type=DevelopmentWorkflow, #type: ignore
+        retries=6
     )
 
     # Attach dynamic per-language system prompt for development workflow
@@ -128,43 +127,45 @@ Always provide exactly 5 lines maximum. Keep responses factual and based on offi
         )
     except NameError:
         pass
-
+    
     business_logic_domain_agent: Agent[AgentDependencies] = Agent(
         model,
         model_settings=model_settings,
         system_prompt=r"""You are the Business Logic Domain Agent.
 
-Goal: Analyze data models across this codebase and return a 2-4 sentence description of the dominant business logic domain.
+Goal: Identify the single critical business logic domain for this codebase and return strictly BusinessLogicDomain JSON.
 
 Strict workflow:
-1) Call get_data_model_files to retrieve all data model file paths and their (start_line, end_line) spans
-2) Create a coverage checklist from ALL returned (file_path, model_identifier) pairs and process UNTIL NONE REMAIN:
-   - Maintain two lists: remaining_items (to do) and processed_items (done)
-   - For each item, call read_file_content with the provided start_line and end_line to inspect the relevant code section
-   - Identify the data model definition (class/structure) and its purpose
-   - Move the item from remaining_items to processed_items and continue
-   - If a tool call fails, retry up to 2 times; on persistent failure, note the failure and continue
-3) After inspecting ALL spans (remaining_items must be empty), synthesize the overall business domain they represent
-4) Return ONLY a plain text description (2-4 sentences) summarizing:
-   - The dominant domain nouns (e.g., "users", "orders", "products")
-   - The core business processes or capabilities
-   - The primary purpose of this domain
+1) Call get_data_model_files to retrieve candidate files that contain data models (both application and database data models)
+2) Create a coverage checklist from ALL returned file paths and process UNTIL NONE REMAIN:
+   - Maintain two lists: remaining_files (to do) and processed_files (done). Do not produce final output until remaining_files is empty.
+   - For each file in remaining_files, do:
+   - Use read_file_content (get_content_file) to open and inspect the file
+   - Identify the relevant data model definitions (classes or structures) and their purpose
+   - Record a short responsibility per file when clear; if uncertain after inspection, set responsibility to null (but still include the file)
+   - Move the file from remaining_files to processed_files and continue
+   - If the file is very large, read only the portions with definitions (e.g., class, dataclass, BaseModel, @Entity, schema) and proceed
+   - If a tool call fails, retry up to 2 times; on persistent failure, include the file with responsibility=null
+3) After visiting ALL files (remaining_files must be empty), analyze the overall business domain they represent
+4) Output ONLY valid BusinessLogicDomain JSON with fields:
+   - description: 2–4 sentences summarizing the domain nouns, core processes, and primary purpose
+   - data_models: list of { path, responsibility } that includes EVERY path returned by get_data_model_files (responsibility may be null if uncertain)
+   - Sort data_models by path ascending for determinism
 
 Grounding rules:
-- Base your description on actual inspected code, not assumptions
-- Be specific about what you observed in the data models
-- Do NOT return JSON, do NOT return a list of files
-- Return ONLY the domain description as plain text
+- Do not invent files; use only file paths returned by get_data_model_files
+- Analysis must be based on inspected code, not assumptions
+- Output must be valid JSON with exactly the required fields. No extra fields or prose.
 """,
-        deps_type=AgentDependencies,  # type: ignore
+        deps_type=AgentDependencies, #type: ignore
         tools=[
             Tool(get_data_model_files, takes_ctx=True, max_retries=6),
             Tool(read_file_content, takes_ctx=True, max_retries=6),
         ],
-        output_type=str,
+        output_type=BusinessLogicDomain,
         retries=6,
     )
-
+    
     agents: Dict[str, Agent[Any]] = {
         "project_configuration_agent": code_confluence_project_configuration_agent,
         "development_workflow_agent": development_workflow_agent,
@@ -174,32 +175,19 @@ Grounding rules:
 
     logger.debug(
         "Created agent registry with {} agents: {}",
-        len(agents),
-        list(agents.keys()),
+        len(agents), list(agents.keys()),
     )
 
     return agents
 
-
-def per_programming_language_configuration_prompt(
-    ctx: RunContext[AgentDependencies],
-) -> str:
+def per_programming_language_configuration_prompt(ctx: RunContext[AgentDependencies]) -> str:
+    
     common_prompt = (
         f"<task>Given a codebase path for {ctx.deps.codebase_metadata.codebase_programming_language} programming language scan the directory tree for the current codebase and identify important configuration files for development, testing, linting, formatting, packaging, CI/CD, containers, and infrastructure </task>"
         f"<context>"
         f" <categories>"
-        f"   <list>dev,test,lint,format,type_checking,styling,ui_components,routing,bundler,package,build,deploy,infrastructure</list>"
-        f"   <note>These categories are for your reference only. DO NOT use category labels as the 'purpose' field value.</note>"
+        f"   <list>dev,test,lint,format,package,build,deploy,infrastructure</list>"
         f" </categories>"
-        f" <purpose_field_instructions>"
-        f"   <rule>The 'purpose' field MUST be a descriptive explanation (10-20 words) of what the configuration file does and its role in the project.</rule>"
-        f"   <rule>Base your descriptions ONLY on official documentation obtained via get_lib_data tool or actual file inspection via read_file_content.</rule>"
-        f"   <rule>NEVER use generic category labels like 'dev', 'test', 'lint', 'packaging' as the purpose value.</rule>"
-        f"   <good_example>TypeScript compiler configuration defining build options, module resolution, and type checking rules</good_example>"
-        f"   <bad_example>dev</bad_example>"
-        f"   <good_example>ESLint configuration for JavaScript/TypeScript linting with rules for code quality and style enforcement</good_example>"
-        f"   <bad_example>lint</bad_example>"
-        f" </purpose_field_instructions>"
         f"  <general_config_globs><![CDATA["
         f".editorconfig|.gitignore|.gitattributes|.pre-commit-config.y*|Makefile|Justfile|Taskfile.y*ml|"
         f"Dockerfile*|.dockerignore|docker-compose.y*ml|"
@@ -211,29 +199,24 @@ def per_programming_language_configuration_prompt(
         f"serverless.(y*ml|ts)|template.y*ml|samconfig.toml"
         f"]]></general_config_globs>"
     )
-
+    
     typescript_config_prompt = (
-        f'<lang name="typescript"><![CDATA['
+        f"<lang name=\"javascript typescript\"><![CDATA["
         f"package.json|package-lock.json|yarn.lock|pnpm-lock.yaml|bun.lockb|"
-        f"tsconfig*.json|"
+        f"tsconfig*.json|jsconfig.json|"
         f".eslintrc*|eslint.config.(js|mjs|cjs|ts)|"
         f".prettier*|prettier.config.*|"
-        f"jest.config.*|vitest.config.*|playwright.config.*|cypress.config.*|"
-        f"vite.config.*|webpack*.config.*|rollup.config.*|esbuild.config.*|"
-        f"tailwind.config.*|postcss.config.*|"
-        f"components.json|"
-        f"tsr.config.json|"
-        f".nvmrc|.node-version|"
-        f"nodemon.json|pm2.config.*|ecosystem.config.*|"
-        f".husky/**|lint-staged.config.*|"
-        f"turbo.json|nx.json|"
-        f".storybook/**|storybook.config.*"
+        f"jest.config.*|vitest.config.*|karma.conf.*|.mocharc.*|nyc.config.*|.nycrc*|"
+        f"babel.config.*|.babelrc*|"
+        f"webpack*.config.*|rollup.config.*|vite.config.*|"
+        f"cypress.config.*|cypress.json|playwright.config.*|"
+        f"nodemon.json|ecosystem.config.*|.nvmrc|.husky/**"
         f"]]></lang>"
         f"</context>"
     )
-
+    
     python_config_prompt = (
-        f'<lang name="python"><![CDATA['
+        f"<lang name=\"python\"><![CDATA["
         f"pyproject.toml|setup.cfg|setup.py|requirements*.{{txt,in}}|Pipfile|"
         f"tox.ini|pytest.ini|.coveragerc|"
         f".flake8|.pylintrc|mypy.ini|.mypy.ini|pyrightconfig.json|ruff.toml|.ruff.toml|"
@@ -241,37 +224,33 @@ def per_programming_language_configuration_prompt(
         f"]]></lang>"
         f"</context>"
     )
-
+    
     java_config_prompt = (
-        f'<lang name="java"><![CDATA['
+        f"<lang name=\"java\"><![CDATA["
         f"pom.xml|settings.xml|build.gradle|build.gradle.kts|settings.gradle|gradle.properties|"
         f"checkstyle.xml|pmd.xml|spotbugs*.xml"
         f"]]></lang>"
         f"</context>"
     )
-
+    
     rust_config_prompt = (
-        f'<lang name="rust"><![CDATA['
+        f"<lang name=\"rust\"><![CDATA["
         f"Cargo.toml|Cargo.lock|"
         f"clippy.toml|rustfmt.toml|.rustfmt.toml|"
         f"]]></lang>"
         f"</context>"
     )
-
+    
     step_common_prompt = (
         f"<steps>"
-        f"<step>Understand directory structure of the codebase based on path provided and get_directory_tree tool.</step>"
-        f"<step>Match paths inside the codebase path provided against language_config_globs for provided languages and general_config_globs using search_across_codebase tool and/or get_directory_tree.</step>"
-        f"<step>For each matched configuration file, inspect it using read_file_content tool if needed to understand its contents.</step>"
-        f"<step>For any configuration file whose purpose is unclear or unfamiliar, MUST use get_lib_data tool with the tool/library name and programming language to retrieve official documentation. This ensures accurate descriptions and prevents hallucination.</step>"
-        f"<step>Write a descriptive 'purpose' field (10-20 words) for each config file based on official documentation from get_lib_data or actual file inspection, following the examples in purpose_field_instructions.</step>"
-        f"<step>Produce output JSON exactly as requested with all config files having descriptive purposes.</step>"
+        f"<step>Understand directory structure of the codebase based on path provided and get_directory_Tree tool.</step>"
+        f"<step>Match paths inside the codebase path provided against language_config_globs for provided languages and general_config_globs using search_across_codebase tool and/or get_directory_tree </step>"
+        f"<step>Be very certain post matches found read the files using read_file_content tool if required."
+        f"<step>Produce output JSON exactly as requested.</step>"
         f"</steps>"
     )
-    if ctx.deps.codebase_metadata.codebase_programming_language == "typescript":
-        return (
-            common_prompt + "\n" + typescript_config_prompt + "\n" + step_common_prompt
-        )
+    if ctx.deps.codebase_metadata.codebase_programming_language == "javascript" or ctx.deps.codebase_metadata.codebase_programming_language == "typescript":
+        return common_prompt + "\n" + typescript_config_prompt + "\n" + step_common_prompt
     elif ctx.deps.codebase_metadata.codebase_programming_language == "python":
         return common_prompt + "\n" + python_config_prompt + "\n" + step_common_prompt
     elif ctx.deps.codebase_metadata.codebase_programming_language == "java":

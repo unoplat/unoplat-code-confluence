@@ -1,36 +1,28 @@
-import React from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-import type { GitHubRepoSummary } from "../../types";
-import { DataTableColumnHeader } from "../data-table-column-header";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
+import React from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import type { GitHubRepoSummary } from '../../types';
+import { DataTableColumnHeader } from '../data-table-column-header';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "../ui/dropdown-menu";
-import { Ellipsis } from "lucide-react";
-import { TfiGithub } from "react-icons/tfi";
-import { GrUserPolice } from "react-icons/gr";
-import { FaTripadvisor } from "react-icons/fa";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { TouchInteraction01Icon } from "@hugeicons/core-free-icons";
+} from '../ui/dropdown-menu';
+import { Ellipsis } from 'lucide-react';
+import { TfiGithub } from 'react-icons/tfi';
+import { GrUserPolice } from 'react-icons/gr';
+import { FaTripadvisor } from 'react-icons/fa';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { TouchInteraction01Icon } from '@hugeicons/core-free-icons';
 
-export function getRepositoryDataTableColumns({
-  onIngest,
-}: {
-  onIngest: (repo: GitHubRepoSummary) => void;
-}): ColumnDef<GitHubRepoSummary>[] {
+export function getRepositoryDataTableColumns({ setRowAction }: { setRowAction: React.Dispatch<React.SetStateAction<{ row: import('@tanstack/react-table').Row<GitHubRepoSummary>; variant: string } | null>> }): ColumnDef<GitHubRepoSummary>[] {
   return [
     {
-      accessorKey: "name",
+      accessorKey: 'name',
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader
-          column={column}
-          title="Repository"
-          icon={<TfiGithub />}
-        />
+        <DataTableColumnHeader column={column} title="Repository" icon={<TfiGithub />} />
       ),
       cell: ({ row }): React.ReactNode => (
         <div className="flex items-center">
@@ -38,71 +30,59 @@ export function getRepositoryDataTableColumns({
             href={row.original.git_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary text-sm font-normal hover:underline"
+            className="text-sm font-normal text-primary hover:underline"
           >
             {row.original.name}
           </a>
         </div>
       ),
       meta: {
-        label: "Repository",
-        placeholder: "Search repository...",
-        variant: "text",
-        shortcut: "s",
+        label: 'Repository',
+        placeholder: 'Search repository...',
+        variant: 'text',
+        shortcut: 's',
       },
       enableSorting: false,
       enableColumnFilter: true,
     },
     {
-      accessorKey: "owner_name",
+      accessorKey: 'owner_name',
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader
-          column={column}
-          title="Owner"
-          icon={<GrUserPolice />}
-        />
+        <DataTableColumnHeader column={column} title="Owner" icon={<GrUserPolice />} />
       ),
       cell: ({ row }): React.ReactNode => (
         <a
           href={row.original.owner_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-muted-foreground hover:text-primary text-sm font-normal hover:underline"
+          className="text-sm font-normal text-muted-foreground hover:text-primary hover:underline"
         >
           {row.original.owner_name}
         </a>
       ),
       meta: {
-        label: "Owner",
-        variant: "text",
+        label: 'Owner',
+        variant: 'text',
       },
       enableSorting: false,
       enableColumnFilter: false,
     },
     {
-      accessorKey: "private",
+      accessorKey: 'private',
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader
-          column={column}
-          title="Visibility"
-          icon={<FaTripadvisor />}
-        />
+        <DataTableColumnHeader column={column} title="Visibility" icon={<FaTripadvisor />} />
       ),
       cell: ({ row }): React.ReactNode => (
-        <Badge variant={row.original.private ? "default" : "secondary"}>
-          {row.original.private ? "Private" : "Public"}
+        <Badge variant={row.original.private ? 'default' : 'secondary'}>
+          {row.original.private ? 'Private' : 'Public'}
         </Badge>
       ),
       enableSorting: false,
     },
     {
-      id: "actions",
+      id: 'actions',
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader
-          column={column}
-          title="Actions"
-          icon={<HugeiconsIcon icon={TouchInteraction01Icon} />}
-        />
+        <DataTableColumnHeader column={column} title="Actions" icon={<HugeiconsIcon icon={TouchInteraction01Icon} />} />
       ),
       cell: ({ row }): React.ReactNode => (
         <DropdownMenu modal={false}>
@@ -111,7 +91,7 @@ export function getRepositoryDataTableColumns({
               variant="ghost"
               size="icon"
               aria-label="Open menu"
-              className="data-[state=open]:bg-muted p-0"
+              className="p-0 data-[state=open]:bg-muted"
             >
               <Ellipsis className="h-4 w-4" aria-hidden="true" />
             </Button>
@@ -124,7 +104,7 @@ export function getRepositoryDataTableColumns({
           >
             <DropdownMenuItem
               className="capitalize"
-              onSelect={() => onIngest(row.original)}
+              onSelect={() => setRowAction({ row, variant: 'ingest' })}
             >
               Ingest Repo
             </DropdownMenuItem>
@@ -136,4 +116,4 @@ export function getRepositoryDataTableColumns({
       size: 40,
     },
   ];
-}
+} 

@@ -1,35 +1,15 @@
-import { env } from "./env";
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
-import {
-  FlagResponse,
-  GitHubRepoSummary,
-  PaginatedResponse,
-  GitHubRepoRequestConfiguration,
-  GitHubRepoResponseConfiguration,
-  IngestedRepository,
-  IngestedRepositoriesResponse,
-  RefreshRepositoryResponse,
-  CodebaseMetadataResponse,
-} from "../types";
-import { providerCatalogSchema } from "@/features/model-config/provider-schema";
-import {
-  ModelProviderDefinition,
-  ProviderCatalogRecord,
-} from "@/features/model-config/types";
+import { env } from './env';
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import { FlagResponse, GitHubRepoSummary, PaginatedResponse, GitHubRepoRequestConfiguration, GitHubRepoResponseConfiguration, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse, RefreshRepositoryResponse, CodebaseMetadataResponse } from '../types';
+import { providerCatalogSchema } from '@/features/model-config/provider-schema';
+import { ModelProviderDefinition, ProviderCatalogRecord } from '@/features/model-config/types';
 
 // Re-export types from '../types' for consumers
-export type {
-  FlagResponse,
-  GitHubRepoSummary,
-  PaginatedResponse,
-  IngestedRepository,
-  IngestedRepositoriesResponse,
-  RefreshRepositoryResponse,
-};
+export type { FlagResponse, GitHubRepoSummary, PaginatedResponse, DetectionProgress, DetectionResult, DetectionError, IngestedRepository, IngestedRepositoriesResponse, RefreshRepositoryResponse };
 
 /**
  * API Services
- *
+ * 
  * Collection of API service functions for backend communication.
  */
 
@@ -38,7 +18,7 @@ const apiClient: AxiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
   timeout: 10000, // 10 seconds timeout
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -47,7 +27,7 @@ const queryEngineClient: AxiosInstance = axios.create({
   baseURL: env.queryEngineUrl,
   timeout: 10000, // 10 seconds timeout
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -67,73 +47,57 @@ export interface ApiError {
 
 /**
  * Generic error handler for API errors
- *
+ * 
  * @param error - Error from API call
  * @returns Standardized API error object
  */
 export const handleApiError = (error: unknown): ApiError => {
-  console.error("API Error:", error);
-
+  console.error('API Error:', error);
+  
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<ApiResponse>;
     return {
-      message:
-        axiosError.response?.data?.message ||
-        axiosError.message ||
-        "Unknown API error",
+      message: axiosError.response?.data?.message || axiosError.message || 'Unknown API error',
       statusCode: axiosError.response?.status,
       details: axiosError.response?.data,
-      isAxiosError: true,
+      isAxiosError: true
     };
   }
-
+  
   return {
-    message: error instanceof Error ? error.message : "Unknown error",
+    message: error instanceof Error ? error.message : 'Unknown error',
     isAxiosError: false,
-    details: error,
+    details: error
   };
 };
 
 /**
  * Submit GitHub PAT token to the backend
- *
+ * 
  * @param token - GitHub Personal Access Token
  * @returns Promise with the response data
  */
-export const submitGitHubToken = async (
-  token: string,
-): Promise<ApiResponse> => {
+export const submitGitHubToken = async (token: string): Promise<ApiResponse> => {
   try {
     // Pass null as data and override Content-Type header
-    const response: AxiosResponse<ApiResponse> = await apiClient.post(
-      "/ingest-token",
-      null,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": undefined, // Prevent sending default Content-Type
-        },
+    const response: AxiosResponse<ApiResponse> = await apiClient.post('/ingest-token', null, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': undefined, // Prevent sending default Content-Type
       },
-    );
+    });
 
     return response.data;
   } catch (error: unknown) {
     const apiError = handleApiError(error);
-
+    
     // If we have a valid response from the server, return it
     // This might occur for non-2xx status codes that still carry a meaningful API response body
-    if (
-      apiError.isAxiosError &&
-      apiError.statusCode &&
-      apiError.details &&
-      typeof apiError.details === "object" &&
-      apiError.details !== null &&
-      "success" in apiError.details
-    ) {
+    if (apiError.isAxiosError && apiError.statusCode && apiError.details && typeof apiError.details === 'object' && apiError.details !== null && 'success' in apiError.details) {
       // Attempt to cast details to ApiResponse if it looks like one
       return apiError.details as ApiResponse;
     }
-
+    
     // Otherwise, throw the standardized error object for further handling upstream
     throw apiError;
   }
@@ -141,9 +105,10 @@ export const submitGitHubToken = async (
 
 // Add the following interface above the fetchGitHubRepositories function
 
+
 /**
  * Fetch GitHub repositories from the backend
- *
+ * 
  * @param page - Page number for pagination
  * @param perPage - Number of items per page
  * @param search - Optional search term
@@ -151,44 +116,40 @@ export const submitGitHubToken = async (
  * @returns Promise with paginated GitHub repositories
  */
 export const fetchGitHubRepositories = async (
-  page: number,
-  perPage: number,
-  filterValues?: Record<string, string | string[] | null>,
-  cursor?: string,
+  page: number, 
+  perPage: number, 
+  filterValues?: Record<string, string | string[] | null>, 
+  cursor?: string
 ): Promise<PaginatedResponse<GitHubRepoSummary>> => {
   try {
     const params: Record<string, string | number> = { page, per_page: perPage };
-
+    
     if (filterValues) {
       params.filterValues = JSON.stringify(filterValues);
     }
-
+    
     if (cursor) {
       params.cursor = cursor;
     }
-
-    const response: AxiosResponse<PaginatedResponse<GitHubRepoSummary>> =
-      await apiClient.get("/repos", { params });
+    
+    const response: AxiosResponse<PaginatedResponse<GitHubRepoSummary>> = await apiClient.get('/repos', { params });
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
   }
 };
 
+
+
 /**
  * Submit selected repositories for ingestion
- *
+ * 
  * @param repositoryConfig - Repository configuration payload
  * @returns Promise with the response data
  */
-export const submitRepositoryConfig = async (
-  repositoryConfig: GitHubRepoRequestConfiguration,
-): Promise<ApiResponse> => {
+export const submitRepositoryConfig = async (repositoryConfig: GitHubRepoRequestConfiguration): Promise<ApiResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> = await apiClient.post(
-      "/start-ingestion",
-      repositoryConfig,
-    );
+    const response: AxiosResponse<ApiResponse> = await apiClient.post('/start-ingestion', repositoryConfig);
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
@@ -197,49 +158,36 @@ export const submitRepositoryConfig = async (
 
 /**
  * Delete GitHub PAT token from the backend
- *
+ * 
  * @returns Promise with the response data
  */
 /**
  * Update GitHub PAT token in the backend
- *
+ * 
  * @param token - GitHub Personal Access Token
  * @returns Promise with the response data
  */
-export const updateGitHubToken = async (
-  token: string,
-): Promise<ApiResponse> => {
+export const updateGitHubToken = async (token: string): Promise<ApiResponse> => {
   try {
     // Pass null as data and override Content-Type header
-    const response: AxiosResponse<ApiResponse> = await apiClient.put(
-      "/update-token",
-      null,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": undefined, // Prevent sending default Content-Type
-        },
+    const response: AxiosResponse<ApiResponse> = await apiClient.put('/update-token', null, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': undefined, // Prevent sending default Content-Type
       },
-    );
+    });
 
     return response.data;
   } catch (error: unknown) {
     const apiError = handleApiError(error);
-
+    
     // If we have a valid response from the server, return it
     // This might occur for non-2xx status codes that still carry a meaningful API response body
-    if (
-      apiError.isAxiosError &&
-      apiError.statusCode &&
-      apiError.details &&
-      typeof apiError.details === "object" &&
-      apiError.details !== null &&
-      "success" in apiError.details
-    ) {
+    if (apiError.isAxiosError && apiError.statusCode && apiError.details && typeof apiError.details === 'object' && apiError.details !== null && 'success' in apiError.details) {
       // Attempt to cast details to ApiResponse if it looks like one
       return apiError.details as ApiResponse;
     }
-
+    
     // Otherwise, throw the standardized error object for further handling upstream
     throw apiError;
   }
@@ -247,21 +195,17 @@ export const updateGitHubToken = async (
 
 export const deleteGitHubToken = async (): Promise<ApiResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> =
-      await apiClient.delete("/delete-token");
+    const response: AxiosResponse<ApiResponse> = await apiClient.delete('/delete-token');
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
   }
 };
 
-export const getFlagStatus = async (
-  flagName: string,
-): Promise<FlagResponse> => {
+
+export const getFlagStatus = async (flagName: string): Promise<FlagResponse> => {
   try {
-    const response: AxiosResponse<FlagResponse> = await apiClient.get(
-      `/flags/${flagName}`,
-    );
+    const response: AxiosResponse<FlagResponse> = await apiClient.get(`/flags/${flagName}`);
     return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -285,13 +229,10 @@ export const getFlagStatus = async (
  * @returns Promise with the response data
  */
 export const createRepositoryData = async (
-  config: GitHubRepoRequestConfiguration,
+  config: GitHubRepoRequestConfiguration
 ): Promise<ApiResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> = await apiClient.post(
-      "/repository-data",
-      config,
-    );
+    const response: AxiosResponse<ApiResponse> = await apiClient.post('/repository-data', config);
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
@@ -322,16 +263,12 @@ export const createRepositoryData = async (
  */
 export const getRepositoryConfig = async (
   repositoryName: string,
-  ownerName: string,
+  ownerName: string
 ): Promise<GitHubRepoResponseConfiguration | null> => {
   try {
-    const response: AxiosResponse<GitHubRepoResponseConfiguration> =
-      await apiClient.get("/repository-data", {
-        params: {
-          repository_name: repositoryName,
-          repository_owner_name: ownerName,
-        },
-      });
+    const response: AxiosResponse<GitHubRepoResponseConfiguration> = await apiClient.get('/repository-data', {
+      params: { repository_name: repositoryName, repository_owner_name: ownerName },
+    });
     return response.data;
   } catch (error: unknown) {
     // If it's a 404 error, return null instead of throwing an error
@@ -358,25 +295,20 @@ export interface GitHubUser {
  */
 export async function fetchGitHubUser(): Promise<GitHubUser> {
   // Get the token from backend
-  const response: AxiosResponse<GitHubUser> =
-    await apiClient.get("/user-details");
+  const response: AxiosResponse<GitHubUser> = await apiClient.get('/user-details');
   return response.data;
 }
 
 /**
  * Fetch all parent workflow jobs
- *
+ * 
  * @returns Promise with the parent workflow jobs list response
  */
-export const getParentWorkflowJobs = async (): Promise<
-  import("../types").ParentWorkflowJobListResponse
-> => {
-  console.log("[API] getParentWorkflowJobs called");
+export const getParentWorkflowJobs = async (): Promise<import('../types').ParentWorkflowJobListResponse> => {
+  console.log('[API] getParentWorkflowJobs called');
   try {
-    const response: AxiosResponse<
-      import("../types").ParentWorkflowJobListResponse
-    > = await apiClient.get("/parent-workflow-jobs");
-    console.log("[API] getParentWorkflowJobs response data:", response.data);
+    const response: AxiosResponse<import('../types').ParentWorkflowJobListResponse> = await apiClient.get('/parent-workflow-jobs');
+    console.log('[API] getParentWorkflowJobs response data:', response.data);
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
@@ -385,7 +317,7 @@ export const getParentWorkflowJobs = async (): Promise<
 
 /**
  * Get repository status for a specific workflow run
- *
+ * 
  * @param repositoryName - The name of the repository
  * @param repositoryOwnerName - The name of the repository owner
  * @param workflowRunId - The workflow run ID to fetch status for
@@ -394,23 +326,18 @@ export const getParentWorkflowJobs = async (): Promise<
 export const getRepositoryStatus = async (
   repositoryName: string,
   repositoryOwnerName: string,
-  workflowRunId: string,
-): Promise<import("../types").GithubRepoStatus> => {
-  console.log("[API] getRepositoryStatus called with params:", {
-    repositoryName,
-    repositoryOwnerName,
-    workflowRunId,
-  });
+  workflowRunId: string
+): Promise<import('../types').GithubRepoStatus> => {
+  console.log('[API] getRepositoryStatus called with params:', { repositoryName, repositoryOwnerName, workflowRunId });
   try {
     const params = {
       repository_name: repositoryName,
       repository_owner_name: repositoryOwnerName,
-      workflow_run_id: workflowRunId,
+      workflow_run_id: workflowRunId
     };
-    console.log("[API] getRepositoryStatus params:", params);
-    const response: AxiosResponse<import("../types").GithubRepoStatus> =
-      await apiClient.get("/repository-status", { params });
-    console.log("[API] getRepositoryStatus response data:", response.data);
+    console.log('[API] getRepositoryStatus params:', params);
+    const response: AxiosResponse<import('../types').GithubRepoStatus> = await apiClient.get('/repository-status', { params });
+    console.log('[API] getRepositoryStatus response data:', response.data);
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
@@ -443,39 +370,141 @@ export interface IssueTracking {
 
 /**
  * Submit feedback for a workflow error to create a GitHub issue
- *
+ * 
  * @param requestData - GitHub issue submission data
  * @returns Promise with the issue tracking response
  */
 export const submitFeedback = async (
-  requestData: GithubIssueSubmissionRequest,
+  requestData: GithubIssueSubmissionRequest
 ): Promise<IssueTracking> => {
-  console.log("[API] submitFeedback request data:", requestData);
+  console.log('[API] submitFeedback request data:', requestData);
   try {
-    const response: AxiosResponse<IssueTracking> = await apiClient.post(
-      "/code-confluence/issues",
-      requestData,
-    );
-    console.log("[API] submitFeedback response data:", response.data);
+    const response: AxiosResponse<IssueTracking> = await apiClient.post('/code-confluence/issues', requestData);
+    console.log('[API] submitFeedback response data:', response.data);
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
   }
 };
 
+/**
+ * Options for detecting codebases with SSE
+ */
+export interface DetectCodebasesOptions {
+  gitUrl: string;
+  isLocal?: boolean;
+  onProgress?: (progress: DetectionProgress) => void;
+  onResult?: (result: DetectionResult) => void;
+  onError?: (error: DetectionError) => void;
+  signal?: AbortSignal;
+}
+
+/**
+ * Detect codebases using Server-Sent Events
+ * 
+ * @param options - Detection options including gitUrl and event handlers
+ * @returns Promise with the detection result
+ */
+export const detectCodebasesSSE = async (options: DetectCodebasesOptions): Promise<DetectionResult> => {
+  const { gitUrl, isLocal = false, onProgress, onResult, onError, signal } = options;
+  
+  return new Promise((resolve, reject) => {
+    // Build the URL with query parameters
+    const url = `${env.apiBaseUrl}/detect-codebases-sse?git_url=${encodeURIComponent(gitUrl)}&is_local=${isLocal}`;
+    
+    // Create EventSource for SSE connection
+    const eventSource = new EventSource(url);
+    let hasCompleted = false;
+    
+    // Handle abort signal
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        eventSource.close();
+        if (!hasCompleted) {
+          reject(new Error('Detection aborted'));
+        }
+      });
+    }
+    
+    // Connected event handler
+    eventSource.addEventListener('connected', () => {
+      console.log('[SSE] Connected to detection stream');
+    });
+    
+    // Progress event handler
+    eventSource.addEventListener('progress', (event: MessageEvent) => {
+      try {
+        const progress: DetectionProgress = JSON.parse(event.data);
+        console.log('[SSE] Progress:', progress);
+        onProgress?.(progress);
+      } catch (error) {
+        console.error('[SSE] Failed to parse progress event:', error);
+      }
+    });
+    
+    // Result event handler
+    eventSource.addEventListener('result', (event: MessageEvent) => {
+      try {
+        const result: DetectionResult = JSON.parse(event.data);
+        console.log('[SSE] Result:', result);
+        hasCompleted = true;
+        onResult?.(result);
+        resolve(result);
+      } catch (error) {
+        console.error('[SSE] Failed to parse result event:', error);
+        reject(new Error('Failed to parse detection result'));
+      }
+    });
+    
+    // Error event handler
+    eventSource.addEventListener('error', (event: MessageEvent) => {
+      try {
+        if (event.data) {
+          const error: DetectionError = JSON.parse(event.data);
+          console.error('[SSE] Detection error:', error);
+          hasCompleted = true;
+          onError?.(error);
+          reject(new Error(error.error));
+        }
+      } catch (parseError) {
+        console.error('[SSE] Failed to parse error event:', parseError);
+      }
+    });
+    
+    // Done event handler
+    eventSource.addEventListener('done', () => {
+      console.log('[SSE] Detection stream complete');
+      eventSource.close();
+    });
+    
+    // Generic error handler for connection issues
+    eventSource.onerror = (error) => {
+      console.error('[SSE] Connection error:', error);
+      eventSource.close();
+      
+      if (!hasCompleted) {
+        const detectionError: DetectionError = {
+          error: 'Connection to detection service failed',
+          timestamp: new Date().toISOString(),
+          type: 'CONNECTION_ERROR'
+        };
+        onError?.(detectionError);
+        reject(new Error(detectionError.error));
+      }
+    };
+  });
+};
+
 export async function getCodebaseMetadata(
   repositoryOwnerName: string,
-  repositoryName: string,
+  repositoryName: string
 ): Promise<CodebaseMetadataResponse> {
   try {
     const params = {
       repository_owner_name: repositoryOwnerName,
       repository_name: repositoryName,
     } as Record<string, string>;
-    const res: AxiosResponse<CodebaseMetadataResponse> = await apiClient.get(
-      "/codebase-metadata",
-      { params },
-    );
+    const res: AxiosResponse<CodebaseMetadataResponse> = await apiClient.get('/codebase-metadata', { params });
     return res.data;
   } catch (error: unknown) {
     throw handleApiError(error);
@@ -484,32 +513,27 @@ export async function getCodebaseMetadata(
 
 /**
  * Fetch ingested repositories from the backend
- *
+ * 
  * @returns Promise with ingested repositories data
  */
-export const getIngestedRepositories =
-  async (): Promise<IngestedRepositoriesResponse> => {
-    try {
-      const response: AxiosResponse<IngestedRepositoriesResponse> =
-        await apiClient.get("/get/ingestedRepositories");
-      return response.data;
-    } catch (error: unknown) {
-      throw handleApiError(error);
-    }
-  };
+export const getIngestedRepositories = async (): Promise<IngestedRepositoriesResponse> => {
+  try {
+    const response: AxiosResponse<IngestedRepositoriesResponse> = await apiClient.get('/get/ingestedRepositories');
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
 
 /**
  * Refresh an ingested repository
- *
+ * 
  * @param repository - Repository object containing name and owner
  * @returns Promise with the refresh repository response
  */
-export const refreshRepository = async (
-  repository: IngestedRepository,
-): Promise<RefreshRepositoryResponse> => {
+export const refreshRepository = async (repository: IngestedRepository): Promise<RefreshRepositoryResponse> => {
   try {
-    const response: AxiosResponse<RefreshRepositoryResponse> =
-      await apiClient.post("/refresh-repository", repository);
+    const response: AxiosResponse<RefreshRepositoryResponse> = await apiClient.post('/refresh-repository', repository);
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
@@ -518,44 +542,36 @@ export const refreshRepository = async (
 
 /**
  * Delete an ingested repository
- *
+ * 
  * @param repository - Repository object containing name and owner
  * @returns Promise with the response data
  */
-export const deleteRepository = async (
-  repository: import("../types").IngestedRepository,
-): Promise<ApiResponse> => {
+export const deleteRepository = async (repository: import('../types').IngestedRepository): Promise<ApiResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> = await apiClient.delete(
-      "/delete-repository",
-      { data: repository },
-    );
+    const response: AxiosResponse<ApiResponse> = await apiClient.delete('/delete-repository', { data: repository });
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
   }
 };
 
-export type RepoAgentSnapshotStatus = "RUNNING" | "COMPLETED" | "ERROR";
+export type RepoAgentSnapshotStatus = 'RUNNING' | 'COMPLETED' | 'ERROR';
 
 export interface RepositoryWorkflowRunResponse {
   repository_workflow_run_id: string;
 }
 
-export async function startRepositoryAgentRun(
-  ownerName: string,
-  repoName: string,
-): Promise<RepositoryWorkflowRunResponse> {
+export async function startRepositoryAgentRun(ownerName: string, repoName: string): Promise<RepositoryWorkflowRunResponse> {
   try {
     const params = {
       owner_name: ownerName,
       repo_name: repoName,
     };
 
-    const response: AxiosResponse<RepositoryWorkflowRunResponse> =
-      await axios.get(`${env.queryEngineUrl}/v1/codebase-agent-rules`, {
-        params,
-      });
+    const response: AxiosResponse<RepositoryWorkflowRunResponse> = await axios.get(
+      `${env.queryEngineUrl}/v1/codebase-agent-rules`,
+      { params }
+    );
 
     return response.data;
   } catch (error: unknown) {
@@ -589,17 +605,17 @@ export interface RepositoryAgentSnapshot {
  */
 export async function getRepositoryAgentSnapshot(
   ownerName: string,
-  repoName: string,
+  repoName: string
 ): Promise<RepositoryAgentSnapshot | null> {
   try {
     const params = {
       owner_name: ownerName,
       repo_name: repoName,
     };
-    const response: AxiosResponse<RepositoryAgentSnapshotResponse> =
-      await axios.get(`${env.queryEngineUrl}/v1/repository-agent-snapshot`, {
-        params,
-      });
+    const response: AxiosResponse<RepositoryAgentSnapshotResponse> = await axios.get(
+      `${env.queryEngineUrl}/v1/repository-agent-snapshot`,
+      { params }
+    );
     const { status, agent_md_output } = response.data;
 
     return {
@@ -653,23 +669,18 @@ export interface SaveModelConfigRequest {
  *
  * @returns Promise with array of model provider definitions
  */
-export const getModelProviders = async (): Promise<
-  ModelProviderDefinition[]
-> => {
+export const getModelProviders = async (): Promise<ModelProviderDefinition[]> => {
   try {
-    const response: AxiosResponse<ProviderCatalogRecord> =
-      await queryEngineClient.get("/v1/providers");
+    const response: AxiosResponse<ProviderCatalogRecord> = await queryEngineClient.get('/v1/providers');
 
     // Parse the record response
     const providersRecord = providerCatalogSchema.parse(response.data);
 
     // Transform to array with backfilled provider_key
-    const providersArray = Object.entries(providersRecord).map(
-      ([key, provider]) => ({
-        ...provider,
-        provider_key: key, // Backfill the provider_key from the record key
-      }),
-    ) as ModelProviderDefinition[];
+    const providersArray = Object.entries(providersRecord).map(([key, provider]) => ({
+      ...provider,
+      provider_key: key, // Backfill the provider_key from the record key
+    })) as ModelProviderDefinition[];
 
     return providersArray;
   } catch (error: unknown) {
@@ -684,8 +695,7 @@ export const getModelProviders = async (): Promise<
  */
 export const getModelConfig = async (): Promise<ModelConfigResponse | null> => {
   try {
-    const response: AxiosResponse<ModelConfigResponse> =
-      await queryEngineClient.get("/v1/model-config");
+    const response: AxiosResponse<ModelConfigResponse> = await queryEngineClient.get('/v1/model-config');
     return response.data;
   } catch (error: unknown) {
     // Return null if no config exists (404)
@@ -702,28 +712,16 @@ export const getModelConfig = async (): Promise<ModelConfigResponse | null> => {
  * @param config - Configuration data including provider key, model name, and provider-specific fields
  * @returns Promise with the API response
  */
-export const saveModelProviderConfig = async (
-  config: Record<string, unknown>,
-): Promise<ApiResponse> => {
+export const saveModelProviderConfig = async (config: Record<string, unknown>): Promise<ApiResponse> => {
   try {
     // Extract API key for header, remove from body
     const { model_api_key, ...bodyConfig } = config;
 
-    // Sanitize API key: trim whitespace and remove non-ISO-8859-1 characters
-    // HTTP headers must only contain ISO-8859-1 characters (0x00-0xFF)
-    const sanitizedApiKey = ((model_api_key as string) || "")
-      .trim()
-      .replace(/[^\x00-\xFF]/g, "");
-
-    const response: AxiosResponse<ApiResponse> = await queryEngineClient.put(
-      "/v1/model-config",
-      bodyConfig,
-      {
-        headers: {
-          "X-Model-API-Key": sanitizedApiKey,
-        },
+    const response: AxiosResponse<ApiResponse> = await queryEngineClient.put('/v1/model-config', bodyConfig, {
+      headers: {
+        'X-Model-API-Key': (model_api_key as string) || '',
       },
-    );
+    });
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);

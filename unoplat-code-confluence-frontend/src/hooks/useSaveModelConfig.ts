@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { saveModelProviderConfig } from "@/lib/api";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { saveModelProviderConfig } from '@/lib/api';
 
 interface SaveModelConfigVariables {
   config: Record<string, unknown>;
@@ -27,29 +27,24 @@ export const useSaveModelConfig = () => {
 
     onSuccess: (data) => {
       // Invalidate and refetch provider data
-      queryClient.invalidateQueries({ queryKey: ["model-providers"] });
-      queryClient.invalidateQueries({ queryKey: ["model-config"] });
+      queryClient.invalidateQueries({ queryKey: ['model-providers'] });
+      queryClient.invalidateQueries({ queryKey: ['model-config'] });
 
       // Show success toast
-      toast.success(
-        data.message || "Provider configuration saved successfully",
-      );
+      toast.success(data.message || 'Provider configuration saved successfully');
     },
 
     onError: (error) => {
       // Show error toast
-      toast.error("Failed to save configuration", {
-        description: error.message || "An unexpected error occurred",
+      toast.error('Failed to save configuration', {
+        description: error.message || 'An unexpected error occurred',
       });
     },
 
     // Basic retry for network errors
     retry: (failureCount, error) => {
       // Don't retry validation errors
-      if (
-        error.message.includes("validation") ||
-        error.message.includes("400")
-      ) {
+      if (error.message.includes('validation') || error.message.includes('400')) {
         return false;
       }
       return failureCount < 2;
@@ -71,14 +66,8 @@ export const useSaveProviderConfig = (providerKey: string) => {
 
   return {
     ...saveConfigMutation,
-    mutate: (
-      config: Record<string, unknown>,
-      options?: Parameters<typeof saveConfigMutation.mutate>[1],
-    ) => {
-      saveConfigMutation.mutate(
-        { config: { ...config, provider_key: providerKey } },
-        options,
-      );
+    mutate: (config: Record<string, unknown>, options?: Parameters<typeof saveConfigMutation.mutate>[1]) => {
+      saveConfigMutation.mutate({ config: { ...config, provider_key: providerKey } }, options);
     },
   };
 };

@@ -1,8 +1,7 @@
 import os
 from datetime import datetime
-from pathlib import PurePosixPath
 import traceback
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from git import Repo
 from github import Auth, Github
@@ -33,25 +32,6 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
 from src.code_confluence_flow_bridge.utility.environment_utils import (
     ensure_local_repository_base_path,
 )
-
-
-def _relative_manifest_path(manifest_path: Optional[str], codebase_folder: str) -> Optional[str]:
-    """Normalize manifest path so it is relative to the codebase root."""
-    if not manifest_path:
-        return None
-
-    manifest = PurePosixPath(manifest_path)
-    codebase = PurePosixPath(codebase_folder) if codebase_folder else PurePosixPath(".")
-
-    if str(codebase) in {"", "."}:
-        return manifest.as_posix()
-
-    try:
-        relative = manifest.relative_to(codebase)
-        return relative.as_posix()
-    except ValueError:
-        name = manifest.name
-        return name if name else manifest.as_posix()
 
 
 class GithubHelper:
@@ -228,10 +208,6 @@ class GithubHelper:
                         if programming_language_metadata.package_manager
                         else "unknown",
                         programming_language_version=programming_language_metadata.language_version,
-                        manifest_path=_relative_manifest_path(
-                            programming_language_metadata.manifest_path,
-                            codebase_config.codebase_folder,
-                        ),
                     ),
                 )
                 codebases.append(codebase)

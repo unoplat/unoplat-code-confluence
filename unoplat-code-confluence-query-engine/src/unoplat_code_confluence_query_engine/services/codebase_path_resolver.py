@@ -122,9 +122,7 @@ class CodebasePathResolver:
         return False
 
     @staticmethod
-    async def _query_codebase_paths(
-        tx: AsyncManagedTransaction, repository_qualified_name: str
-    ) -> list[dict[str, Any]]:
+    async def _query_codebase_paths(tx: AsyncManagedTransaction, repository_qualified_name: str) -> list[dict[str, Any]]:
         """
         Neo4j transaction function to query codebase paths.
 
@@ -142,8 +140,6 @@ class CodebasePathResolver:
                codebase.codebase_path AS codebase_path
         """
 
-        result: AsyncResult = await tx.run(
-            query, repo_qualified_name=repository_qualified_name
-        )
+        result: AsyncResult = await tx.run(query, repo_qualified_name=repository_qualified_name)
         records: list[dict[str, Any]] = await result.data()
         return records

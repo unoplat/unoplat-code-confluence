@@ -6,10 +6,7 @@
         "codebases": [
           {
             "codebase_folder": "unoplat-code-confluence-ingestion/code-confluence-flow-bridge",
-            "root_packages": [
-              "src/code_confluence_flow_bridge",
-              "tests/test_data/python_files"
-            ],
+            "root_packages": ["src/code_confluence_flow_bridge","tests/test_data/linter_python/sample_project"],
             "programming_language_metadata": {
               "language": "python",
               "package_manager": "uv",

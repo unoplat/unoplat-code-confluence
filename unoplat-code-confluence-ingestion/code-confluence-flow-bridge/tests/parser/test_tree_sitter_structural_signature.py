@@ -1,18 +1,12 @@
-import json
 from pathlib import Path
 import textwrap
 from typing import Optional
+import json
 
 import pytest
-from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
-    build_python_extractor_config,
-)
+from unoplat_code_confluence_commons.base_models import StructuralSignature, FunctionInfo
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
-    TreeSitterPythonStructuralSignatureExtractor,
-)
-from unoplat_code_confluence_commons.base_models import (
-    PythonFunctionInfo,
-    PythonStructuralSignature,
+    TreeSitterStructuralSignatureExtractor,
 )
 
 
@@ -51,10 +45,8 @@ class Foo:
     file_path: Path = tmp_path / "sample.py"
     file_path.write_text(sample_code)
 
-    config = build_python_extractor_config()
-    extractor: TreeSitterPythonStructuralSignatureExtractor = TreeSitterPythonStructuralSignatureExtractor(
-        language_name="python",
-        config=config
+    extractor: TreeSitterStructuralSignatureExtractor = TreeSitterStructuralSignatureExtractor(
+        language_name
     )
     with open(file_path, 'rb') as f:
         content = f.read()
@@ -189,11 +181,10 @@ class Person:
     file_path: Path = tmp_path / "complex_module.py"
     file_path.write_text(complex_code)
 
-    config = build_python_extractor_config()
-    extractor = TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
     with open(file_path, 'rb') as f:
         content = f.read()
-    sig: PythonStructuralSignature = extractor.extract_structural_signature(content)
+    sig: StructuralSignature = extractor.extract_structural_signature(content)
 
     # Global variable check
     assert any("CONSTANT_VALUE" in v.signature for v in sig.global_variables)
@@ -342,12 +333,11 @@ class ComplexClass:
     
     file_path: Path = tmp_path / "edge_cases.py"
     file_path.write_text(edge_case_code)
-
-    config = build_python_extractor_config()
-    extractor = TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
+    
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
     with open(file_path, 'rb') as f:
         content = f.read()
-    sig: PythonStructuralSignature = extractor.extract_structural_signature(content)
+    sig: StructuralSignature = extractor.extract_structural_signature(content)
     
     # Get the complex function
     complex_func = next(fn for fn in sig.functions if "def complex_function" in fn.signature)
@@ -427,15 +417,14 @@ class ComplexClass:
 
 @pytest.mark.parametrize("language_name", ["python"])
 def test_self_extraction_tree_sitter_structural_signature(language_name: str) -> None:
-    """Test that TreeSitterPythonStructuralSignatureExtractor can extract its own structure."""
+    """Test that TreeSitterStructuralSignatureExtractor can extract its own structure."""
     
     # Get the actual source file path
     from src.code_confluence_flow_bridge.parser import tree_sitter_structural_signature
     source_file_path = tree_sitter_structural_signature.__file__
-
+    
     # Extract structural signature
-    config = build_python_extractor_config()
-    extractor = TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
     with open(source_file_path, 'rb') as f:
         content = f.read()
     signature = extractor.extract_structural_signature(content)
@@ -445,56 +434,71 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     assert signature.module_docstring is not None
     module_doc = signature.module_docstring.strip()
     assert module_doc.startswith("Tree-sitter structural signature extractor for code parsing.")
-    assert "Python-specific structural signature extraction" in module_doc
+    assert "language-agnostic structural signature extraction" in module_doc
     
-    # Global variables - After refactoring to base class, cache dictionaries moved to tree_sitter_extractor_base.py
-    # This module now has no global variables
-    assert len(signature.global_variables) == 0, "Expected no global variables after cache refactor"
-
-    # No module-level functions (all moved to class methods or base class)
+    # Global variables (3 cache dictionaries)
+    assert len(signature.global_variables) == 3
+    
+    # Check that all expected variables are present in the signatures
+    var_signatures = [var.signature for var in signature.global_variables]
+    
+    # Debug: print what we got
+    print("\nExtracted global variables:")
+    for i, var in enumerate(signature.global_variables):
+        print(f"  [{i}] Line {var.start_line}-{var.end_line}: {repr(var.signature)}")
+    
+    # The signatures might be truncated or have strange formatting
+    # Let's be more flexible in our assertions
+    found_language_cache = any("_LANGUAGE_CACHE" in sig for sig in var_signatures)
+    found_parser_cache = any("_PARSER_CACHE" in sig for sig in var_signatures)
+    found_query_cache = any("_QUERY_CACHE" in sig for sig in var_signatures)
+    
+    assert found_language_cache, f"_LANGUAGE_CACHE not found in {var_signatures}"
+    assert found_parser_cache, f"_PARSER_CACHE not found in {var_signatures}"
+    assert found_query_cache, f"_QUERY_CACHE not found in {var_signatures}"
+    
+    # No module-level functions
     assert len(signature.functions) == 0
     
     # 2. Class-level verification
     assert len(signature.classes) == 1
     
     main_class = signature.classes[0]
-    assert "TreeSitterPythonStructuralSignatureExtractor" in main_class.signature
+    assert "TreeSitterStructuralSignatureExtractor" in main_class.signature
     assert main_class.signature.strip().endswith(":")
     assert main_class.docstring is not None
-    assert "Extracts structural signatures from Python source code using tree-sitter queries." in main_class.docstring
+    assert "Extracts structural signatures from source code using tree-sitter queries." in main_class.docstring
     
-    # After refactor: instance variables now set by parent class __init__ via super().__init__()
-    # The Python subclass __init__ only calls super(), so no instance variables are captured here
-    # (They would be in the base class if we extracted that file)
-    assert len(main_class.vars) == 0, "Python subclass should have no instance variables (set by base class)"
+    # Should have instance variables from __init__ method
+    assert len(main_class.vars) == 5
+    
+    # Verify specific instance variables are captured
+    class_var_signatures = [var.signature for var in main_class.vars]
+    assert any("self.config" in sig for sig in class_var_signatures)
+    assert any("self.language_name" in sig for sig in class_var_signatures)
+    assert any("self.language:" in sig for sig in class_var_signatures)
+    assert any("self.parser:" in sig for sig in class_var_signatures)
+    assert any("self.queries:" in sig for sig in class_var_signatures)
     
     # 3. Method-level verification
-    # After refactoring to base class:
-    # - __init__ remains (calls super)
-    # - 3 wrapper properties added for test compatibility (_LANGUAGE_CACHE, _PARSER_CACHE, _QUERY_CACHE)
-    # - Python-specific extraction methods remain (16 methods)
-    # - Base class methods no longer in subclass (_get_language, _get_parser, _get_compiled_queries, _create_queries moved to base)
-    # Total: 1 + 3 + 16 = 20 methods
-    assert len(main_class.methods) == 20, f"Expected 20 methods after refactor, got {len(main_class.methods)}"
-
+    # Should have 21 methods (after hierarchical refactoring + nested class extraction)
+    assert len(main_class.methods) == 21
+    
     # Create a mapping of method names to method objects for easier verification
     method_map = {m.signature.split('(')[0].split()[-1]: m for m in main_class.methods}
-
-    # Verify each method exists (now includes 3 properties for cache access)
+    
+    # Verify each method exists
     expected_methods = [
-        "__init__",
-        "_LANGUAGE_CACHE", "_PARSER_CACHE", "_QUERY_CACHE",  # Wrapper properties for test compatibility
-        "extract_structural_signature", "_extract_module_docstring",
+        "__init__", "_get_language", "_get_parser", "_get_compiled_queries",
+        "_create_queries", "extract_structural_signature", "_extract_module_docstring",
         "_extract_global_variables", "_extract_functions", "_extract_classes",
         "_extract_class_variables_for_node", "_extract_methods_for_node",
         "_extract_nested_functions_for_node", "_is_at_module_level",
-        "_clean_string_literal", "_is_immediate_child_function",
+        "_clean_string_literal", "_is_immediate_child_function", 
         "_get_nested_function_ranges", "_get_nested_class_ranges",
         "_extract_function_calls_for_node", "_extract_instance_variables_for_method",
         "_extract_nested_classes_for_node"
     ]
-    # Note: Base class methods (_get_language, _get_parser, _get_compiled_queries, _create_queries)
-    # are no longer in Python subclass - they're inherited from TreeSitterExtractorBase
     
     for method_name in expected_methods:
         assert method_name in method_map, f"Method {method_name} not found"
@@ -503,25 +507,29 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     
     # __init__ method
     init_method = method_map["__init__"]
-    # Signature now accepts config parameter instead of loading from registry
-    assert "def __init__(" in init_method.signature
-    assert "language_name: str" in init_method.signature
-    assert "config: TreeSitterExtractorConfig" in init_method.signature
-    assert init_method.docstring is not None
-    assert "Initialize parser & queries with multi-level caching and lazy compilation" in init_method.docstring
+    assert "def __init__(self, language_name: str = \"python\"):" in init_method.signature
+    assert init_method.docstring == "Initialize parser & queries with multi-level caching and lazy compilation."
     init_calls = init_method.function_calls
-    # After refactoring to base class, __init__ calls super().__init__()
-    assert "super().__init__(language_name, config)" in init_calls or "super()" in init_calls
-
-    # Cache access methods moved to base class - properties provide test compatibility
-    # Properties should exist (but they're properties, not static methods)
-    assert "_LANGUAGE_CACHE" in method_map
-    assert "_PARSER_CACHE" in method_map
-    assert "_QUERY_CACHE" in method_map
+    assert "get_config(language_name)" in init_calls
+    assert "self._get_language(language_name)" in init_calls
+    assert "self._get_parser(language_name)" in init_calls
+    assert "self._get_compiled_queries()" in init_calls
+    
+    # Static methods should have @staticmethod decorator
+    static_methods = ["_get_language", "_get_parser"]
+    for method_name in static_methods:
+        method = method_map[method_name]
+        assert method.signature.startswith("@staticmethod")
+    
+    # _get_language static method
+    get_lang_method = method_map["_get_language"]
+    assert "def _get_language(language_name: str) -> tree_sitter.Language:" in get_lang_method.signature
+    assert get_lang_method.docstring == "Fetch a tree-sitter Language with caching."
+    assert "get_language(language_name)" in get_lang_method.function_calls
     
     # extract_structural_signature - the main public method
     extract_method = method_map["extract_structural_signature"]
-    assert "def extract_structural_signature(self, source_bytes: bytes) -> PythonStructuralSignature:" in extract_method.signature
+    assert "def extract_structural_signature(self, source_bytes: bytes) -> StructuralSignature:" in extract_method.signature
     assert extract_method.docstring == "Extract structural signature from byte content."
     # Should call various extraction methods
     extract_calls = extract_method.function_calls
@@ -531,7 +539,7 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     assert "self._extract_global_variables(root_node, source_bytes)" in extract_calls
     assert "self._extract_functions(root_node, source_bytes)" in extract_calls
     assert "self._extract_classes(root_node, source_bytes)" in extract_calls
-    assert "PythonStructuralSignature(" in " ".join(extract_calls)
+    assert "StructuralSignature(" in " ".join(extract_calls)
     
     # _extract_function_calls_for_node - our recently modified method
     func_calls_method = method_map["_extract_function_calls_for_node"]
@@ -539,9 +547,8 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     assert "end_line: Optional[int] = None" in func_calls_method.signature
     assert func_calls_method.docstring is not None
     assert "filters out calls that are within nested functions" in func_calls_method.docstring
-    # Check for the new filtering logic calls (updated for QueryCursor API)
-    assert "tree_sitter.QueryCursor(self.queries[\"function_calls\"])" in func_calls_method.function_calls
-    assert "cursor.captures(func_node)" in func_calls_method.function_calls
+    # Check for the new filtering logic calls
+    assert "self.queries[\"function_calls\"].captures(func_node)" in func_calls_method.function_calls
     assert "self._get_nested_function_ranges(func_node)" in func_calls_method.function_calls
     assert "sorted(direct_call_nodes, key=lambda n: n.start_byte)" in func_calls_method.function_calls
     
@@ -556,18 +563,19 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
         prev_line = method.start_line
     
     # 7. Verify some complex method signatures are captured correctly
-    # (Note: _create_queries moved to base class, so we skip that check)
-
+    create_queries_method = method_map["_create_queries"]
+    assert create_queries_method.signature == "def _create_queries(self) -> Dict[str, str]:"
+    
     # 8. Verify methods with complex logic have appropriate function calls
     extract_functions_method = method_map["_extract_functions"]
     # Should have many function calls for the complex extraction logic
     assert len(extract_functions_method.function_calls) > 10
     
     # 9. Test line number accuracy for a few methods
-    # __init__ should be around line 35-50 (after removing get_config import)
-    assert 30 <= init_method.start_line <= 50
-    # extract_structural_signature should be somewhere after __init__
-    assert 50 <= extract_method.start_line <= 120
+    # __init__ should be around line 38-46 (shifted due to import changes)
+    assert 35 < init_method.start_line < 50
+    # extract_structural_signature should be around line 100-110 (shifted due to import changes)
+    assert 95 < extract_method.start_line < 115
     
     # 10. Export structural signature to JSON for experimentation
     
@@ -629,15 +637,14 @@ def test_no_duplicate_nested_functions(tmp_path: Path, language_name: str) -> No
     
     file_path = tmp_path / "nested_test.py"
     file_path.write_text(test_code)
-
-    config = build_python_extractor_config()
-    extractor = TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
+    
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
     with open(file_path, 'rb') as f:
         content = f.read()
     sig = extractor.extract_structural_signature(content)
     
     # Helper to assert no duplicates
-    def assert_unique_nested(func: PythonFunctionInfo, seen_signatures: Optional[set[str]] = None):
+    def assert_unique_nested(func: FunctionInfo, seen_signatures: Optional[set[str]] = None):
         if seen_signatures is None:
             seen_signatures = set()
         
@@ -698,10 +705,9 @@ def test_main_py_structural_signature(language_name: str) -> None:
     
     # Ensure the file exists
     assert main_py_path.exists(), f"main.py not found at {main_py_path}"
-
+    
     # Extract structural signature
-    config = build_python_extractor_config()
-    extractor = TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
     with open(main_py_path, 'rb') as f:
         content = f.read()
     signature = extractor.extract_structural_signature(content)
@@ -731,6 +737,7 @@ def test_main_py_structural_signature(language_name: str) -> None:
     assert any("def create_worker" in sig for sig in function_signatures), "create_worker not found"
     assert any("async def fetch_github_token_from_db" in sig for sig in function_signatures), "fetch_github_token_from_db not found"
     assert any("async def start_workflow" in sig for sig in function_signatures), "start_workflow not found"
+    assert any("async def generate_sse_events" in sig for sig in function_signatures), "generate_sse_events not found"
     assert any("async def monitor_workflow" in sig for sig in function_signatures), "monitor_workflow not found"
     
     # FastAPI endpoints
@@ -798,7 +805,7 @@ def test_main_py_structural_signature(language_name: str) -> None:
     # Check some specific line number ranges
     get_temporal_client_fn = next((fn for fn in signature.functions if "async def get_temporal_client" in fn.signature), None)
     assert get_temporal_client_fn is not None
-    assert 140 < get_temporal_client_fn.start_line < 160, f"get_temporal_client should be around line 147, got {get_temporal_client_fn.start_line}"
+    assert 150 < get_temporal_client_fn.start_line < 200, f"get_temporal_client should be around line 157, got {get_temporal_client_fn.start_line}"
     
     # 7. Check for nested functions in lifespan
     assert len(lifespan_fn.nested_functions) == 0, "lifespan should not have nested functions directly"
@@ -869,9 +876,8 @@ def test_instance_variable_edge_cases(tmp_path: Path, language_name: str) -> Non
     assert edge_cases_file_path.exists(), f"Edge cases file not found at {edge_cases_file_path}"
     
     file_path = str(edge_cases_file_path)
-
-    config = build_python_extractor_config()
-    extractor = TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
+    
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
     with open(file_path, 'rb') as f:
         content = f.read()
     signature = extractor.extract_structural_signature(content)
@@ -1136,9 +1142,8 @@ def test_local_variables_not_captured(tmp_path: Path, language_name: str) -> Non
     assert demo_file_path.exists(), f"Demo file not found at {demo_file_path}"
     
     file_path = str(demo_file_path)
-
-    config = build_python_extractor_config()
-    extractor = TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
+    
+    extractor = TreeSitterStructuralSignatureExtractor(language_name)
     with open(file_path, 'rb') as f:
         content = f.read()
     signature = extractor.extract_structural_signature(content)

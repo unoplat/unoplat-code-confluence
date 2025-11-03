@@ -1,14 +1,14 @@
-import React from "react";
+import React from 'react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import type { ModelProviderDefinition } from "../types";
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
+import type { ModelProviderDefinition } from '../types';
 
 interface ProviderSelectorProps {
   providers: ModelProviderDefinition[];
@@ -31,16 +31,16 @@ export function ProviderSelector({
   onProviderChange,
   isLoading = false,
   error = null,
-  label = "Provider",
-  placeholder = "Select a provider...",
-  className,
+  label = 'Provider',
+  placeholder = 'Select a provider...',
+  className
 }: ProviderSelectorProps): React.ReactElement {
   const handleValueChange = (value: string) => {
     onProviderChange(value);
   };
 
   const selectedProviderData = providers.find(
-    (provider) => provider.provider_key === selectedProvider,
+    (provider) => provider.provider_key === selectedProvider
   );
 
   return (
@@ -52,7 +52,7 @@ export function ProviderSelector({
       )}
 
       <Select
-        value={selectedProvider || ""}
+        value={selectedProvider || ''}
         onValueChange={handleValueChange}
         disabled={isLoading || !!error}
       >
@@ -73,7 +73,7 @@ export function ProviderSelector({
           {providers.map((provider) => (
             <SelectItem
               key={provider.provider_key}
-              value={provider.provider_key || ""}
+              value={provider.provider_key || ''}
             >
               <span className="font-medium">{provider.display_name}</span>
             </SelectItem>
@@ -81,10 +81,12 @@ export function ProviderSelector({
         </SelectContent>
       </Select>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="text-sm text-red-600">{error}</p>
+      )}
 
       {selectedProviderData?.model_field?.help && (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-xs text-muted-foreground">
           {selectedProviderData.model_field.help}
         </p>
       )}

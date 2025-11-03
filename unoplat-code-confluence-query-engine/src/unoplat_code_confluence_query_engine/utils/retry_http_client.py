@@ -42,26 +42,25 @@ def validate_response(response: Response, retry_status_codes: Sequence[int]) -> 
             f"Provider HTTP error {response.status_code}: {response.text[:200]}"
         )
         response.raise_for_status()
-
+    
     # Check for completely empty response content
     if not response.content or len(response.content.strip()) == 0:
         logger.warning("Received completely empty response from provider")
         raise ValueError("Empty response content from provider")
 
-
 def create_retry_client(settings: EnvironmentSettings) -> Optional[AsyncClient]:
     """
     Create an AsyncClient with retry configuration based on environment settings.
-
+    
     This client handles:
     - Rate limiting (429) with Retry-After header respect
     - Server errors (502, 503, 504) with exponential backoff
     - Empty/null model responses with immediate retry
     - Connection errors with network-level retries
-
+    
     Args:
         settings: Environment settings containing retry configuration
-
+        
     Returns:
         Configured AsyncClient with retry transport, or None if retry is disabled
     """
@@ -110,7 +109,8 @@ def create_retry_client(settings: EnvironmentSettings) -> Optional[AsyncClient]:
 
     # Create transport with retry logic
     transport = AsyncTenacityTransport(
-        config=retry_config, validate_response=response_validator
+        config=retry_config,
+        validate_response=response_validator
     )
 
     # Create client with custom transport

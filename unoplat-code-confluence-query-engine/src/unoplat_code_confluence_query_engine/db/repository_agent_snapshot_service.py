@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Sequence
 
 from loguru import logger
@@ -167,38 +168,14 @@ class RepositoryAgentSnapshotWriter:
 
             if not updated:
                 logger.error(
-                    "Failed to append event for %s/%s codebase=%s",
-                    self.owner_name,
-                    self.repo_name,
-                    delta.codebase_delta.codebase_name,
+                    "Failed to append event for %s/%s codebase=%s", self.owner_name, self.repo_name, delta.codebase_delta.codebase_name
                 )
                 raise ValueError(
                     f"Codebase {delta.codebase_delta.codebase_name} is not initialized in events document"
                 )
 
-    async def complete_run(
-        self,
-        *,
-        final_payload: dict[str, object],
-        statistics_payload: dict[str, object] | None = None,
-    ) -> None:
+    async def complete_run(self, *, final_payload: dict[str, object]) -> None:
         """Mark the snapshot as completed and persist the final agent output."""
-        # Log what's being persisted
-        if statistics_payload:
-            logger.info(
-                "Persisting statistics for {}/{}: {} keys, has_cost={}",
-                self.owner_name,
-                self.repo_name,
-                len(statistics_payload),
-                "total_estimated_cost_usd" in statistics_payload,
-            )
-        else:
-            logger.warning(
-                "No statistics payload to persist for {}/{}",
-                self.owner_name,
-                self.repo_name,
-            )
-
         async with get_session() as session:
             stmt = (
                 update(RepositoryAgentMdSnapshot)
@@ -209,7 +186,6 @@ class RepositoryAgentSnapshotWriter:
                 .values(
                     status=RepoAgentSnapshotStatus.COMPLETED,
                     agent_md_output=final_payload,
-                    statistics=statistics_payload,
                     modified_at=func.now(),
                 )
             )
@@ -236,9 +212,12 @@ class RepositoryAgentSnapshotWriter:
     async def fetch_events(self) -> dict[str, object] | None:
         """Fetch the current events document for diagnostics or fallback flows."""
         async with get_session() as session:
-            stmt = select(RepositoryAgentMdSnapshot.events).where(
-                RepositoryAgentMdSnapshot.repository_owner_name == self.owner_name,
-                RepositoryAgentMdSnapshot.repository_name == self.repo_name,
+            stmt = (
+                select(RepositoryAgentMdSnapshot.events)
+                .where(
+                    RepositoryAgentMdSnapshot.repository_owner_name == self.owner_name,
+                    RepositoryAgentMdSnapshot.repository_name == self.repo_name,
+                )
             )
             result = await session.execute(stmt)
             row = result.scalar_one_or_none()

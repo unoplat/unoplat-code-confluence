@@ -2,13 +2,13 @@ type: http_request
 model: http_request
 id: rq_yMsbRmdhHJ
 createdAt: 2025-06-14T06:59:41.097465
-updatedAt: 2025-10-30T10:55:09.932426
+updatedAt: 2025-09-23T06:18:46.940787
 workspaceId: wk_KULjx4bEa8
 folderId: fl_pr9oGjGRnn
 authentication: {}
 authenticationType: null
 body:
-  text: "{\n    \"repository_name\": \"unoplat-code-confluence\",\n    \"repository_git_url\": \"https://github.com/unoplat/unoplat-code-confluence\",\n    \"repository_owner_name\": \"unoplat\",\n    \"repository_metadata\": [\n          {\n            \"codebase_folder\": \"unoplat-code-confluence-query-engine\",\n            \"root_packages\": [\"src/unoplat_code_confluence_query_engine\"],\n            \"programming_language_metadata\": {\n                \"language\": \"python\",\n                \"package_manager\": \"uv\",\n                  \"manifest_path\": \"unoplat-code-confluence-query-engine/pyproject.toml\"\n\n            }\n          },\n      {\n  \"codebase_folder\": \"unoplat-code-confluence-frontend\",\n  \"root_packages\": null,\n  \"programming_language_metadata\": {\n    \"language\": \"typescript\",\n    \"package_manager\": \"yarn\",\n    \"manifest_path\": \"unoplat-code-confluence-frontend/package.json\"\n  }\n}\n      \n        \n    ]\n}"
+  text: "{\n    \"repository_name\": \"unoplat-code-confluence\",\n    \"repository_git_url\": \"https://github.com/unoplat/unoplat-code-confluence\",\n    \"repository_owner_name\": \"unoplat\",\n    \"repository_metadata\": [\n        {\n            \"codebase_folder\": \"unoplat-code-confluence-ingestion/code-confluence-flow-bridge\",\n            \"root_packages\": [\"src/code_confluence_flow_bridge\"],\n            \"programming_language_metadata\": {\n                \"language\": \"python\",\n                \"package_manager\": \"uv\",\n                \"role\": \"leaf\"\n            }\n        },\n          {\n            \"codebase_folder\": \"unoplat-code-confluence-query-engine\",\n            \"root_packages\": [\"src/unoplat_code_confluence_query_engine\"],\n            \"programming_language_metadata\": {\n                \"language\": \"python\",\n                \"package_manager\": \"uv\"\n            }\n          }\n        \n    ]\n}"
 bodyType: application/json
 description: ''
 headers:

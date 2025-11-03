@@ -5,10 +5,7 @@ Abstract base class for language-specific framework detection services.
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from unoplat_code_confluence_commons.base_models import (
-    Detection,
-    PythonStructuralSignature,
-)
+from unoplat_code_confluence_commons.base_models import Detection, StructuralSignature
 
 
 class FrameworkDetectionService(ABC):
@@ -19,7 +16,7 @@ class FrameworkDetectionService(ABC):
         self, 
         source_code: Optional[str],
         imports: List[str],
-        structural_signature: PythonStructuralSignature | None,
+        structural_signature: StructuralSignature | None,
         programming_language: str
     ) -> List[Detection]:
         """

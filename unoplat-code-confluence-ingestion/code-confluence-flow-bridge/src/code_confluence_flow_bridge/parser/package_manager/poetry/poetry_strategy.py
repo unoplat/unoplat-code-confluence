@@ -1,7 +1,6 @@
 # Standard Library
 import os
-from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, Optional
 
 from temporalio import activity
 
@@ -59,7 +58,7 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             if not poetry_data:
                 return self._handle_fallback(local_workspace_path, metadata)
 
-            # Parse dependencies from all groups into grouped structure
+            # Parse dependencies from all groups
             dependencies = self._parse_all_dependency_groups(poetry_data)
 
             # Get Python version requirement - check PEP 621 first, then Poetry
@@ -87,7 +86,6 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 keywords=poetry_data.get("keywords", []),
                 maintainers=poetry_data.get("maintainers", []),
                 readme=poetry_data.get("readme"),
-                manifest_path=metadata.manifest_path,
             )
 
         except Exception as e:
@@ -98,79 +96,35 @@ class PythonPoetryStrategy(PackageManagerStrategy):
         """Handle fallback to requirements.txt when no poetry config is found"""
         package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
         activity.logger.warning("No poetry configuration found, falling back to requirements", {"path": local_workspace_path, "package_manager": package_manager_value})
-        fallback_dependencies = RequirementsUtils.parse_requirements_folder(local_workspace_path)
-        grouped_dependencies: Dict[str, Dict[str, UnoplatProjectDependency]] = defaultdict(dict)
-
-        for dep_name, dependency in fallback_dependencies.items():
-            grouped_dependencies["default"][dep_name] = dependency
-
-        grouped_dependencies.setdefault("default", {})
-
-        package_manager = UnoplatPackageManagerMetadata(
-            dependencies=dict(grouped_dependencies),
-            programming_language=metadata.language.value,
-            package_manager=PackageManagerType.PIP.value,
-            manifest_path=metadata.manifest_path,
-        )
+        dependencies = RequirementsUtils.parse_requirements_folder(local_workspace_path)
+        package_manager = UnoplatPackageManagerMetadata(dependencies=dependencies, programming_language=metadata.language.value, package_manager=PackageManagerType.PIP.value)
         try:
             return SetupParser.parse_setup_file(local_workspace_path, package_manager)
         except FileNotFoundError:
             activity.logger.warning("setup.py not found, skipping setup.py parsing")
             return package_manager
 
-    def _parse_all_dependency_groups(self, poetry_data: Dict) -> Dict[str, Dict[str, UnoplatProjectDependency]]:
-        """Parse dependencies from main, legacy dev, and named groups."""
+    def _parse_all_dependency_groups(self, poetry_data: Dict) -> Dict[str, UnoplatProjectDependency]:
+        """Parse dependencies from all groups including main, dev, and custom groups"""
+        all_dependencies = {}
 
-        grouped_dependencies: Dict[str, Dict[str, UnoplatProjectDependency]] = defaultdict(dict)
-        group_includes: Dict[str, List[str]] = {}
-
-        # Main dependencies map to the default group
+        # Parse main dependencies
         main_deps = poetry_data.get("dependencies", {})
-        grouped_dependencies["default"].update(self._parse_dependencies(main_deps))
+        all_dependencies.update(self._parse_dependencies(main_deps))
 
-        # Legacy dev-dependencies block
+        # Parse dev dependencies (legacy format)
         dev_deps = poetry_data.get("dev-dependencies", {})
         if dev_deps:
-            grouped_dependencies["dev"].update(self._parse_dependencies(dev_deps))
+            all_dependencies.update(self._parse_dependencies(dev_deps, group="dev"))
 
-        # Poetry 1.2+ dependency groups
-        for group_name, group_data in poetry_data.get("group", {}).items():
-            if not isinstance(group_data, dict):
-                continue
+        # Parse group dependencies (Poetry 1.2+ format)
+        groups = poetry_data.get("group", {})
+        for group_name, group_data in groups.items():
+            if isinstance(group_data, dict) and "dependencies" in group_data:
+                group_deps = self._parse_dependencies(group_data["dependencies"], group=group_name)
+                all_dependencies.update(group_deps)
 
-            group_dependencies = group_data.get("dependencies", {})
-            if group_dependencies:
-                grouped_dependencies[group_name].update(self._parse_dependencies(group_dependencies))
-
-            include_groups = self._extract_include_groups(group_data)
-            if include_groups:
-                group_includes[group_name] = include_groups
-
-        # Apply include-groups by merging referenced group contents
-        for target_group, includes in group_includes.items():
-            target_bucket = grouped_dependencies.setdefault(target_group, {})
-            for included_group in includes:
-                included_bucket = grouped_dependencies.get(included_group, {})
-                for dep_name, dependency in included_bucket.items():
-                    if dep_name not in target_bucket:
-                        target_bucket[dep_name] = dependency.model_copy(deep=True)
-
-        return {group: deps for group, deps in grouped_dependencies.items()}
-
-    def _extract_include_groups(self, group_data: Dict) -> List[str]:
-        """Normalize include-groups declarations to a list."""
-
-        include_groups = group_data.get("include-groups")
-        if include_groups is None:
-            include_groups = group_data.get("include_groups")
-
-        if isinstance(include_groups, list):
-            return [g for g in include_groups if isinstance(g, str) and g]
-
-        if isinstance(include_groups, str) and include_groups:
-            return [include_groups]
-
-        return []
+        return all_dependencies
 
     def _parse_version_constraint(self, constraint: str) -> UnoplatVersion:
         """Parse version constraint using packaging library"""
@@ -187,15 +141,9 @@ class PythonPoetryStrategy(PackageManagerStrategy):
 
     def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information"""
-        return UnoplatPackageManagerMetadata(
-            dependencies={"default": {}},
-            programming_language=metadata.language.value,
-            package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value,
-            programming_language_version=metadata.language_version,
-            manifest_path=metadata.manifest_path,
-        )
+        return UnoplatPackageManagerMetadata(dependencies={}, programming_language=metadata.language.value, package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value, programming_language_version=metadata.language_version)
 
-    def _parse_dependencies(self, deps_dict: Dict) -> Dict[str, UnoplatProjectDependency]:
+    def _parse_dependencies(self, deps_dict: Dict, group: Optional[str] = None) -> Dict[str, UnoplatProjectDependency]:
         dependencies = {}
 
         for name, constraint in deps_dict.items():

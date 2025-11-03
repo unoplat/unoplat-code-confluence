@@ -1,21 +1,23 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-version: "3"
+version: '3'
 
 tasks:
   install:
     desc: Install dependencies using yarn
     cmds:
-      - bun install
+      - yarn install
     # Only run if package.json or yarn.lock have changed
     sources:
       - package.json
-      - bun.json
+      - yarn.lock
+    generates:
+      - node_modules/**/*
 
   build:
     desc: Build the application
     deps: [install]
     cmds:
-      - vite build
+      - yarn build --mode prod
     sources:
       - src/**/*
       - public/**/*
@@ -28,36 +30,11 @@ tasks:
     desc: Start development environment
     deps: [install]
     cmds:
-      - vite
-
-  lint:
-    desc: do linitng using eslint
-    cmds:
-      - bun eslint .
-
-  lint-fix:
-    desc: fix linitng using eslint
-    cmds:
-      - bun eslint . --fix
-
-  format:
-    desc: Format all files using Prettier
-    cmds:
-      - bun prettier --write .
-
-  format-check:
-    desc: Check if files are formatted without modifying them
-    cmds:
-      - bun prettier --check .
+      - yarn dev --mode dev
 
   docker:
     desc: Build and run docker container locally
     deps: [build]
     cmds:
       - docker build -t vite-app .
-      - docker run -p 3000:80 vite-app
-
-  outdated:
-    desc: Review outdated packages and check for available updates
-    cmds:
-      - bun outdated
+      - docker run -p 3000:80 vite-app 

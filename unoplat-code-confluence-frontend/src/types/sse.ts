@@ -1,4 +1,4 @@
-import type { IngestedRepository } from "../types";
+import type { IngestedRepository } from '../types';
 
 export interface SSEEvent {
   id: number;
@@ -26,31 +26,31 @@ export interface ParsedSSEEvent extends SSEEvent {
 }
 
 export type AgentType =
-  | "project_configuration_agent"
-  | "development_workflow"
-  | "business_logic_domain";
+  | 'project_configuration_agent'
+  | 'development_workflow'
+  | 'business_logic_domain';
 
 export type ActivityType =
-  | "prompt.start"
-  | "model.request"
-  | "tool.call"
-  | "tool.result"
-  | "result"
-  | "complete";
+  | 'prompt.start'
+  | 'model.request'
+  | 'tool.call'
+  | 'tool.result'
+  | 'result'
+  | 'complete';
 
 export interface CodebaseProgress {
   codebaseId: string;
   codebaseName: string;
   agents: Map<AgentType, AgentProgress>;
   overallProgress: number;
-  status: "initializing" | "processing" | "completed" | "error";
+  status: 'initializing' | 'processing' | 'completed' | 'error';
   events: SSEEvent[];
   startTime: Date;
 }
 
 export interface AgentProgress {
   agentType: AgentType;
-  status: "idle" | "running" | "completed" | "error";
+  status: 'idle' | 'running' | 'completed' | 'error';
   events: SSEEventData[];
   lastActivity?: ActivityType;
   progress: number;
@@ -65,6 +65,7 @@ export interface GenerationContext {
   isComplete: boolean;
   generatedContent?: string;
 }
+
 
 // ================================
 // Aggregated repository event types
@@ -122,3 +123,5 @@ export interface AggregatedSSEEvent {
   event: string; // "{repository_qualified_name}:aggregated_final_summary_agent:agent_md_output"
   data: AggregatedAgentsMdEventData;
 }
+
+

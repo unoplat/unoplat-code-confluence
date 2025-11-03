@@ -1,7 +1,7 @@
 // stores/useAuthStore.ts
-import { create } from "zustand";
-import type { FlagResponse } from "@/types";
-import type { GitHubUser } from "@/lib/api";
+import { create } from 'zustand';
+import type { FlagResponse } from '@/types';
+import type { GitHubUser } from '@/lib/api';
 
 interface AuthState {
   tokenStatus: FlagResponse | null;
@@ -13,8 +13,8 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()((set) => ({
   tokenStatus: null,
-  user: null,
+  user:        null,
   setTokenStatus: (tokenStatus) => set({ tokenStatus }),
-  setUser: (user) => set({ user }),
+  setUser:        (user)        => set({ user }),
   reset: () => set({ tokenStatus: null, user: null }),
 }));

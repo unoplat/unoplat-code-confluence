@@ -180,7 +180,6 @@ class SetupParser:
 
         # Process install_requires
         if "install_requires" in setup_args:
-            default_bucket = SetupParser._ensure_group(metadata, "default")
             for req_str in setup_args["install_requires"]:
                 req = Requirement(req_str)
                 version = UnoplatVersion()
@@ -190,12 +189,11 @@ class SetupParser:
                     version = UnoplatVersion(specifier=str(req.specifier))
 
                 dep = UnoplatProjectDependency(version=version, extras=list(req.extras) if req.extras else None, environment_marker=str(req.marker) if req.marker else None)
-                default_bucket[req.name] = dep
+                metadata.dependencies[req.name] = dep
 
         # Process extras_require
         if "extras_require" in setup_args:
             for extra_name, req_list in setup_args["extras_require"].items():
-                extra_bucket = SetupParser._ensure_group(metadata, extra_name)
                 for req_str in req_list:
                     req = Requirement(req_str)
                     version = UnoplatVersion()
@@ -204,26 +202,17 @@ class SetupParser:
                     if req.specifier:
                         version = UnoplatVersion(specifier=str(req.specifier))
 
-                    dep = UnoplatProjectDependency(version=version, extras=[extra_name] + list(req.extras) if req.extras else [extra_name], environment_marker=str(req.marker) if req.marker else None)
-
-                    if req.name not in extra_bucket:
-                        extra_bucket[req.name] = dep
+                    dep = UnoplatProjectDependency(version=version, extras=[extra_name] + list(req.extras) if req.extras else [extra_name], environment_marker=str(req.marker) if req.marker else None, group=extra_name)
+                    if req.name not in metadata.dependencies:
+                        metadata.dependencies[req.name] = dep
                     else:
-                        existing_dep = extra_bucket[req.name]
+                        existing_dep = metadata.dependencies[req.name]
                         if existing_dep.extras:
                             existing_dep.extras.append(extra_name)
                         else:
                             existing_dep.extras = [extra_name]
 
         return metadata
-
-    @staticmethod
-    def _ensure_group(metadata: UnoplatPackageManagerMetadata, group_name: str) -> Dict[str, UnoplatProjectDependency]:
-        """Get or create the dependency bucket for the provided group."""
-
-        if group_name not in metadata.dependencies:
-            metadata.dependencies[group_name] = {}
-        return metadata.dependencies[group_name]
 
     @staticmethod
     def parse_setup_file(root_dir: str, metadata: UnoplatPackageManagerMetadata) -> UnoplatPackageManagerMetadata:

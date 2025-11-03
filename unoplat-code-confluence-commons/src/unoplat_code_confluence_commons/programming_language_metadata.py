@@ -6,17 +6,12 @@ from pydantic import BaseModel
 
 class ProgrammingLanguage(str, Enum):
     PYTHON = "python"
-    TYPESCRIPT = "typescript"
 
 
 class PackageManagerType(str, Enum):
     POETRY = "poetry"
     PIP = "pip"
     UV = "uv"
-    NPM = "npm"
-    YARN = "yarn"
-    PNPM = "pnpm"
-    BUN = "bun"
 
 
 class ProgrammingLanguageMetadata(BaseModel):

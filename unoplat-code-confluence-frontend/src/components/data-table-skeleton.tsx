@@ -32,8 +32,8 @@ export function DataTableSkeleton({
   className,
   ...props
 }: DataTableSkeletonProps) {
-  console.log("DataTableSkeleton props:", { withPagination, showRowsPerPage });
-
+  console.log('DataTableSkeleton props:', { withPagination, showRowsPerPage });
+  
   const cozyCellWidths = Array.from(
     { length: columnCount },
     (_, index) => cellWidths[index % cellWidths.length] ?? "auto",
@@ -56,7 +56,7 @@ export function DataTableSkeleton({
           <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
         ) : null}
       </div>
-      <div className="border-border rounded-md border">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             {Array.from({ length: 1 }).map((_, i) => (
@@ -104,7 +104,7 @@ export function DataTableSkeleton({
                 <Skeleton className="h-7 w-[4.5rem]" />
               </div>
             )}
-            <div className="flex items-center justify-center text-sm font-medium">
+            <div className="flex items-center justify-center font-medium text-sm">
               <Skeleton className="h-7 w-20" />
             </div>
             <div className="flex items-center gap-2">

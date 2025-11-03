@@ -19,15 +19,6 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 # Constants
 TEST_DATA_DIR = Path(__file__).parent.parent.parent / "test_data"
 
-
-def flatten_dependencies(grouped: Dict[str, Dict[str, UnoplatProjectDependency]]) -> Dict[str, UnoplatProjectDependency]:
-    """Utility to collapse grouped dependencies into a single-level dict."""
-
-    flattened: Dict[str, UnoplatProjectDependency] = {}
-    for group_deps in grouped.values():
-        flattened.update(group_deps)
-    return flattened
-
 def load_toml_content(filename: str) -> str:
     """Helper function to load TOML content from test data directory"""
     file_path = TEST_DATA_DIR / filename
@@ -116,29 +107,21 @@ def test_process_metadata_all_required_sections(
     assert package_metadata.readme == "README.md"
 
     # Test dependencies from all groups
-    grouped_deps: Dict[str, Dict[str, UnoplatProjectDependency]] = package_metadata.dependencies
-
-    assert "default" in grouped_deps
-    assert "dev" in grouped_deps
-    assert "docs" in grouped_deps
-
-    default_deps = grouped_deps["default"]
-    dev_deps = grouped_deps["dev"]
-    docs_deps = grouped_deps["docs"]
-
+    deps_dict: Dict[str, UnoplatProjectDependency] = package_metadata.dependencies
+    
     # Main dependencies
-    assert "requests" in default_deps
-    assert "git_dep" in default_deps
-    assert "path_dep" in default_deps
-    assert default_deps["requests"].version.specifier == ">=2.0.0,<2.0.0"
-
+    assert "requests" in deps_dict
+    assert "git_dep" in deps_dict
+    assert "path_dep" in deps_dict
+    assert deps_dict["requests"].version.specifier == ">=2.0.0,<2.0.0"
+    
     # Dev dependencies
-    assert "pytest" in dev_deps
-    assert "black" in dev_deps
-
+    assert "pytest" in deps_dict
+    assert "black" in deps_dict
+    
     # Docs dependencies
-    assert "sphinx" in docs_deps
-    assert "mkdocs" in docs_deps
+    assert "sphinx" in deps_dict
+    assert "mkdocs" in deps_dict
 
     # Test scripts/entry points
     assert package_metadata.entry_points is not None
@@ -168,9 +151,8 @@ def test_process_metadata_unoplat(
     assert package_metadata.readme == "README.md"
 
     # Test dependencies
-    grouped_deps: Dict[str, Dict[str, UnoplatProjectDependency]] = package_metadata.dependencies
-    flattened_deps = flatten_dependencies(grouped_deps)
-
+    deps_dict: Dict[str, UnoplatProjectDependency] = package_metadata.dependencies
+    
     # Check core dependencies
     core_deps = [
         "pydantic", "ruff", "loguru", "pygithub", "pypdf", "pydantic-settings",
@@ -179,15 +161,15 @@ def test_process_metadata_unoplat(
         "stdlib-list", "pytest-cov", "gitpython", "tree-sitter", "tree-sitter-python", "black"
     ]
     for dep in core_deps:
-        assert dep in flattened_deps, f"Core dependency {dep} not found"
+        assert dep in deps_dict, f"Core dependency {dep} not found"
     
     # Check specific version constraints
-    assert flattened_deps["pygithub"].version.specifier == ">=1.59.1,<2.0.0"
-    assert flattened_deps["neo4j"].version.specifier == "5.19.0"
+    assert deps_dict["pygithub"].version.specifier == ">=1.59.1,<2.0.0"
+    assert deps_dict["neo4j"].version.specifier == "5.19.0"
     
     # Check git dependency
-    assert "unoplat-code-confluence-commons" in flattened_deps
-    git_dep = flattened_deps["unoplat-code-confluence-commons"]
+    assert "unoplat-code-confluence-commons" in deps_dict
+    git_dep = deps_dict["unoplat-code-confluence-commons"]
     assert git_dep.source == "git"
     assert git_dep.source_url == "https://github.com/unoplat/unoplat-code-confluence.git"
     assert git_dep.source_reference == "main"
@@ -196,7 +178,7 @@ def test_process_metadata_unoplat(
     # Check dev dependencies
     dev_deps = ["ipykernel", "mypy", "types-requests"]
     for dep in dev_deps:
-        assert dep in grouped_deps.get("dev", {}), f"Dev dependency {dep} not found"
+        assert dep in deps_dict, f"Dev dependency {dep} not found"
 
     # Test scripts/entry points
     assert package_metadata.entry_points is not None
@@ -220,9 +202,8 @@ def test_process_metadata_with_optional_sections(
     if package_metadata.package_manager == PackageManagerType.POETRY.value:
         pytest.fail("Expected fallback to pip or empty metadata, but got poetry")
     
-    # Confirm empty dependencies when no requirements found (default bucket present but empty)
-    assert set(package_metadata.dependencies.keys()) == {"default"}
-    assert package_metadata.dependencies["default"] == {}
+    # Confirm empty dependencies when no requirements found
+    assert len(package_metadata.dependencies) == 0
 
 def test_normalize_authors_poetry():
     poetry_authors = ["Test Author <test@example.com>", "Another Author <another@example.com>"]

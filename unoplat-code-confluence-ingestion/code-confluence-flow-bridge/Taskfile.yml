@@ -28,32 +28,32 @@ tasks:
 
   start-neo4j:
     cmds:
-      - docker run
-        -p7474:7474 -p7687:7687
-        -v "$HOME/neo4j/data:/data"
-        -v "$HOME/neo4j/logs:/logs"
-        -v "$HOME/neo4j/import:/var/lib/neo4j/import"
-        -v "$HOME/neo4j/plugins:/plugins"
-        --env NEO4J_AUTH=neo4j/password
-        --env NEO4J_PLUGINS='["apoc"]'
-        --env NEO4J_apoc_export_file_enabled=true
-        --env NEO4J_apoc_import_file_enabled=true
-        --env NEO4J_dbms_security_procedures_unrestricted='*'
-        graphstack/dozerdb:5.25.1.0-alpha.1
+      - docker run 
+          -p7474:7474 -p7687:7687 
+          -v "$HOME/neo4j/data:/data" 
+          -v "$HOME/neo4j/logs:/logs" 
+          -v "$HOME/neo4j/import:/var/lib/neo4j/import" 
+          -v "$HOME/neo4j/plugins:/plugins" 
+          --env NEO4J_AUTH=neo4j/password 
+          --env NEO4J_PLUGINS='["apoc"]' 
+          --env NEO4J_apoc_export_file_enabled=true 
+          --env NEO4J_apoc_import_file_enabled=true 
+          --env NEO4J_dbms_security_procedures_unrestricted='*' 
+          graphstack/dozerdb:5.25.1.0-alpha.1
 
   start-dependencies:
     desc: Start all dependencies using docker-compose
     cmds:
       - docker-compose -f local-dependencies-only-docker-compose.yml up -d
       - echo "Waiting for services to be ready..."
-      - sleep 10 # Add a brief wait for services to initialize
+      - sleep 10  # Add a brief wait for services to initialize
 
   start-core-dependencies:
     desc: Start only core dependencies (without Signoz) using docker-compose
     cmds:
       - docker-compose -f local-dependencies-core-docker-compose.yml up -d
       - echo "Waiting for core services to be ready..."
-      - sleep 10 # Add a brief wait for services to initialize
+      - sleep 10  # Add a brief wait for services to initialize
 
   stop-dependencies:
     desc: Stop all dependencies and remove volumes
@@ -74,7 +74,7 @@ tasks:
   update-package:
     desc: Update a specific package to the latest allowed version using uv (usage - task update-package PACKAGE=package_name)
     vars:
-      PACKAGE: "{{.PACKAGE}}"
+      PACKAGE: '{{.PACKAGE}}'
     requires:
       vars: [PACKAGE]
     cmds:
@@ -113,8 +113,6 @@ tasks:
       FRAMEWORK_DEFINITIONS_PATH: "../../framework-definitions"
       TEMPORAL_MAX_CONCURRENT_ACTIVITIES: "3"
       REPOSITORIES_BASE_PATH: "/opt/unoplat/repositories"
-      GITHUB_APP_OWNER_TYPE: "organisation"
-      GITHUB_APP_OWNER: "unoplat"
     cmds:
       - uv run fastapi dev
 
@@ -195,10 +193,10 @@ tasks:
       - uv run ruff check src/ --fix
 
   typecheck:
-    desc: Run basedpyright type checker on the codebase
+    desc: Run mypy type checker on the codebase
     dir: .
     cmds:
-      - uv run --group dev basedpyright src/
+      - uv run mypy src/
 
   format:
     desc: Format code using ruff
@@ -215,7 +213,7 @@ tasks:
   validate-single-framework:
     desc: Validate a specific framework definition (usage - task validate-single-framework FILE=framework-definitions/python/fastapi.json)
     vars:
-      FILE: "{{.FILE}}"
+      FILE: '{{.FILE}}'
     requires:
       vars: [FILE]
     cmds:
@@ -239,4 +237,5 @@ tasks:
     desc: Diagnose pytest test discovery issues and import errors
     dir: .
     cmds:
-      - uv run --group test pytest --collect-only tests
+     - uv run --group test pytest --collect-only tests
+     

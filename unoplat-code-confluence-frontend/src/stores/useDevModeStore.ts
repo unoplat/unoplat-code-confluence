@@ -1,9 +1,9 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { create } from "zustand"
+import { persist, createJSONStorage } from "zustand/middleware"
 
 interface DevModeState {
-  isDevMode: boolean;
-  setDevMode: (value: boolean) => void;
+  isDevMode: boolean
+  setDevMode: (value: boolean) => void
 }
 
 export const useDevModeStore = create<DevModeState>()(
@@ -16,6 +16,6 @@ export const useDevModeStore = create<DevModeState>()(
       name: "dev-mode-storage",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ isDevMode: state.isDevMode }),
-    },
-  ),
-);
+    }
+  )
+) 

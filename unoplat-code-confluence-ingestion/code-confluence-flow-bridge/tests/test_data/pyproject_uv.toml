@@ -1,47 +1,27 @@
-# Test fixture closely mirrors the real uv-managed pyproject but keeps the list concise.
-
 [project]
-name = "code-confluence-flow-bridge"
-version = "0.99.0"
-description = "Bridge between Code Confluence User and Ingestion Workflow"
+name = "Code-Confluence-Flow-Bridge"
+version = "0.1.0"
+description = "Bridge between Code Confluence User and Ingestion Workflow" 
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]>=0.115.6",
-    "pydantic>=2.10.4",
     "pydantic-settings>=2.7.0",
+    "pydantic[email]>=2.10.4",
     "temporalio>=1.9.0",
     "loguru>=0.7.3",
-    "unoplat-code-confluence-commons>=0.24.0",
-    "sqlalchemy>=2.0.41",
+    "unoplat-code-confluence-commons"
 ]
 
 [project.optional-dependencies]
-observability = [
-    "opentelemetry-sdk>=1.32.1",
-    "opentelemetry-exporter-otlp>=1.32.1",
-]
-aws = [
-    "boto3>=1.35.0",
-]
-
-[dependency-groups]
 test = [
     "httpx>=0.28.1",
-    "pytest>=8.3.5",
-    "pytest-asyncio>=0.25.0",
-    "loguru>=0.7.3",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.0"
 ]
 dev = [
-    "mypy>=1.16.0",
-    "check-jsonschema>=0.33.0",
-]
-docs = [
-    "mkdocs-material>=9.5.0",
-    "mkdocstrings[python]>=0.26.2",
-]
-bench = [
-    "pytest-benchmark>=4.0.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0"
 ]
 
 [tool.uv]
@@ -58,4 +38,4 @@ url = "https://pypi.internal.company.com/simple"
 
 [[tool.uv.dependency-metadata]]
 name = "pydantic"
-requires-python = ">=3.8"
+requires-python = ">=3.8" 

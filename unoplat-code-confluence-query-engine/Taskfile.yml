@@ -1,6 +1,9 @@
 version: "3"
 
 
+
+
+
 tasks:
   start-dependencies:
     desc: Start all dependencies using docker-compose including code-confluence-flow-bridge
@@ -13,18 +16,6 @@ tasks:
     desc: Stop all dependencies and remove volumes
     cmds:
       - docker compose -f local-dependencies-docker-compose.yml down --volumes
-
-  start-dependencies-without-flow-bridge:
-    desc: Start dependencies (without code-confluence-flow-bridge) using docker-compose
-    cmds:
-      - docker compose -f local-dependencies-without-flow-bridge-docker-compose.yml up -d
-      - echo "Waiting for services to be ready..."
-      - sleep 15
-
-  stop-dependencies-without-flow-bridge:
-    desc: Stop dependencies (without flow-bridge) and remove volumes
-    cmds:
-      - docker compose -f local-dependencies-without-flow-bridge-docker-compose.yml down --volumes
 
   sync:
     desc: Setup project with dependencies
@@ -46,7 +37,7 @@ tasks:
     cmds:
       - uv lock --upgrade
 
-  run-query-engine-backend-dev:
+  run-dev:
     desc: Run FastAPI query engine in development mode
     deps: [sync]
     dir: src/unoplat_code_confluence_query_engine
@@ -62,12 +53,6 @@ tasks:
     cmds:
       - task: start-dependencies
       - task: run-dev
-
-  run-ingestion-backend-local:
-    desc: Start dependencies for local development (without flow-bridge container). Run servers separately.
-    cmds:
-      - task: start-dependencies-without-flow-bridge
-      - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-core 
 
   mock-sse:
     desc: Run mock SSE server (replays docs/sse-agent-results.txt) on port 8002
@@ -97,10 +82,10 @@ tasks:
       - uv run --group dev ruff check src/ --fix
 
   typecheck:
-    desc: Run basedpyright type checker on the codebase
+    desc: Run mypy type checker on the codebase
     dir: .
     cmds:
-      - uv run --group dev basedpyright src/
+      - uv run --group dev mypy src/
 
   format:
     desc: Format code using ruff

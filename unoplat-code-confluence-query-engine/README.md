@@ -14,33 +14,10 @@ Before you start, make sure you have:
 ## Quick Start Guide
 
 ### 1. Start the Development Environment
-
-#### Option A: Full Docker Setup (Recommended for Quick Start)
 ```bash
 task dev
 ```
-This starts all the necessary services (databases, APIs, flow-bridge) in Docker containers.
-
-#### Option B: Local Development Setup (For Development/Debugging)
-Run services from source for easier debugging:
-
-**Terminal 1 - Start Dependencies:**
-```bash
-task dev-local
-```
-This starts only the Docker dependencies (PostgreSQL, Neo4j, Temporal, etc.) with flow-bridge.
-
-**Terminal 2 - Run Flow-Bridge Locally:**
-```bash
-cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-core
-```
-
-**Terminal 3 - Run Query Engine Locally:**
-```bash
-task run-dev
-```
-
-This setup avoids duplicate Docker dependencies and allows you to run both servers from source.
+This starts all the necessary services (databases, APIs) in Docker containers.
 
 ### 2. Set Up API Testing
 1. Open **Yaak** (the HTTP client)
@@ -74,12 +51,10 @@ The tool generates detailed markdown documentation including:
 
 ## Troubleshooting
 
-- **Services not starting**: Ensure Docker is running and ports 5432, 7687, 8000 are available
-- **Docker issues**: Try the local development setup (Option B) to run services from source
+- **Services not starting**: Ensure Docker is running and ports 5432, 7687 are available
 - **Token errors**: Make sure you've completed step 3 before proceeding to step 4
 - **AI model errors**: Verify your API key is valid and has sufficient credits
 - **Analysis taking too long**: Large codebases may take several minutes to analyze
-- **Port conflicts**: If port 8000 or 8001 is in use, stop conflicting services or use the local setup to debug
 
 ## Next Steps
 

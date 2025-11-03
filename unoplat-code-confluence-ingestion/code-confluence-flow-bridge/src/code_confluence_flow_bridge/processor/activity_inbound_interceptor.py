@@ -166,7 +166,9 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
                             trace_id=safe_trace_id,
                             status=status_to_mark.value,
                             repository_metadata=[],
-                            error_report=error_report
+                            error_report=error_report,
+                            is_local=False,
+                            local_path=None
                         )
                         
                         # Directly call the activity method instead of using workflow.execute_activity

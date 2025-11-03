@@ -31,16 +31,15 @@ class CodeConfluencePackageManagerMetadata(BaseNode):
         codebase (RelationshipFrom): Connection back to the parent codebase
     """
     dependencies = JSONProperty(default={})
-    other_metadata = JSONProperty(default={})
     package_manager = StringProperty(required=True)
     programming_language = StringProperty(required=True)
-    # programming_language_version = StringProperty()  # TODO: consolidated via other_metadata
-    # project_version = StringProperty()  # TODO: consolidated via other_metadata
-    # description = StringProperty()  # TODO: consolidated via other_metadata
-    # license = StringProperty()  # TODO: consolidated via other_metadata
-    # package_name = StringProperty()  # TODO: consolidated via other_metadata
-    # entry_points = JSONProperty(default={})  # TODO: fold into other_metadata once ingestion path is updated
-    # authors = ArrayProperty(StringProperty())  # TODO: move to other_metadata post-refactor
+    programming_language_version = StringProperty()
+    project_version = StringProperty()
+    description = StringProperty()
+    license = StringProperty()
+    package_name = StringProperty()
+    entry_points = JSONProperty(default={})
+    authors = ArrayProperty(StringProperty())
 
     # Bidirectional relationship with CodeConfluenceCodebase
     codebase = AsyncRelationshipFrom(

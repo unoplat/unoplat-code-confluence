@@ -1,38 +1,40 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils"
 
-const cardVariants = cva("bg-card text-card-foreground transition-colors", {
-  variants: {
-    variant: {
-      default: "border border-border bg-card shadow-(--shadow-sm)",
-      elevated: "border-0 bg-card shadow-(--shadow-md)",
-      outline: "border-2 bg-card shadow-none",
-      ghost: "border-0 bg-transparent shadow-none",
+const cardVariants = cva(
+  "bg-card text-card-foreground transition-colors",
+  {
+    variants: {
+      variant: {
+        default: "border bg-card shadow-[--shadow-sm]",
+        elevated: "border-0 bg-card shadow-[--shadow-md]",
+        outline: "border-2 bg-card shadow-none",
+        ghost: "border-0 bg-transparent shadow-none",
+      },
+      padding: {
+        none: "",
+        sm: "[&_[data-card-header]]:p-4 [&_[data-card-content]]:p-4 [&_[data-card-content]]:pt-0 [&_[data-card-footer]]:p-4 [&_[data-card-footer]]:pt-0",
+        default: "[&_[data-card-header]]:p-6 [&_[data-card-content]]:p-6 [&_[data-card-content]]:pt-0 [&_[data-card-footer]]:p-6 [&_[data-card-footer]]:pt-0",
+        lg: "[&_[data-card-header]]:p-8 [&_[data-card-content]]:p-8 [&_[data-card-content]]:pt-0 [&_[data-card-footer]]:p-8 [&_[data-card-footer]]:pt-0",
+      },
+      radius: {
+        default: "rounded-[--radius-lg]",
+        sm: "rounded-[--radius-sm]",
+        md: "rounded-[--radius-md]",
+        lg: "rounded-[--radius-lg]",
+        xl: "rounded-[--radius-xl]",
+        none: "rounded-none",
+      },
     },
-    padding: {
-      none: "",
-      sm: "[&_[data-card-header]]:p-4 [&_[data-card-content]]:p-4 [&_[data-card-content]]:pt-0 [&_[data-card-footer]]:p-4 [&_[data-card-footer]]:pt-0",
-      default:
-        "[&_[data-card-header]]:p-6 [&_[data-card-content]]:p-6 [&_[data-card-content]]:pt-0 [&_[data-card-footer]]:p-6 [&_[data-card-footer]]:pt-0",
-      lg: "[&_[data-card-header]]:p-8 [&_[data-card-content]]:p-8 [&_[data-card-content]]:pt-0 [&_[data-card-footer]]:p-8 [&_[data-card-footer]]:pt-0",
+    defaultVariants: {
+      variant: "default",
+      padding: "default",
+      radius: "default",
     },
-    radius: {
-      default: "rounded-(--radius-lg)",
-      sm: "rounded-(--radius-sm)",
-      md: "rounded-(--radius-md)",
-      lg: "rounded-(--radius-lg)",
-      xl: "rounded-(--radius-xl)",
-      none: "rounded-none",
-    },
-  },
-  defaultVariants: {
-    variant: "default",
-    padding: "default",
-    radius: "default",
-  },
-});
+  }
+)
 
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -45,9 +47,9 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       className={cn(cardVariants({ variant, padding, radius }), className)}
       {...props}
     />
-  ),
-);
-Card.displayName = "Card";
+  )
+)
+Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,
@@ -59,8 +61,8 @@ const CardHeader = React.forwardRef<
     className={cn("flex flex-col space-y-1.5 p-6", className)}
     {...props}
   />
-));
-CardHeader.displayName = "CardHeader";
+))
+CardHeader.displayName = "CardHeader"
 
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
@@ -69,13 +71,13 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-2xl leading-none font-semibold tracking-tight",
-      className,
+      "text-2xl font-semibold leading-none tracking-tight",
+      className
     )}
     {...props}
   />
-));
-CardTitle.displayName = "CardTitle";
+))
+CardTitle.displayName = "CardTitle"
 
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
@@ -83,11 +85,11 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-muted-foreground text-sm", className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
-));
-CardDescription.displayName = "CardDescription";
+))
+CardDescription.displayName = "CardDescription"
 
 const CardContent = React.forwardRef<
   HTMLDivElement,
@@ -99,8 +101,8 @@ const CardContent = React.forwardRef<
     className={cn("p-6 pt-0", className)}
     {...props}
   />
-));
-CardContent.displayName = "CardContent";
+))
+CardContent.displayName = "CardContent"
 
 const CardFooter = React.forwardRef<
   HTMLDivElement,
@@ -112,15 +114,7 @@ const CardFooter = React.forwardRef<
     className={cn("flex items-center p-6 pt-0", className)}
     {...props}
   />
-));
-CardFooter.displayName = "CardFooter";
+))
+CardFooter.displayName = "CardFooter"
 
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  cardVariants,
-};
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, cardVariants } 

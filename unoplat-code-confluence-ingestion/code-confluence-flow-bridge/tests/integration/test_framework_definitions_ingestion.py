@@ -15,16 +15,16 @@ from typing import Any, Dict, List
 
 from fastapi.testclient import TestClient
 import pytest
+
 from sqlalchemy import func, select, text
-from sqlmodel import Session, SQLModel, delete
+from sqlmodel import SQLModel, Session, delete
+
 from unoplat_code_confluence_commons.base_models import (
     FeatureAbsolutePath,
     Framework,
     FrameworkFeature,
 )
-
 from tests.utils.sync_db_utils import get_sync_postgres_session
-
 # Removed unused async_engine import which was causing ImportError after db refactor
 
 # Framework definitions directory

@@ -1,45 +1,5 @@
 # Changelog
 
-## [1.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.3...unoplat-code-confluence-frontend-v1.31.0) (2025-11-03)
-
-
-### Features
-
-* **agents:** Add usage statistics tracking and display ([97f7977](https://github.com/unoplat/unoplat-code-confluence/commit/97f797746d406712a272265f8ed00de92df1474e))
-* **code:** allow sections of agents.md per codebase to be collapsed and copied ([859bbc7](https://github.com/unoplat/unoplat-code-confluence/commit/859bbc734789996aa1c1b8cabb88c4c5fd15ffa8))
-
-## [1.30.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.2...unoplat-code-confluence-frontend-v1.30.3) (2025-10-30)
-
-
-### Bug Fixes
-
-* migrate to Bun for package management, vite v7 for build , dev server, upgraded to tailwind v4 and updated shadcn and custom components based on migration, upgraded typescript, moved shadcn custom registry to its own repository, streamline frontend architecture, removed manual codebase detection step, removed local github repository support, introduced eslint and prettier with non conflicting rules for linting and formatting for better agentic experience ([d409c41](https://github.com/unoplat/unoplat-code-confluence/commit/d409c416afad86ba4acb270c39fbb32105ed5f4f))
-
-## [1.30.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.1...unoplat-code-confluence-frontend-v1.30.2) (2025-10-23)
-
-
-### Bug Fixes
-
-* **parser:** Refactor GenericCodebaseParser to focus on file insertion ([be17754](https://github.com/unoplat/unoplat-code-confluence/commit/be17754ab8a80b276820b205e37f0c9859e2b6b2))
-* **parser:** Refactor parser to focus on file insertion ([c0bd597](https://github.com/unoplat/unoplat-code-confluence/commit/c0bd5974bbe8298b1a8e9a6931bf0eae850c1cca))
-
-## [1.30.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.0...unoplat-code-confluence-frontend-v1.30.1) (2025-10-17)
-
-
-### Bug Fixes
-
-* **codebase-form:** Auto-update package manager on language change ([963cb31](https://github.com/unoplat/unoplat-code-confluence/commit/963cb31b817a0f85b51a72f030bbb8921a22b5c2))
-* **codebase-form:** Dynamically render language package managers ([50d7102](https://github.com/unoplat/unoplat-code-confluence/commit/50d71027cfbc6bd00e6608cf3ab3e2b02f8611f2))
-* **codebase-form:** Dynamically render language package managers ([8e4ddf7](https://github.com/unoplat/unoplat-code-confluence/commit/8e4ddf71bc5912de8a405b5d44186d257f44dd97))
-
-## [1.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.3...unoplat-code-confluence-frontend-v1.30.0) (2025-10-04)
-
-
-### Features
-
-* **package-manager:** Add TypeScript package manager detection ([9cff38b](https://github.com/unoplat/unoplat-code-confluence/commit/9cff38bbf0349556a714402b3cfe7bc371c3a2fb))
-* **package-manager:** Add TypeScript package manager detection ([ab4d9a5](https://github.com/unoplat/unoplat-code-confluence/commit/ab4d9a55dbdb05122631b24672df235736508a4d))
-
 ## [1.29.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.29.2...unoplat-code-confluence-frontend-v1.29.3) (2025-10-01)
 
 

@@ -13,6 +13,7 @@ class UnoplatProjectDependency(BaseModel):
     """Represents individual project dependencies with detailed constraints."""
     
     version: UnoplatVersion = Field(default_factory=UnoplatVersion, description="Version constraint")
+    group: Optional[str] = Field(default=None, description="Group of the dependency (e.g. dev, test)")
     extras: Optional[List[str]] = Field(default=None, description="List of extras for this dependency")
     source: Optional[str] = Field(default=None, description="Source of the dependency (e.g. 'git', 'url', 'path')")
     source_url: Optional[str] = Field(default=None, description="URL or path to the dependency source")

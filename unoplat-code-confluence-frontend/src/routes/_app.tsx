@@ -1,12 +1,7 @@
-import React, { useEffect } from "react";
-import {
-  createFileRoute,
-  Outlet,
-  useNavigate,
-  useRouterState,
-} from "@tanstack/react-router";
+import React, { useEffect } from 'react';
+import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 
-export const Route = createFileRoute("/_app")({
+export const Route = createFileRoute('/_app')({
   component: AppComponent,
 });
 
@@ -16,10 +11,14 @@ function AppComponent(): React.ReactElement {
 
   // Handle root path navigation
   useEffect(() => {
-    if (routerState.location.pathname === "/") {
-      navigate({ to: "/onboarding" });
+    if (routerState.location.pathname === '/') {
+      navigate({ to: '/onboarding' });
     }
   }, [navigate, routerState.location.pathname]);
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+    </>
+  );
 }

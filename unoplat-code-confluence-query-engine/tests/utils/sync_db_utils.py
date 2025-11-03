@@ -100,10 +100,6 @@ def create_test_tables(port: int) -> None:
     engine = create_sync_engine(db_url)
 
     try:
-        # Drop all existing tables to ensure fresh schema
-        SQLBase.metadata.drop_all(engine)
-        logger.debug("Dropped existing test database tables")
-
         # Create all tables defined in SQLBase metadata
         SQLBase.metadata.create_all(engine)
         logger.debug("Created test database tables successfully")

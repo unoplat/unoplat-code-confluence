@@ -37,9 +37,7 @@ export function DataTableToolbar<TData>({
   const shortcutMap: Record<string, string> = React.useMemo(() => {
     const map: Record<string, string> = {};
     table.getAllColumns().forEach((column) => {
-      const meta: { shortcut?: string } | undefined = column.columnDef.meta as
-        | { shortcut?: string }
-        | undefined;
+      const meta: { shortcut?: string } | undefined = column.columnDef.meta as { shortcut?: string } | undefined;
       const shortcut: string | undefined = meta?.shortcut;
       if (shortcut) {
         map[shortcut.toLowerCase()] = `filter-${column.id}`;
@@ -51,24 +49,22 @@ export function DataTableToolbar<TData>({
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as Element;
-      if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
         return;
       }
       const key = event.key.toLowerCase();
       const inputId = shortcutMap[key];
       if (inputId) {
         event.preventDefault();
-        const elem = document.getElementById(
-          inputId,
-        ) as HTMLInputElement | null;
+        const elem = document.getElementById(inputId) as HTMLInputElement | null;
         if (elem) {
           elem.focus();
         }
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [shortcutMap]);
 
@@ -101,7 +97,7 @@ export function DataTableToolbar<TData>({
       </div>
       <div className="flex items-center gap-2">
         {children}
-        <div className="rounded-md border-0 p-1 shadow-sm">
+        <div className="border-0 shadow-sm rounded-md p-1">
           <DataTableViewOptions table={table} />
         </div>
       </div>
@@ -124,23 +120,22 @@ function DataTableToolbarFilter<TData>({
       switch (columnMeta.variant) {
         case "text": {
           const shouldAutoFocus: boolean = columnMeta.label === "Repository";
-          const shortcutKey: string | undefined =
-            columnMeta.shortcut?.toUpperCase();
+          const shortcutKey: string | undefined = columnMeta.shortcut?.toUpperCase();
 
           return (
             <div className="group relative flex w-full max-w-[260px] items-center">
               <div className="pointer-events-none absolute left-3 flex items-center">
                 <span className="text-muted-foreground">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 20 20" 
+                    fill="currentColor" 
                     className="h-4 w-4"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-                      clipRule="evenodd"
+                    <path 
+                      fillRule="evenodd" 
+                      d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" 
+                      clipRule="evenodd" 
                     />
                   </svg>
                 </span>
@@ -151,15 +146,17 @@ function DataTableToolbarFilter<TData>({
                 value={(column.getFilterValue() as string) ?? ""}
                 onChange={(event) => column.setFilterValue(event.target.value)}
                 className={cn(
-                  "bg-background h-9 w-full rounded-md border-0 pr-9 pl-9 shadow-sm",
-                  "group-focus-within:ring-ring group-focus-within:shadow-md group-focus-within:ring-2",
-                  shouldAutoFocus && "focus:ring-ring focus:ring-2",
+                  "h-9 w-full border-0 shadow-sm rounded-md pl-9 pr-9 bg-background",
+                  "group-focus-within:ring-2 group-focus-within:ring-ring group-focus-within:shadow-md",
+                  shouldAutoFocus && "focus:ring-2 focus:ring-ring"
                 )}
                 autoFocus={shouldAutoFocus}
               />
               {shortcutKey && (
-                <div className="text-muted-foreground pointer-events-none absolute right-3 flex items-center">
-                  <kbd className="kbd kbd-xs bg-muted border-border rounded border px-2 py-0.5 text-sm leading-none shadow-sm">
+                <div className="pointer-events-none absolute right-3 flex items-center text-muted-foreground">
+                  <kbd
+                    className="kbd kbd-xs bg-muted border border-border shadow-sm px-2 py-0.5 text-sm leading-none rounded"
+                  >
                     {shortcutKey}
                   </kbd>
                 </div>
@@ -177,13 +174,10 @@ function DataTableToolbarFilter<TData>({
                 placeholder={columnMeta.placeholder ?? columnMeta.label}
                 value={(column.getFilterValue() as string) ?? ""}
                 onChange={(event) => column.setFilterValue(event.target.value)}
-                className={cn(
-                  "bg-background h-8 w-[120px] rounded-md border-0 shadow-sm",
-                  columnMeta.unit && "pr-8",
-                )}
+                className={cn("h-8 w-[120px] border-0 shadow-sm rounded-md bg-background", columnMeta.unit && "pr-8")}
               />
               {columnMeta.unit && (
-                <span className="bg-accent text-muted-foreground absolute top-0 right-0 bottom-0 flex items-center rounded-r-md px-2 text-sm">
+                <span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-accent px-2 text-muted-foreground text-sm">
                   {columnMeta.unit}
                 </span>
               )}

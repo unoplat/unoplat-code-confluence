@@ -50,18 +50,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """FastAPI lifespan handler for startup and shutdown events."""
     # Startup
     app.state.settings = EnvironmentSettings()
-
+    
     # Initialize logging system
     setup_logging(app.state.settings)
 
     # Initialize PostgreSQL connections
     await init_db_connections(app.state.settings)
-
+    
     # Create database tables if they don't exist
     async with db.async_engine.begin() as conn:
         await conn.run_sync(SQLBase.metadata.create_all)
         logger.info("Database tables created/verified")
-
+    
     # Register ORM events for hot-reload
     register_orm_events()
     logger.info("ORM hot-reload events registered")
@@ -73,12 +73,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # initiliase logfire telemetry in dev environment
     if app.state.settings.logfire_sdk_write_key:
         logger.info("Initialising logfire telemetry")
-        logfire.configure(
-            token=app.state.settings.logfire_sdk_write_key.get_secret_value(),
-            service_name="unoplat-code-confluence-query-engine",
-            environment=app.state.settings.environment,
-        )
-        logfire.instrument_pydantic_ai()
+        logfire.configure(token=app.state.settings.logfire_sdk_write_key.get_secret_value(),service_name="unoplat-code-confluence-query-engine",environment=app.state.settings.environment)
+        logfire.instrument_pydantic_ai()        
 
     # Initialize MCP servers
     app.state.mcp_manager = MCPServerManager()
@@ -94,18 +90,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Load AI model configuration
     async with get_session() as session:
-        result = await session.execute(
-            select(AiModelConfig).where(AiModelConfig.id == 1)
-        )
+        result = await session.execute(select(AiModelConfig).where(AiModelConfig.id == 1))
         config = result.scalar_one_or_none()
 
     # Initialize agents using model config outside of DB transaction
     if config:
         try:
             model_factory = ModelFactory()
-            model, model_settings = await model_factory.build(
-                config, app.state.settings
-            )
+            model, model_settings = await model_factory.build(config, app.state.settings)
             app.state.model = model
             logger.debug(
                 "Initializing agents with model: {}/{} and settings present? {}",
@@ -113,14 +105,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 config.model_name,
                 bool(model_settings),
             )
-            app.state.agents = create_code_confluence_agents(
-                app.state.mcp_manager, model, model_settings
-            )
-            logger.info(
-                "Agents initialized with model: {}/{}",
-                config.provider_key,
-                config.model_name,
-            )
+            app.state.agents = create_code_confluence_agents(app.state.mcp_manager, model, model_settings)
+            logger.info("Agents initialized with model: {}/{}", config.provider_key, config.model_name)
             logger.debug(
                 "Agent registry initialized: {} agents -> {}",
                 len(app.state.agents),
@@ -152,13 +138,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Ensure isModelConfigured flag reflects current state in a fresh transaction
     async with get_session() as session:
-        flag_result = await session.execute(
-            select(Flag).where(Flag.name == "isModelConfigured")
-        )
+        flag_result = await session.execute(select(Flag).where(Flag.name == "isModelConfigured"))
         flag = flag_result.scalar_one_or_none()
         if flag:
             flag.status = config is not None
         else:
+            
             session.add(Flag(name="isModelConfigured", status=config is not None))
 
     yield
@@ -170,7 +155,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("ORM events unregistered")
     except Exception as e:
         logger.warning("Error unregistering ORM events: {}", e)
-
+    
     # Close Neo4j connection
     try:
         await app.state.neo4j_manager.close()

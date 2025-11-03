@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { getModelConfig } from "@/lib/api";
+import { useQuery } from '@tanstack/react-query';
+import { getModelConfig } from '@/lib/api';
 
 /**
  * TanStack Query hook for fetching existing model configuration
@@ -9,7 +9,7 @@ import { getModelConfig } from "@/lib/api";
  */
 export const useModelConfig = () => {
   return useQuery({
-    queryKey: ["model-config"],
+    queryKey: ['model-config'],
     queryFn: getModelConfig,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes garbage collection time

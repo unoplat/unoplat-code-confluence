@@ -17,9 +17,15 @@ from neomodel import (
 )
 
 
-# Graph node representing a single source file.
+# ⬇️  insert just above class `CodeConfluencePackage`
 class CodeConfluenceFile(AsyncStructuredNode):
-    """Graph node representing a single source file."""
+    """
+    Graph node representing a single source file.
+
+    Relationships
+    ─────────────
+    package  (PART_OF_PACKAGE)  -> CodeConfluencePackage
+    """
     file_path = StringProperty(required=True, unique_index=True)
     content = StringProperty()
     checksum  = StringProperty()
@@ -35,17 +41,18 @@ class CodeConfluenceFile(AsyncStructuredNode):
     )
     class_variables = JSONProperty(default={})
     has_data_model = BooleanProperty(default=False, index=True)
-    data_model_positions = JSONProperty(default={})
-    # Relationship to framework features detected in this file (local import avoids cycles)
+    # Relationship to framework features detected in this file
+      # local import to avoid cycles
+
     features = AsyncRelationshipTo(
         '.code_confluence_framework.CodeConfluenceFrameworkFeature',
         'USES_FEATURE',
         model=UsesFeatureRelationship,
         cardinality=AsyncZeroOrMore,
     )
-    codebase = AsyncRelationshipTo(
-        '.code_confluence_codebase.CodeConfluenceCodebase',
-        'PART_OF_CODEBASE',
+    package = AsyncRelationshipTo(
+        '.code_confluence_package.CodeConfluencePackage',
+        'PART_OF_PACKAGE',
         model=ContainsRelationship,
         cardinality=AsyncOne,
     )

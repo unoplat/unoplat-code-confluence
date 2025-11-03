@@ -1,11 +1,11 @@
 [project]
 name = "code-confluence-flow-bridge"
-version = "0.59.0"
-description = "Bridge between Code Confluence User and Ingestion Workflow"
+version = "0.53.1"
+description = "Bridge between Code Confluence User and Ingestion Workflow" 
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-"fastapi[standard]>=0.115.6",
+    "fastapi[standard]>=0.115.6",
     "pydantic-settings>=2.7.0",
     "pydantic>=2.10.4",
     "temporalio>=1.9.0",
@@ -14,6 +14,7 @@ dependencies = [
     "pygithub>=2.5.0",
     "requirements-parser>=0.11.0",
     "tomlkit>=0.13.2",
+    "pytest>=8.3.5",
     "neomodel>=5.4.2",
     "unoplat-code-confluence-commons>=0.24.0",
     "packaging>=24.2",
@@ -35,7 +36,8 @@ dependencies = [
     "typing-extensions>=4.11",
     "sqlalchemy>=2.0.41",
     "aiofile>=3.9.0",
-]
+    "sse-starlette>=3.0.0",
+] 
 
 [dependency-groups]
 test = [
@@ -56,24 +58,12 @@ dev = [
     "check-jsonschema>=0.33.0",
     # Optional: stubs for popular libraries
     # "types-requests>=2.31.0",
-    "basedpyright>=1.32.1",
 ]
 
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
-# unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.33.0" }
-
-[tool.basedpyright]
-typeCheckingMode = "strict"
-include = ["src"]
-exclude = ["**/__pycache__", ".venv", "dist", "build"]
-ignore = ["**/__pycache__"]
-useLibraryCodeForTypes = true
-reportMissingImports = "error"
-reportMissingTypeStubs = false
-reportUnusedImport = "warning"
-reportUnusedVariable = "warning"
+#unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.29.0" }
 
 
 [tool.uv]
@@ -94,3 +84,4 @@ pythonpath = ["src"]
 markers = [
     "integration: integration tests connecting to external services",
 ]
+

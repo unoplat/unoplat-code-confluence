@@ -8,7 +8,6 @@ clean test environments without interference from previous workflow executions.
 import asyncio
 import time
 from typing import List, Tuple
-
 from loguru import logger
 from temporalio.client import Client, WorkflowExecutionStatus
 

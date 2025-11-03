@@ -1,14 +1,10 @@
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from aiopath import AsyncPath
 from neo4j import AsyncManagedTransaction, Record
 from pydantic import BaseModel, Field
 from pydantic_ai import ModelRetry, RunContext
-from unoplat_code_confluence_commons.base_models import (
-    PythonStructuralSignature,
-    TypeScriptStructuralSignature,
-    deserialize_structural_signature,
-)
+from unoplat_code_confluence_commons import StructuralSignature
 
 from unoplat_code_confluence_query_engine.models.agent_dependencies import (
     AgentDependencies,
@@ -18,11 +14,9 @@ from unoplat_code_confluence_query_engine.models.agent_dependencies import (
 class FileStructuralInfo(BaseModel):
     """Complete structural information for a source file including imports."""
 
-    structural_signature: Union[
-        PythonStructuralSignature, TypeScriptStructuralSignature
-    ] = Field(
+    structural_signature: StructuralSignature = Field(
         ...,
-        description="Language-specific structural signature with functions, classes, variables",
+        description="Parsed structural signature with functions, classes, variables",
     )
     imports: List[str] = Field(
         default_factory=list, description="List of import statements in the file"
@@ -59,9 +53,7 @@ async def get_structural_signature(
     - Import statements used in the file
 
     Args:
-        abs_path: **ABSOLUTE PATH REQUIRED** - Full filesystem path starting with /.
-                  Examples: /opt/unoplat/repositories/my-repo/src/module.py, /opt/unoplat/repositories/my-repo/service.ts
-                  Do NOT use relative paths like 'src/file.py', 'module.py', or './config.ts'
+        abs_path: Absolute path to the source file.
 
     Returns:
         Complete structural information including signature and imports.
@@ -101,17 +93,9 @@ async def get_structural_signature(
                         f"No structural signature available for file: {abs_path}."
                     )
 
-                # Get programming language from codebase metadata (agent dependencies)
-                language = ctx.deps.codebase_metadata.programming_language.value
-
                 try:
-                    # Use language-aware deserialization helper
-                    structural_signature = deserialize_structural_signature(
-                        structural_signature_data, language
-                    )
-                except ValueError as e:
-                    raise ModelRetry(
-                        f"Unsupported language for file {abs_path}: {str(e)}"
+                    structural_signature = StructuralSignature.model_validate_json(
+                        structural_signature_data
                     )
                 except Exception as e:
                     raise ModelRetry(

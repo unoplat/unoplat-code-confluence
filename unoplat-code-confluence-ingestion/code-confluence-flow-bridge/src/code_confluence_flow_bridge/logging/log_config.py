@@ -12,6 +12,7 @@ from src.code_confluence_flow_bridge.logging.loguru_oltp_handler import OTLPHand
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
     activity_name_var,
+    codebase_local_path_var,
     trace_id_var,
     workflow_id_var,
     workflow_run_id_var,
@@ -86,6 +87,7 @@ def setup_logging(
             "workflow_run_id": workflow_run_id_var.get(""),
             "activity_id": activity_id_var.get(""),
             "activity_name": activity_name_var.get(""),
+            "codebase_local_path": codebase_local_path_var.get(""),
         }) if trace_id_var.get() else None
     )
 

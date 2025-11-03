@@ -2,9 +2,9 @@ import type { Table } from "@tanstack/react-table";
 import {
   ChevronLeft,
   ChevronRight,
-
+   
   // ChevronsLeft,
-
+   
   // ChevronsRight,
 } from "lucide-react";
 
@@ -31,41 +31,38 @@ export function DataTablePagination<TData>({
   className,
   ...props
 }: DataTablePaginationProps<TData>) {
-  console.log("[DataTablePagination] Rendering with table state:", {
+  console.log('[DataTablePagination] Rendering with table state:', {
     pageIndex: table.getState().pagination.pageIndex,
     pageSize: table.getState().pagination.pageSize,
     canNextPage: table.getCanNextPage(),
     canPreviousPage: table.getCanPreviousPage(),
-    pageCount: table.getPageCount(),
+    pageCount: table.getPageCount()
   });
-
-  console.log("DataTablePagination props:", { showRowsPerPage });
-  console.log(
-    "Rows per page section should be:",
-    showRowsPerPage ? "visible" : "hidden",
-  );
-
+  
+  console.log('DataTablePagination props:', { showRowsPerPage });
+  console.log('Rows per page section should be:', showRowsPerPage ? 'visible' : 'hidden');
+  
   const handlePreviousPage = () => {
-    console.log("[DataTablePagination] Previous page button clicked");
-    console.log("[DataTablePagination] Before change:", {
+    console.log('[DataTablePagination] Previous page button clicked');
+    console.log('[DataTablePagination] Before change:', {
       pageIndex: table.getState().pagination.pageIndex,
-      canPreviousPage: table.getCanPreviousPage(),
+      canPreviousPage: table.getCanPreviousPage()
     });
     table.previousPage();
-    console.log("[DataTablePagination] After change:", {
-      pageIndex: table.getState().pagination.pageIndex,
+    console.log('[DataTablePagination] After change:', {
+      pageIndex: table.getState().pagination.pageIndex
     });
   };
 
   const handleNextPage = () => {
-    console.log("[DataTablePagination] Next page button clicked");
-    console.log("[DataTablePagination] Before change:", {
+    console.log('[DataTablePagination] Next page button clicked');
+    console.log('[DataTablePagination] Before change:', {
       pageIndex: table.getState().pagination.pageIndex,
-      canNextPage: table.getCanNextPage(),
+      canNextPage: table.getCanNextPage()
     });
     table.nextPage();
-    console.log("[DataTablePagination] After change:", {
-      pageIndex: table.getState().pagination.pageIndex,
+    console.log('[DataTablePagination] After change:', {
+      pageIndex: table.getState().pagination.pageIndex
     });
   };
 
@@ -80,10 +77,10 @@ export function DataTablePagination<TData>({
   // };
 
   const handlePageSizeChange = (value: string) => {
-    console.log("[DataTablePagination] Page size change:", value);
+    console.log('[DataTablePagination] Page size change:', value);
     table.setPageSize(Number(value));
   };
-
+  
   return (
     <div
       className={cn(
@@ -92,24 +89,20 @@ export function DataTablePagination<TData>({
       )}
       {...props}
     >
-      <div className="text-muted-foreground flex-1 text-sm whitespace-nowrap">
+      <div className="flex-1 whitespace-nowrap text-muted-foreground text-sm">
         {/* {table.getFilteredSelectedRowModel().rows.length} of{" "}
         {table.getFilteredRowModel().rows.length} row(s) selected. */}
       </div>
       <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
         {showRowsPerPage && (
           <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium whitespace-nowrap">
-              Rows per page
-            </p>
+            <p className="whitespace-nowrap font-medium text-sm">Rows per page</p>
             <Select
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={handlePageSizeChange}
             >
               <SelectTrigger className="h-8 w-[4.5rem] [&[data-size]]:h-8">
-                <SelectValue
-                  placeholder={table.getState().pagination.pageSize}
-                />
+                <SelectValue placeholder={table.getState().pagination.pageSize} />
               </SelectTrigger>
               <SelectContent side="top">
                 {pageSizeOptions.map((pageSize) => (
@@ -121,8 +114,8 @@ export function DataTablePagination<TData>({
             </Select>
           </div>
         )}
-        <div className="flex items-center justify-center text-sm font-medium">
-          Page {table.getState().pagination.pageIndex + 1}
+        <div className="flex items-center justify-center font-medium text-sm">
+          Page {table.getState().pagination.pageIndex + 1} 
           {/* {table.getPageCount()} */}
         </div>
         <div className="flex items-center space-x-2">

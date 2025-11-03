@@ -1,34 +1,34 @@
-import * as React from "react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import * as React from "react"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
-export type FeatureStatus = "alpha" | "beta";
+export type FeatureStatus = "alpha" | "beta"
 
 export interface StatusBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  status: FeatureStatus;
-  size?: "default" | "sm" | "lg";
+  status: FeatureStatus
+  size?: "default" | "sm" | "lg"
 }
 
 const statusLabels: Record<FeatureStatus, string> = {
   alpha: "Alpha",
-  beta: "Beta",
-};
+  beta: "Beta"
+}
 
 const statusDescriptions: Record<FeatureStatus, string> = {
   alpha: "Experimental feature - may have limited functionality or bugs",
-  beta: "Testing feature - mostly stable but may change",
-};
+  beta: "Testing feature - mostly stable but may change"
+}
 
-export function StatusBadge({
-  status,
-  size = "default",
-  className,
+export function StatusBadge({ 
+  status, 
+  size = "default", 
+  className, 
   title,
-  ...props
+  ...props 
 }: StatusBadgeProps) {
-  const label = statusLabels[status];
-  const description = statusDescriptions[status];
-
+  const label = statusLabels[status]
+  const description = statusDescriptions[status]
+  
   return (
     <Badge
       variant={status}
@@ -39,7 +39,7 @@ export function StatusBadge({
     >
       {label}
     </Badge>
-  );
+  )
 }
 
-export { statusLabels, statusDescriptions };
+export { statusLabels, statusDescriptions }

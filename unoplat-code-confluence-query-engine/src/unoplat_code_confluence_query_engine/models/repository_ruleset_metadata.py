@@ -11,7 +11,7 @@ class CodebaseMetadata(BaseModel):
     codebase_programming_language: str = Field(
         description="The programming language of the codebase"
     )
-
+    
     codebase_package_manager: str = Field(
         description="The package manager of the codebase"
     )

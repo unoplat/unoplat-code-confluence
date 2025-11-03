@@ -30,38 +30,42 @@ async def _fetch_framework_metadata_from_postgres(
     library_names: List[str], language: str = "python"
 ) -> Dict[str, Dict[str, str]]:
     """Fetch framework metadata from PostgreSQL for given library names.
-
+    
     Args:
         library_names: List of library names to fetch metadata for
         language: Programming language (defaults to "python")
-
+        
     Returns:
         Dict mapping library name to metadata dict with 'description' and 'docs_url'
     """
     if not library_names:
         return {}
-
+        
     metadata = {}
-
+    
     try:
         async with get_session() as session:
+            
+                        
             stmt = select(Framework).where(
-                Framework.language == language, Framework.library.in_(library_names)
+                Framework.language == language,
+                Framework.library.in_(library_names)
             )
-
+            
+            
             result = await session.execute(stmt)
             frameworks: List[Framework] = result.scalars().all()
-
+            
             # Build metadata dictionary
             for fw in frameworks:
                 metadata[fw.library] = {
                     "description": fw.description,
-                    "docs_url": fw.docs_url,
+                    "docs_url": fw.docs_url
                 }
-
+                
     except Exception as e:  # noqa: BLE001
         logger.warning("Failed to fetch framework metadata from PostgreSQL: {}", e)
-
+        
     return metadata
 
 
@@ -89,7 +93,9 @@ async def _fetch_feature_entrypoints_from_postgres(
                 lib_map = entrypoints.setdefault(feat.library, {})
                 lib_map[feat.feature_key] = bool(feat.startpoint)
     except Exception as e:  # noqa: BLE001
-        logger.warning("Failed to fetch feature entrypoints from PostgreSQL: {}", e)
+        logger.warning(
+            "Failed to fetch feature entrypoints from PostgreSQL: {}", e
+        )
 
     return entrypoints
 
@@ -125,13 +131,9 @@ async def fetch_baseline_frameworks_as_outputs(
 
     for lib in libraries:
         try:
-            data = await db_get_framework_with_features(
-                neo4j_manager, codebase_path, lib
-            )
+            data = await db_get_framework_with_features(neo4j_manager, codebase_path, lib)
         except Exception as e:  # noqa: BLE001
-            logger.debug(
-                "Failed to get features for {} in {}: {}", lib, codebase_path, e
-            )
+            logger.debug("Failed to get features for {} in {}: {}", lib, codebase_path, e)
             continue
 
         features_used: List[FeatureUsageOutput] = []
@@ -166,10 +168,7 @@ async def fetch_baseline_frameworks_as_outputs(
 
         # Get metadata from PostgreSQL or use fallback
         lib_metadata = framework_metadata.get(lib, {})
-        description = (
-            lib_metadata.get("description")
-            or f"Detected usage of {lib} via knowledge graph."
-        )
+        description = lib_metadata.get("description") or f"Detected usage of {lib} via knowledge graph."
         docs_url = lib_metadata.get("docs_url")
 
         outputs.append(

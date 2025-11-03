@@ -1,12 +1,12 @@
-import * as React from "react";
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { cva, type VariantProps } from "class-variance-authority";
-import { Check } from "lucide-react";
+import * as React from "react"
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
+import { cva, type VariantProps } from "class-variance-authority"
+import { Check } from "lucide-react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 const checkboxVariants = cva(
-  "peer shrink-0 border border-border ring-offset-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+  "peer shrink-0 border ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
   {
     variants: {
       size: {
@@ -21,8 +21,8 @@ const checkboxVariants = cva(
       },
       radius: {
         none: "rounded-none",
-        sm: "rounded-xs",
-        default: "rounded-xs",
+        sm: "rounded-sm",
+        default: "rounded-sm",
         md: "rounded-md",
         full: "rounded-full",
       },
@@ -32,8 +32,8 @@ const checkboxVariants = cva(
       variant: "default",
       radius: "default",
     },
-  },
-);
+  }
+)
 
 const checkboxIndicatorVariants = cva(
   "flex items-center justify-center text-current",
@@ -48,8 +48,8 @@ const checkboxIndicatorVariants = cva(
     defaultVariants: {
       size: "default",
     },
-  },
-);
+  }
+)
 
 export interface CheckboxProps
   extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>,
@@ -70,7 +70,7 @@ const Checkbox = React.forwardRef<
       <Check />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
-));
-Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+))
+Checkbox.displayName = CheckboxPrimitive.Root.displayName
 
-export { Checkbox };
+export { Checkbox } 
