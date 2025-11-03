@@ -27,7 +27,7 @@
 
 # class FrameworkExplorerPostProcessor(PostProcessorProtocol[List[FrameworkLibraryOutput], List[FrameworkLibraryOutput]]):
 #     """Post-processor for framework explorer agent output."""
-    
+
 #     async def process(
 #         self,
 #         *,
@@ -39,7 +39,7 @@
 #         if isinstance(agent_output, str):
 #             logger.debug("FrameworkExplorerPostProcessor: received unexpected string input")
 #             return agent_output
-            
+
 #         # agent_output is now List[FrameworkLibraryOutput]
 #         items = agent_output
 

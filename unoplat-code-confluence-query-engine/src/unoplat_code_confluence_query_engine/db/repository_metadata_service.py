@@ -119,7 +119,9 @@ async def fetch_repository_metadata(
                 absolute_path = relative_path
 
             # Fetch programming language metadata using absolute path (falls back to relative if needed)
-            neo4j_prog_lang_metadata: Optional[ProgrammingLanguageMetadataOutput] = await fetch_programming_language_metadata(
+            neo4j_prog_lang_metadata: Optional[
+                ProgrammingLanguageMetadataOutput
+            ] = await fetch_programming_language_metadata(
                 neo4j_manager, neo4j_qualified_name, absolute_path
             )
 
@@ -155,4 +157,3 @@ async def fetch_repository_metadata(
         raise HTTPException(
             status_code=500, detail=f"Failed to fetch repository metadata: {str(e)}"
         )
-

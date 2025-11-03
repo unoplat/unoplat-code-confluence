@@ -7,6 +7,7 @@ import {
   type RepositoryAgentCodebaseProgress,
   type RepositoryAgentEvent,
   type RepositoryAgentSnapshotRow,
+  type WorkflowStatistics,
 } from "./schema";
 
 export interface RepositoryAgentCodebaseState {
@@ -21,6 +22,7 @@ export interface ParsedRepositoryAgentSnapshot {
   codebases: RepositoryAgentCodebaseState[];
   markdownByCodebase: Record<string, AgentMdOutput>;
   repositoryMarkdown?: string;
+  statistics: WorkflowStatistics | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,6 +60,7 @@ export function parseSnapshotRow(
     codebases,
     markdownByCodebase,
     repositoryMarkdown,
+    statistics: parsed.statistics ?? null,
     createdAt: parsed.created_at,
     updatedAt: parsed.modified_at,
   };

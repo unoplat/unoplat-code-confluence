@@ -44,7 +44,9 @@ async def start_repository_agent_run(
             repo_name,
             metadata_error,
         )
-        raise HTTPException(status_code=500, detail="Failed to fetch repository metadata")
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch repository metadata"
+        )
 
     execution_service = AgentExecutionService()
 
@@ -60,7 +62,9 @@ async def start_repository_agent_run(
             repo_name,
             start_error,
         )
-        raise HTTPException(status_code=500, detail="Failed to start repository workflow")
+        raise HTTPException(
+            status_code=500, detail="Failed to start repository workflow"
+        )
 
     logger.info(
         "Started repository workflow {} for {}/{}",
@@ -69,9 +73,7 @@ async def start_repository_agent_run(
         repo_name,
     )
 
-    return RepositoryWorkflowRunResponse(
-        repository_workflow_run_id=workflow_run_id
-    )
+    return RepositoryWorkflowRunResponse(repository_workflow_run_id=workflow_run_id)
 
 
 @router.get("/repository-agent-snapshot")

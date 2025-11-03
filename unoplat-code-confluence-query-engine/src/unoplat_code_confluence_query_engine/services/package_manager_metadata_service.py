@@ -92,13 +92,9 @@ async def fetch_programming_language_metadata(
                 )
                 return None
 
-            
-            
-
             # Create and return ProgrammingLanguageMetadataOutput
             return ProgrammingLanguageMetadataOutput(
-                primary_language=language,
-                package_manager=package_manager
+                primary_language=language, package_manager=package_manager
             )
 
     except Exception as e:

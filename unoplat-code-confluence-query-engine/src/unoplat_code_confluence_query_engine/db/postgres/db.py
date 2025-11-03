@@ -61,7 +61,7 @@ async def init_db_connections(settings: EnvironmentSettings) -> None:
     responsibility of the ingestion project.
     """
     global async_engine, AsyncSessionFactory, AsyncScopedSession
-    
+
     try:
         if async_engine is not None:
             await async_engine.dispose()
