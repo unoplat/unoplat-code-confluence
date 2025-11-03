@@ -798,7 +798,7 @@ def test_main_py_structural_signature(language_name: str) -> None:
     # Check some specific line number ranges
     get_temporal_client_fn = next((fn for fn in signature.functions if "async def get_temporal_client" in fn.signature), None)
     assert get_temporal_client_fn is not None
-    assert 150 < get_temporal_client_fn.start_line < 200, f"get_temporal_client should be around line 157, got {get_temporal_client_fn.start_line}"
+    assert 140 < get_temporal_client_fn.start_line < 160, f"get_temporal_client should be around line 147, got {get_temporal_client_fn.start_line}"
     
     # 7. Check for nested functions in lifespan
     assert len(lifespan_fn.nested_functions) == 0, "lifespan should not have nested functions directly"
