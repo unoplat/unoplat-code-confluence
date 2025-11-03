@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.2...unoplat-code-confluence-commons-v0.33.0) (2025-11-03)
+
+
+### Features
+
+* **repo_models:** Add statistics column for agent workflow metrics ([3e3bb31](https://github.com/unoplat/unoplat-code-confluence/commit/3e3bb31a2ef62c30b9d4be6e3c53c51a09b2b172))
+* **repo_models:** Add statistics column for agent workflow metrics ([22486df](https://github.com/unoplat/unoplat-code-confluence/commit/22486dfc8f350a088e4047707a240474cfe7fd39))
+
 ## [0.32.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.1...unoplat-code-confluence-commons-v0.32.2) (2025-10-30)
 
 
