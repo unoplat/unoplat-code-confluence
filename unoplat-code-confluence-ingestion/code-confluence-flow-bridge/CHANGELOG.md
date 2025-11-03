@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.59.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.58.0...code-confluence-flow-bridge-v0.59.0) (2025-11-03)
+
+
+### Features
+
+* **workflow:** Enhance agent execution with usage statistics tracking ([c68e53e](https://github.com/unoplat/unoplat-code-confluence/commit/c68e53ef83243b55a8fbb0dc330891517b80d086))
+* **workflow:** Enhance agent execution with usage statistics tracking ([b05ce65](https://github.com/unoplat/unoplat-code-confluence/commit/b05ce659a701763dbc561539146c40c65635c5af))
+
 ## [0.58.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.57.1...code-confluence-flow-bridge-v0.58.0) (2025-10-30)
 
 
