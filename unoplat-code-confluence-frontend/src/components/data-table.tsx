@@ -29,26 +29,24 @@ export function DataTable<TData>({
   className,
   ...props
 }: DataTableProps<TData>): React.ReactElement {
-  console.log('[DataTable] Rendering with table state:', {
+  console.log("[DataTable] Rendering with table state:", {
     pageIndex: table.getState().pagination.pageIndex,
     pageSize: table.getState().pagination.pageSize,
     rowCount: table.getRowModel().rows.length,
     canNextPage: table.getCanNextPage(),
     canPreviousPage: table.getCanPreviousPage(),
-    isLoading
+    isLoading,
   });
-  
-  console.log('DataTable props:', { showRowsPerPage, isLoading });
-  
-  
-  
+
+  console.log("DataTable props:", { showRowsPerPage, isLoading });
+
   return (
     <div
       className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
       {...props}
     >
       {children}
-      <div className="overflow-auto rounded-md border border-border bg-card">
+      <div className="border-border bg-card overflow-auto rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -79,7 +77,7 @@ export function DataTable<TData>({
                 <TableRow key={i} className="hover:bg-transparent">
                   {table.getAllColumns().map((_column, j) => (
                     <TableCell key={j}>
-                      <div className="h-6 w-full animate-pulse bg-muted rounded" />
+                      <div className="bg-muted h-6 w-full animate-pulse rounded" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -111,7 +109,7 @@ export function DataTable<TData>({
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  {"No results."}
+                  No results.
                 </TableCell>
               </TableRow>
             )}
@@ -120,7 +118,7 @@ export function DataTable<TData>({
       </div>
       <div className="flex flex-col gap-2.5">
         {/* To enable - showRowsPerPage={showRowsPerPage} */}
-        <DataTablePagination table={table}  />
+        <DataTablePagination table={table} />
         {actionBar &&
           table.getFilteredSelectedRowModel().rows.length > 0 &&
           actionBar}

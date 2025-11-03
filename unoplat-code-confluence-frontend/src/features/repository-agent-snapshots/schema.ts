@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const repositoryAgentEventSchema = z.object({
   id: z.string(),
@@ -15,16 +15,23 @@ export const repositoryAgentCodebaseProgressSchema = z.object({
   events: z.array(repositoryAgentEventSchema),
 });
 
-export type RepositoryAgentCodebaseProgress = z.infer<typeof repositoryAgentCodebaseProgressSchema>;
+export type RepositoryAgentCodebaseProgress = z.infer<
+  typeof repositoryAgentCodebaseProgressSchema
+>;
 
 export const repositoryAgentEventsEnvelopeSchema = z.object({
   repository_name: z.string().optional().nullable(),
   repository_workflow_run_id: z.string().optional().nullable(),
   overall_progress: z.number().optional().nullable(),
-  codebases: z.array(repositoryAgentCodebaseProgressSchema).optional().default([]),
+  codebases: z
+    .array(repositoryAgentCodebaseProgressSchema)
+    .optional()
+    .default([]),
 });
 
-export type RepositoryAgentEventsEnvelope = z.infer<typeof repositoryAgentEventsEnvelopeSchema>;
+export type RepositoryAgentEventsEnvelope = z.infer<
+  typeof repositoryAgentEventsEnvelopeSchema
+>;
 
 export const agentMdOutputSchema = z
   .object({
@@ -35,14 +42,44 @@ export const agentMdOutputSchema = z
 
 export type AgentMdOutputRecord = z.infer<typeof agentMdOutputSchema>;
 
+export const usageStatisticsSchema = z.object({
+  requests: z.number().default(0),
+  tool_calls: z.number().default(0),
+  input_tokens: z.number().default(0),
+  output_tokens: z.number().default(0),
+  cache_write_tokens: z.number().default(0),
+  cache_read_tokens: z.number().default(0),
+  total_tokens: z.number().default(0),
+  estimated_cost_usd: z.number().nullable().optional(),
+});
+
+export type UsageStatistics = z.infer<typeof usageStatisticsSchema>;
+
+export const workflowStatisticsSchema = z.object({
+  total_requests: z.number().default(0),
+  total_tool_calls: z.number().default(0),
+  total_input_tokens: z.number().default(0),
+  total_output_tokens: z.number().default(0),
+  total_cache_write_tokens: z.number().default(0),
+  total_cache_read_tokens: z.number().default(0),
+  total_tokens: z.number().default(0),
+  total_estimated_cost_usd: z.number().nullable().optional(),
+  by_codebase: z.record(z.string(), usageStatisticsSchema).default({}),
+});
+
+export type WorkflowStatistics = z.infer<typeof workflowStatisticsSchema>;
+
 export const repositoryAgentSnapshotRowSchema = z.object({
   repository_name: z.string(),
   repository_owner_name: z.string(),
-  status: z.enum(['RUNNING', 'COMPLETED', 'ERROR']),
+  status: z.enum(["RUNNING", "COMPLETED", "ERROR"]),
   events: repositoryAgentEventsEnvelopeSchema.nullable().optional(),
   agent_md_output: agentMdOutputSchema.nullable().optional(),
+  statistics: workflowStatisticsSchema.nullable().optional(),
   created_at: z.string(),
   modified_at: z.string(),
 });
 
-export type RepositoryAgentSnapshotRow = z.infer<typeof repositoryAgentSnapshotRowSchema>;
+export type RepositoryAgentSnapshotRow = z.infer<
+  typeof repositoryAgentSnapshotRowSchema
+>;

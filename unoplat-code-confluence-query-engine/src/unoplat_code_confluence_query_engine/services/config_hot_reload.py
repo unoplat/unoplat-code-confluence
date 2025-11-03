@@ -40,15 +40,17 @@ _model_factory = ModelFactory()
 _CHANGED_FLAG = "ai_config_changed"
 
 
-def _mark_if_config_changed(session: Session, flush_context: Any, instances: Any) -> None:
+def _mark_if_config_changed(
+    session: Session, flush_context: Any, instances: Any
+) -> None:
     """Mark session if AiModelConfig changed during flush.
 
     NOTE: Currently not required in single-worker mode. Kept until we migrate
     to a Postgres LISTEN/NOTIFY invalidation strategy for multi-worker.
-    
+
     This event handler runs during before_flush to detect configuration changes.
     It's synchronous and lightweight, only setting a flag.
-    
+
     Args:
         session: SQLAlchemy session
         flush_context: Flush context (unused)
@@ -60,26 +62,34 @@ def _mark_if_config_changed(session: Session, flush_context: Any, instances: Any
             session.info[_CHANGED_FLAG] = True
             logger.debug("AI config creation detected, marking for rebuild")
             return
-        
+
         if any(isinstance(obj, AiModelConfig) for obj in session.deleted):
             session.info[_CHANGED_FLAG] = True
             logger.debug("AI config deletion detected, marking for rebuild")
             return
-        
+
         # Check for updates: only if real attribute changes (avoid no-op dirty)
         for obj in session.dirty:
             if not isinstance(obj, AiModelConfig):
                 continue
-            
+
             state = inspect(obj)
             config_fields = [
-                'provider_key', 'provider_kind', 'model_name', 'base_url', 
-                'profile_key', 'extra_config', 'temperature', 'top_p', 'max_tokens'
+                "provider_key",
+                "provider_kind",
+                "model_name",
+                "base_url",
+                "profile_key",
+                "extra_config",
+                "temperature",
+                "top_p",
+                "max_tokens",
             ]
-            
+
             # Check if any configuration field has actual changes
             changed: List[str] = [
-                field for field in config_fields
+                field
+                for field in config_fields
                 if getattr(state.attrs, field).history.has_changes()
             ]
             if changed:
@@ -89,7 +99,7 @@ def _mark_if_config_changed(session: Session, flush_context: Any, instances: Any
                     changed,
                 )
                 return
-                
+
     except Exception as e:
         logger.error("Error in config change detection: {}", e)
         # Don't raise - event handlers should not break the transaction
@@ -100,15 +110,15 @@ def _invalidate_config_on_commit(session: Session) -> None:
 
     NOTE: Currently not required in single-worker mode. Kept until adoption of
     Postgres LISTEN/NOTIFY for cross-worker invalidation.
-    
+
     This event handler runs after_commit to invalidate the model when changes are persisted.
     It's safe to run after the transaction completes.
-    
+
     Args:
         session: SQLAlchemy session
     """
     global _config_invalidated, _current_model
-    
+
     try:
         # Only invalidate if changes were detected
         if session.info.get(_CHANGED_FLAG):
@@ -121,30 +131,32 @@ def _invalidate_config_on_commit(session: Session) -> None:
                 False,
                 _current_model_settings is not None,
             )
-            
+
             # Clear the flag for next transaction
             session.info.pop(_CHANGED_FLAG, None)
-            
+
     except Exception as e:
         logger.error("Error in config invalidation: {}", e)
         # Don't raise - event handlers should not break post-commit cleanup
 
 
-async def get_current_model(settings: Optional["EnvironmentSettings"] = None) -> Tuple[Optional[Model], Optional[ModelSettings]]:
+async def get_current_model(
+    settings: Optional["EnvironmentSettings"] = None,
+) -> Tuple[Optional[Model], Optional[ModelSettings]]:
     """Get the current AI model, rebuilding if configuration changed.
 
     NOTE: In the current setup, agents are explicitly refreshed after PUT
     /v1/config. This lazy-rebuild path is retained for future LISTEN/NOTIFY
     migration and as a safety net.
-    
+
     This implements lazy rebuilding - the model is only rebuilt when actually requested
     after a configuration change.
-    
+
     Returns:
         Current Pydantic AI model instance and settings, or None if no configuration exists
     """
     global _config_invalidated, _current_model, _current_model_settings
-    
+
     try:
         # If model is valid and not invalidated, return cached instance
         logger.debug(
@@ -156,32 +168,38 @@ async def get_current_model(settings: Optional["EnvironmentSettings"] = None) ->
         if _current_model is not None and not _config_invalidated:
             logger.debug("Returning cached model without rebuild")
             return _current_model, _current_model_settings
-        
+
         # Need to rebuild - fetch current configuration
         service = AiModelConfigService()
         config = await service.get_config()
-        
+
         if config is None:
             logger.debug("No AI model configuration found")
             _current_model = None
             _current_model_settings = None
             _config_invalidated = False
             return None, None
-        
+
         # Build new model from configuration
-        logger.info("Building AI model from config: provider={}, model={}", 
-                   config.provider_key, config.model_name)
-        
+        logger.info(
+            "Building AI model from config: provider={}, model={}",
+            config.provider_key,
+            config.model_name,
+        )
+
         # Use provided settings or fall back to creating new instance
         if settings is None:
             from unoplat_code_confluence_query_engine.config.settings import (
                 EnvironmentSettings,
             )
+
             settings = EnvironmentSettings()
-        
-        _current_model, _current_model_settings = await _model_factory.build(config, settings)
+
+        _current_model, _current_model_settings = await _model_factory.build(
+            config, settings
+        )
         _config_invalidated = False
-        
+
         logger.info("AI model rebuilt successfully")
         logger.debug(
             "Rebuild result -> model_present={}, settings_present={}, invalidated={}",
@@ -190,7 +208,7 @@ async def get_current_model(settings: Optional["EnvironmentSettings"] = None) ->
             _config_invalidated,
         )
         return _current_model, _current_model_settings
-        
+
     except Exception as e:
         logger.error("Error rebuilding AI model: {}", e)
         _current_model = None
@@ -207,13 +225,13 @@ def register_orm_events() -> None:
     """
     try:
         # Register before_flush event to detect changes
-        event.listen(Session, 'before_flush', _mark_if_config_changed)
-        
+        event.listen(Session, "before_flush", _mark_if_config_changed)
+
         # Register after_commit event to invalidate on successful transaction
-        event.listen(Session, 'after_commit', _invalidate_config_on_commit)
-        
+        event.listen(Session, "after_commit", _invalidate_config_on_commit)
+
         logger.info("AI model config hot-reload events registered")
-        
+
     except Exception as e:
         logger.error("Failed to register ORM events: {}", e)
         raise
@@ -227,11 +245,11 @@ def unregister_orm_events() -> None:
     This should be called during application shutdown for cleanup.
     """
     try:
-        event.remove(Session, 'before_flush', _mark_if_config_changed)
-        event.remove(Session, 'after_commit', _invalidate_config_on_commit)
-        
+        event.remove(Session, "before_flush", _mark_if_config_changed)
+        event.remove(Session, "after_commit", _invalidate_config_on_commit)
+
         logger.info("AI model config hot-reload events unregistered")
-        
+
     except Exception as e:
         logger.warning("Error unregistering ORM events: {}", e)
 
@@ -244,30 +262,34 @@ async def update_app_agents(app: "FastAPI") -> None:
 
     This should be called when the application needs to refresh its agents
     with the latest model configuration.
-    
+
     Args:
         app: FastAPI application instance with agents in app.state
     """
     try:
         # Get the current model (will rebuild if needed)
-        current_model, current_model_settings = await get_current_model(app.state.settings)
-        
+        current_model, current_model_settings = await get_current_model(
+            app.state.settings
+        )
+
         if current_model is None:
             logger.warning("No model configuration available, keeping existing agents")
             return
-        
+
         # Recreate agents with new model
         logger.info("Updating application agents with new model configuration")
         try:
-            before_keys = list(getattr(app.state, 'agents', {}).keys())  # type: ignore[attr-defined]
+            before_keys = list(getattr(app.state, "agents", {}).keys())  # type: ignore[attr-defined]
         except Exception:
             before_keys = []
         logger.debug("Agents before update: {}", before_keys)
-        app.state.agents = create_code_confluence_agents(app.state.mcp_manager, current_model, current_model_settings)
+        app.state.agents = create_code_confluence_agents(
+            app.state.mcp_manager, current_model, current_model_settings
+        )
         after_keys = list(app.state.agents.keys())
         logger.info("Application agents updated successfully")
         logger.debug("Agents after update: {}", after_keys)
-        
+
     except Exception as e:
         logger.error("Failed to update application agents: {}", e)
         raise

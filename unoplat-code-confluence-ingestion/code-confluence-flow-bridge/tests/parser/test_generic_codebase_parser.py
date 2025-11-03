@@ -13,17 +13,17 @@ import pytest
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from unoplat_code_confluence_commons.programming_language_metadata import (
-    ProgrammingLanguage,
-    ProgrammingLanguageMetadata,
-)
 from src.code_confluence_flow_bridge.parser.generic_codebase_parser import (
     GenericCodebaseParser,
 )
 from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
     CodeConfluenceGraph,
 )
-from unoplat_code_confluence_commons.base_models import StructuralSignature
+from unoplat_code_confluence_commons.base_models import PythonStructuralSignature
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    ProgrammingLanguage,
+    ProgrammingLanguageMetadata,
+)
 
 # Note: Removed neomodel graph model imports to avoid NodeClassNotDefined errors
 # when using raw Cypher queries for verification. Models are still used via raw Cypher.
@@ -64,7 +64,7 @@ def sample_codebase_dir() -> Path:  # noqa: D401 – simple fixture
 
 
 class TestGenericCodebaseParserIntegration:
-    """Validate that GenericCodebaseParser can insert packages & files into Neo4j."""
+    """Validate that GenericCodebaseParser can insert files into Neo4j."""
     @pytest.mark.asyncio(loop_scope="session") #type: ignore
     async def test_parser_inserts_nodes(
         self,
@@ -132,129 +132,56 @@ class TestGenericCodebaseParserIntegration:
         await parser.process_and_insert_codebase()
 
         # ------------------------------------------------------------------
-        # Build expected absolute paths from the sample directory
-        # ------------------------------------------------------------------
-        base_path = sample_codebase_dir
-        expected_paths = {
-            "codebase_root": base_path.as_posix(),  # The 8th package - root directory
-            "root": (base_path / "unoplat_code_confluence_cli").as_posix(),
-            "connector": (base_path / "unoplat_code_confluence_cli" / "connector").as_posix(),
-            "config": (base_path / "unoplat_code_confluence_cli" / "config").as_posix(),
-            "models": (base_path / "unoplat_code_confluence_cli" / "models").as_posix(),
-            "analytics": (base_path / "unoplat_code_confluence_cli" / "connector" / "analytics").as_posix(),
-            "reports": (base_path / "unoplat_code_confluence_cli" / "connector" / "analytics" / "reports").as_posix(),
-            "utils": (base_path / "unoplat_code_confluence_cli" / "connector" / "analytics" / "utils").as_posix(),
-        }
-
-        # ------------------------------------------------------------------
         # Comprehensive validation of nodes and relationships
         # ------------------------------------------------------------------
-        
-        # 1. Verify package nodes were created with correct hierarchy
-        result, meta = neo4j_client.cypher_query(
-            "MATCH (p:CodeConfluencePackage) RETURN p.qualified_name, p.name ORDER BY p.qualified_name"
+
+        # 1. Confirm that no CodeConfluencePackage nodes are written
+        result, _ = neo4j_client.cypher_query(
+            "MATCH (p:CodeConfluencePackage) RETURN count(p) AS count"
         )
-        
-        # Expected 8 packages with absolute path qualified names (including root directory and models)
-        assert len(result) == 8, f"Expected 8 packages, got {len(result)}"
-        
-        package_names = {(row[0], row[1]) for row in result}
-        expected_packages = {
-            (expected_paths["codebase_root"], "unoplat-code-confluence-cli"),  # Root directory package
-            (expected_paths["root"], "unoplat_code_confluence_cli"),
-            (expected_paths["connector"], "connector"),
-            (expected_paths["config"], "config"),
-            (expected_paths["models"], "models"),
-            (expected_paths["analytics"], "analytics"),
-            (expected_paths["reports"], "reports"),
-            (expected_paths["utils"], "utils"),
-        }
-        assert package_names == expected_packages, (
-            "Package names mismatch.\n"
-            f"Expected: {expected_packages}\n"
-            f"Actual:   {package_names}"
-        )
-        
-        # 2. Verify package hierarchy relationships
-        # Query parent-child relationships directly
-        result, meta = neo4j_client.cypher_query(
-            "MATCH (parent:CodeConfluencePackage {qualified_name: $parent_qname})-[:CONTAINS_PACKAGE]->(child:CodeConfluencePackage) RETURN parent.qualified_name, child.qualified_name",
-            {"parent_qname": expected_paths["root"]}
-        )
-        
-        # Extract hierarchy
-        hierarchy_data = [(row[0], row[1]) for row in result]
-        hierarchy_data.sort()  # Sort for consistent comparison
-        
-        # Expected: unoplat_code_confluence_cli contains connector, config, and models
-        assert len(hierarchy_data) == 3, f"Expected 3 hierarchy relationships, got {len(hierarchy_data)}"
-        
-        expected_hierarchy = {
-            (expected_paths["root"], expected_paths["connector"]),
-            (expected_paths["root"], expected_paths["config"]),
-            (expected_paths["root"], expected_paths["models"]),
-        }
-        actual_hierarchy = set(hierarchy_data)
-        assert actual_hierarchy == expected_hierarchy, (
-            "Hierarchy mismatch.\n"
-            f"Expected: {expected_hierarchy}\n"
-            f"Actual:   {actual_hierarchy}"
-        )
-        
-        # 3. Verify additional package hierarchy relationships
+        package_count = result[0][0] if result else 0
+        assert package_count == 0, f"Expected 0 package nodes, found {package_count}"
 
         # ------------------------------------------------------------------
-        # 2a. Connector -> analytics relationship
-        result, meta = neo4j_client.cypher_query(
-            "MATCH (parent:CodeConfluencePackage {qualified_name: $parent_qname})-[:CONTAINS_PACKAGE]->(child:CodeConfluencePackage) RETURN child.qualified_name",
-            {"parent_qname": expected_paths["connector"]}
-        )
-        connector_child_names = {row[0] for row in result}
-        assert (
-            expected_paths["analytics"] in connector_child_names
-        ), "connector package should contain analytics sub-package"
-
-        # 2b. Analytics -> reports & utils relationship
-        result, meta = neo4j_client.cypher_query(
-            "MATCH (parent:CodeConfluencePackage {qualified_name: $parent_qname})-[:CONTAINS_PACKAGE]->(child:CodeConfluencePackage) RETURN child.qualified_name",
-            {"parent_qname": expected_paths["analytics"]}
-        )
-        analytics_child_names = {row[0] for row in result}
-        expected_analytics_children = {
-            expected_paths["reports"],
-            expected_paths["utils"],
-        }
-        assert analytics_child_names == expected_analytics_children, (
-            "Analytics sub-package hierarchy mismatch."
-        )
-
-        # ------------------------------------------------------------------
-        # 3. Verify file nodes were created with content
+        # 2. Verify file nodes were created with content
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) RETURN f.file_path, f.checksum, f.structural_signature ORDER BY f.file_path"
         )
         
         # Should have 6 files: __main__.py, api_client.py, settings.py, generator.py, helpers.py, user_model.py (__init__.py files are ignored by language config)
         assert len(result) == 6, f"Expected 6 files, got {len(result)}"
-        
-        # Verify all files have checksum and structural signature  
-        for row in result:
+
+        files_result = result
+        file_paths = {row[0] for row in files_result}
+
+        # Verify all files have checksum and structural signature
+        for row in files_result:
             file_path, checksum, structural_signature = row[0], row[1], row[2]
             assert checksum is not None, f"File {file_path} missing checksum"
             assert structural_signature is not None, f"File {file_path} missing structural signature"
-        
-        # 4. Verify file-to-package relationships
-        # Get file-package relationships directly
+
+        # 3. Verify file-to-codebase relationships exist in both directions
         result, _ = neo4j_client.cypher_query(
-            "MATCH (f:CodeConfluenceFile)-[:PART_OF_PACKAGE]->(p:CodeConfluencePackage) RETURN f.file_path, p.qualified_name"
+            "MATCH (f:CodeConfluenceFile)-[:PART_OF_CODEBASE]->(c:CodeConfluenceCodebase {qualified_name: $codebase}) "
+            "RETURN f.file_path ORDER BY f.file_path",
+            {"codebase": "cli_codebase"},
         )
-        file_package_data = [(row[0], row[1]) for row in result]
-        
-        assert len(file_package_data) == 6, (
-            f"Expected 6 file-package relationships, got {len(file_package_data)}"
+        part_relationship_paths = {row[0] for row in result}
+        assert part_relationship_paths == file_paths, (
+            "Files missing PART_OF_CODEBASE relationship",
+        )
+
+        result, _ = neo4j_client.cypher_query(
+            "MATCH (c:CodeConfluenceCodebase {qualified_name: $codebase})-[:CONTAINS_FILE]->(f:CodeConfluenceFile) "
+            "RETURN f.file_path ORDER BY f.file_path",
+            {"codebase": "cli_codebase"},
+        )
+        contains_relationship_paths = {row[0] for row in result}
+        assert contains_relationship_paths == file_paths, (
+            "Files missing CONTAINS_FILE relationship from codebase",
         )
         
-        # 5. Verify specific file structural signature - check settings.py
+        # 4. Verify specific file structural signature - check settings.py
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) WHERE f.file_path CONTAINS 'settings.py' RETURN f.file_path, f.structural_signature"
         )
@@ -265,9 +192,9 @@ class TestGenericCodebaseParserIntegration:
         if signature:  # Only check if structural signature extraction worked
             # Parse using Pydantic model for type safety
             if isinstance(signature, str):
-                signature_data = StructuralSignature.model_validate_json(signature)
+                signature_data = PythonStructuralSignature.model_validate_json(signature)
             else:
-                signature_data = StructuralSignature.model_validate(signature)
+                signature_data = PythonStructuralSignature.model_validate(signature)
             assert signature_data.classes is not None, "Structural signature should have classes"
             assert len(signature_data.classes) >= 1, "Should have at least 1 class"
             # Check if AppConfig class exists in the class signatures
@@ -275,7 +202,7 @@ class TestGenericCodebaseParserIntegration:
             assert any("class AppConfig" in sig for sig in class_signatures), "settings.py should contain AppConfig class"
         
         
-        # 6. Verify structural signature in generator.py
+        # 5. Verify structural signature in generator.py
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) WHERE f.file_path CONTAINS 'generator.py' RETURN f.file_path, f.structural_signature"
         )
@@ -285,9 +212,9 @@ class TestGenericCodebaseParserIntegration:
 
         # NEW: Ensure imports, global variables, functions, and classes are captured in structural signature
         if isinstance(generator_signature, str):
-            gen_sig = StructuralSignature.model_validate_json(generator_signature)
+            gen_sig = PythonStructuralSignature.model_validate_json(generator_signature)
         else:
-            gen_sig = StructuralSignature.model_validate(generator_signature or {})
+            gen_sig = PythonStructuralSignature.model_validate(generator_signature or {})
 
         # a. Validate global variables contain GLOBAL_CONSTANT
         gen_global_vars = [gv.signature for gv in gen_sig.global_variables]
@@ -310,7 +237,7 @@ class TestGenericCodebaseParserIntegration:
             "generator.py structural signature should capture SummaryReport class"
         )
 
-        # 7. Verify imports in __main__.py
+        # 6. Verify imports in __main__.py
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) WHERE f.file_path CONTAINS '__main__.py' RETURN f.file_path, f.imports, f.structural_signature"
         )
@@ -324,9 +251,9 @@ class TestGenericCodebaseParserIntegration:
 
         # NEW: verify structural signature functions for __main__.py
         if isinstance(main_structural_signature, str):
-            main_sig = StructuralSignature.model_validate_json(main_structural_signature)
+            main_sig = PythonStructuralSignature.model_validate_json(main_structural_signature)
         else:
-            main_sig = StructuralSignature.model_validate(main_structural_signature or {})
+            main_sig = PythonStructuralSignature.model_validate(main_structural_signature or {})
         main_functions = [fn.signature for fn in main_sig.functions]
         assert any("def start_ingestion_process" in sig for sig in main_functions), (
             "__main__.py structural signature should capture start_ingestion_process function"
@@ -335,18 +262,18 @@ class TestGenericCodebaseParserIntegration:
             "__main__.py structural signature should capture main function"
         )
 
-        # 8. Extended structural signature validation for settings.py (reuse from section 5)
+        # 7. Extended structural signature validation for settings.py (reuse from section 4)
         # settings.py data already retrieved in section 5
         if isinstance(signature, str):
-            settings_sig = StructuralSignature.model_validate_json(signature)
+            settings_sig = PythonStructuralSignature.model_validate_json(signature)
         else:
-            settings_sig = StructuralSignature.model_validate(signature or {})
+            settings_sig = PythonStructuralSignature.model_validate(signature or {})
         settings_classes = [cl.signature for cl in settings_sig.classes]
         assert any("class AppConfig" in sig for sig in settings_classes), (
             "settings.py structural signature should capture AppConfig class"
         )
 
-        # 9. Generic assertion: Each file should have imports captured (may be empty for __init__.py files)
+        # 8. Generic assertion: Each file should have imports captured (may be empty for __init__.py files)
         # Get all files with imports info
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) RETURN f.file_path, f.imports"
@@ -357,7 +284,7 @@ class TestGenericCodebaseParserIntegration:
                 continue  # allow empty imports for package init files
             assert file_imports is not None, f"File {file_path} missing imports list"
 
-        # 10. Verify has_data_model field for dataclass files
+        # 9. Verify has_data_model field for dataclass files
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) WHERE f.file_path CONTAINS 'user_model.py' "
             "RETURN f.file_path, f.has_data_model, f.imports"
@@ -370,7 +297,7 @@ class TestGenericCodebaseParserIntegration:
         assert has_data_model is True, "user_model.py should be marked as has_data_model=True"
         assert any("dataclass" in imp.lower() for imp in imports), "user_model.py should have dataclass imports"
 
-        # 11. Verify non-dataclass files are marked correctly
+        # 10. Verify non-dataclass files are marked correctly
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) WHERE f.file_path CONTAINS 'api_client.py' "
             "RETURN f.file_path, f.has_data_model"
@@ -380,7 +307,9 @@ class TestGenericCodebaseParserIntegration:
         _, api_has_data_model = result[0]
         assert api_has_data_model is False, "api_client.py should be marked as has_data_model=False"
 
-        # 12. Count total dataclass vs non-dataclass files
+        # 11. Count total dataclass vs non-dataclass files
+        # NOTE: Currently only detects @dataclass decorators, not Pydantic BaseModel inheritance
+        # settings.py uses BaseModel and is NOT detected as a data model (expected behavior for now)
         result, _ = neo4j_client.cypher_query(
             "MATCH (f:CodeConfluenceFile) RETURN f.has_data_model, COUNT(f) as count"
         )
@@ -393,8 +322,8 @@ class TestGenericCodebaseParserIntegration:
             else:
                 non_dataclass_count = row[1]
 
-        assert dataclass_count == 2, f"Expected 1 dataclass file, got {dataclass_count}"
-        assert non_dataclass_count == 4, f"Expected 5 non-dataclass files, got {non_dataclass_count}"  # __main__.py, api_client.py, settings.py, generator.py, helpers.py
+        assert dataclass_count == 1, f"Expected 1 dataclass file (user_model.py), got {dataclass_count}"
+        assert non_dataclass_count == 5, f"Expected 5 non-dataclass files (__main__.py, api_client.py, settings.py, generator.py, helpers.py), got {non_dataclass_count}"
 
         logger.info(f"Data model detection test passed: {dataclass_count} dataclass files, {non_dataclass_count} regular files")
         logger.info(
@@ -427,15 +356,15 @@ class TestGenericCodebaseParserIntegration:
         
         # Test dataclass file
         dataclass_file = sample_codebase_dir / "unoplat_code_confluence_cli" / "models" / "user_model.py"
-        unoplat_file = await parser.extract_file_data(str(dataclass_file))
-        
+        unoplat_file = await parser.language_processor.extract_file_data(str(dataclass_file))
+
         assert unoplat_file is not None
         assert unoplat_file.has_data_model is True
         assert any("dataclass" in imp.lower() for imp in unoplat_file.imports)
-        
+
         # Test non-dataclass file
         regular_file = sample_codebase_dir / "unoplat_code_confluence_cli" / "connector" / "api_client.py"
-        regular_unoplat_file = await parser.extract_file_data(str(regular_file))
+        regular_unoplat_file = await parser.language_processor.extract_file_data(str(regular_file))
         
         assert regular_unoplat_file is not None
         assert regular_unoplat_file.has_data_model is False

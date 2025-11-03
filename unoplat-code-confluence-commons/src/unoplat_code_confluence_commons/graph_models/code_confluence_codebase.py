@@ -3,13 +3,7 @@ from unoplat_code_confluence_commons.graph_models.base_models import (
     ContainsRelationship,
 )
 
-from neomodel import (
-    ArrayProperty,
-    AsyncOne,
-    AsyncRelationshipTo,
-    AsyncZeroOrMore,
-    StringProperty,
-)
+from neomodel import ArrayProperty, AsyncOne, AsyncRelationshipTo, AsyncZeroOrMore, StringProperty
 
 
 class CodeConfluenceCodebase(BaseNode):
@@ -22,7 +16,7 @@ class CodeConfluenceCodebase(BaseNode):
         programming_language (str): The primary programming language of the codebase.
     
     Relationships:
-        packages (RelationshipTo): Connects to package nodes.
+        files (RelationshipTo): Connects directly to file nodes.
         package_manager_metadata (RelationshipTo): Connects to package manager metadata node.
     """
     
@@ -40,11 +34,11 @@ class CodeConfluenceCodebase(BaseNode):
     codebase_path = StringProperty(required=True)
     programming_language = StringProperty(choices=PROGRAMMING_LANGUAGES)
     
-    packages = AsyncRelationshipTo(
-        '.code_confluence_package.CodeConfluencePackage',
-        'CONTAINS_PACKAGE',
+    files = AsyncRelationshipTo(
+        '.code_confluence_file.CodeConfluenceFile',
+        'CONTAINS_FILE',
         model=ContainsRelationship,
-        cardinality=AsyncZeroOrMore
+        cardinality=AsyncZeroOrMore,
     )
     
     package_manager_metadata = AsyncRelationshipTo(

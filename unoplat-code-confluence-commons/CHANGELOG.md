@@ -1,5 +1,69 @@
 # Changelog
 
+## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.2...unoplat-code-confluence-commons-v0.33.0) (2025-11-03)
+
+
+### Features
+
+* **repo_models:** Add statistics column for agent workflow metrics ([3e3bb31](https://github.com/unoplat/unoplat-code-confluence/commit/3e3bb31a2ef62c30b9d4be6e3c53c51a09b2b172))
+* **repo_models:** Add statistics column for agent workflow metrics ([22486df](https://github.com/unoplat/unoplat-code-confluence/commit/22486dfc8f350a088e4047707a240474cfe7fd39))
+
+## [0.32.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.1...unoplat-code-confluence-commons-v0.32.2) (2025-10-30)
+
+
+### Bug Fixes
+
+* remove support for local codebase (not in scope right now ) ([e238e91](https://github.com/unoplat/unoplat-code-confluence/commit/e238e919131c93293748f19dd6570f3ffa478a4c))
+* remove support for local codebase (not in scope right now ) ([44b22d1](https://github.com/unoplat/unoplat-code-confluence/commit/44b22d1391d201a6ee0f996dc2d5d39516c6ca76))
+
+## [0.32.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.0...unoplat-code-confluence-commons-v0.32.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* **graph-models:** Remove CodeConfluencePackage and update relationships ([417692d](https://github.com/unoplat/unoplat-code-confluence/commit/417692d82efdcf7ae8b2c96fa7c8c54e1d4b3982))
+* **graph-models:** Remove CodeConfluencePackage and update relationships ([92b75da](https://github.com/unoplat/unoplat-code-confluence/commit/92b75da0aea46d832f9f5c27a6fc1d19769e1bca))
+
+## [0.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.2...unoplat-code-confluence-commons-v0.32.0) (2025-10-18)
+
+
+### Features
+
+* **base_models:** Add DataModelPosition for tracking model locations for precise context engineering around data models ([93f9b2c](https://github.com/unoplat/unoplat-code-confluence/commit/93f9b2c4e7b2d1b15fe10145eb9d713cdda09806))
+* **base_models:** Add DataModelPosition for tracking model locations for precise context engineering around data models ([3d7c6ef](https://github.com/unoplat/unoplat-code-confluence/commit/3d7c6efd8731561675edd7b852603a8d2e1f7f5e))
+
+## [0.31.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.1...unoplat-code-confluence-commons-v0.31.2) (2025-10-16)
+
+
+### Bug Fixes
+
+* Remove unused TypeScriptPropertyInfo import ([7d8b4f2](https://github.com/unoplat/unoplat-code-confluence/commit/7d8b4f27587e82b730e948f38d4f3bed7c160b1f))
+* Remove unused TypeScriptPropertyInfo import ([0660b77](https://github.com/unoplat/unoplat-code-confluence/commit/0660b776cebfa8f7bf67481e8c47bf96602724d8))
+
+## [0.31.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.31.0...unoplat-code-confluence-commons-v0.31.1) (2025-10-16)
+
+
+### Bug Fixes
+
+* **base_models:** Restructure structural signature models ([9bf5b3c](https://github.com/unoplat/unoplat-code-confluence/commit/9bf5b3c3b661527d8788e42dda474a6f05553432))
+* **base_models:** Restructure structural signature models ([20db068](https://github.com/unoplat/unoplat-code-confluence/commit/20db068941a80479f45eb08e0442fadd5268a30b))
+
+## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.30.0...unoplat-code-confluence-commons-v0.31.0) (2025-10-06)
+
+
+### Features
+
+* **metadata:** Consolidate package metadata into single property ([6b42b73](https://github.com/unoplat/unoplat-code-confluence/commit/6b42b73e49390158c450c3210eabc25da78a68a6))
+* **metadata:** Consolidate package metadata into single property ([9023fdf](https://github.com/unoplat/unoplat-code-confluence/commit/9023fdf264117353cde68caad48458424362a852))
+
+## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.29.1...unoplat-code-confluence-commons-v0.30.0) (2025-10-04)
+
+
+### Features
+
+* **metadata:** Add TypeScript and JavaScript package managers ([64d8368](https://github.com/unoplat/unoplat-code-confluence/commit/64d8368d2867a3a6d955fa3efbbef4461c90dfb4))
+* **metadata:** Add TypeScript and JavaScript package managers ([de5b9b3](https://github.com/unoplat/unoplat-code-confluence/commit/de5b9b31d8a1b2fc682973587cf2f86631c13a4f))
+
 ## [0.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.29.0...unoplat-code-confluence-commons-v0.29.1) (2025-09-30)
 
 

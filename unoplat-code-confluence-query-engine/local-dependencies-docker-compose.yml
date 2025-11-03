@@ -53,7 +53,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  
 
   electric:
     image: docker.io/electricsql/electric:latest
@@ -63,13 +62,12 @@ services:
       # See https://electric-sql.com/docs/guides/security
       ELECTRIC_INSECURE: true
     ports:
-      - "3000:3000"
+      - "3001:3000"
     networks:
       - temporal-network
     depends_on:
       postgresql:
         condition: service_healthy
-
 
   temporal:
     depends_on:
@@ -143,6 +141,7 @@ services:
       NEO4J_apoc_export_file_enabled: "true"
       NEO4J_apoc_import_file_enabled: "true"
       NEO4J_dbms_security_procedures_unrestricted: "*"
+      internal.dbms.tx_log.fail_on_corrupted_log_files: "false"
     networks:
       - temporal-network
     healthcheck:
@@ -192,4 +191,4 @@ volumes:
   elasticsearch_data:
     driver: local
   repositories_data:
-    driver: local   
+    driver: local

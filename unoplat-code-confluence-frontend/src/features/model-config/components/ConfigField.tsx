@@ -1,17 +1,17 @@
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import type { ProviderConfigFieldDefinition } from '../types';
-import { FIELD_TYPES } from '../constants';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { ProviderConfigFieldDefinition } from "../types";
+import { FIELD_TYPES } from "../constants";
 
 interface ConfigFieldProps {
   field: ProviderConfigFieldDefinition;
@@ -32,11 +32,13 @@ export function ConfigField({
   onChange,
   onBlur,
   error,
-  className
+  className,
 }: ConfigFieldProps): React.ReactElement {
   const fieldId = `field-${field.key}`;
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     onChange(event.target.value);
   };
 
@@ -52,8 +54,12 @@ export function ConfigField({
     const commonProps = {
       id: fieldId,
       onBlur,
-      'aria-describedby': error ? `${fieldId}-error` : field.help ? `${fieldId}-help` : undefined,
-      'aria-invalid': !!error,
+      "aria-describedby": error
+        ? `${fieldId}-error`
+        : field.help
+          ? `${fieldId}-help`
+          : undefined,
+      "aria-invalid": !!error,
     };
 
     switch (field.type) {
@@ -62,7 +68,7 @@ export function ConfigField({
           <Input
             {...commonProps}
             type="password"
-            value={String(value || '')}
+            value={String(value || "")}
             onChange={handleInputChange}
             placeholder={field.placeholder || undefined}
           />
@@ -73,9 +79,9 @@ export function ConfigField({
           <Input
             {...commonProps}
             type="url"
-            value={String(value || '')}
+            value={String(value || "")}
             onChange={handleInputChange}
-            placeholder={field.placeholder || 'https://...'}
+            placeholder={field.placeholder || "https://..."}
           />
         );
 
@@ -84,9 +90,9 @@ export function ConfigField({
           <Input
             {...commonProps}
             type="number"
-            value={String(value || '')}
+            value={String(value || "")}
             onChange={handleInputChange}
-            placeholder={field.placeholder || '0'}
+            placeholder={field.placeholder || "0"}
           />
         );
 
@@ -94,7 +100,7 @@ export function ConfigField({
         return (
           <Textarea
             {...commonProps}
-            value={String(value || '')}
+            value={String(value || "")}
             onChange={handleInputChange}
             placeholder={field.placeholder || undefined}
             rows={4}
@@ -104,11 +110,13 @@ export function ConfigField({
       case FIELD_TYPES.SELECT:
         return (
           <Select
-            value={String(value || '')}
+            value={String(value || "")}
             onValueChange={handleSelectChange}
           >
             <SelectTrigger {...commonProps}>
-              <SelectValue placeholder={field.placeholder || 'Select an option...'} />
+              <SelectValue
+                placeholder={field.placeholder || "Select an option..."}
+              />
             </SelectTrigger>
             <SelectContent>
               {field.enum?.map((option) => (
@@ -129,7 +137,7 @@ export function ConfigField({
               onCheckedChange={handleCheckboxChange}
             />
             <Label htmlFor={fieldId} className="text-sm font-normal">
-              {field.placeholder || 'Enable this option'}
+              {field.placeholder || "Enable this option"}
             </Label>
           </div>
         );
@@ -140,7 +148,7 @@ export function ConfigField({
           <Input
             {...commonProps}
             type="text"
-            value={String(value || '')}
+            value={String(value || "")}
             onChange={handleInputChange}
             placeholder={field.placeholder || undefined}
           />
@@ -154,7 +162,7 @@ export function ConfigField({
       {field.type !== FIELD_TYPES.BOOLEAN && (
         <Label htmlFor={fieldId} className="text-sm font-medium">
           {field.label}
-          {field.required && <span className="text-red-500 ml-1">*</span>}
+          {field.required && <span className="ml-1 text-red-500">*</span>}
         </Label>
       )}
 
@@ -163,7 +171,7 @@ export function ConfigField({
 
       {/* Help text */}
       {field.help && (
-        <p id={`${fieldId}-help`} className="text-xs text-muted-foreground">
+        <p id={`${fieldId}-help`} className="text-muted-foreground text-xs">
           {field.help}
         </p>
       )}

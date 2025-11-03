@@ -43,8 +43,7 @@ class ParentWorkflowDbActivity:
         trace_id: Optional[str] = envelope.trace_id
         status: JobStatus = JobStatus(envelope.status)  # Convert string to JobStatus enum
         error_report: Optional[ErrorReport] = envelope.error_report
-        is_local: bool = envelope.is_local
-        local_path: Optional[str] = envelope.local_path
+        repository_provider = envelope.repository_provider
         
         activity_id: str = "update_repository_workflow_status"
         log = seed_and_bind_logger_from_trace_id(
@@ -64,8 +63,7 @@ class ParentWorkflowDbActivity:
                     session, 
                     repository_name, 
                     repository_owner_name,
-                    is_local,
-                    local_path
+                    repository_provider
                 )
                 if envelope.repository_metadata:
                     for cm in envelope.repository_metadata:
@@ -149,8 +147,7 @@ class ParentWorkflowDbActivity:
         session: AsyncSession, 
         repository_name: str, 
         repository_owner_name: str,
-        is_local: bool = False,
-        local_path: Optional[str] = None
+        repository_provider
     ) -> Repository:
         """Get or create a repository record."""
         repository = await session.get(Repository, (repository_name, repository_owner_name))
@@ -160,8 +157,7 @@ class ParentWorkflowDbActivity:
             repository = Repository(
                 repository_name=repository_name,
                 repository_owner_name=repository_owner_name,
-                is_local=is_local,
-                local_path=local_path
+                repository_provider=repository_provider
             )
             session.add(repository)
             

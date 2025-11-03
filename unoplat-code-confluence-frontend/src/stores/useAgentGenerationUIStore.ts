@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { IngestedRepository } from '@/types';
+import { create } from "zustand";
+import type { IngestedRepository } from "@/types";
 
 interface AgentGenerationUIState {
   activeTab: string | null;
@@ -14,17 +14,23 @@ interface AgentGenerationUIState {
   closePreview: () => void;
 }
 
-export const useAgentGenerationUIStore = create<AgentGenerationUIState>()((set) => ({
-  activeTab: null,
-  isDialogOpen: false,
-  isPreviewOpen: false,
-  selectedRepository: null,
+export const useAgentGenerationUIStore = create<AgentGenerationUIState>()(
+  (set) => ({
+    activeTab: null,
+    isDialogOpen: false,
+    isPreviewOpen: false,
+    selectedRepository: null,
 
-  setActiveTab: (tab) => set({ activeTab: tab }),
-  openDialog: (repository) => set({ isDialogOpen: true, selectedRepository: repository, activeTab: null }),
-  closeDialog: () => set({ isDialogOpen: false, selectedRepository: null, activeTab: null }),
-  openPreview: () => set({ isPreviewOpen: true }),
-  closePreview: () => set({ isPreviewOpen: false }),
-}));
-
-
+    setActiveTab: (tab) => set({ activeTab: tab }),
+    openDialog: (repository) =>
+      set({
+        isDialogOpen: true,
+        selectedRepository: repository,
+        activeTab: null,
+      }),
+    closeDialog: () =>
+      set({ isDialogOpen: false, selectedRepository: null, activeTab: null }),
+    openPreview: () => set({ isPreviewOpen: true }),
+    closePreview: () => set({ isPreviewOpen: false }),
+  }),
+);

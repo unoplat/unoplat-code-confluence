@@ -12,7 +12,7 @@ export interface Repository {
   updated_at: string;
 }
 
-export type RepositoryCategory = 'personal' | 'organization' | 'collaborator';
+export type RepositoryCategory = "personal" | "organization" | "collaborator";
 
 export interface RepositoryWithCategory extends Repository {
   category: RepositoryCategory;
@@ -30,7 +30,12 @@ export interface RepositorySelection {
   metadata: RepositoryMetadata;
 }
 
-export type IngestionStatus = 'queued' | 'started' | 'in-progress' | 'completed' | 'failed';
+export type IngestionStatus =
+  | "queued"
+  | "started"
+  | "in-progress"
+  | "completed"
+  | "failed";
 
 export interface IngestionJob {
   id: string;
@@ -41,5 +46,3 @@ export interface IngestionJob {
   updatedAt: string;
   error?: string;
 }
-
- 

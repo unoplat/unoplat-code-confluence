@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,11 +6,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
-import { StatusBadge } from '@/components/custom/StatusBadge';
-import type { IngestedRepository } from '../../types';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { StatusBadge } from "@/components/custom/StatusBadge";
+import type { IngestedRepository } from "../../types";
 
 interface RefreshRepositoryDialogProps {
   open: boolean;
@@ -40,7 +40,13 @@ export function RefreshRepositoryDialog({
           </DialogTitle>
           <DialogDescription asChild>
             <div>
-              This will trigger a re-ingestion of the repository. This feature is in <StatusBadge status="alpha" size="sm" className="inline-flex mx-1" />
+              This will trigger a re-ingestion of the repository. This feature
+              is in{" "}
+              <StatusBadge
+                status="alpha"
+                size="sm"
+                className="mx-1 inline-flex"
+              />
               and may take some time to complete.
             </div>
           </DialogDescription>
@@ -48,14 +54,15 @@ export function RefreshRepositoryDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <p className="text-sm font-medium">Repository</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {repository.repository_owner_name}/{repository.repository_name}
             </p>
           </div>
-          <div className="rounded-md bg-muted p-3">
-            <div className="text-sm text-muted-foreground">
-              <strong>Note:</strong> The refresh process will run in the background.
-              You can continue using the application while it processes.
+          <div className="bg-muted rounded-md p-3">
+            <div className="text-muted-foreground text-sm">
+              <strong>Note:</strong> The refresh process will run in the
+              background. You can continue using the application while it
+              processes.
             </div>
           </div>
         </div>
@@ -64,7 +71,7 @@ export function RefreshRepositoryDialog({
             Cancel
           </Button>
           <Button onClick={onConfirm}>
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className="mr-2 h-4 w-4" />
             Start Refresh
           </Button>
         </DialogFooter>

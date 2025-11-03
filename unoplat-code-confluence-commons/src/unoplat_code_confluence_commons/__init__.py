@@ -6,7 +6,6 @@ Contains models and utilities for code analysis and representation.
 from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
-    ClassInfo,
     CodebaseConfig,
     CodebaseConfigSQLModel,
     Concept,
@@ -22,24 +21,41 @@ from unoplat_code_confluence_commons.base_models import (
     # Framework SQLModel models
     Framework,
     FrameworkFeature,
-    FunctionInfo,
     InheritanceInfo,
     LocatorStrategy,
     PackageManagerType,
     ProgrammingLanguage,
     ProgrammingLanguageMetadata,
+    # Python structural signature models
+    PythonClassInfo,
+    PythonFunctionInfo,
+    PythonStructuralSignature,
+    PythonVariableInfo,
     # Repository and Programming Language models
     Repository,
     RepositorySettings,
-    StructuralSignature,
+    # Structural signature utilities
+    StructuralSignatureUnion,
     # Engine Pydantic models
     TargetLevel,
-    # Structural signature models
-    VariableInfo,
-)
-from unoplat_code_confluence_commons.repo_models import (
-    RepoAgentSnapshotStatus,
-    RepositoryAgentMdSnapshot,
+    # TypeScript structural signature models
+    TypeScriptClassInfo,
+    TypeScriptEnumInfo,
+    TypeScriptEnumMemberInfo,
+    TypeScriptExportInfo,
+    TypeScriptFunctionInfo,
+    TypeScriptImportInfo,
+    TypeScriptInterfaceInfo,
+    TypeScriptInterfaceMethodInfo,
+    TypeScriptInterfacePropertyInfo,
+    TypeScriptMethodInfo,
+    TypeScriptNamespaceInfo,
+    TypeScriptParameterInfo,
+    TypeScriptStructuralSignature,
+    TypeScriptTypeAliasInfo,
+    TypeScriptVariableInfo,
+    deserialize_structural_signature,
+    get_signature_type_for_language,
 )
 from unoplat_code_confluence_commons.graph_models import (
     BaseNode,
@@ -48,10 +64,13 @@ from unoplat_code_confluence_commons.graph_models import (
     CodeConfluenceFramework,
     CodeConfluenceFrameworkFeature,
     CodeConfluenceGitRepository,
-    CodeConfluencePackage,
     CodeConfluencePackageManagerMetadata,
     ContainsRelationship,
     UsesFeatureRelationship,
+)
+from unoplat_code_confluence_commons.repo_models import (
+    RepoAgentSnapshotStatus,
+    RepositoryAgentMdSnapshot,
 )
 from unoplat_code_confluence_commons.security import (
     decrypt_token,
@@ -66,15 +85,34 @@ __all__ = [
     'CodeConfluenceFramework',
     'CodeConfluenceFrameworkFeature',
     'CodeConfluenceGitRepository',
-    'CodeConfluencePackage',
     'CodeConfluencePackageManagerMetadata',
     'ContainsRelationship',
     'UsesFeatureRelationship',
-    # Structural signature models
-    'VariableInfo',
-    'FunctionInfo',
-    'ClassInfo',
-    'StructuralSignature',
+    # Python structural signature models
+    'PythonVariableInfo',
+    'PythonFunctionInfo',
+    'PythonClassInfo',
+    'PythonStructuralSignature',
+    # TypeScript structural signature models
+    'TypeScriptVariableInfo',
+    'TypeScriptParameterInfo',
+    'TypeScriptFunctionInfo',
+    'TypeScriptMethodInfo',
+    'TypeScriptInterfacePropertyInfo',
+    'TypeScriptInterfaceMethodInfo',
+    'TypeScriptInterfaceInfo',
+    'TypeScriptTypeAliasInfo',
+    'TypeScriptClassInfo',
+    'TypeScriptEnumMemberInfo',
+    'TypeScriptEnumInfo',
+    'TypeScriptNamespaceInfo',
+    'TypeScriptExportInfo',
+    'TypeScriptImportInfo',
+    'TypeScriptStructuralSignature',
+    # Structural signature utilities
+    'StructuralSignatureUnion',
+    'deserialize_structural_signature',
+    'get_signature_type_for_language',
     # Engine Pydantic models
     'TargetLevel',
     'LocatorStrategy',
