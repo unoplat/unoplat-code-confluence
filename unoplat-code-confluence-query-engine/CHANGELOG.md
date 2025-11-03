@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.18.0...unoplat-code-confluence-query-engine-v0.19.0) (2025-11-03)
+
+
+### Features
+
+* **code:** allow sections of agents.md per codebase to be collapsed and copied ([859bbc7](https://github.com/unoplat/unoplat-code-confluence/commit/859bbc734789996aa1c1b8cabb88c4c5fd15ffa8))
+
 ## [0.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.17.2...unoplat-code-confluence-query-engine-v0.18.0) (2025-10-30)
 
 
