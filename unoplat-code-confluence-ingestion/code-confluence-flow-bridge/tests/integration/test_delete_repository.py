@@ -5,10 +5,7 @@
 # - test_client: Session-scoped TestClient fixture with proper configuration
 # - github_token: Session-scoped fixture providing GitHub PAT token
 
-import os
 import asyncio
-from pathlib import Path
-import subprocess
 import time
 from typing import Any, Dict, Optional
 
@@ -18,9 +15,6 @@ import pytest
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoRequestConfiguration,
     IngestedRepositoryResponse,
-)
-from src.code_confluence_flow_bridge.utility.environment_utils import (
-    construct_local_repository_path,
 )
 from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
 
@@ -32,66 +26,6 @@ from tests.utils.graph_assertions import (
 )
 from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
 from tests.utils.sync_db_utils import get_sync_postgres_session
-
-# ---------------------------------------------------------------------------
-# HELPER FUNCTIONS FROM test_start_ingestion.py
-# ---------------------------------------------------------------------------
-
-
-def get_repository_path() -> str:
-    """
-    Get the repository root path using git to find the repository root.
-
-    This function works in both local development and CI/CD environments by
-    using git to identify the actual repository root directory.
-
-    Returns:
-        str: Absolute path to the repository root directory
-
-    Raises:
-        RuntimeError: If the repository root directory cannot be found
-    """
-    try:
-        # Use git to find the repository root
-        result = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            capture_output=True,
-            text=True,
-            check=True,
-            cwd=Path(__file__).parent  # Start from test file directory
-        )
-        repository_root = result.stdout.strip()
-
-        # Verify the path exists and is a directory
-        if Path(repository_root).exists() and Path(repository_root).is_dir():
-            return repository_root
-        else:
-            raise RuntimeError(f"Git returned invalid repository path: {repository_root}")
-
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        # Git command failed, try fallback approach
-        current_path = Path(__file__).parent.parent.parent.parent.parent  # Go up from test file
-
-        # Look for repository indicators
-        indicators = [
-            "unoplat-code-confluence-ingestion",
-            "unoplat-code-confluence-frontend",
-            "unoplat-code-confluence-commons",
-            ".git",
-            "Taskfile.yml"
-        ]
-
-        # Check current directory and parents
-        for path in [current_path] + list(current_path.parents):
-            if any((path / indicator).exists() for indicator in indicators):
-                return str(path.resolve())
-
-        # Final fallback
-        raise RuntimeError(
-            f"Repository root could not be determined. Git error: {e}. "
-            f"No repository indicators found starting from: {current_path}"
-        )
-
 
 async def monitor_workflow_completion(workflow_id: str, run_id: str, temporal_address: str, timeout_seconds: int = 300) -> WorkflowExecutionStatus:
     """
@@ -190,9 +124,7 @@ class TestDeleteRepositoryEndpoint:
         # Create the repository info payload for non-existent repository
         repo_info = IngestedRepositoryResponse(
             repository_name="nonexistent-repo",
-            repository_owner_name="nonexistent-user",
-            is_local=False,
-            local_path=None
+            repository_owner_name="nonexistent-user"
         )
         
         # Call the delete endpoint via test client
@@ -211,7 +143,7 @@ class TestDeleteRepositoryEndpoint:
         assert "nonexistent-repo" in error_data["detail"] or "nonexistent-user" in error_data["detail"]
 
     @pytest.mark.asyncio(loop_scope="session") #type: ignore
-    async def test_delete_local_repository_flow(
+    async def test_delete_remote_repository_flow(
         self,
         test_client: TestClient,
         github_token: str,
@@ -219,14 +151,13 @@ class TestDeleteRepositoryEndpoint:
         neo4j_client,
     ) -> None:
         """
-        Test complete local repository deletion flow:
-        1. Ingest the repository with auto-detection
+        Test complete remote repository deletion flow:
+        1. Ingest the repository (explicit metadata)
         2. Wait for workflow completion
         3. Delete the repository
         4. Verify deletion statistics
 
-        This test validates the new 1-step flow where codebase detection happens automatically
-        within the start-ingestion endpoint when repository_metadata is None.
+        This test validates the deletion workflow for remotely ingested repositories.
         """
         # Clean up databases using context manager for isolated sessions
         with get_sync_postgres_session(service_ports["postgresql"]) as session:
@@ -247,19 +178,14 @@ class TestDeleteRepositoryEndpoint:
         assert token_resp.status_code in (201, 409), token_resp.text
 
         # ------------------------------------------------------------------
-        # 2️⃣  Get local repository path and create ingestion request with auto-detection
+        # 2️⃣  Create ingestion request for remote repository with auto-detection
         # ------------------------------------------------------------------
-        local_repo_path: str = get_repository_path()
-        folder_name = os.path.basename(local_repo_path)
-
         # Create request WITHOUT repository_metadata to trigger auto-detection
         repo_request = GitHubRepoRequestConfiguration(
             repository_name="unoplat-code-confluence",
-            repository_git_url=construct_local_repository_path(folder_name),
+            repository_git_url="https://github.com/unoplat/unoplat-code-confluence",
             repository_owner_name="unoplat",
-            repository_metadata=None,  # Triggers auto-detection
-            is_local=True,
-            local_path=folder_name
+            repository_metadata=None  # Triggers auto-detection
         )
 
         # ------------------------------------------------------------------
@@ -280,7 +206,7 @@ class TestDeleteRepositoryEndpoint:
                 workflow_id=workflow_id,
                 run_id=run_id,
                 temporal_address=temporal_address,
-                timeout_seconds=300,  # 5 minutes for local processing
+                timeout_seconds=300,  # 5 minutes for remote repository processing
             )
             assert final_status == WorkflowExecutionStatus.COMPLETED, f"Workflow did not complete successfully: {final_status}"
         except asyncio.TimeoutError:
@@ -317,9 +243,7 @@ class TestDeleteRepositoryEndpoint:
         # ------------------------------------------------------------------
         delete_repo_info = IngestedRepositoryResponse(
             repository_name=repo_request.repository_name,
-            repository_owner_name=repo_request.repository_owner_name,
-            is_local=repo_request.is_local,
-            local_path=repo_request.local_path
+            repository_owner_name=repo_request.repository_owner_name
         )
         
         # Call the delete endpoint

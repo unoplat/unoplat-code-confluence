@@ -27,7 +27,10 @@ async def get_directory_tree(
 
     Args:
         depth: Maximum directory depth to traverse (must be >= 1).
-        path: Absolute path to directory to traverse; defaults to codebase root if not provided.
+        path: **ABSOLUTE PATH REQUIRED** - Full filesystem path starting with /.
+              Examples: /opt/unoplat/repositories/my-repo/src, /opt/unoplat/repositories/my-repo/config
+              Do NOT use relative paths like 'src', './config', or '../parent'.
+              Defaults to codebase root if not provided.
 
     Returns:
         DirectoryTree: The formatted tree structure.

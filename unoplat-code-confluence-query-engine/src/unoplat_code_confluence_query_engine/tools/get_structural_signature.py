@@ -59,7 +59,9 @@ async def get_structural_signature(
     - Import statements used in the file
 
     Args:
-        abs_path: Absolute path to the source file.
+        abs_path: **ABSOLUTE PATH REQUIRED** - Full filesystem path starting with /.
+                  Examples: /opt/unoplat/repositories/my-repo/src/module.py, /opt/unoplat/repositories/my-repo/service.ts
+                  Do NOT use relative paths like 'src/file.py', 'module.py', or './config.ts'
 
     Returns:
         Complete structural information including signature and imports.
