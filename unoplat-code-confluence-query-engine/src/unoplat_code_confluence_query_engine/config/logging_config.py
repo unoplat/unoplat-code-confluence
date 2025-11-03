@@ -8,18 +8,18 @@ from loguru import logger
 def setup_logging(settings: Any) -> None:
     """
     Configure minimal Loguru logging for console and file output
-    
+
     Args:
         settings: Application settings object containing log configuration
     """
     # Remove default handler
     logger.remove()
-    
+
     # Get project root directory (go up 4 levels from this file)
     project_root = Path(__file__).parent.parent.parent.parent
     log_dir = project_root / "logs"
     log_dir.mkdir(exist_ok=True)
-    
+
     # Console handler with colorization for development
     logger.add(
         sys.stdout,
@@ -28,9 +28,9 @@ def setup_logging(settings: Any) -> None:
         colorize=True,
         enqueue=True,  # Async-safe for FastAPI
         diagnose=False,  # Safe for production
-        backtrace=True
+        backtrace=True,
     )
-    
+
     # File handler with rotation and retention
     logger.add(
         log_dir / "app_{time:YYYY-MM-DD}.log",
@@ -41,7 +41,7 @@ def setup_logging(settings: Any) -> None:
         compression="gz",
         enqueue=True,
         diagnose=False,
-        backtrace=True
+        backtrace=True,
     )
-    
+
     logger.info("Logging system initialized")
