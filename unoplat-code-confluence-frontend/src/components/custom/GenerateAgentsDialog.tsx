@@ -1,21 +1,28 @@
-import React from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import type { IngestedRepository, CodebaseMetadataResponse } from '@/types';
+import React from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { IngestedRepository, CodebaseMetadataResponse } from "@/types";
 import {
   getCodebaseMetadata,
   getRepositoryAgentSnapshot,
   startRepositoryAgentRun,
   type RepositoryAgentSnapshot,
   type RepoAgentSnapshotStatus,
-} from '@/lib/api';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Card } from '@/components/ui/card';
-import { GenerateAgentsProgress } from '@/components/custom/GenerateAgentsProgress';
-import { Button } from '@/components/ui/button';
-import { GenerateAgentsPreview } from '@/components/custom/GenerateAgentsPreview';
-import { codebasesToMarkdown } from '@/lib/agent-md-to-markdown';
-import { useRepositoryAgentSnapshot } from '@/features/repository-agent-snapshots/hooks';
-import { parseAgentMdOutputsFromSnapshot } from '@/features/repository-agent-snapshots/transformers';
+} from "@/lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
+import { GenerateAgentsProgress } from "@/components/custom/GenerateAgentsProgress";
+import { Button } from "@/components/ui/button";
+import { GenerateAgentsPreview } from "@/components/custom/GenerateAgentsPreview";
+import { AgentStatisticsDisplay } from "@/components/custom/AgentStatisticsDisplay";
+import { codebasesToMarkdown } from "@/lib/agent-md-to-markdown";
+import { useRepositoryAgentSnapshot } from "@/features/repository-agent-snapshots/hooks";
+import { parseAgentMdOutputsFromSnapshot } from "@/features/repository-agent-snapshots/transformers";
 
 interface GenerateAgentsDialogProps {
   repository: IngestedRepository | null;
@@ -23,17 +30,27 @@ interface GenerateAgentsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function GenerateAgentsDialog({ repository, open, onOpenChange }: GenerateAgentsDialogProps): React.ReactElement | null {
+export function GenerateAgentsDialog({
+  repository,
+  open,
+  onOpenChange,
+}: GenerateAgentsDialogProps): React.ReactElement | null {
   const [isPreviewOpen, setIsPreviewOpen] = React.useState<boolean>(false);
-  const [kickOffErrorMessage,setKickOffErrorMessage] = React.useState<string | null>(null);
+  const [kickOffErrorMessage, setKickOffErrorMessage] = React.useState<
+    string | null
+  >(null);
 
   const { data, isLoading } = useQuery<CodebaseMetadataResponse>({
     enabled: open && !!repository,
-    queryKey: ['codebase-metadata', repository?.repository_owner_name, repository?.repository_name],
+    queryKey: [
+      "codebase-metadata",
+      repository?.repository_owner_name,
+      repository?.repository_name,
+    ],
     queryFn: () =>
       getCodebaseMetadata(
         repository!.repository_owner_name,
-        repository!.repository_name
+        repository!.repository_name,
       ),
     staleTime: 60_000,
   });
@@ -44,16 +61,23 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
     refetch: refetchSnapshot,
   } = useQuery<RepositoryAgentSnapshot | null>({
     enabled: open && !!repository,
-    queryKey: ['repository-agent-snapshot', repository?.repository_owner_name, repository?.repository_name],
+    queryKey: [
+      "repository-agent-snapshot",
+      repository?.repository_owner_name,
+      repository?.repository_name,
+    ],
     queryFn: () =>
       getRepositoryAgentSnapshot(
         repository!.repository_owner_name,
-        repository!.repository_name
+        repository!.repository_name,
       ),
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   });
   const scope = repository
-    ? { owner: repository.repository_owner_name, repository: repository.repository_name }
+    ? {
+        owner: repository.repository_owner_name,
+        repository: repository.repository_name,
+      }
     : null;
 
   const {
@@ -68,20 +92,29 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
   const startRunMutation = useMutation({
     mutationFn: async () => {
       if (!repository) {
-        throw new Error('Repository is required to start agent generation');
+        throw new Error("Repository is required to start agent generation");
       }
 
-      return startRepositoryAgentRun(repository.repository_owner_name, repository.repository_name);
+      return startRepositoryAgentRun(
+        repository.repository_owner_name,
+        repository.repository_name,
+      );
     },
     onSuccess: () => {
       void refetchSnapshot();
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'Failed to start repository workflow';
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to start repository workflow";
       setKickOffErrorMessage(message);
     },
   });
 
+  const startRunMutate = startRunMutation.mutate;
+  const startRunIsPending = startRunMutation.isPending;
+  const startRunIsSuccess = startRunMutation.isSuccess;
 
   React.useEffect(() => {
     if (!open || !repository) {
@@ -92,8 +125,7 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
       return;
     }
 
-    
-      if ( startRunMutation.isPending || startRunMutation.isSuccess) {
+    if (startRunIsPending || startRunIsSuccess) {
       return;
     }
 
@@ -102,95 +134,146 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
     }
 
     if (snapshot === null) {
-      startRunMutation.mutate();
-    } 
+      startRunMutate();
+    }
   }, [
     open,
     repository,
     data?.codebases,
-    startRunMutation.isPending,
-    startRunMutation.isSuccess,
+    startRunIsPending,
+    startRunIsSuccess,
     isSnapshotLoading,
     snapshot,
-    startRunMutation,
+    startRunMutate,
   ]);
 
   const { markdownByCodebase: fallbackMarkdown } = React.useMemo(
     () => parseAgentMdOutputsFromSnapshot(snapshot),
-    [snapshot]
+    [snapshot],
   );
+
+  const codebaseIds = React.useMemo(
+    () => data?.codebases?.map((c) => c.codebase_folder) ?? [],
+    [data?.codebases],
+  );
+
+  const snapshotMarkdown = parsedSnapshot?.markdownByCodebase;
+  const previewCodebases =
+    snapshotMarkdown && Object.keys(snapshotMarkdown).length > 0
+      ? snapshotMarkdown
+      : Object.keys(fallbackMarkdown).length > 0
+        ? fallbackMarkdown
+        : null;
+
+  const previewContent = React.useMemo(() => {
+    if (!repository || !previewCodebases) {
+      return null;
+    }
+    return codebasesToMarkdown(previewCodebases, {
+      title: `AGENTS.md - ${repository.repository_owner_name}/${repository.repository_name}`,
+    });
+  }, [repository, previewCodebases]);
 
   if (!repository) {
     return null;
   }
 
-  const codebaseIds = data?.codebases?.map((c) => c.codebase_folder) ?? [];
   const isCheckingExisting = isSnapshotLoading && snapshot === undefined;
 
-  const currentStatus: RepoAgentSnapshotStatus | 'IDLE' =
-    parsedSnapshot?.status ?? snapshot?.status ?? 'IDLE';
+  const currentStatus: RepoAgentSnapshotStatus | "IDLE" =
+    parsedSnapshot?.status ?? snapshot?.status ?? "IDLE";
 
-  const hasExistingSnapshot = (parsedSnapshot?.status ?? snapshot?.status) === 'COMPLETED';
-  const isSnapshotRunning = currentStatus === 'RUNNING';
-  const isSnapshotError = (parsedSnapshot?.status ?? snapshot?.status) === 'ERROR';
+  const hasExistingSnapshot =
+    (parsedSnapshot?.status ?? snapshot?.status) === "COMPLETED";
+  const isSnapshotRunning = currentStatus === "RUNNING";
+  const isSnapshotError =
+    (parsedSnapshot?.status ?? snapshot?.status) === "ERROR";
   const showRerunButton = hasExistingSnapshot || isSnapshotError;
-  const rerunLabel = isSnapshotError && !hasExistingSnapshot ? 'Retry Operation' : 'Re-run Operation';
+  const rerunLabel =
+    isSnapshotError && !hasExistingSnapshot
+      ? "Retry Operation"
+      : "Re-run Operation";
   const showExistingMessage =
-    !isCheckingExisting && !isSnapshotRunning && hasExistingSnapshot && currentStatus === 'COMPLETED';
+    !isCheckingExisting &&
+    !isSnapshotRunning &&
+    hasExistingSnapshot &&
+    currentStatus === "COMPLETED";
 
-  const snapshotMarkdown = parsedSnapshot?.markdownByCodebase;
-  const previewCodebases = snapshotMarkdown && Object.keys(snapshotMarkdown).length > 0
-    ? snapshotMarkdown
-    : Object.keys(fallbackMarkdown).length > 0
-      ? fallbackMarkdown
-      : null;
-
-  const previewContent = previewCodebases
-    ? codebasesToMarkdown(previewCodebases, {
-        title: `AGENTS.md - ${repository.repository_owner_name}/${repository.repository_name}`,
-      })
-    : null;
+  const showStatistics = hasExistingSnapshot && parsedSnapshot?.statistics;
 
   const handleRerun = (): void => {
     startRunMutation.mutate();
   };
 
+  const handleDownloadAll = (): void => {
+    if (!previewContent) {
+      return;
+    }
+
+    const blob = new Blob([previewContent], {
+      type: "text/markdown;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "AGENTS.md";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col" padding="default">
+      <DialogContent
+        className="flex max-h-[85vh] flex-col sm:max-w-2xl"
+        padding="default"
+      >
         <DialogHeader>
           <DialogTitle>Generate Agents.md</DialogTitle>
           <DialogDescription>
-            Generate precise metadata for your repository's AI agents and workflows.
+            Generate precise metadata for your repository&apos;s AI agents and
+            workflows.
           </DialogDescription>
         </DialogHeader>
         <Card className="p-4">
           <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">Repository</div>
+            <div className="text-muted-foreground text-sm">Repository</div>
             <div className="text-sm font-medium">
               {repository.repository_name}
             </div>
           </div>
         </Card>
-        <div className="mt-4 flex-1 min-h-0 flex flex-col">
+        <div className="mt-4 flex min-h-0 flex-1 flex-col overflow-y-auto">
           {isCheckingExisting && (
-            <div className="text-sm">Checking for existing agents.md output...</div>
+            <div className="text-sm">
+              Checking for existing agents.md output...
+            </div>
           )}
 
           {!isCheckingExisting && isSnapshotError && (
             <div className="space-y-2">
-              <div className="text-sm text-red-600">The previous generation ended with an error.</div>
-              <div className="text-sm text-muted-foreground">Re-run the operation when you are ready.</div>
+              <div className="text-sm text-red-600">
+                The previous generation ended with an error.
+              </div>
+              <div className="text-muted-foreground text-sm">
+                Re-run the operation when you are ready.
+              </div>
             </div>
           )}
 
-          {!isCheckingExisting && currentStatus !== 'RUNNING' && !hasExistingSnapshot && isLoading && (
-            <div className="text-sm">Detecting codebases...</div>
-          )}
+          {!isCheckingExisting &&
+            currentStatus !== "RUNNING" &&
+            !hasExistingSnapshot &&
+            isLoading && <div className="text-sm">Detecting codebases...</div>}
 
-          {!isCheckingExisting && currentStatus !== 'RUNNING' && !hasExistingSnapshot && !isLoading && codebaseIds.length === 0 && (
-            <div className="text-sm">No codebases detected.</div>
-          )}
+          {!isCheckingExisting &&
+            currentStatus !== "RUNNING" &&
+            !hasExistingSnapshot &&
+            !isLoading &&
+            codebaseIds.length === 0 && (
+              <div className="text-sm">No codebases detected.</div>
+            )}
 
           {kickOffErrorMessage ? (
             <div className="text-sm text-red-600" role="alert">
@@ -229,7 +312,7 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
                 >
                   Retry Sync
                 </Button>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   Status: {liveStatus}
                 </div>
               </div>
@@ -243,6 +326,12 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
               codebaseIds={codebaseIds}
               isSyncing={isLiveLoading || isSnapshotRunning}
             />
+          ) : null}
+
+          {showStatistics ? (
+            <div className="mt-6">
+              <AgentStatisticsDisplay statistics={parsedSnapshot.statistics} />
+            </div>
           ) : null}
         </div>
 
@@ -281,12 +370,13 @@ export function GenerateAgentsDialog({ repository, open, onOpenChange }: Generat
           </div>
         </div>
 
-        {previewContent ? (
+        {previewCodebases ? (
           <GenerateAgentsPreview
-            content={previewContent}
-            fileName="AGENTS.md"
+            codebases={previewCodebases}
+            repositoryName={`${repository.repository_owner_name}/${repository.repository_name}`}
             open={isPreviewOpen}
             onOpenChange={setIsPreviewOpen}
+            onDownloadAll={handleDownloadAll}
           />
         ) : null}
       </DialogContent>

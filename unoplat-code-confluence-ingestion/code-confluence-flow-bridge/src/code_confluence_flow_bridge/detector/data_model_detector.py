@@ -2,56 +2,63 @@
 Extensible data model detection for multiple programming languages.
 
 This module provides language-agnostic data model detection by dispatching to
-language-specific detection logic. It identifies files that define data models
-such as dataclasses, entities, DTOs, schemas, etc.
+language-specific detection logic via factory pattern. It identifies files that
+define data models such as dataclasses, entities, DTOs, schemas, etc.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+from unoplat_code_confluence_commons.base_models import DataModelPosition
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    ProgrammingLanguage,
+)
+
+from src.code_confluence_flow_bridge.detector.data_model_detector_factory import (
+    DataModelDetectorFactory,
+    UnsupportedLanguageForDataModelDetectionError,
+)
 
 
 def detect_data_model(
     source_code: str,
-    imports: List[str],
-    language: str,
-    structural_signature: Optional[object] = None
-) -> bool:
+    imports: Optional[List[str]] = None,
+    language: str = "",
+    structural_signature: Optional[object] = None,
+) -> Tuple[bool, DataModelPosition]:
     """
     Detect if a file contains data model definitions for any supported language.
-    
+
     Args:
         source_code: The source code content
-        imports: List of import statements (already extracted)
-        language: Programming language (e.g., "python", "java", "typescript")
+        imports: Optional list of import statements (already extracted)
+        language: Programming language (e.g., "python", "typescript")
         structural_signature: Optional structural signature (for future use)
-        
-    Returns:
-        True if the file contains data model definitions, False otherwise
-    """
-    if language == "python":
-        return _detect_python_data_models(imports)
-    else:
-        return False
 
-
-def _detect_python_data_models(imports: List[str]) -> bool:
-    """
-    Detect Python data models (dataclasses, pydantic models, etc.).
-    
-    Since Ruff F401 ensures no unused imports, if dataclass is imported,
-    it's being used in the file.
-    
-    Args:
-        imports: List of import statement strings
-        
     Returns:
-        True if Python data model imports are found
+        Tuple containing:
+            - bool: True if data models exist, False otherwise
+            - DataModelPosition: Positions of detected data models
+
+    Raises:
+        UnsupportedLanguageForDataModelDetectionError: If language is not supported
     """
-    # Check for dataclass-related imports
-    dataclass_patterns = ['dataclass', 'pydantic']
-    
-    for import_stmt in imports:
-        import_lower = import_stmt.lower()
-        if any(pattern in import_lower for pattern in dataclass_patterns):
-            return True
-    
-    return False
+    try:
+        # Convert string language to ProgrammingLanguage enum
+        programming_language = ProgrammingLanguage(language.lower())
+    except ValueError:
+        # If language string is not a valid enum value, return no data models found
+        return (False, DataModelPosition())
+
+    try:
+        # Get appropriate strategy from factory
+        strategy = DataModelDetectorFactory.get_strategy(programming_language)
+
+        # Delegate detection to language-specific strategy
+        return strategy.detect(
+            source_code=source_code,
+            imports=imports,
+            structural_signature=structural_signature,
+        )
+    except UnsupportedLanguageForDataModelDetectionError:
+        # Language not supported for data model detection
+        return (False, DataModelPosition())

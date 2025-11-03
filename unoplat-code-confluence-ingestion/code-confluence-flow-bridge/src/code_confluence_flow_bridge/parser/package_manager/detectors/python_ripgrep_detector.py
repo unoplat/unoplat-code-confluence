@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from aiofile import async_open
-from git import Repo
 from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
 from unoplat_code_confluence_commons.programming_language_metadata import (
     PackageManagerType,
@@ -29,6 +28,9 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
     LanguageRules,
     ManagerRule,
     Signature,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.git_utils import (
+    clone_repo_if_missing,
 )
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.ordered_detection import (
     OrderedDetector,
@@ -135,7 +137,12 @@ class PythonRipgrepDetector:
             repo_path: str = git_url
         else:
             # Remote URL - clone repository
-            repo_path = await asyncio.to_thread(self._clone_repository, git_url, github_token)
+            repo_path = await asyncio.to_thread(
+                clone_repo_if_missing,
+                git_url,
+                github_token,
+                depth=1,
+            )
 
         # Fast detection using ripgrep with breadth-first processing
         inventory, detections = await self._fast_detect(repo_path)
@@ -290,47 +297,4 @@ class PythonRipgrepDetector:
             programming_language_metadata=programming_language_metadata,
         )
 
-    # todo: stick to one format either ssh or https
-    def _clone_repository(self, git_url: str, github_token: str) -> str:
-        """
-        Clone GitHub repository to local path.
-        Uses same logic as existing detector for consistency.
-
-        Args:
-            git_url: GitHub repository URL
-            github_token: GitHub personal access token for authentication
-
-        Returns:
-            Local path to cloned repository
-        """
-        # Extract repository name from URL (same logic as existing detector)
-        if git_url.startswith("git@"):
-            # Handle SSH format: git@github.com:org/repo.git
-            repo_path: str = git_url.split("github.com:")[-1]
-        else:
-            # Handle HTTPS format: https://github.com/org/repo[.git]
-            repo_path = git_url.split("github.com/")[-1]
-        repo_path = repo_path.replace(".git", "")
-        repo_name: str = repo_path.split("/")[-1]
-
-        # Create local directory (same as existing detector)
-        local_base_path: str = os.path.join(
-            os.path.expanduser("~"), ".unoplat", "repositories"
-        )
-        os.makedirs(local_base_path, exist_ok=True)
-
-        # Set local clone path
-        local_repo_path: str = os.path.join(local_base_path, repo_name)
-
-        # Clone repository if not already cloned
-        if not os.path.exists(local_repo_path):
-            # Add token to URL for HTTPS URLs
-            if git_url.startswith("https://"):
-                # Insert token into HTTPS URL
-                clone_url: str = git_url.replace("https://", f"https://{github_token}@")
-            else:
-                clone_url = git_url
-
-            Repo.clone_from(clone_url, local_repo_path, depth=1)
-
-        return local_repo_path
+    

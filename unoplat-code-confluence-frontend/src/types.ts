@@ -38,7 +38,12 @@ export interface RepositorySelection {
 }
 
 // Ingestion job types
-export type IngestionStatus = 'queued' | 'started' | 'in-progress' | 'completed' | 'failed';
+export type IngestionStatus =
+  | "queued"
+  | "started"
+  | "in-progress"
+  | "completed"
+  | "failed";
 
 export interface IngestionJob {
   id: string;
@@ -53,8 +58,7 @@ export interface IngestionJob {
 export interface PaginationJson {
   page: number;
   perPage: number;
-} 
-
+}
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -62,7 +66,6 @@ export interface PaginatedResponse<T> {
   has_next: boolean;
   next_cursor?: string;
 }
-
 
 export interface FlagResponse {
   status: boolean;
@@ -74,7 +77,7 @@ export interface ProgrammingLanguageMetadata {
   language: string; // e.g., "python"
   package_manager: string; // e.g., "uv", "pip", "poetry"
   language_version?: string | null;
-  role?: 'leaf' | 'aggregator' | 'NA';
+  role?: "leaf" | "aggregator" | "NA";
   manifest_path?: string | null;
   project_name?: string | null;
 }
@@ -99,9 +102,8 @@ export interface GitHubRepoRequestConfiguration {
   repository_name: string;
   repository_git_url: string;
   repository_owner_name: string;
-  repository_metadata: CodebaseConfig[];
-  is_local: boolean; // Whether it's a local repository
-  local_path?: string | null; // Local path for local repositories
+  repository_metadata?: CodebaseConfig[] | null; // Optional - backend auto-detects if empty/null
+  repository_provider?: "github_open" | "github_enterprise" | "gitlab";
 }
 
 // Backend-compatible codebase config for repository metadata (GET response)
@@ -132,7 +134,6 @@ export interface WorkflowStatus {
   workflowRuns: WorkflowRun[];
 }
 
-
 export interface CompletedStage {
   stageName: string;
   status: string;
@@ -148,7 +149,13 @@ export interface ApiResponse {
 // Job submission types
 
 // Job status enum for parent workflow and repository status
-export type JobStatus = 'SUBMITTED' | 'RUNNING' | 'FAILED' | 'TIMED_OUT' | 'COMPLETED' | 'RETRYING';
+export type JobStatus =
+  | "SUBMITTED"
+  | "RUNNING"
+  | "FAILED"
+  | "TIMED_OUT"
+  | "COMPLETED"
+  | "RETRYING";
 
 // Parent workflow job response from API
 export interface ParentWorkflowJobResponse {
@@ -166,7 +173,7 @@ export interface ParentWorkflowJobListResponse {
 }
 
 // Issue tracking types
-export type IssueStatus = 'OPEN' | 'CLOSED';
+export type IssueStatus = "OPEN" | "CLOSED";
 
 export interface IssueTracking {
   issue_id?: string | null;
@@ -176,7 +183,7 @@ export interface IssueTracking {
   created_at?: string | null;
 }
 
-export type IssueType = 'REPOSITORY' | 'CODEBASE';
+export type IssueType = "REPOSITORY" | "CODEBASE";
 
 // ===================================
 // ERROR REPORT TYPES
@@ -199,12 +206,12 @@ export interface UiErrorReport extends ApiErrorReport {
   error_type: IssueType;
   error_traceback?: string; // Alias for stack_trace for backward compatibility
   issue_tracking?: IssueTracking;
-  
+
   // Repository context
   repository_name: string;
   repository_owner_name: string;
   parent_workflow_run_id: string;
-  
+
   // Optional workflow context
   workflow_id?: string;
   workflow_run_id?: string;
@@ -224,7 +231,7 @@ export interface WorkflowRun {
 
 // Flattened codebase run for table display
 export interface FlattenedCodebaseRun {
-  codebase_folder: string,
+  codebase_folder: string;
   codebase_workflow_run_id: string;
   codebase_status: JobStatus;
   codebase_started_at: string;
@@ -266,51 +273,22 @@ export interface GithubRepoStatus {
 
 // Dictionary mapping programming languages to their supported package managers
 export const LANGUAGE_PACKAGE_MANAGERS: Record<string, string[]> = {
-  python: ['uv', 'pip', 'poetry'],
+  python: ["uv", "pip", "poetry"],
   // Add more languages as needed
-  javascript: ['npm', 'yarn', 'pnpm'],
-  typescript: ['npm', 'yarn', 'pnpm'],
-  java: ['maven', 'gradle'],
-  rust: ['cargo'],
+  //javascript: ['npm', 'yarn', 'pnpm'],
+  typescript: ["npm", "yarn", "pnpm", "bun"],
+  //java: ['maven', 'gradle'],
+  //rust: ['cargo'],
 };
 
 // ===================================
-// CODEBASE DETECTION TYPES
-// ===================================
-
-export interface DetectionProgress {
-  state: 'initializing' | 'cloning' | 'analyzing' | 'complete';
-  message: string;
-  repository_url: string;
-}
-
-export interface DetectionResult {
-  repository_url: string;
-  duration_seconds: number;
-  codebases: CodebaseConfig[];
-  error: string | null;
-}
-
-export interface DetectionError {
-  error: string;
-  timestamp: string;
-  type: 'DETECTION_ERROR' | 'CONNECTION_ERROR' | 'AUTH_ERROR';
-}
-
-export interface SSEEvent<T = unknown> {
-  event: string;
-  data: T;
-}
-
-// ===================================
-// INGESTED REPOSITORY TYPES  
+// INGESTED REPOSITORY TYPES
 // ===================================
 
 export interface IngestedRepository {
   repository_name: string;
   repository_owner_name: string;
-  is_local: boolean;
-  local_path?: string | null;
+  repository_provider: "github_open" | "github_enterprise" | "gitlab" | "gitlab_self_hosted" | "bitbucket";
 }
 
 export interface IngestedRepositoriesResponse {

@@ -7,8 +7,9 @@ proper transaction isolation.
 """
 
 from contextlib import contextmanager
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 
 

@@ -10,7 +10,7 @@ from unoplat_code_confluence_query_engine.models.agent_dependencies import (
 
 # class DirectoryTree(BaseModel):
 #     """Directory tree structure returned by the eza utility.
-    
+
 #     This model represents the formatted output from the eza command-line tool,
 #     which provides a tree-like view of directory structure with files and folders.
 #     """
@@ -27,7 +27,10 @@ async def get_directory_tree(
 
     Args:
         depth: Maximum directory depth to traverse (must be >= 1).
-        path: Absolute path to directory to traverse; defaults to codebase root if not provided.
+        path: **ABSOLUTE PATH REQUIRED** - Full filesystem path starting with /.
+              Examples: /opt/unoplat/repositories/my-repo/src, /opt/unoplat/repositories/my-repo/config
+              Do NOT use relative paths like 'src', './config', or '../parent'.
+              Defaults to codebase root if not provided.
 
     Returns:
         DirectoryTree: The formatted tree structure.
@@ -89,7 +92,7 @@ async def get_directory_tree(
 
         # Return the directory tree
         tree_output = stdout.decode("utf-8")
-        #return DirectoryTree(tree=tree_output)
+        # return DirectoryTree(tree=tree_output)
         return tree_output
 
     except FileNotFoundError:

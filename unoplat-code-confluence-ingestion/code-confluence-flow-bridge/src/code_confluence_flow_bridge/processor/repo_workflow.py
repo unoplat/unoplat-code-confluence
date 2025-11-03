@@ -73,7 +73,7 @@ class RepoWorkflow:
       
         try:
             log.info(f"Starting repository workflow for {repo_request.repository_git_url}")
-            #TODO: insert into postgres regarding the workflow status with repo and owner composite key obtained by splitting the trace id 
+            
 
             log.info("Executing git activity to process repository")
             # Create GitActivityEnvelope

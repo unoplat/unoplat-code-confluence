@@ -1,5 +1,10 @@
 """Common Pydantic and SQLModel base models for unoplat-code-confluence projects."""
 
+# Data model position models
+from unoplat_code_confluence_commons.base_models.data_model_position import (
+    DataModelPosition,
+)
+
 # Structural signature models
 # Engine Pydantic models
 from unoplat_code_confluence_commons.base_models.engine_models import (
@@ -21,16 +26,42 @@ from unoplat_code_confluence_commons.base_models.framework_models import (
     Framework,
     FrameworkFeature,
 )
+from unoplat_code_confluence_commons.base_models.python_structural_signature import (
+    PythonClassInfo,
+    PythonFunctionInfo,
+    PythonStructuralSignature,
+    PythonVariableInfo,
+)
+
+# TypeScript structural signature models
+from unoplat_code_confluence_commons.base_models.typescript_structural_signature import (
+    TypeScriptClassInfo,
+    TypeScriptEnumInfo,
+    TypeScriptEnumMemberInfo,
+    TypeScriptExportInfo,
+    TypeScriptFunctionInfo,
+    TypeScriptImportInfo,
+    TypeScriptInterfaceInfo,
+    TypeScriptInterfaceMethodInfo,
+    TypeScriptInterfacePropertyInfo,
+    TypeScriptMethodInfo,
+    TypeScriptNamespaceInfo,
+    TypeScriptParameterInfo,
+    TypeScriptStructuralSignature,
+    TypeScriptTypeAliasInfo,
+    TypeScriptVariableInfo,
+)
+
+# Structural signature utilities
+from unoplat_code_confluence_commons.base_models.structural_signature_utils import (
+    StructuralSignatureUnion,
+    deserialize_structural_signature,
+    get_signature_type_for_language,
+)
 
 # SQL Base class
 from unoplat_code_confluence_commons.base_models.sql_base import (
     SQLBase,
-)
-from unoplat_code_confluence_commons.base_models.structural_signature import (
-    ClassInfo,
-    FunctionInfo,
-    StructuralSignature,
-    VariableInfo,
 )
 from unoplat_code_confluence_commons.configuration_models import (
     CodebaseConfig,
@@ -61,21 +92,43 @@ from unoplat_code_confluence_commons.repo_models import (
 )
 
 __all__ = [
-    # Structural signature models
-    "VariableInfo",
-    "FunctionInfo",
-    "ClassInfo", 
-    "StructuralSignature",
+    # Data model position models
+    "DataModelPosition",
+    # Python Structural signature models
+    "PythonVariableInfo",
+    "PythonFunctionInfo",
+    "PythonClassInfo",
+    "PythonStructuralSignature",
+    # TypeScript Structural signature models
+    "TypeScriptVariableInfo",
+    "TypeScriptParameterInfo",
+    "TypeScriptFunctionInfo",
+    "TypeScriptMethodInfo",
+    "TypeScriptInterfacePropertyInfo",
+    "TypeScriptInterfaceMethodInfo",
+    "TypeScriptInterfaceInfo",
+    "TypeScriptTypeAliasInfo",
+    "TypeScriptClassInfo",
+    "TypeScriptEnumMemberInfo",
+    "TypeScriptEnumInfo",
+    "TypeScriptNamespaceInfo",
+    "TypeScriptExportInfo",
+    "TypeScriptImportInfo",
+    "TypeScriptStructuralSignature",
+    # Structural signature utilities
+    "StructuralSignatureUnion",
+    "deserialize_structural_signature",
+    "get_signature_type_for_language",
     # Engine Pydantic models
     "TargetLevel",
     "LocatorStrategy",
-    "Concept", 
+    "Concept",
     "ConstructQueryConfig",
     "FeatureSpec",
     "Detection",
     "DetectionResult",
     "AnnotationLikeInfo",
-    "CallExpressionInfo", 
+    "CallExpressionInfo",
     "InheritanceInfo",
     # Framework SQLModel models
     "Framework",
@@ -89,7 +142,7 @@ __all__ = [
     "RepositoryWorkflowRun",
     "CodebaseWorkflowRun",
     "ProgrammingLanguageMetadata",
-    "ProgrammingLanguage", 
+    "ProgrammingLanguage",
     "PackageManagerType",
     # Credentials model
     "Credentials",

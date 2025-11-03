@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Avoid importing types only used for explicit type annotations
 // Rely on Zod's type inference instead - official Zod v3.24.2 pattern
@@ -14,7 +14,7 @@ const providerFieldPrimitiveSchema = z.union([
 // 2. Base field schema with proper null/undefined handling
 const baseFieldSchema = z
   .object({
-    label: z.string().min(1, 'Field label is required'),
+    label: z.string().min(1, "Field label is required"),
     // Use .nullable() for explicit null values
     placeholder: z.string().nullable(),
     // Use .nullish() for fields that can be null OR undefined
@@ -28,18 +28,18 @@ export const providerModelFieldSchema = baseFieldSchema;
 // 3. Provider config field schema using .extend() on actual schema (not ZodType)
 export const providerConfigFieldSchema = baseFieldSchema
   .extend({
-    key: z.string().min(1, 'Field key is required'),
-    type: z.string().min(1, 'Field type is required'),
+    key: z.string().min(1, "Field key is required"),
+    type: z.string().min(1, "Field type is required"),
     default: providerFieldPrimitiveSchema.nullable().default(null),
     enum: z.array(z.string().min(1)).nullable().default(null),
   })
   .superRefine((field, ctx) => {
     // 4. Proper typing for superRefine - field is inferred, ctx is RefinementCtx
-    if (field.type === 'select' && (!field.enum || field.enum.length === 0)) {
+    if (field.type === "select" && (!field.enum || field.enum.length === 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Select fields must provide at least one option.',
-        path: ['enum'],
+        message: "Select fields must provide at least one option.",
+        path: ["enum"],
       });
     }
   });
@@ -49,9 +49,9 @@ export const providerConfigFieldSchema = baseFieldSchema
 // We'll backfill it when transforming the response
 export const modelProviderSchema = z
   .object({
-    provider_key: z.string().min(1, 'Provider key is required').optional(),
-    display_name: z.string().min(1, 'Display name is required'),
-    kind: z.string().min(1, 'Provider kind is required'),
+    provider_key: z.string().min(1, "Provider key is required").optional(),
+    display_name: z.string().min(1, "Display name is required"),
+    kind: z.string().min(1, "Provider kind is required"),
     model_field: providerModelFieldSchema,
     fields: z.array(providerConfigFieldSchema).default([]),
   })
@@ -62,9 +62,13 @@ export const providerCatalogSchema = z.record(modelProviderSchema);
 export const providerCatalogArraySchema = z.array(modelProviderSchema);
 
 // 7. Export inferred types - this is the recommended Zod v3.24.2 pattern
-export type ProviderFieldPrimitive = z.infer<typeof providerFieldPrimitiveSchema>;
+export type ProviderFieldPrimitive = z.infer<
+  typeof providerFieldPrimitiveSchema
+>;
 export type BaseFieldDefinition = z.infer<typeof baseFieldSchema>;
-export type ProviderConfigFieldDefinition = z.infer<typeof providerConfigFieldSchema>;
+export type ProviderConfigFieldDefinition = z.infer<
+  typeof providerConfigFieldSchema
+>;
 export type ModelProviderDefinition = z.infer<typeof modelProviderSchema>;
 export type ProviderCatalogRecord = z.infer<typeof providerCatalogSchema>;
 export type ProviderCatalogInput = z.infer<typeof providerCatalogSchema>;

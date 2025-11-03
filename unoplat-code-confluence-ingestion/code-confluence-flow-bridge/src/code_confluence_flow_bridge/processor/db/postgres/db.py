@@ -16,9 +16,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlmodel import SQLModel
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
-
 
 # PostgreSQL connection settings - read from environment variables
 DB_USER = os.getenv("DB_USER", "postgres")
@@ -28,14 +26,16 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "code_confluence")
 
 # Construct PostgreSQL connection string
-POSTGRES_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+POSTGRES_URL = (
+    f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
 
 # Database echo setting
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 
 # Global registry to store engines per event loop with thread-safe access
 # This ensures each event loop gets its own AsyncEngine instance while sharing
-# engines across all tasks within the same loop (fixing Temporal activity timeouts)
+# engines across all tasks ithin the same loop (fixing Temporal activity timeouts)
 _engine_per_loop: dict[int, tuple[AsyncEngine, async_sessionmaker]] = {}
 _engine_lock = asyncio.Lock()
 

@@ -19,7 +19,6 @@ from typing import (
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
 from github import Github
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -27,7 +26,6 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import QueryableAttribute, selectinload
 from sqlmodel import select
-from sse_starlette.sse import EventSourceResponse
 from temporalio.client import Client, WorkflowHandle
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.exceptions import ApplicationError
@@ -45,9 +43,11 @@ from unoplat_code_confluence_commons.security import (
     encrypt_token,
 )
 
+from src.code_confluence_flow_bridge.github_app.router import (
+    router as github_app_router,
+)
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
 from src.code_confluence_flow_bridge.logging.trace_utils import (
-    build_trace_id,
     trace_id_var,
 )
 from src.code_confluence_flow_bridge.models.configuration.settings import (
@@ -81,15 +81,11 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     RepoWorkflowRunEnvelope,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.progress_models import (
-    DetectionResult,
-    DetectionState,
-)
 from src.code_confluence_flow_bridge.parser.package_manager.detectors.python_ripgrep_detector import (
     PythonRipgrepDetector,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.sse_response import (
-    SSEMessage,
+from src.code_confluence_flow_bridge.parser.package_manager.detectors.typescript_ripgrep_detector import (
+    TypeScriptRipgrepDetector,
 )
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
     ActivityStatusInterceptor,
@@ -138,14 +134,6 @@ from src.code_confluence_flow_bridge.processor.parent_workflow_interceptor impor
 )
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 from src.code_confluence_flow_bridge.utility.deps import trace_dependency
-from src.code_confluence_flow_bridge.utility.environment_utils import (
-    construct_local_repository_path,
-    get_runtime_environment,
-    validate_local_repository_path,
-)
-from src.code_confluence_flow_bridge.utility.git_remote_utils import (
-    extract_github_organization_from_local_repo,
-)
 
 # Setup logging - override imported logger with configured one
 logger = setup_logging(
@@ -382,176 +370,64 @@ async def start_workflow(
     return workflow_handle
 
 
-async def generate_sse_events(
-    git_url: str, github_token: str, detector: PythonRipgrepDetector
-) -> AsyncGenerator[Dict[str, str], None]:
+async def detect_codebases_multi_language(
+    git_url: str,
+    github_token: str,
+    detectors: Dict[str, Any],
+    request_logger: "Logger",  # type: ignore
+) -> List[CodebaseConfig]:
     """
-    Generate SSE events for codebase detection progress (v2).
+    Detect codebases using all configured language detectors.
+
+    This function runs detection across all supported programming languages
+    (Python, TypeScript, etc.) and aggregates the results. It handles errors
+    gracefully by logging failures per language and continuing with other
+    detectors.
 
     Args:
-        git_url: GitHub repository URL or local path
-        github_token: GitHub authentication token
-        detector: PythonRipgrepDetector instance
-
-    Yields:
-        SSE event dictionaries with event, data, and id keys
-    """
-    event_id = 0  # Per-request counter starting from 0
-    
-    # Send initial connection event
-    yield SSEMessage.connected(str(event_id))
-    event_id += 1
-
-    # Send initial progress
-    yield SSEMessage.format_sse(
-        data={
-            "state": DetectionState.INITIALIZING.value,
-            "message": "Starting codebase detection...",
-            "repository_url": git_url,
-        },
-        event="progress",
-        id=str(event_id)
-    )
-    event_id += 1
-
-    try:
-        # Send cloning/analyzing progress based on whether it's local or remote
-        if os.path.exists(git_url):
-            yield SSEMessage.format_sse(
-                data={
-                    "state": DetectionState.ANALYZING.value,
-                    "message": "Analyzing local repository...",
-                    "repository_url": git_url,
-                },
-                event="progress",
-                id=str(event_id)
-            )
-            event_id += 1
-        else:
-            yield SSEMessage.format_sse(
-                data={
-                    "state": DetectionState.CLONING.value,
-                    "message": "Cloning repository...",
-                    "repository_url": git_url,
-                },
-                event="progress",
-                id=str(event_id)
-            )
-            event_id += 1
-
-        # Run detection directly using the async method
-        codebases = await detector.detect_codebases(git_url, github_token)
-
-        # Send completion progress
-        yield SSEMessage.format_sse(
-            data={
-                "state": DetectionState.COMPLETE.value,
-                "message": f"Detection completed. Found {len(codebases)} codebases.",
-                "repository_url": git_url,
-            },
-            event="progress",
-            id=str(event_id)
-        )
-        event_id += 1
-
-        # Create and send result
-        result = DetectionResult(
-            repository_url=git_url,
-            codebases=codebases,
-            error=None,
-        )
-
-        # Send result event
-        yield SSEMessage.result(result.model_dump(), str(event_id))
-        event_id += 1
-
-        # Send completion event
-        yield SSEMessage.done(str(event_id))
-
-    except Exception as e:
-        # Send error progress
-        yield SSEMessage.format_sse(
-            data={
-                "state": DetectionState.COMPLETE.value,
-                "message": f"Detection failed: {str(e)}",
-                "repository_url": git_url,
-            },
-            event="progress",
-            id=str(event_id)
-        )
-        event_id += 1
-
-        # Create error result
-        result = DetectionResult(
-            repository_url=git_url,
-            codebases=[],
-            error=str(e),
-        )
-
-        # Send result with error
-        yield SSEMessage.result(result.model_dump(), str(event_id))
-        event_id += 1
-
-        # Send error event
-        logger.error("Detection error: {}", str(e))
-        yield SSEMessage.error(str(e), error_type="DETECTION_ERROR", event_id=str(event_id))
-        event_id += 1
-        yield SSEMessage.done(str(event_id))
-
-
-async def detect_codebases_sse(
-    git_url: str = Query(
-        ..., description="GitHub repository URL or folder name for local repository"
-    ),
-    is_local: bool = Query(False, description="Whether this is a local repository"),
-    session: AsyncSession = Depends(get_session),
-) -> StreamingResponse:
-    """
-    Server-Sent Events endpoint for real-time codebase detection progress (v2).
-
-    Streams progress updates during Python codebase auto-detection from GitHub repositories
-    or local Git repositories. Uses FastAPI's StreamingResponse with proper SSE formatting.
-
-    Args:
-        git_url: GitHub repository URL or folder name for local repository
-        is_local: Whether this is a local repository
-        session: Database session for token retrieval
+        git_url: GitHub repository URL or local filesystem path
+        github_token: GitHub personal access token for authentication
+        detectors: Dictionary mapping language names to detector instances
+        request_logger: Logger instance for tracking detection progress
 
     Returns:
-        StreamingResponse with text/event-stream content type
+        List of detected CodebaseConfig across all languages
+
+    Raises:
+        HTTPException: If all detectors fail to find any codebases
     """
-    # Construct appropriate path based on environment and repository type
-    if is_local:
-        # For local repositories, construct the full path based on runtime environment
-        # git_url contains just the folder name (e.g., "dspy")
-        actual_path = construct_local_repository_path(git_url)
-        github_token = ""
-        logger.info(
-            "Local repository detection - folder: {}, resolved path: {}, environment: {}",
-            git_url,
-            actual_path,
-            get_runtime_environment(),
+    aggregated_codebases: List[CodebaseConfig] = []
+    errors: Dict[str, str] = {}
+
+    for language, detector in detectors.items():
+        try:
+            request_logger.info(
+                "Running {} codebase detection for {}", language, git_url
+            )
+            codebases = await detector.detect_codebases(git_url, github_token)
+            aggregated_codebases.extend(codebases)
+            request_logger.info(
+                "{} detection completed - found {} codebases",
+                language.capitalize(),
+                len(codebases),
+            )
+        except Exception as exc:
+            errors[language] = str(exc)
+            request_logger.error(
+                "Codebase detection failed | language={} | repo={} | error={}",
+                language,
+                git_url,
+                exc,
+            )
+
+    # If all detectors failed, raise error
+    if not aggregated_codebases and errors:
+        error_details = "; ".join(f"{lang}: {err}" for lang, err in errors.items())
+        raise HTTPException(
+            status_code=500, detail=f"All codebase detectors failed: {error_details}"
         )
-    else:
-        # For remote repositories, git_url is the actual GitHub URL
-        actual_path = git_url
-        github_token = await fetch_github_token_from_db(session)
-        logger.info("Remote repository detection - URL: {}", git_url)
 
-    # Use the shared PythonCodebaseDetector instance directly
-    detector = app.state.python_codebase_detector
-
-    # Generate SSE events using the v2 helper function and return EventSourceResponse
-    return EventSourceResponse(
-        generate_sse_events(actual_path, github_token, detector),
-        ping=15,  # Keep-alive pings every 15 seconds
-        send_timeout=60,  # Timeout for send operations
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive", 
-            "X-Accel-Buffering": "no", 
-        },
-    )
+    return aggregated_codebases
 
 
 # Create FastAPI lifespan context manager
@@ -572,6 +448,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.python_codebase_detector = PythonRipgrepDetector()
     await app.state.python_codebase_detector.initialize_rules()
     logger.info("PythonRipgrepDetector initialized successfully")
+
+    # Initialize shared TypeScript detector instance
+    app.state.typescript_codebase_detector = TypeScriptRipgrepDetector()
+    await app.state.typescript_codebase_detector.initialize_rules()
+    logger.info("TypeScriptRipgrepDetector initialized successfully")
+
+    # Fast lookup for detectors by language key
+    app.state.codebase_detectors = {
+        "python": app.state.python_codebase_detector,
+        "typescript": app.state.typescript_codebase_detector,
+    }
 
     # Initialize graph deletion service (reuses the global connection)
     app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(
@@ -720,6 +607,8 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+app.include_router(github_app_router)
+
 
 # Create background task for workflow completion
 async def monitor_workflow(workflow_handle: WorkflowHandle) -> None:
@@ -756,8 +645,8 @@ async def ingest_token(
 
         credential = Credentials(
             credential_key="github_pat",
-            token_hash=encrypted_token, 
-            created_at=current_time
+            token_hash=encrypted_token,
+            created_at=current_time,
         )
         session.add(credential)
 
@@ -803,7 +692,9 @@ async def update_token(
         )
         credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
-            raise HTTPException(status_code=404, detail="No GitHub token found to update")
+            raise HTTPException(
+                status_code=404, detail="No GitHub token found to update"
+            )
 
         credential.token_hash = encrypted_token
         credential.updated_at = current_time
@@ -826,7 +717,9 @@ async def delete_token(session: AsyncSession = Depends(get_session)) -> Dict[str
         )
         credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
-            raise HTTPException(status_code=404, detail="No GitHub token found to delete")
+            raise HTTPException(
+                status_code=404, detail="No GitHub token found to delete"
+            )
 
         await session.delete(credential)
 
@@ -1017,48 +910,37 @@ async def ingestion(
     Returns the workflow_id and run_id.
     Also ingests the repository configuration into the database.
     """
-    # Handle local repository path construction based on environment
-    if repo_request.is_local and repo_request.local_path:
-        # For local repositories, construct the full path based on runtime environment
-        # local_path contains just the folder name (e.g., "dspy")
-        folder_name = repo_request.local_path
-        actual_path = construct_local_repository_path(folder_name)
-        # Update the local_path field with the constructed full path
-        repo_request.local_path = actual_path
+    # Fetch GitHub token from database
+    github_token = await fetch_github_token_from_db(session)
+
+    # AUTO-DETECT CODEBASES IF NOT PROVIDED
+    if (
+        repo_request.repository_metadata is None
+        or len(repo_request.repository_metadata) == 0
+    ):
         request_logger.info(
-            "Local repository ingestion - folder: {}, resolved path: {}, environment: {}",
-            folder_name,
-            actual_path,
-            get_runtime_environment(),
+            "No codebases provided - starting auto-detection for {}/{}",
+            repo_request.repository_owner_name,
+            repo_request.repository_name,
         )
 
-        # Extract actual GitHub organization from git remote origin for consistent qualified name generation
-        # This ensures PostgreSQL and Neo4j use the same organization name instead of "local"
-        original_owner = repo_request.repository_owner_name
-        github_organization = extract_github_organization_from_local_repo(
-            actual_path, original_owner
-        )
-        repo_request.repository_owner_name = github_organization
-        request_logger.info(
-            "Local repository GitHub organization - original: {}, extracted: {}",
-            original_owner,
-            github_organization,
+        # Run multi-language detection
+        detected_codebases = await detect_codebases_multi_language(
+            git_url=repo_request.repository_git_url,
+            github_token=github_token,
+            detectors=app.state.codebase_detectors,
+            request_logger=request_logger,
         )
 
-        # Rebuild trace_id with the updated organization to ensure workflow ID consistency
-        updated_trace_id = build_trace_id(
-            repo_request.repository_name, github_organization
-        )
-        trace_id_var.set(updated_trace_id)
+        repo_request.repository_metadata = detected_codebases
         request_logger.info(
-            "Updated trace_id for workflow consistency - new: {}", updated_trace_id
+            "Auto-detection completed - found {} codebases", len(detected_codebases)
         )
-
-    # Fetch GitHub token from database for remote repositories (not needed for local)
-    if not repo_request.is_local:
-        github_token = await fetch_github_token_from_db(session)
     else:
-        github_token = ""
+        request_logger.info(
+            "Using provided codebases - count: {}",
+            len(repo_request.repository_metadata),
+        )
 
     # Fetch the trace-id (now potentially updated for local repos)
     trace_id = trace_id_var.get()
@@ -1385,7 +1267,7 @@ async def get_codebase_metadata(
 ) -> CodebaseMetadataListResponse:
     """
     Get codebase folders and their metadata for a specific repository.
-    
+
     Returns a list of all codebases configured for the repository with their
     folder paths and programming language metadata.
     """
@@ -1395,7 +1277,7 @@ async def get_codebase_metadata(
         (repository_name, repository_owner_name),
         options=[selectinload(cast(QueryableAttribute[Any], Repository.configs))],
     )
-    
+
     if not db_obj:
         raise HTTPException(
             status_code=404,
@@ -1403,7 +1285,7 @@ async def get_codebase_metadata(
                 repository_owner_name, repository_name
             ),
         )
-    
+
     try:
         # Map database CodebaseConfig entries to response models
         codebase_metadata = [
@@ -1427,7 +1309,7 @@ async def get_codebase_metadata(
             )
             for config in db_obj.configs
         ]
-        
+
         return CodebaseMetadataListResponse(
             repository_name=db_obj.repository_name,
             repository_owner_name=db_obj.repository_owner_name,
@@ -1508,8 +1390,7 @@ async def get_ingested_repositories(
             IngestedRepositoryResponse(
                 repository_name=repo.repository_name,
                 repository_owner_name=repo.repository_owner_name,
-                is_local=repo.is_local,
-                local_path=repo.local_path,
+                repository_provider=repo.repository_provider,
             )
             for repo in repositories
         ]
@@ -1659,10 +1540,6 @@ async def refresh_repository(
                 ),
             )
 
-        # Use database values for local repository information
-        is_local = db_repo.is_local
-        local_path = db_repo.local_path
-
         # 2. Delete from Neo4j (reuse existing pattern from delete-repository)
         qualified_name: str = "{}_{}".format(repository_owner_name, repository_name)
 
@@ -1683,62 +1560,24 @@ async def refresh_repository(
                     status_code=500, detail=f"Neo4j deletion failed: {str(neo4j_error)}"
                 )
 
-        # 3. Fetch GitHub token only for remote repositories
-        github_token: str = ""
-        if not is_local:
-            github_token = await fetch_github_token_from_db(session)
+        # 3. Fetch GitHub token from database
+        github_token: str = await fetch_github_token_from_db(session)
 
-        # 4. Handle repository path/URL based on type
-        if is_local:
-            if not local_path:
-                raise HTTPException(
-                    status_code=400, detail="local_path required for local repositories"
-                )
+        # 4. Build repository URL for GitHub
+        repository_url = (
+            f"https://github.com/{repository_owner_name}/{repository_name}"
+        )
+        request_logger.info("Refreshing GitHub repository: {}", repository_url)
 
-            # Check if local_path is already absolute or just a folder name
-            if os.path.isabs(local_path):
-                # Already absolute path, use directly
-                actual_local_path = local_path
-                # For validation, extract just the folder name from the absolute path
-                folder_name_for_validation = os.path.basename(local_path)
-            else:
-                # Just folder name, construct full path using environment utils
-                actual_local_path = construct_local_repository_path(local_path)
-                folder_name_for_validation = local_path
-
-            # Validate local repository exists
-            is_valid, validated_path = validate_local_repository_path(
-                folder_name_for_validation
-            )
-            if not is_valid:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Local repository not found: {validated_path}",
-                )
-
-            repository_url = f"file://{actual_local_path}"
-            request_logger.info("Refreshing local repository: {}", actual_local_path)
-        else:
-            repository_url = (
-                f"https://github.com/{repository_owner_name}/{repository_name}"
-            )
-            actual_local_path = None
-            request_logger.info("Refreshing GitHub repository: {}", repository_url)
-
-        # 5. Detect codebases using shared ripgrep detector instance
-        detector: PythonRipgrepDetector = app.state.python_codebase_detector
-        detected_codebases: List[CodebaseConfig]
+        # 5. Detect codebases using multi-language detector registry
         try:
-            if is_local:
-                # Use actual local path for detection
-                detected_codebases = await detector.detect_codebases(
-                    actual_local_path, github_token=github_token
-                )  # type: ignore
-            else:
-                # Use GitHub URL for detection with github_token
-                detected_codebases = await detector.detect_codebases(
-                    repository_url, github_token=github_token
-                )
+            # Use multi-language detection helper
+            detected_codebases = await detect_codebases_multi_language(
+                git_url=repository_url,
+                github_token=github_token,
+                detectors=app.state.codebase_detectors,
+                request_logger=request_logger,
+            )
 
             request_logger.info(
                 "Detected {} codebases for {}/{}",
@@ -1752,14 +1591,12 @@ async def refresh_repository(
                 status_code=500, detail=f"Failed to detect codebases: {str(e)}"
             )
 
-        # 6. Build repository request configuration with local support
+        # 6. Build repository request configuration
         repo_request: GitHubRepoRequestConfiguration = GitHubRepoRequestConfiguration(
             repository_name=repository_name,
             repository_owner_name=repository_owner_name,
             repository_git_url=repository_url,
             repository_metadata=detected_codebases,
-            is_local=is_local,
-            local_path=actual_local_path if is_local else None,
         )
 
         # 7. Start Temporal workflow
@@ -1849,32 +1686,6 @@ async def get_user_details(
         "avatar_url": user_data.get("avatar_url"),
         "email": email,
     }
-
-
-@app.get("/detect-codebases-sse")
-async def detect_codebases_sse_endpoint(
-    git_url: str = Query(
-        ..., description="GitHub repository URL or folder name for local repository"
-    ),
-    is_local: bool = Query(False, description="Whether this is a local repository"),
-    session: AsyncSession = Depends(get_session),
-) -> StreamingResponse:
-    """
-    Server-Sent Events endpoint for real-time codebase detection progress (v2).
-
-    This version directly uses PythonCodebaseDetector without the AsyncDetectorWrapper.
-    Streams progress updates during Python codebase auto-detection from GitHub repositories
-    or local Git repositories.
-
-    Args:
-        git_url: GitHub repository URL or folder name for local repository
-        is_local: Whether this is a local repository
-        session: Database session for token retrieval
-
-    Returns:
-        StreamingResponse with text/event-stream content type
-    """
-    return await detect_codebases_sse(git_url, is_local, session)
 
 
 @app.post("/code-confluence/issues", response_model=IssueTracking)
@@ -2046,5 +1857,3 @@ async def create_github_issue(
                 "error_context": error_context,
             },
         )
-
-

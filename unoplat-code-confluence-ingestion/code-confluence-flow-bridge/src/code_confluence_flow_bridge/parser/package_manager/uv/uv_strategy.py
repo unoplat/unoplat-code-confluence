@@ -63,8 +63,10 @@ class UvStrategy(PackageManagerStrategy):
             if not pyproject_path.exists():
                 package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
                 return UnoplatPackageManagerMetadata(
-                    programming_language=metadata.language.value, 
-                    package_manager=package_manager_value
+                    programming_language=metadata.language.value,
+                    package_manager=package_manager_value,
+                    dependencies={"default": {}},
+                    manifest_path=metadata.manifest_path,
                 )
            
             with open(pyproject_path, "rb") as f:
@@ -75,8 +77,9 @@ class UvStrategy(PackageManagerStrategy):
         # Extract project metadata
         project_data = pyproject_data.get("project", {})
 
-        # Parse dependencies
-        dependencies: Dict[str, UnoplatProjectDependency] = {}
+        # Parse dependencies using grouped structure
+        dependencies: Dict[str, Dict[str, UnoplatProjectDependency]] = {}
+        default_group = self._ensure_group(dependencies, "default")
 
         # Process main dependencies
         for dep in project_data.get("dependencies", []):
@@ -84,7 +87,7 @@ class UvStrategy(PackageManagerStrategy):
                 name, version_str, extras = self._parse_dependency(dep)
                 version = self._parse_version_constraint(version_str) if version_str else UnoplatVersion()
 
-                dependencies[name] = UnoplatProjectDependency(
+                default_group[name] = UnoplatProjectDependency(
                     version=version,
                     extras=extras,  # Now properly handling extras
                 )
@@ -95,24 +98,19 @@ class UvStrategy(PackageManagerStrategy):
         # Process optional dependencies (extras)
         optional_deps = project_data.get("optional-dependencies", {})
         for group_name, deps in optional_deps.items():
+            group_bucket = self._ensure_group(dependencies, group_name)
             for dep in deps:
                 try:
                     name, version_str, extras = self._parse_dependency(dep)
                     version = self._parse_version_constraint(version_str) if version_str else UnoplatVersion()
 
-                    if name not in dependencies:
-                        dependencies[name] = UnoplatProjectDependency(
+                    if name not in group_bucket:
+                        group_bucket[name] = UnoplatProjectDependency(
                             version=version,
-                            group=group_name,
                             extras=extras,  # Include extras
                         )
                     else:
-                        # Update existing dependency
-                        existing_dep = dependencies[name]
-                        if existing_dep.group != group_name:
-                            existing_groups = [existing_dep.group] if existing_dep.group else []
-                            existing_groups.append(group_name)
-                            existing_dep.group = ",".join(existing_groups)
+                        existing_dep = group_bucket[name]
                         if extras:
                             existing_extras = existing_dep.extras or []
                             existing_dep.extras = list(set(existing_extras + extras))
@@ -120,17 +118,48 @@ class UvStrategy(PackageManagerStrategy):
                     logger.warning("Error processing optional dependency {} in group {}: {}", dep, group_name, str(e))
                     continue
 
+        # Process uv-specific dependency groups: [dependency-groups]
+        dependency_groups = pyproject_data.get("dependency-groups", {})
+        for group_name, deps in dependency_groups.items():
+            group_bucket = self._ensure_group(dependencies, group_name)
+            for dep in deps:
+                try:
+                    name, version_str, extras = self._parse_dependency(dep)
+                    version = self._parse_version_constraint(version_str) if version_str else UnoplatVersion()
+
+                    if name not in group_bucket:
+                        group_bucket[name] = UnoplatProjectDependency(
+                            version=version,
+                            extras=extras,
+                        )
+                    else:
+                        existing_dep = group_bucket[name]
+                        if extras:
+                            existing_extras = existing_dep.extras or []
+                            existing_dep.extras = list(set(existing_extras + extras))
+                except Exception as e:
+                    logger.warning(
+                        "Error processing uv dependency {} in group {}: {}",
+                        dep,
+                        group_name,
+                        str(e),
+                    )
+                    continue
+
         # Process UV-specific sources
         uv_config = pyproject_data.get("tool", {}).get("uv", {})
         sources = uv_config.get("sources", {})
         for pkg_name, source_info in sources.items():
-            if pkg_name in dependencies:
+            matched_dependencies = list(self._iter_dependency_entries(dependencies, pkg_name))
+            if not matched_dependencies:
+                continue
+            for _, dependency in matched_dependencies:
                 try:
                     if "git" in source_info:
-                        self._process_git_source(dependencies, pkg_name, source_info)
+                        self._process_git_source(pkg_name, dependency, source_info)
                     elif "index" in source_info:
-                        dependencies[pkg_name].source = "index"
-                        dependencies[pkg_name].source_url = self._get_index_url(pyproject_data, source_info["index"])
+                        dependency.source = "index"
+                        dependency.source_url = self._get_index_url(pyproject_data, source_info["index"])
                 except Exception as e:
                     logger.warning("Error processing source for {}: {}", pkg_name, str(e))
                     continue
@@ -139,11 +168,13 @@ class UvStrategy(PackageManagerStrategy):
         dep_metadata = uv_config.get("dependency-metadata", [])
         for metadata_entry in dep_metadata:
             name = metadata_entry.get("name")
-            if name in dependencies:
+            if not name:
+                continue
+            for _, dependency in self._iter_dependency_entries(dependencies, name):
                 try:
                     # Add environment markers if specified
                     if "requires-python" in metadata_entry:
-                        dependencies[name].environment_marker = f"python_version {metadata_entry['requires-python']}"
+                        dependency.environment_marker = f"python_version {metadata_entry['requires-python']}"
                 except Exception as e:
                     logger.warning(f"Error processing dependency metadata for {name}: {str(e)}")
                     continue
@@ -166,6 +197,7 @@ class UvStrategy(PackageManagerStrategy):
             keywords=project_data.get("keywords", []),
             maintainers=normalize_authors(project_data.get("maintainers", [])),
             readme=project_data.get("readme"),
+            manifest_path=metadata.manifest_path,
         )
 
     def _parse_dependency(self, dep_string: str) -> tuple[str, Optional[str], Optional[List[str]]]:
@@ -376,7 +408,12 @@ class UvStrategy(PackageManagerStrategy):
             logger.warning(f"Error parsing VCS URL '{url}': {str(e)}")
             return None, None, None, None
 
-    def _process_git_source(self, dependencies: Dict[str, UnoplatProjectDependency], pkg_name: str, source_info: dict) -> None:
+    def _process_git_source(
+        self,
+        package_name: str,
+        dependency: UnoplatProjectDependency,
+        source_info: dict,
+    ) -> None:
         """Process git source information for a dependency.
 
         Updates the dependency object with git source information including URL,
@@ -390,8 +427,8 @@ class UvStrategy(PackageManagerStrategy):
             }
 
         Args:
-            dependencies: Dictionary of dependencies to update
-            pkg_name: Name of the package to update
+            package_name: Name of the package being updated
+            dependency: Dependency instance to update
             source_info: Git source configuration from pyproject.toml
 
         Note:
@@ -403,26 +440,46 @@ class UvStrategy(PackageManagerStrategy):
             source_url, source_reference, subdirectory, _ = self._parse_vcs_url(git_url)
 
             if source_url:
-                dependencies[pkg_name].source = "git"
-                dependencies[pkg_name].source_url = source_url
+                dependency.source = "git"
+                dependency.source_url = source_url
 
                 # Use explicit tag/branch/rev if provided, otherwise use parsed reference
                 if "tag" in source_info:
-                    dependencies[pkg_name].source_reference = source_info["tag"]
+                    dependency.source_reference = source_info["tag"]
                     # Update version if tag is specified
-                    dependencies[pkg_name].version = self._parse_version_constraint(f"=={source_info['tag']}")
+                    dependency.version = self._parse_version_constraint(f"=={source_info['tag']}")
                 elif "branch" in source_info:
-                    dependencies[pkg_name].source_reference = source_info["branch"]
+                    dependency.source_reference = source_info["branch"]
                 elif "rev" in source_info:
-                    dependencies[pkg_name].source_reference = source_info["rev"]
+                    dependency.source_reference = source_info["rev"]
                 elif source_reference:
-                    dependencies[pkg_name].source_reference = source_reference
+                    dependency.source_reference = source_reference
 
                 # Use explicit subdirectory if provided, otherwise use parsed subdirectory
                 if "subdirectory" in source_info:
-                    dependencies[pkg_name].subdirectory = source_info["subdirectory"]
+                    dependency.subdirectory = source_info["subdirectory"]
                 elif subdirectory:
-                    dependencies[pkg_name].subdirectory = subdirectory
+                    dependency.subdirectory = subdirectory
 
         except Exception as e:
-            logger.warning(f"Error processing git source for {pkg_name}: {str(e)}")
+            logger.warning(f"Error processing git source for {package_name}: {str(e)}")
+
+    def _ensure_group(
+        self,
+        dependencies: Dict[str, Dict[str, UnoplatProjectDependency]],
+        group_name: str,
+    ) -> Dict[str, UnoplatProjectDependency]:
+        """Ensure a bucket exists for the given dependency group."""
+
+        return dependencies.setdefault(group_name, {})
+
+    def _iter_dependency_entries(
+        self,
+        dependencies: Dict[str, Dict[str, UnoplatProjectDependency]],
+        package_name: str,
+    ):
+        """Yield all dependency entries matching ``package_name`` across groups."""
+
+        for group_name, grouped_deps in dependencies.items():
+            if package_name in grouped_deps:
+                yield group_name, grouped_deps[package_name]

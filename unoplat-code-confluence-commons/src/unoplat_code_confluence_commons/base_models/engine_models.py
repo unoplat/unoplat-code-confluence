@@ -158,15 +158,25 @@ class AnnotationLikeInfo(Detection):
         default_factory=list, description="Variable names bound to the annotation"
     )
     match_text: str = Field(..., description="The matched text content")
+    bound_object: str = Field(
+        ..., description="Object the decorator is bound to (e.g., 'app', 'self.app')"
+    )
+    annotation_name: str = Field(
+        ..., description="Decorator method name (e.g., 'get', 'post')"
+    )
 
 
 class CallExpressionInfo(Detection):
     """Information about call expression detections."""
 
     match_text: str = Field(..., description="The matched call expression text")
+    callee: str = Field(..., description="Function name being called")
+    args_text: str = Field(..., description="Arguments text")
 
 
 class InheritanceInfo(Detection):
     """Information about inheritance detections."""
 
     match_text: str = Field(..., description="The matched inheritance text")
+    subclass: str = Field(..., description="Child class name")
+    superclass: str = Field(..., description="Parent class name")

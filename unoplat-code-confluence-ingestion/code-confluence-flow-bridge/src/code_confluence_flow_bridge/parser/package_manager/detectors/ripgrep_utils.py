@@ -13,7 +13,11 @@ from __future__ import annotations
 
 import os
 import asyncio
-from typing import List, Optional
+import json
+from pathlib import Path
+from typing import Dict, List, Optional
+
+from aiofile import async_open
 
 
 async def find_files(
@@ -149,6 +153,139 @@ async def search_absence_in_file(file_path: str, patterns: List[str]) -> bool:
             return False
     
     return True  # None of the patterns were found
+
+
+async def find_files_with_content(
+    content_pattern: str,
+    file_glob: str,
+    search_path: str,
+    ignore_dirs: Optional[List[str]] = None
+) -> List[str]:
+    """
+    Find files matching glob pattern that contain specific content using ripgrep.
+
+    Uses ripgrep to search for content in files matching a glob pattern.
+    This is more efficient than iterating through files individually.
+
+    Args:
+        content_pattern: Literal string pattern to search for in file contents
+        file_glob: Glob pattern to match files (e.g., "package.json", "*.ts")
+        search_path: Directory to search in
+        ignore_dirs: Optional list of directory names to ignore
+
+    Returns:
+        List of file paths (relative to search_path) that match both:
+        - The glob pattern AND
+        - Contain the content pattern
+
+    Raises:
+        FileNotFoundError: If ripgrep is not installed
+        RuntimeError: If ripgrep fails with non-zero exit code
+
+    Example:
+        # Find all package.json files containing "typescript"
+        files = await find_files_with_content("typescript", "package.json", "/repo")
+    """
+    # Build ripgrep command
+    # -F: Literal string search (not regex)
+    # -l: Files-with-matches (return only filenames, not matching lines)
+    # -g: Glob pattern to filter files
+    cmd: List[str] = ["rg", "-F", "-l", content_pattern, "-g", file_glob]
+
+    # Add ignore patterns if provided
+    if ignore_dirs:
+        for ignore_dir in ignore_dirs:
+            cmd.extend(["-g", f"!{ignore_dir}/"])
+
+    try:
+        # Run ripgrep subprocess
+        process: asyncio.subprocess.Process = await asyncio.create_subprocess_exec(
+            *cmd,
+            cwd=search_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        stdout_bytes: bytes
+        stderr_bytes: bytes
+        stdout_bytes, stderr_bytes = await process.communicate()
+
+        # Exit codes: 0 = found, 1 = not found, 2+ = error
+        if process.returncode == 0:
+            # Pattern found in files
+            if not stdout_bytes:
+                return []
+            stdout_str: str = stdout_bytes.decode().strip()
+            files: List[str] = stdout_str.split('\n')
+            return [f for f in files if f]  # Filter empty strings
+        elif process.returncode == 1:
+            # No files found matching both glob and content
+            return []
+        else:
+            # Error occurred
+            stderr_str: str = stderr_bytes.decode()
+            raise RuntimeError(
+                f"ripgrep failed with exit code {process.returncode}: {stderr_str}"
+            )
+
+    except FileNotFoundError:
+        raise FileNotFoundError("ripgrep (rg) not found. Please install ripgrep.")
+
+
+async def parse_package_json_dependencies(package_json_path: str) -> bool:
+    """
+    Parse package.json and check if TypeScript is in dependency sections.
+
+    Checks for "typescript" package in:
+    - dependencies
+    - devDependencies
+    - peerDependencies
+    - optionalDependencies
+
+    This provides precise detection avoiding false positives from keywords,
+    descriptions, or other non-dependency fields.
+
+    Args:
+        package_json_path: Absolute path to package.json file
+
+    Returns:
+        True if "typescript" found in any dependency section, False otherwise
+
+    Raises:
+        FileNotFoundError: If package.json doesn't exist
+        json.JSONDecodeError: If package.json is invalid JSON
+    """
+    package_json_file = Path(package_json_path)
+    if not package_json_file.exists():
+        raise FileNotFoundError(f"package.json not found: {package_json_path}")
+
+    # Read package.json asynchronously
+    async with async_open(package_json_path, "r") as f:
+        content: str = await f.read()
+
+    # Parse JSON
+    try:
+        package_data: Dict = json.loads(content)
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError(
+            f"Invalid JSON in {package_json_path}: {e.msg}", e.doc, e.pos
+        )
+
+    # Check all dependency sections for "typescript"
+    dependency_sections = [
+        "dependencies",
+        "devDependencies",
+        "peerDependencies",
+        "optionalDependencies",
+    ]
+
+    for section in dependency_sections:
+        if section in package_data:
+            deps: Dict = package_data[section]
+            if isinstance(deps, dict) and "typescript" in deps:
+                return True
+
+    return False
 
 
 async def find_python_mains(search_path: str, codebase_subdir: str = ".") -> List[str]:

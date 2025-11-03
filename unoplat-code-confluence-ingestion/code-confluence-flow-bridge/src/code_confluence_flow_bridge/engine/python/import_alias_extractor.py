@@ -6,8 +6,9 @@ mapping aliases to fully qualified module names.
 """
 
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 
+import tree_sitter
 from tree_sitter_language_pack import get_parser
 
 
@@ -22,9 +23,11 @@ def extract_imports_from_source(source_code: str, language: str = "python") -> L
     Returns:
         List of import statement strings
     """
-    parser = get_parser(language)
-    tree = parser.parse(bytes(source_code, "utf8"))
-    root_node = tree.root_node
+    
+
+    parser: tree_sitter.Parser = get_parser(language)
+    tree: tree_sitter.Tree = parser.parse(bytes(source_code, "utf8"))
+    root_node: tree_sitter.Node = tree.root_node
     
     # Load the imports query from the query file
     query_dir = Path(__file__).parent.parent.parent / "parser" / "queries" / language
@@ -36,11 +39,12 @@ def extract_imports_from_source(source_code: str, language: str = "python") -> L
     
     # Read and compile the query
     import_query_string = imports_query_file.read_text()
-    language_obj = parser.language
+    language_obj: tree_sitter.Language = parser.language #type: ignore
     import_query = language_obj.query(import_query_string)
     
-    # Execute query
-    captures = import_query.captures(root_node)
+    # Execute query using QueryCursor (tree-sitter 0.25.x API)
+    cursor = tree_sitter.QueryCursor(import_query)
+    captures = cursor.captures(root_node)
     
     imports = []
     # NOTE: py-tree-sitter >=0.23 returns a **dict** mapping capture names to
@@ -58,102 +62,3 @@ def extract_imports_from_source(source_code: str, language: str = "python") -> L
             imports.append(import_text)
     
     return imports
-
-
-def build_import_aliases(imports: List[str]) -> Dict[str, str]:
-    """
-    Return a mapping *from fully–qualified import path → alias used in the file*.
-
-    Examples
-    --------
-        import fastapi as fp              → {"fastapi": "fp"}
-        import fastapi                    → {"fastapi": "fastapi"}            # alias == last component
-        from fastapi import FastAPI       → {"fastapi.FastAPI": "FastAPI"}
-        from fastapi import FastAPI as fp → {"fastapi.FastAPI": "fp"}
-
-    This inverted map lets the detector start with a canonical
-    framework symbol (e.g. ``fastapi.FastAPI``) and quickly discover
-    which local identifiers refer to it.
-    
-    Args:
-        imports: List of import statement strings to analyze
-        
-    Returns:
-        Mapping from fully-qualified import paths to their aliases in the file
-    """
-    parser = get_parser("python")
-    mapping: Dict[str, str] = {}
-
-    def record(full_path: str, alias: str) -> None:
-        # Don't overwrite if we already saw an explicit alias earlier.
-        if full_path not in mapping:
-            mapping[full_path] = alias
-
-    for import_statement in imports:
-        if not import_statement.strip():
-            continue
-            
-        # Parse each import statement individually
-        tree = parser.parse(bytes(import_statement, "utf8"))
-        src_bytes = bytes(import_statement, "utf8")
-        
-        # The root should contain the import statement
-        for node in tree.root_node.children:
-            if node.type == "import_statement":
-                # Handles: import mod [, mod2]  |  import mod as alias
-                for child in node.named_children:
-                    if child.type == "dotted_name":
-                        module = src_bytes[child.start_byte:child.end_byte].decode()
-                        alias = module.split(".")[-1]
-                        record(module, alias)
-                    elif child.type == "aliased_import":
-                        module_node = None
-                        alias_node = None
-                        for grandchild in child.children:
-                            if grandchild.type == "dotted_name":
-                                module_node = grandchild
-                            elif grandchild.type == "identifier" and grandchild != child.children[0]:
-                                alias_node = grandchild
-                        if module_node:
-                            module = src_bytes[module_node.start_byte:module_node.end_byte].decode()
-                            alias = (src_bytes[alias_node.start_byte:alias_node.end_byte].decode()
-                                     if alias_node else module.split(".")[-1])
-                            record(module, alias)
-
-            elif node.type == "import_from_statement":
-                # Handles: from module import name [, name2]  |  ... as alias
-                module_node = next((c for c in node.children if c.type == "dotted_name"), None)
-                if not module_node:
-                    # Skip relative "from . import x" for now
-                    continue
-                base_module = src_bytes[module_node.start_byte:module_node.end_byte].decode()
-
-                import_started = False
-                for child in node.children:
-                    if child.type == "import":
-                        import_started = True
-                        continue
-                    if not import_started:
-                        continue
-
-                    if child.type == "dotted_name":
-                        name = src_bytes[child.start_byte:child.end_byte].decode()
-                        full_path = f"{base_module}.{name}"
-                        record(full_path, name.split(".")[-1])
-
-                    elif child.type == "aliased_import":
-                        name_node = None
-                        alias_node = None
-                        for grandchild in child.children:
-                            if grandchild.type == "dotted_name":
-                                name_node = grandchild
-                            elif grandchild.type == "identifier" and grandchild != child.children[0]:
-                                alias_node = grandchild
-                        if name_node:
-                            name = src_bytes[name_node.start_byte:name_node.end_byte].decode()
-                            alias = (src_bytes[alias_node.start_byte:alias_node.end_byte].decode()
-                                     if alias_node else name.split(".")[-1])
-                            full_path = f"{base_module}.{name}"
-                            record(full_path, alias)
-
-    return mapping

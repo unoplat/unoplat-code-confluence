@@ -155,7 +155,10 @@ services:
       timeout: 5s
       retries: 5
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.53.1
+    # image: ghcr.io/unoplat/code-confluence-flow-bridge:0.53.1
+    build:
+      context: ./unoplat-code-confluence-ingestion/code-confluence-flow-bridge
+      dockerfile: Dockerfile
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
@@ -170,6 +173,11 @@ services:
       - REPOSITORIES_BASE_PATH=/opt/unoplat/repositories
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
       - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
+      - GITHUB_APP_MANIFEST_TEMPLATE_PATH=/opt/unoplat/github-app-config/manifest-template.json
+      - GITHUB_APP_NAME=Unoplat Code Confluence
+      - GITHUB_APP_REDIRECT_PATH=/integrations/github/app-manifest/callback
+      - GITHUB_APP_WEBHOOK_PATH=/integrations/github/webhook
+      - GITHUB_APP_OWNER_TYPE=user
     depends_on:
       temporal:
         condition: service_healthy
@@ -177,15 +185,16 @@ services:
       - "8000:8000"
     volumes:
       - repositories_data:/opt/unoplat/repositories
+      - ./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/config/github-app:/opt/unoplat/github-app-config:ro
     networks:
       - temporal-network
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.15.2
-    # build:
-    #   context: ./unoplat-code-confluence-query-engine
-    #   dockerfile: Dockerfile
+    # image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.15.2
+    build:
+      context: ./unoplat-code-confluence-query-engine
+      dockerfile: Dockerfile
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687

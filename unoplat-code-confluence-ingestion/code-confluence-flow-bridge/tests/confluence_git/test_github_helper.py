@@ -1,17 +1,20 @@
 # Standard Library
-import json
 import os
-import shutil
+import json
 from pathlib import Path
+import shutil
+
+from dotenv import load_dotenv
 
 # Third Party
 import pytest
 from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
-from dotenv import load_dotenv
+from src.code_confluence_flow_bridge.models.github.github_repo import (
+    GitHubRepoRequestConfiguration,
+)
 
 # First Party
 from unoplat_code_confluence_commons.base_models import RepositorySettings
-from src.code_confluence_flow_bridge.models.github.github_repo import GitHubRepoRequestConfiguration
 
 # Use the example config file path
 TEST_CONFIG_PATH = Path(__file__).parent.parent/"test_data"/ "example_config.json"

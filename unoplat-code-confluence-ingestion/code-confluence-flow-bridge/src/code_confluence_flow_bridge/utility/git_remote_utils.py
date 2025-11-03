@@ -1,12 +1,8 @@
 """Utility functions for parsing Git remote URLs and extracting repository metadata."""
 
-import os
 import re
 from typing import Optional, Tuple
 from urllib.parse import urlparse
-
-from git import Repo
-from loguru import logger
 
 
 def parse_remote_url(remote_url: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -64,64 +60,3 @@ def parse_remote_url(remote_url: str) -> Tuple[Optional[str], Optional[str], Opt
     return (None, None, None)
 
 
-def extract_github_organization_from_local_repo(local_path: str, fallback_owner: str) -> str:
-    """Extract GitHub organization from a local repository's remote origin.
-    
-    For local repositories that have a GitHub remote origin, this function
-    extracts the actual organization/owner name from the remote URL.
-    This ensures consistent qualified name generation between PostgreSQL 
-    storage and Neo4j graph database.
-    
-    Parameters
-    ----------
-    local_path : str
-        Local filesystem path to the Git repository
-    fallback_owner : str
-        Fallback owner name to use if remote origin is not found or parseable
-        
-    Returns
-    -------
-    str
-        GitHub organization/owner name extracted from remote origin,
-        or fallback_owner if extraction fails
-        
-    Examples
-    --------
-    >>> extract_github_organization_from_local_repo("/path/to/dspy", "local")
-    "stanfordnlp"  # extracted from git@github.com:stanfordnlp/dspy.git
-    
-    >>> extract_github_organization_from_local_repo("/path/to/no-remote", "local") 
-    "local"  # fallback when no remote origin exists
-    """
-    logger.debug("Extracting GitHub organization from local repository | local_path={}", local_path)
-    
-    try:
-        # Verify the path exists and is a valid git repository
-        if not os.path.exists(local_path):
-            logger.warning("Local path does not exist | local_path={}", local_path)
-            return fallback_owner
-            
-        # Open the local repository using GitPython
-        repo = Repo(local_path)
-        
-        # Try to get organization/owner from remote origin if it exists
-        if repo.remotes and hasattr(repo.remotes, 'origin'):
-            origin_url = repo.remotes.origin.url
-            logger.debug("Found remote origin | url={}", origin_url)
-            
-            host, org, name = parse_remote_url(origin_url)
-            
-            if org and name:
-                logger.debug("Successfully extracted GitHub organization | org={} | repo={}", org, name)
-                return org
-            else:
-                logger.debug("Failed to parse remote origin URL | url={}", origin_url)
-        else:
-            logger.debug("No remote origin found in repository | local_path={}", local_path)
-            
-    except Exception as e:
-        logger.warning("Error extracting GitHub organization | local_path={} | error={}", local_path, str(e))
-    
-    # Fallback to provided owner name
-    logger.debug("Using fallback owner | owner={}", fallback_owner)
-    return fallback_owner

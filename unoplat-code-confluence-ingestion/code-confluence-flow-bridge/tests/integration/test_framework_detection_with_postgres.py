@@ -8,26 +8,29 @@ that works with structural signatures instead of re-parsing source code.
 
 import asyncio
 from pathlib import Path
-from typing import Dict, List
 import tempfile
+from typing import Dict, List
 
-import pytest
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
-
+import pytest
+from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
+    extract_imports_from_source,
+)
 from src.code_confluence_flow_bridge.engine.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import EnvironmentSettings
+from src.code_confluence_flow_bridge.models.configuration.settings import (
+    EnvironmentSettings,
+)
+from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
+    build_python_extractor_config,
+)
 from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
-    TreeSitterStructuralSignatureExtractor,
+    TreeSitterPythonStructuralSignatureExtractor,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
-)
-from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
-    build_import_aliases,
-    extract_imports_from_source,
 )
 
 
@@ -41,9 +44,10 @@ class TestFrameworkDetectionWithPostgres:
         """Create Python framework detection service."""
         return PythonFrameworkDetectionService()
 
-    def get_structural_extractor(self) -> TreeSitterStructuralSignatureExtractor:
+    def get_structural_extractor(self) -> TreeSitterPythonStructuralSignatureExtractor:
         """Create Tree-sitter structural signature extractor."""
-        return TreeSitterStructuralSignatureExtractor("python")
+        config = build_python_extractor_config()
+        return TreeSitterPythonStructuralSignatureExtractor(language_name="python", config=config)
 
 
     @pytest.mark.asyncio(loop_scope="session")
@@ -78,10 +82,22 @@ class TestFrameworkDetectionWithPostgres:
         # Verify FastAPI endpoints were detected
         fastapi_detections = [d for d in detections if d.feature_key == "http_endpoint"]
         assert len(fastapi_detections) > 0, "No FastAPI endpoints detected in main.py"
-        
+
+        # Log line numbers for each detection
+        print("\n=== FastAPI Endpoint Detection Line Numbers ===")
+        for i, detection in enumerate(fastapi_detections):
+            start_line = detection.start_line
+            end_line = detection.end_line
+            match_text = detection.match_text
+            feature_key = detection.feature_key
+            print(f"Detection {i}: {feature_key}")
+            print(f"  Match text: {match_text}")
+            print(f"  Line range: {start_line}-{end_line}")
+            print(f"  Span: {end_line - start_line + 1} lines")
+
         # Check that we found expected endpoints
         endpoint_texts = [d.match_text for d in fastapi_detections]
-        
+
         # Should find some of the known endpoints in main.py
         assert any("/repos" in text for text in endpoint_texts), "Expected /repos endpoint"
         assert any("get" in text.lower() for text in endpoint_texts), "Expected GET endpoints"
@@ -139,7 +155,19 @@ class MyApp:
             # Verify instance variable endpoints were detected
             fastapi_detections = [d for d in detections if d.feature_key == "http_endpoint"]
             assert len(fastapi_detections) >= 2, f"Expected at least 2 endpoints, got {len(fastapi_detections)}"
-            
+
+            # Log line numbers for instance variable binding detections
+            print("\n=== Instance Variable Binding Detection Line Numbers ===")
+            for i, detection in enumerate(fastapi_detections):
+                start_line = detection.start_line
+                end_line = detection.end_line
+                match_text = detection.match_text
+                feature_key = detection.feature_key
+                print(f"Detection {i}: {feature_key}")
+                print(f"  Match text: {match_text}")
+                print(f"  Line range: {start_line}-{end_line}")
+                print(f"  Span: {end_line - start_line + 1} lines")
+
             # Check decorator patterns
             endpoint_texts = [d.match_text for d in fastapi_detections]
             assert any("@self.app.get" in text for text in endpoint_texts), "Expected @self.app.get pattern"
@@ -196,6 +224,18 @@ class Product(BaseModel):
             # Look for Pydantic model detections
             pydantic_detections = [d for d in detections if "data_model" in d.feature_key.lower()]
             assert len(pydantic_detections) >= 2, f"Expected at least 2 data_model models, got {len(pydantic_detections)}"
+
+            # Log line numbers for Pydantic model detections
+            print("\n=== Pydantic Model Detection Line Numbers ===")
+            for i, detection in enumerate(pydantic_detections):
+                start_line = detection.start_line
+                end_line = detection.end_line
+                match_text = detection.match_text
+                feature_key = detection.feature_key
+                print(f"Detection {i}: {feature_key}")
+                print(f"  Match text: {match_text}")
+                print(f"  Line range: {start_line}-{end_line}")
+                print(f"  Span: {end_line - start_line + 1} lines")
             
         finally:
             Path(temp_path).unlink()
@@ -258,20 +298,59 @@ async def create_user(user: UserModel, db=Depends(get_db)):
             framework_features = {}
             for detection in detections:
                 framework_features.setdefault(detection.feature_key, []).append(detection)
-            
+
+            # Log line numbers for multi-framework detection
+            print("\n=== Multi-Framework Detection Line Numbers ===")
+
+            # FastAPI endpoints
+            if "http_endpoint" in framework_features:
+                print("\nFastAPI HTTP Endpoints:")
+                for i, detection in enumerate(framework_features["http_endpoint"]):
+                    start_line = detection.start_line
+                    end_line = detection.end_line
+                    match_text = detection.match_text
+                    print(f"  [{i}] {match_text} | Lines: {start_line}-{end_line}")
+
+            # Dependency injection
+            if "dependency_injection" in framework_features:
+                print("\nDependency Injection:")
+                for i, detection in enumerate(framework_features["dependency_injection"]):
+                    start_line = detection.start_line
+                    end_line = detection.end_line
+                    match_text = detection.match_text
+                    print(f"  [{i}] {match_text} | Lines: {start_line}-{end_line}")
+
+            # SQLModel models
+            sql_model_detections = [d for d in detections if "db_data_model" in d.feature_key.lower()]
+            if sql_model_detections:
+                print("\nSQLModel Models:")
+                for i, detection in enumerate(sql_model_detections):
+                    start_line = detection.start_line
+                    end_line = detection.end_line
+                    match_text = detection.match_text
+                    print(f"  [{i}] {match_text} | Lines: {start_line}-{end_line}")
+
+            # Pydantic models
+            pydantic_detections = [d for d in detections if d.feature_key.lower() == "data_model"]
+            if pydantic_detections:
+                print("\nPydantic Models:")
+                for i, detection in enumerate(pydantic_detections):
+                    start_line = detection.start_line
+                    end_line = detection.end_line
+                    match_text = detection.match_text
+                    print(f"  [{i}] {match_text} | Lines: {start_line}-{end_line}")
+
             # Should detect FastAPI endpoints
             assert "http_endpoint" in framework_features, "FastAPI endpoints not detected"
             assert len(framework_features["http_endpoint"]) >= 2, "Expected multiple FastAPI endpoints"
-            
+
             # Should detect dependency injection
             if "dependency_injection" in framework_features:
                 assert len(framework_features["dependency_injection"]) >= 1, "Expected dependency injection"
-            
+
             # Should detect SQLModel models (inheritance detection)
-            sql_model_detections = [d for d in detections if "db_data_model" in d.feature_key.lower()]
             assert len(sql_model_detections) == 1, "Expected model detections"
-            
-            pydantic_detections = [d for d in detections if d.feature_key.lower() == "data_model"]
+
             assert len(pydantic_detections) == 1, "Expected model detections"
             
             
