@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Optional
 
 from pydantic import Field, SecretStr, computed_field
@@ -18,7 +17,7 @@ class EnvironmentSettings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         validate_default=True,
-        extra="ignore"
+        extra="ignore",
     )
 
     # PostgreSQL Database Settings
@@ -51,93 +50,92 @@ class EnvironmentSettings(BaseSettings):
     mcp_servers_config_path: str = Field(
         default="mcp-servers.json", alias="MCP_SERVERS_CONFIG_PATH"
     )
-    
+
     # Encryption Settings
     token_encryption_key: SecretStr = Field(
         default=SecretStr("your-32-byte-fernet-key-here-replace-in-prod"),
         alias="TOKEN_ENCRYPTION_KEY",
-        description="32-byte Fernet encryption key for credentials (must match ingestion project)"
+        description="32-byte Fernet encryption key for credentials (must match ingestion project)",
     )
-    
+
     # Logging Settings
     log_level: str = Field(default="DEBUG", alias="LOG_LEVEL")
     log_rotation_size: str = Field(default="10 MB", alias="LOG_ROTATION_SIZE")
     log_retention_days: int = Field(default=30, alias="LOG_RETENTION_DAYS")
-    
-    #LOGFIRE TELEMETRY
+
+    # LOGFIRE TELEMETRY
     logfire_sdk_write_key: Optional[SecretStr] = Field(
         default=None,
         alias="LOGFIRE_SDK_WRITE_KEY",
         description="Logfire SDK write key for logging",
-        validate_default=False
+        validate_default=False,
     )
-    
+
     # HTTP Retry Settings
     retry_enabled: bool = Field(
         default=False,
         alias="HTTP_RETRY_ENABLED",
-        description="Enable HTTP retry logic for AI model providers"
+        description="Enable HTTP retry logic for AI model providers",
     )
     retry_max_attempts: int = Field(
         default=3,
         alias="HTTP_RETRY_MAX_ATTEMPTS",
         description="Maximum number of retry attempts",
         ge=1,
-        le=10
+        le=10,
     )
     retry_base_wait: float = Field(
         default=1.0,
         alias="HTTP_RETRY_BASE_WAIT",
         description="Base wait time in seconds for exponential backoff",
         ge=0.1,
-        le=10.0
+        le=10.0,
     )
     retry_max_wait: int = Field(
         default=60,
         alias="HTTP_RETRY_MAX_WAIT",
         description="Maximum wait time in seconds between retries",
         ge=1,
-        le=300
+        le=300,
     )
     retry_timeout: float = Field(
         default=30.0,
         alias="HTTP_RETRY_TIMEOUT",
         description="HTTP request timeout in seconds",
         ge=5.0,
-        le=300.0
+        le=300.0,
     )
     retry_status_codes: str = Field(
         default="429,502,503,504",
         alias="HTTP_RETRY_STATUS_CODES",
-        description="Comma-separated list of HTTP status codes to retry"
+        description="Comma-separated list of HTTP status codes to retry",
     )
-    
+
     environment: str = Field(default="development", alias="ENVIRONMENT")
 
     # Mock SSE Settings
     mock_sse_enabled: bool = Field(
         default=False,
         alias="MOCK_SSE_ENABLED",
-        description="Enable mock SSE mode for testing without running actual agents"
+        description="Enable mock SSE mode for testing without running actual agents",
     )
     mock_sse_delay_seconds: float = Field(
         default=0.5,
         alias="MOCK_SSE_DELAY_SECONDS",
         description="Artificial delay between mock SSE events",
         ge=0.0,
-        le=2.0
+        le=2.0,
     )
     mock_sse_log_path: str = Field(
         default="/Users/jayghiya/Documents/unoplat/unoplat-code-confluence/unoplat-code-confluence-query-engine/docs/mock/database-agent-events.json",
-    
         alias="MOCK_SSE_LOG_PATH",
-        description="Path to mock workflow events JSON"
+        description="Path to mock workflow events JSON",
     )
 
     mock_sse_result_path: str = Field(
         default="/Users/jayghiya/Documents/unoplat/unoplat-code-confluence/unoplat-code-confluence-query-engine/docs/mock/agent-md-result.json",
         alias="MOCK_SSE_RESULT_PATH",
-        description="Path to mock final agent MD result JSON"
+        description="Path to mock final agent MD result JSON",
     )
 
     @computed_field  # type: ignore[prop-decorator]

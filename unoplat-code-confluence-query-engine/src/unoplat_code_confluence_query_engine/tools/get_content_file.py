@@ -19,7 +19,9 @@ async def read_file_content(
     """Read content from a file with optional line range filtering.
 
     Args:
-        file_path: Absolute path to the file to read
+        file_path: **ABSOLUTE PATH REQUIRED** - Full filesystem path starting with /.
+                   Examples: /opt/unoplat/repositories/my-repo/src/module.py, /opt/unoplat/repositories/my-repo/package.json
+                   Do NOT use relative paths like 'package.json', 'src/file.py', or './config.json'
         start_line: Starting line number (1-based, inclusive). If None, starts from beginning
         end_line: Ending line number (1-based, inclusive). If None, reads to end
 
