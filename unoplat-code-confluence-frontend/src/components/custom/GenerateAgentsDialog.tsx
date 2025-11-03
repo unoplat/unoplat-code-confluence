@@ -19,6 +19,7 @@ import { Card } from "@/components/ui/card";
 import { GenerateAgentsProgress } from "@/components/custom/GenerateAgentsProgress";
 import { Button } from "@/components/ui/button";
 import { GenerateAgentsPreview } from "@/components/custom/GenerateAgentsPreview";
+import { AgentStatisticsDisplay } from "@/components/custom/AgentStatisticsDisplay";
 import { codebasesToMarkdown } from "@/lib/agent-md-to-markdown";
 import { useRepositoryAgentSnapshot } from "@/features/repository-agent-snapshots/hooks";
 import { parseAgentMdOutputsFromSnapshot } from "@/features/repository-agent-snapshots/transformers";
@@ -111,6 +112,10 @@ export function GenerateAgentsDialog({
     },
   });
 
+  const startRunMutate = startRunMutation.mutate;
+  const startRunIsPending = startRunMutation.isPending;
+  const startRunIsSuccess = startRunMutation.isSuccess;
+
   React.useEffect(() => {
     if (!open || !repository) {
       return;
@@ -120,7 +125,7 @@ export function GenerateAgentsDialog({
       return;
     }
 
-    if (startRunMutation.isPending || startRunMutation.isSuccess) {
+    if (startRunIsPending || startRunIsSuccess) {
       return;
     }
 
@@ -129,17 +134,17 @@ export function GenerateAgentsDialog({
     }
 
     if (snapshot === null) {
-      startRunMutation.mutate();
+      startRunMutate();
     }
   }, [
     open,
     repository,
     data?.codebases,
-    startRunMutation.isPending,
-    startRunMutation.isSuccess,
+    startRunIsPending,
+    startRunIsSuccess,
     isSnapshotLoading,
     snapshot,
-    startRunMutation,
+    startRunMutate,
   ]);
 
   const { markdownByCodebase: fallbackMarkdown } = React.useMemo(
@@ -147,11 +152,32 @@ export function GenerateAgentsDialog({
     [snapshot],
   );
 
+  const codebaseIds = React.useMemo(
+    () => data?.codebases?.map((c) => c.codebase_folder) ?? [],
+    [data?.codebases],
+  );
+
+  const snapshotMarkdown = parsedSnapshot?.markdownByCodebase;
+  const previewCodebases =
+    snapshotMarkdown && Object.keys(snapshotMarkdown).length > 0
+      ? snapshotMarkdown
+      : Object.keys(fallbackMarkdown).length > 0
+        ? fallbackMarkdown
+        : null;
+
+  const previewContent = React.useMemo(() => {
+    if (!repository || !previewCodebases) {
+      return null;
+    }
+    return codebasesToMarkdown(previewCodebases, {
+      title: `AGENTS.md - ${repository.repository_owner_name}/${repository.repository_name}`,
+    });
+  }, [repository, previewCodebases]);
+
   if (!repository) {
     return null;
   }
 
-  const codebaseIds = data?.codebases?.map((c) => c.codebase_folder) ?? [];
   const isCheckingExisting = isSnapshotLoading && snapshot === undefined;
 
   const currentStatus: RepoAgentSnapshotStatus | "IDLE" =
@@ -173,19 +199,7 @@ export function GenerateAgentsDialog({
     hasExistingSnapshot &&
     currentStatus === "COMPLETED";
 
-  const snapshotMarkdown = parsedSnapshot?.markdownByCodebase;
-  const previewCodebases =
-    snapshotMarkdown && Object.keys(snapshotMarkdown).length > 0
-      ? snapshotMarkdown
-      : Object.keys(fallbackMarkdown).length > 0
-        ? fallbackMarkdown
-        : null;
-
-  const previewContent = previewCodebases
-    ? codebasesToMarkdown(previewCodebases, {
-        title: `AGENTS.md - ${repository.repository_owner_name}/${repository.repository_name}`,
-      })
-    : null;
+  const showStatistics = hasExistingSnapshot && parsedSnapshot?.statistics;
 
   const handleRerun = (): void => {
     startRunMutation.mutate();
@@ -230,7 +244,7 @@ export function GenerateAgentsDialog({
             </div>
           </div>
         </Card>
-        <div className="mt-4 flex min-h-0 flex-1 flex-col">
+        <div className="mt-4 flex min-h-0 flex-1 flex-col overflow-y-auto">
           {isCheckingExisting && (
             <div className="text-sm">
               Checking for existing agents.md output...
@@ -312,6 +326,12 @@ export function GenerateAgentsDialog({
               codebaseIds={codebaseIds}
               isSyncing={isLiveLoading || isSnapshotRunning}
             />
+          ) : null}
+
+          {showStatistics ? (
+            <div className="mt-6">
+              <AgentStatisticsDisplay statistics={parsedSnapshot.statistics} />
+            </div>
           ) : null}
         </div>
 
