@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.34.0...unoplat-code-confluence-commons-v0.34.1) (2025-11-10)
+
+
+### Bug Fixes
+
+* **credentials:** Update metadata_json column to be nullable ([71c0fda](https://github.com/unoplat/unoplat-code-confluence/commit/71c0fdaa101a84919ae28cf61a07222f2d78854d))
+* **credentials:** Update metadata_json column to be nullable ([4406844](https://github.com/unoplat/unoplat-code-confluence/commit/44068443e5ebe25f664541724d06e5862e158d2f))
+
 ## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.33.0...unoplat-code-confluence-commons-v0.34.0) (2025-11-10)
 
 
