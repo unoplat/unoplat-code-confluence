@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.60.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.59.0...code-confluence-flow-bridge-v0.60.0) (2025-11-10)
+
+
+### Features
+
+* enhance api endpoints and processing logic to support multiple repository providers starting with github enterprise , introduce oauth utils and also assign intuitive names for agents for easier experiment tracking with workflow monitoring solution ([ba05d6b](https://github.com/unoplat/unoplat-code-confluence/commit/ba05d6ba13eb951ab43f8d0553622582fced7b4b))
+
+
+### Dependencies
+
+* Bump unoplat-code-confluence-commons to v0.34.1 ([75b3e48](https://github.com/unoplat/unoplat-code-confluence/commit/75b3e489496005a5cc6f7281a63c14ea9b9db7e4))
+
 ## [0.59.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.58.0...code-confluence-flow-bridge-v0.59.0) (2025-11-03)
 
 
