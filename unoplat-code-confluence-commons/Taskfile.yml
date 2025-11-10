@@ -17,7 +17,7 @@ tasks:
     deps: [install]
     cmds:
       - uv run pytest -v -f tests/
-
+  
   all:
     desc: Run all checks (install, test)
     cmds:
