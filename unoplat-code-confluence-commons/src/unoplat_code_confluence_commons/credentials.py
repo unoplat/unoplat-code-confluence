@@ -14,6 +14,7 @@ import uuid
 from sqlalchemy import Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.sqltypes import DateTime
 
 
@@ -37,8 +38,8 @@ class Credentials(SQLBase):
     provider_key: Mapped[ProviderKey] = mapped_column(nullable=False)
     secret_kind: Mapped[SecretKind] = mapped_column(nullable=False)
     token_hash: Mapped[str] = mapped_column(comment="Encrypted credential value")
-    metadata_json: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, default=None, comment="Provider specific metadata"
+    metadata_json: Mapped[Optional[dict[str, Any]]] = mapped_column(
+        JSONB, default=None, comment="Provider specific metadata", nullable=True
     )
     created_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), default=None
