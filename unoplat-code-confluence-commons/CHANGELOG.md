@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.33.0...unoplat-code-confluence-commons-v0.34.0) (2025-11-10)
+
+
+### Features
+
+* **credentials:** Refactor authentication/authorisation schema to support pat based login across repository providers, support for oauth and webhook based integrations ([3461b26](https://github.com/unoplat/unoplat-code-confluence/commit/3461b26bbc0d8c710d6e0797a5aff2dbf3665dcf))
+* **credentials:** Refactor authentication/authorisation schema to support pat based login across repository providers, support for oauth and webhook based integrations ([b3c8479](https://github.com/unoplat/unoplat-code-confluence/commit/b3c8479839898d5619f1f45c52d15bec9c1911bf))
+
 ## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.32.2...unoplat-code-confluence-commons-v0.33.0) (2025-11-03)
 
 
