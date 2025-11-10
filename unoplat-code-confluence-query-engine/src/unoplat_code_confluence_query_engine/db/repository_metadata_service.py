@@ -12,7 +12,7 @@ from unoplat_code_confluence_commons.base_models import (
 from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
     CodeConfluenceGraphQueryEngine,
 )
-from unoplat_code_confluence_query_engine.db.postgres.db import get_session
+from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.models.agent_md_output import (
     ProgrammingLanguageMetadataOutput,
 )
@@ -50,7 +50,7 @@ async def fetch_repository_metadata(
     try:
         # First, fetch repository and codebase configurations from PostgreSQL
         codebase_configs = None
-        async with get_session() as session:
+        async with get_startup_session() as session:
             # Fetch repository
             repository_stmt = select(Repository).where(
                 Repository.repository_name == repo_name,

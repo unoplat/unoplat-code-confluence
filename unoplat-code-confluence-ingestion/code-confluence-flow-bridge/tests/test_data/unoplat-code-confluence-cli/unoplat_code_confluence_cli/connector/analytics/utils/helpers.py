@@ -13,6 +13,7 @@ STATS_ENABLED: bool = True  # Toggle for statistics computation
 # Global functions
 # ---------------------------------------------------------------------------
 
+
 def compute_stats(numbers: list[int]) -> dict[str, int | float | None]:
     """Compute basic statistics for *numbers*.
 
@@ -29,6 +30,7 @@ def compute_stats(numbers: list[int]) -> dict[str, int | float | None]:
 # ---------------------------------------------------------------------------
 # Classes
 # ---------------------------------------------------------------------------
+
 
 class StatsManager:
     """Wrap statistics operations for a numeric data-set."""
@@ -54,4 +56,4 @@ class StatsManager:
     def average(self) -> float:
         """Return the arithmetic mean of *data*."""
         self._guard_empty()
-        return sum(self._data) / len(self._data) 
+        return sum(self._data) / len(self._data)

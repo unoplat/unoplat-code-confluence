@@ -87,7 +87,7 @@ class PythonDataModelDetectorStrategy(DataModelDetectorStrategy):
             class_node = class_nodes[0]
             name_node = name_nodes[0]
 
-            name = source_bytes[name_node.start_byte:name_node.end_byte].decode(
+            name = source_bytes[name_node.start_byte : name_node.end_byte].decode(
                 "utf-8", errors="ignore"
             )
 

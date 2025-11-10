@@ -13,10 +13,15 @@ from fastapi.testclient import TestClient
 from loguru import logger
 import pytest
 from src.code_confluence_flow_bridge.models.github.github_repo import (
-    GitHubRepoRequestConfiguration,
     IngestedRepositoryResponse,
+    RepositoryRequestConfiguration,
 )
 from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
+from unoplat_code_confluence_commons.credential_enums import (
+    CredentialNamespace,
+    ProviderKey,
+    SecretKind,
+)
 
 from tests.utils.graph_assertions import (
     assert_deletion_stats_accuracy,
@@ -27,7 +32,10 @@ from tests.utils.graph_assertions import (
 from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
 from tests.utils.sync_db_utils import get_sync_postgres_session
 
-async def monitor_workflow_completion(workflow_id: str, run_id: str, temporal_address: str, timeout_seconds: int = 300) -> WorkflowExecutionStatus:
+
+async def monitor_workflow_completion(
+    workflow_id: str, run_id: str, temporal_address: str, timeout_seconds: int = 300
+) -> WorkflowExecutionStatus:
     """
     Monitor Temporal workflow execution until completion.
 
@@ -47,7 +55,9 @@ async def monitor_workflow_completion(workflow_id: str, run_id: str, temporal_ad
     client: Client = await Client.connect(temporal_address)
 
     # Get workflow handle
-    handle: WorkflowHandle = client.get_workflow_handle(workflow_id=workflow_id, run_id=run_id)
+    handle: WorkflowHandle = client.get_workflow_handle(
+        workflow_id=workflow_id, run_id=run_id
+    )
 
     # Wait for completion with timeout
     start_time: float = time.time()
@@ -83,7 +93,9 @@ async def monitor_workflow_completion(workflow_id: str, run_id: str, temporal_ad
             # For other errors, continue monitoring
             await asyncio.sleep(5)
 
-    raise asyncio.TimeoutError(f"Workflow did not complete within {timeout_seconds} seconds")
+    raise asyncio.TimeoutError(
+        f"Workflow did not complete within {timeout_seconds} seconds"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -94,11 +106,16 @@ TEST_REPO_REQUEST: Dict[str, Any] = {
     "repository_name": "test-delete-repo",
     "repository_git_url": "https://github.com/test-user/test-delete-repo",
     "repository_owner_name": "test-user",
+    "provider_key": ProviderKey.GITHUB_OPEN.value,
     "repository_metadata": [
         {
             "codebase_folder": "src",
             "root_packages": ["src/test_package"],
-            "programming_language_metadata": {"language": "python", "package_manager": "pip", "role": "leaf"},
+            "programming_language_metadata": {
+                "language": "python",
+                "package_manager": "pip",
+                "role": "leaf",
+            },
         }
     ],
 }
@@ -114,35 +131,39 @@ TEST_REPO_REQUEST: Dict[str, Any] = {
 class TestDeleteRepositoryEndpoint:
     """Integration tests for the delete_repository endpoint with full workflow testing."""
 
-    @pytest.mark.asyncio(loop_scope="session") #type: ignore
+    @pytest.mark.asyncio(loop_scope="session")  # type: ignore
     async def test_delete_nonexistent_repository(
         self,
         test_client: TestClient,
     ) -> None:
         """Test deletion of repository that doesn't exist returns 404."""
-        
+
         # Create the repository info payload for non-existent repository
         repo_info = IngestedRepositoryResponse(
             repository_name="nonexistent-repo",
-            repository_owner_name="nonexistent-user"
+            repository_owner_name="nonexistent-user",
+            provider_key=ProviderKey.GITHUB_OPEN,
         )
-        
+
         # Call the delete endpoint via test client
         response = test_client.request(
-            method="DELETE",
-            url="/delete-repository",
-            json=repo_info.model_dump()
+            method="DELETE", url="/delete-repository", json=repo_info.model_dump()
         )
-        
+
         # Verify 404 response for non-existent repository
-        assert response.status_code == 404, f"Expected 404 for non-existent repository, got {response.status_code}: {response.text}"
-        
+        assert response.status_code == 404, (
+            f"Expected 404 for non-existent repository, got {response.status_code}: {response.text}"
+        )
+
         # Verify error message structure
         error_data = response.json()
         assert "detail" in error_data
-        assert "nonexistent-repo" in error_data["detail"] or "nonexistent-user" in error_data["detail"]
+        assert (
+            "nonexistent-repo" in error_data["detail"]
+            or "nonexistent-user" in error_data["detail"]
+        )
 
-    @pytest.mark.asyncio(loop_scope="session") #type: ignore
+    @pytest.mark.asyncio(loop_scope="session")  # type: ignore
     async def test_delete_remote_repository_flow(
         self,
         test_client: TestClient,
@@ -164,7 +185,6 @@ class TestDeleteRepositoryEndpoint:
             cleanup_postgresql_sync(session)
         cleanup_neo4j_sync(neo4j_client)
 
-
         # Temporal address for workflow monitoring
         temporal_address = f"localhost:{service_ports['temporal']}"
 
@@ -173,6 +193,11 @@ class TestDeleteRepositoryEndpoint:
         # ------------------------------------------------------------------
         token_resp = test_client.post(
             "/ingest-token",
+            params={
+                "namespace": CredentialNamespace.REPOSITORY.value,
+                "provider_key": ProviderKey.GITHUB_OPEN.value,
+                "secret_kind": SecretKind.PAT.value,
+            },
             headers={"Authorization": f"Bearer {github_token}"},
         )
         assert token_resp.status_code in (201, 409), token_resp.text
@@ -181,18 +206,23 @@ class TestDeleteRepositoryEndpoint:
         # 2️⃣  Create ingestion request for remote repository with auto-detection
         # ------------------------------------------------------------------
         # Create request WITHOUT repository_metadata to trigger auto-detection
-        repo_request = GitHubRepoRequestConfiguration(
+        repo_request = RepositoryRequestConfiguration(
             repository_name="unoplat-code-confluence",
             repository_git_url="https://github.com/unoplat/unoplat-code-confluence",
             repository_owner_name="unoplat",
-            repository_metadata=None  # Triggers auto-detection
+            provider_key=ProviderKey.GITHUB_OPEN,
+            repository_metadata=None,  # Triggers auto-detection
         )
 
         # ------------------------------------------------------------------
         # 3️⃣  Submit ingestion request (auto-detection happens internally)
         # ------------------------------------------------------------------
-        ingestion_resp = test_client.post("/start-ingestion", json=repo_request.model_dump())
-        assert ingestion_resp.status_code == 201, f"Ingestion failed: {ingestion_resp.text}"
+        ingestion_resp = test_client.post(
+            "/start-ingestion", json=repo_request.model_dump()
+        )
+        assert ingestion_resp.status_code == 201, (
+            f"Ingestion failed: {ingestion_resp.text}"
+        )
 
         ingestion_payload: Dict[str, Any] = ingestion_resp.json()
         workflow_id: str = ingestion_payload["workflow_id"]
@@ -208,7 +238,9 @@ class TestDeleteRepositoryEndpoint:
                 temporal_address=temporal_address,
                 timeout_seconds=300,  # 5 minutes for remote repository processing
             )
-            assert final_status == WorkflowExecutionStatus.COMPLETED, f"Workflow did not complete successfully: {final_status}"
+            assert final_status == WorkflowExecutionStatus.COMPLETED, (
+                f"Workflow did not complete successfully: {final_status}"
+            )
         except asyncio.TimeoutError:
             # If workflow times out, force terminate it for cleanup
             try:
@@ -218,54 +250,69 @@ class TestDeleteRepositoryEndpoint:
                 logger.warning(f"Terminated workflow {workflow_id} due to timeout")
             except Exception as e:
                 logger.warning(f"Failed to terminate timed-out workflow: {e}")
-            
+
             # Continue with deletion test anyway
-            logger.warning(f"Workflow {workflow_id} timed out but proceeding with deletion test")
+            logger.warning(
+                f"Workflow {workflow_id} timed out but proceeding with deletion test"
+            )
 
         # ------------------------------------------------------------------
         # 5️⃣  ENHANCED: Capture pre-deletion state snapshot
         # ------------------------------------------------------------------
-        repo_qualified_name = f"{repo_request.repository_owner_name}_{repo_request.repository_name}"
-        
+        repo_qualified_name = (
+            f"{repo_request.repository_owner_name}_{repo_request.repository_name}"
+        )
+
         # Capture comprehensive state before deletion to validate API statistics
-        pre_deletion_snapshot = capture_repository_state_snapshot(neo4j_client, repo_qualified_name)
-        
+        pre_deletion_snapshot = capture_repository_state_snapshot(
+            neo4j_client, repo_qualified_name
+        )
+
         # Log pre-deletion state for debugging
         logger.info(f"Pre-deletion state for {repo_qualified_name}:")
         logger.info(f"  Node counts: {pre_deletion_snapshot['node_counts']}")
-        
+
         # Sanity check: Ensure we have content to delete
         files_count = pre_deletion_snapshot["node_counts"].get("CodeConfluenceFile", 0)
-        assert files_count > 0, f"Sanity check failed: No files found after ingestion for {repo_qualified_name}"
+        assert files_count > 0, (
+            f"Sanity check failed: No files found after ingestion for {repo_qualified_name}"
+        )
 
         # ------------------------------------------------------------------
         # 6️⃣  Now test the deletion endpoint
         # ------------------------------------------------------------------
         delete_repo_info = IngestedRepositoryResponse(
             repository_name=repo_request.repository_name,
-            repository_owner_name=repo_request.repository_owner_name
+            repository_owner_name=repo_request.repository_owner_name,
+            provider_key=repo_request.provider_key,
         )
-        
+
         # Call the delete endpoint
         delete_response = test_client.request(
             method="DELETE",
             url="/delete-repository",
-            json=delete_repo_info.model_dump()
+            json=delete_repo_info.model_dump(),
         )
 
         # ------------------------------------------------------------------
         # 7️⃣  Verify successful deletion response
         # ------------------------------------------------------------------
-        assert delete_response.status_code == 200, f"Deletion failed with status {delete_response.status_code}: {delete_response.text}"
-        
+        assert delete_response.status_code == 200, (
+            f"Deletion failed with status {delete_response.status_code}: {delete_response.text}"
+        )
+
         # Verify deletion response structure
         deletion_response = delete_response.json()
-        assert isinstance(deletion_response, dict), f"Expected dict response, got {type(deletion_response)}"
-        
+        assert isinstance(deletion_response, dict), (
+            f"Expected dict response, got {type(deletion_response)}"
+        )
+
         # Extract deletion statistics from neo4j_deletion_stats
-        assert "neo4j_deletion_stats" in deletion_response, "Missing 'neo4j_deletion_stats' in response"
+        assert "neo4j_deletion_stats" in deletion_response, (
+            "Missing 'neo4j_deletion_stats' in response"
+        )
         deletion_stats = deletion_response["neo4j_deletion_stats"]
-        
+
         # Check that deletion statistics contain expected keys
         expected_keys = [
             "repositories_deleted",
@@ -275,8 +322,10 @@ class TestDeleteRepositoryEndpoint:
         ]
         for key in expected_keys:
             assert key in deletion_stats, f"Missing key '{key}' in deletion statistics"
-            assert isinstance(deletion_stats[key], int), f"Key '{key}' should be an integer"
-        
+            assert isinstance(deletion_stats[key], int), (
+                f"Key '{key}' should be an integer"
+            )
+
         # Log deletion statistics for debugging
         logger.info(f"API deletion statistics: {deletion_stats}")
         logger.info(f"Full deletion response: {deletion_response}")
@@ -290,24 +339,30 @@ class TestDeleteRepositoryEndpoint:
         # 9️⃣  Verify repository is no longer in ingested repositories list
         # ------------------------------------------------------------------
         repos_resp = test_client.get("/get/ingestedRepositories")
-        assert repos_resp.status_code == 200, f"Failed to get ingested repositories: {repos_resp.text}"
-        
+        assert repos_resp.status_code == 200, (
+            f"Failed to get ingested repositories: {repos_resp.text}"
+        )
+
         ingested_repos = repos_resp.json()["repositories"]
         deleted_repo_found = any(
-            repo["repository_name"] == repo_request.repository_name and 
-            repo["repository_owner_name"] == repo_request.repository_owner_name
+            repo["repository_name"] == repo_request.repository_name
+            and repo["repository_owner_name"] == repo_request.repository_owner_name
             for repo in ingested_repos
         )
-        assert not deleted_repo_found, "Deleted repository still appears in ingested repositories list"
+        assert not deleted_repo_found, (
+            "Deleted repository still appears in ingested repositories list"
+        )
 
         # ------------------------------------------------------------------
         # 1️⃣0️⃣  ENHANCED: Comprehensive post-deletion verification
         # ------------------------------------------------------------------
         # Use the new comprehensive helper that replaces all the manual verification above
         assert_repository_completely_deleted(neo4j_client, repo_qualified_name)
-        
-        logger.info(f"✅ Enhanced deletion verification completed successfully for {repo_qualified_name}")
-        
+
+        logger.info(
+            f"✅ Enhanced deletion verification completed successfully for {repo_qualified_name}"
+        )
+
         # Optional: Log residual node counts for test pollution detection
         total_nodes_by_type = {}
         for node_type in [
@@ -317,11 +372,13 @@ class TestDeleteRepositoryEndpoint:
         ]:
             count = count_nodes_by_label(neo4j_client, node_type)
             total_nodes_by_type[node_type] = count
-            
+
         residual_nodes = {k: v for k, v in total_nodes_by_type.items() if v > 0}
         if residual_nodes:
-            logger.warning(f"Residual nodes detected (may be from other tests): {residual_nodes}")
+            logger.warning(
+                f"Residual nodes detected (may be from other tests): {residual_nodes}"
+            )
         else:
-            logger.info("✅ Complete graph cleanup verified - no residual nodes detected")
-        
-        
+            logger.info(
+                "✅ Complete graph cleanup verified - no residual nodes detected"
+            )

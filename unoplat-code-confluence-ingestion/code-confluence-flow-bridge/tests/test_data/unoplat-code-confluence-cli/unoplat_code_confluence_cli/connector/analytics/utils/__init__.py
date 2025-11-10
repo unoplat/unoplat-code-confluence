@@ -1,1 +1,1 @@
-"""Helper utilities for analytics subpackage.""" 
+"""Helper utilities for analytics subpackage."""

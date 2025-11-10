@@ -16,10 +16,12 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 # Constants
 TEST_DATA_DIR = Path(__file__).parent.parent.parent / "test_data"
 
+
 @pytest.fixture
 def pip_strategy() -> PipStrategy:
     """Create a PipStrategy instance."""
     return PipStrategy()
+
 
 @pytest.fixture
 def mock_metadata() -> ProgrammingLanguageMetadata:
@@ -28,27 +30,28 @@ def mock_metadata() -> ProgrammingLanguageMetadata:
         language=ProgrammingLanguage.PYTHON,
         package_manager=PackageManagerType.PIP,
         language_version="3.8.0",
-        
     )
+
 
 @pytest.fixture
 def requirements_dir(tmp_path: Path) -> Path:
     """Create a temporary directory with test requirement files."""
     req_dir = tmp_path / "requirements"
     req_dir.mkdir()
-    
+
     # Copy test requirement files
     for filename in ["requirements.txt", "requirements-dev.txt"]:
         src = TEST_DATA_DIR / "requirements" / filename
         dst = req_dir.parent / filename
         dst.write_text(src.read_text())
-    
+
     # Copy setup.py for -e . to work
     setup_src = TEST_DATA_DIR / "setup" / "setup.py"
     setup_dst = req_dir.parent / "setup.py"
     setup_dst.write_text(setup_src.read_text())
-    
+
     return req_dir.parent
+
 
 @pytest.fixture
 def types_requirements_dir(tmp_path: Path) -> Path:
@@ -56,15 +59,20 @@ def types_requirements_dir(tmp_path: Path) -> Path:
     # Create directory
     req_dir = tmp_path / "requirements"
     req_dir.mkdir()
-    
+
     # Copy only the types requirements file
     src = TEST_DATA_DIR / "requirements" / "requirements-types.txt"
     dst = req_dir.parent / "requirements-types.txt"
     dst.write_text(src.read_text())
-    
+
     return req_dir.parent
 
-def test_setup_py_parsing(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_setup_py_parsing(
+    pip_strategy: PipStrategy,
+    requirements_dir: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test parsing of core dependencies and metadata from setup.py."""
     metadata = pip_strategy.process_metadata(str(requirements_dir), mock_metadata)
 
@@ -92,12 +100,17 @@ def test_setup_py_parsing(pip_strategy: PipStrategy, requirements_dir: Path, moc
     assert deps["default"]["flask"].version.specifier == ">=2.0.0"
 
     assert "redis" in deps["default"]
-    assert deps["default"]["redis"].extras and "hiredis" in deps["default"]["redis"].extras
+    assert (
+        deps["default"]["redis"].extras and "hiredis" in deps["default"]["redis"].extras
+    )
     assert deps["default"]["redis"].version.specifier == ">=4.0.0"
 
     # Check conditional dependency
     assert "importlib-metadata" in deps["default"]
-    assert deps["default"]["importlib-metadata"].environment_marker == 'python_version < "3.8"'
+    assert (
+        deps["default"]["importlib-metadata"].environment_marker
+        == 'python_version < "3.8"'
+    )
 
     # Check dev dependencies (from setup.py extras_require["dev"] → dev group)
     assert "dev" in deps
@@ -109,7 +122,12 @@ def test_setup_py_parsing(pip_strategy: PipStrategy, requirements_dir: Path, moc
     assert "boto3" in deps["aws"]
     assert deps["aws"]["boto3"].version.specifier == ">=1.20.0"
 
-def test_requirements_parsing(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_requirements_parsing(
+    pip_strategy: PipStrategy,
+    requirements_dir: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test parsing of additional dependencies from requirements.txt."""
     metadata = pip_strategy.process_metadata(str(requirements_dir), mock_metadata)
     deps = metadata.dependencies
@@ -119,14 +137,24 @@ def test_requirements_parsing(pip_strategy: PipStrategy, requirements_dir: Path,
 
     # Check URL dependencies (from requirements.txt → default group)
     assert "urllib3" in deps["default"]
-    assert deps["default"]["urllib3"].version.specifier == "!=1.25.0,!=1.25.1,<1.26,>=1.21.1"
+    assert (
+        deps["default"]["urllib3"].version.specifier
+        == "!=1.25.0,!=1.25.1,<1.26,>=1.21.1"
+    )
 
     # Check dependencies with extras
     assert "celery" in deps["default"]
-    assert deps["default"]["celery"].extras and set(deps["default"]["celery"].extras) == {"redis", "rabbitmq"}
+    assert deps["default"]["celery"].extras and set(
+        deps["default"]["celery"].extras
+    ) == {"redis", "rabbitmq"}
     assert deps["default"]["celery"].version.specifier == ">=5.0.0"
 
-def test_vcs_dependencies(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_vcs_dependencies(
+    pip_strategy: PipStrategy,
+    requirements_dir: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test parsing of VCS dependencies from requirements.txt."""
     metadata = pip_strategy.process_metadata(str(requirements_dir), mock_metadata)
     deps = metadata.dependencies
@@ -149,7 +177,12 @@ def test_vcs_dependencies(pip_strategy: PipStrategy, requirements_dir: Path, moc
     # For non-version references, specifier should remain None
     assert requests_vcs.version.specifier is None
 
-def test_environment_markers(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_environment_markers(
+    pip_strategy: PipStrategy,
+    requirements_dir: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test parsing of dependencies with environment markers from setup.py."""
     metadata = pip_strategy.process_metadata(str(requirements_dir), mock_metadata)
     deps = metadata.dependencies
@@ -159,9 +192,17 @@ def test_environment_markers(pip_strategy: PipStrategy, requirements_dir: Path, 
 
     # Check environment marker (from setup.py install_requires → default group)
     assert "importlib-metadata" in deps["default"]
-    assert deps["default"]["importlib-metadata"].environment_marker == 'python_version < "3.8"'
+    assert (
+        deps["default"]["importlib-metadata"].environment_marker
+        == 'python_version < "3.8"'
+    )
 
-def test_development_dependencies(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_development_dependencies(
+    pip_strategy: PipStrategy,
+    requirements_dir: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test parsing of development dependencies from setup.py extras and requirements-dev.txt."""
     metadata = pip_strategy.process_metadata(str(requirements_dir), mock_metadata)
     deps = metadata.dependencies
@@ -183,15 +224,25 @@ def test_development_dependencies(pip_strategy: PipStrategy, requirements_dir: P
     assert "pytest" in deps["dev"]
     assert deps["dev"]["pytest"].version.specifier == ">=6.0.0"
 
-def test_entry_points(pip_strategy: PipStrategy, requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_entry_points(
+    pip_strategy: PipStrategy,
+    requirements_dir: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test parsing of entry points from setup.py."""
     metadata = pip_strategy.process_metadata(str(requirements_dir), mock_metadata)
-    
+
     assert "test-cli" in metadata.entry_points
     assert metadata.entry_points["test-cli"] == "test_package.cli:main"
     assert metadata.entry_points["serve"] == "test_package.server:run"
 
-def test_types_requirements_parsing(pip_strategy: PipStrategy, types_requirements_dir: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_types_requirements_parsing(
+    pip_strategy: PipStrategy,
+    types_requirements_dir: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test parsing of type stubs and development dependencies."""
     metadata = pip_strategy.process_metadata(str(types_requirements_dir), mock_metadata)
     deps = metadata.dependencies
@@ -202,7 +253,10 @@ def test_types_requirements_parsing(pip_strategy: PipStrategy, types_requirement
     # Test type stubs
     assert "boto3-stubs" in deps["types"]
     assert deps["types"]["boto3-stubs"].version.specifier == "==1.34.133"
-    assert deps["types"]["boto3-stubs"].extras and "s3" in deps["types"]["boto3-stubs"].extras
+    assert (
+        deps["types"]["boto3-stubs"].extras
+        and "s3" in deps["types"]["boto3-stubs"].extras
+    )
 
     assert "types-requests" in deps["types"]
     assert deps["types"]["types-requests"].version.specifier == "==2.28.11.17"
@@ -238,7 +292,12 @@ def test_types_requirements_parsing(pip_strategy: PipStrategy, types_requirement
     assert "pytest-asyncio" in deps["types"]
     assert deps["types"]["pytest-asyncio"].version.specifier == "==0.22.0"
 
-def test_requirement_file_includes(pip_strategy: PipStrategy, tmp_path: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_requirement_file_includes(
+    pip_strategy: PipStrategy,
+    tmp_path: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test -r include handling."""
     # Create base requirements
     base_req = tmp_path / "requirements.txt"
@@ -259,7 +318,12 @@ def test_requirement_file_includes(pip_strategy: PipStrategy, tmp_path: Path, mo
     assert "pytest" in metadata.dependencies["dev"]
     assert "black" in metadata.dependencies["dev"]
 
-def test_no_duplicate_dependencies_from_includes(pip_strategy: PipStrategy, tmp_path: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_no_duplicate_dependencies_from_includes(
+    pip_strategy: PipStrategy,
+    tmp_path: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test that -r includes don't duplicate dependencies in parent group."""
     # Create base requirements with -r include
     base_req = tmp_path / "requirements.txt"
@@ -284,7 +348,12 @@ def test_no_duplicate_dependencies_from_includes(pip_strategy: PipStrategy, tmp_
     assert "dev" in metadata.dependencies  # dev group exists
     assert "requests" not in metadata.dependencies["dev"]  # But requests not in dev
 
-def test_circular_include_detection(pip_strategy: PipStrategy, tmp_path: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_circular_include_detection(
+    pip_strategy: PipStrategy,
+    tmp_path: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test that circular includes raise ValueError."""
     req1 = tmp_path / "requirements.txt"
     req1.write_text("-r requirements-dev.txt\n")
@@ -295,7 +364,12 @@ def test_circular_include_detection(pip_strategy: PipStrategy, tmp_path: Path, m
     with pytest.raises(ValueError, match="Circular requirement include"):
         pip_strategy.process_metadata(str(tmp_path), mock_metadata)
 
-def test_editable_install(pip_strategy: PipStrategy, tmp_path: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_editable_install(
+    pip_strategy: PipStrategy,
+    tmp_path: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test -e editable install parsing."""
     req = tmp_path / "requirements.txt"
     req.write_text("-e git+https://github.com/user/repo.git@main#egg=mypackage\n")
@@ -309,7 +383,12 @@ def test_editable_install(pip_strategy: PipStrategy, tmp_path: Path, mock_metada
     assert dep.source_url == "https://github.com/user/repo.git"
     assert dep.source_reference == "main"
 
-def test_group_mapping_from_subdirectory(pip_strategy: PipStrategy, tmp_path: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_group_mapping_from_subdirectory(
+    pip_strategy: PipStrategy,
+    tmp_path: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test requirements/{group}.txt pattern."""
     req_dir = tmp_path / "requirements"
     req_dir.mkdir()
@@ -323,15 +402,17 @@ def test_group_mapping_from_subdirectory(pip_strategy: PipStrategy, tmp_path: Pa
     assert "pytest" in metadata.dependencies["test"]
     assert metadata.dependencies["test"]["pytest"].version.specifier == ">=6.0.0"
 
-def test_package_name_normalization(pip_strategy: PipStrategy, tmp_path: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_package_name_normalization(
+    pip_strategy: PipStrategy,
+    tmp_path: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test PEP 503 package name normalization with consecutive special chars."""
     # Create requirements with edge case package names
     req = tmp_path / "requirements.txt"
     req.write_text(
-        "Foo..Bar>=1.0.0\n"
-        "baz__qux>=2.0.0\n"
-        "test--pkg>=3.0.0\n"
-        "Mix._-Ed>=4.0.0\n"
+        "Foo..Bar>=1.0.0\nbaz__qux>=2.0.0\ntest--pkg>=3.0.0\nMix._-Ed>=4.0.0\n"
     )
 
     metadata = pip_strategy.process_metadata(str(tmp_path), mock_metadata)
@@ -346,7 +427,12 @@ def test_package_name_normalization(pip_strategy: PipStrategy, tmp_path: Path, m
     assert "foo--bar" not in metadata.dependencies["default"]
     assert "baz__qux" not in metadata.dependencies["default"]
 
-def test_group_name_normalization(pip_strategy: PipStrategy, tmp_path: Path, mock_metadata: ProgrammingLanguageMetadata):
+
+def test_group_name_normalization(
+    pip_strategy: PipStrategy,
+    tmp_path: Path,
+    mock_metadata: ProgrammingLanguageMetadata,
+):
     """Test PEP 735 group name normalization with consecutive special chars."""
     # Create requirements file with special chars in name
     req = tmp_path / "requirements-dev__test.txt"

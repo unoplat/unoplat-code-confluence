@@ -32,12 +32,16 @@ from src.code_confluence_flow_bridge.utility.author_utils import normalize_autho
 
 
 class PythonPoetryStrategy(PackageManagerStrategy):
-    def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+    def process_metadata(
+        self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata
+    ) -> UnoplatPackageManagerMetadata:
         """Process poetry specific metadata from pyproject.toml"""
         pyproject_path = os.path.join(local_workspace_path, "pyproject.toml")
 
         if not os.path.exists(pyproject_path):
-            activity.logger.warning("pyproject.toml not found", {"path": pyproject_path})
+            activity.logger.warning(
+                "pyproject.toml not found", {"path": pyproject_path}
+            )
             return self._create_empty_metadata(metadata)
 
         try:
@@ -50,7 +54,10 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 validator = validator_api.Validator()
                 validator(pyproject_data)
             except ValidationError as e:
-                activity.logger.warning("pyproject.toml validation failed", {"error": e.message, "path": pyproject_path})
+                activity.logger.warning(
+                    "pyproject.toml validation failed",
+                    {"error": e.message, "path": pyproject_path},
+                )
                 # Continue processing even if validation fails, but log the warning
 
             poetry_data = pyproject_data.get("tool", {}).get("poetry", {})
@@ -74,7 +81,9 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                 dependencies=dependencies,
                 package_name=poetry_data.get("name"),
                 programming_language=metadata.language.value,
-                package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value,
+                package_manager=metadata.package_manager.value
+                if metadata.package_manager
+                else PackageManagerType.POETRY.value,
                 programming_language_version=programming_language_version,
                 project_version=poetry_data.get("version"),
                 description=poetry_data.get("description"),
@@ -91,15 +100,29 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             )
 
         except Exception as e:
-            activity.logger.error("Error parsing pyproject.toml", {"error": str(e), "path": pyproject_path})
+            activity.logger.error(
+                "Error parsing pyproject.toml",
+                {"error": str(e), "path": pyproject_path},
+            )
             return self._create_empty_metadata(metadata)
 
-    def _handle_fallback(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+    def _handle_fallback(
+        self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata
+    ) -> UnoplatPackageManagerMetadata:
         """Handle fallback to requirements.txt when no poetry config is found"""
-        package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
-        activity.logger.warning("No poetry configuration found, falling back to requirements", {"path": local_workspace_path, "package_manager": package_manager_value})
-        fallback_dependencies = RequirementsUtils.parse_requirements_folder(local_workspace_path)
-        grouped_dependencies: Dict[str, Dict[str, UnoplatProjectDependency]] = defaultdict(dict)
+        package_manager_value = (
+            metadata.package_manager.value if metadata.package_manager else "unknown"
+        )
+        activity.logger.warning(
+            "No poetry configuration found, falling back to requirements",
+            {"path": local_workspace_path, "package_manager": package_manager_value},
+        )
+        fallback_dependencies = RequirementsUtils.parse_requirements_folder(
+            local_workspace_path
+        )
+        grouped_dependencies: Dict[str, Dict[str, UnoplatProjectDependency]] = (
+            defaultdict(dict)
+        )
 
         for dep_name, dependency in fallback_dependencies.items():
             grouped_dependencies["default"][dep_name] = dependency
@@ -118,10 +141,14 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             activity.logger.warning("setup.py not found, skipping setup.py parsing")
             return package_manager
 
-    def _parse_all_dependency_groups(self, poetry_data: Dict) -> Dict[str, Dict[str, UnoplatProjectDependency]]:
+    def _parse_all_dependency_groups(
+        self, poetry_data: Dict
+    ) -> Dict[str, Dict[str, UnoplatProjectDependency]]:
         """Parse dependencies from main, legacy dev, and named groups."""
 
-        grouped_dependencies: Dict[str, Dict[str, UnoplatProjectDependency]] = defaultdict(dict)
+        grouped_dependencies: Dict[str, Dict[str, UnoplatProjectDependency]] = (
+            defaultdict(dict)
+        )
         group_includes: Dict[str, List[str]] = {}
 
         # Main dependencies map to the default group
@@ -140,7 +167,9 @@ class PythonPoetryStrategy(PackageManagerStrategy):
 
             group_dependencies = group_data.get("dependencies", {})
             if group_dependencies:
-                grouped_dependencies[group_name].update(self._parse_dependencies(group_dependencies))
+                grouped_dependencies[group_name].update(
+                    self._parse_dependencies(group_dependencies)
+                )
 
             include_groups = self._extract_include_groups(group_data)
             if include_groups:
@@ -182,20 +211,28 @@ class PythonPoetryStrategy(PackageManagerStrategy):
             return UnoplatVersion(specifier=constraint)
 
         except Exception as e:
-            activity.logger.warning("Error parsing version constraint '{}': {}", constraint, str(e))
+            activity.logger.warning(
+                "Error parsing version constraint '{}': {}", constraint, str(e)
+            )
             return UnoplatVersion()
 
-    def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+    def _create_empty_metadata(
+        self, metadata: ProgrammingLanguageMetadata
+    ) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with basic information"""
         return UnoplatPackageManagerMetadata(
             dependencies={"default": {}},
             programming_language=metadata.language.value,
-            package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.POETRY.value,
+            package_manager=metadata.package_manager.value
+            if metadata.package_manager
+            else PackageManagerType.POETRY.value,
             programming_language_version=metadata.language_version,
             manifest_path=metadata.manifest_path,
         )
 
-    def _parse_dependencies(self, deps_dict: Dict) -> Dict[str, UnoplatProjectDependency]:
+    def _parse_dependencies(
+        self, deps_dict: Dict
+    ) -> Dict[str, UnoplatProjectDependency]:
         dependencies = {}
 
         for name, constraint in deps_dict.items():
@@ -226,30 +263,52 @@ class PythonPoetryStrategy(PackageManagerStrategy):
                     if "git" in constraint:
                         source = "git"
                         source_url = constraint["git"]
-                        source_reference = constraint.get("rev") or constraint.get("branch") or constraint.get("tag")
+                        source_reference = (
+                            constraint.get("rev")
+                            or constraint.get("branch")
+                            or constraint.get("tag")
+                        )
                         subdirectory = constraint.get("subdirectory")
-                        version = UnoplatVersion()  # Git dependencies don't have version constraints
+                        version = (
+                            UnoplatVersion()
+                        )  # Git dependencies don't have version constraints
 
                     # Handle path dependencies
                     elif "path" in constraint:
                         source = "path"
                         source_url = constraint["path"]
-                        version = UnoplatVersion()  # Path dependencies don't have version constraints
+                        version = (
+                            UnoplatVersion()
+                        )  # Path dependencies don't have version constraints
 
                     # Handle url dependencies
                     elif "url" in constraint:
                         source = "url"
                         source_url = constraint["url"]
-                        version = UnoplatVersion()  # URL dependencies don't have version constraints
+                        version = (
+                            UnoplatVersion()
+                        )  # URL dependencies don't have version constraints
                 else:
-                    activity.logger.warning("Skipping invalid dependency specification for {}", name)
+                    activity.logger.warning(
+                        "Skipping invalid dependency specification for {}", name
+                    )
                     continue
 
-                tuple_dependency = UnoplatProjectDependency(version=version, extras=extras, source=source, source_url=source_url, source_reference=source_reference, subdirectory=subdirectory)
+                tuple_dependency = UnoplatProjectDependency(
+                    version=version,
+                    extras=extras,
+                    source=source,
+                    source_url=source_url,
+                    source_reference=source_reference,
+                    subdirectory=subdirectory,
+                )
                 dependencies[name] = tuple_dependency
 
             except Exception as e:
-                activity.logger.warning("Error parsing dependency", {"dependency": name, "error": str(e), "group": group})
+                activity.logger.warning(
+                    "Error parsing dependency",
+                    {"dependency": name, "error": str(e), "group": group},
+                )
                 # Add dependency with empty version constraint
                 tuple_dependency = UnoplatProjectDependency(version=UnoplatVersion())
                 dependencies[name] = tuple_dependency

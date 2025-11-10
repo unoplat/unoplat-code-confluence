@@ -283,7 +283,7 @@ wheels = [
 
 [[package]]
 name = "code-confluence-flow-bridge"
-version = "0.58.0"
+version = "0.59.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofile" },
@@ -323,6 +323,7 @@ dev = [
     { name = "basedpyright" },
     { name = "check-jsonschema" },
     { name = "mypy" },
+    { name = "types-pyyaml" },
 ]
 test = [
     { name = "httpx" },
@@ -365,7 +366,7 @@ requires-dist = [
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "tree-sitter-language-pack", specifier = ">=0.8.0" },
     { name = "typing-extensions", specifier = ">=4.11" },
-    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.33.0" },
+    { name = "unoplat-code-confluence-commons", directory = "../../unoplat-code-confluence-commons" },
     { name = "validate-pyproject", extras = ["all"], specifier = ">=0.23" },
 ]
 
@@ -374,6 +375,7 @@ dev = [
     { name = "basedpyright", specifier = ">=1.32.1" },
     { name = "check-jsonschema", specifier = ">=0.33.0" },
     { name = "mypy", specifier = ">=1.16.0" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 test = [
     { name = "httpx", specifier = ">=0.28.1" },
@@ -2060,6 +2062,15 @@ wheels = [
 ]
 
 [[package]]
+name = "types-pyyaml"
+version = "6.0.12.20250915"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7e/69/3c51b36d04da19b92f9e815be12753125bd8bc247ba0470a982e6979e71c/types_pyyaml-6.0.12.20250915.tar.gz", hash = "sha256:0f8b54a528c303f0e6f7165687dd33fafa81c807fcac23f632b63aa624ced1d3", size = 17522 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/e0/1eed384f02555dde685fff1a1ac805c1c7dcb6dd019c916fe659b1c1f9ec/types_pyyaml-6.0.12.20250915-py3-none-any.whl", hash = "sha256:e7d4d9e064e89a3b3cae120b4990cd370874d2bf12fa5f46c97018dd5d3c9ab6", size = 20338 },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2083,7 +2094,7 @@ wheels = [
 [[package]]
 name = "unoplat-code-confluence-commons"
 version = "0.33.0"
-source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.33.0#fe082fed12747ffcbc94ee3524802fc67a44f3cf" }
+source = { directory = "../../unoplat-code-confluence-commons" }
 dependencies = [
     { name = "cryptography" },
     { name = "neomodel" },
@@ -2093,6 +2104,18 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "sqlmodel" },
     { name = "testcontainers", extra = ["neo4j"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cryptography", specifier = ">=45.0.6" },
+    { name = "neomodel", specifier = ">=5.4.2,<6" },
+    { name = "pydantic", specifier = ">=2.11.7" },
+    { name = "pytest", specifier = "==8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.0,<0.26" },
+    { name = "sqlalchemy", specifier = ">=2.0.41" },
+    { name = "sqlmodel", specifier = ">=0.0.24" },
+    { name = "testcontainers", extras = ["neo4j"], specifier = ">=3.7.1,<4" },
 ]
 
 [[package]]

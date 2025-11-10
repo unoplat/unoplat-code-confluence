@@ -1,4 +1,5 @@
 """Sample dataclass for testing data model detection."""
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -6,6 +7,7 @@ from typing import Optional
 @dataclass
 class User:
     """User data model."""
+
     name: str
     email: str
     age: int
@@ -15,6 +17,7 @@ class User:
 @dataclass
 class UserProfile:
     """User profile with additional details."""
+
     user: User
     bio: Optional[str] = None
     followers: int = 0

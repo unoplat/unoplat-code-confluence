@@ -16,17 +16,17 @@ from sqlalchemy.pool import NullPool
 def create_sync_engine(db_url: str):
     """
     Create synchronous engine with NullPool for testing.
-    
+
     Args:
         db_url: Database connection URL
-        
+
     Returns:
         SQLAlchemy Engine configured for testing
     """
     return create_engine(
-        db_url, 
+        db_url,
         poolclass=NullPool,  # Disable connection pooling for tests
-        echo=False
+        echo=False,
     )
 
 
@@ -43,9 +43,7 @@ def get_sync_postgres_session(port: int):
     Args:
         port: The host port on which the test Postgres instance is listening.
     """
-    db_url = (
-        f"postgresql+psycopg2://postgres:postgres@localhost:{port}/code_confluence"
-    )
+    db_url = f"postgresql+psycopg2://postgres:postgres@localhost:{port}/code_confluence"
     engine = create_sync_engine(db_url)
     SessionLocal = sessionmaker(bind=engine)
     session = SessionLocal()
@@ -61,31 +59,27 @@ def get_sync_postgres_session(port: int):
         engine.dispose()
 
 
-
 @contextmanager
 def sync_session_scope(engine):
     """
     Provide a transactional scope with proper cleanup.
-    
+
     This context manager creates a session with savepoint isolation,
     ensuring that each test runs in its own transaction that can be
     rolled back for proper cleanup.
-    
+
     Args:
         engine: SQLAlchemy engine
-        
+
     Yields:
         Session: SQLAlchemy session with savepoint isolation
     """
     connection = engine.connect()
     trans = connection.begin()
-    
+
     # Create session with create_savepoint mode for test isolation
-    session = Session(
-        bind=connection, 
-        join_transaction_mode="create_savepoint"
-    )
-    
+    session = Session(bind=connection, join_transaction_mode="create_savepoint")
+
     try:
         yield session
         trans.commit()

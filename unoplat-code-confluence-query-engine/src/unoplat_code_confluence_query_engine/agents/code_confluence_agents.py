@@ -54,6 +54,7 @@ def create_code_confluence_agents(
 
     code_confluence_project_configuration_agent: Agent[AgentDependencies] = Agent(
         model,
+        name="project_configuration_agent",
         model_settings=model_settings,
         system_prompt="<role> Build/CI/Test/Lint/Type Configuration Locator</role>",
         deps_type=AgentDependencies,  # type: ignore
@@ -78,6 +79,7 @@ def create_code_confluence_agents(
 
     context7_agent: Agent[None] = Agent(
         model,
+        name="context7_agent",
         model_settings=model_settings,
         system_prompt=r"""You are the Context7 Library Documentation Agent.
 
@@ -109,6 +111,7 @@ Always provide exactly 5 lines maximum. Keep responses factual and based on offi
 
     development_workflow_agent: Agent[AgentDependencies] = Agent(
         model,
+        name="development_workflow_agent",
         model_settings=model_settings,
         system_prompt="<role> Development Workflow Synthesizer</role>",
         deps_type=AgentDependencies,  # type: ignore
@@ -131,10 +134,18 @@ Always provide exactly 5 lines maximum. Keep responses factual and based on offi
 
     business_logic_domain_agent: Agent[AgentDependencies] = Agent(
         model,
+        name="business_logic_domain_agent",
         model_settings=model_settings,
         system_prompt=r"""You are the Business Logic Domain Agent.
 
 Goal: Analyze data models across this codebase and return a 2-4 sentence description of the dominant business logic domain.
+
+<file_path_requirements>
+CRITICAL: When calling read_file_content or any tool that accepts file paths:
+- ALWAYS use ABSOLUTE paths starting with / (e.g., /opt/unoplat/repositories/my-repo/src/models.py)
+- NEVER use relative paths (e.g., models.py, src/models.py, ./file.py)
+- The file_path values returned by get_data_model_files are already absolute - use them exactly as provided
+</file_path_requirements>
 
 Strict workflow:
 1) Call get_data_model_files to retrieve all data model file paths and their (start_line, end_line) spans
@@ -186,6 +197,13 @@ def per_programming_language_configuration_prompt(
 ) -> str:
     common_prompt = (
         f"<task>Given a codebase path for {ctx.deps.codebase_metadata.codebase_programming_language} programming language scan the directory tree for the current codebase and identify important configuration files for development, testing, linting, formatting, packaging, CI/CD, containers, and infrastructure </task>"
+        f"<file_path_requirements>"
+        f"CRITICAL: When calling read_file_content, get_directory_tree, or any tool that accepts file paths:"
+        f"- ALWAYS use ABSOLUTE paths starting with / (e.g., /opt/unoplat/repositories/my-repo/src/config.json)"
+        f"- NEVER use relative paths (e.g., config.json, src/file.py, ./package.json)"
+        f"- When you find files via search_across_codebase or get_directory_tree, construct absolute paths by combining the codebase root path with relative paths"
+        f"- The codebase root path is: {ctx.deps.codebase_metadata.codebase_path}"
+        f"</file_path_requirements>"
         f"<context>"
         f" <categories>"
         f"   <list>dev,test,lint,format,type_checking,styling,ui_components,routing,bundler,package,build,deploy,infrastructure</list>"
@@ -291,6 +309,15 @@ def per_language_development_workflow_prompt(ctx: RunContext[AgentDependencies])
         "Strictly output only JSON, no prose.\n"
     )
 
+    file_path_requirements = (
+        "<file_path_requirements>\n"
+        "CRITICAL: When calling read_file_content, get_directory_tree, or any tool that accepts file paths:\n"
+        "- ALWAYS use ABSOLUTE paths starting with / (e.g., /opt/unoplat/repositories/my-repo/package.json)\n"
+        "- NEVER use relative paths (e.g., package.json, src/file.py, ./config.json)\n"
+        f"- The codebase root path is: {ctx.deps.codebase_metadata.codebase_path}\n"
+        "</file_path_requirements>\n\n"
+    )
+
     steps = (
         "Workflow:\n"
         "1. Extract runnable commands for build/dev/test/lint/type_check from scripts or config based on package manager and user provided config files related to development workflow.\n"
@@ -333,4 +360,4 @@ def per_language_development_workflow_prompt(ctx: RunContext[AgentDependencies])
     else:
         lang_hints = ""
 
-    return header + steps + output_contract + lang_hints
+    return header + file_path_requirements + steps + output_contract + lang_hints

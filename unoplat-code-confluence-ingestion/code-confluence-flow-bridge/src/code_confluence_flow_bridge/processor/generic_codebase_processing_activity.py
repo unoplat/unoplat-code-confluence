@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class GenericCodebaseProcessingActivity:
     """
     New Temporal activity for processing codebases with streaming Neo4j insertion.
-    
+
     Uses the revamped architecture with language-agnostic parsing and optimized
     batch operations for high-performance, memory-efficient processing.
     """
@@ -40,13 +40,15 @@ class GenericCodebaseProcessingActivity:
         self.code_confluence_graph = code_confluence_graph
 
     @activity.defn
-    async def process_codebase_generic(self, envelope: CodebaseProcessingActivityEnvelope) -> None:
+    async def process_codebase_generic(
+        self, envelope: CodebaseProcessingActivityEnvelope
+    ) -> None:
         """
         Process a codebase using the new generic parser with direct Neo4j insertion.
-        
+
         Args:
             envelope: Activity envelope containing codebase processing parameters
-            
+
         Raises:
             ApplicationError: If processing fails with full context for Temporal retry
         """
@@ -55,7 +57,7 @@ class GenericCodebaseProcessingActivity:
         codebase_qualified_name = envelope.codebase_qualified_name
         programming_language_metadata = envelope.programming_language_metadata
         trace_id = envelope.trace_id
-        
+
         # Set up logger with trace context
         info = activity.info()
         workflow_id: str = info.workflow_id
@@ -67,13 +69,15 @@ class GenericCodebaseProcessingActivity:
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             activity_id=activity_id,
-            activity_name=activity_name
+            activity_name=activity_name,
         )
-        
+
         try:
             log.info(
                 "Starting generic codebase processing | codebase_qualified_name={} | codebase_path={} | programming_language={}",
-                codebase_qualified_name, codebase_path, programming_language_metadata.language.value
+                codebase_qualified_name,
+                codebase_path,
+                programming_language_metadata.language.value,
             )
 
             # Process codebase with parser (AST generation and parsing, direct Neo4j insertion)
@@ -81,15 +85,18 @@ class GenericCodebaseProcessingActivity:
 
             log.info(
                 "Generic codebase processing completed successfully | codebase_qualified_name={}",
-                codebase_qualified_name
+                codebase_qualified_name,
             )
 
         except Exception as e:
             log.error(
                 "Generic codebase processing failed | codebase_qualified_name={} | codebase_path={} | error={} | traceback={}",
-                codebase_qualified_name, codebase_path, str(e), traceback.format_exc()
+                codebase_qualified_name,
+                codebase_path,
+                str(e),
+                traceback.format_exc(),
             )
-            
+
             raise ApplicationError(
                 f"Codebase processing failed for {codebase_qualified_name}",
                 {
@@ -100,14 +107,16 @@ class GenericCodebaseProcessingActivity:
                     "programming_language": programming_language_metadata.language.value,
                     "error": str(e),
                     "activity_name": "process_codebase_generic",
-                    "traceback": traceback.format_exc()
-                }
+                    "traceback": traceback.format_exc(),
+                },
             )
 
-    async def _process_codebase_with_parser(self, envelope: CodebaseProcessingActivityEnvelope, log: "Logger") -> None:
+    async def _process_codebase_with_parser(
+        self, envelope: CodebaseProcessingActivityEnvelope, log: "Logger"
+    ) -> None:
         """
         Process codebase using GenericCodebaseParser with streaming Neo4j insertion.
-        
+
         Args:
             envelope: Activity envelope with codebase parameters
         """
@@ -126,16 +135,16 @@ class GenericCodebaseProcessingActivity:
                 root_packages=envelope.root_packages,
                 programming_language_metadata=envelope.programming_language_metadata,
                 trace_id=envelope.trace_id,
-                code_confluence_graph=self.code_confluence_graph
+                code_confluence_graph=self.code_confluence_graph,
             )
 
             # Process with fresh connection - parser will handle its own transactions
             await parser.process_and_insert_codebase()
-                    
+
             log.info(
                 "Parser processing completed successfully | codebase_qualified_name={} | files_processed={}",
                 envelope.codebase_qualified_name,
-                getattr(parser, 'files_processed', 0),
+                getattr(parser, "files_processed", 0),
             )
 
         except Exception as e:
@@ -143,7 +152,7 @@ class GenericCodebaseProcessingActivity:
                 "Failed to process codebase | codebase_qualified_name={} | error={} | files_processed={}",
                 envelope.codebase_qualified_name,
                 str(e),
-                getattr(parser, 'files_processed', 0) if 'parser' in locals() else 0,
+                getattr(parser, "files_processed", 0) if "parser" in locals() else 0,
             )
             raise
 
