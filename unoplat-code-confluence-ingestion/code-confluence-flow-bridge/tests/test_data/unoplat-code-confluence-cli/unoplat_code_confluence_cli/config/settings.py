@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 # Enums for type safety
 class ProgrammingLanguage(str, Enum):
-    PYTHON = 'python'
+    PYTHON = "python"
 
 
 class PackageManagerType(str, Enum):
@@ -20,6 +20,7 @@ class PackageManagerType(str, Enum):
 
 class DatabaseType(str, Enum):
     NEO4J = "neo4j"
+
 
 # Configuration Models (BaseModel for JSON config)
 
@@ -65,6 +66,7 @@ class DatabaseSettings(BaseModel):
 # Main Configuration (BaseModel for JSON config)
 class AppConfig(BaseModel):
     """JSON configuration"""
+
     repositories: List[RepositorySettings]
     llm_provider_config: Optional[LLMProviderConfig] = None
     databases: Optional[List[DatabaseConfig]] = None
@@ -76,9 +78,10 @@ class AppConfig(BaseModel):
         """Load configuration from JSON file"""
         if config_path:
             config_file = config_path
-        with open(config_file, 'r') as f:
+        with open(config_file, "r") as f:
             config_data = json.loads(f.read())
         return cls(**config_data)
+
 
 # Main Settings Class
 

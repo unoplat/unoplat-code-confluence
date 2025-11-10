@@ -1,4 +1,3 @@
-from asyncio import current_task
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -7,7 +6,6 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
-    async_scoped_session,
     async_sessionmaker,
     create_async_engine,
 )
@@ -17,33 +15,64 @@ from unoplat_code_confluence_query_engine.config.settings import EnvironmentSett
 # Global variables for async engine and session management
 async_engine: Optional[AsyncEngine] = None
 AsyncSessionFactory: Optional[async_sessionmaker[AsyncSession]] = None
-AsyncScopedSession: Optional[async_scoped_session[AsyncSession]] = None
 
 
-@asynccontextmanager
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    """Yield a database session using a context manager.
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    """FastAPI dependency that yields a database session per HTTP request.
 
-    Uses async_scoped_session to ensure each asyncio task gets its own
-    session instance, preventing concurrent access errors across different
-    tools and concurrent agents.
+    Yields a fresh AsyncSession for each request with automatic transaction management.
+    The session is created from AsyncSessionFactory (not async_scoped_session).
+    Each request gets its own isolated session instance.
+
+    Yields:
+        AsyncSession: Database session for the request
+
+    Raises:
+        RuntimeError: If database connections are not initialized
     """
-    if AsyncScopedSession is None:
+    if AsyncSessionFactory is None:
         raise RuntimeError(
             "Database connections not initialized. Call init_db_connections() first."
         )
 
+    session = AsyncSessionFactory()
     try:
-        # Obtain a task-scoped AsyncSession and yield it
-        session = AsyncScopedSession()
         async with session.begin():
             yield session
     except Exception as e:
-        logger.error("Session error: Error: {}", e)
+        logger.error("Session error: {}", e)
         raise
     finally:
-        # Ensure the scoped session is removed for this task
-        await AsyncScopedSession.remove()
+        await session.close()
+
+
+@asynccontextmanager
+async def get_startup_session() -> AsyncGenerator[AsyncSession, None]:
+    """Yield a database session for non-request contexts (startup, background tasks).
+
+    This context manager is used for operations outside of HTTP request lifecycle,
+    such as application startup, shutdown, and background tasks.
+
+    Yields:
+        AsyncSession: Database session with automatic transaction management
+
+    Raises:
+        RuntimeError: If database connections are not initialized
+    """
+    if AsyncSessionFactory is None:
+        raise RuntimeError(
+            "Database connections not initialized. Call init_db_connections() first."
+        )
+
+    session = AsyncSessionFactory()
+    try:
+        async with session.begin():
+            yield session
+    except Exception as e:
+        logger.error("Session error: {}", e)
+        raise
+    finally:
+        await session.close()
 
 
 async def init_db_connections(settings: EnvironmentSettings) -> None:
@@ -52,7 +81,7 @@ async def init_db_connections(settings: EnvironmentSettings) -> None:
     This function handles multi-event loop scenarios (like in tests) by:
     1. Disposing the existing engine (if any) to close all connections
     2. Creating a fresh engine bound to the current event loop
-    3. Rebuilding the scoped session factory with the new engine
+    3. Creating a session factory for request-scoped sessions
 
     Args:
         settings: Environment settings containing database configuration
@@ -60,7 +89,7 @@ async def init_db_connections(settings: EnvironmentSettings) -> None:
     Note: This function does NOT create database tables. Table creation is the
     responsibility of the ingestion project.
     """
-    global async_engine, AsyncSessionFactory, AsyncScopedSession
+    global async_engine, AsyncSessionFactory
 
     try:
         if async_engine is not None:
@@ -74,10 +103,6 @@ async def init_db_connections(settings: EnvironmentSettings) -> None:
 
     AsyncSessionFactory = async_sessionmaker(
         bind=async_engine, expire_on_commit=False, class_=AsyncSession
-    )
-
-    AsyncScopedSession = async_scoped_session(
-        AsyncSessionFactory, scopefunc=current_task
     )
 
     logger.info("Database connections initialized successfully")

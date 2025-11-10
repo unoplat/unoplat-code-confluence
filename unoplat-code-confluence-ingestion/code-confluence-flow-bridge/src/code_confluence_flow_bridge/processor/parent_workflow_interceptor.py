@@ -71,39 +71,45 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         workflow_type = info.workflow_type
         workflow_id: str = info.workflow_id
         workflow_run_id: str = info.run_id
-        
+
         if workflow_type == "repo-activity-workflow":
             envelope: RepoWorkflowRunEnvelope = input.args[0]
             trace_id: str = envelope.trace_id
-            
+
             # Prepare codebase configurations for headers with complete metadata
             codebase_configs = [
                 {
                     "root_packages": config.root_packages,
                     "codebase_folder": config.codebase_folder,
-                    "programming_language_metadata": config.programming_language_metadata.model_dump()
+                    "programming_language_metadata": config.programming_language_metadata.model_dump(),
                 }
                 for config in (envelope.repo_request.repository_metadata or [])
             ]
-            
+
             # Set headers with trace_id and codebase configs as Payload messages
             input.headers = {
-                "trace_id": Payload(data=trace_id.encode('utf-8')),
-                "repository_name": Payload(data=envelope.repo_request.repository_name.encode('utf-8')),
-                "repository_owner_name": Payload(data=envelope.repo_request.repository_owner_name.encode('utf-8')),
-                "codebases": Payload(data=json.dumps(codebase_configs).encode('utf-8')),
-                "workflow_run_id": Payload(data=workflow_run_id.encode('utf-8'))
+                "trace_id": Payload(data=trace_id.encode("utf-8")),
+                "repository_name": Payload(
+                    data=envelope.repo_request.repository_name.encode("utf-8")
+                ),
+                "repository_owner_name": Payload(
+                    data=envelope.repo_request.repository_owner_name.encode("utf-8")
+                ),
+                "codebases": Payload(data=json.dumps(codebase_configs).encode("utf-8")),
+                "workflow_run_id": Payload(data=workflow_run_id.encode("utf-8")),
             }
-            
+
             # Store headers in contextvar for forwarding to activities
             workflow_headers_var.set(input.headers)
-            
+
             log = seed_and_bind_logger_from_trace_id(
                 trace_id=trace_id,
                 workflow_id=workflow_id,
-                workflow_run_id=workflow_run_id
+                workflow_run_id=workflow_run_id,
             )
-            log.debug(f"Starting execute_workflow with trace_id={trace_id}, workflow_id={workflow_id}, workflow_run_id={workflow_run_id}")
+            log.debug(
+                f"Starting execute_workflow with trace_id={trace_id}, workflow_id={workflow_id}, workflow_run_id={workflow_run_id}"
+            )
 
             # Initial Submitted status
             running_env = ParentWorkflowDbActivityEnvelope(
@@ -114,7 +120,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 trace_id=envelope.trace_id,
                 repository_metadata=envelope.repo_request.repository_metadata,
                 status=JobStatus.RUNNING.value,
-                repository_provider=envelope.repo_request.repository_provider
+                provider_key=envelope.repo_request.provider_key,
             )
             await workflow.execute_activity(
                 activity=ParentWorkflowDbActivity.update_repository_workflow_status,
@@ -122,7 +128,9 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 start_to_close_timeout=timedelta(minutes=1),
                 retry_policy=ActivityRetriesConfig.DEFAULT,
             )
-            log.debug(f"Initial RUNNING status recorded for repository {envelope.repo_request.repository_name}/{envelope.repo_request.repository_owner_name}")
+            log.debug(
+                f"Initial RUNNING status recorded for repository {envelope.repo_request.repository_name}/{envelope.repo_request.repository_owner_name}"
+            )
 
             status = JobStatus.COMPLETED.value
             error_report: Optional[ErrorReport] = None
@@ -133,12 +141,22 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 log.debug("Invoking next interceptor execute_workflow")
                 result = await self.next.execute_workflow(input)
                 log.debug(f"Workflow logic executed successfully, result: {result}")
-            except (ActivityError, ChildWorkflowError, ApplicationError, Exception) as e:
+            except (
+                ActivityError,
+                ChildWorkflowError,
+                ApplicationError,
+                Exception,
+            ) as e:
                 exc = e
                 log.debug(f"Exception occurred during workflow execution: {e}")
-                
+
                 # Build error report
-                root = e.cause if isinstance(e, (ActivityError, ChildWorkflowError)) and getattr(e, "cause", None) else e
+                root = (
+                    e.cause
+                    if isinstance(e, (ActivityError, ChildWorkflowError))
+                    and getattr(e, "cause", None)
+                    else e
+                )
                 # If the root is an ApplicationError, capture its rich context
                 if isinstance(root, ApplicationError):
                     metadata = {
@@ -173,7 +191,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     repository_metadata=envelope.repo_request.repository_metadata,
                     status=status,
                     error_report=error_report,
-                    repository_provider=envelope.repo_request.repository_provider
+                    provider_key=envelope.repo_request.provider_key,
                 )
                 await workflow.execute_activity(
                     activity=ParentWorkflowDbActivity.update_repository_workflow_status,
@@ -188,40 +206,46 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 # Propagate exception to let Temporal retry or fail the workflow
                 raise exc
             return result
-        
+
         elif workflow_type == "child-codebase-workflow":
             child_envelope: CodebaseChildWorkflowEnvelope = input.args[0]
             child_trace_id: str = child_envelope.trace_id
             # Extract codebase folder from envelope (use relative path, not absolute)
             codebase_folder: str = child_envelope.codebase_folder
-            parent_workflow_run_id: str = child_envelope.parent_workflow_run_id #type: ignore
-            
+            parent_workflow_run_id: str = child_envelope.parent_workflow_run_id  # type: ignore
+
             # Parse repository_name and repository_owner_name from trace_id
             repository_name, repository_owner_name = child_trace_id.split("__")
-            
+
             # Set headers with trace_id and parent workflow context
             input.headers = {
-                "trace_id": Payload(data=child_trace_id.encode('utf-8')),
-                "repository_name": Payload(data=repository_name.encode('utf-8')),
-                "repository_owner_name": Payload(data=repository_owner_name.encode('utf-8')),
-                "codebase_folder": Payload(data=codebase_folder.encode('utf-8')),
-                "workflow_run_id": Payload(data=workflow_run_id.encode('utf-8'))
+                "trace_id": Payload(data=child_trace_id.encode("utf-8")),
+                "repository_name": Payload(data=repository_name.encode("utf-8")),
+                "repository_owner_name": Payload(
+                    data=repository_owner_name.encode("utf-8")
+                ),
+                "codebase_folder": Payload(data=codebase_folder.encode("utf-8")),
+                "workflow_run_id": Payload(data=workflow_run_id.encode("utf-8")),
             }
-            
+
             # Add parent_workflow_run_id header if available
             if child_envelope.parent_workflow_run_id:
-                input.headers["parent_workflow_run_id"] = Payload(data=child_envelope.parent_workflow_run_id.encode('utf-8'))
-            
+                input.headers["parent_workflow_run_id"] = Payload(
+                    data=child_envelope.parent_workflow_run_id.encode("utf-8")
+                )
+
             # Store headers in contextvar for forwarding to activities
             workflow_headers_var.set(input.headers)
-            
+
             log = seed_and_bind_logger_from_trace_id(
                 trace_id=child_trace_id,
                 workflow_id=workflow_id,
-                workflow_run_id=workflow_run_id
+                workflow_run_id=workflow_run_id,
             )
-            log.debug(f"Child workflow: Starting execute_workflow with trace_id={child_trace_id}, workflow_id={workflow_id}, workflow_run_id={workflow_run_id}")
-            
+            log.debug(
+                f"Child workflow: Starting execute_workflow with trace_id={child_trace_id}, workflow_id={workflow_id}, workflow_run_id={workflow_run_id}"
+            )
+
             # Initial RUNNING status for child workflow
             running_child_env = CodebaseWorkflowDbActivityEnvelope(
                 repository_name=repository_name,
@@ -231,7 +255,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 codebase_workflow_run_id=workflow_run_id,
                 repository_workflow_run_id=parent_workflow_run_id,
                 trace_id=child_trace_id,
-                status=JobStatus.RUNNING.value
+                status=JobStatus.RUNNING.value,
             )
             await workflow.execute_activity(
                 activity=ChildWorkflowDbActivity.update_codebase_workflow_status,
@@ -239,7 +263,9 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 start_to_close_timeout=timedelta(minutes=1),
                 retry_policy=ActivityRetriesConfig.DEFAULT,
             )
-            log.debug(f"Initial RUNNING status recorded for child workflow {workflow_run_id} for codebase {codebase_folder}")
+            log.debug(
+                f"Initial RUNNING status recorded for child workflow {workflow_run_id} for codebase {codebase_folder}"
+            )
 
             child_status = JobStatus.COMPLETED.value
             child_error_report: Optional[ErrorReport] = None
@@ -247,15 +273,29 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             child_exc: Optional[BaseException] = None
             try:
                 # Execute the workflow logic
-                log.debug("Invoking next interceptor execute_workflow for child workflow")
+                log.debug(
+                    "Invoking next interceptor execute_workflow for child workflow"
+                )
                 child_result = await self.next.execute_workflow(input)
-                log.debug(f"Child workflow logic executed successfully, result: {child_result}")
-            except (ActivityError, ChildWorkflowError, ApplicationError, Exception) as e:
+                log.debug(
+                    f"Child workflow logic executed successfully, result: {child_result}"
+                )
+            except (
+                ActivityError,
+                ChildWorkflowError,
+                ApplicationError,
+                Exception,
+            ) as e:
                 child_exc = e
                 log.debug(f"Exception occurred during child workflow execution: {e}")
-                
+
                 # Build error report
-                root = e.cause if isinstance(e, (ActivityError, ChildWorkflowError)) and getattr(e, "cause", None) else e
+                root = (
+                    e.cause
+                    if isinstance(e, (ActivityError, ChildWorkflowError))
+                    and getattr(e, "cause", None)
+                    else e
+                )
                 # If the root is an ApplicationError, capture its rich context
                 if isinstance(root, ApplicationError):
                     metadata = {
@@ -279,7 +319,9 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 # Decide between RETRYING and FAILED
                 child_status = JobStatus.FAILED.value
             finally:
-                log.debug(f"Setting final status {child_status} in DB for child workflow")
+                log.debug(
+                    f"Setting final status {child_status} in DB for child workflow"
+                )
                 # Final status write
                 final_child_env = CodebaseWorkflowDbActivityEnvelope(
                     repository_name=repository_name,
@@ -290,7 +332,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     repository_workflow_run_id=parent_workflow_run_id,
                     trace_id=child_trace_id,
                     status=child_status,
-                    error_report=child_error_report
+                    error_report=child_error_report,
                 )
                 await workflow.execute_activity(
                     activity=ChildWorkflowDbActivity.update_codebase_workflow_status,
@@ -299,10 +341,12 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     retry_policy=ActivityRetriesConfig.DEFAULT,
                 )
                 log.debug("Final status written to DB for child workflow")
-                
+
                 # If child workflow failed, immediately mark parent workflow as FAILED too
                 if child_status == JobStatus.FAILED.value and parent_workflow_run_id:
-                    log.debug(f"Child workflow failed, marking parent workflow {parent_workflow_run_id} as FAILED")
+                    log.debug(
+                        f"Child workflow failed, marking parent workflow {parent_workflow_run_id} as FAILED"
+                    )
                     parent_failed_env = ParentWorkflowDbActivityEnvelope(
                         repository_name=repository_name,
                         repository_owner_name=repository_owner_name,
@@ -310,7 +354,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                         workflow_run_id=parent_workflow_run_id,
                         trace_id=child_trace_id,
                         status=JobStatus.FAILED.value,
-                        error_report=None
+                        error_report=None,
                     )
                     await workflow.execute_activity(
                         activity=ParentWorkflowDbActivity.update_repository_workflow_status,
@@ -318,14 +362,20 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                         start_to_close_timeout=timedelta(minutes=1),
                         retry_policy=ActivityRetriesConfig.DEFAULT,
                     )
-                    log.debug("Parent workflow marked as FAILED due to child workflow failure")
+                    log.debug(
+                        "Parent workflow marked as FAILED due to child workflow failure"
+                    )
 
             if child_exc:
-                log.debug("Propagating exception to Temporal for retry/failure of child workflow")
+                log.debug(
+                    "Propagating exception to Temporal for retry/failure of child workflow"
+                )
                 # Propagate exception to let Temporal retry or fail the workflow
                 raise child_exc
             return child_result
-        
+
         else:
-            logger.debug("Skipping execute_workflow for workflow_type: {}", workflow_type)
+            logger.debug(
+                "Skipping execute_workflow for workflow_type: {}", workflow_type
+            )
             return await self.next.execute_workflow(input)

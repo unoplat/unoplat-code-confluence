@@ -12,7 +12,7 @@ from unoplat_code_confluence_commons.repo_models import (
     RepositoryAgentMdSnapshot,
 )
 
-from unoplat_code_confluence_query_engine.db.postgres.db import get_session
+from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.models.agent_events import (
     RepositoryAgentEventDelta,
 )
@@ -48,7 +48,7 @@ class RepositoryAgentSnapshotWriter:
             "codebases": codebases,
         }
 
-        async with get_session() as session:
+        async with get_startup_session() as session:
             stmt = insert(RepositoryAgentMdSnapshot).values(
                 repository_owner_name=self.owner_name,
                 repository_name=self.repo_name,
@@ -75,7 +75,7 @@ class RepositoryAgentSnapshotWriter:
     async def get_active_run_id(self) -> str | None:
         """Return the currently running workflow ID if a run is in progress."""
 
-        async with get_session() as session:
+        async with get_startup_session() as session:
             stmt = (
                 select(
                     RepositoryAgentMdSnapshot.status,
@@ -161,7 +161,7 @@ class RepositoryAgentSnapshotWriter:
             "overall_progress": str(delta.overall_progress),
         }
 
-        async with get_session() as session:
+        async with get_startup_session() as session:
             result = await session.execute(query, params)
             updated = result.scalar_one()
 
@@ -199,7 +199,7 @@ class RepositoryAgentSnapshotWriter:
                 self.repo_name,
             )
 
-        async with get_session() as session:
+        async with get_startup_session() as session:
             stmt = (
                 update(RepositoryAgentMdSnapshot)
                 .where(
@@ -218,7 +218,7 @@ class RepositoryAgentSnapshotWriter:
     async def fail_run(self, *, error_payload: dict[str, object] | None = None) -> None:
         """Mark the snapshot as errored and optionally persist diagnostic payload."""
         payload = error_payload or {}
-        async with get_session() as session:
+        async with get_startup_session() as session:
             stmt = (
                 update(RepositoryAgentMdSnapshot)
                 .where(
@@ -235,7 +235,7 @@ class RepositoryAgentSnapshotWriter:
 
     async def fetch_events(self) -> dict[str, object] | None:
         """Fetch the current events document for diagnostics or fallback flows."""
-        async with get_session() as session:
+        async with get_startup_session() as session:
             stmt = select(RepositoryAgentMdSnapshot.events).where(
                 RepositoryAgentMdSnapshot.repository_owner_name == self.owner_name,
                 RepositoryAgentMdSnapshot.repository_name == self.repo_name,

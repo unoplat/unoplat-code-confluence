@@ -32,7 +32,11 @@ class SetupParser:
     @staticmethod
     def _extract_list_values(node: ast.List) -> List[str]:
         """Extract string values from an AST List node"""
-        return [elt.value for elt in node.elts if isinstance(elt, ast.Constant) and isinstance(elt.value, str)]
+        return [
+            elt.value
+            for elt in node.elts
+            if isinstance(elt, ast.Constant) and isinstance(elt.value, str)
+        ]
 
     @staticmethod
     def _extract_dict_values(node: ast.Dict) -> Dict[str, "SetupParser.SetupDictValue"]:
@@ -55,19 +59,28 @@ class SetupParser:
         while stack:
             current_ast_dict, current_output_dict = stack.pop()
 
-            for key_node, value_node in zip(current_ast_dict.keys, current_ast_dict.values):
+            for key_node, value_node in zip(
+                current_ast_dict.keys, current_ast_dict.values
+            ):
                 # Only handle string keys
-                if not (isinstance(key_node, ast.Constant) and isinstance(key_node.value, str)):
+                if not (
+                    isinstance(key_node, ast.Constant)
+                    and isinstance(key_node.value, str)
+                ):
                     continue
                 key_str = key_node.value
 
-                if isinstance(value_node, ast.Constant) and isinstance(value_node.value, str):
+                if isinstance(value_node, ast.Constant) and isinstance(
+                    value_node.value, str
+                ):
                     # A simple string
                     current_output_dict[key_str] = value_node.value
 
                 elif isinstance(value_node, ast.List):
                     # A list of strings
-                    current_output_dict[key_str] = SetupParser._extract_list_values(value_node)
+                    current_output_dict[key_str] = SetupParser._extract_list_values(
+                        value_node
+                    )
 
                 elif isinstance(value_node, ast.Dict):
                     # Nested dictionary: create a sub-dict in the current dictionary
@@ -83,7 +96,11 @@ class SetupParser:
     @staticmethod
     def _extract_setup_args_from_ast(node: ast.AST) -> Optional[Dict[str, Any]]:
         """Extract setup() arguments from an AST node"""
-        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "setup"):
+        if not (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "setup"
+        ):
             return None
 
         args_dict: Dict[str, Any] = {}
@@ -117,14 +134,14 @@ class SetupParser:
                         name, path = [part.strip() for part in script.split("=", 1)]
                         result[name] = path
                     except ValueError:
-                        activity.logger.warning("Invalid entry point format", {"script": script})
+                        activity.logger.warning(
+                            "Invalid entry point format", {"script": script}
+                        )
             elif isinstance(console_scripts, dict):
                 result.update(console_scripts)
 
         elif isinstance(entry_points, str):
             try:
-                
-
                 config = configparser.ConfigParser()
                 if not entry_points.strip().startswith("["):
                     entry_points = "[console_scripts]\n" + entry_points
@@ -132,7 +149,10 @@ class SetupParser:
                 if "console_scripts" in config:
                     result.update(dict(config["console_scripts"]))
             except Exception as e:
-                activity.logger.warning("Failed to parse entry_points string", {"error": str(e), "entry_points": entry_points})
+                activity.logger.warning(
+                    "Failed to parse entry_points string",
+                    {"error": str(e), "entry_points": entry_points},
+                )
 
         elif isinstance(entry_points, list):
             for entry in entry_points:
@@ -140,12 +160,16 @@ class SetupParser:
                     name, path = [part.strip() for part in entry.split("=", 1)]
                     result[name] = path
                 except ValueError:
-                    activity.logger.warning("Invalid entry point format", {"entry": entry})
+                    activity.logger.warning(
+                        "Invalid entry point format", {"entry": entry}
+                    )
 
         return result
 
     @staticmethod
-    def _update_metadata_from_setup_args(metadata: UnoplatPackageManagerMetadata, setup_args: Dict[str, Any]) -> UnoplatPackageManagerMetadata:
+    def _update_metadata_from_setup_args(
+        metadata: UnoplatPackageManagerMetadata, setup_args: Dict[str, Any]
+    ) -> UnoplatPackageManagerMetadata:
         """Update metadata instance with setup arguments"""
         if "name" in setup_args:
             metadata.package_name = setup_args["name"]
@@ -176,7 +200,9 @@ class SetupParser:
             metadata.programming_language_version = version_str
 
         if "entry_points" in setup_args:
-            metadata.entry_points = SetupParser._parse_entry_points(setup_args["entry_points"])
+            metadata.entry_points = SetupParser._parse_entry_points(
+                setup_args["entry_points"]
+            )
 
         # Process install_requires
         if "install_requires" in setup_args:
@@ -189,7 +215,11 @@ class SetupParser:
                 if req.specifier:
                     version = UnoplatVersion(specifier=str(req.specifier))
 
-                dep = UnoplatProjectDependency(version=version, extras=list(req.extras) if req.extras else None, environment_marker=str(req.marker) if req.marker else None)
+                dep = UnoplatProjectDependency(
+                    version=version,
+                    extras=list(req.extras) if req.extras else None,
+                    environment_marker=str(req.marker) if req.marker else None,
+                )
                 default_bucket[req.name] = dep
 
         # Process extras_require
@@ -204,7 +234,13 @@ class SetupParser:
                     if req.specifier:
                         version = UnoplatVersion(specifier=str(req.specifier))
 
-                    dep = UnoplatProjectDependency(version=version, extras=[extra_name] + list(req.extras) if req.extras else [extra_name], environment_marker=str(req.marker) if req.marker else None)
+                    dep = UnoplatProjectDependency(
+                        version=version,
+                        extras=[extra_name] + list(req.extras)
+                        if req.extras
+                        else [extra_name],
+                        environment_marker=str(req.marker) if req.marker else None,
+                    )
 
                     if req.name not in extra_bucket:
                         extra_bucket[req.name] = dep
@@ -218,7 +254,9 @@ class SetupParser:
         return metadata
 
     @staticmethod
-    def _ensure_group(metadata: UnoplatPackageManagerMetadata, group_name: str) -> Dict[str, UnoplatProjectDependency]:
+    def _ensure_group(
+        metadata: UnoplatPackageManagerMetadata, group_name: str
+    ) -> Dict[str, UnoplatProjectDependency]:
         """Get or create the dependency bucket for the provided group."""
 
         if group_name not in metadata.dependencies:
@@ -226,7 +264,9 @@ class SetupParser:
         return metadata.dependencies[group_name]
 
     @staticmethod
-    def parse_setup_file(root_dir: str, metadata: UnoplatPackageManagerMetadata) -> UnoplatPackageManagerMetadata:
+    def parse_setup_file(
+        root_dir: str, metadata: UnoplatPackageManagerMetadata
+    ) -> UnoplatPackageManagerMetadata:
         """Parse a setup.py file and update the UnoplatPackageManagerMetadata instance
 
         Args:
@@ -259,11 +299,21 @@ class SetupParser:
             if setup_args:
                 # Log when python_requires is found
                 if "python_requires" in setup_args:
-                    activity.logger.info("Found python_requires in setup.py", {"version": setup_args["python_requires"], "path": setup_file_path})
-                metadata = SetupParser._update_metadata_from_setup_args(metadata, setup_args)
+                    activity.logger.info(
+                        "Found python_requires in setup.py",
+                        {
+                            "version": setup_args["python_requires"],
+                            "path": setup_file_path,
+                        },
+                    )
+                metadata = SetupParser._update_metadata_from_setup_args(
+                    metadata, setup_args
+                )
 
             return metadata
 
         except Exception as e:
-            activity.logger.error("Error parsing setup.py", {"error": str(e), "path": setup_file_path})
+            activity.logger.error(
+                "Error parsing setup.py", {"error": str(e), "path": setup_file_path}
+            )
             return metadata

@@ -20,6 +20,7 @@ from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
+from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
     AiModelConfigService,
 )
@@ -195,9 +196,10 @@ async def get_current_model(
 
             settings = EnvironmentSettings()
 
-        _current_model, _current_model_settings = await _model_factory.build(
-            config, settings
-        )
+        async with get_startup_session() as session:
+            _current_model, _current_model_settings = await _model_factory.build(
+                config, settings, session
+            )
         _config_invalidated = False
 
         logger.info("AI model rebuilt successfully")

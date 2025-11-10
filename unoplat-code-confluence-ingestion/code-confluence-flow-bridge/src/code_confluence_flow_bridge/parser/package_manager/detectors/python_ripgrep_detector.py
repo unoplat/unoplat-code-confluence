@@ -296,5 +296,3 @@ class PythonRipgrepDetector:
             root_packages=root_packages,
             programming_language_metadata=programming_language_metadata,
         )
-
-    

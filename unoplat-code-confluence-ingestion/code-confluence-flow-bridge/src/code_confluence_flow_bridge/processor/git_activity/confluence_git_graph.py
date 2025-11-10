@@ -42,7 +42,9 @@ class ConfluenceGitGraph:
         )
 
     @activity.defn
-    async def insert_git_repo_into_graph_db(self, envelope: "ConfluenceGitGraphEnvelope") -> ParentChildCloneMetadata:
+    async def insert_git_repo_into_graph_db(
+        self, envelope: "ConfluenceGitGraphEnvelope"
+    ) -> ParentChildCloneMetadata:
         """
         Insert a git repository into the graph database
 
@@ -53,11 +55,11 @@ class ConfluenceGitGraph:
             ParentChildCloneMetadata containing the qualified name of the git repository and the codebase qualified names
         """
         # Use envelope model
-        
+
         # Extract parameters from envelope
         git_repo = envelope.git_repo
         trace_id = envelope.trace_id
-        
+
         # Bind a Loguru logger with the provided trace_id
         info: activity.Info = activity.info()
         workflow_id: str = info.workflow_id
@@ -69,22 +71,25 @@ class ConfluenceGitGraph:
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             activity_id=activity_id,
-            activity_name=activity_name
+            activity_name=activity_name,
         )
         try:
             log.debug(
-                "Starting graph db insertion for repo: {} ",
-                git_repo.repository_url
+                "Starting graph db insertion for repo: {} ", git_repo.repository_url
             )
-            
+
             # Use managed transaction from shared connection pool
             async with self.code_confluence_graph.get_session() as session:
                 graph = CodeConfluenceGraphIngestion()
-                parent_child_clone_metadata = await graph.insert_code_confluence_git_repo_managed(session=session, git_repo=git_repo)
-            
+                parent_child_clone_metadata = (
+                    await graph.insert_code_confluence_git_repo_managed(
+                        session=session, git_repo=git_repo
+                    )
+                )
+
             log.debug(
                 "Successfully inserted git repo into graph db: {} ",
-                git_repo.repository_url
+                git_repo.repository_url,
             )
             return parent_child_clone_metadata
 
@@ -92,26 +97,30 @@ class ConfluenceGitGraph:
             if isinstance(e, ApplicationError):
                 # Re-raise ApplicationError as is since it already contains detailed error info
                 raise
-                
+
             # For other exceptions, wrap in ApplicationError with detailed info
-            error_msg = f"Failed to insert git repo into graph db: {git_repo.repository_url}"
+            error_msg = (
+                f"Failed to insert git repo into graph db: {git_repo.repository_url}"
+            )
             log.error(
                 "{} | error_type={} | error={} | status=failed",
-                error_msg, type(e).__name__, str(e)
+                error_msg,
+                type(e).__name__,
+                str(e),
             )
-            
+
             # Capture the traceback string
             tb_str = traceback.format_exc()
-            
+
             raise ApplicationError(
                 error_msg,
                 {"repository": git_repo.repository_url},
                 {"error": str(e)},
                 {"error_type": type(e).__name__},
                 {"traceback": tb_str},
-                {"workflow_id": workflow_id_var.get("") },
+                {"workflow_id": workflow_id_var.get("")},
                 {"workflow_run_id": workflow_run_id_var.get("")},
                 {"activity_name": activity_name_var.get("")},
                 {"activity_id": activity_id_var.get("")},
-                type="GRAPH_INGESTION_ERROR"
+                type="GRAPH_INGESTION_ERROR",
             )

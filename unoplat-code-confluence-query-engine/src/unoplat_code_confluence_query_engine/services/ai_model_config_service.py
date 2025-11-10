@@ -5,11 +5,11 @@ from typing import Optional
 
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
-from unoplat_code_confluence_query_engine.db.postgres.db import get_session
 from unoplat_code_confluence_query_engine.models.ai_model_config import (
     AiModelConfigIn,
     AiModelConfigOut,
@@ -29,41 +29,43 @@ class AiModelConfigService:
     def __init__(self) -> None:
         self.credentials_service = CredentialsService()
 
-    async def get_config(self) -> Optional[AiModelConfigOut]:
+    async def get_config(self, session: AsyncSession) -> Optional[AiModelConfigOut]:
         """Get the current AI model configuration.
+
+        Args:
+            session: Database session
 
         Returns:
             AiModelConfigOut if configuration exists, None otherwise
         """
         try:
-            async with get_session() as session:
-                config = await session.get(AiModelConfig, 1)
+            config = await session.get(AiModelConfig, 1)
 
-                if not config:
-                    return None
+            if not config:
+                return None
 
-                # Check for stored credentials
-                has_api_key = await self.credentials_service.credential_exists(
-                    "model_api_key", session=session
-                )
+            # Check for stored credentials
+            has_api_key = await self.credentials_service.model_credential_exists(
+                session
+            )
 
-                return AiModelConfigOut(
-                    provider_key=config.provider_key,
-                    model_name=config.model_name,
-                    provider_name=(config.extra_config or {}).get("provider_name"),
-                    provider_kind=ProviderKind(config.provider_kind)
-                    if config.provider_kind
-                    else None,
-                    base_url=config.base_url,
-                    profile_key=config.profile_key,
-                    extra_config=config.extra_config,
-                    temperature=config.temperature,
-                    top_p=config.top_p,
-                    max_tokens=config.max_tokens,
-                    has_api_key=has_api_key,
-                    created_at=config.created_at,
-                    updated_at=config.updated_at,
-                )
+            return AiModelConfigOut(
+                provider_key=config.provider_key,
+                model_name=config.model_name,
+                provider_name=(config.extra_config or {}).get("provider_name"),
+                provider_kind=ProviderKind(config.provider_kind)
+                if config.provider_kind
+                else None,
+                base_url=config.base_url,
+                profile_key=config.profile_key,
+                extra_config=config.extra_config,
+                temperature=config.temperature,
+                top_p=config.top_p,
+                max_tokens=config.max_tokens,
+                has_api_key=has_api_key,
+                created_at=config.created_at,
+                updated_at=config.updated_at,
+            )
 
         except SQLAlchemyError as e:
             logger.error("Database error getting AI model config: {}", e)
@@ -73,13 +75,14 @@ class AiModelConfigService:
             raise
 
     async def upsert_config(
-        self, config_in: AiModelConfigIn, api_key: str | None = None
+        self, config_in: AiModelConfigIn, api_key: str | None, session: AsyncSession
     ) -> AiModelConfigOut:
         """Create or update AI model configuration.
 
         Args:
             config_in: Input configuration data
             api_key: API key from header (unified for all providers)
+            session: Database session
 
         Returns:
             AiModelConfigOut with the saved configuration
@@ -102,7 +105,6 @@ class AiModelConfigService:
             )
 
         try:
-            async with get_session() as session:
                 # Check if config exists
                 existing_config = await session.get(AiModelConfig, 1)
 
@@ -219,16 +221,15 @@ class AiModelConfigService:
                         config_in.provider_key,
                     )
 
-                # Context manager handles commit/rollback automatically
                 # Store credentials if provided
                 if api_key is not None:
-                    await self.credentials_service.upsert_credential(
-                        "model_api_key", api_key, session=session
+                    await self.credentials_service.upsert_model_credential(
+                        api_key, session
                     )
 
                 # Check for stored credentials for response
-                has_api_key = await self.credentials_service.credential_exists(
-                    "model_api_key", session=session
+                has_api_key = await self.credentials_service.model_credential_exists(
+                    session
                 )
                 logger.debug(
                     "Upsert complete (pre-commit context exit): has_api_key={}",
@@ -262,27 +263,26 @@ class AiModelConfigService:
             logger.error("Unexpected error upserting AI model config: {}", e)
             raise
 
-    async def delete_config(self) -> bool:
+    async def delete_config(self, session: AsyncSession) -> bool:
         """Delete the current AI model configuration.
+
+        Args:
+            session: Database session
 
         Returns:
             True if configuration was deleted, False if no configuration existed
         """
         try:
-            async with get_session() as session:
-                config = await session.get(AiModelConfig, 1)
-                # Context manager handles commit/rollback automatically
-                if config:
-                    await session.delete(config)
-                    # Also delete stored credentials
-                    await self.credentials_service.delete_credential(
-                        "model_api_key", session=session
-                    )
-                    logger.info("Deleted AI model configuration and credentials")
-                    return True
-                else:
-                    logger.info("No AI model configuration to delete")
-                    return False
+            config = await session.get(AiModelConfig, 1)
+            if config:
+                await session.delete(config)
+                # Also delete stored credentials
+                await self.credentials_service.delete_model_credential(session)
+                logger.info("Deleted AI model configuration and credentials")
+                return True
+            else:
+                logger.info("No AI model configuration to delete")
+                return False
 
         except SQLAlchemyError as e:
             logger.error("Database error deleting AI model config: {}", e)
@@ -291,15 +291,17 @@ class AiModelConfigService:
             logger.error("Unexpected error deleting AI model config: {}", e)
             raise
 
-    async def config_exists(self) -> bool:
+    async def config_exists(self, session: AsyncSession) -> bool:
         """Check if AI model configuration exists.
+
+        Args:
+            session: Database session
 
         Returns:
             True if configuration exists, False otherwise
         """
         try:
-            async with get_session() as session:
-                return (await session.get(AiModelConfig, 1)) is not None
+            return (await session.get(AiModelConfig, 1)) is not None
 
         except SQLAlchemyError as e:
             logger.error("Database error checking AI model config existence: {}", e)

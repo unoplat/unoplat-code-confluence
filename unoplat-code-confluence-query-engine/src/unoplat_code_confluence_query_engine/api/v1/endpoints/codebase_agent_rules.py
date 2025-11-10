@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from unoplat_code_confluence_commons.repo_models import RepositoryAgentMdSnapshot
 
-from unoplat_code_confluence_query_engine.db.postgres.db import get_session
+from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.db.repository_metadata_service import (
     fetch_repository_metadata,
 )
@@ -84,7 +84,7 @@ async def get_repository_agent_snapshot(
     """Retrieve the latest agent snapshot (status plus aggregated payload)."""
 
     try:
-        async with get_session() as session:
+        async with get_startup_session() as session:
             stmt = select(RepositoryAgentMdSnapshot).where(
                 RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
                 RepositoryAgentMdSnapshot.repository_name == repo_name,

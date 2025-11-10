@@ -70,7 +70,11 @@ PYTHON_CONTAINER_NODES: Set[str] = {"function_definition", "class_definition"}
 PYTHON_BLOCK_NODES: Set[str] = {"block"}
 
 # Optional query keys (can be missing without error)
-PYTHON_OPTIONAL_QUERIES: Set[str] = {"function_calls", "instance_variables", "nested_classes"}
+PYTHON_OPTIONAL_QUERIES: Set[str] = {
+    "function_calls",
+    "instance_variables",
+    "nested_classes",
+}
 
 # Python file extensions
 PYTHON_EXTENSIONS: Set[str] = {".py"}
@@ -123,8 +127,7 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
         # Build Python extractor config and pass to extractor
         self._extractor_config = build_python_extractor_config()
         self.extractor = TreeSitterPythonStructuralSignatureExtractor(
-            language_name="python",
-            config=self._extractor_config
+            language_name="python", config=self._extractor_config
         )
 
     @property
@@ -166,9 +169,7 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
             signature = await asyncio.to_thread(
                 self.extractor.extract_structural_signature, content_bytes
             )
-            imports = await asyncio.to_thread(
-                self._extract_imports, content
-            )
+            imports = await asyncio.to_thread(self._extract_imports, content)
 
             data_model_detected, data_model_positions = detect_data_model(
                 source_code=content,
@@ -206,5 +207,7 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
             )
 
         except Exception as exc:  # pylint: disable=broad-exception-caught
-            logger.error("Failed to process file | file_path={} | error={}", file_path, exc)
+            logger.error(
+                "Failed to process file | file_path={} | error={}", file_path, exc
+            )
             return None
