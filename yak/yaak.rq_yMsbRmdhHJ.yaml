@@ -2,13 +2,13 @@ type: http_request
 model: http_request
 id: rq_yMsbRmdhHJ
 createdAt: 2025-06-14T06:59:41.097465
-updatedAt: 2025-10-30T10:55:09.932426
+updatedAt: 2025-11-08T13:17:33.356154
 workspaceId: wk_KULjx4bEa8
 folderId: fl_pr9oGjGRnn
 authentication: {}
 authenticationType: null
 body:
-  text: "{\n    \"repository_name\": \"unoplat-code-confluence\",\n    \"repository_git_url\": \"https://github.com/unoplat/unoplat-code-confluence\",\n    \"repository_owner_name\": \"unoplat\",\n    \"repository_metadata\": [\n          {\n            \"codebase_folder\": \"unoplat-code-confluence-query-engine\",\n            \"root_packages\": [\"src/unoplat_code_confluence_query_engine\"],\n            \"programming_language_metadata\": {\n                \"language\": \"python\",\n                \"package_manager\": \"uv\",\n                  \"manifest_path\": \"unoplat-code-confluence-query-engine/pyproject.toml\"\n\n            }\n          },\n      {\n  \"codebase_folder\": \"unoplat-code-confluence-frontend\",\n  \"root_packages\": null,\n  \"programming_language_metadata\": {\n    \"language\": \"typescript\",\n    \"package_manager\": \"yarn\",\n    \"manifest_path\": \"unoplat-code-confluence-frontend/package.json\"\n  }\n}\n      \n        \n    ]\n}"
+  text: "{\n    \"repository_name\": \"unoplat-code-confluence\",\n    \"repository_git_url\": \"https://github.com/unoplat/unoplat-code-confluence\",\n    \"repository_owner_name\": \"unoplat\",\n    \"provider_key\": \"github_open\",\n    \"repository_metadata\": [\n          {\n            \"codebase_folder\": \"unoplat-code-confluence-query-engine\",\n            \"root_packages\": [\"src/unoplat_code_confluence_query_engine\"],\n            \"programming_language_metadata\": {\n                \"language\": \"python\",\n                \"package_manager\": \"uv\",\n                  \"manifest_path\": \"unoplat-code-confluence-query-engine/pyproject.toml\"\n\n            }\n          },\n      {\n  \"codebase_folder\": \"unoplat-code-confluence-frontend\",\n  \"root_packages\": null,\n  \"programming_language_metadata\": {\n    \"language\": \"typescript\",\n    \"package_manager\": \"yarn\",\n    \"manifest_path\": \"unoplat-code-confluence-frontend/package.json\"\n  }\n}\n      \n        \n    ]\n}"
 bodyType: application/json
 description: ''
 headers:
@@ -20,4 +20,12 @@ method: POST
 name: ''
 sortPriority: 0.0
 url: http://127.0.0.1:8000/start-ingestion
-urlParameters: []
+urlParameters:
+- enabled: true
+  name: provider_key
+  value: github_open
+  id: s4AbF76gFz
+- enabled: true
+  name: ''
+  value: ''
+  id: AUG49pwHYK

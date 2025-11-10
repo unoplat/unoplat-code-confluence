@@ -15,7 +15,12 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 )
 
 # Constants
-TEST_DATA_DIR = Path(__file__).parent.parent.parent.parent / "test_data" / "package_manager" / "node"
+TEST_DATA_DIR = (
+    Path(__file__).parent.parent.parent.parent
+    / "test_data"
+    / "package_manager"
+    / "node"
+)
 
 
 @pytest.fixture
@@ -200,9 +205,7 @@ def test_library_package_comprehensive(
         "type": "git",
         "url": "https://github.com/unoplat/example-library.git",
     }
-    assert manifest.bugs == {
-        "url": "https://github.com/unoplat/example-library/issues"
-    }
+    assert manifest.bugs == {"url": "https://github.com/unoplat/example-library/issues"}
     assert manifest.homepage == "https://github.com/unoplat/example-library#readme"
 
     # Scripts

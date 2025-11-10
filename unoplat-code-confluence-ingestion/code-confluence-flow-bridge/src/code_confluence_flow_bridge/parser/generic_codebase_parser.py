@@ -108,7 +108,6 @@ class GenericCodebaseParser:
             self.programming_language_metadata.language,
         )
 
-
     def _initialize_components(self) -> None:
         """Initialize supporting services."""
         # Initialize framework detection service based on language
@@ -159,7 +158,7 @@ class GenericCodebaseParser:
         logger.debug(
             "Initialized {} language processor | extensions={}",
             language_key,
-            processor.supported_extensions
+            processor.supported_extensions,
         )
         return processor
 
@@ -210,7 +209,7 @@ class GenericCodebaseParser:
         """Increment processed files counter."""
         self.files_processed += count
 
-
+    # todo: ideally insertion should happen as part of code_Confluence_graph_ingestion
     async def insert_files_managed(
         self,
         session: AsyncSession,
@@ -347,7 +346,6 @@ class GenericCodebaseParser:
             logger.error("Failed to insert files with managed transactions: {}", e)
             raise
 
-    
     async def process_and_insert_codebase(self) -> None:
         """
         Main processing method with managed transactions from shared session pool.
@@ -377,9 +375,7 @@ class GenericCodebaseParser:
 
                 logger.debug("Completed all Neo4j operations within managed session")
 
-            logger.info(
-                f"Completed codebase processing: {self.files_processed} files"
-            )
+            logger.info(f"Completed codebase processing: {self.files_processed} files")
 
         except Exception as e:
             logger.error(f"Codebase processing failed for {self.codebase_name}: {e}")

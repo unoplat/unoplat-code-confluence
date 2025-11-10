@@ -37,7 +37,6 @@ with workflow.unsafe.imports_passed_through():
 
 @workflow.defn(name="child-codebase-workflow")
 class CodebaseChildWorkflow:
-
     @workflow.run
     async def run(
         self,
@@ -45,7 +44,7 @@ class CodebaseChildWorkflow:
     ) -> None:
         """Execute the codebase workflow"""
         # Use envelope model
-        
+
         # Extract parameters from envelope
         repository_qualified_name = envelope.repository_qualified_name
         codebase_qualified_name = envelope.codebase_qualified_name
@@ -53,25 +52,28 @@ class CodebaseChildWorkflow:
         codebase_path = envelope.codebase_path
         package_manager_metadata = envelope.package_manager_metadata
         trace_id = envelope.trace_id
-    
-        
+
         # Seed ContextVar and bind Loguru logger with trace_id
         info = workflow.info()
         workflow_id: str = info.workflow_id
         workflow_run_id: str = info.run_id
         log = seed_and_bind_logger_from_trace_id(
-            trace_id=trace_id,
-            workflow_id=workflow_id,
-            workflow_run_id=workflow_run_id
+            trace_id=trace_id, workflow_id=workflow_id, workflow_run_id=workflow_run_id
         )
 
         log.info(f"Starting codebase workflow for {codebase_qualified_name}")
-        
+
         # 1. Parse package metadata
-        log.info(f"Creating programming language metadata for {package_manager_metadata.programming_language}")
+        log.info(
+            f"Creating programming language metadata for {package_manager_metadata.programming_language}"
+        )
         programming_language_metadata = ProgrammingLanguageMetadata(
-            language=ProgrammingLanguage(package_manager_metadata.programming_language.lower()),
-            package_manager=PackageManagerType(package_manager_metadata.package_manager.lower()),
+            language=ProgrammingLanguage(
+                package_manager_metadata.programming_language.lower()
+            ),
+            package_manager=PackageManagerType(
+                package_manager_metadata.package_manager.lower()
+            ),
             language_version=package_manager_metadata.programming_language_version,
             manifest_path=package_manager_metadata.manifest_path,
         )
@@ -81,13 +83,15 @@ class CodebaseChildWorkflow:
         package_metadata_envelope = PackageMetadataActivityEnvelope(
             codebase_path=codebase_path,
             programming_language_metadata=programming_language_metadata,
-            trace_id=trace_id
+            trace_id=trace_id,
         )
-        parsed_metadata: UnoplatPackageManagerMetadata = await workflow.execute_activity(
-            activity=PackageMetadataActivity.get_package_metadata, 
-            args=[package_metadata_envelope], 
-            start_to_close_timeout=timedelta(minutes=10), 
-            retry_policy=ActivityRetriesConfig.DEFAULT
+        parsed_metadata: UnoplatPackageManagerMetadata = (
+            await workflow.execute_activity(
+                activity=PackageMetadataActivity.get_package_metadata,
+                args=[package_metadata_envelope],
+                start_to_close_timeout=timedelta(minutes=10),
+                retry_policy=ActivityRetriesConfig.DEFAULT,
+            )
         )
 
         # 2. Ingest package metadata into graph
@@ -96,19 +100,23 @@ class CodebaseChildWorkflow:
         package_manager_metadata_envelope = PackageManagerMetadataIngestionEnvelope(
             codebase_qualified_name=codebase_qualified_name,
             package_manager_metadata=parsed_metadata,
-            trace_id=trace_id
+            trace_id=trace_id,
         )
         await workflow.execute_activity(
-            activity=PackageManagerMetadataIngestion.insert_package_manager_metadata, 
-            args=[package_manager_metadata_envelope], 
-            start_to_close_timeout=timedelta(minutes=10), 
-            retry_policy=ActivityRetriesConfig.DEFAULT
+            activity=PackageManagerMetadataIngestion.insert_package_manager_metadata,
+            args=[package_manager_metadata_envelope],
+            start_to_close_timeout=timedelta(minutes=10),
+            retry_policy=ActivityRetriesConfig.DEFAULT,
         )
-        
-        programming_language_metadata.language_version = parsed_metadata.programming_language_version
+
+        programming_language_metadata.language_version = (
+            parsed_metadata.programming_language_version
+        )
 
         # 3. Process codebase with the generic parser (AST generation, parsing)
-        log.info("Processing codebase using generic parser (AST generation and parsing)")
+        log.info(
+            "Processing codebase using generic parser (AST generation and parsing)"
+        )
 
         codebase_processing_envelope = CodebaseProcessingActivityEnvelope(
             root_packages=root_packages,
@@ -127,5 +135,6 @@ class CodebaseChildWorkflow:
             retry_policy=ActivityRetriesConfig.DEFAULT,
         )
 
-        log.info(f"Codebase workflow completed successfully for {codebase_qualified_name}")
-        
+        log.info(
+            f"Codebase workflow completed successfully for {codebase_qualified_name}"
+        )

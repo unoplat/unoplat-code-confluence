@@ -1,8 +1,8 @@
 type: http_request
 model: http_request
-id: rq_DwTkeJP8FJ
-createdAt: 2025-06-06T04:50:08.587406
-updatedAt: 2025-11-08T04:44:29.013279
+id: rq_5unMxtxHHH
+createdAt: 2025-11-08T04:54:13.423001
+updatedAt: 2025-11-08T04:55:16.910728
 workspaceId: wk_KULjx4bEa8
 folderId: fl_RfTzTxKasf
 authentication: {}
@@ -19,10 +19,10 @@ headers:
   name: ''
   value: ''
   id: 6DGzUcx7u4
-method: POST
-name: jay-ingest-token
-sortPriority: 0.0
-url: http://127.0.0.1:8000/ingest-token
+method: PUT
+name: jay-update-token
+sortPriority: 0.001
+url: http://127.0.0.1:8000/update-token
 urlParameters:
 - enabled: true
   name: namespace
