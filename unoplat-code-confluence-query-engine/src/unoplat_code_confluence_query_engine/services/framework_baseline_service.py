@@ -18,7 +18,7 @@ from unoplat_code_confluence_query_engine.db.neo4j.framework_overview_repository
     db_get_framework_with_features,
     db_list_framework_libraries,
 )
-from unoplat_code_confluence_query_engine.db.postgres.db import get_session
+from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.models.agent_md_output import (
     FeatureLocationOutput,
     FeatureUsageOutput,
@@ -44,7 +44,7 @@ async def _fetch_framework_metadata_from_postgres(
     metadata = {}
 
     try:
-        async with get_session() as session:
+        async with get_startup_session() as session:
             stmt = select(Framework).where(
                 Framework.language == language, Framework.library.in_(library_names)
             )
@@ -77,7 +77,7 @@ async def _fetch_feature_entrypoints_from_postgres(
 
     entrypoints: Dict[str, Dict[str, bool]] = {}
     try:
-        async with get_session() as session:
+        async with get_startup_session() as session:
             stmt = select(FrameworkFeature).where(
                 FrameworkFeature.language == language,
                 FrameworkFeature.library.in_(library_names),

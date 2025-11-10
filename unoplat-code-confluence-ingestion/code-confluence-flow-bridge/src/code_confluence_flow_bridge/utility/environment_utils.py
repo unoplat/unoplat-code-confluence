@@ -21,7 +21,7 @@ _settings_instance: EnvironmentSettings | None = None
 def get_environment_settings() -> EnvironmentSettings:
     """
     Get the singleton instance of EnvironmentSettings.
-    
+
     Returns:
         EnvironmentSettings: The singleton settings instance
     """
@@ -34,11 +34,11 @@ def get_environment_settings() -> EnvironmentSettings:
 def is_running_in_docker() -> bool:
     """
     Detect if the application is running inside a Docker container.
-    
+
     Uses environment variables to determine the runtime environment:
     - In Docker: DB_HOST points to service names like "postgresql", "neo4j"
     - In local dev: DB_HOST points to "localhost" or is unset
-    
+
     Returns:
         bool: True if running in Docker, False if running locally
     """
@@ -49,7 +49,7 @@ def is_running_in_docker() -> bool:
 def get_runtime_environment() -> str:
     """
     Get a string representation of the current runtime environment.
-    
+
     Returns:
         str: "docker" if running in container, "development" if running locally
     """
@@ -59,20 +59,20 @@ def get_runtime_environment() -> str:
 def construct_local_repository_path(folder_name: str) -> str:
     """
     Construct the appropriate local repository path using configuration settings.
-    
+
     Args:
         folder_name: The name of the repository folder (e.g., "dspy")
-        
+
     Returns:
         str: Full path to the repository based on REPOSITORIES_BASE_PATH setting
-            
+
     Examples:
         >>> # With default development setting
         >>> construct_local_repository_path("dspy")
         "/Users/username/.unoplat/repositories/dspy"
-        
+
         >>> # With custom setting REPOSITORIES_BASE_PATH=/custom/path
-        >>> construct_local_repository_path("dspy") 
+        >>> construct_local_repository_path("dspy")
         "/custom/path/dspy"
     """
     settings = get_environment_settings()
@@ -83,19 +83,19 @@ def construct_local_repository_path(folder_name: str) -> str:
 def ensure_local_repository_base_path() -> Path:
     """
     Ensure the base repositories directory exists using configuration settings.
-    
+
     Creates the directory structure if it doesn't exist based on the
     REPOSITORIES_BASE_PATH setting.
-    
+
     Returns:
         Path: The base repositories directory path
-        
+
     Raises:
         OSError: If directory creation fails
     """
     settings = get_environment_settings()
     base_path = Path(os.path.expanduser(settings.repositories_base_path))
-    
+
     # Create directory if it doesn't exist
     base_path.mkdir(parents=True, exist_ok=True)
     return base_path
@@ -104,7 +104,7 @@ def ensure_local_repository_base_path() -> Path:
 def get_environment_info() -> dict[str, Union[str, bool]]:
     """
     Get comprehensive environment information for debugging.
-    
+
     Returns:
         dict: Environment information including:
             - runtime_environment: "docker" or "development"
@@ -117,7 +117,7 @@ def get_environment_info() -> dict[str, Union[str, bool]]:
     env = get_runtime_environment()
     is_docker = is_running_in_docker()
     settings = get_environment_settings()
-    
+
     return {
         "runtime_environment": env,
         "is_docker": is_docker,

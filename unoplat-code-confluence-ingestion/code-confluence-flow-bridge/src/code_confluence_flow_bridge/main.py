@@ -38,6 +38,11 @@ from unoplat_code_confluence_commons.base_models import (
     Repository,
     RepositoryWorkflowRun,
 )
+from unoplat_code_confluence_commons.credential_enums import (
+    CredentialNamespace,
+    ProviderKey,
+    SecretKind,
+)
 from unoplat_code_confluence_commons.security import (
     decrypt_token,
     encrypt_token,
@@ -61,7 +66,6 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseStatusList,
     ErrorReport,
     GithubIssueSubmissionRequest,
-    GitHubRepoRequestConfiguration,
     GitHubRepoResponseConfiguration,
     GithubRepoStatus,
     GitHubRepoSummary,
@@ -75,6 +79,7 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     ParentWorkflowJobListResponse,
     ParentWorkflowJobResponse,
     RefreshRepositoryResponse,
+    RepositoryRequestConfiguration,
     WorkflowRun,
     WorkflowStatus,
 )
@@ -233,7 +238,7 @@ def create_worker(
 
             # Log standard configuration
             logger.info(
-                """Starting Temporal worker with max_concurrent_activities={}, 
+                """Starting Temporal worker with max_concurrent_activities={},
                 max_concurrent_activity_task_polls={},
                 repository base path={}""",
                 env_settings.temporal_max_concurrent_activities,
@@ -306,22 +311,31 @@ def create_worker(
         raise ApplicationError(error_message, type="WORKER_INITIALIZATION_ERROR") from e
 
 
-async def fetch_github_token_from_db(session: AsyncSession) -> str:
+async def fetch_repository_provider_token(
+    session: AsyncSession,
+    namespace: CredentialNamespace,
+    provider_key: ProviderKey,
+) -> Tuple[str, Optional[Dict[str, Any]]]:
     """
-    Fetch and decrypt GitHub token from database using credential_key.
+    Fetch and decrypt repository provider token from database using enums.
 
     Args:
         session: Database session
+        namespace: Credential namespace (e.g., REPOSITORY)
+        provider_key: Provider key (e.g., GITHUB_OPEN, GITHUB_ENTERPRISE, GITLAB_CE)
 
     Returns:
-        Decrypted GitHub token
+        Tuple of (decrypted token, metadata_json dict or None)
 
     Raises:
         HTTPException: If no credentials found or decryption fails
     """
     try:
         result = await session.execute(
-            select(Credentials).where(Credentials.credential_key == "github_pat")
+            select(Credentials)
+            .where(Credentials.namespace == namespace)
+            .where(Credentials.provider_key == provider_key)
+            .where(Credentials.secret_kind == SecretKind.PAT)
         )
         credential: Optional[Credentials] = result.scalars().first()
     except Exception as db_error:
@@ -331,10 +345,14 @@ async def fetch_github_token_from_db(session: AsyncSession) -> str:
         )
 
     if not credential:
-        raise HTTPException(status_code=404, detail="No GitHub credentials found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"No credentials found for {namespace.value}/{provider_key.value}",
+        )
 
     try:
-        return decrypt_token(credential.token_hash)
+        decrypted_token = decrypt_token(credential.token_hash)
+        return decrypted_token, credential.metadata_json
     except Exception as decrypt_error:
         logger.error("Failed to decrypt token: {}", decrypt_error)
         raise HTTPException(
@@ -345,7 +363,7 @@ async def fetch_github_token_from_db(session: AsyncSession) -> str:
 
 async def start_workflow(
     temporal_client: Client,
-    repo_request: GitHubRepoRequestConfiguration,
+    repo_request: RepositoryRequestConfiguration,
     github_token: str,
     workflow_id: str,
     trace_id: str,
@@ -621,7 +639,14 @@ async def monitor_workflow(workflow_handle: WorkflowHandle) -> None:
 
 @app.post("/ingest-token", status_code=201)
 async def ingest_token(
-    authorization: str = Header(...), session: AsyncSession = Depends(get_session)
+    authorization: str = Header(...),
+    namespace: CredentialNamespace = Query(..., description="Credential namespace"),
+    provider_key: ProviderKey = Query(..., description="Provider key"),
+    secret_kind: SecretKind = Query(..., description="Secret kind"),
+    url: Optional[str] = Query(
+        None, description="Base URL for enterprise/self-hosted instances"
+    ),
+    session: AsyncSession = Depends(get_session),
 ) -> Dict[str, str]:
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid Authorization header")
@@ -633,20 +658,30 @@ async def ingest_token(
         current_time: datetime = datetime.now(timezone.utc)
 
         result = await session.execute(
-            select(Credentials).where(Credentials.credential_key == "github_pat")
+            select(Credentials)
+            .where(Credentials.namespace == namespace)
+            .where(Credentials.provider_key == provider_key)
+            .where(Credentials.secret_kind == secret_kind)
         )
         credential: Optional[Credentials] = result.scalars().first()
 
         if credential is not None:
             raise HTTPException(
                 status_code=409,
-                detail="Token already ingested. Use update-token to update it.",
+                detail=f"Credential for {namespace.value}/{provider_key.value}/{secret_kind.value} already exists. Use update-token to update it.",
             )
 
+        # Prepare metadata_json if URL is provided
+        metadata: Optional[Dict[str, Any]] = {"url": url} if url else None
+
         credential = Credentials(
-            credential_key="github_pat",
+            namespace=namespace,
+            provider_key=provider_key,
+            secret_kind=secret_kind,
             token_hash=encrypted_token,
+            metadata_json=metadata,
             created_at=current_time,
+            updated_at=current_time,
         )
         session.add(credential)
 
@@ -678,7 +713,14 @@ async def ingest_token(
 
 @app.put("/update-token", status_code=200)
 async def update_token(
-    authorization: str = Header(...), session: AsyncSession = Depends(get_session)
+    authorization: str = Header(...),
+    namespace: CredentialNamespace = Query(..., description="Credential namespace"),
+    provider_key: ProviderKey = Query(..., description="Provider key"),
+    secret_kind: SecretKind = Query(..., description="Secret kind"),
+    url: Optional[str] = Query(
+        None, description="Base URL for enterprise/self-hosted instances"
+    ),
+    session: AsyncSession = Depends(get_session),
 ) -> Dict[str, str]:
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid Authorization header")
@@ -688,19 +730,31 @@ async def update_token(
         current_time: datetime = datetime.now(timezone.utc)
 
         result = await session.execute(
-            select(Credentials).where(Credentials.credential_key == "github_pat")
+            select(Credentials)
+            .where(Credentials.namespace == namespace)
+            .where(Credentials.provider_key == provider_key)
+            .where(Credentials.secret_kind == secret_kind)
         )
         credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
             raise HTTPException(
-                status_code=404, detail="No GitHub token found to update"
+                status_code=404,
+                detail=f"No credential found for {namespace.value}/{provider_key.value}/{secret_kind.value}",
             )
 
         credential.token_hash = encrypted_token
         credential.updated_at = current_time
+
+        # Update metadata_json if URL is provided
+        if url:
+            credential.metadata_json = {"url": url}
+
         session.add(credential)
 
         return {"message": "Token updated successfully."}
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except Exception as e:
         logger.error("Failed to update token: {}", str(e))
         raise HTTPException(
@@ -708,17 +762,84 @@ async def update_token(
         )
 
 
+def get_github_graphql_url(
+    provider_key: ProviderKey, metadata: Optional[Dict[str, Any]]
+) -> str:
+    """
+    Get GitHub GraphQL API URL based on provider type.
+
+    Args:
+        provider_key: Provider key (GITHUB_OPEN or GITHUB_ENTERPRISE)
+        metadata: Metadata containing base URL for enterprise instances
+
+    Returns:
+        GitHub GraphQL API URL
+
+    Raises:
+        HTTPException: If enterprise instance URL is missing
+    """
+    if provider_key == ProviderKey.GITHUB_ENTERPRISE:
+        if not metadata or "url" not in metadata:
+            raise HTTPException(
+                status_code=400,
+                detail="Enterprise GitHub instance requires URL in metadata",
+            )
+        base_url = metadata["url"].rstrip("/")
+        return f"{base_url}/api/graphql"
+    else:
+        # Default to GitHub.com for GITHUB_OPEN
+        return "https://api.github.com/graphql"
+
+
+def get_github_rest_api_base_url(
+    provider_key: ProviderKey, metadata: Optional[Dict[str, Any]]
+) -> str:
+    """
+    Get GitHub REST API base URL based on provider type.
+
+    Args:
+        provider_key: Provider key (GITHUB_OPEN or GITHUB_ENTERPRISE)
+        metadata: Metadata containing base URL for enterprise instances
+
+    Returns:
+        GitHub REST API base URL
+
+    Raises:
+        HTTPException: If enterprise instance URL is missing
+    """
+    if provider_key == ProviderKey.GITHUB_ENTERPRISE:
+        if not metadata or "url" not in metadata:
+            raise HTTPException(
+                status_code=400,
+                detail="Enterprise GitHub instance requires URL in metadata",
+            )
+        base_url = metadata["url"].rstrip("/")
+        return f"{base_url}/api/v3"
+    else:
+        # Default to GitHub.com for GITHUB_OPEN
+        return "https://api.github.com"
+
+
 @app.delete("/delete-token", status_code=200)
-async def delete_token(session: AsyncSession = Depends(get_session)) -> Dict[str, str]:
+async def delete_token(
+    namespace: CredentialNamespace = Query(..., description="Credential namespace"),
+    provider_key: ProviderKey = Query(..., description="Provider key"),
+    secret_kind: SecretKind = Query(..., description="Secret kind"),
+    session: AsyncSession = Depends(get_session),
+) -> Dict[str, str]:
     try:
         # Find existing credential
         result = await session.execute(
-            select(Credentials).where(Credentials.credential_key == "github_pat")
+            select(Credentials)
+            .where(Credentials.namespace == namespace)
+            .where(Credentials.provider_key == provider_key)
+            .where(Credentials.secret_kind == secret_kind)
         )
         credential: Optional[Credentials] = result.scalars().first()
         if credential is None:
             raise HTTPException(
-                status_code=404, detail="No GitHub token found to delete"
+                status_code=404,
+                detail=f"No credential found for {namespace.value}/{provider_key.value}/{secret_kind.value}",
             )
 
         await session.delete(credential)
@@ -756,13 +877,16 @@ async def get_repos(
     filterValues: Optional[str] = Query(
         None, description="Optional JSON filter values to filter repositories"
     ),
+    provider_key: ProviderKey = Query(..., description="Repository provider key"),
     session: AsyncSession = Depends(get_session),
 ) -> PaginatedResponse:
-    # Fetch GitHub token from database using helper function
-    token = await fetch_github_token_from_db(session)
+    # Fetch repository provider token from database using helper function
+    token, metadata = await fetch_repository_provider_token(
+        session, CredentialNamespace.REPOSITORY, provider_key
+    )
 
     # Parse filterValues if provided, and merge with the search parameter
-    filter_values_dict: dict = {}
+    filter_values_dict: dict[str, Any] = {}
     if filterValues:
         try:
             filter_values_dict = json.loads(filterValues)
@@ -778,9 +902,12 @@ async def get_repos(
 
     # Fetch repositories using GraphQL
     try:
+        # Determine GitHub GraphQL API URL based on provider and metadata
+        graphql_url = get_github_graphql_url(provider_key, metadata)
+
         # Create a GraphQL client with proper authentication
         transport = AIOHTTPTransport(
-            url="https://api.github.com/graphql",
+            url=graphql_url,
             headers={
                 "Authorization": f"Bearer {token}",
                 "User-Agent": "Unoplat Code Confluence",
@@ -900,18 +1027,20 @@ async def get_repos(
 
 @app.post("/start-ingestion", status_code=201)
 async def ingestion(
-    repo_request: GitHubRepoRequestConfiguration,
+    repo_request: RepositoryRequestConfiguration,
     session: AsyncSession = Depends(get_session),
     request_logger: "Logger" = Depends(trace_dependency),  # type: ignore
 ) -> dict[str, str]:
     """
-    Start the ingestion workflow for the entire repository using the GitHub token from the database.
+    Start the ingestion workflow for the entire repository using the repository provider token from the database.
     Submits the whole repo_request at once to the Temporal workflow.
     Returns the workflow_id and run_id.
     Also ingests the repository configuration into the database.
     """
-    # Fetch GitHub token from database
-    github_token = await fetch_github_token_from_db(session)
+    # Fetch repository provider token from database using provider_key from request
+    github_token, _ = await fetch_repository_provider_token(
+        session, CredentialNamespace.REPOSITORY, repo_request.provider_key
+    )
 
     # AUTO-DETECT CODEBASES IF NOT PROVIDED
     if (
@@ -952,7 +1081,7 @@ async def ingestion(
         temporal_client=app.state.temporal_client,
         repo_request=repo_request,
         github_token=github_token,
-        workflow_id=f"ingest-{trace_id}",
+        workflow_id=f"ingest-{repo_request.provider_key.value}-{trace_id}",
         trace_id=trace_id,
     )
     # Schedule background monitoring immediately after starting the workflow
@@ -1054,23 +1183,6 @@ async def set_flag_status(
         raise HTTPException(
             status_code=500, detail="Failed to set flag status for {}".format(flag_name)
         )
-
-
-# @app.put("/repository-data", status_code=200)
-# async def update_repository_data(
-#     repo_config: GitHubRepoRequestConfiguration,
-#     session: Session = Depends(get_session)
-# ) -> dict:
-#     db_obj: RepositoryData | None = session.get(RepositoryData, repo_config.repository_name)
-#     if not db_obj:
-#         raise HTTPException(status_code=404, detail="Repository data not found for this name.")
-#     db_obj.repository_metadata = jsonable_encoder([
-#         CodebaseRepoConfig(**c.model_dump()) for c in repo_config.repository_metadata
-#     ])
-#     session.add(db_obj)
-#     session.commit()
-#     session.refresh(db_obj)
-#     return {"message": "Repository data updated successfully."}
 
 
 @app.get(
@@ -1390,7 +1502,7 @@ async def get_ingested_repositories(
             IngestedRepositoryResponse(
                 repository_name=repo.repository_name,
                 repository_owner_name=repo.repository_owner_name,
-                repository_provider=repo.repository_provider,
+                provider_key=repo.repository_provider,
             )
             for repo in repositories
         ]
@@ -1504,7 +1616,7 @@ async def delete_repository(
     "/refresh-repository", response_model=RefreshRepositoryResponse, status_code=201
 )
 async def refresh_repository(
-    repo_info: IngestedRepositoryResponse,
+    repo_request: RepositoryRequestConfiguration,
     session: AsyncSession = Depends(get_session),
     request_logger: "Logger" = Depends(trace_dependency),  # type: ignore
 ) -> RefreshRepositoryResponse:
@@ -1513,19 +1625,19 @@ async def refresh_repository(
 
     This endpoint:
     1. Deletes all repository data from Neo4j (keeps PostgreSQL intact)
-    2. Re-detects codebases using PythonCodebaseDetector
+    2. Re-detects codebases using configured detectors
     3. Starts a new Temporal workflow for ingestion
 
     Args:
-        repo_info: Repository name and owner
+        repo_request: Repository request configuration with provider_key
         session: Database session
         request_logger: Logger with trace ID
 
     Returns:
         RefreshRepositoryResponse with workflow IDs
     """
-    repository_name: str = repo_info.repository_name
-    repository_owner_name: str = repo_info.repository_owner_name
+    repository_name: str = repo_request.repository_name
+    repository_owner_name: str = repo_request.repository_owner_name
 
     try:
         # 1. Get repository info from database to determine if it's local or remote
@@ -1560,14 +1672,14 @@ async def refresh_repository(
                     status_code=500, detail=f"Neo4j deletion failed: {str(neo4j_error)}"
                 )
 
-        # 3. Fetch GitHub token from database
-        github_token: str = await fetch_github_token_from_db(session)
-
-        # 4. Build repository URL for GitHub
-        repository_url = (
-            f"https://github.com/{repository_owner_name}/{repository_name}"
+        # 3. Fetch repository provider token from database using provider_key from request
+        github_token, _ = await fetch_repository_provider_token(
+            session, CredentialNamespace.REPOSITORY, repo_request.provider_key
         )
-        request_logger.info("Refreshing GitHub repository: {}", repository_url)
+
+        # 4. Use repository URL from request or build for GitHub
+        repository_url = repo_request.repository_git_url
+        request_logger.info("Refreshing repository: {}", repository_url)
 
         # 5. Detect codebases using multi-language detector registry
         try:
@@ -1591,13 +1703,8 @@ async def refresh_repository(
                 status_code=500, detail=f"Failed to detect codebases: {str(e)}"
             )
 
-        # 6. Build repository request configuration
-        repo_request: GitHubRepoRequestConfiguration = GitHubRepoRequestConfiguration(
-            repository_name=repository_name,
-            repository_owner_name=repository_owner_name,
-            repository_git_url=repository_url,
-            repository_metadata=detected_codebases,
-        )
+        # 6. Update repository request with detected codebases
+        repo_request.repository_metadata = detected_codebases
 
         # 7. Start Temporal workflow
         trace_id: Optional[str] = trace_id_var.get()
@@ -1608,7 +1715,7 @@ async def refresh_repository(
             temporal_client=app.state.temporal_client,
             repo_request=repo_request,
             github_token=github_token,
-            workflow_id=f"refresh-{repository_owner_name}-{repository_name}-{trace_id}",
+            workflow_id=f"refresh-{repo_request.provider_key.value}-{repository_owner_name}-{repository_name}-{trace_id}",
             trace_id=trace_id,
         )
 
@@ -1639,13 +1746,19 @@ async def refresh_repository(
 
 @app.get("/user-details", status_code=200)
 async def get_user_details(
+    provider_key: ProviderKey = Query(..., description="Repository provider key"),
     session: AsyncSession = Depends(get_session),
 ) -> Dict[str, Optional[str]]:
     """
     Fetch authenticated GitHub user's name, avatar URL, and email.
     """
-    # Fetch GitHub token from database using helper function
-    token = await fetch_github_token_from_db(session)
+    # Fetch repository provider token from database using helper function
+    token, metadata = await fetch_repository_provider_token(
+        session, CredentialNamespace.REPOSITORY, provider_key
+    )
+
+    # Get GitHub REST API base URL
+    api_base_url = get_github_rest_api_base_url(provider_key, metadata)
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -1655,7 +1768,7 @@ async def get_user_details(
 
     async with httpx.AsyncClient() as client:
         # Primary user info
-        user_resp = await client.get("https://api.github.com/user", headers=headers)
+        user_resp = await client.get(f"{api_base_url}/user", headers=headers)
         if user_resp.status_code != 200:
             raise HTTPException(
                 status_code=user_resp.status_code, detail="Failed to fetch user info"
@@ -1667,7 +1780,7 @@ async def get_user_details(
 
         if not email:
             emails_resp = await client.get(
-                "https://api.github.com/user/emails", headers=headers
+                f"{api_base_url}/user/emails", headers=headers
             )
             if emails_resp.status_code == 200:
                 emails = emails_resp.json()
@@ -1699,8 +1812,11 @@ async def create_github_issue(
     either the codebase workflow run or repository workflow run record with the issue details.
     """
     try:
-        # Get GitHub token from credentials using helper function
-        token = await fetch_github_token_from_db(session)
+        # Get GitHub token from credentials for our open source repository
+        # This endpoint is for users to create issues on our product repository
+        token, _ = await fetch_repository_provider_token(
+            session, CredentialNamespace.REPOSITORY, ProviderKey.GITHUB_OPEN
+        )
 
         # Create GitHub issue
 

@@ -18,6 +18,7 @@ GLOBAL_CONSTANT: int = 42  # Arbitrary constant used for demonstration purposes
 # Global functions
 # ---------------------------------------------------------------------------
 
+
 def generate_summary(data: dict[str, int]) -> dict[str, int | float]:
     """Generate a simple numeric summary from *data*.
 
@@ -38,6 +39,7 @@ def generate_summary(data: dict[str, int]) -> dict[str, int | float]:
 # ---------------------------------------------------------------------------
 # Classes
 # ---------------------------------------------------------------------------
+
 
 class ReportGenerator:
     """Generate reports based on provided *data*."""
@@ -60,4 +62,4 @@ class SummaryReport:
         """Return the summary report as a JSON string."""
         import json
 
-        return json.dumps(self._summary, separators=(",", ":")) 
+        return json.dumps(self._summary, separators=(",", ":"))

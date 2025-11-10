@@ -1,1 +1,1 @@
-"""Analytics subpackage for connector containing reporting and utility modules.""" 
+"""Analytics subpackage for connector containing reporting and utility modules."""

@@ -28,8 +28,7 @@ class ChildWorkflowDbActivity:
 
     @activity.defn(name="update-codebase-workflow-status")
     async def update_codebase_workflow_status(
-        self,
-        envelope: CodebaseWorkflowDbActivityEnvelope
+        self, envelope: CodebaseWorkflowDbActivityEnvelope
     ) -> None:
         """Update the repository with child workflow status information.
 
@@ -44,21 +43,28 @@ class ChildWorkflowDbActivity:
         workflow_run_id: str = envelope.codebase_workflow_run_id
         parent_workflow_run_id: str = envelope.repository_workflow_run_id
         trace_id: str = envelope.trace_id
-        status: JobStatus = JobStatus(envelope.status)  # Convert string to JobStatus enum
+        status: JobStatus = JobStatus(
+            envelope.status
+        )  # Convert string to JobStatus enum
         error_report: Optional[ErrorReport] = envelope.error_report
-        
+
         activity_id: str = "update_codebase_workflow_status"
         log = seed_and_bind_logger_from_trace_id(
             trace_id=trace_id,
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
-            activity_id=activity_id
+            activity_id=activity_id,
         )
-        
+
         try:
             async with get_session_cm() as session:
                 # First check if the parent workflow run exists
-                parent_workflow_run = await self._get_parent_workflow_run(session, repository_name, repository_owner_name, parent_workflow_run_id)
+                parent_workflow_run = await self._get_parent_workflow_run(
+                    session,
+                    repository_name,
+                    repository_owner_name,
+                    parent_workflow_run_id,
+                )
                 if not parent_workflow_run:
                     error_msg = f"Parent workflow run not found: {parent_workflow_run_id} for {repository_name}/{repository_owner_name}"
                     log.error(error_msg)
@@ -69,11 +75,14 @@ class ChildWorkflowDbActivity:
                         {"activity_id": activity_id},
                         {"activity_name": "update_codebase_workflow_status"},
                         type="ParentWorkflowRunNotFound",
-                        non_retryable=True
+                        non_retryable=True,
                     )
-                
+
                 # Check if codebase config exists
-                codebase_config = await session.get(CodebaseConfig, (repository_name, repository_owner_name, codebase_folder))
+                codebase_config = await session.get(
+                    CodebaseConfig,
+                    (repository_name, repository_owner_name, codebase_folder),
+                )
                 if not codebase_config:
                     error_msg = f"Codebase config not found for {repository_name}/{repository_owner_name}/{codebase_folder}"
                     log.error(error_msg)
@@ -84,12 +93,18 @@ class ChildWorkflowDbActivity:
                         {"activity_id": activity_id},
                         {"activity_name": "update_codebase_workflow_status"},
                         type="CodebaseConfigNotFound",
-                        non_retryable=True
+                        non_retryable=True,
                     )
-                
+
                 # Check if workflow run exists
-                workflow_run = await self._get_workflow_run(session, repository_name, repository_owner_name, codebase_folder, workflow_run_id)
-                
+                workflow_run = await self._get_workflow_run(
+                    session,
+                    repository_name,
+                    repository_owner_name,
+                    codebase_folder,
+                    workflow_run_id,
+                )
+
                 now = datetime.now(timezone.utc)
                 if not workflow_run:
                     # Create a new workflow run
@@ -101,27 +116,33 @@ class ChildWorkflowDbActivity:
                         codebase_workflow_id=workflow_id,
                         repository_workflow_run_id=parent_workflow_run_id,
                         status=status.value,
-                        error_report=error_report.model_dump() if error_report else None,
-                        started_at=now
+                        error_report=error_report.model_dump()
+                        if error_report
+                        else None,
+                        started_at=now,
                     )
-                    
+
                     # Add the new workflow run
                     session.add(workflow_run)
-                    log.info(f"Created codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{codebase_folder}")
+                    log.info(
+                        f"Created codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{codebase_folder}"
+                    )
                 else:
                     # Update existing workflow run
                     workflow_run.status = status.value
-                    
+
                     if error_report:
                         workflow_run.error_report = error_report.model_dump()
-                    
+
                     if status == JobStatus.COMPLETED or status == JobStatus.FAILED:
                         workflow_run.completed_at = now
-                    
+
                     # Add the updated workflow run
                     session.add(workflow_run)
-                    log.info(f"Updated codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{codebase_folder} with status {status.value}")
-                    
+                    log.info(
+                        f"Updated codebase workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}/{codebase_folder} with status {status.value}"
+                    )
+
         except ApplicationError:
             # Re-raise without wrapping to preserve error context
             raise
@@ -136,13 +157,32 @@ class ChildWorkflowDbActivity:
                 {"activity_name": "update_codebase_workflow_status"},
                 {"error": str(e)},
                 type="CodebaseStatusUpdateError",
-                non_retryable=False  # Allow retries
+                non_retryable=False,  # Allow retries
             )
-    
-    async def _get_parent_workflow_run(self, session: AsyncSession, repository_name: str, repository_owner_name: str, workflow_run_id: str) -> Optional[RepositoryWorkflowRun]:
+
+    async def _get_parent_workflow_run(
+        self,
+        session: AsyncSession,
+        repository_name: str,
+        repository_owner_name: str,
+        workflow_run_id: str,
+    ) -> Optional[RepositoryWorkflowRun]:
         """Get a parent workflow run by its keys."""
-        return await session.get(RepositoryWorkflowRun, (repository_name, repository_owner_name, workflow_run_id))
-    
-    async def _get_workflow_run(self, session: AsyncSession, repository_name: str, repository_owner_name: str, codebase_folder: str, workflow_run_id: str) -> Optional[CodebaseWorkflowRun]:
+        return await session.get(
+            RepositoryWorkflowRun,
+            (repository_name, repository_owner_name, workflow_run_id),
+        )
+
+    async def _get_workflow_run(
+        self,
+        session: AsyncSession,
+        repository_name: str,
+        repository_owner_name: str,
+        codebase_folder: str,
+        workflow_run_id: str,
+    ) -> Optional[CodebaseWorkflowRun]:
         """Get a codebase workflow run by its keys."""
-        return await session.get(CodebaseWorkflowRun, (repository_name, repository_owner_name, codebase_folder, workflow_run_id))
+        return await session.get(
+            CodebaseWorkflowRun,
+            (repository_name, repository_owner_name, codebase_folder, workflow_run_id),
+        )

@@ -4,10 +4,7 @@ This module verifies that the Python data model detector correctly identifies
 dataclass-decorated classes and extracts their names and line positions.
 """
 
-from pathlib import Path
-
 import pytest
-
 from src.code_confluence_flow_bridge.detector.python.python_data_model_detector_strategy import (
     PythonDataModelDetectorStrategy,
 )

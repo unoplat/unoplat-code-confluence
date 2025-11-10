@@ -28,7 +28,7 @@ from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
 )
 from unoplat_code_confluence_query_engine.db.postgres.db import (
     dispose_db_connections,
-    get_session,
+    get_startup_session,
     init_db_connections,
 )
 from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
@@ -92,66 +92,66 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.flag_service = FlagService()
     logger.info("Services initialized and stored in app state")
 
-    # Load AI model configuration
-    async with get_session() as session:
+    # Load AI model configuration and build model within same transaction
+    async with get_startup_session() as session:
         result = await session.execute(
             select(AiModelConfig).where(AiModelConfig.id == 1)
         )
         config = result.scalar_one_or_none()
 
-    # Initialize agents using model config outside of DB transaction
-    if config:
-        try:
-            model_factory = ModelFactory()
-            model, model_settings = await model_factory.build(
-                config, app.state.settings
-            )
-            app.state.model = model
-            logger.debug(
-                "Initializing agents with model: {}/{} and settings present? {}",
-                config.provider_key,
-                config.model_name,
-                bool(model_settings),
-            )
-            app.state.agents = create_code_confluence_agents(
-                app.state.mcp_manager, model, model_settings
-            )
-            logger.info(
-                "Agents initialized with model: {}/{}",
-                config.provider_key,
-                config.model_name,
-            )
-            logger.debug(
-                "Agent registry initialized: {} agents -> {}",
-                len(app.state.agents),
-                list(app.state.agents.keys()),
-            )
+        # Build model within transaction (needs session for credential access)
+        if config:
+            try:
+                model_factory = ModelFactory()
+                model, model_settings = await model_factory.build(
+                    config, app.state.settings, session
+                )
+                app.state.model = model
+                logger.debug(
+                    "Initializing agents with model: {}/{} and settings present? {}",
+                    config.provider_key,
+                    config.model_name,
+                    bool(model_settings),
+                )
+                app.state.agents = create_code_confluence_agents(
+                    app.state.mcp_manager, model, model_settings
+                )
+                logger.info(
+                    "Agents initialized with model: {}/{}",
+                    config.provider_key,
+                    config.model_name,
+                )
+                logger.debug(
+                    "Agent registry initialized: {} agents -> {}",
+                    len(app.state.agents),
+                    list(app.state.agents.keys()),
+                )
 
-            # Sanity check for required agents
-            required_agents = [
-                "project_configuration_agent",
-                "development_workflow_agent",
-                "business_logic_domain_agent",
-                "context7_agent",
-            ]
-            missing = [a for a in required_agents if a not in app.state.agents]
-            if missing:
-                logger.error("Missing required agents at startup: {}", missing)
-            else:
-                logger.debug("All required agents present at startup")
-        except Exception as e:
-            logger.error("Failed to initialize model from config: {}", e)
+                # Sanity check for required agents
+                required_agents = [
+                    "project_configuration_agent",
+                    "development_workflow_agent",
+                    "business_logic_domain_agent",
+                    "context7_agent",
+                ]
+                missing = [a for a in required_agents if a not in app.state.agents]
+                if missing:
+                    logger.error("Missing required agents at startup: {}", missing)
+                else:
+                    logger.debug("All required agents present at startup")
+            except Exception as e:
+                logger.error("Failed to initialize model from config: {}", e)
+                app.state.model = None
+                app.state.agents = {}
+        else:
+            # No configuration - agents remain uninitialized
             app.state.model = None
             app.state.agents = {}
-    else:
-        # No configuration - agents remain uninitialized
-        app.state.model = None
-        app.state.agents = {}
-        logger.warning("No AI model configuration found. Agents not initialized.")
-        logger.debug("Agent registry is empty at startup")
+            logger.warning("No AI model configuration found. Agents not initialized.")
+            logger.debug("Agent registry is empty at startup")
 
     # Ensure isModelConfigured flag reflects current state in a fresh transaction
-    async with get_session() as session:
+    async with get_startup_session() as session:
         flag_result = await session.execute(
             select(Flag).where(Flag.name == "isModelConfigured")
         )

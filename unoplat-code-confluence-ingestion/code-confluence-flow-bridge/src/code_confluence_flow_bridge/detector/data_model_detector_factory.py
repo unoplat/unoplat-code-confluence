@@ -27,7 +27,9 @@ class DataModelDetectorFactory:
     }
 
     @classmethod
-    def get_strategy(cls, programming_language: ProgrammingLanguage) -> DataModelDetectorStrategy:
+    def get_strategy(
+        cls, programming_language: ProgrammingLanguage
+    ) -> DataModelDetectorStrategy:
         """
         Get appropriate data model detector strategy based on programming language.
 
@@ -50,4 +52,5 @@ class DataModelDetectorFactory:
 
 class UnsupportedLanguageForDataModelDetectionError(Exception):
     """Raised when data model detection is not supported for a given language."""
+
     pass

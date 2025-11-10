@@ -57,7 +57,9 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
 
         # Assert expected language/package_manager pair
         expected_language = metadata.language.value if metadata.language else "unknown"
-        expected_pm = metadata.package_manager.value if metadata.package_manager else "unknown"
+        expected_pm = (
+            metadata.package_manager.value if metadata.package_manager else "unknown"
+        )
 
         logger.info(
             "Processing Node.js package manifest",
@@ -75,9 +77,7 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
         metadata_fields = self._collect_metadata_fields(manifest, dependency_groups)
 
         # Infer TypeScript version
-        typescript_version = self._infer_typescript_version(
-            manifest, dependency_groups
-        )
+        typescript_version = self._infer_typescript_version(manifest, dependency_groups)
 
         # Convert dependency groups to UnoplatProjectDependency
         dependencies_result: Dict[str, Dict[str, UnoplatProjectDependency]] = {}
@@ -184,8 +184,10 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
         version_spec = version_spec.strip()
 
         # Git URLs (multiple formats)
-        if any(version_spec.startswith(prefix) for prefix in
-               ["git+", "git://", "git@", "ssh://", "github:"]):
+        if any(
+            version_spec.startswith(prefix)
+            for prefix in ["git+", "git://", "git@", "ssh://", "github:"]
+        ):
             return self._parse_git_spec(version_spec)
 
         # HTTP(S) tarballs
@@ -235,7 +237,9 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
         }
 
     def _collect_metadata_fields(
-        self, manifest: PackageJsonManifest, dependency_groups: Dict[str, Dict[str, str]]
+        self,
+        manifest: PackageJsonManifest,
+        dependency_groups: Dict[str, Dict[str, str]],
     ) -> Dict[str, Any]:
         """Extract supporting metadata from manifest for UnoplatPackageManagerMetadata.
 
@@ -320,7 +324,9 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
         }
 
     def _infer_typescript_version(
-        self, manifest: PackageJsonManifest, dependency_groups: Dict[str, Dict[str, str]]
+        self,
+        manifest: PackageJsonManifest,
+        dependency_groups: Dict[str, Dict[str, str]],
     ) -> Optional[str]:
         """Infer TypeScript/Node.js version from manifest.
 
@@ -478,7 +484,9 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
             source_url = f"https://github.com/{repo}"
 
         # Git URLs with various schemes
-        elif any(spec.startswith(prefix) for prefix in ["git+", "git://", "git@", "ssh://"]):
+        elif any(
+            spec.startswith(prefix) for prefix in ["git+", "git://", "git@", "ssh://"]
+        ):
             url = spec
 
             # Remove git+ prefix
@@ -492,7 +500,11 @@ class NodePackageManagerStrategy(PackageManagerStrategy):
                 # Future: parse subdirectory suffix
 
             # Normalize SSH format: git@github.com:user/repo -> ssh://git@github.com/user/repo
-            if url.startswith("git@") and ":" in url and not url.startswith("git@https://"):
+            if (
+                url.startswith("git@")
+                and ":" in url
+                and not url.startswith("git@https://")
+            ):
                 # git@github.com:user/repo.git
                 parts = url.split(":", 1)
                 url = f"ssh://{parts[0]}/{parts[1]}"

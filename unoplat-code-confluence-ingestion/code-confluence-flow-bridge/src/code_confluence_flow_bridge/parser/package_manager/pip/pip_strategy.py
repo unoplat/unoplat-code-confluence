@@ -28,9 +28,9 @@ from src.code_confluence_flow_bridge.parser.package_manager.utils.setup_parser i
 class PipStrategy(PackageManagerStrategy):
     # Extended requirement file patterns
     REQUIREMENT_PATTERNS: List[str] = [
-        "requirements.txt",           # Base/default requirements
-        "requirements-*.txt",         # Environment-specific (dev, test, prod, etc.)
-        "requirements/*.txt",         # Organized by subdirectory
+        "requirements.txt",  # Base/default requirements
+        "requirements-*.txt",  # Environment-specific (dev, test, prod, etc.)
+        "requirements/*.txt",  # Organized by subdirectory
         "requirements/*/requirements.txt",  # Nested organization
     ]
 
@@ -44,7 +44,9 @@ class PipStrategy(PackageManagerStrategy):
         "requirements-production.txt": "prod",
     }
 
-    def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+    def process_metadata(
+        self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata
+    ) -> UnoplatPackageManagerMetadata:
         """Process pip metadata from setup.py and requirements files.
 
         Follows PEP 621 (pyproject.toml), PEP 735 (dependency-groups),
@@ -79,8 +81,7 @@ class PipStrategy(PackageManagerStrategy):
             # SetupParser already handles grouped structure (install_requires → default, extras_require → groups)
             try:
                 package_metadata = SetupParser.parse_setup_file(
-                    str(workspace),
-                    package_metadata
+                    str(workspace), package_metadata
                 )
             except FileNotFoundError:
                 logger.warning("setup.py not found")
@@ -100,20 +101,26 @@ class PipStrategy(PackageManagerStrategy):
                         for parsed in parsed_lines:
                             # Determine group from source file (tracks through includes)
                             source_file = parsed.get("source_file", req_file)
-                            group_name = self._determine_group_from_path(source_file, workspace)
+                            group_name = self._determine_group_from_path(
+                                source_file, workspace
+                            )
 
-                            if parsed["type"] == "requirement" and parsed.get("requirement"):
+                            if parsed["type"] == "requirement" and parsed.get(
+                                "requirement"
+                            ):
                                 self._add_dependency_to_group(
                                     package_metadata.dependencies,
                                     group_name,
                                     parsed["requirement"],
-                                    is_editable=False
+                                    is_editable=False,
                                 )
                             elif parsed["type"] == "editable":
                                 if parsed.get("vcs_info"):
                                     # Handle VCS editable install
                                     name, dep = parsed["vcs_info"]
-                                    bucket = self._ensure_group(package_metadata.dependencies, group_name)
+                                    bucket = self._ensure_group(
+                                        package_metadata.dependencies, group_name
+                                    )
                                     normalized_pkg = self._normalize_package_name(name)
                                     bucket[normalized_pkg] = dep
                                 elif parsed.get("requirement"):
@@ -121,13 +128,15 @@ class PipStrategy(PackageManagerStrategy):
                                         package_metadata.dependencies,
                                         group_name,
                                         parsed["requirement"],
-                                        is_editable=True
+                                        is_editable=True,
                                     )
                             elif parsed["type"] == "vcs":
                                 # Handle VCS dependency
                                 name = parsed["name"]
                                 dep = parsed["dependency"]
-                                bucket = self._ensure_group(package_metadata.dependencies, group_name)
+                                bucket = self._ensure_group(
+                                    package_metadata.dependencies, group_name
+                                )
                                 normalized_pkg = self._normalize_package_name(name)
                                 bucket[normalized_pkg] = dep
 
@@ -146,7 +155,9 @@ class PipStrategy(PackageManagerStrategy):
             logger.error("Error processing pip metadata: {}", str(e))
             return self._create_empty_metadata(metadata)
 
-    def _parse_vcs_line(self, line: str) -> Optional[tuple[str, UnoplatProjectDependency]]:
+    def _parse_vcs_line(
+        self, line: str
+    ) -> Optional[tuple[str, UnoplatProjectDependency]]:
         """
         Parse a VCS URL line into a tuple of (package_name, dependency_object).
 
@@ -224,7 +235,15 @@ class PipStrategy(PackageManagerStrategy):
         if req.specifier and not specifier:
             specifier = str(req.specifier)
 
-        return UnoplatProjectDependency(version=UnoplatVersion(specifier=specifier), source=source, source_url=source_url, source_reference=source_reference, extras=list(req.extras) if req.extras else None, environment_marker=str(req.marker) if req.marker else None, subdirectory=subdirectory)
+        return UnoplatProjectDependency(
+            version=UnoplatVersion(specifier=specifier),
+            source=source,
+            source_url=source_url,
+            source_reference=source_reference,
+            extras=list(req.extras) if req.extras else None,
+            environment_marker=str(req.marker) if req.marker else None,
+            subdirectory=subdirectory,
+        )
 
     def _create_version_dependency(self, req: Requirement) -> UnoplatProjectDependency:
         """Create dependency object for version-based requirements.
@@ -241,11 +260,17 @@ class PipStrategy(PackageManagerStrategy):
             req: "black==22.3.0"
             -> version.specifier="==22.3.0"
         """
-        version = UnoplatVersion(specifier=str(req.specifier) if req.specifier else None)
+        version = UnoplatVersion(
+            specifier=str(req.specifier) if req.specifier else None
+        )
 
-        return UnoplatProjectDependency(version=version, extras=list(req.extras) if req.extras else None)
+        return UnoplatProjectDependency(
+            version=version, extras=list(req.extras) if req.extras else None
+        )
 
-    def _create_empty_metadata(self, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+    def _create_empty_metadata(
+        self, metadata: ProgrammingLanguageMetadata
+    ) -> UnoplatPackageManagerMetadata:
         """Create empty metadata with default group initialized.
 
         Matches poetry_strategy.py:184 and uv_strategy.py:65-69
@@ -253,7 +278,9 @@ class PipStrategy(PackageManagerStrategy):
         return UnoplatPackageManagerMetadata(
             dependencies={"default": {}},  # Initialize default bucket
             programming_language=metadata.language.value,
-            package_manager=metadata.package_manager.value if metadata.package_manager else PackageManagerType.PIP.value,
+            package_manager=metadata.package_manager.value
+            if metadata.package_manager
+            else PackageManagerType.PIP.value,
             programming_language_version=metadata.language_version,
             manifest_path=metadata.manifest_path,
         )
@@ -273,7 +300,7 @@ class PipStrategy(PackageManagerStrategy):
     def _ensure_group(
         self,
         dependencies: Dict[str, Dict[str, UnoplatProjectDependency]],
-        group_name: str
+        group_name: str,
     ) -> Dict[str, UnoplatProjectDependency]:
         """Get or create dependency bucket for a group.
 
@@ -345,13 +372,21 @@ class PipStrategy(PackageManagerStrategy):
             req = None
             if editable_path:
                 # Handle VCS URLs (git+, hg+, etc.)
-                if any(editable_path.startswith(f"{vcs}+") for vcs in ("git", "hg", "svn", "bzr")):
+                if any(
+                    editable_path.startswith(f"{vcs}+")
+                    for vcs in ("git", "hg", "svn", "bzr")
+                ):
                     vcs_result = self._parse_vcs_line(editable_path)
                     if vcs_result:
                         name, dep = vcs_result
                         # Create a simple Requirement-like object for consistency
                         # We'll handle this in _add_dependency_to_group
-                        return {"type": "editable", "requirement": None, "path": editable_path, "vcs_info": (name, dep)}
+                        return {
+                            "type": "editable",
+                            "requirement": None,
+                            "path": editable_path,
+                            "vcs_info": (name, dep),
+                        }
 
             return {"type": "editable", "requirement": req, "path": editable_path}
 
@@ -371,9 +406,7 @@ class PipStrategy(PackageManagerStrategy):
             return None
 
     def _parse_requirement_file_recursive(
-        self,
-        file_path: Path,
-        visited: Optional[Set[Path]] = None
+        self, file_path: Path, visited: Optional[Set[Path]] = None
     ) -> List[Dict[str, Any]]:
         """Parse requirements file recursively, following -r includes.
 
@@ -433,7 +466,7 @@ class PipStrategy(PackageManagerStrategy):
                     try:
                         included_reqs = self._parse_requirement_file_recursive(
                             include_full_path,
-                            visited.copy()  # Use copy to allow sibling includes
+                            visited.copy(),  # Use copy to allow sibling includes
                         )
                         all_requirements.extend(included_reqs)
                     except ValueError:
@@ -452,11 +485,7 @@ class PipStrategy(PackageManagerStrategy):
 
         return all_requirements
 
-    def _determine_group_from_path(
-        self,
-        req_file: Path,
-        workspace: Path
-    ) -> str:
+    def _determine_group_from_path(self, req_file: Path, workspace: Path) -> str:
         """Determine dependency group from requirements file path.
 
         Mapping rules:
@@ -505,7 +534,7 @@ class PipStrategy(PackageManagerStrategy):
         dependencies: Dict[str, Dict[str, UnoplatProjectDependency]],
         group_name: str,
         requirement: Requirement,
-        is_editable: bool = False
+        is_editable: bool = False,
     ) -> None:
         """Add a requirement to the appropriate dependency group.
 

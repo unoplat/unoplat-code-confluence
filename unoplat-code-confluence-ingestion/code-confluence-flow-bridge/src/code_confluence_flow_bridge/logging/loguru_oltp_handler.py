@@ -27,25 +27,26 @@ SEVERITY_MAPPING = {
     20: SeverityNumber.INFO,
     30: SeverityNumber.WARN,
     40: SeverityNumber.ERROR,
-    50: SeverityNumber.FATAL
+    50: SeverityNumber.FATAL,
 }
 
-#credits: utils/loguru_otlp_handler.py - https://github.com/s71m/opentelemetry-loguru-telegram
+
+# credits: utils/loguru_otlp_handler.py - https://github.com/s71m/opentelemetry-loguru-telegram
 class OTLPHandler:
-    _instances = [] #type: ignore  # Changed from set to list for safe iteration
+    _instances = []  # type: ignore  # Changed from set to list for safe iteration
     _shutdown_lock = threading.Lock()
     _is_shutting_down = False
 
     def __init__(
-            self,
-            service_name: str,
-            exporter: LogExporter,
-            max_queue_size: int = MAX_QUEUE_SIZE,
-            batch_size: int = 100,
-            export_interval_ms: int = 1000
+        self,
+        service_name: str,
+        exporter: LogExporter,
+        max_queue_size: int = MAX_QUEUE_SIZE,
+        batch_size: int = 100,
+        export_interval_ms: int = 1000,
     ):
         self._resource = Resource({"service.name": service_name})
-        self._queue = queue.Queue(maxsize=max_queue_size) #type: ignore
+        self._queue = queue.Queue(maxsize=max_queue_size)  # type: ignore
         self._shutdown_event = threading.Event()
         # self._flush_complete = threading.Event()
 
@@ -56,15 +57,14 @@ class OTLPHandler:
                 exporter,
                 max_export_batch_size=batch_size,
                 schedule_delay_millis=export_interval_ms,
-                export_timeout_millis=5000
+                export_timeout_millis=5000,
             )
         )
         self._logger = self._logger_provider.get_logger(service_name)
 
         # Start worker thread
         self._worker = threading.Thread(
-            target=self._process_queue,
-            name="loguru_otlp_worker"
+            target=self._process_queue, name="loguru_otlp_worker"
         )
         self._worker.daemon = True
         self._worker.start()
@@ -79,10 +79,12 @@ class OTLPHandler:
             if not os.getenv("RUN_RELOAD"):
                 for sig in (signal.SIGINT, signal.SIGTERM):
                     prev = signal.getsignal(sig)
+
                     def _chained(signum, frame, prev=prev):
                         self._signal_handler(signum, frame)
                         if callable(prev):
                             prev(signum, frame)
+
                     signal.signal(sig, _chained)
 
     def _get_trace_context(self) -> tuple:
@@ -91,40 +93,55 @@ class OTLPHandler:
         return (
             span_context.trace_id if span_context.is_valid else 0,
             span_context.span_id if span_context.is_valid else 0,
-            span_context.trace_flags if span_context.is_valid else 0
+            span_context.trace_flags if span_context.is_valid else 0,
         )
+
     def _get_severity(self, level_no: int) -> tuple:
         """Map Loguru level to OpenTelemetry severity."""
         base_level = (level_no // 10) * 10
         return (
             SEVERITY_MAPPING.get(base_level, SeverityNumber.UNSPECIFIED),
-            "CRITICAL" if level_no >= 50 else "ERROR" if level_no >= 40 else
-            "WARNING" if level_no >= 30 else "INFO" if level_no >= 20 else "DEBUG"
+            "CRITICAL"
+            if level_no >= 50
+            else "ERROR"
+            if level_no >= 40
+            else "WARNING"
+            if level_no >= 30
+            else "INFO"
+            if level_no >= 20
+            else "DEBUG",
         )
 
     def _extract_attributes(self, record: Dict[str, Any]) -> Dict[str, Any]:
         """Extract attributes from the record."""
         attributes = {
-            'code.filepath': record['file'].path,
-            'code.function': record['function'],
-            'code.lineno': record['line'],
-            'filename': record['file'].name
+            "code.filepath": record["file"].path,
+            "code.function": record["function"],
+            "code.lineno": record["line"],
+            "filename": record["file"].name,
         }
 
         # Add extra attributes if present
-        if extra := record.get('extra'):
+        if extra := record.get("extra"):
             attributes.update(extra)
 
         # Handle exception information
-        if 'exception' in record and record['exception']:
-            exc_type, exc_value, exc_tb = record['exception']
+        if "exception" in record and record["exception"]:
+            exc_type, exc_value, exc_tb = record["exception"]
             if exc_type:
-                attributes.update({
-                    'exception.type': exc_type.__name__,
-                    'exception.message': str(exc_value) if exc_value else "No message",
-                    'exception.stacktrace': ''.join(traceback.format_exception(
-                        exc_type, exc_value, exc_tb)) if exc_tb else "No stacktrace"
-                })
+                attributes.update(
+                    {
+                        "exception.type": exc_type.__name__,
+                        "exception.message": str(exc_value)
+                        if exc_value
+                        else "No message",
+                        "exception.stacktrace": "".join(
+                            traceback.format_exception(exc_type, exc_value, exc_tb)
+                        )
+                        if exc_tb
+                        else "No stacktrace",
+                    }
+                )
 
         return attributes
 
@@ -133,9 +150,9 @@ class OTLPHandler:
         severity_number, severity_text = self._get_severity(record["level"].no)
         trace_id, span_id, trace_flags = self._get_trace_context()
 
-        if 'exception' in record and record['exception']:
+        if "exception" in record and record["exception"]:
             severity_number = SeverityNumber.FATAL
-            severity_text = 'CRITICAL'
+            severity_text = "CRITICAL"
 
         return LogRecord(
             timestamp=int(record["time"].timestamp() * 1e9),
@@ -145,9 +162,9 @@ class OTLPHandler:
             trace_flags=trace_flags,
             severity_text=severity_text,
             severity_number=severity_number,
-            body=record['message'],
+            body=record["message"],
             resource=self._logger.resource,
-            attributes=self._extract_attributes(record)
+            attributes=self._extract_attributes(record),
         )
 
     @classmethod
@@ -201,7 +218,6 @@ class OTLPHandler:
             except Exception as e:
                 print(f"Error processing log record: {e}", file=sys.stderr)
 
-
     def sink(self, message) -> None:
         """Add log message to queue."""
         if self._shutdown_event.is_set():
@@ -228,7 +244,9 @@ class OTLPHandler:
                     timeout = 5.0  # 5 seconds timeout
                     start_time = time.time()
 
-                    while not self._queue.empty() and (time.time() - start_time) < timeout:
+                    while (
+                        not self._queue.empty() and (time.time() - start_time) < timeout
+                    ):
                         time.sleep(0.1)
 
                     if not self._queue.empty():
@@ -251,11 +269,8 @@ class OTLPHandler:
 
     @classmethod
     def create(
-            cls,
-            service_name: str,
-            exporter: LogExporter,
-            development_mode: bool = False
-    ) -> 'OTLPHandler':
+        cls, service_name: str, exporter: LogExporter, development_mode: bool = False
+    ) -> "OTLPHandler":
         """Factory method with environment-specific configurations."""
         if development_mode:
             return cls(
@@ -263,7 +278,7 @@ class OTLPHandler:
                 exporter=exporter,
                 max_queue_size=1000,
                 batch_size=50,
-                export_interval_ms=500
+                export_interval_ms=500,
             )
 
         return cls(
@@ -271,5 +286,5 @@ class OTLPHandler:
             exporter=exporter,
             max_queue_size=MAX_QUEUE_SIZE,
             batch_size=100,
-            export_interval_ms=1000
+            export_interval_ms=1000,
         )

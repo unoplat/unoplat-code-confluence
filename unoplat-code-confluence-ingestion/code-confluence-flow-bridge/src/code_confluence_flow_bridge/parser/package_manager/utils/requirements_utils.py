@@ -36,7 +36,9 @@ class RequirementsUtils:
     }
 
     @staticmethod
-    def parse_requirements_folder(workspace_path: str) -> Dict[str, UnoplatProjectDependency]:
+    def parse_requirements_folder(
+        workspace_path: str,
+    ) -> Dict[str, UnoplatProjectDependency]:
         """Parse requirements files from the requirements folder.
 
         Args:
@@ -70,7 +72,13 @@ class RequirementsUtils:
 
             # Priority 3: All .txt files in requirements folder
             if not requirements_paths:
-                requirements_paths.extend([os.path.join(req_folder, f) for f in os.listdir(req_folder) if f.endswith(".txt")])
+                requirements_paths.extend(
+                    [
+                        os.path.join(req_folder, f)
+                        for f in os.listdir(req_folder)
+                        if f.endswith(".txt")
+                    ]
+                )
 
         # Priority 4: requirements.txt in workspace root
         root_req_txt = os.path.join(workspace_path, "requirements.txt")
@@ -86,7 +94,9 @@ class RequirementsUtils:
             try:
                 with open(req_file, "r") as f:
                     for req in requirements.parse(f):
-                        tuple_dependency = RequirementsUtils._convert_requirement_to_dependency(req)
+                        tuple_dependency = (
+                            RequirementsUtils._convert_requirement_to_dependency(req)
+                        )
                         if tuple_dependency:
                             dependencies[tuple_dependency[0]] = tuple_dependency[1]
             except Exception as e:
@@ -95,7 +105,9 @@ class RequirementsUtils:
         return dependencies
 
     @staticmethod
-    def _convert_requirement_to_dependency(req: Requirement) -> Optional[Tuple[str, UnoplatProjectDependency]]:
+    def _convert_requirement_to_dependency(
+        req: Requirement,
+    ) -> Optional[Tuple[str, UnoplatProjectDependency]]:
         """Convert requirements-parser Requirement to UnoplatProjectDependency."""
         try:
             # Get package name, handling both VCS and regular requirements
@@ -160,7 +172,20 @@ class RequirementsUtils:
             if hasattr(req, "hash_name") and req.hash_name:
                 hash_info = f"{req.hash_name}:{req.hash}"
 
-            tuple_dependency = (name, UnoplatProjectDependency(version=version, extras=sorted(req.extras) if req.extras else None, source=source, source_url=source_url, source_reference=req.revision if req.vcs else None, subdirectory=req.subdirectory if hasattr(req, "subdirectory") else None, hash_info=hash_info))
+            tuple_dependency = (
+                name,
+                UnoplatProjectDependency(
+                    version=version,
+                    extras=sorted(req.extras) if req.extras else None,
+                    source=source,
+                    source_url=source_url,
+                    source_reference=req.revision if req.vcs else None,
+                    subdirectory=req.subdirectory
+                    if hasattr(req, "subdirectory")
+                    else None,
+                    hash_info=hash_info,
+                ),
+            )
             return tuple_dependency
         except Exception as e:
             logger.error(f"Error converting requirement {req.line}: {str(e)}")

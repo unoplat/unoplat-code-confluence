@@ -1,7 +1,9 @@
 from typing import Any, Dict, List, Union
 
 
-def normalize_authors(authors: Union[List[str], List[Dict[str, Any]], None]) -> List[str]:
+def normalize_authors(
+    authors: Union[List[str], List[Dict[str, Any]], None],
+) -> List[str]:
     """
     Normalize authors from Poetry (list of strings) or PEP 621/UV (list of dicts) to a list of 'Name <email>' strings.
 
@@ -22,8 +24,8 @@ def normalize_authors(authors: Union[List[str], List[Dict[str, Any]], None]) -> 
             normalized: List[str] = []
             for author in authors:
                 if isinstance(author, dict):
-                    name = str(author.get('name', '')).strip()
-                    email = str(author.get('email', '')).strip()
+                    name = str(author.get("name", "")).strip()
+                    email = str(author.get("email", "")).strip()
                     if name and email:
                         normalized.append(f"{name} <{email}>")
                     elif name:
@@ -32,4 +34,4 @@ def normalize_authors(authors: Union[List[str], List[Dict[str, Any]], None]) -> 
                         normalized.append(f"<{email}>")
             return normalized
     # Fallback: return empty list if format is unexpected
-    return [] 
+    return []

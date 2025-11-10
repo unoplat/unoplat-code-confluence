@@ -1,8 +1,8 @@
 type: http_request
 model: http_request
-id: rq_DwTkeJP8FJ
-createdAt: 2025-06-06T04:50:08.587406
-updatedAt: 2025-11-08T04:44:29.013279
+id: rq_6SnswUL4GZ
+createdAt: 2025-11-08T04:55:36.138995
+updatedAt: 2025-11-08T04:56:37.284115
 workspaceId: wk_KULjx4bEa8
 folderId: fl_RfTzTxKasf
 authentication: {}
@@ -12,17 +12,13 @@ bodyType: null
 description: ''
 headers:
 - enabled: true
-  name: Authorization
-  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RmhxdXZxaWJhNnFYcytNRkJQRHlpNmxkbjFNSXVOMGd4Zm9IL1dueFRSZi9YYXptWlUvS0NEWmlqMDZERmpKbSs1cXM1SWtoZ1FNNDRucEdFc0FxVlIxcFVrV29GTDdEbE1zSWc4VGIvWDk0dm5qbU5yMUtFPQ') ]}
-  id: 89jkcmSwpq
-- enabled: true
   name: ''
   value: ''
-  id: 6DGzUcx7u4
-method: POST
-name: jay-ingest-token
-sortPriority: 0.0
-url: http://127.0.0.1:8000/ingest-token
+  id: BT6fJ5GKSp
+method: DELETE
+name: jay-delete-token
+sortPriority: 0.001
+url: http://127.0.0.1:8000/delete-token
 urlParameters:
 - enabled: true
   name: namespace
