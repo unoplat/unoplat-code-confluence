@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.21.0...code-confluence-docs-v0.21.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* Update project documentation and quickstart guide. as per recent version ([85fc88e](https://github.com/unoplat/unoplat-code-confluence/commit/85fc88e352123b9c357d3111df2e90f1c8b68317))
+* Update project documentation and quickstart guide. as per recent version ([2775f8b](https://github.com/unoplat/unoplat-code-confluence/commit/2775f8bcea60305757203d57598a6d7459b42a9b))
+
 ## [0.21.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.20.0...code-confluence-docs-v0.21.0) (2025-09-01)
 
 
