@@ -8,13 +8,14 @@ slug: /
 Welcome to **Unoplat Code Confluence** - Your Gateway to Code Understanding!
 
 :::info Current Status
-🔄 Unoplat Code Confluence currently supports Python codebases and is in alpha stage. We're actively working on expanding language support and features.
+🔄 Unoplat Code Confluence currently supports Python and typescript codebases and is in alpha stage. We're actively working on expanding language support and features.
 While in alpha stage, it's best suited for developers and tech enthusiasts who enjoy exploring new tools, don't mind a few rough edges, and are willing to provide feedback as we work towards establishing a complete end-to-end workflow!
 :::
 
 ## Introduction
 
-The current version supports parsing codebases and exporting a JSON representation of code graph. For more details, check out:
+Unoplat Code Confluence is an open source dev tooling platform that maintains a live, pluggable context layer per repo that renders and updates Agents.md.
+
 - 📘 [**Vision »**](/deep-dive/vision)
 
 ## Prerequisites
@@ -168,7 +169,7 @@ We're continuously expanding the AGENTS.md sections to provide even more compreh
 
 #### Workflow Orchestrator
 - Access and manage automated workflows
-- View execution logs and debug orchestration issues
+- View execution logs and debug orchestration issues.
 - Monitor real-time workflow performance
 - **Click the "Workflow Orchestrator" button** to open the temporal workflow orchestrator dashboard.
 
