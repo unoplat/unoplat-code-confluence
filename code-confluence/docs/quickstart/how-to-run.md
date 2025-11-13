@@ -32,7 +32,7 @@ Follow these steps to set up Code Confluence:
 1. **Create Project Directory and Download Configuration:**
    ```bash
    mkdir -p code-confluence && cd code-confluence
-   
+
    # Download Docker Compose file
    curl -O https://raw.githubusercontent.com/unoplat/unoplat-code-confluence/refs/heads/main/prod-docker-compose.yml
    ```
@@ -65,62 +65,102 @@ If you don't have a GitHub PAT:
 
 :::
 
-### 3. Ingest Repository
-
-You can ingest repositories from two sources:
-
-#### A. Search for GitHub Repositories
+### 3. Search for GitHub Repositories
 - Press **`s`** or **`S`** (Shift + s) to open the search dialog.
 - You can search through your personal, public, and open source repositories.
 
 ![Search for Repository](../../static/repository_search.png)
 
-#### B. Browse Local Git Repositories
-- Click on the **Local Repository** tab to switch to local repository onboarding.
-- Click the **Browse** button to select a local Git repository from your machine.
-
-
-![Local Repository Onboarding](../../static/local_onboarding_repo.png)
-
-:::note Docker Configuration for Local Repositories
-The Docker Compose is pre-configured with volume mounting (`${HOME}/unoplat/repositories:/root/.unoplat/repositories`) and sets the environment variable `REPOSITORIES_BASE_PATH=/root/.unoplat/repositories` in the flow-bridge service to enable local repository ingestion. 
-
-Before using local repositories, create the required directory on your host machine and clone your Git repositories into this path:
-```bash
-mkdir -p ~/unoplat/repositories
-```
-
-You can modify these paths in the Docker Compose file to match your preferred directory structure if needed, but ensure the volume mount path remains consistent with the `REPOSITORIES_BASE_PATH` environment variable in the `code-confluence-flow-bridge` service configuration.
-:::
-
-### 4. Continue with Repository Configuration
-- For GitHub repositories: In the **Actions** column, click on **Ingest Repo** for the repository you want to analyze.
-- For local repositories: After selecting your local repository, click **Continue to Configuration** to proceed.
+### 4. Ingest Repository
+- In the **Actions** column, click on **Ingest Repo** for the repository you want to analyze.
+- Code Confluence will automatically detect Python and Typescript codebases as part of repository along with corresponding package manager metadata.
 
 ![Ingest Repo Action](../../static/repository_ingest_action.jpeg)
 
-### 5. Configure Repository & Codebase
-- A Repository Dialog Configuration will open up with automatic codebase detection capabilities.
-- Code Confluence will automatically detect Python projects and their main directories within the repository.
+:::warning Codebase Detection - Beta Feature
+Automatic codebase detection is currently in beta and may have bugs. After ingestion completes:
 
-![Automatic Codebase Detection](../../static/automatic_code_base_detection.png)
+1. Navigate to **Ingestion Management** to review your repository ingestion results
+2. Verify that all expected codebases were detected correctly
+3. Check for any errors or missing codebases
 
-- You can choose to **Detect Codebases Automatically** (recommended) or configure manually if needed.
-- The automatic detection will analyze the repository structure and suggest appropriate configurations for:
-  - **Root Packages**: Automatically identified main modules/packages
-  - **Codebase Folders**: Detected project directories
-  - **Package Manager**: Automatically detected (e.g., uv, pip, poetry)
-  - **Programming Language**: Currently supports Python
+![Ingestion Management - Codebases Ingested](../../static/codebases-ingested.png)
 
-#### Example: Automatic Detection Results
-When automatic detection completes, you'll see the detected codebases:
+If you encounter any issues, such as codebases not being detected or errors during ingestion, please [**report them on our GitHub Issues**](https://github.com/unoplat/unoplat-code-confluence/issues).
+:::
 
-![Automatically Detected Codebases](../../static/codebase_automatic_detected.png)
+### 5. Configure Model Provider
 
-- Review the automatically detected configurations and make any necessary adjustments.
-- Once satisfied with the detection results, click **Submit Repo** to start the ingestion process.
+After ingestion completes, configure your AI model provider to enable code intelligence features.
 
-### 6. Enable Developer Mode
+- Navigate to **Settings > Model Providers** in the application
+- Code Confluence supports multiple AI model providers for code analysis and understanding
+
+#### Recommended Configuration: OpenRouter with Grok
+
+We recommend using **OpenRouter** with the **x-ai/grok-code-fast-1** model, which we've tested extensively for optimal performance and efficiency.
+
+**Setup Steps**:
+1. Select **OpenRouter** from the Provider dropdown
+2. Enter your OpenRouter API key in the **API key** field
+3. Set the **Model name** to `x-ai/grok-code-fast-1`
+4. Click **Save Configuration**
+
+![Model Provider Configuration - OpenRouter](../../static/model-provider.png)
+
+:::tip Getting an OpenRouter API Key
+If you don't have an OpenRouter API key:
+1. Visit [OpenRouter](https://openrouter.ai/) and create an account
+2. Navigate to your API Keys section
+3. Generate a new API key and copy it
+
+OpenRouter provides access to multiple AI models including Grok with competitive pricing.
+:::
+
+:::info Other Model Providers
+While we recommend OpenRouter with Grok for the best experience, Code Confluence supports other model providers as well. You can experiment with different providers and models based on your preferences and requirements.
+:::
+
+:::warning Known Limitations
+**Testing Status**: We have not thoroughly tested all model providers. OpenRouter with Grok has been tested extensively and is our recommended configuration.
+
+**Streaming Bug**: There is a known issue with model providers that do not support streaming - agents may fail when using these providers. For details, see [GitHub Issue #727](https://github.com/unoplat/unoplat-code-confluence/issues/727).
+
+If you encounter issues with a specific provider, please report them on our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page.
+:::
+
+### 6. Repository Operations
+
+After successfully ingesting your repository, you can perform various operations to manage your codebase. Navigate to **Ingestion Management** to access these operations.
+
+![Repository Operations](../../static/repository-operations.png)
+
+Code Confluence provides three key repository operations:
+
+- **Generate Agents.md** - Automatically generates comprehensive documentation for AI agents to understand your codebase
+- **Refresh Repository** - Updates your ingested codebase to reflect the latest changes from the source repository
+- **Delete Repository** - Removes the ingested repository and all associated data from Code Confluence
+
+#### AGENTS.md
+
+When you trigger the **Generate Agents.md** operation, you can monitor the progress in real-time. The workflow shows progress for each codebase individually, as well as overall progress when your repository contains multiple codebases. You can view agent events in real-time as actions are performed.
+
+![AGENTS.md Workflow Progress](../../static/agents-md-workflow.png)
+
+You can continue ingesting and generating AGENTS.md for multiple repositories in parallel until you reach the maximum tokens per second limit of your model provider.
+
+The generated AGENTS.md provides structured documentation covering:
+- **Project Structure** - Overview of your codebase organization
+- **Development Workflow** - Development practices and patterns
+- **Business Logic** - Core functionality and domain logic
+
+![AGENTS.md Preview Result](../../static/agents-md-preview-result.png)
+
+:::info Coming Soon
+We're continuously expanding the AGENTS.md sections to provide even more comprehensive codebase documentation for AI agents.
+:::
+
+### 7. Monitor Ingestion & Enable Developer Mode
 - Navigate to **Settings > Developer Mode**, and toggle the switch on to unlock infrastructure tooling.
 - Once enabled, you will see two new tools:
 
@@ -142,8 +182,8 @@ When automatic detection completes, you'll see the detected codebases:
   ```
 - Once logged in, try this query to explore your code graph:
   ```cypher
-  MATCH (n) 
-  RETURN n 
+  MATCH (n)
+  RETURN n
   LIMIT 25
   ```
 
@@ -153,7 +193,7 @@ The above query displays the first 25 nodes in your code graph, perfect for a qu
 
 ## Troubleshooting
 
-Need assistance? We're here to help! 
+Need assistance? We're here to help!
 
 ### Support Options
 
@@ -177,4 +217,3 @@ Remember to check existing issues before creating a new one!
 <div className="docusaurus-powered">
   <p>This documentation is powered by <a href="https://docusaurus.io" target="_blank">Docusaurus</a>, making it easy to maintain and extend.</p>
 </div>
-
