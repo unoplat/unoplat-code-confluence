@@ -2,13 +2,7 @@
 "use client";
 
 // Import necessary React hooks.
-import {
-  useState,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useMemo,
-} from "react";
+import { useState, useEffect, useMemo } from "react";
 // Import useQuery from TanStack Query.
 import {
   useQuery,
@@ -30,23 +24,16 @@ import {
   fetchGitHubRepositories,
   submitRepositoryConfig,
   type PaginatedResponse,
-} from "../../lib/api";
-import type { GitHubRepoSummary } from "../../types";
+} from "@/lib/api";
+import type { GitHubRepoSummary } from "@/types";
+import { ProviderKey } from "@/types/credential-enums";
 import { Route as OnboardingRoute } from "../../routes/_app.onboarding";
 import { DataTableToolbar } from "../data-table-toolbar";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// Define the ref interface so parent components can, for example, retrieve selected row names.
-export interface RepositoryDataTableRef {
-  getSelectedRowNames: () => string[];
-}
-
-// Main component implementation using forwardRef so methods can be exposed.
-export const RepositoryDataTable = forwardRef<
-  RepositoryDataTableRef,
-  { tokenStatus: boolean }
->(function RepositoryDataTableFn({ tokenStatus }, ref) {
+// Main component implementation (React 19 style - no forwardRef needed)
+export function RepositoryDataTable({ tokenStatus }: { tokenStatus: boolean }) {
   const queryClient = useQueryClient();
   const { pageIndex, perPage, filterValues } = OnboardingRoute.useSearch();
 
@@ -61,7 +48,7 @@ export const RepositoryDataTable = forwardRef<
         repository_git_url: repo.git_url,
         repository_owner_name: repo.owner_name,
         repository_metadata: null, // Backend auto-detects
-        repository_provider: "github_open",
+        provider_key: ProviderKey.GITHUB_OPEN,
       }),
     onSuccess: (_, repo) => {
       toast.success(
@@ -91,6 +78,7 @@ export const RepositoryDataTable = forwardRef<
       fetchGitHubRepositories(
         pageIndex,
         perPage,
+        ProviderKey.GITHUB_OPEN,
         filterValues,
         cursors[pageIndex - 1],
       ),
@@ -154,13 +142,20 @@ export const RepositoryDataTable = forwardRef<
         fetchGitHubRepositories(
           pageToPrefetch1,
           perPage,
+          ProviderKey.GITHUB_OPEN,
           filterValues,
           cursor1,
         ),
     });
 
     // Also fetch page+1 data to obtain its cursor, then prefetch page+2
-    fetchGitHubRepositories(pageToPrefetch1, perPage, filterValues, cursor1)
+    fetchGitHubRepositories(
+      pageToPrefetch1,
+      perPage,
+      ProviderKey.GITHUB_OPEN,
+      filterValues,
+      cursor1,
+    )
       .then((nextPageData: PaginatedResponse<GitHubRepoSummary>) => {
         if (nextPageData.next_cursor) {
           const cursor2: string = nextPageData.next_cursor;
@@ -177,6 +172,7 @@ export const RepositoryDataTable = forwardRef<
               fetchGitHubRepositories(
                 pageToPrefetch2,
                 perPage,
+                ProviderKey.GITHUB_OPEN,
                 filterValues,
                 cursor2,
               ),
@@ -187,15 +183,6 @@ export const RepositoryDataTable = forwardRef<
         // ignore prefetch errors
       });
   }, [repoData, pageIndex, perPage, filterValues, queryClient, tokenStatus]);
-
-  // Expose a method via the ref for compatibility (returns empty array, as no selection)
-  useImperativeHandle(
-    ref,
-    () => ({
-      getSelectedRowNames: (): string[] => [],
-    }),
-    [],
-  );
 
   // Render DataTable
   return (
@@ -209,6 +196,4 @@ export const RepositoryDataTable = forwardRef<
       </DataTable>
     </div>
   );
-});
-
-RepositoryDataTable.displayName = "RepositoryDataTable";
+}

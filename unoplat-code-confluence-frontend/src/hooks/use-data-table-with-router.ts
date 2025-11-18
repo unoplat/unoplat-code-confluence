@@ -49,8 +49,6 @@ export interface UseDataTableWithRouterProps<TData>
 export function useDataTableWithRouter<TData>(
   props: UseDataTableWithRouterProps<TData>,
 ): { table: Table<TData> } {
-  "use no memo";
-
   // Extract properties for table configuration.
   const { data, columns, initialState, pageCount, ...tableProps } = props;
   // Get the current router instance.

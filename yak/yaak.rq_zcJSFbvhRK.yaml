@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_zcJSFbvhRK
 createdAt: 2025-08-26T06:34:22.722423
-updatedAt: 2025-09-12T10:54:07.158549
+updatedAt: 2025-11-18T05:14:47.768920
 workspaceId: wk_KULjx4bEa8
 folderId: fl_jtBaK7a5pU
 authentication: {}
@@ -12,9 +12,9 @@ body:
     {
       "provider_key" : "huggingface",
       "model_name" :
-      "moonshotai/Kimi-K2-Instruct-0905",
+      "moonshotai/Kimi-K2-Thinking",
       "provider_name":
-      "groq"
+      "together"
     }
 bodyType: application/json
 description: ''
@@ -34,5 +34,5 @@ headers:
 method: PUT
 name: jay-set-model-provider-huggingface
 sortPriority: -0.0002
-url: http://127.0.0.1:8001/v1/config
+url: http://127.0.0.1:8001/v1/model-config
 urlParameters: []

@@ -133,12 +133,11 @@ export default tseslint.config(
       }],
 
       // ==========================================
-      // REACT COMPILER (Disabled - see below)
+      // REACT COMPILER
       // ==========================================
-      // TODO: Enable when TanStack Table supports React Compiler
+      // Enabled with "use no memo" directives for TanStack Table components
       // See: https://github.com/facebook/react/issues/33057
       // 'react-compiler/react-compiler': 'error',
-      // 'use-no-memo/tanstack-table': 'error',
     },
   },
 )

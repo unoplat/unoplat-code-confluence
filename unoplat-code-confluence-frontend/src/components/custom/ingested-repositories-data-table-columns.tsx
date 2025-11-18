@@ -1,6 +1,6 @@
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { IngestedRepository } from "../../types";
+import type { IngestedRepository } from "@/types";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
   FileText,
 } from "lucide-react";
 import { StatusBadge } from "@/components/custom/StatusBadge";
+import { ProviderKey } from "@/types/credential-enums";
 
 interface ColumnOptions {
   setRowAction: React.Dispatch<
@@ -69,13 +70,22 @@ export function getIngestedRepositoriesColumns({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "repository_provider",
+      accessorKey: "provider_key",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Provider" />
       ),
       cell: ({ row }) => {
-        const provider = row.original.repository_provider;
-        const providerLabel = provider === "github_open" ? "GitHub" : provider.replace(/_/g, " ");
+        const provider = row.original.provider_key;
+        const providerLabel =
+          provider === ProviderKey.GITHUB_OPEN
+            ? "GitHub"
+            : provider === ProviderKey.GITHUB_ENTERPRISE
+              ? "GitHub Enterprise"
+              : provider === ProviderKey.GITLAB_CE
+                ? "GitLab"
+                : provider === ProviderKey.GITLAB_ENTERPRISE
+                  ? "GitLab Enterprise"
+                  : provider.replace(/_/g, " ");
         return (
           <div className="flex items-center gap-2">
             <GitBranch className="h-4 w-4 text-gray-600" />
@@ -90,11 +100,10 @@ export function getIngestedRepositoriesColumns({
         placeholder: "Filter by provider...",
         variant: "select",
         options: [
-          { label: "GitHub", value: "github_open" },
-          { label: "GitHub Enterprise", value: "github_enterprise" },
-          { label: "GitLab", value: "gitlab" },
-          { label: "GitLab Self-Hosted", value: "gitlab_self_hosted" },
-          { label: "Bitbucket", value: "bitbucket" },
+          { label: "GitHub", value: ProviderKey.GITHUB_OPEN },
+          { label: "GitHub Enterprise", value: ProviderKey.GITHUB_ENTERPRISE },
+          { label: "GitLab CE", value: ProviderKey.GITLAB_CE },
+          { label: "GitLab Enterprise", value: ProviderKey.GITLAB_ENTERPRISE },
         ],
       },
       enableSorting: true,

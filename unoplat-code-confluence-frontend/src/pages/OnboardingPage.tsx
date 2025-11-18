@@ -10,10 +10,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import {
-  RepositoryDataTable,
-  type RepositoryDataTableRef,
-} from "../components/custom/RepositoryDataTable";
+import { RepositoryDataTable } from "../components/custom/RepositoryDataTable";
 import GitHubTokenPopup from "../components/custom/GitHubTokenPopup";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useAuthData } from "@/hooks/use-auth-data";
@@ -23,7 +20,6 @@ export default function OnboardingPage(): React.ReactElement {
   console.log("[OnboardingPage] Rendering OnboardingPage component");
 
   const queryClient = useQueryClient();
-  const dataTableRef = useRef<RepositoryDataTableRef>(null);
 
   // Use useAuthData hook to fetch token status and user data
   const { tokenQuery } = useAuthData();
@@ -76,7 +72,7 @@ export default function OnboardingPage(): React.ReactElement {
         </TabsList>
 
         <TabsContent value="github">
-          <Card variant="default" padding="lg" radius="lg">
+          <Card>
             <CardHeader>
               <CardTitle>GitHub Repositories</CardTitle>
               <CardDescription>
@@ -136,10 +132,7 @@ export default function OnboardingPage(): React.ReactElement {
               )}
 
               {tokenStatus?.status && (
-                <RepositoryDataTable
-                  ref={dataTableRef}
-                  tokenStatus={tokenStatus.status}
-                />
+                <RepositoryDataTable tokenStatus={tokenStatus.status} />
               )}
             </CardContent>
           </Card>

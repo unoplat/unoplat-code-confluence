@@ -56,8 +56,6 @@ export function JobStatusDialog({
   onOpenChange,
   job,
 }: JobStatusDialogProps): React.ReactElement | null {
-  "use no memo";
-
   const [statusError, setStatusError] = useState<string | null>(null);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState<boolean>(false);
   const [feedbackSource, setFeedbackSource] = useState<FeedbackSource | null>(
