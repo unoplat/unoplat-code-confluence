@@ -5,19 +5,13 @@ import {
   GitHubRepoSummary,
   PaginatedResponse,
   RepositoryRequestConfiguration,
-  GitHubRepoRequestConfiguration,
   GitHubRepoResponseConfiguration,
   IngestedRepository,
   IngestedRepositoriesResponse,
   RefreshRepositoryResponse,
   CodebaseMetadataResponse,
 } from "@/types";
-import {
-  CredentialParams,
-  CredentialNamespace,
-  ProviderKey,
-  SecretKind,
-} from "@/types/credential-enums";
+import { CredentialParams, ProviderKey } from "@/types/credential-enums";
 import { providerCatalogSchema } from "@/features/model-config/provider-schema";
 import {
   ModelProviderDefinition,

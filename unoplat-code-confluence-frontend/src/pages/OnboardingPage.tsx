@@ -72,7 +72,7 @@ export default function OnboardingPage(): React.ReactElement {
         </TabsList>
 
         <TabsContent value="github">
-          <Card variant="default" padding="lg" radius="lg">
+          <Card>
             <CardHeader>
               <CardTitle>GitHub Repositories</CardTitle>
               <CardDescription>
