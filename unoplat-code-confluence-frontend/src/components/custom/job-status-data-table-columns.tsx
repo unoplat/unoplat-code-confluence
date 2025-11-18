@@ -233,7 +233,7 @@ export function getJobStatusDataTableColumns({
         // If feedback hasn't been submitted and status is FAILED, show submit button
         return row.original.codebase_status === "FAILED" ? (
           <Button
-            variant="info"
+            variant="secondary"
             size="sm"
             onClick={() => onSubmitFeedback(row.original)}
           >

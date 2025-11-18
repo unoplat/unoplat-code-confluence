@@ -2,11 +2,7 @@
 "use client";
 
 // Import necessary React hooks.
-import {
-  useState,
-  useEffect,
-  useMemo,
-} from "react";
+import { useState, useEffect, useMemo } from "react";
 // Import useQuery from TanStack Query.
 import {
   useQuery,
@@ -37,11 +33,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // Main component implementation (React 19 style - no forwardRef needed)
-export function RepositoryDataTable({
-  tokenStatus
-}: {
-  tokenStatus: boolean
-}) {
+export function RepositoryDataTable({ tokenStatus }: { tokenStatus: boolean }) {
   const queryClient = useQueryClient();
   const { pageIndex, perPage, filterValues } = OnboardingRoute.useSearch();
 
@@ -150,13 +142,20 @@ export function RepositoryDataTable({
         fetchGitHubRepositories(
           pageToPrefetch1,
           perPage,
+          ProviderKey.GITHUB_OPEN,
           filterValues,
           cursor1,
         ),
     });
 
     // Also fetch page+1 data to obtain its cursor, then prefetch page+2
-    fetchGitHubRepositories(pageToPrefetch1, perPage, filterValues, cursor1)
+    fetchGitHubRepositories(
+      pageToPrefetch1,
+      perPage,
+      ProviderKey.GITHUB_OPEN,
+      filterValues,
+      cursor1,
+    )
       .then((nextPageData: PaginatedResponse<GitHubRepoSummary>) => {
         if (nextPageData.next_cursor) {
           const cursor2: string = nextPageData.next_cursor;
@@ -173,6 +172,7 @@ export function RepositoryDataTable({
               fetchGitHubRepositories(
                 pageToPrefetch2,
                 perPage,
+                ProviderKey.GITHUB_OPEN,
                 filterValues,
                 cursor2,
               ),
