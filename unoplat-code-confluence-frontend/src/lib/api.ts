@@ -4,13 +4,20 @@ import {
   FlagResponse,
   GitHubRepoSummary,
   PaginatedResponse,
+  RepositoryRequestConfiguration,
   GitHubRepoRequestConfiguration,
   GitHubRepoResponseConfiguration,
   IngestedRepository,
   IngestedRepositoriesResponse,
   RefreshRepositoryResponse,
   CodebaseMetadataResponse,
-} from "../types";
+} from "@/types";
+import {
+  CredentialParams,
+  CredentialNamespace,
+  ProviderKey,
+  SecretKind,
+} from "@/types/credential-enums";
 import { providerCatalogSchema } from "@/features/model-config/provider-schema";
 import {
   ModelProviderDefinition,
@@ -98,17 +105,28 @@ export const handleApiError = (error: unknown): ApiError => {
  * Submit GitHub PAT token to the backend
  *
  * @param token - GitHub Personal Access Token
+ * @param params - Credential parameters (namespace, provider_key, secret_kind, url)
  * @returns Promise with the response data
  */
 export const submitGitHubToken = async (
   token: string,
+  params: CredentialParams,
 ): Promise<ApiResponse> => {
   try {
+    // Build query parameters
+    const queryParams = {
+      namespace: params.namespace,
+      provider_key: params.provider_key,
+      secret_kind: params.secret_kind,
+      ...(params.url && { url: params.url }),
+    };
+
     // Pass null as data and override Content-Type header
     const response: AxiosResponse<ApiResponse> = await apiClient.post(
       "/ingest-token",
       null,
       {
+        params: queryParams,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": undefined, // Prevent sending default Content-Type
@@ -146,18 +164,24 @@ export const submitGitHubToken = async (
  *
  * @param page - Page number for pagination
  * @param perPage - Number of items per page
- * @param search - Optional search term
+ * @param providerKey - Repository provider key (required)
+ * @param filterValues - Optional filter values
  * @param cursor - Optional cursor for pagination
  * @returns Promise with paginated GitHub repositories
  */
 export const fetchGitHubRepositories = async (
   page: number,
   perPage: number,
+  providerKey: ProviderKey,
   filterValues?: Record<string, string | string[] | null>,
   cursor?: string,
 ): Promise<PaginatedResponse<GitHubRepoSummary>> => {
   try {
-    const params: Record<string, string | number> = { page, per_page: perPage };
+    const params: Record<string, string | number> = {
+      page,
+      per_page: perPage,
+      provider_key: providerKey,
+    };
 
     if (filterValues) {
       params.filterValues = JSON.stringify(filterValues);
@@ -182,7 +206,7 @@ export const fetchGitHubRepositories = async (
  * @returns Promise with the response data
  */
 export const submitRepositoryConfig = async (
-  repositoryConfig: GitHubRepoRequestConfiguration,
+  repositoryConfig: RepositoryRequestConfiguration,
 ): Promise<ApiResponse> => {
   try {
     const response: AxiosResponse<ApiResponse> = await apiClient.post(
@@ -196,25 +220,31 @@ export const submitRepositoryConfig = async (
 };
 
 /**
- * Delete GitHub PAT token from the backend
- *
- * @returns Promise with the response data
- */
-/**
  * Update GitHub PAT token in the backend
  *
  * @param token - GitHub Personal Access Token
+ * @param params - Credential parameters (namespace, provider_key, secret_kind, url)
  * @returns Promise with the response data
  */
 export const updateGitHubToken = async (
   token: string,
+  params: CredentialParams,
 ): Promise<ApiResponse> => {
   try {
+    // Build query parameters
+    const queryParams = {
+      namespace: params.namespace,
+      provider_key: params.provider_key,
+      secret_kind: params.secret_kind,
+      ...(params.url && { url: params.url }),
+    };
+
     // Pass null as data and override Content-Type header
     const response: AxiosResponse<ApiResponse> = await apiClient.put(
       "/update-token",
       null,
       {
+        params: queryParams,
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": undefined, // Prevent sending default Content-Type
@@ -245,10 +275,27 @@ export const updateGitHubToken = async (
   }
 };
 
-export const deleteGitHubToken = async (): Promise<ApiResponse> => {
+/**
+ * Delete GitHub PAT token from the backend
+ *
+ * @param params - Credential parameters (namespace, provider_key, secret_kind)
+ * @returns Promise with the response data
+ */
+export const deleteGitHubToken = async (
+  params: Omit<CredentialParams, "url">,
+): Promise<ApiResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> =
-      await apiClient.delete("/delete-token");
+    // Build query parameters
+    const queryParams = {
+      namespace: params.namespace,
+      provider_key: params.provider_key,
+      secret_kind: params.secret_kind,
+    };
+
+    const response: AxiosResponse<ApiResponse> = await apiClient.delete(
+      "/delete-token",
+      { params: queryParams },
+    );
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
@@ -285,7 +332,7 @@ export const getFlagStatus = async (
  * @returns Promise with the response data
  */
 export const createRepositoryData = async (
-  config: GitHubRepoRequestConfiguration,
+  config: RepositoryRequestConfiguration,
 ): Promise<ApiResponse> => {
   try {
     const response: AxiosResponse<ApiResponse> = await apiClient.post(
@@ -355,11 +402,20 @@ export interface GitHubUser {
 
 /**
  * Fetch the authenticated GitHub user using the stored PAT token
+ *
+ * @param providerKey - Repository provider key (required)
+ * @returns Promise with the GitHub user data
  */
-export async function fetchGitHubUser(): Promise<GitHubUser> {
+export async function fetchGitHubUser(
+  providerKey: ProviderKey,
+): Promise<GitHubUser> {
   // Get the token from backend
-  const response: AxiosResponse<GitHubUser> =
-    await apiClient.get("/user-details");
+  const response: AxiosResponse<GitHubUser> = await apiClient.get(
+    "/user-details",
+    {
+      params: { provider_key: providerKey },
+    },
+  );
   return response.data;
 }
 
