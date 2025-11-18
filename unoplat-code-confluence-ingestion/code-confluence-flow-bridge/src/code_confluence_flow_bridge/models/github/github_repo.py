@@ -204,6 +204,20 @@ class RepositoryRequestConfiguration(BaseModel):
     )
 
 
+class RepositoryRefreshRequest(BaseModel):
+    """Minimal payload accepted by the refresh endpoint."""
+
+    repository_name: str = Field(description="The name of the repository (primary key)")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    provider_key: ProviderKey = Field(
+        ..., description="Provider key for credential lookup during refresh"
+    )
+    repository_git_url: Optional[str] = Field(
+        default=None,
+        description="Optional git URL override. If omitted, the backend derives it from provider metadata.",
+    )
+
+
 class GitHubRepoResponseConfiguration(BaseModel):
     """Configuration for a GitHub repository, including codebase config and status."""
 
@@ -351,4 +365,12 @@ class CodebaseMetadataListResponse(BaseModel):
     repository_owner_name: str = Field(description="The name of the repository owner")
     codebases: List[CodebaseMetadataResponse] = Field(
         description="List of codebase configurations with metadata"
+    )
+
+
+class RepositoryProvidersResponse(BaseModel):
+    """Response model containing list of configured repository providers."""
+
+    providers: List[ProviderKey] = Field(
+        description="List of configured repository provider keys"
     )

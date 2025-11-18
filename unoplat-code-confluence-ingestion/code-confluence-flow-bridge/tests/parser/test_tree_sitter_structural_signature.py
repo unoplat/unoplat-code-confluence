@@ -988,7 +988,7 @@ def test_main_py_structural_signature(language_name: str) -> None:
 
     # get_repos function should have GraphQL-related calls
     get_repos_fn = next(
-        (fn for fn in signature.functions if "async def get_repos" in fn.signature),
+        (fn for fn in signature.functions if "async def get_repos(" in fn.signature),
         None,
     )
     assert get_repos_fn is not None, "get_repos function not found"
