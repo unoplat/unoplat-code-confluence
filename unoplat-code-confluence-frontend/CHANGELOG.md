@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.31.0...unoplat-code-confluence-frontend-v1.32.0) (2025-11-18)
+
+
+### Features
+
+* **endpoint-updates:** Refactor repository configuration and credential types and api endpoints as per backend ([4278d2d](https://github.com/unoplat/unoplat-code-confluence/commit/4278d2de7b492b9bee82361daf60203d696b0701))
+* **endpoint-updates:** Refactor repository configuration and credential types and api endpoints as per backend ([6469582](https://github.com/unoplat/unoplat-code-confluence/commit/6469582bd0be1f7ddee9d7c1143646653f6dbc7e))
+
+
+### Bug Fixes
+
+* **ui:** card and button component variants/properties ([7d32bcd](https://github.com/unoplat/unoplat-code-confluence/commit/7d32bcdacc2efeac963854e15410aebf80a2b571))
+
 ## [1.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.3...unoplat-code-confluence-frontend-v1.31.0) (2025-11-03)
 
 
