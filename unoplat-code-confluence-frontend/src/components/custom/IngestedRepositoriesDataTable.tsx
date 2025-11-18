@@ -41,8 +41,6 @@ interface RowAction {
 }
 
 export function IngestedRepositoriesDataTable(): React.ReactElement {
-  "use no memo";
-
   const [rowAction, setRowAction] = useState<RowAction | null>(null);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);

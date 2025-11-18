@@ -51,8 +51,6 @@ const fetchParentWorkflowJobs = async (): Promise<
 
 // Main component implementation
 export function SubmittedJobsDataTable(): React.ReactElement {
-  "use no memo";
-
   // 1️⃣ Track the current row action in state
   const [rowAction, setRowAction] = useState<RowAction | null>(null);
 

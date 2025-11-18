@@ -23,6 +23,7 @@ import {
 } from "../components/ui/alert-dialog";
 import { useAuthData } from "@/hooks/use-auth-data";
 import type { ApiResponse } from "../lib/api"; // Import ApiResponse type
+import { DEFAULT_REPOSITORY_CREDENTIAL_PARAMS } from "@/lib/constants/credentials";
 
 export default function SettingsPage(): React.ReactElement {
   // console.log('[SettingsPage] Rendering SettingsPage component');
@@ -38,7 +39,8 @@ export default function SettingsPage(): React.ReactElement {
 
   // Define the mutation for deleting the token
   const deleteMutation = useMutation<ApiResponse, Error>({
-    mutationFn: deleteGitHubToken, // Use mutationFn instead of passing directly
+    mutationFn: () =>
+      deleteGitHubToken(DEFAULT_REPOSITORY_CREDENTIAL_PARAMS), // Always pass required credential triple
     onSuccess: async (data: ApiResponse) => {
       // console.log('[SettingsPage] Token deleted successfully via mutation, invalidating queries', data);
       setShowDeleteDialog(false);

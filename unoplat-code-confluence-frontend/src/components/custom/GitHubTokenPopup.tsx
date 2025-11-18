@@ -10,13 +10,14 @@ import {
   updateGitHubToken,
   ApiError,
   ApiResponse,
-} from "../../lib/api";
+} from "@/lib/api";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Dialog, DialogContent, DialogDescription } from "../ui/dialog";
 import { Github, X, ExternalLink, Key } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { buildGitHubPatLink } from "@/lib/github-token-utils";
 import { Separator } from "../ui/separator";
+import { DEFAULT_REPOSITORY_CREDENTIAL_PARAMS } from "@/lib/constants/credentials";
 
 interface GitHubTokenPopupProps {
   open: boolean;
@@ -92,8 +93,11 @@ export default function GitHubTokenPopup({
   });
 
   const tokenMutation = useMutation<ApiResponse, ApiError, string>({
-    mutationFn: (token: string) =>
-      isUpdate ? updateGitHubToken(token) : submitGitHubToken(token),
+    mutationFn: (token: string) => {
+      return isUpdate
+        ? updateGitHubToken(token, DEFAULT_REPOSITORY_CREDENTIAL_PARAMS)
+        : submitGitHubToken(token, DEFAULT_REPOSITORY_CREDENTIAL_PARAMS);
+    },
     onSuccess: async (): Promise<void> => {
       console.log(
         "[GitHubTokenPopup] Mutation successful, clearing error and resetting form",
