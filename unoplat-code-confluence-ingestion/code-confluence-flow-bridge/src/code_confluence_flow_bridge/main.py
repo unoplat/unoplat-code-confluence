@@ -79,6 +79,8 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     ParentWorkflowJobListResponse,
     ParentWorkflowJobResponse,
     RefreshRepositoryResponse,
+    RepositoryProvidersResponse,
+    RepositoryRefreshRequest,
     RepositoryRequestConfiguration,
     WorkflowRun,
     WorkflowStatus,
@@ -706,9 +708,6 @@ async def ingest_token(
         raise
     except Exception as e:
         logger.error("Failed to process token: {}", str(e))
-        raise HTTPException(
-            status_code=500, detail="Failed to process authentication token"
-        )
 
 
 @app.put("/update-token", status_code=200)
@@ -820,6 +819,38 @@ def get_github_rest_api_base_url(
         return "https://api.github.com"
 
 
+def build_repository_git_url(
+    repository_owner_name: str,
+    repository_name: str,
+    provider_key: ProviderKey,
+    metadata: Optional[Dict[str, Any]],
+) -> str:
+    """Construct the git clone URL for a repository based on provider configuration."""
+
+    owner = repository_owner_name.strip()
+    repo = repository_name.strip()
+    if not owner or not repo:
+        raise HTTPException(
+            status_code=400,
+            detail="Repository owner and name are required to build git URL",
+        )
+
+    if provider_key == ProviderKey.GITHUB_OPEN:
+        base_url = "https://github.com"
+    else:
+        if not metadata or not metadata.get("url"):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Provider {provider_key.value} requires a base URL in credential metadata. "
+                    "Please reconfigure the credential with a 'url' value before refreshing."
+                ),
+            )
+        base_url = metadata["url"].rstrip("/")
+
+    return f"{base_url}/{owner}/{repo}.git"
+
+
 @app.delete("/delete-token", status_code=200)
 async def delete_token(
     namespace: CredentialNamespace = Query(..., description="Credential namespace"),
@@ -867,6 +898,31 @@ async def delete_token(
         logger.error("Failed to delete token: {}", str(e))
         raise HTTPException(
             status_code=500, detail="Failed to delete authentication token"
+        )
+
+
+@app.get("/repository-providers", response_model=RepositoryProvidersResponse)
+async def get_repository_providers(
+    session: AsyncSession = Depends(get_session),
+) -> RepositoryProvidersResponse:
+    """Get all configured repository providers from credentials table."""
+    try:
+        # Query credentials table for repository namespace with PAT secret kind
+        result = await session.execute(
+            select(Credentials)
+            .where(Credentials.namespace == CredentialNamespace.REPOSITORY)
+            .where(Credentials.secret_kind == SecretKind.PAT)
+        )
+        credentials = result.scalars().all()
+
+        # Extract unique provider keys
+        provider_keys = [cred.provider_key for cred in credentials]
+
+        return RepositoryProvidersResponse(providers=provider_keys)
+    except Exception as e:
+        logger.error("Failed to fetch repository providers: {}", str(e))
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch repository providers"
         )
 
 
@@ -1616,7 +1672,7 @@ async def delete_repository(
     "/refresh-repository", response_model=RefreshRepositoryResponse, status_code=201
 )
 async def refresh_repository(
-    repo_request: RepositoryRequestConfiguration,
+    refresh_request: RepositoryRefreshRequest,
     session: AsyncSession = Depends(get_session),
     request_logger: "Logger" = Depends(trace_dependency),  # type: ignore
 ) -> RefreshRepositoryResponse:
@@ -1636,8 +1692,9 @@ async def refresh_repository(
     Returns:
         RefreshRepositoryResponse with workflow IDs
     """
-    repository_name: str = repo_request.repository_name
-    repository_owner_name: str = repo_request.repository_owner_name
+    repository_name: str = refresh_request.repository_name
+    repository_owner_name: str = refresh_request.repository_owner_name
+    provider_key: ProviderKey = refresh_request.provider_key
 
     try:
         # 1. Get repository info from database to determine if it's local or remote
@@ -1651,6 +1708,17 @@ async def refresh_repository(
                     repository_name, repository_owner_name
                 ),
             )
+
+        # Use provider from DB if refresh payload somehow differs
+        if db_repo.repository_provider != provider_key:
+            request_logger.warning(
+                "Provider key mismatch for %s/%s: request=%s, db=%s",
+                repository_owner_name,
+                repository_name,
+                provider_key,
+                db_repo.repository_provider,
+            )
+            provider_key = db_repo.repository_provider
 
         # 2. Delete from Neo4j (reuse existing pattern from delete-repository)
         qualified_name: str = "{}_{}".format(repository_owner_name, repository_name)
@@ -1672,21 +1740,33 @@ async def refresh_repository(
                     status_code=500, detail=f"Neo4j deletion failed: {str(neo4j_error)}"
                 )
 
-        # 3. Fetch repository provider token from database using provider_key from request
-        github_token, _ = await fetch_repository_provider_token(
-            session, CredentialNamespace.REPOSITORY, repo_request.provider_key
+        # 3. Fetch repository provider token from database using provider_key
+        provider_token, metadata = await fetch_repository_provider_token(
+            session, CredentialNamespace.REPOSITORY, provider_key
         )
 
-        # 4. Use repository URL from request or build for GitHub
-        repository_url = repo_request.repository_git_url
+        # 4. Use repository URL from request or build for provider
+        repository_url = refresh_request.repository_git_url or build_repository_git_url(
+            repository_owner_name=repository_owner_name,
+            repository_name=repository_name,
+            provider_key=provider_key,
+            metadata=metadata,
+        )
         request_logger.info("Refreshing repository: {}", repository_url)
+
+        repo_request = RepositoryRequestConfiguration(
+            repository_name=repository_name,
+            repository_owner_name=repository_owner_name,
+            repository_git_url=repository_url,
+            provider_key=provider_key,
+        )
 
         # 5. Detect codebases using multi-language detector registry
         try:
             # Use multi-language detection helper
             detected_codebases = await detect_codebases_multi_language(
                 git_url=repository_url,
-                github_token=github_token,
+                github_token=provider_token,
                 detectors=app.state.codebase_detectors,
                 request_logger=request_logger,
             )
@@ -1714,8 +1794,8 @@ async def refresh_repository(
         workflow_handle: WorkflowHandle = await start_workflow(
             temporal_client=app.state.temporal_client,
             repo_request=repo_request,
-            github_token=github_token,
-            workflow_id=f"refresh-{repo_request.provider_key.value}-{repository_owner_name}-{repository_name}-{trace_id}",
+            github_token=provider_token,
+            workflow_id=f"refresh-{provider_key.value}-{repository_owner_name}-{repository_name}-{trace_id}",
             trace_id=trace_id,
         )
 
