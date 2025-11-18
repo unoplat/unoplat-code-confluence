@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.61.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.60.0...code-confluence-flow-bridge-v0.61.0) (2025-11-18)
+
+
+### Features
+
+* **repository:** Enhance repository refresh and provider management and update temporal from 1.12 to 1.19 for better performance reliability etc ([685a31c](https://github.com/unoplat/unoplat-code-confluence/commit/685a31cb315995e80acc0b88a440ce9e371be0bf))
+* **repository:** Enhance repository refresh and provider management and update temporal from 1.12 to 1.19 for better performance reliability etc ([b8f8cff](https://github.com/unoplat/unoplat-code-confluence/commit/b8f8cfff91c99a32cfa999f6cbcc64b0ff14fd4a))
+
 ## [0.60.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.59.0...code-confluence-flow-bridge-v0.60.0) (2025-11-10)
 
 
