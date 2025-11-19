@@ -31,24 +31,32 @@ tasks:
       - vite
 
   lint:
-    desc: do linitng using eslint
+    desc: "Lint files (optional: FILE_PATH=src/path/to/file.tsx)"
     cmds:
-      - bun eslint .
+      - bun eslint {{.FILE_PATH | default "."}}
+    vars:
+      FILE_PATH: ""
 
   lint-fix:
-    desc: fix linitng using eslint
+    desc: "Lint and fix files (optional: FILE_PATH=src/path/to/file.tsx)"
     cmds:
-      - bun eslint . --fix
+      - bun eslint {{.FILE_PATH | default "."}} --fix
+    vars:
+      FILE_PATH: ""
 
   format:
-    desc: Format all files using Prettier
+    desc: "Format files with Prettier (optional: FILE_PATH=src/path/to/file.tsx)"
     cmds:
-      - bun prettier --write .
+      - bun prettier --write {{.FILE_PATH | default "."}}
+    vars:
+      FILE_PATH: ""
 
   format-check:
-    desc: Check if files are formatted without modifying them
+    desc: "Check formatting without modifying (optional: FILE_PATH=src/path/to/file.tsx)"
     cmds:
-      - bun prettier --check .
+      - bun prettier --check {{.FILE_PATH | default "."}}
+    vars:
+      FILE_PATH: ""
 
   docker:
     desc: Build and run docker container locally

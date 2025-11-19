@@ -35,7 +35,7 @@ export function RefreshRepositoryDialog({
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
               Refresh Repository
-              <StatusBadge status="alpha" size="sm" />
+              <StatusBadge status="alpha" />
             </div>
           </DialogTitle>
           <DialogDescription asChild>
@@ -44,7 +44,6 @@ export function RefreshRepositoryDialog({
               is in{" "}
               <StatusBadge
                 status="alpha"
-                size="sm"
                 className="mx-1 inline-flex"
               />
               and may take some time to complete.

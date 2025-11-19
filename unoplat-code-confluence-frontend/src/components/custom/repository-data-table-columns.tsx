@@ -1,7 +1,7 @@
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { GitHubRepoSummary } from "../../types";
-import { DataTableColumnHeader } from "../data-table-column-header";
+import { DataTableColumnHeader } from "@/components/data-table-column-header-backup";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import {

@@ -1,7 +1,7 @@
 import { type Table as TanstackTable, flexRender } from "@tanstack/react-table";
 import type * as React from "react";
 
-import { DataTablePagination } from "@/components/data-table-pagination";
+import { DataTablePagination } from "@/components/data-table-pagination-backup";
 import {
   Table,
   TableBody,

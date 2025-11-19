@@ -9,7 +9,7 @@ import React from "react";
 import type { Row } from "@tanstack/react-table";
 
 // Import the Dice UI DataTable component which is built on TanStack Table.
-import { DataTable } from "../data-table";
+import { DataTable } from "@/components/data-table-backup";
 // Import TanStack Table core functions
 import {
   useReactTable,
@@ -25,7 +25,7 @@ import { submittedJobsColumns } from "./submitted-jobs-data-table-columns";
 // Import the API function to fetch repository data along with type definitions.
 import type { ParentWorkflowJobResponse } from "../../types";
 import { getParentWorkflowJobs } from "../../lib/api";
-import { DataTableToolbar } from "../data-table-toolbar";
+import { DataTableToolbar } from "@/components/data-table-toolbar-backup";
 // Import the new JobStatusDialog component
 import { JobStatusDialog } from "./JobStatusDialog";
 
