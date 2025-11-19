@@ -1,53 +1,64 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        success: "border-transparent bg-primary/10 text-primary",
-        warning: "border-transparent bg-destructive/10 text-destructive",
-        info: "border-transparent bg-primary/10 text-primary",
-        pending: "border-transparent bg-muted text-muted-foreground",
-        running: "border-transparent bg-primary/10 text-primary",
-        completed: "border-transparent bg-primary/10 text-primary",
-        failed: "border-transparent bg-destructive/10 text-destructive",
-        cancelled: "border-transparent bg-muted text-muted-foreground",
+          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        outline:
+          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        // Job status variants
+        completed:
+          "border-transparent bg-emerald-500 text-white [a&]:hover:bg-emerald-600",
+        failed:
+          "border-transparent bg-red-500 text-white [a&]:hover:bg-red-600",
+        pending:
+          "border-transparent bg-amber-500 text-white [a&]:hover:bg-amber-600",
+        running:
+          "border-transparent bg-blue-500 text-white [a&]:hover:bg-blue-600",
+        cancelled:
+          "border-transparent bg-gray-500 text-white [a&]:hover:bg-gray-600",
+        // Feature status variants
         alpha:
-          "border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-400 dark:bg-amber-950/40 dark:text-amber-200",
-        beta: "border-blue-200 bg-blue-100 text-blue-800 dark:border-blue-400 dark:bg-blue-950/40 dark:text-blue-200",
-      },
-      size: {
-        default: "px-2.5 py-0.5 text-xs",
-        sm: "px-2 py-0.5 text-xs",
-        lg: "px-3 py-1 text-sm",
+          "border-transparent bg-purple-500 text-white [a&]:hover:bg-purple-600",
+        beta:
+          "border-transparent bg-indigo-500 text-white [a&]:hover:bg-indigo-600",
+        stable:
+          "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600",
       },
     },
     defaultVariants: {
       variant: "default",
-      size: "default",
     },
-  },
-);
+  }
+)
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+function Badge({
+  className,
+  variant,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"span"> &
+  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
+  const Comp = asChild ? Slot : "span"
 
-function Badge({ className, variant, ...props }: BadgeProps) {
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  );
+    <Comp
+      data-slot="badge"
+      className={cn(badgeVariants({ variant }), className)}
+      {...props}
+    />
+  )
 }
 
-export { Badge, badgeVariants };
+export { Badge, badgeVariants }

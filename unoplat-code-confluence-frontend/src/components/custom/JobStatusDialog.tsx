@@ -12,7 +12,7 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { DataTable } from "../data-table";
+import { DataTable } from "@/components/data-table-backup";
 import {
   getJobStatusDataTableColumns,
   getStatusIcon,
@@ -37,7 +37,7 @@ import {
   getSortedRowModel,
   ColumnFiltersState,
 } from "@tanstack/react-table";
-import { DataTableToolbar } from "../data-table-toolbar";
+import { DataTableToolbar } from "@/components/data-table-toolbar-backup";
 import { FeedbackDialog } from "./FeedbackDialog";
 
 // Define FeedbackSource type to match the one in FeedbackDialog

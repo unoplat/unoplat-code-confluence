@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Card,
@@ -22,27 +22,9 @@ export default function OnboardingPage(): React.ReactElement {
   const queryClient = useQueryClient();
 
   // Use useAuthData hook to fetch token status and user data
-  const { tokenQuery } = useAuthData();
+  const { tokenQuery: _tokenQuery } = useAuthData();
   // Local control for token popup open/close
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
-  // Track whether we've auto-opened already to avoid re-opening on manual close
-  const autoOpenRef = useRef<boolean>(false);
-  // Auto-open the popup once when token status is known and no token exists
-  useEffect(() => {
-    if (
-      !autoOpenRef.current &&
-      tokenQuery.isSuccess &&
-      !tokenQuery.data?.status &&
-      tokenQuery.data.errorCode !== 503
-    ) {
-      autoOpenRef.current = true;
-      setIsPopupOpen(true);
-    }
-  }, [
-    tokenQuery.isSuccess,
-    tokenQuery.data?.status,
-    tokenQuery.data?.errorCode,
-  ]);
   const showTokenPopup = isPopupOpen;
 
   console.log("[OnboardingPage] State: showTokenPopup =", showTokenPopup);

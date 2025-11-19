@@ -13,7 +13,7 @@ import {
 // import { useRouter } from '@tanstack/react-router';
 
 // Import the Dice UI DataTable component which is built on TanStack Table.
-import { DataTable } from "../data-table";
+import { DataTable } from "@/components/data-table-backup";
 // Import the custom hook that binds table state with router-based URL parameters.
 import { useDataTableWithRouter } from "@/hooks/use-data-table-with-router";
 // Import the column definitions for this repository table.
@@ -28,7 +28,7 @@ import {
 import type { GitHubRepoSummary } from "@/types";
 import { ProviderKey } from "@/types/credential-enums";
 import { Route as OnboardingRoute } from "../../routes/_app.onboarding";
-import { DataTableToolbar } from "../data-table-toolbar";
+import { DataTableToolbar } from "@/components/data-table-toolbar-backup";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
