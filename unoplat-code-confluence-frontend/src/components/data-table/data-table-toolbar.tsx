@@ -33,6 +33,45 @@ export function DataTableToolbar<TData>({
     table.resetColumnFilters();
   }, [table]);
 
+  // Map shortcuts to filter input IDs based on column metadata
+  const shortcutMap: Record<string, string> = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    table.getAllColumns().forEach((column) => {
+      const meta: { shortcut?: string } | undefined = column.columnDef.meta as
+        | { shortcut?: string }
+        | undefined;
+      const shortcut: string | undefined = meta?.shortcut;
+      if (shortcut) {
+        map[shortcut.toLowerCase()] = `filter-${column.id}`;
+      }
+    });
+    return map;
+  }, [table]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as Element;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      const inputId = shortcutMap[key];
+      if (inputId) {
+        event.preventDefault();
+        const elem = document.getElementById(
+          inputId,
+        ) as HTMLInputElement | null;
+        if (elem) {
+          elem.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [shortcutMap]);
+
   return (
     <div
       role="toolbar"
@@ -81,15 +120,29 @@ function DataTableToolbarFilter<TData>({
       if (!columnMeta?.variant) return null;
 
       switch (columnMeta.variant) {
-        case "text":
+        case "text": {
+          const shortcutKey: string | undefined =
+            columnMeta.shortcut?.toUpperCase();
+
           return (
-            <Input
-              placeholder={columnMeta.placeholder ?? columnMeta.label}
-              value={(column.getFilterValue() as string) ?? ""}
-              onChange={(event) => column.setFilterValue(event.target.value)}
-              className="h-8 w-40 lg:w-56"
-            />
+            <div className="relative">
+              <Input
+                id={`filter-${column.id}`}
+                placeholder={columnMeta.placeholder ?? columnMeta.label}
+                value={(column.getFilterValue() as string) ?? ""}
+                onChange={(event) => column.setFilterValue(event.target.value)}
+                className={cn("h-8 w-40 lg:w-56", shortcutKey && "pr-12")}
+              />
+              {shortcutKey && (
+                <div className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 flex -translate-y-1/2 items-center">
+                  <kbd className="border-border bg-muted rounded border px-2 py-0.5 text-xs leading-none shadow-sm">
+                    {shortcutKey}
+                  </kbd>
+                </div>
+              )}
+            </div>
           );
+        }
 
         case "number":
           return (
@@ -103,7 +156,7 @@ function DataTableToolbarFilter<TData>({
                 className={cn("h-8 w-[120px]", columnMeta.unit && "pr-8")}
               />
               {columnMeta.unit && (
-                <span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-accent px-2 text-muted-foreground text-sm">
+                <span className="bg-accent text-muted-foreground absolute top-0 right-0 bottom-0 flex items-center rounded-r-md px-2 text-sm">
                   {columnMeta.unit}
                 </span>
               )}

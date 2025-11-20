@@ -1,7 +1,7 @@
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { GitHubRepoSummary } from "../../types";
-import { DataTableColumnHeader } from "@/components/data-table-column-header-backup";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import {
@@ -11,11 +11,6 @@ import {
   DropdownMenuItem,
 } from "../ui/dropdown-menu";
 import { Ellipsis } from "lucide-react";
-import { TfiGithub } from "react-icons/tfi";
-import { GrUserPolice } from "react-icons/gr";
-import { FaTripadvisor } from "react-icons/fa";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { TouchInteraction01Icon } from "@hugeicons/core-free-icons";
 
 export function getRepositoryDataTableColumns({
   onIngest,
@@ -24,13 +19,10 @@ export function getRepositoryDataTableColumns({
 }): ColumnDef<GitHubRepoSummary>[] {
   return [
     {
+      id: "name",
       accessorKey: "name",
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader
-          column={column}
-          title="Repository"
-          icon={<TfiGithub />}
-        />
+        <DataTableColumnHeader column={column} label="Repository" />
       ),
       cell: ({ row }): React.ReactNode => (
         <div className="flex items-center">
@@ -54,13 +46,10 @@ export function getRepositoryDataTableColumns({
       enableColumnFilter: true,
     },
     {
+      id: "owner_name",
       accessorKey: "owner_name",
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader
-          column={column}
-          title="Owner"
-          icon={<GrUserPolice />}
-        />
+        <DataTableColumnHeader column={column} label="Owner" />
       ),
       cell: ({ row }): React.ReactNode => (
         <a
@@ -80,13 +69,10 @@ export function getRepositoryDataTableColumns({
       enableColumnFilter: false,
     },
     {
+      id: "private",
       accessorKey: "private",
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader
-          column={column}
-          title="Visibility"
-          icon={<FaTripadvisor />}
-        />
+        <DataTableColumnHeader column={column} label="Visibility" />
       ),
       cell: ({ row }): React.ReactNode => (
         <Badge variant={row.original.private ? "default" : "secondary"}>
@@ -98,11 +84,7 @@ export function getRepositoryDataTableColumns({
     {
       id: "actions",
       header: ({ column }): React.ReactNode => (
-        <DataTableColumnHeader
-          column={column}
-          title="Actions"
-          icon={<HugeiconsIcon icon={TouchInteraction01Icon} />}
-        />
+        <DataTableColumnHeader column={column} label="Actions" />
       ),
       cell: ({ row }): React.ReactNode => (
         <DropdownMenu modal={false}>
