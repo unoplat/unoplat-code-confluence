@@ -71,6 +71,7 @@
       "devDependencies": {
         "@eslint/js": "^9.39.1",
         "@tailwindcss/vite": "^4.1.16",
+        "@tanstack/eslint-plugin-query": "^5.91.2",
         "@tanstack/react-router-devtools": "^1.134.12",
         "@tanstack/router-plugin": "^1.134.12",
         "@types/node": "^24.10.0",
@@ -639,6 +640,8 @@
     "@tanstack/devtools-event-client": ["@tanstack/devtools-event-client@0.3.3", "", {}, "sha512-RfV+OPV/M3CGryYqTue684u10jUt55PEqeBOnOtCe6tAmHI9Iqyc8nHeDhWPEV9715gShuauFVaMc9RiUVNdwg=="],
 
     "@tanstack/electric-db-collection": ["@tanstack/electric-db-collection@0.1.42", "", { "dependencies": { "@electric-sql/client": "^1.1.0", "@standard-schema/spec": "^1.0.0", "@tanstack/db": "0.4.18", "@tanstack/store": "^0.8.0", "debug": "^4.4.3" } }, "sha512-EcmrJmQn+cAkQ2i4fj8eyzk9mzp+YuH9SZlVXn0MjCgTsZhetd21SjBIs5kNgahnD9wnINrpaNxsS1iDaobdjg=="],
+
+    "@tanstack/eslint-plugin-query": ["@tanstack/eslint-plugin-query@5.91.2", "", { "dependencies": { "@typescript-eslint/utils": "^8.44.1" }, "peerDependencies": { "eslint": "^8.57.0 || ^9.0.0" } }, "sha512-UPeWKl/Acu1IuuHJlsN+eITUHqAaa9/04geHHPedY8siVarSaWprY0SVMKrkpKfk5ehRT7+/MZ5QwWuEtkWrFw=="],
 
     "@tanstack/form-core": ["@tanstack/form-core@1.24.4", "", { "dependencies": { "@tanstack/devtools-event-client": "^0.3.3", "@tanstack/pacer": "^0.15.3", "@tanstack/store": "^0.7.7" } }, "sha512-+eIR7DiDamit1zvTVgaHxuIRA02YFgJaXMUGxsLRJoBpUjGl/g/nhUocQoNkRyfXqOlh8OCMTanjwDprWSRq6w=="],
 
