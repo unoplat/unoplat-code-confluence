@@ -19,15 +19,15 @@ const badgeVariants = cva(
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         // Job status variants
         completed:
-          "border-transparent bg-emerald-500 text-white [a&]:hover:bg-emerald-600",
+          "border-transparent bg-success/10 text-success [a&]:hover:bg-success/20",
         failed:
-          "border-transparent bg-red-500 text-white [a&]:hover:bg-red-600",
+          "border-transparent bg-destructive/10 text-destructive [a&]:hover:bg-destructive/20",
         pending:
-          "border-transparent bg-amber-500 text-white [a&]:hover:bg-amber-600",
+          "border-transparent bg-muted text-muted-foreground [a&]:hover:bg-muted/80",
         running:
-          "border-transparent bg-blue-500 text-white [a&]:hover:bg-blue-600",
+          "border-transparent bg-info/10 text-info [a&]:hover:bg-info/20",
         cancelled:
-          "border-transparent bg-gray-500 text-white [a&]:hover:bg-gray-600",
+          "border-transparent bg-muted text-muted-foreground [a&]:hover:bg-muted/80",
         // Feature status variants
         alpha:
           "border-transparent bg-purple-500 text-white [a&]:hover:bg-purple-600",

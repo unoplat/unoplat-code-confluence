@@ -1,6 +1,7 @@
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
@@ -44,12 +45,40 @@ function DialogOverlay({
   )
 }
 
+const dialogContentVariants = cva(
+  "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border shadow-lg duration-200",
+  {
+    variants: {
+      size: {
+        sm: "max-w-sm",
+        default: "max-w-lg",
+        lg: "max-w-4xl",
+        xl: "max-w-6xl",
+        full: "max-w-[90vw] max-h-[90vh]",
+      },
+      padding: {
+        none: "p-0",
+        sm: "p-4",
+        default: "p-6",
+        lg: "p-8",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+      padding: "default",
+    },
+  }
+)
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  size,
+  padding,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+}: React.ComponentProps<typeof DialogPrimitive.Content> &
+  VariantProps<typeof dialogContentVariants> & {
   showCloseButton?: boolean
 }) {
   return (
@@ -58,7 +87,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          dialogContentVariants({ size, padding }),
           className
         )}
         {...props}
@@ -138,4 +167,5 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
+  dialogContentVariants,
 }
