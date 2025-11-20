@@ -195,7 +195,7 @@ export function RepositoryDataTable({ tokenStatus }: RepositoryDataTableProps) {
         </DataTable>
 
         {showSkeleton && (
-          <div className="bg-background pointer-events-none absolute inset-0 rounded-md">
+          <div className="bg-background pointer-events-none absolute inset-0 rounded-d">
             <DataTableSkeleton
               columnCount={columns.length}
               rowCount={10}
