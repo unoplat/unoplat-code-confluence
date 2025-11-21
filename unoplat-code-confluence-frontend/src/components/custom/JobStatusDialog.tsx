@@ -383,10 +383,7 @@ export function JobStatusDialog({
                 <div className="mt-6">
                   <h4 className="mb-2 text-lg font-semibold">Codebase Runs</h4>
                   <div className="rounded-md border">
-                    <DataTable
-                      table={table}
-                      actionBar={null}
-                    >
+                    <DataTable table={table} actionBar={null}>
                       <DataTableToolbar table={table} />
                     </DataTable>
                   </div>

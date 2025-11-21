@@ -16,17 +16,17 @@ import {
 export const getStatusIcon = (status: JobStatus): React.ReactNode => {
   switch (status) {
     case "COMPLETED":
-      return <CheckCircle className="h-4 w-4 text-success" />;
+      return <CheckCircle className="text-success h-4 w-4" />;
     case "FAILED":
-      return <AlertCircle className="h-4 w-4 text-destructive" />;
+      return <AlertCircle className="text-destructive h-4 w-4" />;
     case "TIMED_OUT":
-      return <Clock className="h-4 w-4 text-destructive" />;
+      return <Clock className="text-destructive h-4 w-4" />;
     case "SUBMITTED":
-      return <Clock className="h-4 w-4 text-warning" />;
+      return <Clock className="text-warning h-4 w-4" />;
     case "RUNNING":
-      return <PauseCircle className="h-4 w-4 text-info" />;
+      return <PauseCircle className="text-info h-4 w-4" />;
     case "RETRYING":
-      return <RefreshCw className="h-4 w-4 text-info" />;
+      return <RefreshCw className="text-info h-4 w-4" />;
     default:
       return <Clock className="text-muted-foreground h-4 w-4" />;
   }

@@ -94,26 +94,28 @@ export const SECRET_KINDS_BY_NAMESPACE: Record<
 /**
  * Available providers per namespace
  */
-export const PROVIDERS_BY_NAMESPACE: Record<CredentialNamespace, ProviderKey[]> =
-  {
-    [CredentialNamespace.REPOSITORY]: [
-      ProviderKey.GITHUB_OPEN,
-      ProviderKey.GITHUB_ENTERPRISE,
-      ProviderKey.GITLAB_CE,
-      ProviderKey.GITLAB_ENTERPRISE,
-    ],
-    [CredentialNamespace.MODEL]: [ProviderKey.MODEL_PROVIDER_AUTH],
-    [CredentialNamespace.WEBHOOK]: [
-      ProviderKey.GITHUB_OPEN,
-      ProviderKey.GITHUB_ENTERPRISE,
-      ProviderKey.GITLAB_CE,
-      ProviderKey.GITLAB_ENTERPRISE,
-    ],
-    [CredentialNamespace.IDENTITY]: [
-      ProviderKey.GOOGLE_AUTH,
-      ProviderKey.GITHUB_AUTH,
-    ],
-  };
+export const PROVIDERS_BY_NAMESPACE: Record<
+  CredentialNamespace,
+  ProviderKey[]
+> = {
+  [CredentialNamespace.REPOSITORY]: [
+    ProviderKey.GITHUB_OPEN,
+    ProviderKey.GITHUB_ENTERPRISE,
+    ProviderKey.GITLAB_CE,
+    ProviderKey.GITLAB_ENTERPRISE,
+  ],
+  [CredentialNamespace.MODEL]: [ProviderKey.MODEL_PROVIDER_AUTH],
+  [CredentialNamespace.WEBHOOK]: [
+    ProviderKey.GITHUB_OPEN,
+    ProviderKey.GITHUB_ENTERPRISE,
+    ProviderKey.GITLAB_CE,
+    ProviderKey.GITLAB_ENTERPRISE,
+  ],
+  [CredentialNamespace.IDENTITY]: [
+    ProviderKey.GOOGLE_AUTH,
+    ProviderKey.GITHUB_AUTH,
+  ],
+};
 
 /**
  * Default credential namespace for the application
@@ -134,6 +136,5 @@ export const DEFAULT_REPOSITORY_CREDENTIAL_PARAMS: Readonly<
 > = {
   namespace: DEFAULT_CREDENTIAL_NAMESPACE,
   provider_key: DEFAULT_REPOSITORY_PROVIDER,
-  secret_kind:
-    DEFAULT_SECRET_KIND_BY_NAMESPACE[DEFAULT_CREDENTIAL_NAMESPACE],
+  secret_kind: DEFAULT_SECRET_KIND_BY_NAMESPACE[DEFAULT_CREDENTIAL_NAMESPACE],
 };

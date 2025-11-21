@@ -28,6 +28,12 @@ export type {
   RefreshRepositoryResponse,
 };
 
+// Re-export provider API functions
+export { fetchProvidersApi, submitProviderForm } from "@/lib/api/repository-provider-api";
+
+// Re-export repositories API functions
+export { fetchRepositoriesApi } from "@/lib/api/repositories-api";
+
 /**
  * API Services
  *

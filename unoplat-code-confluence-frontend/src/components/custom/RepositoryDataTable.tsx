@@ -23,9 +23,13 @@ import { getRepositoryDataTableColumns } from "./repository-data-table-columns";
 
 interface RepositoryDataTableProps {
   tokenStatus: boolean;
+  providerKey: ProviderKey;
 }
 
-export function RepositoryDataTable({ tokenStatus }: RepositoryDataTableProps) {
+export function RepositoryDataTable({
+  tokenStatus,
+  providerKey,
+}: RepositoryDataTableProps) {
   const queryClient = useQueryClient();
 
   const ingestMutation = useMutation({
@@ -35,7 +39,7 @@ export function RepositoryDataTable({ tokenStatus }: RepositoryDataTableProps) {
         repository_git_url: repo.git_url,
         repository_owner_name: repo.owner_name,
         repository_metadata: null,
-        provider_key: ProviderKey.GITHUB_OPEN,
+        provider_key: providerKey,
       }),
     onSuccess: (_, repo) => {
       toast.success(
@@ -78,13 +82,8 @@ export function RepositoryDataTable({ tokenStatus }: RepositoryDataTableProps) {
     normalizedNameFilter.length > 0 ? normalizedNameFilter : undefined;
 
   const repositoriesQueryKey = useMemo(
-    () => [
-      "repositories",
-      ProviderKey.GITHUB_OPEN,
-      perPage,
-      activeNameFilter ?? "",
-    ],
-    [perPage, activeNameFilter],
+    () => ["repositories", providerKey, perPage, activeNameFilter ?? ""],
+    [perPage, activeNameFilter, providerKey],
   );
 
   const {
@@ -106,7 +105,7 @@ export function RepositoryDataTable({ tokenStatus }: RepositoryDataTableProps) {
     queryFn: ({ pageParam }) =>
       fetchGitHubRepositories({
         perPage,
-        providerKey: ProviderKey.GITHUB_OPEN,
+        providerKey,
         filterValues: activeNameFilter ? { name: activeNameFilter } : undefined,
         cursor: pageParam,
       }),
@@ -195,7 +194,7 @@ export function RepositoryDataTable({ tokenStatus }: RepositoryDataTableProps) {
         </DataTable>
 
         {showSkeleton && (
-          <div className="bg-background pointer-events-none absolute inset-0 rounded-d">
+          <div className="bg-background rounded-d pointer-events-none absolute inset-0">
             <DataTableSkeleton
               columnCount={columns.length}
               rowCount={10}
