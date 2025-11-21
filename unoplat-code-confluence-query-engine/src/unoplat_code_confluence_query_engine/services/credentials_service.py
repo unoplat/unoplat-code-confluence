@@ -1,7 +1,6 @@
 """Service for managing encrypted credentials via the shared credentials table."""
 
 import os
-from asyncio import SelectorEventLoop
 from datetime import datetime
 from typing import Optional
 
@@ -47,7 +46,7 @@ class CredentialsService:
             return None
 
         # Set TOKEN_ENCRYPTION_KEY environment variable for decrypt_token
-        if not os.getenv("TOKEN_ENCRYPTPION_KEY"):
+        if not os.getenv("TOKEN_ENCRYPTION_KEY"):
             logger.error("TOKEN_ENCRYPTION_KEY environment variable not set")
             raise ValueError(
                 "TOKEN_ENCRYPTION_KEY is required for credential decryption"

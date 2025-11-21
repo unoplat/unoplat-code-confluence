@@ -36,7 +36,7 @@ services:
       retries: 5
       start_period: 30s
   postgresql:
-    image: docker.io/library/postgres:17
+    image: docker.io/library/postgres:17.2
     # container_name: code-confluence-postgresql
     environment:
       - POSTGRES_USER=postgres
@@ -55,7 +55,6 @@ services:
       timeout: 5s
       retries: 5
 
-
   electric:
     image: docker.io/electricsql/electric:latest
     environment:
@@ -71,7 +70,6 @@ services:
       postgresql:
         condition: service_healthy
 
-
   temporal:
     # container_name: temporal
     depends_on:
@@ -79,7 +77,7 @@ services:
         condition: service_healthy
       postgresql:
         condition: service_healthy
-      
+
     environment:
       - DB=postgres12
       - DB_PORT=5432
@@ -91,7 +89,7 @@ services:
       - ES_VERSION=v7
       # - SKIP_SCHEMA_SETUP=false
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: docker.io/temporalio/auto-setup:1.26.2
+    image: docker.io/temporalio/auto-setup:1.29.1
     networks:
       - temporal-network
     ports:
@@ -112,7 +110,7 @@ services:
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: docker.io/temporalio/admin-tools:1.26.2
+    image: docker.io/temporalio/admin-tools:1.29.1-tctl-1.18.4-cli-1.5.0
     networks:
       - temporal-network
     stdin_open: true
@@ -125,7 +123,7 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
       - TEMPORAL_CSRF_COOKIE_INSECURE=True
-    image: docker.io/temporalio/ui:2.34.0
+    image: docker.io/temporalio/ui:2.43.3
     networks:
       - temporal-network
     ports:
@@ -237,7 +235,7 @@ networks:
     name: temporal-network
 # volumes:
 #   temporal-shared-data:  # Define the shared volume
-#     name: temporal-shared-data  # Optional: explicitly name the volume    
+#     name: temporal-shared-data  # Optional: explicitly name the volume
 volumes:
   postgresql_data:
     driver: local
@@ -246,4 +244,4 @@ volumes:
   repositories_data:
     driver: local
   query_engine_logs:
-    driver: local 
+    driver: local
