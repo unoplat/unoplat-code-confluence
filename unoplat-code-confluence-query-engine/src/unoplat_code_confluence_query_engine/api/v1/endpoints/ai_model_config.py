@@ -99,7 +99,7 @@ async def upsert_ai_model_config(
             before_keys = []
         logger.debug("Agents before refresh: {}", before_keys)
 
-        await update_app_agents(request.app)
+        await update_app_agents(request.app, session)
 
         after_keys = list(request.app.state.agents.keys())
         logger.info("Application agents refreshed after config upsert")

@@ -80,12 +80,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         )
         logfire.instrument_pydantic_ai()
 
-    # Initialize MCP servers
+    # Initialize MCP Server Manager (configuration only - no server startup)
+    # MCP servers are created on-demand by agent factories
     app.state.mcp_manager = MCPServerManager()
     await app.state.mcp_manager.load_config(app.state.settings.mcp_servers_config_path)
-    await app.state.mcp_manager.start_servers()
-    # Store MCP server instances in app state for agent integration
-    app.state.mcp_servers = app.state.mcp_manager.get_servers()
+
+    # Verify Context7 configuration is loaded
+    if app.state.mcp_manager.has_server_config("context7"):
+        logger.info("Context7 MCP server configuration loaded successfully")
+    else:
+        logger.warning(
+            "Context7 MCP server configuration not found. "
+            "Library documentation features will be unavailable."
+        )
 
     # Initialize services and store in app state
     app.state.ai_model_config_service = AiModelConfigService()
@@ -127,18 +134,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     list(app.state.agents.keys()),
                 )
 
-                # Sanity check for required agents
+                # Sanity check for required agents and factory
                 required_agents = [
                     "project_configuration_agent",
                     "development_workflow_agent",
                     "business_logic_domain_agent",
-                    "context7_agent",
+                    "context7_agent_factory",  # Changed to factory
                 ]
                 missing = [a for a in required_agents if a not in app.state.agents]
                 if missing:
                     logger.error("Missing required agents at startup: {}", missing)
                 else:
-                    logger.debug("All required agents present at startup")
+                    logger.debug("All required agents and factories present at startup")
             except Exception as e:
                 logger.error("Failed to initialize model from config: {}", e)
                 app.state.model = None
@@ -177,11 +184,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.error("Error closing Neo4j connection: {}", e)
 
-    # Stop MCP servers
-    try:
-        await app.state.mcp_manager.stop_servers()
-    except Exception as e:
-        logger.error("Error stopping MCP servers: {}", e)
+    # MCP servers are now created on-demand by agent factories
+    # Each agent manages its own MCP server lifecycle automatically
+    # No explicit shutdown needed for MCP servers
 
     # Dispose PostgreSQL connections
     await dispose_db_connections()

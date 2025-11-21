@@ -24,7 +24,6 @@ class MCPServerManager:
     """Manages MCP server lifecycle using PydanticAI."""
 
     def __init__(self) -> None:
-        self.servers: dict[str, MCPServerStdio | MCPServerSSE] = {}
         self.config: MCPServersConfig | None = None
 
     async def load_config(self, config_path: str | Path) -> None:
@@ -70,7 +69,7 @@ class MCPServerManager:
             logger.error("Failed to load MCP config from dictionary: {}", e)
             self.config = MCPServersConfig()
 
-    def _create_local_server(
+    def create_local_server_instance(
         self, name: str, config: LocalMCPServerConfig
     ) -> MCPServerStdio:
         """Create a local MCP server instance."""
@@ -112,7 +111,7 @@ class MCPServerManager:
             logger.error("Failed to create local MCP server '{}': {}", name, e)
             raise
 
-    def _create_remote_server(
+    def create_remote_server_instance(
         self, name: str, config: RemoteMCPServerConfig
     ) -> MCPServerSSE:
         """Create a remote MCP server instance."""
@@ -146,58 +145,57 @@ class MCPServerManager:
             logger.error("Failed to create remote MCP server '{}': {}", name, e)
             raise
 
-    async def start_servers(self) -> None:
-        """Start all configured MCP servers."""
+    def get_server_config(
+        self, name: str
+    ) -> LocalMCPServerConfig | RemoteMCPServerConfig | None:
+        """Get configuration for a specific MCP server by name.
+
+        Args:
+            name: Name of the MCP server
+
+        Returns:
+            Server configuration if found, None otherwise
+        """
         if not self.config:
-            logger.warning("No MCP configuration loaded")
-            return
+            return None
+        return self.config.servers.get(name)
 
-        logger.info("Starting {} MCP servers", len(self.config.servers))
+    def has_server_config(self, name: str) -> bool:
+        """Check if a server configuration exists.
 
-        for name, server_config in self.config.servers.items():
-            try:
-                # Use discriminator field instead of isinstance
-                match server_config.server_type:
-                    case MCPServerType.LOCAL:
-                        server = self._create_local_server(name, server_config)
-                    case MCPServerType.REMOTE:
-                        server = self._create_remote_server(name, server_config)
-                    case _:
-                        logger.error(
-                            "Unknown server type for '{}': {}",
-                            name,
-                            server_config.server_type,
-                        )
-                        continue
+        Args:
+            name: Name of the MCP server
 
-                self.servers[name] = server
-                logger.info("Started MCP server '{}'", name)
-
-            except Exception as e:
-                logger.error("Failed to start MCP server '{}': {}", name, e)
-
-    async def stop_servers(self) -> None:
-        """Stop all MCP servers."""
-        if not self.servers:
-            logger.debug("No MCP servers to stop")
-            return
-
-        logger.info("Stopping {} MCP servers", len(self.servers))
-
-        for name in list(self.servers.keys()):
-            try:
-                # MCP servers are managed via context managers in PydanticAI
-                # Cleanup happens automatically when the server instances are destroyed
-                logger.info("Stopped MCP server '{}'", name)
-            except Exception as e:
-                logger.error("Error stopping MCP server '{}': {}", name, e)
-
-        self.servers.clear()
-
-    def get_servers(self) -> list[MCPServerStdio | MCPServerSSE]:
-        """Get list of all active MCP servers for agent integration."""
-        return list(self.servers.values())
+        Returns:
+            True if configuration exists, False otherwise
+        """
+        return bool(self.get_server_config(name))
 
     def get_server_by_name(self, name: str) -> MCPServerStdio | MCPServerSSE | None:
-        """Get a specific MCP server by name."""
-        return self.servers.get(name)
+        """Create a new MCP server instance from configuration.
+
+        IMPORTANT: Caller is responsible for managing the server lifecycle.
+        For agents, the server lifecycle is automatically managed by PydanticAI
+        through async context managers when used in agent toolsets.
+
+        Args:
+            name: Name of the MCP server
+
+        Returns:
+            New MCP server instance if configuration exists, None otherwise
+        """
+        config = self.get_server_config(name)
+        if not config:
+            logger.warning("No configuration found for MCP server '{}'", name)
+            return None
+
+        match config.server_type:
+            case MCPServerType.LOCAL:
+                return self.create_local_server_instance(name, config)
+            case MCPServerType.REMOTE:
+                return self.create_remote_server_instance(name, config)
+            case _:
+                logger.error(
+                    "Unknown server type for '{}': {}", name, config.server_type
+                )
+                return None
