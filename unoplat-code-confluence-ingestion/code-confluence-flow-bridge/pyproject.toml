@@ -1,6 +1,6 @@
 [project]
 name = "code-confluence-flow-bridge"
-version = "0.59.0"
+version = "0.61.1"
 description = "Bridge between Code Confluence User and Ingestion Workflow"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -57,17 +57,18 @@ dev = [
     # Optional: stubs for popular libraries
     # "types-requests>=2.31.0",
     "basedpyright>=1.32.1",
+    "types-pyyaml>=6.0.12.20250915",
 ]
 
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
 # unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.33.0" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.34.1" }
 
 [tool.basedpyright]
 typeCheckingMode = "strict"
 include = ["src"]
-exclude = ["**/__pycache__", ".venv", "dist", "build"]
+exclude = ["**/__pycache__", ".venv", "dist", "build", "**/__init__.py"]
 ignore = ["**/__pycache__"]
 useLibraryCodeForTypes = true
 reportMissingImports = "error"

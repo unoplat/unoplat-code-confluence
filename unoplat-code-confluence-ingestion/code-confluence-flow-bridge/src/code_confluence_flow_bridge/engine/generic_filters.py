@@ -24,7 +24,9 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 
-def object_allowed(info: Dict[str, Any], ctx) -> bool:  # ctx: RuntimeContext but avoid circular import
+def object_allowed(
+    info: Dict[str, Any], ctx
+) -> bool:  # ctx: RuntimeContext but avoid circular import
     """Return True if the object/variable captured in *info* is within *ctx.allowed_objects*.
 
     A match has a key ``"object"`` when the underlying concept is *AnnotationLike* or another
@@ -59,4 +61,4 @@ def annotation_allowed(info: Dict[str, Any], allowed_regex: str | re.Pattern) ->
     pattern = (
         re.compile(allowed_regex) if isinstance(allowed_regex, str) else allowed_regex
     )
-    return pattern.fullmatch(name) is not None 
+    return pattern.fullmatch(name) is not None

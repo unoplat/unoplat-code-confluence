@@ -60,7 +60,9 @@ async def get_engine_for_loop() -> tuple[AsyncEngine, async_sessionmaker]:
     # Use lock to ensure thread-safe access to global registry
     async with _engine_lock:
         if loop_id not in _engine_per_loop:
-            log_ctx.debug("No AsyncEngine found for loop {loop_id}, creating new instance")
+            log_ctx.debug(
+                "No AsyncEngine found for loop {loop_id}, creating new instance"
+            )
             # Create new engine for this loop
             engine = create_async_engine(
                 POSTGRES_URL,
@@ -79,7 +81,9 @@ async def get_engine_for_loop() -> tuple[AsyncEngine, async_sessionmaker]:
             # Store in global registry
             _engine_per_loop[loop_id] = (engine, session_factory)
 
-            log_ctx.success("Created new AsyncEngine and session factory for loop {loop_id}")
+            log_ctx.success(
+                "Created new AsyncEngine and session factory for loop {loop_id}"
+            )
         else:
             log_ctx.debug("Reusing cached AsyncEngine for loop {loop_id}")
 
@@ -90,13 +94,16 @@ async def get_engine_for_loop() -> tuple[AsyncEngine, async_sessionmaker]:
 # Session management helper
 # ---------------------------------------------------------------------------
 
-async def get_session() -> AsyncGenerator[async_scoped_session, None]:
+
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """Yield a database session using the engine for current event loop.
 
     This function ensures that database sessions use the correct AsyncEngine
     for the current event loop, preventing cross-loop Future errors.
     Uses async_scoped_session to ensure each asyncio task gets its own
     session instance with proper transaction management.
+
+    Note: Returns async_scoped_session which is compatible with AsyncSession interface.
     """
     # Build a bound logger containing contextual information useful for
     # troubleshooting concurrent executions.
@@ -137,7 +144,9 @@ async def get_session() -> AsyncGenerator[async_scoped_session, None]:
         if scoped_session is not None:
             try:
                 await scoped_session.remove()
-                log_ctx.debug("Scoped session removed from registry (session cleanup complete)")
+                log_ctx.debug(
+                    "Scoped session removed from registry (session cleanup complete)"
+                )
             except Exception as cleanup_exc:
                 log_ctx.warning("Failed to clean up scoped session: {}", cleanup_exc)
 
@@ -160,12 +169,18 @@ async def create_db_and_tables() -> None:
     # Create all tables if they are missing
     async with engine.begin() as conn:
         try:
-            await conn.run_sync(lambda sync_conn: SQLBase.metadata.create_all(sync_conn, checkfirst=True))
+            await conn.run_sync(
+                lambda sync_conn: SQLBase.metadata.create_all(
+                    sync_conn, checkfirst=True
+                )
+            )
             logger.success("Database tables created successfully")
         except Exception as e:
             # Handle index already exists errors gracefully
             if "already exists" in str(e):
-                logger.warning("Database schema creation encountered existing objects: {}", e)
+                logger.warning(
+                    "Database schema creation encountered existing objects: {}", e
+                )
                 # Continue execution - this is expected in test environments
             else:
                 raise
@@ -184,11 +199,15 @@ async def dispose_current_engine() -> None:
             try:
                 engine, _ = _engine_per_loop[loop_id]
                 await engine.dispose()
-                logger.success("Disposed AsyncEngine for current event loop {}", loop_id)
+                logger.success(
+                    "Disposed AsyncEngine for current event loop {}", loop_id
+                )
 
                 # Remove from registry
                 del _engine_per_loop[loop_id]
             except Exception as e:
-                logger.warning("Failed to dispose engine for current loop {}: {}", loop_id, e)
+                logger.warning(
+                    "Failed to dispose engine for current loop {}: {}", loop_id, e
+                )
         else:
             logger.debug("No engine found for current loop to dispose")

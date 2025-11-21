@@ -16,7 +16,10 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 
 # Constants
 TEST_DATA_DIR = (
-    Path(__file__).parent.parent.parent.parent / "test_data" / "package_manager" / "node"
+    Path(__file__).parent.parent.parent.parent
+    / "test_data"
+    / "package_manager"
+    / "node"
 )
 
 
@@ -83,7 +86,11 @@ def application_package_dir(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def test_library_package_metadata(node_strategy: NodePackageManagerStrategy, node_metadata: ProgrammingLanguageMetadata, library_package_dir: Path) -> None:
+def test_library_package_metadata(
+    node_strategy: NodePackageManagerStrategy,
+    node_metadata: ProgrammingLanguageMetadata,
+    library_package_dir: Path,
+) -> None:
     """Ensure library packages surface TypeScript metadata and entry points."""
     metadata = node_strategy.process_metadata(str(library_package_dir), node_metadata)
 
@@ -115,9 +122,15 @@ def test_library_package_metadata(node_strategy: NodePackageManagerStrategy, nod
     assert deps["peer"]["typescript"].version.specifier == ">=4.5.0"
 
 
-def test_application_package_engine_fallback(node_strategy: NodePackageManagerStrategy, node_metadata: ProgrammingLanguageMetadata, application_package_dir: Path) -> None:
+def test_application_package_engine_fallback(
+    node_strategy: NodePackageManagerStrategy,
+    node_metadata: ProgrammingLanguageMetadata,
+    application_package_dir: Path,
+) -> None:
     """Verify TypeScript inference falls back to engines.node when no TypeScript deps."""
-    metadata = node_strategy.process_metadata(str(application_package_dir), node_metadata)
+    metadata = node_strategy.process_metadata(
+        str(application_package_dir), node_metadata
+    )
 
     # No typescript in dev/peer; engine fallback should drive language version
     assert metadata.programming_language_version == ">=18.0.0"
@@ -128,14 +141,20 @@ def test_application_package_engine_fallback(node_strategy: NodePackageManagerSt
     assert overrides["axios"].version.specifier == "^1.6.2"
 
 
-def test_all_typescript_package_managers(node_strategy: NodePackageManagerStrategy, node_metadata_all_managers: ProgrammingLanguageMetadata, library_package_dir: Path) -> None:
+def test_all_typescript_package_managers(
+    node_strategy: NodePackageManagerStrategy,
+    node_metadata_all_managers: ProgrammingLanguageMetadata,
+    library_package_dir: Path,
+) -> None:
     """Verify NodePackageManagerStrategy works with all TypeScript package managers.
 
     This test uses a parametrized fixture to test with NPM, YARN, PNPM, and BUN.
     The strategy should process metadata correctly regardless of which package
     manager is specified, as they all use package.json as the manifest.
     """
-    metadata = node_strategy.process_metadata(str(library_package_dir), node_metadata_all_managers)
+    metadata = node_strategy.process_metadata(
+        str(library_package_dir), node_metadata_all_managers
+    )
 
     # Verify core metadata fields are processed correctly
     assert metadata.package_name == "@unoplat/example-library"
@@ -143,7 +162,11 @@ def test_all_typescript_package_managers(node_strategy: NodePackageManagerStrate
     assert "comprehensive test library package" in metadata.description
 
     # Verify package manager value is preserved in metadata
-    expected_pm = node_metadata_all_managers.package_manager.value if node_metadata_all_managers.package_manager else "unknown"
+    expected_pm = (
+        node_metadata_all_managers.package_manager.value
+        if node_metadata_all_managers.package_manager
+        else "unknown"
+    )
     assert metadata.package_manager == expected_pm
 
     # Verify dependencies are parsed correctly regardless of package manager

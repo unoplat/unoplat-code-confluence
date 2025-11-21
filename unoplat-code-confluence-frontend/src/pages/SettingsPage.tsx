@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import GitHubTokenPopup from "../components/custom/GitHubTokenPopup";
 import {
   Card,
   CardHeader,
@@ -23,12 +22,33 @@ import {
 } from "../components/ui/alert-dialog";
 import { useAuthData } from "@/hooks/use-auth-data";
 import type { ApiResponse } from "../lib/api"; // Import ApiResponse type
+import { DEFAULT_REPOSITORY_CREDENTIAL_PARAMS } from "@/lib/constants/credentials";
+import { ProviderKey } from "@/types/credential-enums";
+import { useProviderStore } from "@/stores/providerStore";
+import { RepositoryProviderForm } from "@/components/custom/RepositoryProviderForm";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getProviderDisplayName } from "@/lib/utils/provider-utils";
+import { Label } from "@/components/ui/label";
 
 export default function SettingsPage(): React.ReactElement {
   // console.log('[SettingsPage] Rendering SettingsPage component');
 
-  const [showTokenPopup, setShowTokenPopup] = useState<boolean>(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
+  const providers = useProviderStore((s) => s.providers);
+  const removeProvider = useProviderStore((s) => s.removeProvider);
+  const [selectedProvider, setSelectedProvider] = useState<ProviderKey | null>(
+    providers[0]?.provider_key ?? null,
+  );
+  const providerOptions = useMemo(
+    () => providers.map((p) => p.provider_key as ProviderKey),
+    [providers],
+  );
   // const [isDeleting, setIsDeleting] = useState<boolean>(false); // Removed isDeleting state
   const queryClient = useQueryClient();
   const { tokenQuery } = useAuthData(); // Use the auth data hook
@@ -38,7 +58,15 @@ export default function SettingsPage(): React.ReactElement {
 
   // Define the mutation for deleting the token
   const deleteMutation = useMutation<ApiResponse, Error>({
-    mutationFn: deleteGitHubToken, // Use mutationFn instead of passing directly
+    mutationFn: () => {
+      if (!selectedProvider) {
+        throw new Error("Select a provider to delete");
+      }
+      return deleteGitHubToken({
+        ...DEFAULT_REPOSITORY_CREDENTIAL_PARAMS,
+        provider_key: selectedProvider,
+      });
+    },
     onSuccess: async (data: ApiResponse) => {
       // console.log('[SettingsPage] Token deleted successfully via mutation, invalidating queries', data);
       setShowDeleteDialog(false);
@@ -50,8 +78,15 @@ export default function SettingsPage(): React.ReactElement {
       // console.log('[SettingsPage] Queries invalidated via mutation');
 
       toast.success(
-        data.message || "Your GitHub token has been successfully removed",
+        data.message || "Provider token has been successfully removed",
       );
+      if (selectedProvider) {
+        removeProvider(selectedProvider);
+        setSelectedProvider(
+          providers.filter((p) => p.provider_key !== selectedProvider)[0]
+            ?.provider_key ?? null,
+        );
+      }
     },
     onError: (error: Error) => {
       console.error("[SettingsPage] Error deleting token via mutation:", error);
@@ -84,23 +119,25 @@ export default function SettingsPage(): React.ReactElement {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="default"
-                  onClick={(): void => {
-                    // console.log('[SettingsPage] Opening token management popup');
-                    setShowTokenPopup(true);
-                  }}
-                  className="flex min-w-[120px] items-center gap-2"
-                  // Optionally disable if token is loading or there's an error initially fetching it
-                  // disabled={tokenQuery.isLoading || tokenQuery.isError}
-                >
-                  <Github className="h-4 w-4" />
-                  <span>
-                    {tokenQuery.data?.status ? "Manage Token" : "Add Token"}
-                  </span>
-                </Button>
-                {tokenQuery.data?.status && ( // Only show delete if a token exists
+                <RepositoryProviderForm
+                  trigger={
+                    <Button
+                      variant="outline"
+                      size="default"
+                      className="flex min-w-[120px] items-center gap-2"
+                    >
+                      <Github className="h-4 w-4" />
+                      <span>
+                        {providers.length > 0 ? "Update Token" : "Add Provider"}
+                      </span>
+                    </Button>
+                  }
+                  isUpdate={providers.length > 0}
+                  existingProvider={
+                    selectedProvider ?? providers[0]?.provider_key
+                  }
+                />
+                {providerOptions.length > 0 && (
                   <Button
                     variant="destructive"
                     size="icon"
@@ -120,27 +157,6 @@ export default function SettingsPage(): React.ReactElement {
           </CardHeader>
         </Card>
       </div>
-      {/* GitHub Token Popup */}
-      <GitHubTokenPopup
-        open={showTokenPopup}
-        onClose={(): void => {
-          // console.log('[SettingsPage] Token popup closed');
-          setShowTokenPopup(false);
-        }}
-        isUpdate={!!tokenQuery.data?.status} // Pass based on token status
-        onSuccess={(): void => {
-          // console.log('[SettingsPage] Token updated successfully');
-          // Invalidation is handled by the popup/API call itself or its success callback if needed
-          toast.success(
-            tokenQuery.data?.status
-              ? "Token updated successfully!"
-              : "Token added successfully!",
-            {
-              description: "Success",
-            },
-          );
-        }}
-      />
       {/* Delete Token Confirmation Dialog */}
       <AlertDialog
         open={showDeleteDialog}
@@ -155,11 +171,34 @@ export default function SettingsPage(): React.ReactElement {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete GitHub Token</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete your GitHub Personal Access Token?
-              This action will remove access to your GitHub repositories and
-              cannot be undone.
+            <AlertDialogTitle>Delete provider token</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <div>
+                Choose the provider whose token you want to delete. This removes
+                access to its repositories and cannot be undone.
+              </div>
+              <div>
+                <Label className="mb-1 block text-sm font-medium">
+                  Provider
+                </Label>
+                <Select
+                  value={selectedProvider ?? undefined}
+                  onValueChange={(val) =>
+                    setSelectedProvider(val as ProviderKey)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {providerOptions.map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {getProviderDisplayName(key)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -169,8 +208,8 @@ export default function SettingsPage(): React.ReactElement {
             {/* Use isPending */}
             <AlertDialogAction
               onClick={(): void => {
-                // console.log('[SettingsPage] Delete token confirmed, calling mutation');
-                deleteMutation.mutate(); // Trigger the mutation
+                if (!selectedProvider) return;
+                deleteMutation.mutate();
               }}
               disabled={deleteMutation.isPending} // Use isPending
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

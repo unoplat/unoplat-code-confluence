@@ -11,7 +11,6 @@ configs:
         - value: 255
           constraints: {}
 
-
 x-common: &common
   networks:
     - signoz-net
@@ -75,7 +74,7 @@ x-db-depend: &db-depend
 services:
   # PostgreSQL service using Bitnami image
   postgresql:
-    image: docker.io/library/postgres:17
+    image: docker.io/library/postgres:17.2
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -85,7 +84,7 @@ services:
       - "5432:5432"
     volumes:
       - postgresql_data:/var/lib/postgresql/data
-  
+
     networks:
       - code-confluence-network
     healthcheck:
@@ -93,7 +92,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  
+
   # Elasticsearch service for Temporal
   elasticsearch:
     container_name: temporal-elasticsearch
@@ -113,11 +112,15 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
-  
+
   # Temporal server
   temporal:
     container_name: temporal
@@ -134,7 +137,7 @@ services:
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/auto-setup:1.26.2
+    image: temporalio/auto-setup:1.29.1
     networks:
       - code-confluence-network
     ports:
@@ -148,8 +151,26 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-  
+
   # Temporal UI
+  temporal-admin-tools:
+    container_name: temporal-admin-tools
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: temporalio/admin-tools:1.29.1-tctl-1.18.4-cli-1.5.0
+    networks:
+      - code-confluence-network
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 50m
+        max-file: "3"
+
   temporal-ui:
     container_name: temporal-ui
     depends_on:
@@ -158,12 +179,12 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
       - TEMPORAL_CSRF_COOKIE_INSECURE=True
-    image: temporalio/ui:2.34.0
+    image: temporalio/ui:2.43.3
     networks:
       - code-confluence-network
     ports:
       - "8081:8081"
-  
+
   # Neo4j graph database
   neo4j:
     container_name: neo4j
@@ -330,7 +351,6 @@ services:
     restart: on-failure
     networks:
       - code-confluence-network
-
 
 networks:
   code-confluence-network:

@@ -23,7 +23,11 @@ class IsClassName:
         try:
             # Handle None or non-string types
             if not isinstance(name, str):
-                logger.error("Invalid input type for class name check: {}\n" "Expected str, got {}", name, type(name).__name__)
+                logger.error(
+                    "Invalid input type for class name check: {}\nExpected str, got {}",
+                    name,
+                    type(name).__name__,
+                )
                 return False
 
             # Handle empty string
@@ -43,8 +47,15 @@ class IsClassName:
                 return name.isupper()
 
             # Check if name matches valid pattern and is not all uppercase
-            return bool(IsClassName._valid_class_pattern.match(name) and not name.isupper())
+            return bool(
+                IsClassName._valid_class_pattern.match(name) and not name.isupper()
+            )
 
         except Exception as e:
-            logger.error("Unexpected error checking class name: {}\n" "Input: {}\n" "Error: {}", name, type(name).__name__, str(e))
+            logger.error(
+                "Unexpected error checking class name: {}\nInput: {}\nError: {}",
+                name,
+                type(name).__name__,
+                str(e),
+            )
             return False

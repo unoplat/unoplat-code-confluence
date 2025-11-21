@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { getFlagStatus, fetchGitHubUser } from "@/lib/api";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { ProviderKey } from "@/types/credential-enums";
 
 export const useAuthData = () => {
   const { setTokenStatus, setUser } = useAuthStore();
@@ -17,7 +18,7 @@ export const useAuthData = () => {
   // 2. user – enable only if token valid
   const userQuery = useQuery({
     queryKey: ["githubUser"],
-    queryFn: fetchGitHubUser,
+    queryFn: () => fetchGitHubUser(ProviderKey.GITHUB_OPEN),
     enabled: !!tokenQuery.data?.status,
   });
 

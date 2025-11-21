@@ -12,10 +12,12 @@ class SQLBase(DeclarativeBase):
     
     This base class provides the foundation for all SQL table models
     in the unoplat-code-confluence project, enabling proper typing
-    and modern SQLAlchemy 2.0 patterns with Mapped[T] and mapped_column.
+    and modern SQLAlchemy 2.0 patterns with Mapped[T] and mapped_column. The reason we use native_enum=False is to ensure that the enum values are stored as strings in the database, rather than as integers. This is important for consistency and compatibility with other systems that may not support integer-based enums. So it helps with migrations and portability. 
     """
     
     type_annotation_map = {
         # Global enum configuration - automatically maps Python enums to SQLAlchemy Enum
-        enum.Enum: sqlalchemy.Enum(enum.Enum),
+        enum.Enum: sqlalchemy.Enum(enum.Enum,native_enum=False),
     }
+    
+    

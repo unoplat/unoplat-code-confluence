@@ -68,7 +68,8 @@ class TypeScriptRipgrepDetector:
         self.ordered_detector = OrderedDetector(self.language_rules)
         self._initialized = True
         logger.debug("TypeScript ripgrep detector rules initialised")
-    #todo: duplicate code with python detector
+
+    # todo: duplicate code with python detector
     async def _load_rules(self) -> LanguageRules:
         """Load and parse TypeScript rules from YAML file."""
         rules_file = Path(self.rules_path)
@@ -323,9 +324,7 @@ class TypeScriptRipgrepDetector:
 
         return False
 
-    async def _is_typescript_project(
-        self, directory_path: str, repo_path: str
-    ) -> bool:
+    async def _is_typescript_project(self, directory_path: str, repo_path: str) -> bool:
         """
         Determine if directory is a TypeScript project using ordered checks.
 
@@ -363,7 +362,9 @@ class TypeScriptRipgrepDetector:
         """Construct CodebaseConfig for the detected directory."""
 
         manifest_candidates = self._manifest_candidates_for_manager(manager_name)
-        manifest_path = self._resolve_manifest_path(directory_path, manifest_candidates, inventory)
+        manifest_path = self._resolve_manifest_path(
+            directory_path, manifest_candidates, inventory
+        )
 
         package_manager_enum = (
             PackageManagerType(manager_name) if manager_name else None
@@ -409,5 +410,3 @@ class TypeScriptRipgrepDetector:
             if manifest_key in inventory_paths:
                 return manifest_key
         return None
-
-    

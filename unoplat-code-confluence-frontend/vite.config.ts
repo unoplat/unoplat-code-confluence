@@ -3,17 +3,21 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { fileURLToPath, URL } from "node:url";
+import path from "node:path";
 
-// React Compiler configuration (disabled for now)
+// React Compiler configuration
 // See: https://react.dev/reference/react-compiler/configuration
+// Note: Default behavior already excludes node_modules (verified in babel-plugin-react-compiler source)
+// TanStack Table compatibility: Use "use no memo" directive in components using useReactTable()
+// Issue: https://github.com/facebook/react/issues/33057
 // const ReactCompilerConfig = {
-//   // Add any compiler options here if needed
+//   panicThreshold: 'none', // Skip problematic components instead of failing build
 // };
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    react(),
     tailwindcss(),
     tanstackRouter({
       target: "react",
@@ -21,19 +25,34 @@ export default defineConfig({
       generatedRouteTree: "./src/routeTree.gen.ts",
       autoCodeSplitting: false,
     }),
-    react({
-      // DISABLED: React Compiler breaks TanStack Table functionality
-      // Issue: https://github.com/facebook/react/issues/33057
-      // TanStack Table uses mutable state internally, incompatible with React Compiler's memoization
-      // TODO: Re-enable when TanStack Table v9 or React Compiler adds compatibility
-      // babel: {
-      //   plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
-      // },
-    }),
+    // react({
+    //   babel: {
+    //     plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
+    //   },
+    // }),
   ],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@": path.resolve(__dirname,"./src"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      // Customize Rollup behavior during production builds
+      // See: https://rollupjs.org/configuration-options/
+      onwarn(warning, defaultHandler) {
+        // Suppress "use client" directive warnings in SPA builds
+        // These directives are for Next.js Server Components and are meaningless in client-only apps
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+          return;
+        }
+        // Suppress sourcemap errors (can't resolve original location)
+        if (warning.code === 'SOURCEMAP_ERROR') {
+          return;
+        }
+        // Pass all other warnings through (THIS_IS_UNDEFINED, CIRCULAR_DEPENDENCY, etc.)
+        defaultHandler(warning);
+      },
     },
   },
 });

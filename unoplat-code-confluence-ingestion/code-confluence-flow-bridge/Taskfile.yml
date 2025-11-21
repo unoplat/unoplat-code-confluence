@@ -200,6 +200,12 @@ tasks:
     cmds:
       - uv run --group dev basedpyright src/
 
+  typecheck-file:
+    desc: Run basedpyright type checker on a specific file task typecheck-file FILE=path/to/your/file.py
+    dir: .
+    cmds:
+      - uv run --group dev basedpyright src/{{.FILE}}
+
   format:
     desc: Format code using ruff
     dir: .

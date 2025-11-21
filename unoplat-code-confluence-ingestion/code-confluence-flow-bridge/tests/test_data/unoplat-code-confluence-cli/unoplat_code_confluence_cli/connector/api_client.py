@@ -9,12 +9,9 @@ from loguru import logger
 
 class CodeConfluenceConnector:
     def __init__(self, base_url: str, github_token: str):
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.github_token = github_token.strip()
-        self.headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {self.github_token}'
-        }
+        self.headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.github_token}"}
 
     async def _ingest_single_repository(self, repository: RepositorySettings) -> Dict:
         """
@@ -22,12 +19,7 @@ class CodeConfluenceConnector:
         """
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.base_url}/start-ingestion",
-                    json=repository.model_dump(),
-                    headers=self.headers,
-                    timeout=30.0
-                )
+                response = await client.post(f"{self.base_url}/start-ingestion", json=repository.model_dump(), headers=self.headers, timeout=30.0)
                 response.raise_for_status()
                 logger.info(f"Started ingestion for repository: {repository.git_url}")
                 return response.json()
@@ -40,11 +32,7 @@ class CodeConfluenceConnector:
             )
             raise
         except httpx.RequestError as e:
-            logger.error(
-                f"Request failed for repository {repository.git_url}:\n"
-                f"Error: {str(e)}\n"
-                f"Request URL: {e.request.url}"
-            )
+            logger.error(f"Request failed for repository {repository.git_url}:\nError: {str(e)}\nRequest URL: {e.request.url}")
             raise
         except Exception as e:
             logger.error(f"An unexpected error occurred for repository {repository.git_url}: {str(e)}")
@@ -58,10 +46,10 @@ class CodeConfluenceConnector:
         for repository in config.repositories:
             task = asyncio.create_task(self._ingest_single_repository(repository))
             tasks.append(task)
-        
+
         logger.info(f"Starting ingestion for {len(tasks)} repositories")
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         # Process results and log any errors
         processed_results = []
         for i, result in enumerate(results):
@@ -69,5 +57,5 @@ class CodeConfluenceConnector:
                 logger.error(f"Failed to process repository {config.repositories[i].git_url}: {result}")
             else:
                 processed_results.append(result)
-        
-        return processed_results #type: ignore
+
+        return processed_results  # type: ignore

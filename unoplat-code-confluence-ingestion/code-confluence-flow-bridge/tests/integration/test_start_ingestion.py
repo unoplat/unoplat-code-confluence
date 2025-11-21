@@ -13,19 +13,25 @@ from fastapi.testclient import TestClient
 from loguru import logger
 import pytest
 from src.code_confluence_flow_bridge.models.github.github_repo import (
-    GitHubRepoRequestConfiguration,
     IngestedRepositoryResponse,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.db import (
     dispose_current_engine,
 )
 from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
+from unoplat_code_confluence_commons.credential_enums import (
+    CredentialNamespace,
+    ProviderKey,
+    SecretKind,
+)
 
 from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
 from tests.utils.sync_db_utils import get_sync_postgres_session
-from tests.utils.temporal_workflow_cleanup import terminate_all_running_workflows
 
-def cleanup_repository_via_endpoint(test_client: TestClient, repository_name: str, repository_owner_name: str) -> None:
+
+def cleanup_repository_via_endpoint(
+    test_client: TestClient, repository_name: str, repository_owner_name: str
+) -> None:
     """
     Clean up repository data using the FastAPI delete endpoint.
 
@@ -41,14 +47,13 @@ def cleanup_repository_via_endpoint(test_client: TestClient, repository_name: st
     # Create the repository info payload
     repo_info = IngestedRepositoryResponse(
         repository_name=repository_name,
-        repository_owner_name=repository_owner_name
+        repository_owner_name=repository_owner_name,
+        provider_key=ProviderKey.GITHUB_OPEN,
     )
 
     # Call the delete endpoint via test client
     response = test_client.request(
-        method="DELETE",
-        url="/delete-repository",
-        json=repo_info.model_dump()
+        method="DELETE", url="/delete-repository", json=repo_info.model_dump()
     )
 
     # Handle response - don't fail if repository doesn't exist (404)
@@ -60,10 +65,14 @@ def cleanup_repository_via_endpoint(test_client: TestClient, repository_name: st
         pass
     else:
         # Unexpected error - log but don't fail the test
-        logger.error(f"Repository cleanup failed with status {response.status_code}: {response.text}")
+        logger.error(
+            f"Repository cleanup failed with status {response.status_code}: {response.text}"
+        )
 
 
-async def monitor_workflow_completion(workflow_id: str, run_id: str, temporal_address: str, timeout_seconds: int = 300) -> WorkflowExecutionStatus:
+async def monitor_workflow_completion(
+    workflow_id: str, run_id: str, temporal_address: str, timeout_seconds: int = 300
+) -> WorkflowExecutionStatus:
     """
     Monitor Temporal workflow execution until completion.
 
@@ -83,7 +92,9 @@ async def monitor_workflow_completion(workflow_id: str, run_id: str, temporal_ad
     client: Client = await Client.connect(temporal_address)
 
     # Get workflow handle
-    handle: WorkflowHandle = client.get_workflow_handle(workflow_id=workflow_id, run_id=run_id)
+    handle: WorkflowHandle = client.get_workflow_handle(
+        workflow_id=workflow_id, run_id=run_id
+    )
 
     # Wait for completion with timeout
     start_time: float = time.time()
@@ -119,7 +130,9 @@ async def monitor_workflow_completion(workflow_id: str, run_id: str, temporal_ad
             # For other errors, continue monitoring
             await asyncio.sleep(5)
 
-    raise asyncio.TimeoutError(f"Workflow did not complete within {timeout_seconds} seconds")
+    raise asyncio.TimeoutError(
+        f"Workflow did not complete within {timeout_seconds} seconds"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -130,11 +143,16 @@ REPO_REQUEST: Dict[str, Any] = {
     "repository_name": "unoplat-code-confluence",
     "repository_git_url": "https://github.com/unoplat/unoplat-code-confluence",
     "repository_owner_name": "unoplat",
+    "provider_key": ProviderKey.GITHUB_OPEN.value,
     "repository_metadata": [
         {
             "codebase_folder": "unoplat-code-confluence-ingestion/code-confluence-flow-bridge",
             "root_packages": ["src/code_confluence_flow_bridge"],
-            "programming_language_metadata": {"language": "python", "package_manager": "uv", "role": "leaf"},
+            "programming_language_metadata": {
+                "language": "python",
+                "package_manager": "uv",
+                "role": "leaf",
+            },
         }
     ],
 }
@@ -156,7 +174,6 @@ class TestStartIngestionEndpoint:
         github_token: str,
         service_ports: Dict[str, int],
         neo4j_client,
-
     ) -> None:
         """Full happy-path flow: ingest token -> start ingestion -> verify response."""
         # Clean up databases using context manager for isolated sessions
@@ -179,10 +196,14 @@ class TestStartIngestionEndpoint:
         # ------------------------------------------------------------------
         token_resp = test_client.post(
             "/ingest-token",
+            params={
+                "namespace": CredentialNamespace.REPOSITORY.value,
+                "provider_key": ProviderKey.GITHUB_OPEN.value,
+                "secret_kind": SecretKind.PAT.value,
+            },
             headers={"Authorization": f"Bearer {github_token}"},
         )
         assert token_resp.status_code in (201, 409), token_resp.text
-
 
         # ------------------------------------------------------------------
         # 2️⃣  call the endpoint under test
@@ -202,12 +223,15 @@ class TestStartIngestionEndpoint:
             jobs_resp = test_client.get("/parent-workflow-jobs")
             jobs_resp.raise_for_status()
             jobs = jobs_resp.json()["jobs"]
-            if any(job["repository_workflow_run_id"] == payload["run_id"] for job in jobs):
+            if any(
+                job["repository_workflow_run_id"] == payload["run_id"] for job in jobs
+            ):
                 break
             time.sleep(5)
         else:
-            pytest.fail("Workflow run did not show up in /parent-workflow-jobs within timeout")
-
+            pytest.fail(
+                "Workflow run did not show up in /parent-workflow-jobs within timeout"
+            )
 
         # ------------------------------------------------------------------
         # 4️⃣  ensure the workflow has CLOSED before leaving the test
@@ -219,13 +243,19 @@ class TestStartIngestionEndpoint:
                 temporal_address=temporal_address,
                 timeout_seconds=60,
             )
-            assert final_status == WorkflowExecutionStatus.COMPLETED, f"Workflow ended in unexpected status {final_status}"
+            assert final_status == WorkflowExecutionStatus.COMPLETED, (
+                f"Workflow ended in unexpected status {final_status}"
+            )
         except (asyncio.TimeoutError, RuntimeError):
             # If workflow fails or times out, force terminate it for cleanup
             client = await Client.connect(temporal_address)
-            handle = client.get_workflow_handle(payload["workflow_id"], run_id=payload["run_id"])
+            handle = client.get_workflow_handle(
+                payload["workflow_id"], run_id=payload["run_id"]
+            )
             try:
-                await handle.terminate(reason="test cleanup - workflow did not complete normally")
+                await handle.terminate(
+                    reason="test cleanup - workflow did not complete normally"
+                )
             except Exception as e:
                 logger.warning(f"Failed to terminate workflow during cleanup: {e}")
 

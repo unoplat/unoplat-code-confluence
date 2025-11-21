@@ -283,7 +283,7 @@ wheels = [
 
 [[package]]
 name = "code-confluence-flow-bridge"
-version = "0.58.0"
+version = "0.61.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofile" },
@@ -323,6 +323,7 @@ dev = [
     { name = "basedpyright" },
     { name = "check-jsonschema" },
     { name = "mypy" },
+    { name = "types-pyyaml" },
 ]
 test = [
     { name = "httpx" },
@@ -365,7 +366,7 @@ requires-dist = [
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "tree-sitter-language-pack", specifier = ">=0.8.0" },
     { name = "typing-extensions", specifier = ">=4.11" },
-    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.33.0" },
+    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.34.1" },
     { name = "validate-pyproject", extras = ["all"], specifier = ">=0.23" },
 ]
 
@@ -374,6 +375,7 @@ dev = [
     { name = "basedpyright", specifier = ">=1.32.1" },
     { name = "check-jsonschema", specifier = ">=0.33.0" },
     { name = "mypy", specifier = ">=1.16.0" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
 ]
 test = [
     { name = "httpx", specifier = ">=0.28.1" },
@@ -1019,6 +1021,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d0/3a/02088c615a7bbbcbbf0ae77ab1fbcc7b39d81abc3f2e95d88f571fa92667/neomodel-5.5.0.tar.gz", hash = "sha256:b324b9ff46140d1efcff488584a87ddf3d9f2e991cb0b1e5810d6223a3f5b09e", size = 194227 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ca/9c/21ad0829eb2a996f4a1c476f1dca5c7ff069ecc14112cc017da43f23ef6b/neomodel-5.5.0-py3-none-any.whl", hash = "sha256:47eadac6767c1db826bd3a3674e56e203c70142a70907239a56ee141a1bd42b6", size = 229154 },
+]
+
+[[package]]
+name = "nexus-rpc"
+version = "1.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ef/66/540687556bd28cf1ec370cc6881456203dfddb9dab047b8979c6865b5984/nexus_rpc-1.1.0.tar.gz", hash = "sha256:d65ad6a2f54f14e53ebe39ee30555eaeb894102437125733fb13034a04a44553", size = 77383 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/2f/9e9d0dcaa4c6ffa22b7aa31069a8a264c753ff8027b36af602cce038c92f/nexus_rpc-1.1.0-py3-none-any.whl", hash = "sha256:d1b007af2aba186a27e736f8eaae39c03aed05b488084ff6c3d1785c9ba2ad38", size = 27743 },
 ]
 
 [[package]]
@@ -1878,20 +1892,20 @@ wheels = [
 
 [[package]]
 name = "temporalio"
-version = "1.12.0"
+version = "1.19.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "nexus-rpc" },
     { name = "protobuf" },
     { name = "types-protobuf" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6a/c1/eb11d767dfd92c23e88a1bdf95a2a66b39402bc509c2fc923da60e23c423/temporalio-1.12.0.tar.gz", hash = "sha256:04e451b1560e64e0276280dd450adc3c867d06d8ebcf91b391fa137a48f26bc7", size = 1545662 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/05/f700ba36c63956c5ec206d7fbc166993df896d387477def327b7622ac32a/temporalio-1.12.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:388b7506bd5f651b784ed950b37221dad7166be5568e066e084df28cecc73db6", size = 11993920 },
-    { url = "https://files.pythonhosted.org/packages/16/52/b9971cef1a161b7d2c2f85a6c30fc2756163d59561c9677c4fa302c9f4fc/temporalio-1.12.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:9426cf4fdad57d2e4a5dec9275bde88b2e5eb9d482f92398bfd343ba976736f4", size = 11628690 },
-    { url = "https://files.pythonhosted.org/packages/e7/a3/0bd3d4ce52fb58c185cf6191bd892937a88480e9447c81fcde6456de2e10/temporalio-1.12.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7fabe80ab86b34aaee04066499d6a2f98903a6c918da4bedfb443474558a2075", size = 12064891 },
-    { url = "https://files.pythonhosted.org/packages/11/2d/fcff58fd8756e9a231e6022a8d95b2b1cbda5a7d504b15c1372a00bf6cf5/temporalio-1.12.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e74c54ba32b8ae13ed3f611a8d9331e157aa36c96de0a86723a8bbeef885b6a2", size = 12319618 },
-    { url = "https://files.pythonhosted.org/packages/38/03/18bd6938a1d3c307de616f290965de25c6340e245658e3d7328669ea5add/temporalio-1.12.0-cp39-abi3-win_amd64.whl", hash = "sha256:80a4c1842b24529931c4dcab7484a61b1138547aca3bca64f11590db89daeadd", size = 12359195 },
+    { url = "https://files.pythonhosted.org/packages/3f/92/0775d831fa245d61b74db2059d5a24a04cef0532ed2c48310a5ab007de9c/temporalio-1.19.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:c2d6d5cad8aec56e048705aa4f0bab83fec15343757ea7acf8504f2e0c289b60", size = 13175255 },
+    { url = "https://files.pythonhosted.org/packages/e2/e1/2a818fefc0023eb132bfff1a03440bcaff154d4d97445ef88a40c23c20c8/temporalio-1.19.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:d85c89018cba9471ce529d90c9cee5bcc31790fd64176b9ada32cc76440f8d73", size = 12854549 },
+    { url = "https://files.pythonhosted.org/packages/ff/78/fe5c8c9b112b38e01aba845335df17a8bbfd60a434ffe3c1c4737ced40a0/temporalio-1.19.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f772f0698d60f808bc3c4a055fb53e40d757fa646411845b911863eebbf0549d", size = 13237772 },
+    { url = "https://files.pythonhosted.org/packages/d9/82/be0fd31119651f518f8db8685fd61976d9d5bbecf3b562d51f13a6442a17/temporalio-1.19.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f706c8f49771daf342ac8daa8ed07f4124fae943177f9feef458a1255aee717c", size = 13374621 },
+    { url = "https://files.pythonhosted.org/packages/d8/94/18f6ae06ffd91507ded9111af1041146a5ba4b56e9256520c5ce82629fc4/temporalio-1.19.0-cp310-abi3-win_amd64.whl", hash = "sha256:162459c293553be39994f20c635a132f7332ae71bd7ba4042f8473701fcf1c7c", size = 14256891 },
 ]
 
 [[package]]
@@ -2060,6 +2074,15 @@ wheels = [
 ]
 
 [[package]]
+name = "types-pyyaml"
+version = "6.0.12.20250915"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7e/69/3c51b36d04da19b92f9e815be12753125bd8bc247ba0470a982e6979e71c/types_pyyaml-6.0.12.20250915.tar.gz", hash = "sha256:0f8b54a528c303f0e6f7165687dd33fafa81c807fcac23f632b63aa624ced1d3", size = 17522 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/e0/1eed384f02555dde685fff1a1ac805c1c7dcb6dd019c916fe659b1c1f9ec/types_pyyaml-6.0.12.20250915-py3-none-any.whl", hash = "sha256:e7d4d9e064e89a3b3cae120b4990cd370874d2bf12fa5f46c97018dd5d3c9ab6", size = 20338 },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2082,8 +2105,8 @@ wheels = [
 
 [[package]]
 name = "unoplat-code-confluence-commons"
-version = "0.33.0"
-source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.33.0#fe082fed12747ffcbc94ee3524802fc67a44f3cf" }
+version = "0.34.1"
+source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.34.1#7e68d4a6725ab8e19b64a3f106f7a9812c6027f1" }
 dependencies = [
     { name = "cryptography" },
     { name = "neomodel" },

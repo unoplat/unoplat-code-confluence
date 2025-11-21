@@ -1,3 +1,5 @@
+import { ProviderKey } from "@/types/credential-enums";
+
 // New GitHubRepoSummary interface to match the backend model
 export interface GitHubRepoSummary {
   name: string;
@@ -98,13 +100,16 @@ export interface CodebaseMetadataResponse {
 }
 
 // Backend-compatible repository configuration request
-export interface GitHubRepoRequestConfiguration {
+export interface RepositoryRequestConfiguration {
   repository_name: string;
   repository_git_url: string;
   repository_owner_name: string;
   repository_metadata?: CodebaseConfig[] | null; // Optional - backend auto-detects if empty/null
-  repository_provider?: "github_open" | "github_enterprise" | "gitlab";
+  provider_key: ProviderKey;
 }
+
+// @deprecated Use RepositoryRequestConfiguration instead
+export type GitHubRepoRequestConfiguration = RepositoryRequestConfiguration;
 
 // Backend-compatible codebase config for repository metadata (GET response)
 export interface CodebaseRepoConfig {
@@ -288,7 +293,7 @@ export const LANGUAGE_PACKAGE_MANAGERS: Record<string, string[]> = {
 export interface IngestedRepository {
   repository_name: string;
   repository_owner_name: string;
-  repository_provider: "github_open" | "github_enterprise" | "gitlab" | "gitlab_self_hosted" | "bitbucket";
+  provider_key: ProviderKey;
 }
 
 export interface IngestedRepositoriesResponse {

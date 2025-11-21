@@ -57,6 +57,11 @@ from unoplat_code_confluence_commons.base_models import (
     deserialize_structural_signature,
     get_signature_type_for_language,
 )
+from unoplat_code_confluence_commons.credential_enums import (
+    CredentialNamespace,
+    ProviderKey,
+    SecretKind,
+)
 from unoplat_code_confluence_commons.graph_models import (
     BaseNode,
     CodeConfluenceCodebase,
@@ -138,8 +143,11 @@ __all__ = [
     'PackageManagerType',
     'RepositoryAgentMdSnapshot',
     'RepoAgentSnapshotStatus',
-    # Credentials model
+    # Credentials and related enums
     'Credentials',
+    'CredentialNamespace',
+    'ProviderKey',
+    'SecretKind',
     # Flags model
     'Flag',
     # Security utilities

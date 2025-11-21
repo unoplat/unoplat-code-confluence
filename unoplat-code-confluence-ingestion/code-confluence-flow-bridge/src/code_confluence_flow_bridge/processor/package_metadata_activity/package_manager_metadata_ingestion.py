@@ -35,7 +35,9 @@ class PackageManagerMetadataIngestion:
         )
 
     @activity.defn
-    async def insert_package_manager_metadata(self, envelope: PackageManagerMetadataIngestionEnvelope) -> None:
+    async def insert_package_manager_metadata(
+        self, envelope: PackageManagerMetadataIngestionEnvelope
+    ) -> None:
         """
         Insert package manager metadata into graph database
 
@@ -47,7 +49,7 @@ class PackageManagerMetadataIngestion:
         codebase_qualified_name = envelope.codebase_qualified_name
         package_manager_metadata = envelope.package_manager_metadata
         trace_id = envelope.trace_id
-        
+
         # Bind Loguru logger with the passed trace_id
         info = activity.info()
         workflow_id: str = info.workflow_id
@@ -59,18 +61,20 @@ class PackageManagerMetadataIngestion:
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             activity_id=activity_id,
-            activity_name=activity_name
+            activity_name=activity_name,
         )
         try:
             log.debug(
                 "Starting package manager metadata ingestion | codebase_name={} | programming_language={} | package_manager={}",
-                codebase_qualified_name, package_manager_metadata.programming_language, package_manager_metadata.package_manager
+                codebase_qualified_name,
+                package_manager_metadata.programming_language,
+                package_manager_metadata.package_manager,
             )
-            
+
             # Use managed transaction from the connection pool
             async with self.code_confluence_graph.get_session() as session:
                 graph = CodeConfluenceGraphIngestion()
-                
+
                 await graph.insert_code_confluence_codebase_package_manager_metadata_managed(
                     session=session,
                     codebase_qualified_name=codebase_qualified_name,
@@ -86,18 +90,20 @@ class PackageManagerMetadataIngestion:
 
             log.debug(
                 "Successfully ingested package manager metadata | codebase_name={} | status=success",
-                codebase_qualified_name
+                codebase_qualified_name,
             )
 
         except Exception as e:
             log.error(
                 "Failed to ingest package manager metadata | codebase_name={} | error_type={} | error_details={} | status=error",
-                codebase_qualified_name, type(e).__name__, str(e)
+                codebase_qualified_name,
+                type(e).__name__,
+                str(e),
             )
-            
+
             # Capture the traceback string
             tb_str = traceback.format_exc()
-            
+
             raise ApplicationError(
                 f"Failed to ingest package manager metadata for {codebase_qualified_name}",
                 {"codebase": codebase_qualified_name},
@@ -108,5 +114,5 @@ class PackageManagerMetadataIngestion:
                 {"workflow_run_id": workflow_run_id},
                 {"activity_name": activity_name},
                 {"activity_id": activity_id},
-                type="PACKAGE_METADATA_INGESTION_ERROR"
+                type="PACKAGE_METADATA_INGESTION_ERROR",
             )

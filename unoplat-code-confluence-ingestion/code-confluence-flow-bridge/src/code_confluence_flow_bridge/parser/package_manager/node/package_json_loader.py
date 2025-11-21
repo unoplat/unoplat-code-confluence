@@ -202,7 +202,8 @@ def _resolve_manifest_path(
 
     return candidate_abs, manifest_relative
 
-#todo: check afterwards to make this read  async
+
+# todo: check afterwards to make this read  async
 def _read_manifest_text(path: Path) -> str:
     with path.open("r", encoding="utf-8") as handle:
         data = handle.read()

@@ -1,0 +1,42 @@
+type: http_request
+model: http_request
+id: rq_5unMxtxHHH
+createdAt: 2025-11-08T04:54:13.423001
+updatedAt: 2025-11-08T04:55:16.910728
+workspaceId: wk_KULjx4bEa8
+folderId: fl_RfTzTxKasf
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: Authorization
+  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RmhxdXZxaWJhNnFYcytNRkJQRHlpNmxkbjFNSXVOMGd4Zm9IL1dueFRSZi9YYXptWlUvS0NEWmlqMDZERmpKbSs1cXM1SWtoZ1FNNDRucEdFc0FxVlIxcFVrV29GTDdEbE1zSWc4VGIvWDk0dm5qbU5yMUtFPQ') ]}
+  id: 89jkcmSwpq
+- enabled: true
+  name: ''
+  value: ''
+  id: 6DGzUcx7u4
+method: PUT
+name: jay-update-token
+sortPriority: 0.001
+url: http://127.0.0.1:8000/update-token
+urlParameters:
+- enabled: true
+  name: namespace
+  value: repository
+  id: FBgRz7KUvU
+- enabled: true
+  name: provider_key
+  value: github_open
+  id: CT6Kpucv8v
+- enabled: true
+  name: secret_kind
+  value: pat
+  id: chiuqY2BtT
+- enabled: true
+  name: ''
+  value: ''
+  id: TQgmqkIjD8

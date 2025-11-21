@@ -1,67 +1,45 @@
-// File: RepositoryDataTable.tsx
 "use client";
 
-// Import necessary React hooks.
+import { useCallback, useEffect, useMemo } from "react";
 import {
-  useState,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useMemo,
-} from "react";
-// Import useQuery from TanStack Query.
-import {
-  useQuery,
-  useQueryClient,
+  InfiniteData,
   keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
 } from "@tanstack/react-query";
-// Import useRouter from TanStack Router.
-// import { useRouter } from '@tanstack/react-router';
-
-// Import the Dice UI DataTable component which is built on TanStack Table.
-import { DataTable } from "../data-table";
-// Import the custom hook that binds table state with router-based URL parameters.
-import { useDataTableWithRouter } from "@/hooks/use-data-table-with-router";
-// Import the column definitions for this repository table.
-import { getRepositoryDataTableColumns } from "./repository-data-table-columns";
-
-// Import the API function to fetch repository data along with type definitions.
-import {
-  fetchGitHubRepositories,
-  submitRepositoryConfig,
-  type PaginatedResponse,
-} from "../../lib/api";
-import type { GitHubRepoSummary } from "../../types";
-import { Route as OnboardingRoute } from "../../routes/_app.onboarding";
-import { DataTableToolbar } from "../data-table-toolbar";
-import { useMutation } from "@tanstack/react-query";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 
-// Define the ref interface so parent components can, for example, retrieve selected row names.
-export interface RepositoryDataTableRef {
-  getSelectedRowNames: () => string[];
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { useDataTable } from "@/hooks/use-data-table";
+import { fetchGitHubRepositories, submitRepositoryConfig } from "@/lib/api";
+import type { GitHubRepoSummary, PaginatedResponse } from "@/types";
+import { ProviderKey } from "@/types/credential-enums";
+
+import { getRepositoryDataTableColumns } from "./repository-data-table-columns";
+
+interface RepositoryDataTableProps {
+  tokenStatus: boolean;
+  providerKey: ProviderKey;
 }
 
-// Main component implementation using forwardRef so methods can be exposed.
-export const RepositoryDataTable = forwardRef<
-  RepositoryDataTableRef,
-  { tokenStatus: boolean }
->(function RepositoryDataTableFn({ tokenStatus }, ref) {
+export function RepositoryDataTable({
+  tokenStatus,
+  providerKey,
+}: RepositoryDataTableProps) {
   const queryClient = useQueryClient();
-  const { pageIndex, perPage, filterValues } = OnboardingRoute.useSearch();
 
-  // Manage an array of pagination cursors. The initial cursor is undefined.
-  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
-
-  // Mutation for repository ingestion with toast notifications
   const ingestMutation = useMutation({
     mutationFn: (repo: GitHubRepoSummary) =>
       submitRepositoryConfig({
         repository_name: repo.name,
         repository_git_url: repo.git_url,
         repository_owner_name: repo.owner_name,
-        repository_metadata: null, // Backend auto-detects
-        repository_provider: "github_open",
+        repository_metadata: null,
+        provider_key: providerKey,
       }),
     onSuccess: (_, repo) => {
       toast.success(
@@ -69,146 +47,164 @@ export const RepositoryDataTable = forwardRef<
       );
       queryClient.invalidateQueries({ queryKey: ["repository-config"] });
     },
-    onError: (error: Error, repo) => {
+    onError: (error, repo) => {
       toast.error(`Failed to submit repository ${repo.name}: ${error.message}`);
     },
   });
 
-  // Use TanStack Query to fetch repository data.
+  const handleIngest = useCallback(
+    (repo: GitHubRepoSummary) => ingestMutation.mutate(repo),
+    [ingestMutation],
+  );
+
+  const columns = useMemo(
+    () =>
+      getRepositoryDataTableColumns({
+        onIngest: handleIngest,
+      }),
+    [handleIngest],
+  );
+
+  const [pageValue] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [perPageValue] = useQueryState(
+    "perPage",
+    parseAsInteger.withDefault(10),
+  );
+  const [nameFilterValue] = useQueryState(
+    "name",
+    parseAsString.withDefault(""),
+  );
+
+  const perPage = perPageValue ?? 10;
+  const pageIndexFromUrl = Math.max(pageValue - 1, 0);
+  const normalizedNameFilter = nameFilterValue.trim();
+  const activeNameFilter =
+    normalizedNameFilter.length > 0 ? normalizedNameFilter : undefined;
+
+  const repositoriesQueryKey = useMemo(
+    () => ["repositories", providerKey, perPage, activeNameFilter ?? ""],
+    [perPage, activeNameFilter, providerKey],
+  );
+
   const {
-    data: repoData,
-    isFetching,
-    isPlaceholderData,
-  } = useQuery<PaginatedResponse<GitHubRepoSummary>>({
-    queryKey: [
-      "repositories",
-      pageIndex,
-      perPage,
-      filterValues,
-      cursors[pageIndex - 1],
-    ],
-    queryFn: () =>
-      fetchGitHubRepositories(
-        pageIndex,
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetchingNextPage,
+    isPending,
+  } = useInfiniteQuery<
+    PaginatedResponse<GitHubRepoSummary>,
+    Error,
+    PaginatedResponse<GitHubRepoSummary>,
+    typeof repositoriesQueryKey,
+    string | undefined
+  >({
+    queryKey: repositoriesQueryKey,
+    queryFn: ({ pageParam }) =>
+      fetchGitHubRepositories({
         perPage,
-        filterValues,
-        cursors[pageIndex - 1],
-      ),
+        providerKey,
+        filterValues: activeNameFilter ? { name: activeNameFilter } : undefined,
+        cursor: pageParam,
+      }),
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.has_next ? (lastPage.next_cursor ?? undefined) : undefined,
+    maxPages: 10,
     enabled: tokenStatus,
     placeholderData: keepPreviousData,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
   });
+  const infiniteData = data as
+    | InfiniteData<PaginatedResponse<GitHubRepoSummary>, string | undefined>
+    | undefined;
+  const pages = infiniteData?.pages ?? [];
+  const totalFetchedPages = pages.length;
+  const effectivePageIndex = useMemo(() => {
+    if (totalFetchedPages === 0) return 0;
+    if (pageIndexFromUrl >= totalFetchedPages) return totalFetchedPages - 1;
+    return pageIndexFromUrl;
+  }, [totalFetchedPages, pageIndexFromUrl]);
 
-  useEffect(() => {
-    if (repoData?.next_cursor) {
-      setCursors((prev) => {
-        const newCursors = [...prev];
-        if (pageIndex >= newCursors.length) {
-          newCursors.push(repoData.next_cursor);
-        } else {
-          newCursors[pageIndex] = repoData.next_cursor;
-        }
-        return newCursors;
-      });
-    }
-  }, [repoData, pageIndex]);
+  const currentPage = pages[effectivePageIndex];
+  const tableData = currentPage?.items ?? [];
 
-  // Build columns with the ingest callback
-  const columns = useMemo(() => {
-    return getRepositoryDataTableColumns({
-      onIngest: (repo) => ingestMutation.mutate(repo),
-    });
-  }, [ingestMutation]);
+  const pageCount = useMemo(() => {
+    if (!tokenStatus || !data) return -1;
+    if (totalFetchedPages === 0) return 1;
+    return hasNextPage ? totalFetchedPages + 1 : totalFetchedPages;
+  }, [tokenStatus, data, hasNextPage, totalFetchedPages]);
 
-  // 3️⃣ Initialize DiceUI DataTable
-  const { table } = useDataTableWithRouter({
-    data: repoData?.items || [],
+  const { table } = useDataTable<GitHubRepoSummary>({
+    data: tableData,
     columns,
-    pageCount: repoData?.has_next ? -1 : pageIndex,
+    pageCount,
     initialState: {
       pagination: {
-        pageIndex: pageIndex - 1,
-        pageSize: perPage,
+        pageIndex: 0,
+        pageSize: 10,
       },
     },
-    getRowId: (row: GitHubRepoSummary): string => row.name,
+    getRowId: (row) => row.name,
+    clearOnDefault: true,
   });
 
-  // Prefetch two pages ahead
   useEffect(() => {
-    if (!tokenStatus || !repoData?.has_next || !repoData.next_cursor) return;
+    if (!tokenStatus || !data) return;
+    if (!hasNextPage || isFetchingNextPage) return;
+    if (pageIndexFromUrl < totalFetchedPages) return;
 
-    // Prefetch page+1
-    const cursor1: string = repoData.next_cursor;
-    const pageToPrefetch1: number = pageIndex + 1;
-    queryClient.prefetchQuery({
-      queryKey: [
-        "repositories",
-        pageToPrefetch1,
-        perPage,
-        filterValues,
-        cursor1,
-      ],
-      queryFn: () =>
-        fetchGitHubRepositories(
-          pageToPrefetch1,
-          perPage,
-          filterValues,
-          cursor1,
-        ),
-    });
+    void fetchNextPage();
+  }, [
+    tokenStatus,
+    data,
+    pageIndexFromUrl,
+    totalFetchedPages,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  ]);
 
-    // Also fetch page+1 data to obtain its cursor, then prefetch page+2
-    fetchGitHubRepositories(pageToPrefetch1, perPage, filterValues, cursor1)
-      .then((nextPageData: PaginatedResponse<GitHubRepoSummary>) => {
-        if (nextPageData.next_cursor) {
-          const cursor2: string = nextPageData.next_cursor;
-          const pageToPrefetch2: number = pageIndex + 2;
-          queryClient.prefetchQuery({
-            queryKey: [
-              "repositories",
-              pageToPrefetch2,
-              perPage,
-              filterValues,
-              cursor2,
-            ],
-            queryFn: () =>
-              fetchGitHubRepositories(
-                pageToPrefetch2,
-                perPage,
-                filterValues,
-                cursor2,
-              ),
-          });
-        }
-      })
-      .catch(() => {
-        // ignore prefetch errors
-      });
-  }, [repoData, pageIndex, perPage, filterValues, queryClient, tokenStatus]);
+  if (!tokenStatus) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground text-sm">
+          Connect your GitHub account to browse repositories.
+        </p>
+      </div>
+    );
+  }
 
-  // Expose a method via the ref for compatibility (returns empty array, as no selection)
-  useImperativeHandle(
-    ref,
-    () => ({
-      getSelectedRowNames: (): string[] => [],
-    }),
-    [],
-  );
+  const showSkeleton = isPending && !data;
 
-  // Render DataTable
   return (
-    <div className="w-full">
-      <DataTable
-        table={table}
-        actionBar={null}
-        isLoading={isFetching && !isPlaceholderData}
-      >
-        <DataTableToolbar table={table} />
-      </DataTable>
+    <div className="w-full space-y-3">
+      {isError && error && (
+        <div className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border p-3 text-sm">
+          {error.message}
+        </div>
+      )}
+
+      <div className={showSkeleton ? "invisible" : undefined}>
+        <DataTable table={table}>
+          <DataTableToolbar table={table} />
+        </DataTable>
+
+        {showSkeleton && (
+          <div className="bg-background rounded-d pointer-events-none absolute inset-0">
+            <DataTableSkeleton
+              columnCount={columns.length}
+              rowCount={10}
+              filterCount={1}
+              withViewOptions
+              withPagination
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
-});
-
-RepositoryDataTable.displayName = "RepositoryDataTable";
+}

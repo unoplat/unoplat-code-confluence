@@ -5,7 +5,9 @@ from typing import Optional, Tuple
 from urllib.parse import urlparse
 
 
-def parse_remote_url(remote_url: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+def parse_remote_url(
+    remote_url: str,
+) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """Generic parser for git remote URLs.
 
     Supports common SSH and HTTPS formats, including GitHub, GitLab, Bitbucket, Azure etc.
@@ -34,7 +36,9 @@ def parse_remote_url(remote_url: str) -> Tuple[Optional[str], Optional[str], Opt
     url_no_git = remote_url[:-4] if remote_url.endswith(".git") else remote_url
 
     # Handle SSH shorthand (git@host:org/repo)
-    ssh_match = re.match(r"^(?P<user>.+?)@(?P<host>[^:]+):(?P<org>[^/]+)/(?P<repo>.+)$", url_no_git)
+    ssh_match = re.match(
+        r"^(?P<user>.+?)@(?P<host>[^:]+):(?P<org>[^/]+)/(?P<repo>.+)$", url_no_git
+    )
     if ssh_match:
         return (
             ssh_match.group("host"),
@@ -58,5 +62,3 @@ def parse_remote_url(remote_url: str) -> Tuple[Optional[str], Optional[str], Opt
 
     # If all else fails, return Nones so caller can decide fallback behaviour
     return (None, None, None)
-
-
