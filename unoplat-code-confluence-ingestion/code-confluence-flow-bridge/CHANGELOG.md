@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.61.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.61.0...code-confluence-flow-bridge-v0.61.1) (2025-11-21)
+
+
+### Bug Fixes
+
+* **graph-db:** Remove redundant qualified_name update in repository node ([151afd1](https://github.com/unoplat/unoplat-code-confluence/commit/151afd1ddd475943011e0929cf8ba686d7e61df3))
+
 ## [0.61.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.60.0...code-confluence-flow-bridge-v0.61.0) (2025-11-18)
 
 
