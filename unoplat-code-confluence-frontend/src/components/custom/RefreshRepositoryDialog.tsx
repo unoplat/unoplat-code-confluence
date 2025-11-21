@@ -41,11 +41,7 @@ export function RefreshRepositoryDialog({
           <DialogDescription asChild>
             <div>
               This will trigger a re-ingestion of the repository. This feature
-              is in{" "}
-              <StatusBadge
-                status="alpha"
-                className="mx-1 inline-flex"
-              />
+              is in <StatusBadge status="alpha" className="mx-1 inline-flex" />
               and may take some time to complete.
             </div>
           </DialogDescription>

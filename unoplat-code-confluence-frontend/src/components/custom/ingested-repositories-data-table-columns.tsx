@@ -42,8 +42,7 @@ export function getIngestedRepositoriesColumns({
         <DataTableColumnHeader column={column} label="Repository Name" />
       ),
       cell: ({ row }) => {
-        const { repository_name, repository_owner_name } =
-          row.original;
+        const { repository_name, repository_owner_name } = row.original;
 
         const githubUrl = `https://github.com/${repository_owner_name}/${repository_name}`;
         return (
