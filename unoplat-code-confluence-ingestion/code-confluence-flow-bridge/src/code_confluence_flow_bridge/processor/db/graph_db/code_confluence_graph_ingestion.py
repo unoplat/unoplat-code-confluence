@@ -54,7 +54,6 @@ class CodeConfluenceGraphIngestion:
             r.repository_metadata = $repository_metadata,
             r.readme = $readme
         ON MATCH SET
-            r.qualified_name = $qualified_name,
             r.repository_name = $repository_name,
             r.repository_metadata = $repository_metadata,
             r.readme = $readme
