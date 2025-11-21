@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.18.0...unoplat-code-confluence-v0.19.0) (2025-11-21)
+
+
+### Features
+
+* **config:** Update dependencies and refactor MCP server management (temp fix for concurrent access to subagents cuasing asyncio issues - moving to async workflow engine with better isolation same as ingestion( ([ef1725c](https://github.com/unoplat/unoplat-code-confluence/commit/ef1725c800affc63015641068ab6d5d876d8fab4))
+* **credentials:** Refactor authentication/authorisation schema to support pat based login across repository providers, support for oauth and webhook based integrations ([3461b26](https://github.com/unoplat/unoplat-code-confluence/commit/3461b26bbc0d8c710d6e0797a5aff2dbf3665dcf))
+* **credentials:** Refactor authentication/authorisation schema to support pat based login across repository providers, support for oauth and webhook based integrations ([b3c8479](https://github.com/unoplat/unoplat-code-confluence/commit/b3c8479839898d5619f1f45c52d15bec9c1911bf))
+* **endpoint-updates:** Refactor repository configuration and credential types and api endpoints as per backend ([4278d2d](https://github.com/unoplat/unoplat-code-confluence/commit/4278d2de7b492b9bee82361daf60203d696b0701))
+* **endpoint-updates:** Refactor repository configuration and credential types and api endpoints as per backend ([6469582](https://github.com/unoplat/unoplat-code-confluence/commit/6469582bd0be1f7ddee9d7c1143646653f6dbc7e))
+* enhance api endpoints and processing logic to support multiple repository providers starting with github enterprise , introduce oauth utils and also assign intuitive names for agents for easier experiment tracking with workflow monitoring solution ([ba05d6b](https://github.com/unoplat/unoplat-code-confluence/commit/ba05d6ba13eb951ab43f8d0553622582fced7b4b))
+* **fixes:** fix ai slop by removing unnecessary useeffects usestate etc and update latest nuqs to integrate with tanstack router and also update table component for repository management  to dice ui for better abstraction and manageability ([a453cb5](https://github.com/unoplat/unoplat-code-confluence/commit/a453cb5f66609ae9cb599621d2289dbf601a63c6))
+* **repository:** Enhance repository refresh and provider management and update temporal from 1.12 to 1.19 for better performance reliability etc ([685a31c](https://github.com/unoplat/unoplat-code-confluence/commit/685a31cb315995e80acc0b88a440ce9e371be0bf))
+* **repository:** Enhance repository refresh and provider management and update temporal from 1.12 to 1.19 for better performance reliability etc ([b8f8cff](https://github.com/unoplat/unoplat-code-confluence/commit/b8f8cfff91c99a32cfa999f6cbcc64b0ff14fd4a))
+* **settings:** Refactor provider token management UI ([595c6dc](https://github.com/unoplat/unoplat-code-confluence/commit/595c6dca11a306e36a75b3a0ff6be8808ce02c3a))
+* support more repository providers starting with github enterprise. Improved Frontend Architecture and onboarding and some bugs squashed ([0974c76](https://github.com/unoplat/unoplat-code-confluence/commit/0974c76fe9df68b86fb1b180db1b41e04a16c9dd))
+
+
+### Bug Fixes
+
+* **ci:** Enable docs deployment for dev branch ([05d2469](https://github.com/unoplat/unoplat-code-confluence/commit/05d246975b4a49fa2d2679dd566ac9302a4f33b2))
+* **ci:** Enable docs deployment for dev branch ([8ffa597](https://github.com/unoplat/unoplat-code-confluence/commit/8ffa5979873592f4d467061d13741b4ec9a75daa))
+* **credentials:** Update metadata_json column to be nullable ([71c0fda](https://github.com/unoplat/unoplat-code-confluence/commit/71c0fdaa101a84919ae28cf61a07222f2d78854d))
+* **credentials:** Update metadata_json column to be nullable ([4406844](https://github.com/unoplat/unoplat-code-confluence/commit/44068443e5ebe25f664541724d06e5862e158d2f))
+* fix descriptions ([5d5223a](https://github.com/unoplat/unoplat-code-confluence/commit/5d5223aaf4e75446cfa7a9737e6d766f260dea3b))
+* fix descriptions ([2e79ff6](https://github.com/unoplat/unoplat-code-confluence/commit/2e79ff68958ac695e839144d9419dbfe10cabc4b))
+* **graph-db:** Remove redundant qualified_name update in repository node ([151afd1](https://github.com/unoplat/unoplat-code-confluence/commit/151afd1ddd475943011e0929cf8ba686d7e61df3))
+* **repository-table:** Refactor data fetching (useInfiniteQuery) and pagination logic for better reliability and performance ([19ebd60](https://github.com/unoplat/unoplat-code-confluence/commit/19ebd60a6e7640f78cd016e6122335e772f009d1))
+* **ui:** card and button component variants/properties ([7d32bcd](https://github.com/unoplat/unoplat-code-confluence/commit/7d32bcdacc2efeac963854e15410aebf80a2b571))
+* **ui:** Update component styles and imports to fix regression issues ([b0433b3](https://github.com/unoplat/unoplat-code-confluence/commit/b0433b3245525676c70b539594c5d0334e64978f))
+* Update project documentation and quickstart guide. as per recent version ([85fc88e](https://github.com/unoplat/unoplat-code-confluence/commit/85fc88e352123b9c357d3111df2e90f1c8b68317))
+* Update project documentation and quickstart guide. as per recent version ([2775f8b](https://github.com/unoplat/unoplat-code-confluence/commit/2775f8bcea60305757203d57598a6d7459b42a9b))
+
 ## [0.18.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.17.0...unoplat-code-confluence-v0.18.0) (2025-11-03)
 
 
