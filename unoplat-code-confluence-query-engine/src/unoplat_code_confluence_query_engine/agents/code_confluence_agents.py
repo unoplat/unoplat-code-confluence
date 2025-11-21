@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from loguru import logger
 from pydantic_ai import Agent, RunContext, Tool
@@ -32,11 +32,88 @@ from unoplat_code_confluence_query_engine.tools.search_across_codebase import (
 # pyright: ignore[reportUndefinedVariable]
 
 
+def create_context7_agent_factory(
+    mcp_server_manager: MCPServerManager,
+    model: Model,
+    model_settings: Optional[ModelSettings] = None,
+) -> Callable[[], Agent[None]]:
+    """Create a factory function that generates fresh Context7 agent instances.
+
+    This factory pattern ensures each concurrent task gets its own agent instance,
+    preventing CancelScope conflicts when multiple tasks run in parallel.
+
+    Args:
+        mcp_server_manager: MCP server manager for tool integration
+        model: Configured Pydantic AI model instance
+        model_settings: Optional model settings to apply to agents
+
+    Returns:
+        A factory function that creates new Context7 agent instances
+    """
+
+    def _create_context7_agent() -> Agent[None]:
+        """Create a fresh Context7 agent instance with dedicated MCP server.
+
+        Each agent gets its own MCP server connection to prevent cancel scope
+        conflicts when agents run concurrently. The MCP server lifecycle is
+        managed automatically through the agent's context by PydanticAI.
+
+        Returns:
+            New Context7 agent instance with dedicated MCP server connection
+        """
+        # Create a fresh MCP server instance for this agent
+        context7_server = mcp_server_manager.get_server_by_name("context7")
+
+        if not context7_server:
+            logger.warning(
+                "Context7 MCP server configuration not found. "
+                "Agent will run without MCP tools."
+            )
+            toolsets = []
+        else:
+            logger.debug("Created dedicated Context7 MCP server instance for new agent")
+            toolsets = [context7_server]
+
+        return Agent(
+            model,
+            name="context7_agent",
+            model_settings=model_settings,
+            system_prompt=r"""You are the Context7 Library Documentation Agent.
+
+Your role is to provide concise, accurate documentation summaries for libraries, frameworks, and developer tools using Context7 tools.
+
+Workflow:
+1. Use resolve-library-id to get the correct library identifier for the requested library/framework/tool
+2. Use get-library-docs to retrieve comprehensive documentation
+3. Provide a unified 5-line response format
+
+Response Format (exactly 5 lines):
+- Line 1: Library/tool type and primary purpose (e.g., "FastAPI is a Python web framework for building APIs", "ESLint is a JavaScript linter for code quality")
+- Line 2: Primary use case, commands, or when to use it (e.g., "Used for building REST APIs with automatic validation", "Commands: eslint . --fix, eslint src/")
+- Line 3: Key features or config files (e.g., "Auto docs, dependency injection, async support", "Config files: .eslintrc.js, .eslintrc.json")
+- Line 4: Installation or setup (e.g., "Install: pip install fastapi", "Install: npm install eslint --save-dev")
+- Line 5: Usage patterns or grep-ready regex patterns for code search:
+  - For developer tools: Common flags or usage notes (e.g., "Common flags: --fix, --cache, --ext .js,.ts")
+  - For libraries/frameworks: Ripgrep-compatible regex patterns to locate features in code
+    - Join alternatives with `|`, escape parentheses as `\(` and `\)`, dots as `\.`
+    - Prefer high-signal usage sites (decorators, constructors, registrations) over imports
+    - Examples: `@(app|router)\.(get|post|put|patch|delete)\(`; `class\s+\w+\(BaseModel\)`
+
+Always provide exactly 5 lines maximum. Keep responses factual and based on official documentation only.
+""",
+            toolsets=toolsets,  # type: ignore
+            output_type=str,
+            retries=6,
+        )
+
+    return _create_context7_agent
+
+
 def create_code_confluence_agents(
     mcp_server_manager: MCPServerManager,
     model: Model,
     model_settings: Optional[ModelSettings] = None,
-) -> Dict[str, Agent[Any]]:
+) -> Dict[str, Any]:
     """Create code confluence agents with provided model.
 
     Args:
@@ -77,36 +154,9 @@ def create_code_confluence_agents(
         # Function is defined later in the module; safe to ignore if not yet bound at import time
         pass
 
-    context7_agent: Agent[None] = Agent(
-        model,
-        name="context7_agent",
-        model_settings=model_settings,
-        system_prompt=r"""You are the Context7 Library Documentation Agent.
-
-Your role is to provide concise, accurate documentation summaries for libraries, frameworks, and developer tools using Context7 tools.
-
-Workflow:
-1. Use resolve-library-id to get the correct library identifier for the requested library/framework/tool
-2. Use get-library-docs to retrieve comprehensive documentation
-3. Provide a unified 5-line response format
-
-Response Format (exactly 5 lines):
-- Line 1: Library/tool type and primary purpose (e.g., "FastAPI is a Python web framework for building APIs", "ESLint is a JavaScript linter for code quality")
-- Line 2: Primary use case, commands, or when to use it (e.g., "Used for building REST APIs with automatic validation", "Commands: eslint . --fix, eslint src/")
-- Line 3: Key features or config files (e.g., "Auto docs, dependency injection, async support", "Config files: .eslintrc.js, .eslintrc.json")
-- Line 4: Installation or setup (e.g., "Install: pip install fastapi", "Install: npm install eslint --save-dev")
-- Line 5: Usage patterns or grep-ready regex patterns for code search:
-  - For developer tools: Common flags or usage notes (e.g., "Common flags: --fix, --cache, --ext .js,.ts")
-  - For libraries/frameworks: Ripgrep-compatible regex patterns to locate features in code
-    - Join alternatives with `|`, escape parentheses as `\(` and `\)`, dots as `\.`
-    - Prefer high-signal usage sites (decorators, constructors, registrations) over imports
-    - Examples: `@(app|router)\.(get|post|put|patch|delete)\(`; `class\s+\w+\(BaseModel\)`
-
-Always provide exactly 5 lines maximum. Keep responses factual and based on official documentation only.
-""",
-        toolsets=[mcp_server_manager.get_server_by_name("context7")],  # type: ignore
-        output_type=str,
-        retries=6,
+    # Create the factory for Context7 agent instead of a single instance
+    context7_agent_factory = create_context7_agent_factory(
+        mcp_server_manager, model, model_settings
     )
 
     development_workflow_agent: Agent[AgentDependencies] = Agent(
@@ -176,10 +226,10 @@ Grounding rules:
         retries=6,
     )
 
-    agents: Dict[str, Agent[Any]] = {
+    agents: Dict[str, Any] = {
         "project_configuration_agent": code_confluence_project_configuration_agent,
         "development_workflow_agent": development_workflow_agent,
-        "context7_agent": context7_agent,
+        "context7_agent_factory": context7_agent_factory,  # Now a factory function
         "business_logic_domain_agent": business_logic_domain_agent,
     }
 

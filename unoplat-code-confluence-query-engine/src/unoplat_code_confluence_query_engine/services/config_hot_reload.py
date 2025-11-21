@@ -12,15 +12,18 @@ from loguru import logger
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 from sqlalchemy import event, inspect
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
     create_code_confluence_agents,
 )
+from unoplat_code_confluence_query_engine.config.settings import (
+    EnvironmentSettings,
+)
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
-from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
     AiModelConfigService,
 )
@@ -142,7 +145,7 @@ def _invalidate_config_on_commit(session: Session) -> None:
 
 
 async def get_current_model(
-    settings: Optional["EnvironmentSettings"] = None,
+    session: AsyncSession, settings: Optional["EnvironmentSettings"] = None
 ) -> Tuple[Optional[Model], Optional[ModelSettings]]:
     """Get the current AI model, rebuilding if configuration changed.
 
@@ -170,9 +173,10 @@ async def get_current_model(
             logger.debug("Returning cached model without rebuild")
             return _current_model, _current_model_settings
 
-        # Need to rebuild - fetch current configuration
+        # Need to rebuild - fetch current configuration using provided session
         service = AiModelConfigService()
-        config = await service.get_config()
+
+        config = await service.get_config(session)
 
         if config is None:
             logger.debug("No AI model configuration found")
@@ -190,16 +194,11 @@ async def get_current_model(
 
         # Use provided settings or fall back to creating new instance
         if settings is None:
-            from unoplat_code_confluence_query_engine.config.settings import (
-                EnvironmentSettings,
-            )
-
             settings = EnvironmentSettings()
 
-        async with get_startup_session() as session:
-            _current_model, _current_model_settings = await _model_factory.build(
-                config, settings, session
-            )
+        _current_model, _current_model_settings = await _model_factory.build(
+            config, settings, session
+        )
         _config_invalidated = False
 
         logger.info("AI model rebuilt successfully")
@@ -215,7 +214,7 @@ async def get_current_model(
         logger.error("Error rebuilding AI model: {}", e)
         _current_model = None
         _config_invalidated = False
-        return None
+        return None, None
 
 
 def register_orm_events() -> None:
@@ -256,7 +255,7 @@ def unregister_orm_events() -> None:
         logger.warning("Error unregistering ORM events: {}", e)
 
 
-async def update_app_agents(app: "FastAPI") -> None:
+async def update_app_agents(app: "FastAPI", session: AsyncSession) -> None:
     """Update application agents with current model configuration.
 
     NOTE: This is the explicit refresh used now after PUT /v1/config. When we
@@ -267,11 +266,12 @@ async def update_app_agents(app: "FastAPI") -> None:
 
     Args:
         app: FastAPI application instance with agents in app.state
+        session: Active AsyncSession (request-scoped) containing the config transaction
     """
     try:
-        # Get the current model (will rebuild if needed)
+        # Get the current model (will rebuild if needed) using the active request session
         current_model, current_model_settings = await get_current_model(
-            app.state.settings
+            session, app.state.settings
         )
 
         if current_model is None:

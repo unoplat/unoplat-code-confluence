@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from pydantic_ai import Agent
 
@@ -28,5 +28,7 @@ class AgentDependencies:
     repository_qualified_name: str
     codebase_metadata: CodebaseMetadata
     neo4j_conn_manager: CodeConfluenceGraphQueryEngine
-    context7_agent: Agent
+    # Use a factory so each tool call can create an isolated Context7 agent instance,
+    # avoiding CancelScope leaks when tool calls run concurrently.
+    context7_agent_factory: Callable[[], Agent]
     library_documentation_service: "LibraryDocumentationService"
