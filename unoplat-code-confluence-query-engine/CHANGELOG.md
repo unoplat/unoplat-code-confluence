@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.22.0...unoplat-code-confluence-query-engine-v0.23.0) (2025-11-21)
+
+
+### Features
+
+* support more repository providers starting with github enterprise. Improved Frontend Architecture and onboarding and some bugs squashed ([0974c76](https://github.com/unoplat/unoplat-code-confluence/commit/0974c76fe9df68b86fb1b180db1b41e04a16c9dd))
+
 ## [0.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.21.0...unoplat-code-confluence-query-engine-v0.22.0) (2025-11-21)
 
 
