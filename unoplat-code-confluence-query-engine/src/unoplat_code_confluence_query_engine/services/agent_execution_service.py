@@ -20,6 +20,7 @@ from pydantic_ai.messages import (
     PartDeltaEvent,
 )
 
+from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.db.repository_agent_snapshot_service import (
     RepositoryAgentSnapshotWriter,
 )
@@ -614,7 +615,11 @@ class AgentExecutionService:
         # Log statistics building start
         logger.info("Building workflow statistics from {} agents", len(workflow_usage))
         for agent_name, codebase_usages in workflow_usage.items():
-            logger.debug("Agent {}: {} codebases with usage data", agent_name, len(codebase_usages))
+            logger.debug(
+                "Agent {}: {} codebases with usage data",
+                agent_name,
+                len(codebase_usages),
+            )
 
         # Aggregate per codebase across all agents
         codebase_stats: Dict[str, UsageStatistics] = {}
@@ -935,7 +940,10 @@ class AgentExecutionService:
                 else None,
             }
             try:
-                cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config()  # type: ignore[attr-defined]
+                async with get_startup_session() as session:
+                    cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config(  # type: ignore[attr-defined]
+                        session
+                    )
                 if cfg:
                     model_context.update(
                         {
@@ -1010,7 +1018,10 @@ class AgentExecutionService:
 
         # Log model/provider context if available
         try:
-            cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config()  # type: ignore[attr-defined]
+            async with get_startup_session() as session:
+                cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config(  # type: ignore[attr-defined]
+                    session
+                )
             if cfg:
                 logger.info(
                     "Starting {} for {} using model {}/{} (provider_name={}), retries={}",
@@ -1099,9 +1110,15 @@ class AgentExecutionService:
                                 request.agent_name,
                                 codebase.codebase_name,
                                 cost_usd,
-                                float(price_calc.input_price) if hasattr(price_calc, 'input_price') else 0.0,
-                                float(price_calc.output_price) if hasattr(price_calc, 'output_price') else 0.0,
-                                agent_run.result.response.model_name if hasattr(agent_run.result.response, 'model_name') else "unknown",
+                                float(price_calc.input_price)
+                                if hasattr(price_calc, "input_price")
+                                else 0.0,
+                                float(price_calc.output_price)
+                                if hasattr(price_calc, "output_price")
+                                else 0.0,
+                                agent_run.result.response.model_name
+                                if hasattr(agent_run.result.response, "model_name")
+                                else "unknown",
                             )
                         except LookupError:
                             logger.warning(
@@ -1109,7 +1126,9 @@ class AgentExecutionService:
                                 "Cost will not be included in statistics. Model: {}",
                                 request.agent_name,
                                 codebase.codebase_name,
-                                agent_run.result.response.model_name if hasattr(agent_run.result.response, 'model_name') else "unknown",
+                                agent_run.result.response.model_name
+                                if hasattr(agent_run.result.response, "model_name")
+                                else "unknown",
                             )
                         except Exception as exc:  # noqa: BLE001
                             logger.warning(
@@ -1117,7 +1136,9 @@ class AgentExecutionService:
                                 request.agent_name,
                                 codebase.codebase_name,
                                 exc,
-                                agent_run.result.response.model_name if hasattr(agent_run.result.response, 'model_name') else "unknown",
+                                agent_run.result.response.model_name
+                                if hasattr(agent_run.result.response, "model_name")
+                                else "unknown",
                             )
 
                     logger.info(
@@ -1478,7 +1499,10 @@ class AgentExecutionService:
             else None,
         }
         try:
-            cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config()  # type: ignore[attr-defined]
+            async with get_startup_session() as session:
+                cfg = await request.fastapi_request.app.state.ai_model_config_service.get_config(  # type: ignore[attr-defined]
+                    session
+                )
             if cfg:
                 model_context.update(
                     {
@@ -1531,9 +1555,16 @@ class AgentExecutionService:
             )
         if cost_usd is not None:
             completion_data["cost_usd"] = cost_usd
-            logger.debug("Adding cost to completion event for {}: ${:.6f}", codebase.codebase_name, cost_usd)
+            logger.debug(
+                "Adding cost to completion event for {}: ${:.6f}",
+                codebase.codebase_name,
+                cost_usd,
+            )
         else:
-            logger.debug("No cost data available for completion event for {}", codebase.codebase_name)
+            logger.debug(
+                "No cost data available for completion event for {}",
+                codebase.codebase_name,
+            )
 
         await event_queue.put(
             {
@@ -1548,12 +1579,20 @@ class AgentExecutionService:
         codebase: CodebaseMetadata,
         request: AgentExecutionRequest,
     ) -> AgentDependencies:
-        """Create agent dependencies using FastAPI app.state."""
+        """Create agent dependencies using FastAPI app.state.
+
+        Creates a fresh Context7 agent instance from the factory to prevent
+        concurrent execution conflicts.
+        """
+        # Get the factory and create a new Context7 agent instance
+        context7_factory = request.fastapi_request.app.state.agents[
+            "context7_agent_factory"
+        ]
         return AgentDependencies(
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase,
             neo4j_conn_manager=request.fastapi_request.app.state.neo4j_manager,
-            context7_agent=request.fastapi_request.app.state.agents["context7_agent"],
+            context7_agent_factory=context7_factory,
             library_documentation_service=LibraryDocumentationService(),
         )
 

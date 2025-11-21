@@ -37,9 +37,17 @@ async def get_lib_data(
     """
 
     try:
+        # Always create a fresh Context7 agent via the factory to prevent
+        # CancelScope clashes when tool calls run in parallel.
+        if not hasattr(ctx.deps, "context7_agent_factory"):
+            raise RuntimeError(
+                "context7_agent_factory is required on deps for get_lib_data"
+            )
+        context7_agent = ctx.deps.context7_agent_factory()
+
         # Use the service to get documentation with the Context7 agent
         result = await ctx.deps.library_documentation_service.get_library_documentation(
-            context7_agent=ctx.deps.context7_agent,
+            context7_agent=context7_agent,
             lib_name=lib_name,
             programming_language=programming_language,
             feature_description=feature_description,
