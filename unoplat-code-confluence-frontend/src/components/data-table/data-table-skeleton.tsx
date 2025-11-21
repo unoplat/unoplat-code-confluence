@@ -16,7 +16,6 @@ interface DataTableSkeletonProps extends React.ComponentProps<"div"> {
   cellWidths?: string[];
   withViewOptions?: boolean;
   withPagination?: boolean;
-  showRowsPerPage?: boolean;
   shrinkZero?: boolean;
 }
 
@@ -27,13 +26,10 @@ export function DataTableSkeleton({
   cellWidths = ["auto"],
   withViewOptions = true,
   withPagination = true,
-  showRowsPerPage = false,
   shrinkZero = false,
   className,
   ...props
 }: DataTableSkeletonProps) {
-  console.log("DataTableSkeleton props:", { withPagination, showRowsPerPage });
-
   const cozyCellWidths = Array.from(
     { length: columnCount },
     (_, index) => cellWidths[index % cellWidths.length] ?? "auto",
@@ -48,15 +44,15 @@ export function DataTableSkeleton({
         <div className="flex flex-1 items-center gap-2">
           {filterCount > 0
             ? Array.from({ length: filterCount }).map((_, i) => (
-                <Skeleton key={i} className="h-7 w-[4.5rem] border-dashed" />
+                <Skeleton key={i} className="h-7 w-18 border-dashed" />
               ))
             : null}
         </div>
         {withViewOptions ? (
-          <Skeleton className="ml-auto hidden h-7 w-[4.5rem] lg:flex" />
+          <Skeleton className="ml-auto hidden h-7 w-18 lg:flex" />
         ) : null}
       </div>
-      <div className="border-border rounded-md border">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             {Array.from({ length: 1 }).map((_, i) => (
@@ -98,12 +94,10 @@ export function DataTableSkeleton({
         <div className="flex w-full items-center justify-between gap-4 overflow-auto p-1 sm:gap-8">
           <Skeleton className="h-7 w-40 shrink-0" />
           <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
-            {showRowsPerPage && (
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-7 w-24" />
-                <Skeleton className="h-7 w-[4.5rem]" />
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-7 w-24" />
+              <Skeleton className="h-7 w-18" />
+            </div>
             <div className="flex items-center justify-center text-sm font-medium">
               <Skeleton className="h-7 w-20" />
             </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ParentWorkflowJobResponse, JobStatus } from "../../types";
-import { DataTableColumnHeader } from "../data-table-column-header";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import {
@@ -22,17 +22,17 @@ import {
 export const getStatusIcon = (status: JobStatus): React.ReactNode => {
   switch (status) {
     case "COMPLETED":
-      return <CheckCircle className="h-4 w-4 text-emerald-500" />;
+      return <CheckCircle className="text-success h-4 w-4" />;
     case "FAILED":
-      return <AlertCircle className="h-4 w-4 text-red-500" />;
+      return <AlertCircle className="text-destructive h-4 w-4" />;
     case "TIMED_OUT":
-      return <Clock className="h-4 w-4 text-red-500" />;
+      return <Clock className="text-destructive h-4 w-4" />;
     case "SUBMITTED":
-      return <Clock className="h-4 w-4 text-amber-500" />;
+      return <Clock className="text-warning h-4 w-4" />;
     case "RUNNING":
-      return <PauseCircle className="h-4 w-4 text-blue-500" />;
+      return <PauseCircle className="text-info h-4 w-4" />;
     case "RETRYING":
-      return <RefreshCw className="h-4 w-4 text-blue-500" />;
+      return <RefreshCw className="text-info h-4 w-4" />;
     default:
       return <Clock className="text-muted-foreground h-4 w-4" />;
   }
@@ -62,7 +62,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
   {
     accessorKey: "repository_name",
     header: ({ column }): React.ReactNode => (
-      <DataTableColumnHeader column={column} title="Repository" />
+      <DataTableColumnHeader column={column} label="Repository" />
     ),
     cell: ({ row }): React.ReactNode => {
       const { repository_owner_name, repository_name } = row.original;
@@ -93,7 +93,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
   {
     accessorKey: "repository_workflow_run_id",
     header: ({ column }): React.ReactNode => (
-      <DataTableColumnHeader column={column} title="Job ID" />
+      <DataTableColumnHeader column={column} label="Job ID" />
     ),
     cell: ({ row }): React.ReactNode => (
       <div className="flex items-center">
@@ -108,7 +108,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
   {
     accessorKey: "status",
     header: ({ column }): React.ReactNode => (
-      <DataTableColumnHeader column={column} title="Status" />
+      <DataTableColumnHeader column={column} label="Status" />
     ),
     cell: ({ row }): React.ReactNode => (
       <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
   {
     accessorKey: "started_at",
     header: ({ column }): React.ReactNode => (
-      <DataTableColumnHeader column={column} title="Started" />
+      <DataTableColumnHeader column={column} label="Started" />
     ),
     cell: ({ row }): React.ReactNode => {
       const date = new Date(row.original.started_at);
@@ -163,7 +163,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
   {
     accessorKey: "completed_at",
     header: ({ column }): React.ReactNode => (
-      <DataTableColumnHeader column={column} title="Completed" />
+      <DataTableColumnHeader column={column} label="Completed" />
     ),
     cell: ({ row }): React.ReactNode => {
       if (!row.original.completed_at) {
@@ -191,7 +191,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
   {
     id: "actions",
     header: ({ column }): React.ReactNode => (
-      <DataTableColumnHeader column={column} title="Actions" />
+      <DataTableColumnHeader column={column} label="Actions" />
     ),
     cell: ({ row, table }): React.ReactNode => (
       <DropdownMenu modal={false}>

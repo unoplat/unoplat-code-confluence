@@ -29,5 +29,6 @@ bun eslint src/path/file.tsx    # Lint single file
 ## File Structure
 `src/components/ui/` shadcn base | `src/components/custom/` business | `src/pages/` pages | `src/routes/` routes | `src/lib/` api/utils/env
 
-## Key Patterns
-Use Context7 docs for dependency versions | Check existing code before changes | Structure: exported component → subcomponents → helpers → types
+## Operating Instructions
+1. Use Context7 docs for dependency versions | Check existing code before changes | Structure: exported component → subcomponents → helpers → types
+2. When in read mode always remember to raise access from user for any command that you want to execute.

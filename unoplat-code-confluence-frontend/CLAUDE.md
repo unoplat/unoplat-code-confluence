@@ -71,63 +71,6 @@ This is a React 19 + TypeScript SPA built with Vite, using TanStack Router for f
 
 The codebase uses **DiceUI Data Table** components built on top of **TanStack Table v8** for all data table implementations. For comprehensive TanStack Table patterns and best practices, see [TanStack Table Documentation](./docs/tanstack_table.md).
 
-Key architecture:
-
-1. **Core Components** (DiceUI-based):
-   - `data-table.tsx`: Base table component wrapping TanStack Table with DiceUI styling
-   - `data-table-toolbar.tsx`: Standard toolbar with filtering and view options
-   - `data-table-advanced-toolbar.tsx`: Advanced toolbar with comprehensive filtering
-   - `data-table-filter-list.tsx`: Filter list with AND/OR logic and drag-drop reordering
-   - `data-table-filter-menu.tsx`: Command palette-style filter interface
-   - `data-table-sort-list.tsx`: Multi-column sorting with drag-drop reordering
-   - `data-table-action-bar.tsx`: Floating action bar for selected rows
-   - `data-table-pagination.tsx`: Pagination controls with URL state sync
-   - `data-table-column-header.tsx`: Column headers with sorting indicators
-   - `data-table-view-options.tsx`: Column visibility controls
-
-2. **Custom Hooks**:
-   - `useDataTable`: Main hook replacing `nuqs` with TanStack Router for URL state management
-   - `useDataTableWithRouter`: Custom wrapper that integrates with TanStack Router search params
-   - Manages debouncing (300ms default) and throttling (50ms default) for performance
-
-3. **Filter System**:
-   - **Filter Variants**: text, number, range, date, dateRange, boolean, select, multiSelect
-   - **Filter Components**:
-     - `DataTableFacetedFilter`: For select/multi-select with counts
-     - `DataTableDateFilter`: Date picker integration
-     - `DataTableSliderFilter`: Range/slider inputs
-   - **Column Meta**: Each column defines filter metadata (variant, placeholder, options, etc.)
-
-4. **Table Features**:
-   - **Server-side pagination** with cursor-based navigation
-   - **Column filtering** with multiple filter types and operators
-   - **Multi-column sorting** with visual sort order indicators
-   - **Column visibility** controls with view options dropdown
-   - **Row selection** with floating action bar
-   - **Pinned columns** support via `getCommonPinningStyles`
-   - **Loading states** with skeleton rows (10 rows by default)
-   - **Keyboard shortcuts**: F (filter), Shift+F (remove last filter), S (sort), Shift+S (remove last sort)
-
-5. **Repository Table Implementation**:
-   - Uses `useQuery` with TanStack Query for data fetching
-   - Implements cursor-based pagination for GitHub API
-   - Pre-fetches next 2 pages for smooth navigation
-   - Column definitions include row actions (e.g., "Ingest Repo" button)
-   - Integrates with dialog components for row-specific actions
-   - Tracks row actions in state for dialog management
-
-6. **State Management**:
-   - Table state (pagination, filters, sorting) synced with URL via TanStack Router (NOT nuqs)
-   - Filter values persisted in search params for shareable URLs
-   - Uses `keepPreviousData` for smooth transitions during pagination
-   - Initial state can be set via `initialState` prop
-
-7. **TypeScript Patterns**:
-   - Generic `DataTable<TData>` component for type safety
-   - Column definitions use `ColumnDef<T>` from TanStack Table
-   - Custom column meta interface for DiceUI-specific features
-   - Proper typing for filter options, sort states, and row actions
-
 ### Shadcn/UI Component Guidelines
 
 Following the official shadcn/ui patterns and registry guidelines:
@@ -197,3 +140,14 @@ Following the official shadcn/ui patterns and registry guidelines:
 - TypeScript path alias: `@/*` maps to `./src/*`
 - Requires Node.js >= 20.0.0
 - Uses Bun 1.3.1+ for package management
+
+
+### Implementation Instructions
+
+1. Always use absolute imports with alias as mentioned in tsconfig. exmaple- starting with @
+2. Post edit run linter and formatter post edit are complete per file with help of below commands:
+    # Per-file operations (new capability)
+    a. task lint FILE_PATH=src/components/Button.tsx
+    b. task lint-fix FILE_PATH=src/pages/HomePage.tsx
+    c. task format FILE_PATH=src/lib/api.ts
+    d. task format-check FILE_PATH=src/components/ui/dialog.tsx

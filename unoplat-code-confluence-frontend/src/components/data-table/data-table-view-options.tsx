@@ -1,8 +1,8 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import { Check, ChevronsUpDown, Settings2 } from "lucide-react";
-
+import { Check, Settings2 } from "lucide-react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -18,14 +18,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import * as React from "react";
 
-interface DataTableViewOptionsProps<TData> {
+interface DataTableViewOptionsProps<TData>
+  extends React.ComponentProps<typeof PopoverContent> {
   table: Table<TData>;
 }
 
 export function DataTableViewOptions<TData>({
   table,
+  ...props
 }: DataTableViewOptionsProps<TData>) {
   const columns = React.useMemo(
     () =>
@@ -46,14 +47,13 @@ export function DataTableViewOptions<TData>({
           role="combobox"
           variant="outline"
           size="sm"
-          className="ml-auto hidden h-8 lg:flex"
+          className="ml-auto hidden h-8 font-normal lg:flex"
         >
-          <Settings2 />
+          <Settings2 className="text-muted-foreground" />
           View
-          <ChevronsUpDown className="ml-auto opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-44 p-0">
+      <PopoverContent className="w-44 p-0" {...props}>
         <Command>
           <CommandInput placeholder="Search columns..." />
           <CommandList>

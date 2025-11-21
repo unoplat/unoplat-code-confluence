@@ -45,9 +45,10 @@ export function getProviderIcon(provider_key: ProviderKey): LucideIcon {
  * Check if a provider is an enterprise/self-hosted provider
  */
 export function isEnterpriseProvider(provider_key: ProviderKey): boolean {
-  return [ProviderKey.GITHUB_ENTERPRISE, ProviderKey.GITLAB_ENTERPRISE].includes(
-    provider_key,
-  );
+  return [
+    ProviderKey.GITHUB_ENTERPRISE,
+    ProviderKey.GITLAB_ENTERPRISE,
+  ].includes(provider_key);
 }
 
 /**
@@ -118,13 +119,20 @@ export function getProviderShortCode(provider_key: ProviderKey): string {
  */
 export function getProviderColorClass(provider_key: ProviderKey): string {
   const colorClasses: Record<ProviderKey, string> = {
-    [ProviderKey.GITHUB_OPEN]: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100",
-    [ProviderKey.GITHUB_ENTERPRISE]: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100",
-    [ProviderKey.GITLAB_CE]: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
-    [ProviderKey.GITLAB_ENTERPRISE]: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
-    [ProviderKey.GOOGLE_AUTH]: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
-    [ProviderKey.GITHUB_AUTH]: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100",
-    [ProviderKey.MODEL_PROVIDER_AUTH]: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
+    [ProviderKey.GITHUB_OPEN]:
+      "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100",
+    [ProviderKey.GITHUB_ENTERPRISE]:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100",
+    [ProviderKey.GITLAB_CE]:
+      "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
+    [ProviderKey.GITLAB_ENTERPRISE]:
+      "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
+    [ProviderKey.GOOGLE_AUTH]:
+      "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
+    [ProviderKey.GITHUB_AUTH]:
+      "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100",
+    [ProviderKey.MODEL_PROVIDER_AUTH]:
+      "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
   };
 
   return (

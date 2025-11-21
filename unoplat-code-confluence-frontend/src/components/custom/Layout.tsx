@@ -1,5 +1,6 @@
 import React from "react";
 import { Outlet, useRouterState, Link } from "@tanstack/react-router";
+import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import { Toaster } from "../ui/toaster";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "@/components/custom/AppSidebar";
@@ -183,7 +184,9 @@ export function Layout(): React.ReactElement {
               </div>
             </header>
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-              <Outlet />
+              <NuqsAdapter>
+                <Outlet />
+              </NuqsAdapter>
             </div>
           </SidebarInset>
         </div>
