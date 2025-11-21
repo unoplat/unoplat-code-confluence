@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.21.0...unoplat-code-confluence-query-engine-v0.22.0) (2025-11-21)
+
+
+### Features
+
+* **config:** Update dependencies and refactor MCP server management (temp fix for concurrent access to subagents cuasing asyncio issues - moving to async workflow engine with better isolation same as ingestion( ([ef1725c](https://github.com/unoplat/unoplat-code-confluence/commit/ef1725c800affc63015641068ab6d5d876d8fab4))
+
 ## [0.21.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.20.0...unoplat-code-confluence-query-engine-v0.21.0) (2025-11-10)
 
 
