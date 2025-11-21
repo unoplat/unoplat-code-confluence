@@ -12,7 +12,7 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { DataTable } from "../data-table";
+import { DataTable } from "@/components/data-table/data-table";
 import {
   getJobStatusDataTableColumns,
   getStatusIcon,
@@ -37,7 +37,7 @@ import {
   getSortedRowModel,
   ColumnFiltersState,
 } from "@tanstack/react-table";
-import { DataTableToolbar } from "../data-table-toolbar";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { FeedbackDialog } from "./FeedbackDialog";
 
 // Define FeedbackSource type to match the one in FeedbackDialog
@@ -56,8 +56,6 @@ export function JobStatusDialog({
   onOpenChange,
   job,
 }: JobStatusDialogProps): React.ReactElement | null {
-  "use no memo";
-
   const [statusError, setStatusError] = useState<string | null>(null);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState<boolean>(false);
   const [feedbackSource, setFeedbackSource] = useState<FeedbackSource | null>(
@@ -256,7 +254,7 @@ export function JobStatusDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+        <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Repository Status Details</DialogTitle>
             <DialogDescription>
@@ -384,14 +382,8 @@ export function JobStatusDialog({
               {codebaseRuns.length > 0 && (
                 <div className="mt-6">
                   <h4 className="mb-2 text-lg font-semibold">Codebase Runs</h4>
-                  {/* Debug data is logged when the component renders */}
-                  <div className="border-border overflow-hidden rounded-md border">
-                    <DataTable
-                      table={table}
-                      actionBar={null}
-                      isLoading={isLoading}
-                      // className="border-0" /* Remove outer border since we're adding our own */
-                    >
+                  <div className="rounded-md border">
+                    <DataTable table={table} actionBar={null}>
                       <DataTableToolbar table={table} />
                     </DataTable>
                   </div>

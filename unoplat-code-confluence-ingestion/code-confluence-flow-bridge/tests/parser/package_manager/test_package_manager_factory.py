@@ -5,11 +5,6 @@ combinations to their appropriate strategy implementations.
 """
 
 import pytest
-from unoplat_code_confluence_commons.programming_language_metadata import (
-    PackageManagerType,
-    ProgrammingLanguage,
-)
-
 from src.code_confluence_flow_bridge.parser.package_manager.node.node_package_manager_strategy import (
     NodePackageManagerStrategy,
 )
@@ -25,6 +20,10 @@ from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strate
 )
 from src.code_confluence_flow_bridge.parser.package_manager.uv.uv_strategy import (
     UvStrategy,
+)
+from unoplat_code_confluence_commons.programming_language_metadata import (
+    PackageManagerType,
+    ProgrammingLanguage,
 )
 
 

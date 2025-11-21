@@ -7,5 +7,6 @@ from pydantic import BaseModel, Field
 
 class Position(BaseModel):
     """Represents source code location information."""
+
     start_line: Optional[int] = Field(default=None, alias="StartLine")
     stop_line: Optional[int] = Field(default=None, alias="StopLine")

@@ -1,24 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   useQuery,
   useMutation,
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  ColumnFiltersState,
-  SortingState,
-} from "@tanstack/react-table";
 
-import { DataTable } from "@/components/data-table";
-import { DataTableToolbar } from "@/components/data-table-toolbar";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { useDataTable } from "@/hooks/use-data-table";
 import { getIngestedRepositoriesColumns } from "./ingested-repositories-data-table-columns";
 import { RefreshRepositoryDialog } from "./RefreshRepositoryDialog";
 import { DeleteRepositoryDialog } from "./DeleteRepositoryDialog";
@@ -41,13 +34,7 @@ interface RowAction {
 }
 
 export function IngestedRepositoriesDataTable(): React.ReactElement {
-  "use no memo";
-
   const [rowAction, setRowAction] = useState<RowAction | null>(null);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [isRefreshDialogOpen, setIsRefreshDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const isGenerationDialogOpen = useAgentGenerationUIStore(
     (s) => s.isDialogOpen,
   );
@@ -63,7 +50,7 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
   // Fetch ingested repositories
   const {
     data: repositoriesData,
-    isLoading,
+    isPending,
     error,
   } = useQuery({
     queryKey: ["ingestedRepositories"],
@@ -125,7 +112,7 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
         }
 
         openGenerationDialog(repository);
-      } catch (fetchError) {
+      } catch {
         toast.error(
           "Unable to verify model provider configuration. Please try again.",
         );
@@ -139,47 +126,27 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
       setRowAction,
       onGenerateAgents: handleGenerateAgents,
     });
-  }, [handleGenerateAgents, setRowAction]);
+  }, [handleGenerateAgents]);
 
-  // Initialize TanStack Table
-  const table = useReactTable({
+  // Initialize TanStack Table with URL state management
+  const { table } = useDataTable({
     data: repositories,
     columns,
-    state: {
-      columnFilters,
-      sorting,
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    onSortingChange: setSorting,
+    pageCount: -1, // Client-side pagination (backend doesn't support server pagination yet)
     initialState: {
       pagination: {
-        pageSize: 7,
+        pageIndex: 0,
+        pageSize: 10,
       },
     },
     getRowId: (row: IngestedRepository) =>
       `${row.repository_owner_name}/${row.repository_name}`,
   });
 
-  // Handle row actions
-  useEffect(() => {
-    if (rowAction) {
-      if (rowAction.variant === "refresh") {
-        setIsRefreshDialogOpen(true);
-      } else if (rowAction.variant === "delete") {
-        setIsDeleteDialogOpen(true);
-      }
-    }
-  }, [rowAction]);
-
   const handleRefreshConfirm = () => {
     if (rowAction?.row.original) {
       refreshMutation.mutate(rowAction.row.original);
     }
-    setIsRefreshDialogOpen(false);
     setRowAction(null);
   };
 
@@ -187,13 +154,10 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
     if (rowAction?.row.original) {
       deleteMutation.mutate(rowAction.row.original);
     }
-    setIsDeleteDialogOpen(false);
     setRowAction(null);
   };
 
   const handleDialogClose = () => {
-    setIsRefreshDialogOpen(false);
-    setIsDeleteDialogOpen(false);
     setRowAction(null);
   };
 
@@ -209,19 +173,29 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4">
-      <DataTable table={table} isLoading={isLoading} actionBar={null}>
-        <DataTableToolbar table={table} />
-      </DataTable>
+      {isPending ? (
+        <DataTableSkeleton
+          columnCount={4}
+          rowCount={10}
+          filterCount={3}
+          withViewOptions
+          withPagination
+        />
+      ) : (
+        <DataTable table={table}>
+          <DataTableToolbar table={table} />
+        </DataTable>
+      )}
 
       <RefreshRepositoryDialog
-        open={isRefreshDialogOpen}
+        open={rowAction?.variant === "refresh"}
         onOpenChange={handleDialogClose}
         onConfirm={handleRefreshConfirm}
         repository={rowAction?.row.original || null}
       />
 
       <DeleteRepositoryDialog
-        open={isDeleteDialogOpen}
+        open={rowAction?.variant === "delete"}
         onOpenChange={handleDialogClose}
         onConfirm={handleDeleteConfirm}
         repository={rowAction?.row.original || null}

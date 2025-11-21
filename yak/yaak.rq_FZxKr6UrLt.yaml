@@ -1,0 +1,34 @@
+type: http_request
+model: http_request
+id: rq_FZxKr6UrLt
+createdAt: 2025-11-08T04:59:35.029030
+updatedAt: 2025-11-08T05:02:16.916913
+workspaceId: wk_KULjx4bEa8
+folderId: fl_hna6gFurFY
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: github-open-browse
+sortPriority: 0.0007999999999999999
+url: http://localhost:8000/repos
+urlParameters:
+- enabled: true
+  name: per_page
+  value: '10'
+  id: FQe3YpWXfy
+- enabled: true
+  name: provider_key
+  value: github_open
+  id: 8EemqQCZVS
+- enabled: false
+  name: ''
+  value: ''
+  id: Dss2bxq573
+- enabled: true
+  name: ''
+  value: ''
+  id: aMCIcChu3B

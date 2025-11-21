@@ -10,7 +10,11 @@ class TotalFileCount:
     def __init__(self, directory, extension):
         self.directory = directory
         self.extension = extension
-        logger.info("FileCounter initialized with directory: {} and extension: {}", directory, extension)
+        logger.info(
+            "FileCounter initialized with directory: {} and extension: {}",
+            directory,
+            extension,
+        )
 
     def count_files(self):
         logger.info("Counting files...")

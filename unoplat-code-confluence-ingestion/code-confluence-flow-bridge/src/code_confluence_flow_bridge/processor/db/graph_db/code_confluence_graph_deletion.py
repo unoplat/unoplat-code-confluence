@@ -21,11 +21,13 @@ class CodeConfluenceGraphDeletion:
     Class for handling deletion operations in the Code Confluence graph database.
     Uses shared Neo4j connection pool via CodeConfluenceGraph instance.
     """
-    
+
     def __init__(self, code_confluence_graph: CodeConfluenceGraph) -> None:
         self.code_confluence_graph = code_confluence_graph
-    
-    async def _get_repository_by_qualified_name_txn(self, tx: AsyncManagedTransaction, qualified_name: str) -> Optional[Record]:
+
+    async def _get_repository_by_qualified_name_txn(
+        self, tx: AsyncManagedTransaction, qualified_name: str
+    ) -> Optional[Record]:
         """
         Transaction function to get repository by qualified name
         """
@@ -35,8 +37,10 @@ class CodeConfluenceGraphDeletion:
         """
         result = await tx.run(query, {"qualified_name": qualified_name})
         return await result.single()
-    
-    async def _get_repository_codebases_txn(self, tx: AsyncManagedTransaction, repository_qualified_name: str) -> List[Record]:
+
+    async def _get_repository_codebases_txn(
+        self, tx: AsyncManagedTransaction, repository_qualified_name: str
+    ) -> List[Record]:
         """
         Transaction function to get all codebases for a repository
         """
@@ -45,10 +49,14 @@ class CodeConfluenceGraphDeletion:
         MATCH (r)-[:CONTAINS_CODEBASE]->(c:CodeConfluenceCodebase)
         RETURN c
         """
-        result = await tx.run(query, {"repository_qualified_name": repository_qualified_name})
+        result = await tx.run(
+            query, {"repository_qualified_name": repository_qualified_name}
+        )
         return [record async for record in result]
-    
-    async def _get_codebase_files_txn(self, tx: AsyncManagedTransaction, codebase_qualified_name: str) -> List[Record]:
+
+    async def _get_codebase_files_txn(
+        self, tx: AsyncManagedTransaction, codebase_qualified_name: str
+    ) -> List[Record]:
         """
         Transaction function to get all files for a codebase using prefix matching.
         This ensures we find all files belonging to the codebase, even if relationships are missing.
@@ -59,10 +67,14 @@ class CodeConfluenceGraphDeletion:
         WHERE f.file_path STARTS WITH c.codebase_path
         RETURN f
         """
-        result = await tx.run(query, {"codebase_qualified_name": codebase_qualified_name})
+        result = await tx.run(
+            query, {"codebase_qualified_name": codebase_qualified_name}
+        )
         return [record async for record in result]
-    
-    async def _get_codebase_metadata_txn(self, tx: AsyncManagedTransaction, codebase_qualified_name: str) -> List[Record]:
+
+    async def _get_codebase_metadata_txn(
+        self, tx: AsyncManagedTransaction, codebase_qualified_name: str
+    ) -> List[Record]:
         """
         Transaction function to get all package manager metadata for a codebase using relationship traversal.
         This uses the HAS_PACKAGE_MANAGER_METADATA relationship defined in the graph models.
@@ -72,30 +84,36 @@ class CodeConfluenceGraphDeletion:
         MATCH (c)-[:HAS_PACKAGE_MANAGER_METADATA]->(m:CodeConfluencePackageManagerMetadata)
         RETURN m
         """
-        result = await tx.run(query, {"codebase_qualified_name": codebase_qualified_name})
+        result = await tx.run(
+            query, {"codebase_qualified_name": codebase_qualified_name}
+        )
         return [record async for record in result]
-    
-    async def _get_codebase_relationships_txn(self, tx: AsyncManagedTransaction, codebase_qualified_names: List[str]) -> Dict[str, List[Record]]:
+
+    async def _get_codebase_relationships_txn(
+        self, tx: AsyncManagedTransaction, codebase_qualified_names: List[str]
+    ) -> Dict[str, List[Record]]:
         """
         Transaction function to get all relationships for codebases that need to be deleted
         """
         if not codebase_qualified_names:
             return {"uses_framework": []}
-        
+
         # Get USES_FRAMEWORK relationships
         uses_framework_query = """
         MATCH (c:CodeConfluenceCodebase)-[r:USES_FRAMEWORK]->(f:CodeConfluenceFramework)
         WHERE c.qualified_name IN $codebase_qualified_names
         RETURN c.qualified_name as codebase_qualified_name, f.qualified_name as framework_qualified_name, r
         """
-        
-        uses_framework_result = await tx.run(uses_framework_query, {"codebase_qualified_names": codebase_qualified_names})
-        
-        return {
-            "uses_framework": [record async for record in uses_framework_result]
-        }
-    
-    async def _delete_files_batch_txn(self, tx: AsyncManagedTransaction, file_paths: List[str]) -> Optional[Record]:
+
+        uses_framework_result = await tx.run(
+            uses_framework_query, {"codebase_qualified_names": codebase_qualified_names}
+        )
+
+        return {"uses_framework": [record async for record in uses_framework_result]}
+
+    async def _delete_files_batch_txn(
+        self, tx: AsyncManagedTransaction, file_paths: List[str]
+    ) -> Optional[Record]:
         """
         Transaction function to delete multiple files in batch
         Note: CodeConfluenceFile uses file_path as unique identifier, not qualified_name
@@ -105,7 +123,7 @@ class CodeConfluenceGraphDeletion:
             query = "RETURN 0 as count"
             result = await tx.run(query)
             return await result.single()
-        
+
         query = """
         MATCH (f:CodeConfluenceFile)
         WHERE f.file_path IN $file_paths
@@ -115,8 +133,10 @@ class CodeConfluenceGraphDeletion:
         """
         result = await tx.run(query, {"file_paths": file_paths})
         return await result.single()
-    
-    async def _delete_package_manager_metadata_batch_txn(self, tx: AsyncManagedTransaction, metadata_qualified_names: List[str]) -> Optional[Record]:
+
+    async def _delete_package_manager_metadata_batch_txn(
+        self, tx: AsyncManagedTransaction, metadata_qualified_names: List[str]
+    ) -> Optional[Record]:
         """
         Transaction function to delete multiple package manager metadata nodes in batch
         """
@@ -124,7 +144,7 @@ class CodeConfluenceGraphDeletion:
             query = "RETURN 0 as count"
             result = await tx.run(query)
             return await result.single()
-        
+
         query = """
         MATCH (m:CodeConfluencePackageManagerMetadata)
         WHERE m.qualified_name IN $qualified_names
@@ -134,8 +154,10 @@ class CodeConfluenceGraphDeletion:
         """
         result = await tx.run(query, {"qualified_names": metadata_qualified_names})
         return await result.single()
-    
-    async def _delete_codebases_batch_txn(self, tx: AsyncManagedTransaction, codebase_qualified_names: List[str]) -> Optional[Record]:
+
+    async def _delete_codebases_batch_txn(
+        self, tx: AsyncManagedTransaction, codebase_qualified_names: List[str]
+    ) -> Optional[Record]:
         """
         Transaction function to delete multiple codebases in batch
         """
@@ -143,7 +165,7 @@ class CodeConfluenceGraphDeletion:
             query = "RETURN 0 as count"
             result = await tx.run(query)
             return await result.single()
-        
+
         query = """
         MATCH (c:CodeConfluenceCodebase)
         WHERE c.qualified_name IN $qualified_names
@@ -153,8 +175,10 @@ class CodeConfluenceGraphDeletion:
         """
         result = await tx.run(query, {"qualified_names": codebase_qualified_names})
         return await result.single()
-    
-    async def _delete_repository_txn(self, tx: AsyncManagedTransaction, repository_qualified_name: str) -> Optional[Record]:
+
+    async def _delete_repository_txn(
+        self, tx: AsyncManagedTransaction, repository_qualified_name: str
+    ) -> Optional[Record]:
         """
         Transaction function to delete a repository
         """
@@ -165,8 +189,10 @@ class CodeConfluenceGraphDeletion:
         """
         result = await tx.run(query, {"qualified_name": repository_qualified_name})
         return await result.single()
-    
-    async def _delete_file_relationships_batch_txn(self, tx: AsyncManagedTransaction, file_paths: List[str]) -> Dict[str, int]:
+
+    async def _delete_file_relationships_batch_txn(
+        self, tx: AsyncManagedTransaction, file_paths: List[str]
+    ) -> Dict[str, int]:
         """
         Transaction function to delete all relationships for files in batch
         """
@@ -176,9 +202,9 @@ class CodeConfluenceGraphDeletion:
                 "part_of_codebase_deleted": 0,
                 "contains_file_deleted": 0,
             }
-        
+
         stats = {}
-        
+
         # Delete USES_FEATURE relationships
         uses_feature_query = """
         MATCH (f:CodeConfluenceFile)-[r:USES_FEATURE]->(feat:CodeConfluenceFrameworkFeature)
@@ -186,10 +212,14 @@ class CodeConfluenceGraphDeletion:
         DELETE r
         RETURN count(r) as count
         """
-        uses_feature_result = await tx.run(uses_feature_query, {"file_paths": file_paths})
+        uses_feature_result = await tx.run(
+            uses_feature_query, {"file_paths": file_paths}
+        )
         uses_feature_record = await uses_feature_result.single()
-        stats["uses_feature_deleted"] = uses_feature_record["count"] if uses_feature_record else 0
-        
+        stats["uses_feature_deleted"] = (
+            uses_feature_record["count"] if uses_feature_record else 0
+        )
+
         # Delete PART_OF_CODEBASE relationships (File → Codebase)
         part_of_codebase_query = """
         MATCH (f:CodeConfluenceFile)-[r:PART_OF_CODEBASE]->(c:CodeConfluenceCodebase)
@@ -197,9 +227,13 @@ class CodeConfluenceGraphDeletion:
         DELETE r
         RETURN count(r) as count
         """
-        part_of_codebase_result = await tx.run(part_of_codebase_query, {"file_paths": file_paths})
+        part_of_codebase_result = await tx.run(
+            part_of_codebase_query, {"file_paths": file_paths}
+        )
         part_of_codebase_record = await part_of_codebase_result.single()
-        stats["part_of_codebase_deleted"] = part_of_codebase_record["count"] if part_of_codebase_record else 0
+        stats["part_of_codebase_deleted"] = (
+            part_of_codebase_record["count"] if part_of_codebase_record else 0
+        )
 
         # Delete CONTAINS_FILE relationships (Codebase → File)
         contains_file_query = """
@@ -208,13 +242,19 @@ class CodeConfluenceGraphDeletion:
         DELETE r
         RETURN count(r) as count
         """
-        contains_file_result = await tx.run(contains_file_query, {"file_paths": file_paths})
+        contains_file_result = await tx.run(
+            contains_file_query, {"file_paths": file_paths}
+        )
         contains_file_record = await contains_file_result.single()
-        stats["contains_file_deleted"] = contains_file_record["count"] if contains_file_record else 0
+        stats["contains_file_deleted"] = (
+            contains_file_record["count"] if contains_file_record else 0
+        )
 
         return stats
-    
-    async def _delete_codebase_relationships_batch_txn(self, tx: AsyncManagedTransaction, codebase_qualified_names: List[str]) -> Dict[str, int]:
+
+    async def _delete_codebase_relationships_batch_txn(
+        self, tx: AsyncManagedTransaction, codebase_qualified_names: List[str]
+    ) -> Dict[str, int]:
         """
         Transaction function to delete all relationships for codebases in batch
         """
@@ -224,11 +264,11 @@ class CodeConfluenceGraphDeletion:
                 "used_by_deleted": 0,
                 "part_of_git_repository_deleted": 0,
                 "contains_codebase_deleted": 0,
-                "has_package_manager_metadata_deleted": 0
+                "has_package_manager_metadata_deleted": 0,
             }
-        
+
         stats = {}
-        
+
         # Delete USES_FRAMEWORK relationships (Codebase → Framework)
         uses_framework_query = """
         MATCH (c:CodeConfluenceCodebase)-[r:USES_FRAMEWORK]->(f:CodeConfluenceFramework)
@@ -236,10 +276,14 @@ class CodeConfluenceGraphDeletion:
         DELETE r
         RETURN count(r) as count
         """
-        uses_framework_result = await tx.run(uses_framework_query, {"codebase_qualified_names": codebase_qualified_names})
+        uses_framework_result = await tx.run(
+            uses_framework_query, {"codebase_qualified_names": codebase_qualified_names}
+        )
         uses_framework_record = await uses_framework_result.single()
-        stats["uses_framework_deleted"] = uses_framework_record["count"] if uses_framework_record else 0
-        
+        stats["uses_framework_deleted"] = (
+            uses_framework_record["count"] if uses_framework_record else 0
+        )
+
         # Delete USED_BY relationships (Framework → Codebase)
         used_by_query = """
         MATCH (f:CodeConfluenceFramework)-[r:USED_BY]->(c:CodeConfluenceCodebase)
@@ -247,10 +291,12 @@ class CodeConfluenceGraphDeletion:
         DELETE r
         RETURN count(r) as count
         """
-        used_by_result = await tx.run(used_by_query, {"codebase_qualified_names": codebase_qualified_names})
+        used_by_result = await tx.run(
+            used_by_query, {"codebase_qualified_names": codebase_qualified_names}
+        )
         used_by_record = await used_by_result.single()
         stats["used_by_deleted"] = used_by_record["count"] if used_by_record else 0
-        
+
         # Delete PART_OF_GIT_REPOSITORY relationships (Codebase → Repository)
         part_of_git_repository_query = """
         MATCH (c:CodeConfluenceCodebase)-[r:PART_OF_GIT_REPOSITORY]->(repo:CodeConfluenceGitRepository)
@@ -258,10 +304,17 @@ class CodeConfluenceGraphDeletion:
         DELETE r
         RETURN count(r) as count
         """
-        part_of_git_repository_result = await tx.run(part_of_git_repository_query, {"codebase_qualified_names": codebase_qualified_names})
+        part_of_git_repository_result = await tx.run(
+            part_of_git_repository_query,
+            {"codebase_qualified_names": codebase_qualified_names},
+        )
         part_of_git_repository_record = await part_of_git_repository_result.single()
-        stats["part_of_git_repository_deleted"] = part_of_git_repository_record["count"] if part_of_git_repository_record else 0
-        
+        stats["part_of_git_repository_deleted"] = (
+            part_of_git_repository_record["count"]
+            if part_of_git_repository_record
+            else 0
+        )
+
         # Delete CONTAINS_CODEBASE relationships (Repository → Codebase)
         contains_codebase_query = """
         MATCH (repo:CodeConfluenceGitRepository)-[r:CONTAINS_CODEBASE]->(c:CodeConfluenceCodebase)
@@ -269,10 +322,15 @@ class CodeConfluenceGraphDeletion:
         DELETE r
         RETURN count(r) as count
         """
-        contains_codebase_result = await tx.run(contains_codebase_query, {"codebase_qualified_names": codebase_qualified_names})
+        contains_codebase_result = await tx.run(
+            contains_codebase_query,
+            {"codebase_qualified_names": codebase_qualified_names},
+        )
         contains_codebase_record = await contains_codebase_result.single()
-        stats["contains_codebase_deleted"] = contains_codebase_record["count"] if contains_codebase_record else 0
-        
+        stats["contains_codebase_deleted"] = (
+            contains_codebase_record["count"] if contains_codebase_record else 0
+        )
+
         # Delete HAS_PACKAGE_MANAGER_METADATA relationships (Codebase → Metadata)
         has_package_manager_metadata_query = """
         MATCH (c:CodeConfluenceCodebase)-[r:HAS_PACKAGE_MANAGER_METADATA]->(m:CodeConfluencePackageManagerMetadata)
@@ -280,25 +338,36 @@ class CodeConfluenceGraphDeletion:
         DELETE r
         RETURN count(r) as count
         """
-        has_package_manager_metadata_result = await tx.run(has_package_manager_metadata_query, {"codebase_qualified_names": codebase_qualified_names})
-        has_package_manager_metadata_record = await has_package_manager_metadata_result.single()
-        stats["has_package_manager_metadata_deleted"] = has_package_manager_metadata_record["count"] if has_package_manager_metadata_record else 0
-        
+        has_package_manager_metadata_result = await tx.run(
+            has_package_manager_metadata_query,
+            {"codebase_qualified_names": codebase_qualified_names},
+        )
+        has_package_manager_metadata_record = (
+            await has_package_manager_metadata_result.single()
+        )
+        stats["has_package_manager_metadata_deleted"] = (
+            has_package_manager_metadata_record["count"]
+            if has_package_manager_metadata_record
+            else 0
+        )
+
         return stats
-    
-    async def delete_repository_by_qualified_name_managed(self, session: AsyncSession, qualified_name: str) -> Dict[str, Union[int, str]]:
+
+    async def delete_repository_by_qualified_name_managed(
+        self, session: AsyncSession, qualified_name: str
+    ) -> Dict[str, Union[int, str]]:
         """
         NEW METHOD: Delete a repository and all its related nodes by qualified name using managed transactions.
-        
+
         This method now properly handles all relationships before deleting nodes to avoid Neo4j constraint violations.
-        
+
         Args:
             session: Neo4j async session for managed transactions
             qualified_name: The qualified name of the repository (format: {owner}_{repo_name})
-            
+
         Returns:
             Dict containing deletion statistics including relationship cleanup
-            
+
         Raises:
             ApplicationError: If repository not found or deletion fails
         """
@@ -306,7 +375,9 @@ class CodeConfluenceGraphDeletion:
             # -- DEBUG: Beginning deletion workflow for repository
             logger.debug("Graph deletion start for repository: {}", qualified_name)
             # First, check if the repository exists
-            repo_record = await session.execute_read(self._get_repository_by_qualified_name_txn, qualified_name)
+            repo_record = await session.execute_read(
+                self._get_repository_by_qualified_name_txn, qualified_name
+            )
             if not repo_record:
                 raise ApplicationError(
                     f"Repository not found: {qualified_name}",
@@ -315,9 +386,9 @@ class CodeConfluenceGraphDeletion:
                     {"workflow_run_id": workflow_run_id_var.get("")},
                     {"activity_name": activity_name_var.get("")},
                     {"activity_id": activity_id_var.get("")},
-                    type="REPOSITORY_NOT_FOUND"
+                    type="REPOSITORY_NOT_FOUND",
                 )
-            
+
             # Initialize statistics (keeping original structure)
             stats: Dict[str, Union[int, str]] = {
                 "repository_qualified_name": qualified_name,
@@ -326,24 +397,39 @@ class CodeConfluenceGraphDeletion:
                 "files_deleted": 0,
                 "metadata_deleted": 0,
             }
-            
+
             # Get all codebases for the repository
-            codebase_records = await session.execute_read(self._get_repository_codebases_txn, qualified_name)
-            codebase_qualified_names = [record["c"]["qualified_name"] for record in codebase_records]
-            logger.debug("Found {} codebases for repository {}: {}", len(codebase_qualified_names), qualified_name, codebase_qualified_names)
-            
+            codebase_records = await session.execute_read(
+                self._get_repository_codebases_txn, qualified_name
+            )
+            codebase_qualified_names = [
+                record["c"]["qualified_name"] for record in codebase_records
+            ]
+            logger.debug(
+                "Found {} codebases for repository {}: {}",
+                len(codebase_qualified_names),
+                qualified_name,
+                codebase_qualified_names,
+            )
+
             # For each codebase, collect all entities to delete
             all_file_paths: List[str] = []
             all_metadata_qualified_names: List[str] = []
-            
+
             for codebase_qn in codebase_qualified_names:
                 # Get metadata nodes using relationship traversal
-                metadata_records = await session.execute_read(self._get_codebase_metadata_txn, codebase_qn)
-                metadata_qns = [record["m"]["qualified_name"] for record in metadata_records]
+                metadata_records = await session.execute_read(
+                    self._get_codebase_metadata_txn, codebase_qn
+                )
+                metadata_qns = [
+                    record["m"]["qualified_name"] for record in metadata_records
+                ]
                 all_metadata_qualified_names.extend(metadata_qns)
 
                 # Get all files using prefix matching on codebase path
-                file_records = await session.execute_read(self._get_codebase_files_txn, codebase_qn)
+                file_records = await session.execute_read(
+                    self._get_codebase_files_txn, codebase_qn
+                )
                 file_paths = [record["f"]["file_path"] for record in file_records]
                 all_file_paths.extend(file_paths)
 
@@ -352,46 +438,70 @@ class CodeConfluenceGraphDeletion:
                 len(all_file_paths),
                 len(all_metadata_qualified_names),
             )
-            
+
             # PHASE 1: Delete all relationships BEFORE deleting nodes (Critical for Neo4j constraints)
-            
+
             # 1. Delete codebase relationships first (highest level)
             total_codebase_relationships = 0
             if codebase_qualified_names:
-                codebase_rel_stats = await session.execute_write(self._delete_codebase_relationships_batch_txn, codebase_qualified_names)
+                codebase_rel_stats = await session.execute_write(
+                    self._delete_codebase_relationships_batch_txn,
+                    codebase_qualified_names,
+                )
                 total_codebase_relationships = sum(codebase_rel_stats.values())
                 logger.info("Deleted codebase relationships: {}", codebase_rel_stats)
-            
+
             # 2. Delete file relationships
             total_file_relationships = 0
             if all_file_paths:
-                file_rel_stats = await session.execute_write(self._delete_file_relationships_batch_txn, all_file_paths)
+                file_rel_stats = await session.execute_write(
+                    self._delete_file_relationships_batch_txn, all_file_paths
+                )
                 total_file_relationships = sum(file_rel_stats.values())
                 logger.info("Deleted file relationships: {}", file_rel_stats)
-            
+
             # PHASE 2: Now safely delete nodes in dependency order
-            
+
             # 3. Delete files (now relationship-free)
             if all_file_paths:
-                file_delete_record = await session.execute_write(self._delete_files_batch_txn, all_file_paths)
-                stats["files_deleted"] = file_delete_record["count"] if file_delete_record else 0
+                file_delete_record = await session.execute_write(
+                    self._delete_files_batch_txn, all_file_paths
+                )
+                stats["files_deleted"] = (
+                    file_delete_record["count"] if file_delete_record else 0
+                )
 
             # 4. Delete package manager metadata
             if all_metadata_qualified_names:
-                metadata_delete_record = await session.execute_write(self._delete_package_manager_metadata_batch_txn, all_metadata_qualified_names)
-                stats["metadata_deleted"] = metadata_delete_record["count"] if metadata_delete_record else 0
+                metadata_delete_record = await session.execute_write(
+                    self._delete_package_manager_metadata_batch_txn,
+                    all_metadata_qualified_names,
+                )
+                stats["metadata_deleted"] = (
+                    metadata_delete_record["count"] if metadata_delete_record else 0
+                )
 
             # 5. Delete codebases (now relationship-free)
             if codebase_qualified_names:
-                codebase_delete_record = await session.execute_write(self._delete_codebases_batch_txn, codebase_qualified_names)
-                stats["codebases_deleted"] = codebase_delete_record["count"] if codebase_delete_record else 0
+                codebase_delete_record = await session.execute_write(
+                    self._delete_codebases_batch_txn, codebase_qualified_names
+                )
+                stats["codebases_deleted"] = (
+                    codebase_delete_record["count"] if codebase_delete_record else 0
+                )
 
             # 6. Finally delete the repository
-            repository_delete_record = await session.execute_write(self._delete_repository_txn, qualified_name)
-            stats["repositories_deleted"] = repository_delete_record["count"] if repository_delete_record else 0
+            repository_delete_record = await session.execute_write(
+                self._delete_repository_txn, qualified_name
+            )
+            stats["repositories_deleted"] = (
+                repository_delete_record["count"] if repository_delete_record else 0
+            )
 
             # Calculate total relationships deleted for logging
-            total_relationships = total_file_relationships + total_codebase_relationships
+            total_relationships = (
+                total_file_relationships + total_codebase_relationships
+            )
 
             logger.info(
                 "Successfully deleted repository: {} | repositories: {} | codebases: {} | files: {} | metadata: {} | relationships: {} total",
@@ -400,20 +510,22 @@ class CodeConfluenceGraphDeletion:
                 stats["codebases_deleted"],
                 stats["files_deleted"],
                 stats["metadata_deleted"],
-                total_relationships
+                total_relationships,
             )
-            
+
             return stats
-                
+
         except ApplicationError:
             # Re-raise ApplicationError as is
             raise
         except Exception as e:
             error_msg = f"Failed to delete repository {qualified_name}"
-            logger.error("{} | error_type={} | error={}", error_msg, type(e).__name__, str(e))
-            
+            logger.error(
+                "{} | error_type={} | error={}", error_msg, type(e).__name__, str(e)
+            )
+
             tb_str = traceback.format_exc()
-            
+
             raise ApplicationError(
                 error_msg,
                 {"repository": qualified_name},
@@ -424,5 +536,5 @@ class CodeConfluenceGraphDeletion:
                 {"workflow_run_id": workflow_run_id_var.get("")},
                 {"activity_name": activity_name_var.get("")},
                 {"activity_id": activity_id_var.get("")},
-                type="GRAPH_DELETION_ERROR"
+                type="GRAPH_DELETION_ERROR",
             )

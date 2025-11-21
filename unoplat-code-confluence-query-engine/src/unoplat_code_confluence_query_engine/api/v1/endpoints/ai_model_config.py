@@ -2,9 +2,11 @@
 
 from typing import Any, Dict
 
-from fastapi import APIRouter, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from unoplat_code_confluence_query_engine.db.postgres.db import get_db_session
 from unoplat_code_confluence_query_engine.models.ai_model_config import (
     AiModelConfigIn,
     AiModelConfigOut,
@@ -25,11 +27,14 @@ router = APIRouter(prefix="/v1", tags=["ai-model-config"])
 
 
 @router.get("/model-config", response_model=AiModelConfigOut)
-async def get_ai_model_config(request: Request) -> AiModelConfigOut:
+async def get_ai_model_config(
+    request: Request, session: AsyncSession = Depends(get_db_session)
+) -> AiModelConfigOut:
     """Get the current AI model configuration.
 
     Args:
         request: FastAPI request object to access app state
+        session: Database session
 
     Returns:
         AiModelConfigOut with the current configuration
@@ -39,7 +44,7 @@ async def get_ai_model_config(request: Request) -> AiModelConfigOut:
     """
     try:
         service = request.app.state.ai_model_config_service
-        config = await service.get_config()
+        config = await service.get_config(session)
 
         if config is None:
             logger.info("AI model configuration not found")
@@ -66,6 +71,7 @@ async def upsert_ai_model_config(
     request: Request,
     config: AiModelConfigIn,
     x_model_api_key: str | None = Header(None, alias="X-Model-API-Key"),
+    session: AsyncSession = Depends(get_db_session),
 ) -> AiModelConfigOut:
     """Create or update AI model configuration.
 
@@ -73,6 +79,7 @@ async def upsert_ai_model_config(
         request: FastAPI request object to access app state
         config: AI model configuration input
         x_model_api_key: API key from X-Model-API-Key header
+        session: Database session
 
     Returns:
         AiModelConfigOut with the saved configuration
@@ -82,7 +89,7 @@ async def upsert_ai_model_config(
     """
     try:
         service: AiModelConfigService = request.app.state.ai_model_config_service
-        result = await service.upsert_config(config, api_key=x_model_api_key)
+        result = await service.upsert_config(config, x_model_api_key, session)
         logger.info("AI model config upserted for provider: {}", config.provider_key)
 
         # Immediately refresh application agents so new config/credentials take effect
@@ -92,7 +99,7 @@ async def upsert_ai_model_config(
             before_keys = []
         logger.debug("Agents before refresh: {}", before_keys)
 
-        await update_app_agents(request.app)
+        await update_app_agents(request.app, session)
 
         after_keys = list(request.app.state.agents.keys())
         logger.info("Application agents refreshed after config upsert")
@@ -112,18 +119,21 @@ async def upsert_ai_model_config(
 
 
 @router.delete("/model-config")
-async def delete_ai_model_config(request: Request) -> Dict[str, Any]:
+async def delete_ai_model_config(
+    request: Request, session: AsyncSession = Depends(get_db_session)
+) -> Dict[str, Any]:
     """Delete the current AI model configuration.
 
     Args:
         request: FastAPI request object to access app state
+        session: Database session
 
     Returns:
         Dictionary with deletion status
     """
     try:
         service = request.app.state.ai_model_config_service
-        deleted = await service.delete_config()
+        deleted = await service.delete_config(session)
 
         if deleted:
             logger.info("AI model configuration deleted")

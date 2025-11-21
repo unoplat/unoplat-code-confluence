@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.32.0...unoplat-code-confluence-frontend-v1.33.0) (2025-11-21)
+
+
+### Features
+
+* **fixes:** fix ai slop by removing unnecessary useeffects usestate etc and update latest nuqs to integrate with tanstack router and also update table component for repository management  to dice ui for better abstraction and manageability ([a453cb5](https://github.com/unoplat/unoplat-code-confluence/commit/a453cb5f66609ae9cb599621d2289dbf601a63c6))
+* **settings:** Refactor provider token management UI ([595c6dc](https://github.com/unoplat/unoplat-code-confluence/commit/595c6dca11a306e36a75b3a0ff6be8808ce02c3a))
+
+
+### Bug Fixes
+
+* **repository-table:** Refactor data fetching (useInfiniteQuery) and pagination logic for better reliability and performance ([19ebd60](https://github.com/unoplat/unoplat-code-confluence/commit/19ebd60a6e7640f78cd016e6122335e772f009d1))
+* **ui:** Update component styles and imports to fix regression issues ([b0433b3](https://github.com/unoplat/unoplat-code-confluence/commit/b0433b3245525676c70b539594c5d0334e64978f))
+
+## [1.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.31.0...unoplat-code-confluence-frontend-v1.32.0) (2025-11-18)
+
+
+### Features
+
+* **endpoint-updates:** Refactor repository configuration and credential types and api endpoints as per backend ([4278d2d](https://github.com/unoplat/unoplat-code-confluence/commit/4278d2de7b492b9bee82361daf60203d696b0701))
+* **endpoint-updates:** Refactor repository configuration and credential types and api endpoints as per backend ([6469582](https://github.com/unoplat/unoplat-code-confluence/commit/6469582bd0be1f7ddee9d7c1143646653f6dbc7e))
+
+
+### Bug Fixes
+
+* **ui:** card and button component variants/properties ([7d32bcd](https://github.com/unoplat/unoplat-code-confluence/commit/7d32bcdacc2efeac963854e15410aebf80a2b571))
+
 ## [1.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.30.3...unoplat-code-confluence-frontend-v1.31.0) (2025-11-03)
 
 

@@ -18,6 +18,9 @@ import { Route as AppRepositoryOperationsRouteImport } from './routes/_app.repos
 import { Route as AppRepositoryManagementRouteImport } from './routes/_app.repositoryManagement'
 import { Route as AppOnboardingRouteImport } from './routes/_app.onboarding'
 import { Route as AppDeveloperRouteImport } from './routes/_app.developer'
+import { Route as AppOnboardingIndexRouteImport } from './routes/_app.onboarding.index'
+import { Route as AppOnboardingGithubEnterpriseRouteImport } from './routes/_app.onboarding.github-enterprise'
+import { Route as AppOnboardingGithubRouteImport } from './routes/_app.onboarding.github'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -63,38 +66,62 @@ const AppDeveloperRoute = AppDeveloperRouteImport.update({
   path: '/developer',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppOnboardingRoute,
+} as any)
+const AppOnboardingGithubEnterpriseRoute =
+  AppOnboardingGithubEnterpriseRouteImport.update({
+    id: '/github-enterprise',
+    path: '/github-enterprise',
+    getParentRoute: () => AppOnboardingRoute,
+  } as any)
+const AppOnboardingGithubRoute = AppOnboardingGithubRouteImport.update({
+  id: '/github',
+  path: '/github',
+  getParentRoute: () => AppOnboardingRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/developer': typeof AppDeveloperRoute
-  '/onboarding': typeof AppOnboardingRoute
+  '/onboarding': typeof AppOnboardingRouteWithChildren
   '/repositoryManagement': typeof AppRepositoryManagementRoute
   '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/': typeof AppIndexRoute
+  '/onboarding/github': typeof AppOnboardingGithubRoute
+  '/onboarding/github-enterprise': typeof AppOnboardingGithubEnterpriseRoute
+  '/onboarding/': typeof AppOnboardingIndexRoute
 }
 export interface FileRoutesByTo {
   '/developer': typeof AppDeveloperRoute
-  '/onboarding': typeof AppOnboardingRoute
   '/repositoryManagement': typeof AppRepositoryManagementRoute
   '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/': typeof AppIndexRoute
+  '/onboarding/github': typeof AppOnboardingGithubRoute
+  '/onboarding/github-enterprise': typeof AppOnboardingGithubEnterpriseRoute
+  '/onboarding': typeof AppOnboardingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_app/developer': typeof AppDeveloperRoute
-  '/_app/onboarding': typeof AppOnboardingRoute
+  '/_app/onboarding': typeof AppOnboardingRouteWithChildren
   '/_app/repositoryManagement': typeof AppRepositoryManagementRoute
   '/_app/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/onboarding/github': typeof AppOnboardingGithubRoute
+  '/_app/onboarding/github-enterprise': typeof AppOnboardingGithubEnterpriseRoute
+  '/_app/onboarding/': typeof AppOnboardingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,16 +134,21 @@ export interface FileRouteTypes {
     | '/settings/developer'
     | '/settings/model-providers'
     | '/'
+    | '/onboarding/github'
+    | '/onboarding/github-enterprise'
+    | '/onboarding/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/developer'
-    | '/onboarding'
     | '/repositoryManagement'
     | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
     | '/settings/model-providers'
     | '/'
+    | '/onboarding/github'
+    | '/onboarding/github-enterprise'
+    | '/onboarding'
   id:
     | '__root__'
     | '/_app'
@@ -128,6 +160,9 @@ export interface FileRouteTypes {
     | '/settings/developer'
     | '/settings/model-providers'
     | '/_app/'
+    | '/_app/onboarding/github'
+    | '/_app/onboarding/github-enterprise'
+    | '/_app/onboarding/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -201,12 +236,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDeveloperRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/onboarding/': {
+      id: '/_app/onboarding/'
+      path: '/'
+      fullPath: '/onboarding/'
+      preLoaderRoute: typeof AppOnboardingIndexRouteImport
+      parentRoute: typeof AppOnboardingRoute
+    }
+    '/_app/onboarding/github-enterprise': {
+      id: '/_app/onboarding/github-enterprise'
+      path: '/github-enterprise'
+      fullPath: '/onboarding/github-enterprise'
+      preLoaderRoute: typeof AppOnboardingGithubEnterpriseRouteImport
+      parentRoute: typeof AppOnboardingRoute
+    }
+    '/_app/onboarding/github': {
+      id: '/_app/onboarding/github'
+      path: '/github'
+      fullPath: '/onboarding/github'
+      preLoaderRoute: typeof AppOnboardingGithubRouteImport
+      parentRoute: typeof AppOnboardingRoute
+    }
   }
 }
 
+interface AppOnboardingRouteChildren {
+  AppOnboardingGithubRoute: typeof AppOnboardingGithubRoute
+  AppOnboardingGithubEnterpriseRoute: typeof AppOnboardingGithubEnterpriseRoute
+  AppOnboardingIndexRoute: typeof AppOnboardingIndexRoute
+}
+
+const AppOnboardingRouteChildren: AppOnboardingRouteChildren = {
+  AppOnboardingGithubRoute: AppOnboardingGithubRoute,
+  AppOnboardingGithubEnterpriseRoute: AppOnboardingGithubEnterpriseRoute,
+  AppOnboardingIndexRoute: AppOnboardingIndexRoute,
+}
+
+const AppOnboardingRouteWithChildren = AppOnboardingRoute._addFileChildren(
+  AppOnboardingRouteChildren,
+)
+
 interface AppRouteChildren {
   AppDeveloperRoute: typeof AppDeveloperRoute
-  AppOnboardingRoute: typeof AppOnboardingRoute
+  AppOnboardingRoute: typeof AppOnboardingRouteWithChildren
   AppRepositoryManagementRoute: typeof AppRepositoryManagementRoute
   AppRepositoryOperationsRoute: typeof AppRepositoryOperationsRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -215,7 +287,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppDeveloperRoute: AppDeveloperRoute,
-  AppOnboardingRoute: AppOnboardingRoute,
+  AppOnboardingRoute: AppOnboardingRouteWithChildren,
   AppRepositoryManagementRoute: AppRepositoryManagementRoute,
   AppRepositoryOperationsRoute: AppRepositoryOperationsRoute,
   AppSettingsRoute: AppSettingsRoute,

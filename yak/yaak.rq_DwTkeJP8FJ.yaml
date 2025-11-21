@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_DwTkeJP8FJ
 createdAt: 2025-06-06T04:50:08.587406
-updatedAt: 2025-08-30T05:57:47.230805
+updatedAt: 2025-11-08T04:44:29.013279
 workspaceId: wk_KULjx4bEa8
 folderId: fl_RfTzTxKasf
 authentication: {}
@@ -18,9 +18,25 @@ headers:
 - enabled: true
   name: ''
   value: ''
-  id: k245dJt0Rn
+  id: 6DGzUcx7u4
 method: POST
 name: jay-ingest-token
 sortPriority: 0.0
 url: http://127.0.0.1:8000/ingest-token
-urlParameters: []
+urlParameters:
+- enabled: true
+  name: namespace
+  value: repository
+  id: FBgRz7KUvU
+- enabled: true
+  name: provider_key
+  value: github_open
+  id: CT6Kpucv8v
+- enabled: true
+  name: secret_kind
+  value: pat
+  id: chiuqY2BtT
+- enabled: true
+  name: ''
+  value: ''
+  id: TQgmqkIjD8

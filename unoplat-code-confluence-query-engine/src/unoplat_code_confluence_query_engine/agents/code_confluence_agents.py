@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from loguru import logger
 from pydantic_ai import Agent, RunContext, Tool
@@ -32,54 +32,53 @@ from unoplat_code_confluence_query_engine.tools.search_across_codebase import (
 # pyright: ignore[reportUndefinedVariable]
 
 
-def create_code_confluence_agents(
+def create_context7_agent_factory(
     mcp_server_manager: MCPServerManager,
     model: Model,
     model_settings: Optional[ModelSettings] = None,
-) -> Dict[str, Agent[Any]]:
-    """Create code confluence agents with provided model.
+) -> Callable[[], Agent[None]]:
+    """Create a factory function that generates fresh Context7 agent instances.
+
+    This factory pattern ensures each concurrent task gets its own agent instance,
+    preventing CancelScope conflicts when multiple tasks run in parallel.
 
     Args:
         mcp_server_manager: MCP server manager for tool integration
-        model: Configured Pydantic AI model instance (required - no default fallback)
-        model_settings: Optional model settings to apply to all agents
+        model: Configured Pydantic AI model instance
+        model_settings: Optional model settings to apply to agents
 
     Returns:
-        Dictionary of agent names to Agent instances
+        A factory function that creates new Context7 agent instances
     """
-    logger.debug(
-        "Starting agent registry creation with model_settings present? {}",
-        bool(model_settings),
-    )
 
-    code_confluence_project_configuration_agent: Agent[AgentDependencies] = Agent(
-        model,
-        model_settings=model_settings,
-        system_prompt="<role> Build/CI/Test/Lint/Type Configuration Locator</role>",
-        deps_type=AgentDependencies,  # type: ignore
-        tools=[
-            Tool(get_directory_tree, takes_ctx=True, max_retries=6),
-            Tool(read_file_content, takes_ctx=True, max_retries=6),
-            Tool(search_across_codebase, takes_ctx=True, max_retries=6),
-            Tool(get_lib_data, takes_ctx=True, max_retries=6),
-        ],
-        output_type=ProjectConfiguration,
-        retries=6,
-    )
+    def _create_context7_agent() -> Agent[None]:
+        """Create a fresh Context7 agent instance with dedicated MCP server.
 
-    # Attach dynamic per-language system prompt for configuration
-    try:
-        code_confluence_project_configuration_agent.system_prompt(
-            per_programming_language_configuration_prompt
-        )
-    except NameError:
-        # Function is defined later in the module; safe to ignore if not yet bound at import time
-        pass
+        Each agent gets its own MCP server connection to prevent cancel scope
+        conflicts when agents run concurrently. The MCP server lifecycle is
+        managed automatically through the agent's context by PydanticAI.
 
-    context7_agent: Agent[None] = Agent(
-        model,
-        model_settings=model_settings,
-        system_prompt=r"""You are the Context7 Library Documentation Agent.
+        Returns:
+            New Context7 agent instance with dedicated MCP server connection
+        """
+        # Create a fresh MCP server instance for this agent
+        context7_server = mcp_server_manager.get_server_by_name("context7")
+
+        if not context7_server:
+            logger.warning(
+                "Context7 MCP server configuration not found. "
+                "Agent will run without MCP tools."
+            )
+            toolsets = []
+        else:
+            logger.debug("Created dedicated Context7 MCP server instance for new agent")
+            toolsets = [context7_server]
+
+        return Agent(
+            model,
+            name="context7_agent",
+            model_settings=model_settings,
+            system_prompt=r"""You are the Context7 Library Documentation Agent.
 
 Your role is to provide concise, accurate documentation summaries for libraries, frameworks, and developer tools using Context7 tools.
 
@@ -102,13 +101,67 @@ Response Format (exactly 5 lines):
 
 Always provide exactly 5 lines maximum. Keep responses factual and based on official documentation only.
 """,
-        toolsets=[mcp_server_manager.get_server_by_name("context7")],  # type: ignore
-        output_type=str,
+            toolsets=toolsets,  # type: ignore
+            output_type=str,
+            retries=6,
+        )
+
+    return _create_context7_agent
+
+
+def create_code_confluence_agents(
+    mcp_server_manager: MCPServerManager,
+    model: Model,
+    model_settings: Optional[ModelSettings] = None,
+) -> Dict[str, Any]:
+    """Create code confluence agents with provided model.
+
+    Args:
+        mcp_server_manager: MCP server manager for tool integration
+        model: Configured Pydantic AI model instance (required - no default fallback)
+        model_settings: Optional model settings to apply to all agents
+
+    Returns:
+        Dictionary of agent names to Agent instances
+    """
+    logger.debug(
+        "Starting agent registry creation with model_settings present? {}",
+        bool(model_settings),
+    )
+
+    code_confluence_project_configuration_agent: Agent[AgentDependencies] = Agent(
+        model,
+        name="project_configuration_agent",
+        model_settings=model_settings,
+        system_prompt="<role> Build/CI/Test/Lint/Type Configuration Locator</role>",
+        deps_type=AgentDependencies,  # type: ignore
+        tools=[
+            Tool(get_directory_tree, takes_ctx=True, max_retries=6),
+            Tool(read_file_content, takes_ctx=True, max_retries=6),
+            Tool(search_across_codebase, takes_ctx=True, max_retries=6),
+            Tool(get_lib_data, takes_ctx=True, max_retries=6),
+        ],
+        output_type=ProjectConfiguration,
         retries=6,
+    )
+
+    # Attach dynamic per-language system prompt for configuration
+    try:
+        code_confluence_project_configuration_agent.system_prompt(
+            per_programming_language_configuration_prompt
+        )
+    except NameError:
+        # Function is defined later in the module; safe to ignore if not yet bound at import time
+        pass
+
+    # Create the factory for Context7 agent instead of a single instance
+    context7_agent_factory = create_context7_agent_factory(
+        mcp_server_manager, model, model_settings
     )
 
     development_workflow_agent: Agent[AgentDependencies] = Agent(
         model,
+        name="development_workflow_agent",
         model_settings=model_settings,
         system_prompt="<role> Development Workflow Synthesizer</role>",
         deps_type=AgentDependencies,  # type: ignore
@@ -131,10 +184,18 @@ Always provide exactly 5 lines maximum. Keep responses factual and based on offi
 
     business_logic_domain_agent: Agent[AgentDependencies] = Agent(
         model,
+        name="business_logic_domain_agent",
         model_settings=model_settings,
         system_prompt=r"""You are the Business Logic Domain Agent.
 
 Goal: Analyze data models across this codebase and return a 2-4 sentence description of the dominant business logic domain.
+
+<file_path_requirements>
+CRITICAL: When calling read_file_content or any tool that accepts file paths:
+- ALWAYS use ABSOLUTE paths starting with / (e.g., /opt/unoplat/repositories/my-repo/src/models.py)
+- NEVER use relative paths (e.g., models.py, src/models.py, ./file.py)
+- The file_path values returned by get_data_model_files are already absolute - use them exactly as provided
+</file_path_requirements>
 
 Strict workflow:
 1) Call get_data_model_files to retrieve all data model file paths and their (start_line, end_line) spans
@@ -165,10 +226,10 @@ Grounding rules:
         retries=6,
     )
 
-    agents: Dict[str, Agent[Any]] = {
+    agents: Dict[str, Any] = {
         "project_configuration_agent": code_confluence_project_configuration_agent,
         "development_workflow_agent": development_workflow_agent,
-        "context7_agent": context7_agent,
+        "context7_agent_factory": context7_agent_factory,  # Now a factory function
         "business_logic_domain_agent": business_logic_domain_agent,
     }
 
@@ -186,6 +247,13 @@ def per_programming_language_configuration_prompt(
 ) -> str:
     common_prompt = (
         f"<task>Given a codebase path for {ctx.deps.codebase_metadata.codebase_programming_language} programming language scan the directory tree for the current codebase and identify important configuration files for development, testing, linting, formatting, packaging, CI/CD, containers, and infrastructure </task>"
+        f"<file_path_requirements>"
+        f"CRITICAL: When calling read_file_content, get_directory_tree, or any tool that accepts file paths:"
+        f"- ALWAYS use ABSOLUTE paths starting with / (e.g., /opt/unoplat/repositories/my-repo/src/config.json)"
+        f"- NEVER use relative paths (e.g., config.json, src/file.py, ./package.json)"
+        f"- When you find files via search_across_codebase or get_directory_tree, construct absolute paths by combining the codebase root path with relative paths"
+        f"- The codebase root path is: {ctx.deps.codebase_metadata.codebase_path}"
+        f"</file_path_requirements>"
         f"<context>"
         f" <categories>"
         f"   <list>dev,test,lint,format,type_checking,styling,ui_components,routing,bundler,package,build,deploy,infrastructure</list>"
@@ -291,6 +359,15 @@ def per_language_development_workflow_prompt(ctx: RunContext[AgentDependencies])
         "Strictly output only JSON, no prose.\n"
     )
 
+    file_path_requirements = (
+        "<file_path_requirements>\n"
+        "CRITICAL: When calling read_file_content, get_directory_tree, or any tool that accepts file paths:\n"
+        "- ALWAYS use ABSOLUTE paths starting with / (e.g., /opt/unoplat/repositories/my-repo/package.json)\n"
+        "- NEVER use relative paths (e.g., package.json, src/file.py, ./config.json)\n"
+        f"- The codebase root path is: {ctx.deps.codebase_metadata.codebase_path}\n"
+        "</file_path_requirements>\n\n"
+    )
+
     steps = (
         "Workflow:\n"
         "1. Extract runnable commands for build/dev/test/lint/type_check from scripts or config based on package manager and user provided config files related to development workflow.\n"
@@ -333,4 +410,4 @@ def per_language_development_workflow_prompt(ctx: RunContext[AgentDependencies])
     else:
         lang_hints = ""
 
-    return header + steps + output_contract + lang_hints
+    return header + file_path_requirements + steps + output_contract + lang_hints

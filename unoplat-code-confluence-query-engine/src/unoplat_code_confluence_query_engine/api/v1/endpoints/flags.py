@@ -2,9 +2,12 @@
 
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from loguru import logger
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from unoplat_code_confluence_query_engine.db.postgres.db import get_db_session
 
 router = APIRouter(prefix="/v1", tags=["flags"])
 
@@ -16,18 +19,21 @@ class FlagUpdateRequest(BaseModel):
 
 
 @router.get("/flags", response_model=List[Dict[str, Any]])
-async def get_all_flags(request: Request) -> List[Dict[str, Any]]:
+async def get_all_flags(
+    request: Request, session: AsyncSession = Depends(get_db_session)
+) -> List[Dict[str, Any]]:
     """Get the status of all available flags.
 
     Args:
         request: FastAPI request object to access app state
+        session: Database session
 
     Returns:
         List of flag information with name and status
     """
     try:
         service = request.app.state.flag_service
-        flags = await service.list_all_flags()
+        flags = await service.list_all_flags(session)
         return [{"name": flag.name, "status": flag.status} for flag in flags]
 
     except Exception as e:
@@ -39,12 +45,15 @@ async def get_all_flags(request: Request) -> List[Dict[str, Any]]:
 
 
 @router.get("/flags/{flag_name}", response_model=Dict[str, Any])
-async def get_flag_status(request: Request, flag_name: str) -> Dict[str, Any]:
+async def get_flag_status(
+    request: Request, flag_name: str, session: AsyncSession = Depends(get_db_session)
+) -> Dict[str, Any]:
     """Get the status of a specific flag by name.
 
     Args:
         request: FastAPI request object to access app state
         flag_name: The name of the flag to check
+        session: Database session
 
     Returns:
         Flag information including name, status, and exists boolean
@@ -54,7 +63,7 @@ async def get_flag_status(request: Request, flag_name: str) -> Dict[str, Any]:
     """
     try:
         service = request.app.state.flag_service
-        flag = await service.get_flag(flag_name)
+        flag = await service.get_flag(flag_name, session)
 
         if flag is None:
             raise HTTPException(
@@ -77,7 +86,10 @@ async def get_flag_status(request: Request, flag_name: str) -> Dict[str, Any]:
 
 @router.put("/flags/{flag_name}", response_model=Dict[str, Any])
 async def set_flag_status(
-    request: Request, flag_name: str, flag_request: FlagUpdateRequest
+    request: Request,
+    flag_name: str,
+    flag_request: FlagUpdateRequest,
+    session: AsyncSession = Depends(get_db_session),
 ) -> Dict[str, Any]:
     """Set the status of a specific flag by name.
 
@@ -89,13 +101,14 @@ async def set_flag_status(
         request: FastAPI request object to access app state
         flag_name: The name of the flag to set
         flag_request: Request containing the status to set
+        session: Database session
 
     Returns:
         Updated flag information with name and status
     """
     try:
         service = request.app.state.flag_service
-        flag = await service.upsert_flag(flag_name, flag_request.status)
+        flag = await service.upsert_flag(flag_name, flag_request.status, session)
 
         logger.info("Set flag status for {}: status={}", flag_name, flag_request.status)
         return {"name": flag.name, "status": flag.status}
@@ -109,12 +122,15 @@ async def set_flag_status(
 
 
 @router.delete("/flags/{flag_name}")
-async def delete_flag(request: Request, flag_name: str) -> Dict[str, Any]:
+async def delete_flag(
+    request: Request, flag_name: str, session: AsyncSession = Depends(get_db_session)
+) -> Dict[str, Any]:
     """Delete a specific flag by name.
 
     Args:
         request: FastAPI request object to access app state
         flag_name: The name of the flag to delete
+        session: Database session
 
     Returns:
         Deletion status message
@@ -124,7 +140,7 @@ async def delete_flag(request: Request, flag_name: str) -> Dict[str, Any]:
     """
     try:
         service = request.app.state.flag_service
-        deleted = await service.delete_flag(flag_name)
+        deleted = await service.delete_flag(flag_name, session)
 
         if not deleted:
             raise HTTPException(

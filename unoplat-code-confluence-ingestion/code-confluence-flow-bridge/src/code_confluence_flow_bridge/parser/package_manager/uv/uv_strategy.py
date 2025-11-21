@@ -23,7 +23,9 @@ from src.code_confluence_flow_bridge.utility.author_utils import normalize_autho
 
 
 class UvStrategy(PackageManagerStrategy):
-    def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+    def process_metadata(
+        self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata
+    ) -> UnoplatPackageManagerMetadata:
         """Process UV project metadata from pyproject.toml file.
 
         Parses a pyproject.toml file to extract package metadata and dependencies.
@@ -54,21 +56,23 @@ class UvStrategy(PackageManagerStrategy):
         Raises:
             ValueError: If pyproject.toml exists but cannot be parsed
         """
-        
+
         try:
-            
             pyproject_path = Path(local_workspace_path) / "pyproject.toml"
-            
 
             if not pyproject_path.exists():
-                package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
+                package_manager_value = (
+                    metadata.package_manager.value
+                    if metadata.package_manager
+                    else "unknown"
+                )
                 return UnoplatPackageManagerMetadata(
                     programming_language=metadata.language.value,
                     package_manager=package_manager_value,
                     dependencies={"default": {}},
                     manifest_path=metadata.manifest_path,
                 )
-           
+
             with open(pyproject_path, "rb") as f:
                 pyproject_data = tomllib.load(f)
         except Exception as e:
@@ -85,7 +89,11 @@ class UvStrategy(PackageManagerStrategy):
         for dep in project_data.get("dependencies", []):
             try:
                 name, version_str, extras = self._parse_dependency(dep)
-                version = self._parse_version_constraint(version_str) if version_str else UnoplatVersion()
+                version = (
+                    self._parse_version_constraint(version_str)
+                    if version_str
+                    else UnoplatVersion()
+                )
 
                 default_group[name] = UnoplatProjectDependency(
                     version=version,
@@ -102,7 +110,11 @@ class UvStrategy(PackageManagerStrategy):
             for dep in deps:
                 try:
                     name, version_str, extras = self._parse_dependency(dep)
-                    version = self._parse_version_constraint(version_str) if version_str else UnoplatVersion()
+                    version = (
+                        self._parse_version_constraint(version_str)
+                        if version_str
+                        else UnoplatVersion()
+                    )
 
                     if name not in group_bucket:
                         group_bucket[name] = UnoplatProjectDependency(
@@ -115,7 +127,12 @@ class UvStrategy(PackageManagerStrategy):
                             existing_extras = existing_dep.extras or []
                             existing_dep.extras = list(set(existing_extras + extras))
                 except Exception as e:
-                    logger.warning("Error processing optional dependency {} in group {}: {}", dep, group_name, str(e))
+                    logger.warning(
+                        "Error processing optional dependency {} in group {}: {}",
+                        dep,
+                        group_name,
+                        str(e),
+                    )
                     continue
 
         # Process uv-specific dependency groups: [dependency-groups]
@@ -125,7 +142,11 @@ class UvStrategy(PackageManagerStrategy):
             for dep in deps:
                 try:
                     name, version_str, extras = self._parse_dependency(dep)
-                    version = self._parse_version_constraint(version_str) if version_str else UnoplatVersion()
+                    version = (
+                        self._parse_version_constraint(version_str)
+                        if version_str
+                        else UnoplatVersion()
+                    )
 
                     if name not in group_bucket:
                         group_bucket[name] = UnoplatProjectDependency(
@@ -150,7 +171,9 @@ class UvStrategy(PackageManagerStrategy):
         uv_config = pyproject_data.get("tool", {}).get("uv", {})
         sources = uv_config.get("sources", {})
         for pkg_name, source_info in sources.items():
-            matched_dependencies = list(self._iter_dependency_entries(dependencies, pkg_name))
+            matched_dependencies = list(
+                self._iter_dependency_entries(dependencies, pkg_name)
+            )
             if not matched_dependencies:
                 continue
             for _, dependency in matched_dependencies:
@@ -159,9 +182,13 @@ class UvStrategy(PackageManagerStrategy):
                         self._process_git_source(pkg_name, dependency, source_info)
                     elif "index" in source_info:
                         dependency.source = "index"
-                        dependency.source_url = self._get_index_url(pyproject_data, source_info["index"])
+                        dependency.source_url = self._get_index_url(
+                            pyproject_data, source_info["index"]
+                        )
                 except Exception as e:
-                    logger.warning("Error processing source for {}: {}", pkg_name, str(e))
+                    logger.warning(
+                        "Error processing source for {}: {}", pkg_name, str(e)
+                    )
                     continue
 
         # Process dependency metadata for environment markers
@@ -174,12 +201,18 @@ class UvStrategy(PackageManagerStrategy):
                 try:
                     # Add environment markers if specified
                     if "requires-python" in metadata_entry:
-                        dependency.environment_marker = f"python_version {metadata_entry['requires-python']}"
+                        dependency.environment_marker = (
+                            f"python_version {metadata_entry['requires-python']}"
+                        )
                 except Exception as e:
-                    logger.warning(f"Error processing dependency metadata for {name}: {str(e)}")
+                    logger.warning(
+                        f"Error processing dependency metadata for {name}: {str(e)}"
+                    )
                     continue
 
-        package_manager_value = metadata.package_manager.value if metadata.package_manager else "unknown"
+        package_manager_value = (
+            metadata.package_manager.value if metadata.package_manager else "unknown"
+        )
         return UnoplatPackageManagerMetadata(
             dependencies=dependencies,
             package_name=project_data.get("name"),
@@ -200,7 +233,9 @@ class UvStrategy(PackageManagerStrategy):
             manifest_path=metadata.manifest_path,
         )
 
-    def _parse_dependency(self, dep_string: str) -> tuple[str, Optional[str], Optional[List[str]]]:
+    def _parse_dependency(
+        self, dep_string: str
+    ) -> tuple[str, Optional[str], Optional[List[str]]]:
         """Parse a dependency string into name, version, and extras.
 
         Handles various dependency formats including:
@@ -330,12 +365,16 @@ class UvStrategy(PackageManagerStrategy):
         entry_points.update(scripts)
 
         # Parse console_scripts entry points
-        console_scripts = project_data.get("entry-points", {}).get("console_scripts", {})
+        console_scripts = project_data.get("entry-points", {}).get(
+            "console_scripts", {}
+        )
         entry_points.update(console_scripts)
 
         return entry_points
 
-    def _parse_vcs_url(self, url: str) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
+    def _parse_vcs_url(
+        self, url: str
+    ) -> tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
         """Parse VCS URL into components using urllib.parse.
 
         Handles various VCS URL formats:
@@ -447,7 +486,9 @@ class UvStrategy(PackageManagerStrategy):
                 if "tag" in source_info:
                     dependency.source_reference = source_info["tag"]
                     # Update version if tag is specified
-                    dependency.version = self._parse_version_constraint(f"=={source_info['tag']}")
+                    dependency.version = self._parse_version_constraint(
+                        f"=={source_info['tag']}"
+                    )
                 elif "branch" in source_info:
                     dependency.source_reference = source_info["branch"]
                 elif "rev" in source_info:

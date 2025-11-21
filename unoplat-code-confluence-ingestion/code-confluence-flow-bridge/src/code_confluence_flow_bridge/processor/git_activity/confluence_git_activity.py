@@ -41,7 +41,7 @@ class GitActivity:
 
         # Bind Loguru logger with the passed trace_id
         info: activity.Info = activity.info()
-        
+
         workflow_id: str = info.workflow_id
         workflow_run_id: str = info.workflow_run_id
         activity_name: str = info.activity_type
@@ -51,29 +51,31 @@ class GitActivity:
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             activity_id=activity_id,
-            activity_name=activity_name
+            activity_name=activity_name,
         )
 
         try:
             # Get activity info for context
             log.debug(
                 "Starting git activity processing | attempt={} | git_url={} | provider={}",
-                info.attempt, repo_request.repository_git_url, repo_request.repository_provider.value
+                info.attempt,
+                repo_request.repository_git_url,
+                repo_request.provider_key.value,
             )
-            
+
             # Process GitHub repository
             log.info(
                 "Processing GitHub repository | git_url={} | status=started",
-                repo_request.repository_git_url
+                repo_request.repository_git_url,
             )
             activity_data: UnoplatGitRepository = self.github_helper.clone_repository(
-                repo_request, 
-                github_token
+                repo_request, github_token
             )
-            
+
             log.debug(
                 "Successfully processed git activity | git_url={} | provider={} | status=success",
-                repo_request.repository_git_url, repo_request.repository_provider.value
+                repo_request.repository_git_url,
+                repo_request.provider_key.value,
             )
             return activity_data
 
@@ -81,16 +83,18 @@ class GitActivity:
             if isinstance(e, ApplicationError):
                 # Re-raise ApplicationError as is since it already contains detailed error info
                 raise
-            
+
             # For other exceptions, wrap in ApplicationError with basic info
             log.error(
                 "Failed to process git activity | git_url={} | error_type={} | error_details={} | status=error",
-                repo_request.repository_git_url, type(e).__name__, str(e)
+                repo_request.repository_git_url,
+                type(e).__name__,
+                str(e),
             )
-            
+
             # Capture the traceback string
             tb_str = traceback.format_exc()
-            
+
             raise ApplicationError(
                 "Failed to process git activity",
                 {"repository": repo_request.repository_git_url},
@@ -101,5 +105,5 @@ class GitActivity:
                 {"workflow_run_id": workflow_run_id or ""},
                 {"activity_name": activity_name or ""},
                 {"activity_id": activity_id or ""},
-                type="GIT_ACTIVITY_ERROR"
+                type="GIT_ACTIVITY_ERROR",
             )

@@ -65,7 +65,10 @@ class SimplifiedPythonDetector:
         return all_detections
 
     def _detect_feature(
-        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self,
+        signature: PythonStructuralSignature,
+        spec: FeatureSpec,
+        aliases: Dict[str, str],
     ) -> List[Detection]:
         """Detect a single feature using the appropriate concept method."""
 
@@ -80,7 +83,10 @@ class SimplifiedPythonDetector:
             return []
 
     def _detect_annotation_like(
-        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self,
+        signature: PythonStructuralSignature,
+        spec: FeatureSpec,
+        aliases: Dict[str, str],
     ) -> List[Detection]:
         """
         Detect decorator patterns like @app.get("/path") using function signatures.
@@ -180,7 +186,10 @@ class SimplifiedPythonDetector:
         return detections
 
     def _detect_call_expression(
-        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self,
+        signature: PythonStructuralSignature,
+        spec: FeatureSpec,
+        aliases: Dict[str, str],
     ) -> List[Detection]:
         """
         Detect function call patterns using pre-computed function_calls lists.
@@ -243,7 +252,10 @@ class SimplifiedPythonDetector:
         return False
 
     def _detect_inheritance(
-        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self,
+        signature: PythonStructuralSignature,
+        spec: FeatureSpec,
+        aliases: Dict[str, str],
     ) -> List[Detection]:
         """
         Detect class inheritance patterns by parsing class signatures.
@@ -323,7 +335,10 @@ class SimplifiedPythonDetector:
         return False
 
     def _find_bound_variables(
-        self, signature: PythonStructuralSignature, spec: FeatureSpec, aliases: Dict[str, str]
+        self,
+        signature: PythonStructuralSignature,
+        spec: FeatureSpec,
+        aliases: Dict[str, str],
     ) -> Set[str]:
         """
         Find variables that are bound to framework constructors.

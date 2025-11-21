@@ -1,7 +1,7 @@
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { IngestedRepository } from "../../types";
-import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import type { IngestedRepository } from "@/types";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ import {
   FileText,
 } from "lucide-react";
 import { StatusBadge } from "@/components/custom/StatusBadge";
+import { ProviderKey } from "@/types/credential-enums";
 
 interface ColumnOptions {
   setRowAction: React.Dispatch<
@@ -38,11 +39,10 @@ export function getIngestedRepositoriesColumns({
     {
       accessorKey: "repository_name",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Repository Name" />
+        <DataTableColumnHeader column={column} label="Repository Name" />
       ),
       cell: ({ row }) => {
-        const { repository_name, repository_owner_name } =
-          row.original;
+        const { repository_name, repository_owner_name } = row.original;
 
         const githubUrl = `https://github.com/${repository_owner_name}/${repository_name}`;
         return (
@@ -69,13 +69,22 @@ export function getIngestedRepositoriesColumns({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "repository_provider",
+      accessorKey: "provider_key",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Provider" />
+        <DataTableColumnHeader column={column} label="Provider" />
       ),
       cell: ({ row }) => {
-        const provider = row.original.repository_provider;
-        const providerLabel = provider === "github_open" ? "GitHub" : provider.replace(/_/g, " ");
+        const provider = row.original.provider_key;
+        const providerLabel =
+          provider === ProviderKey.GITHUB_OPEN
+            ? "GitHub"
+            : provider === ProviderKey.GITHUB_ENTERPRISE
+              ? "GitHub Enterprise"
+              : provider === ProviderKey.GITLAB_CE
+                ? "GitLab"
+                : provider === ProviderKey.GITLAB_ENTERPRISE
+                  ? "GitLab Enterprise"
+                  : provider.replace(/_/g, " ");
         return (
           <div className="flex items-center gap-2">
             <GitBranch className="h-4 w-4 text-gray-600" />
@@ -90,11 +99,8 @@ export function getIngestedRepositoriesColumns({
         placeholder: "Filter by provider...",
         variant: "select",
         options: [
-          { label: "GitHub", value: "github_open" },
-          { label: "GitHub Enterprise", value: "github_enterprise" },
-          { label: "GitLab", value: "gitlab" },
-          { label: "GitLab Self-Hosted", value: "gitlab_self_hosted" },
-          { label: "Bitbucket", value: "bitbucket" },
+          { label: "GitHub", value: ProviderKey.GITHUB_OPEN },
+          { label: "GitHub Enterprise", value: ProviderKey.GITHUB_ENTERPRISE },
         ],
       },
       enableSorting: true,
@@ -106,7 +112,7 @@ export function getIngestedRepositoriesColumns({
     {
       accessorKey: "repository_owner_name",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Owner" />
+        <DataTableColumnHeader column={column} label="Owner" />
       ),
       cell: ({ row }) => {
         return (
@@ -128,7 +134,7 @@ export function getIngestedRepositoriesColumns({
     {
       id: "actions",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Actions" />
+        <DataTableColumnHeader column={column} label="Actions" />
       ),
       cell: ({ row }) => {
         return (
@@ -148,7 +154,7 @@ export function getIngestedRepositoriesColumns({
               >
                 <FileText className="h-4 w-4" />
                 Generate Agents.md
-                <StatusBadge status="alpha" size="sm" className="ml-1" />
+                <StatusBadge status="alpha" className="ml-1" />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -157,7 +163,7 @@ export function getIngestedRepositoriesColumns({
               >
                 <RefreshCw className="h-4 w-4" />
                 Refresh
-                <StatusBadge status="alpha" size="sm" className="ml-1" />
+                <StatusBadge status="alpha" className="ml-1" />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -166,7 +172,7 @@ export function getIngestedRepositoriesColumns({
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
-                <StatusBadge status="beta" size="sm" className="ml-1" />
+                <StatusBadge status="beta" className="ml-1" />
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

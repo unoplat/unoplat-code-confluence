@@ -22,7 +22,9 @@ class PackageMetadataActivity:
         self.package_manager_parser = PackageManagerParser()
 
     @activity.defn
-    def get_package_metadata(self, envelope: PackageMetadataActivityEnvelope) -> UnoplatPackageManagerMetadata:
+    def get_package_metadata(
+        self, envelope: PackageMetadataActivityEnvelope
+    ) -> UnoplatPackageManagerMetadata:
         """
         Process package manager specific metadata
 
@@ -37,7 +39,7 @@ class PackageMetadataActivity:
         codebase_path = envelope.codebase_path
         programming_language_metadata = envelope.programming_language_metadata
         trace_id = envelope.trace_id
-        
+
         # Bind Loguru logger with the passed trace_id
         info = activity.info()
         workflow_id: str = info.workflow_id
@@ -49,31 +51,41 @@ class PackageMetadataActivity:
             workflow_id=workflow_id,
             workflow_run_id=workflow_run_id,
             activity_id=activity_id,
-            activity_name=activity_name
+            activity_name=activity_name,
         )
         try:
             log.debug(
                 "Processing package metadata | codebase_path={} | programming_language={} | language_version={} | package_manager={}",
-                codebase_path, programming_language_metadata.language.value, programming_language_metadata.language_version, programming_language_metadata.package_manager.value if programming_language_metadata.package_manager else "None"
+                codebase_path,
+                programming_language_metadata.language.value,
+                programming_language_metadata.language_version,
+                programming_language_metadata.package_manager.value
+                if programming_language_metadata.package_manager
+                else "None",
             )
 
-            package_metadata = self.package_manager_parser.parse_package_metadata(local_workspace_path=codebase_path, programming_language_metadata=programming_language_metadata)
+            package_metadata = self.package_manager_parser.parse_package_metadata(
+                local_workspace_path=codebase_path,
+                programming_language_metadata=programming_language_metadata,
+            )
 
             log.debug(
                 "Successfully processed package metadata | codebase_path={} | status=success",
-                codebase_path
+                codebase_path,
             )
             return package_metadata
 
         except Exception as e:
             log.error(
                 "Failed to process package metadata | codebase_path={} | error_type={} | error_details={} | status=error",
-                codebase_path, type(e).__name__, str(e)
+                codebase_path,
+                type(e).__name__,
+                str(e),
             )
-            
+
             # Capture the traceback string
             tb_str = traceback.format_exc()
-            
+
             raise ApplicationError(
                 f"Failed to process package metadata for {codebase_path}",
                 {"codebase_path": codebase_path},
@@ -84,5 +96,5 @@ class PackageMetadataActivity:
                 {"workflow_run_id": workflow_run_id},
                 {"activity_name": activity_name},
                 {"activity_id": activity_id},
-                type="PACKAGE_METADATA_ERROR"
+                type="PACKAGE_METADATA_ERROR",
             )

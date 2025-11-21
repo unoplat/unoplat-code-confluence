@@ -1,4 +1,5 @@
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
+from unoplat_code_confluence_commons.credential_enums import ProviderKey
 
 from datetime import datetime
 from enum import Enum
@@ -45,11 +46,11 @@ class Repository(SQLBase):
     repository_owner_name: Mapped[str] = mapped_column(
         primary_key=True, comment="The name of the repository owner"
     )
-    repository_provider: Mapped[RepositoryProvider] = mapped_column(
-        SQLEnum(RepositoryProvider, name="repository_provider_type", native_enum=False),
-        default=RepositoryProvider.GITHUB_OPEN,
+    repository_provider: Mapped[ProviderKey] = mapped_column(
+        SQLEnum(ProviderKey, name="repository_provider_type", native_enum=False),
+        default=ProviderKey.GITHUB_OPEN,
         nullable=False,
-        comment="Git provider type for this repository (e.g., GitHub, GitLab, Bitbucket)",
+        comment="Provider key for this repository (e.g., GITHUB_OPEN, GITHUB_ENTERPRISE, GITLAB_CE, GITLAB_ENTERPRISE)",
     )
 
     # Relationships - will be populated after class definitions

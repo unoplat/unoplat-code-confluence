@@ -28,14 +28,16 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
     UnoplatPackageManagerMetadata,
 )
 from src.code_confluence_flow_bridge.models.github.github_repo import (
-    GitHubRepoRequestConfiguration,
+    RepositoryRequestConfiguration,
 )
 from src.code_confluence_flow_bridge.utility.environment_utils import (
     ensure_local_repository_base_path,
 )
 
 
-def _relative_manifest_path(manifest_path: Optional[str], codebase_folder: str) -> Optional[str]:
+def _relative_manifest_path(
+    manifest_path: Optional[str], codebase_folder: str
+) -> Optional[str]:
     """Normalize manifest path so it is relative to the codebase root."""
     if not manifest_path:
         return None
@@ -56,7 +58,9 @@ def _relative_manifest_path(manifest_path: Optional[str], codebase_folder: str) 
 
 class GithubHelper:
     # works with - vhttps://github.com/organization/repository,https://github.com/organization/repository.git,git@github.com:organization/repository.git
-    def clone_repository(self, repo_request: GitHubRepoRequestConfiguration, github_token: str) -> UnoplatGitRepository:
+    def clone_repository(
+        self, repo_request: RepositoryRequestConfiguration, github_token: str
+    ) -> UnoplatGitRepository:
         """
         Clone the repository and return repository details.
         Works with URL formats:
@@ -82,7 +86,11 @@ class GithubHelper:
         # Bind Loguru logger with the passed trace_id
 
         try:
-            logger.debug("Processing git repository | git_url={} | repo_name={} | status=started", repo_url, repo_name)
+            logger.debug(
+                "Processing git repository | git_url={} | repo_name={} | status=started",
+                repo_url,
+                repo_name,
+            )
             # Get repository object
             github_repo = github_client.get_repo(repo_path)
 
@@ -93,11 +101,20 @@ class GithubHelper:
 
             # Clone repository if not already cloned, otherwise update it
             if not os.path.exists(repo_path):
-                logger.info("Repository not found locally, cloning | repo_path={} | status=cloning", repo_path)
+                logger.info(
+                    "Repository not found locally, cloning | repo_path={} | status=cloning",
+                    repo_path,
+                )
                 Repo.clone_from(repo_url, repo_path)
-                logger.info("Repository cloned successfully | repo_path={} | status=success", repo_path)
+                logger.info(
+                    "Repository cloned successfully | repo_path={} | status=success",
+                    repo_path,
+                )
             else:
-                logger.info("Repository exists locally, updating | repo_path={} | status=updating", repo_path)
+                logger.info(
+                    "Repository exists locally, updating | repo_path={} | status=updating",
+                    repo_path,
+                )
 
                 # Open existing repository
                 local_repo = Repo(repo_path)
@@ -105,11 +122,20 @@ class GithubHelper:
                 try:
                     # Check if there are uncommitted changes and stash them before fetch/checkout
                     if local_repo.is_dirty(untracked_files=True):
-                        logger.info("Found uncommitted changes, stashing | repo_path={} | status=stashing", repo_path)
+                        logger.info(
+                            "Found uncommitted changes, stashing | repo_path={} | status=stashing",
+                            repo_path,
+                        )
                         # Create stash message with available context
                         stash_msg = f"Auto-stash before pull - workflow: {workflow_run_id_var.get('')} - {datetime.now().isoformat()}"
-                        stash_result = local_repo.git.stash("save", "--include-untracked", stash_msg)
-                        logger.debug("Stash result | result={} | repo_path={}", stash_result, repo_path)
+                        stash_result = local_repo.git.stash(
+                            "save", "--include-untracked", stash_msg
+                        )
+                        logger.debug(
+                            "Stash result | result={} | repo_path={}",
+                            stash_result,
+                            repo_path,
+                        )
 
                     # Fetch latest refs from remote
                     logger.debug("Fetching from remote | repo_path={}", repo_path)
@@ -117,25 +143,44 @@ class GithubHelper:
 
                     # Ensure we're on the default branch
                     default_branch = github_repo.default_branch
-                    logger.debug("Checking out default branch | branch={} | repo_path={}", default_branch, repo_path)
+                    logger.debug(
+                        "Checking out default branch | branch={} | repo_path={}",
+                        default_branch,
+                        repo_path,
+                    )
 
                     # Check if branch exists locally
                     local_branches = [ref.name for ref in local_repo.heads]
                     if default_branch not in local_branches:
                         # Branch doesn't exist locally, create tracking branch from remote
-                        logger.debug("Branch does not exist locally, creating tracking branch | branch={} | repo_path={}", default_branch, repo_path)
-                        local_repo.git.checkout("-b", default_branch, f"origin/{default_branch}")
+                        logger.debug(
+                            "Branch does not exist locally, creating tracking branch | branch={} | repo_path={}",
+                            default_branch,
+                            repo_path,
+                        )
+                        local_repo.git.checkout(
+                            "-b", default_branch, f"origin/{default_branch}"
+                        )
                     else:
                         # Branch exists locally, just checkout
                         local_repo.git.checkout(default_branch)
 
                     # Pull latest changes
-                    logger.info("Pulling latest changes | repo_path={} | status=pulling", repo_path)
+                    logger.info(
+                        "Pulling latest changes | repo_path={} | status=pulling",
+                        repo_path,
+                    )
 
                     try:
                         # Git (>=2.34) requires an explicit reconciliation strategy
-                        pull_output: str = local_repo.git.pull("--no-rebase", "origin", default_branch)
-                        logger.debug("Pull output | output={} | repo_path={}", pull_output, repo_path)
+                        pull_output: str = local_repo.git.pull(
+                            "--no-rebase", "origin", default_branch
+                        )
+                        logger.debug(
+                            "Pull output | output={} | repo_path={}",
+                            pull_output,
+                            repo_path,
+                        )
                     except Exception as git_err:
                         # Log and re-raise for outer handler
                         logger.error(
@@ -145,10 +190,17 @@ class GithubHelper:
                         )
                         raise
 
-                    logger.info("Repository updated successfully | repo_path={} | status=success", repo_path)
+                    logger.info(
+                        "Repository updated successfully | repo_path={} | status=success",
+                        repo_path,
+                    )
 
                 except Exception as pull_error:
-                    logger.error("Failed to update repository | repo_path={} | error={} | status=failed", repo_path, str(pull_error))
+                    logger.error(
+                        "Failed to update repository | repo_path={} | error={} | status=failed",
+                        repo_path,
+                        str(pull_error),
+                    )
                     # Re-raise to be caught by outer exception handler
                     raise
 
@@ -164,77 +216,104 @@ class GithubHelper:
 
             # Get README content (if available)
             try:
-                readme_content: str | None = github_repo.get_readme().decoded_content.decode("utf-8")
+                readme_content: str | None = (
+                    github_repo.get_readme().decoded_content.decode("utf-8")
+                )
             except Exception:
                 readme_content = None
 
             # Create UnoplatCodebase objects for each codebase config in repository_metadata
             codebases: List[UnoplatCodebase] = []
-            for codebase_config in repo_request.repository_metadata:
-                # Build codebase path with codebase_folder
-                codebase_path = repo_path
-                if codebase_config.codebase_folder and codebase_config.codebase_folder != ".":
-                    path_components = codebase_config.codebase_folder.split("/")
-                    for component in path_components:
-                        codebase_path = os.path.join(codebase_path, component)
+            if repo_request.repository_metadata:
+                for codebase_config in repo_request.repository_metadata:
+                    # Build codebase path with codebase_folder
+                    codebase_path = repo_path
+                    if (
+                        codebase_config.codebase_folder
+                        and codebase_config.codebase_folder != "."
+                    ):
+                        path_components = codebase_config.codebase_folder.split("/")
+                        for component in path_components:
+                            codebase_path = os.path.join(codebase_path, component)
 
-                # Build absolute paths for each root package
-                root_package_paths: List[str] = []
-                if codebase_config.root_packages:
-                    for root_package in codebase_config.root_packages:
-                        if root_package == ".":
-                            # Root package at codebase root
-                            root_package_path = codebase_path
-                        else:
-                            # Root package in subdirectory
-                            root_package_path = os.path.join(codebase_path, root_package)
+                    # Build absolute paths for each root package
+                    root_package_paths: List[str] = []
+                    if codebase_config.root_packages:
+                        for root_package in codebase_config.root_packages:
+                            if root_package == ".":
+                                # Root package at codebase root
+                                root_package_path = codebase_path
+                            else:
+                                # Root package in subdirectory
+                                root_package_path = os.path.join(
+                                    codebase_path, root_package
+                                )
 
-                        # Verify the path exists
-                        if not os.path.exists(root_package_path):
-                            logger.warning("Root package path not found | path={} | skipping", root_package_path)
-                            continue
+                            # Verify the path exists
+                            if not os.path.exists(root_package_path):
+                                logger.warning(
+                                    "Root package path not found | path={} | skipping",
+                                    root_package_path,
+                                )
+                                continue
 
-                        root_package_paths.append(root_package_path)
-                else:
-                    if codebase_config.programming_language_metadata.language.value == "python":
-                        logger.warning("No root packages specified for python codebase, using codebase root")
-                    root_package_paths.append(codebase_path)
+                            root_package_paths.append(root_package_path)
+                    else:
+                        if (
+                            codebase_config.programming_language_metadata.language.value
+                            == "python"
+                        ):
+                            logger.warning(
+                                "No root packages specified for python codebase, using codebase root"
+                            )
+                        root_package_paths.append(codebase_path)
 
-                # Verify at least one valid root package path exists
-                if not root_package_paths:
-                    raise Exception(f"No valid root package paths found for codebase at {codebase_path}")
+                    # Verify at least one valid root package path exists
+                    if not root_package_paths:
+                        raise Exception(
+                            f"No valid root package paths found for codebase at {codebase_path}"
+                        )
 
-                # Log the computed paths for the codebase
-                logger.info("Codebase paths computed | codebase_path={} | root_packages={} | status=success", codebase_path, root_package_paths)
+                    # Log the computed paths for the codebase
+                    logger.info(
+                        "Codebase paths computed | codebase_path={} | root_packages={} | status=success",
+                        codebase_path,
+                        root_package_paths,
+                    )
 
-                programming_language_metadata: ProgrammingLanguageMetadata = codebase_config.programming_language_metadata
+                    programming_language_metadata: ProgrammingLanguageMetadata = (
+                        codebase_config.programming_language_metadata
+                    )
 
-                # Determine codebase name (use codebase_folder or first root package name)
-                codebase_name = codebase_config.codebase_folder
-                if codebase_config.root_packages and len(codebase_config.root_packages) > 0:
-                    # Use first root package name, or codebase_folder if root package is "."
-                    first_root_package = codebase_config.root_packages[0]
-                    if first_root_package != ".":
-                        codebase_name = first_root_package
+                    # Determine codebase name (use codebase_folder or first root package name)
+                    codebase_name = codebase_config.codebase_folder
+                    if (
+                        codebase_config.root_packages
+                        and len(codebase_config.root_packages) > 0
+                    ):
+                        # Use first root package name, or codebase_folder if root package is "."
+                        first_root_package = codebase_config.root_packages[0]
+                        if first_root_package != ".":
+                            codebase_name = first_root_package
 
-                codebase = UnoplatCodebase(
-                    name=codebase_name,
-                    root_packages=root_package_paths,
-                    codebase_path=codebase_path,
-                    codebase_folder=codebase_config.codebase_folder,
-                    package_manager_metadata=UnoplatPackageManagerMetadata(
-                        programming_language=programming_language_metadata.language.value,
-                        package_manager=programming_language_metadata.package_manager.value
-                        if programming_language_metadata.package_manager
-                        else "unknown",
-                        programming_language_version=programming_language_metadata.language_version,
-                        manifest_path=_relative_manifest_path(
-                            programming_language_metadata.manifest_path,
-                            codebase_config.codebase_folder,
+                    codebase = UnoplatCodebase(
+                        name=codebase_name,
+                        root_packages=root_package_paths,
+                        codebase_path=codebase_path,
+                        codebase_folder=codebase_config.codebase_folder,
+                        package_manager_metadata=UnoplatPackageManagerMetadata(
+                            programming_language=programming_language_metadata.language.value,
+                            package_manager=programming_language_metadata.package_manager.value
+                            if programming_language_metadata.package_manager
+                            else "unknown",
+                            programming_language_version=programming_language_metadata.language_version,
+                            manifest_path=_relative_manifest_path(
+                                programming_language_metadata.manifest_path,
+                                codebase_config.codebase_folder,
+                            ),
                         ),
-                    ),
-                )
-                codebases.append(codebase)
+                    )
+                    codebases.append(codebase)
 
             # Create and return UnoplatGitRepository
             return UnoplatGitRepository(
@@ -243,11 +322,17 @@ class GithubHelper:
                 repository_metadata=repo_metadata,  # type: ignore
                 codebases=codebases,
                 readme=readme_content,
-                github_organization=github_repo.organization.login if github_repo.organization else None,
+                github_organization=github_repo.organization.login
+                if github_repo.organization
+                else None,
             )
 
         except Exception as e:
-            logger.error("Failed to clone repository | git_url={} | error={} | status=failed", repo_url, str(e))
+            logger.error(
+                "Failed to clone repository | git_url={} | error={} | status=failed",
+                repo_url,
+                str(e),
+            )
             # Capture the traceback string
             tb_str = traceback.format_exc()
 

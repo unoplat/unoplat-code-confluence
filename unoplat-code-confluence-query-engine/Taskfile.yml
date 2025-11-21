@@ -1,13 +1,12 @@
 version: "3"
 
-
 tasks:
   start-dependencies:
     desc: Start all dependencies using docker-compose including code-confluence-flow-bridge
     cmds:
       - docker compose -f local-dependencies-docker-compose.yml up -d
       - echo "Waiting for services to be ready..."
-      - sleep 15  # Wait for services to initialize
+      - sleep 15 # Wait for services to initialize
 
   stop-dependencies:
     desc: Stop all dependencies and remove volumes
@@ -35,7 +34,7 @@ tasks:
   update-package:
     desc: Update a specific package to the latest allowed version using uv (usage - task update-package PACKAGE=package_name)
     vars:
-      PACKAGE: '{{.PACKAGE}}'
+      PACKAGE: "{{.PACKAGE}}"
     requires:
       vars: [PACKAGE]
     cmds:
@@ -67,7 +66,7 @@ tasks:
     desc: Start dependencies for local development (without flow-bridge container). Run servers separately.
     cmds:
       - task: start-dependencies-without-flow-bridge
-      - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-core 
+      - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-core
 
   mock-sse:
     desc: Run mock SSE server (replays docs/sse-agent-results.txt) on port 8002
@@ -102,6 +101,12 @@ tasks:
     cmds:
       - uv run --group dev basedpyright src/
 
+  typecheck-file:
+    desc: Run basedpyright type checker on a specific file task typecheck-file FILE=path/to/your/file.py
+    dir: .
+    cmds:
+      - uv run --group dev basedpyright src/{{.FILE}}
+
   format:
     desc: Format code using ruff
     dir: .
@@ -119,4 +124,4 @@ tasks:
     desc: Diagnose pytest test discovery issues and import errors
     dir: .
     cmds:
-     - uv run --group test pytest --collect-only tests/
+      - uv run --group test pytest --collect-only tests/

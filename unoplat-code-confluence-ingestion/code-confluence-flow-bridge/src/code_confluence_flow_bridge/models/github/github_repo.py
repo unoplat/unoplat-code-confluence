@@ -4,10 +4,10 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
+from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
-from unoplat_code_confluence_commons.repo_models import RepositoryProvider
 
 
 class GitHubOwner(BaseModel):
@@ -189,8 +189,8 @@ class CodebaseStatusList(BaseModel):
     )
 
 
-class GitHubRepoRequestConfiguration(BaseModel):
-    """Configuration for a GitHub repository, including codebase config and status."""
+class RepositoryRequestConfiguration(BaseModel):
+    """Configuration for a repository ingestion request, including codebase config and provider credentials."""
 
     repository_name: str = Field(description="The name of the repository (primary key)")
     repository_git_url: str = Field(description="The git URL of the repository")
@@ -199,9 +199,22 @@ class GitHubRepoRequestConfiguration(BaseModel):
         default=None,
         description="List of codebase configurations for the repository (auto-detected if not provided)",
     )
-    repository_provider: RepositoryProvider = Field(
-        default=RepositoryProvider.GITHUB_OPEN,
-        description="Git provider type for this repository"
+    provider_key: ProviderKey = Field(
+        ..., description="Provider key for credential and repository provider lookup"
+    )
+
+
+class RepositoryRefreshRequest(BaseModel):
+    """Minimal payload accepted by the refresh endpoint."""
+
+    repository_name: str = Field(description="The name of the repository (primary key)")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    provider_key: ProviderKey = Field(
+        ..., description="Provider key for credential lookup during refresh"
+    )
+    repository_git_url: Optional[str] = Field(
+        default=None,
+        description="Optional git URL override. If omitted, the backend derives it from provider metadata.",
     )
 
 
@@ -314,10 +327,7 @@ class IngestedRepositoryResponse(BaseModel):
 
     repository_name: str = Field(description="The name of the repository")
     repository_owner_name: str = Field(description="The name of the repository owner")
-    repository_provider: RepositoryProvider = Field(
-        default=RepositoryProvider.GITHUB_OPEN,
-        description="Git provider type for this repository"
-    )
+    provider_key: ProviderKey = Field(description="Provider key for this repository")
 
 
 class IngestedRepositoriesListResponse(BaseModel):
@@ -355,4 +365,12 @@ class CodebaseMetadataListResponse(BaseModel):
     repository_owner_name: str = Field(description="The name of the repository owner")
     codebases: List[CodebaseMetadataResponse] = Field(
         description="List of codebase configurations with metadata"
+    )
+
+
+class RepositoryProvidersResponse(BaseModel):
+    """Response model containing list of configured repository providers."""
+
+    providers: List[ProviderKey] = Field(
+        description="List of configured repository provider keys"
     )

@@ -13,7 +13,9 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models impor
 
 class PackageManagerStrategy(ABC):
     @abstractmethod
-    def process_metadata(self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata) -> UnoplatPackageManagerMetadata:
+    def process_metadata(
+        self, local_workspace_path: str, metadata: ProgrammingLanguageMetadata
+    ) -> UnoplatPackageManagerMetadata:
         """
         Process package manager specific metadata
 

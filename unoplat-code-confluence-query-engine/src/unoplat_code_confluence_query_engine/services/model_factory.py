@@ -61,14 +61,14 @@ class ModelFactory:
     async def build(
         config: AiModelConfig,
         settings: "EnvironmentSettings",
-        session: Optional[AsyncSession] = None,
+        session: AsyncSession,
     ) -> Tuple[ModelType, Optional[ModelSettings]]:
         """Build Pydantic AI model from configuration.
 
         Args:
             config: AI model configuration from database
             settings: Environment settings for retry configuration
-            session: Optional database session
+            session: Database session
 
         Returns:
             Tuple of (model instance, optional settings)
@@ -89,9 +89,7 @@ class ModelFactory:
         credentials_service = CredentialsService()
 
         # Get API key from credentials (will be None for providers that don't need it)
-        model_api_key = await credentials_service.get_credential(
-            "model_api_key", session=session
-        )
+        model_api_key = await credentials_service.get_model_credential(session)
 
         # Create retry HTTP client based on environment settings
         retry_client = create_retry_client(settings)

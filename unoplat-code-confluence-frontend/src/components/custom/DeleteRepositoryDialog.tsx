@@ -36,7 +36,7 @@ export function DeleteRepositoryDialog({
             <div className="flex items-center gap-2">
               <Trash2 className="text-destructive h-4 w-4" />
               Delete Repository
-              <StatusBadge status="beta" size="sm" />
+              <StatusBadge status="beta" />
             </div>
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
@@ -56,12 +56,8 @@ export function DeleteRepositoryDialog({
           <div className="bg-destructive/10 rounded-md p-3">
             <div className="text-destructive text-sm">
               <strong>Warning:</strong> This feature is in{" "}
-              <StatusBadge
-                status="beta"
-                size="sm"
-                className="mx-1 inline-flex"
-              />
-              . All associated data including code analysis, dependencies, and
+              <StatusBadge status="beta" className="mx-1 inline-flex" />. All
+              associated data including code analysis, dependencies, and
               metadata will be removed.
             </div>
           </div>
