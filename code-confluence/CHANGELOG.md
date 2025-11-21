@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.21.2...code-confluence-docs-v0.22.0) (2025-11-21)
+
+
+### Features
+
+* support more repository providers starting with github enterprise. Improved Frontend Architecture and onboarding and some bugs squashed ([0974c76](https://github.com/unoplat/unoplat-code-confluence/commit/0974c76fe9df68b86fb1b180db1b41e04a16c9dd))
+
 ## [0.21.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-docs-v0.21.1...code-confluence-docs-v0.21.2) (2025-11-13)
 
 
