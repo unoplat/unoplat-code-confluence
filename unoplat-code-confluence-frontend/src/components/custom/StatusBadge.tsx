@@ -6,7 +6,6 @@ export type FeatureStatus = "alpha" | "beta";
 
 export interface StatusBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   status: FeatureStatus;
-  size?: "default" | "sm" | "lg";
 }
 
 const statusLabels: Record<FeatureStatus, string> = {
@@ -21,7 +20,6 @@ const statusDescriptions: Record<FeatureStatus, string> = {
 
 export function StatusBadge({
   status,
-  size = "default",
   className,
   title,
   ...props
@@ -32,7 +30,6 @@ export function StatusBadge({
   return (
     <Badge
       variant={status}
-      size={size}
       className={cn(className)}
       title={title || description}
       {...props}

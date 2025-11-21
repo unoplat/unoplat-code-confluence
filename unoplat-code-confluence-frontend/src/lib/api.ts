@@ -28,6 +28,12 @@ export type {
   RefreshRepositoryResponse,
 };
 
+// Re-export provider API functions
+export { fetchProvidersApi, submitProviderForm } from "@/lib/api/repository-provider-api";
+
+// Re-export repositories API functions
+export { fetchRepositoriesApi } from "@/lib/api/repositories-api";
+
 /**
  * API Services
  *
@@ -163,16 +169,23 @@ export const submitGitHubToken = async (
  * @param cursor - Optional cursor for pagination
  * @returns Promise with paginated GitHub repositories
  */
-export const fetchGitHubRepositories = async (
-  page: number,
-  perPage: number,
-  providerKey: ProviderKey,
-  filterValues?: Record<string, string | string[] | null>,
-  cursor?: string,
-): Promise<PaginatedResponse<GitHubRepoSummary>> => {
+interface FetchGitHubRepositoriesParams {
+  perPage: number;
+  providerKey: ProviderKey;
+  filterValues?: Record<string, string | string[] | null>;
+  cursor?: string;
+}
+
+export const fetchGitHubRepositories = async ({
+  perPage,
+  providerKey,
+  filterValues,
+  cursor,
+}: FetchGitHubRepositoriesParams): Promise<
+  PaginatedResponse<GitHubRepoSummary>
+> => {
   try {
     const params: Record<string, string | number> = {
-      page,
       per_page: perPage,
       provider_key: providerKey,
     };
@@ -763,7 +776,7 @@ export const saveModelProviderConfig = async (
     // HTTP headers must only contain ISO-8859-1 characters (0x00-0xFF)
     const sanitizedApiKey = ((model_api_key as string) || "")
       .trim()
-      .replace(/[^\x00-\xFF]/g, "");
+      .replace(/[^\u0000-\u00FF]/gu, "");
 
     const response: AxiosResponse<ApiResponse> = await queryEngineClient.put(
       "/v1/model-config",

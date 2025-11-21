@@ -9,7 +9,8 @@ import React from "react";
 import type { Row } from "@tanstack/react-table";
 
 // Import the Dice UI DataTable component which is built on TanStack Table.
-import { DataTable } from "../data-table";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 // Import TanStack Table core functions
 import {
   useReactTable,
@@ -25,7 +26,7 @@ import { submittedJobsColumns } from "./submitted-jobs-data-table-columns";
 // Import the API function to fetch repository data along with type definitions.
 import type { ParentWorkflowJobResponse } from "../../types";
 import { getParentWorkflowJobs } from "../../lib/api";
-import { DataTableToolbar } from "../data-table-toolbar";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 // Import the new JobStatusDialog component
 import { JobStatusDialog } from "./JobStatusDialog";
 
@@ -129,9 +130,13 @@ export function SubmittedJobsDataTable(): React.ReactElement {
   // 6️⃣ Render DataTable with toolbar
   return (
     <div className="mx-auto w-full max-w-7xl px-4">
-      <DataTable table={table} actionBar={null} isLoading={isInitialLoading}>
-        <DataTableToolbar table={table} />
-      </DataTable>
+      {isInitialLoading ? (
+        <DataTableSkeleton columnCount={6} rowCount={7} />
+      ) : (
+        <DataTable table={table} actionBar={null}>
+          <DataTableToolbar table={table} />
+        </DataTable>
+      )}
 
       {/* Use the new JobStatusDialog component */}
       <JobStatusDialog

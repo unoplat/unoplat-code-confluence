@@ -2,77 +2,62 @@
 
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const sliderVariants = cva(
-  "relative flex w-full touch-none select-none items-center",
-  {
-    variants: {
-      size: {
-        sm: "",
-        default: "",
-        lg: "",
-      },
-    },
-    defaultVariants: {
-      size: "default",
-    },
-  },
-);
+function Slider({
+  className,
+  defaultValue,
+  value,
+  min = 0,
+  max = 100,
+  ...props
+}: React.ComponentProps<typeof SliderPrimitive.Root>) {
+  const _values = React.useMemo(
+    () =>
+      Array.isArray(value)
+        ? value
+        : Array.isArray(defaultValue)
+          ? defaultValue
+          : [min, max],
+    [value, defaultValue, min, max],
+  );
 
-const sliderTrackVariants = cva(
-  "relative w-full grow overflow-hidden rounded-full bg-secondary",
-  {
-    variants: {
-      size: {
-        sm: "h-1",
-        default: "h-2",
-        lg: "h-3",
-      },
-    },
-    defaultVariants: {
-      size: "default",
-    },
-  },
-);
-
-const sliderThumbVariants = cva(
-  "block rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-  {
-    variants: {
-      size: {
-        sm: "h-4 w-4",
-        default: "h-5 w-5",
-        lg: "h-6 w-6",
-      },
-    },
-    defaultVariants: {
-      size: "default",
-    },
-  },
-);
-
-export interface SliderProps
-  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>,
-    VariantProps<typeof sliderVariants> {}
-
-const Slider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
-  SliderProps
->(({ className, size, ...props }, ref) => (
-  <SliderPrimitive.Root
-    ref={ref}
-    className={cn(sliderVariants({ size }), className)}
-    {...props}
-  >
-    <SliderPrimitive.Track className={sliderTrackVariants({ size })}>
-      <SliderPrimitive.Range className="bg-primary absolute h-full" />
-    </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className={sliderThumbVariants({ size })} />
-  </SliderPrimitive.Root>
-));
-Slider.displayName = SliderPrimitive.Root.displayName;
+  return (
+    <SliderPrimitive.Root
+      data-slot="slider"
+      defaultValue={defaultValue}
+      value={value}
+      min={min}
+      max={max}
+      className={cn(
+        "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
+        className,
+      )}
+      {...props}
+    >
+      <SliderPrimitive.Track
+        data-slot="slider-track"
+        className={cn(
+          "bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
+        )}
+      >
+        <SliderPrimitive.Range
+          data-slot="slider-range"
+          className={cn(
+            "bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
+          )}
+        />
+      </SliderPrimitive.Track>
+      {Array.from({ length: _values.length }, (_, index) => (
+        <SliderPrimitive.Thumb
+          data-slot="slider-thumb"
+          key={index}
+          className="border-primary ring-ring/50 block size-4 shrink-0 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+        />
+      ))}
+    </SliderPrimitive.Root>
+  );
+}
 
 export { Slider };

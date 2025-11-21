@@ -1,7 +1,7 @@
-import { type Table as TanstackTable, flexRender } from "@tanstack/react-table";
+import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import type * as React from "react";
 
-import { DataTablePagination } from "@/components/data-table-pagination";
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import {
   Table,
   TableBody,
@@ -16,37 +16,22 @@ import { cn } from "@/lib/utils";
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>;
   actionBar?: React.ReactNode;
-  showRowsPerPage?: boolean;
-  isLoading?: boolean;
 }
 
 export function DataTable<TData>({
   table,
   actionBar,
-  showRowsPerPage = false,
-  isLoading = false,
   children,
   className,
   ...props
-}: DataTableProps<TData>): React.ReactElement {
-  console.log("[DataTable] Rendering with table state:", {
-    pageIndex: table.getState().pagination.pageIndex,
-    pageSize: table.getState().pagination.pageSize,
-    rowCount: table.getRowModel().rows.length,
-    canNextPage: table.getCanNextPage(),
-    canPreviousPage: table.getCanPreviousPage(),
-    isLoading,
-  });
-
-  console.log("DataTable props:", { showRowsPerPage, isLoading });
-
+}: DataTableProps<TData>) {
   return (
     <div
       className={cn("flex w-full flex-col gap-2.5 overflow-auto", className)}
       {...props}
     >
       {children}
-      <div className="border-border bg-card overflow-auto rounded-md border">
+      <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -71,18 +56,7 @@ export function DataTable<TData>({
             ))}
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              // Only skeletonize the rows, not the whole table
-              Array.from({ length: 10 }).map((_, i) => (
-                <TableRow key={i} className="hover:bg-transparent">
-                  {table.getAllColumns().map((_column, j) => (
-                    <TableCell key={j}>
-                      <div className="bg-muted h-6 w-full animate-pulse rounded" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -117,7 +91,6 @@ export function DataTable<TData>({
         </Table>
       </div>
       <div className="flex flex-col gap-2.5">
-        {/* To enable - showRowsPerPage={showRowsPerPage} */}
         <DataTablePagination table={table} />
         {actionBar &&
           table.getFilteredSelectedRowModel().rows.length > 0 &&

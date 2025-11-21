@@ -225,10 +225,7 @@ export function GenerateAgentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="flex max-h-[85vh] flex-col sm:max-w-2xl"
-        padding="default"
-      >
+      <DialogContent className="flex max-h-[85vh] flex-col p-6 sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Generate Agents.md</DialogTitle>
           <DialogDescription>
