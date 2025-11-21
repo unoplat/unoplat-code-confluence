@@ -147,7 +147,7 @@ services:
       timeout: 5s
       retries: 5
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.59.0
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.61.1
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
@@ -174,7 +174,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.20.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.22.0
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
@@ -200,7 +200,7 @@ services:
         condition: service_healthy
 
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.31.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.33.0
     depends_on:
       - code-confluence-flow-bridge
     ports:
