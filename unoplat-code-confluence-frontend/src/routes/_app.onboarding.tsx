@@ -8,62 +8,30 @@ import {
 import { getProviderRouteSlug } from "@/lib/utils/provider-route-utils";
 
 export const Route = createFileRoute("/_app/onboarding")({
-  loader: async (opts) => {
-    const { context, location } = opts;
-    console.debug("[ROUTER-DEBUG] Onboarding.loader", {
-      pathname: location.pathname,
-    });
+  loader: async ({ context }) => {
     // Prefetch providers into TanStack Query cache
     const providers = await context.queryClient.ensureQueryData(
       providersQueryOptions(),
     );
     return { providers };
   },
-  beforeLoad: async (opts) => {
-    const { context, matches, location } = opts;
-    console.debug("[ROUTER-DEBUG] Onboarding.beforeLoad.enter", {
-      pathname: location.pathname,
-      matches: matches.map((match) => ({
-        id: match.id,
-        routeId: match.routeId,
-        pathname: match.pathname,
-      })),
-    });
+  beforeLoad: async ({ context, location }) => {
     // Fetch providers to check if redirect is needed
     const providers = await context.queryClient.ensureQueryData(
       providersQueryOptions(),
     );
 
-    // Check if we're on the index route (no child route matched)
     // Treat /onboarding and /onboarding/ as index so we can redirect to first provider
     const isIndexPath =
       location.pathname === "/onboarding" ||
       location.pathname === "/onboarding/";
-
-    console.debug("[ROUTER-DEBUG] Onboarding.beforeLoad.indexCheck", {
-      pathname: location.pathname,
-      isIndexPath,
-      providerCount: providers?.length ?? 0,
-    });
 
     // Redirect to first provider if providers exist and we're on the index
     if (providers && providers.length > 0 && isIndexPath) {
       const firstProvider = providers[0];
       const routeSlug = getProviderRouteSlug(firstProvider.provider_key);
 
-      console.debug(
-        "[ROUTER-DEBUG] Onboarding.beforeLoad.redirectFirstProvider",
-        {
-          providerKey: firstProvider.provider_key,
-          routeSlug,
-        },
-      );
-
       if (routeSlug) {
-        console.debug(
-          "[ROUTER-DEBUG] Onboarding.beforeLoad.redirect -> /onboarding/$provider",
-          { provider: routeSlug },
-        );
         throw redirect({
           to: "/onboarding/$provider",
           params: { provider: routeSlug },

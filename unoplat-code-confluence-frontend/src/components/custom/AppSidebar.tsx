@@ -29,10 +29,10 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { NavUser } from "./NavUser";
 
 export function AppSidebar(): React.ReactElement {
-  const { user, tokenStatus } = useAuthStore();
+  const { user } = useAuthStore();
 
-  // Only show user info in footer when token is valid and user data exists
-  const showUserInfo = tokenStatus?.status && user;
+  // Show user info when user profile is available
+  const showUserInfo = !!user;
 
   return (
     <Sidebar
