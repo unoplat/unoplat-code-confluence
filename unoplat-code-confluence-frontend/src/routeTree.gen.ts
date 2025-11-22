@@ -19,8 +19,7 @@ import { Route as AppRepositoryManagementRouteImport } from './routes/_app.repos
 import { Route as AppOnboardingRouteImport } from './routes/_app.onboarding'
 import { Route as AppDeveloperRouteImport } from './routes/_app.developer'
 import { Route as AppOnboardingIndexRouteImport } from './routes/_app.onboarding.index'
-import { Route as AppOnboardingGithubEnterpriseRouteImport } from './routes/_app.onboarding.github-enterprise'
-import { Route as AppOnboardingGithubRouteImport } from './routes/_app.onboarding.github'
+import { Route as AppOnboardingProviderRouteImport } from './routes/_app.onboarding.$provider'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -71,15 +70,9 @@ const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppOnboardingRoute,
 } as any)
-const AppOnboardingGithubEnterpriseRoute =
-  AppOnboardingGithubEnterpriseRouteImport.update({
-    id: '/github-enterprise',
-    path: '/github-enterprise',
-    getParentRoute: () => AppOnboardingRoute,
-  } as any)
-const AppOnboardingGithubRoute = AppOnboardingGithubRouteImport.update({
-  id: '/github',
-  path: '/github',
+const AppOnboardingProviderRoute = AppOnboardingProviderRouteImport.update({
+  id: '/$provider',
+  path: '/$provider',
   getParentRoute: () => AppOnboardingRoute,
 } as any)
 
@@ -92,8 +85,7 @@ export interface FileRoutesByFullPath {
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/': typeof AppIndexRoute
-  '/onboarding/github': typeof AppOnboardingGithubRoute
-  '/onboarding/github-enterprise': typeof AppOnboardingGithubEnterpriseRoute
+  '/onboarding/$provider': typeof AppOnboardingProviderRoute
   '/onboarding/': typeof AppOnboardingIndexRoute
 }
 export interface FileRoutesByTo {
@@ -104,8 +96,7 @@ export interface FileRoutesByTo {
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/': typeof AppIndexRoute
-  '/onboarding/github': typeof AppOnboardingGithubRoute
-  '/onboarding/github-enterprise': typeof AppOnboardingGithubEnterpriseRoute
+  '/onboarding/$provider': typeof AppOnboardingProviderRoute
   '/onboarding': typeof AppOnboardingIndexRoute
 }
 export interface FileRoutesById {
@@ -119,8 +110,7 @@ export interface FileRoutesById {
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/_app/': typeof AppIndexRoute
-  '/_app/onboarding/github': typeof AppOnboardingGithubRoute
-  '/_app/onboarding/github-enterprise': typeof AppOnboardingGithubEnterpriseRoute
+  '/_app/onboarding/$provider': typeof AppOnboardingProviderRoute
   '/_app/onboarding/': typeof AppOnboardingIndexRoute
 }
 export interface FileRouteTypes {
@@ -134,8 +124,7 @@ export interface FileRouteTypes {
     | '/settings/developer'
     | '/settings/model-providers'
     | '/'
-    | '/onboarding/github'
-    | '/onboarding/github-enterprise'
+    | '/onboarding/$provider'
     | '/onboarding/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -146,8 +135,7 @@ export interface FileRouteTypes {
     | '/settings/developer'
     | '/settings/model-providers'
     | '/'
-    | '/onboarding/github'
-    | '/onboarding/github-enterprise'
+    | '/onboarding/$provider'
     | '/onboarding'
   id:
     | '__root__'
@@ -160,8 +148,7 @@ export interface FileRouteTypes {
     | '/settings/developer'
     | '/settings/model-providers'
     | '/_app/'
-    | '/_app/onboarding/github'
-    | '/_app/onboarding/github-enterprise'
+    | '/_app/onboarding/$provider'
     | '/_app/onboarding/'
   fileRoutesById: FileRoutesById
 }
@@ -243,32 +230,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingIndexRouteImport
       parentRoute: typeof AppOnboardingRoute
     }
-    '/_app/onboarding/github-enterprise': {
-      id: '/_app/onboarding/github-enterprise'
-      path: '/github-enterprise'
-      fullPath: '/onboarding/github-enterprise'
-      preLoaderRoute: typeof AppOnboardingGithubEnterpriseRouteImport
-      parentRoute: typeof AppOnboardingRoute
-    }
-    '/_app/onboarding/github': {
-      id: '/_app/onboarding/github'
-      path: '/github'
-      fullPath: '/onboarding/github'
-      preLoaderRoute: typeof AppOnboardingGithubRouteImport
+    '/_app/onboarding/$provider': {
+      id: '/_app/onboarding/$provider'
+      path: '/$provider'
+      fullPath: '/onboarding/$provider'
+      preLoaderRoute: typeof AppOnboardingProviderRouteImport
       parentRoute: typeof AppOnboardingRoute
     }
   }
 }
 
 interface AppOnboardingRouteChildren {
-  AppOnboardingGithubRoute: typeof AppOnboardingGithubRoute
-  AppOnboardingGithubEnterpriseRoute: typeof AppOnboardingGithubEnterpriseRoute
+  AppOnboardingProviderRoute: typeof AppOnboardingProviderRoute
   AppOnboardingIndexRoute: typeof AppOnboardingIndexRoute
 }
 
 const AppOnboardingRouteChildren: AppOnboardingRouteChildren = {
-  AppOnboardingGithubRoute: AppOnboardingGithubRoute,
-  AppOnboardingGithubEnterpriseRoute: AppOnboardingGithubEnterpriseRoute,
+  AppOnboardingProviderRoute: AppOnboardingProviderRoute,
   AppOnboardingIndexRoute: AppOnboardingIndexRoute,
 }
 
