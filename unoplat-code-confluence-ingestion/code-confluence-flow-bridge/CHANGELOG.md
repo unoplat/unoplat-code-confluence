@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.62.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.62.0...code-confluence-flow-bridge-v0.62.1) (2025-11-22)
+
+
+### Bug Fixes
+
+* **graph-db:** Update CodeConfluenceGitRepository node creation to not cause cypher merge conflicts ([bde1103](https://github.com/unoplat/unoplat-code-confluence/commit/bde1103e6a744a6c3024e204bc5b5393232c0f30))
+* **graph-db:** Update CodeConfluenceGitRepository node creation to not cause cypher merge conflicts ([dd15257](https://github.com/unoplat/unoplat-code-confluence/commit/dd1525719cd5d4b7ab07528a0621023cd935d6e9))
+
 ## [0.62.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.61.1...code-confluence-flow-bridge-v0.62.0) (2025-11-21)
 
 
