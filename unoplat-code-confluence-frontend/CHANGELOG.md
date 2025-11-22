@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.1...unoplat-code-confluence-frontend-v1.34.2) (2025-11-22)
+
+
+### Bug Fixes
+
+* **ai-slop:** fix ai slop by migrating from zustand store of provider store through custom hooks based on tanstack query which manages server state for all related sections. Moved away from hardcoded multiple child path based on provider to dyanmic param in tanstack router. ([09c0b5c](https://github.com/unoplat/unoplat-code-confluence/commit/09c0b5c6290fbc31f906485fdc5a96a426a95fb2))
+
 ## [1.34.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.0...unoplat-code-confluence-frontend-v1.34.1) (2025-11-22)
 
 
