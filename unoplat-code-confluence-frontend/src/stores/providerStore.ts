@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { ProviderKey } from "@/types/credential-enums";
 import { getProviderDisplayName } from "@/lib/utils/provider-utils";
-import { fetchProvidersApi } from "@/lib/api";
+import { fetchProvidersApi } from "@/lib/api/repository-provider-api";
 
 export interface ProviderDescriptor {
   provider_key: ProviderKey;

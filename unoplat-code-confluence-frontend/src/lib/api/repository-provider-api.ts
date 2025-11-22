@@ -1,10 +1,18 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import { ProviderKey } from "@/types/credential-enums";
 import type {
   RepositoryProvidersResponse,
   RepositoryProviderFormData,
 } from "@/types/repository-provider";
-import { apiClient } from "./clients";
+import { env } from "@/lib/env";
+
+const apiClient: AxiosInstance = axios.create({
+  baseURL: env.apiBaseUrl,
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 /**
  * Fetch configured repository providers from the backend
