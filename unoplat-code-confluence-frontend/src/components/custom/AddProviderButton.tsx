@@ -1,12 +1,12 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { RepositoryProviderForm } from "./RepositoryProviderForm";
-import { useProviderStore } from "@/stores/providerStore";
+import { useProviderData } from "@/hooks/use-provider-data";
 import { ProviderKey } from "@/types/credential-enums";
 
 export function AddProviderButton(): React.ReactElement | null {
-  const providers = useProviderStore((s) => s.providers);
-  const hasEnterprise = providers.some(
+  const { data: providers } = useProviderData();
+  const hasEnterprise = providers?.some(
     (p) => p.provider_key === ProviderKey.GITHUB_ENTERPRISE,
   );
 

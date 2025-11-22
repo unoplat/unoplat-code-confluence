@@ -21,14 +21,13 @@ import {
 } from "@/components/ui/select";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { submitGitHubToken, updateGitHubToken } from "@/lib/api";
 import {
   CredentialNamespace,
   ProviderKey,
   SecretKind,
 } from "@/types/credential-enums";
 import { getProviderDisplayName } from "@/lib/utils/provider-utils";
-import { useProviderStore } from "@/stores/providerStore";
+import { useProviderMutations } from "@/hooks/use-provider-mutations";
 import { DEFAULT_REPOSITORY_CREDENTIAL_PARAMS } from "@/lib/constants/credentials";
 import { buildGitHubPatLink } from "@/lib/github-token-utils";
 import { z } from "zod";
@@ -58,15 +57,7 @@ const repositoryProviderSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.provider_key === ProviderKey.GITHUB_ENTERPRISE) {
-      if (!data.url || data.url.length === 0) {
-        ctx.addIssue({
-          path: ["url"],
-          code: z.ZodIssueCode.custom,
-          message: "Base URL is required for GitHub Enterprise",
-        });
-        return;
-      }
-      if (!/^https?:\/\//i.test(data.url)) {
+      if (data.url && !/^https?:\/\//i.test(data.url)) {
         ctx.addIssue({
           path: ["url"],
           code: z.ZodIssueCode.custom,
@@ -84,8 +75,7 @@ export function RepositoryProviderForm({
 }: RepositoryProviderFormProps): React.ReactElement {
   const [open, setOpen] = useState(inline);
   const [showToken, setShowToken] = useState(false);
-  const fetchProviders = useProviderStore((s) => s.fetchProviders);
-  const selectProvider = useProviderStore((s) => s.selectProvider);
+  const { submitToken, updateToken } = useProviderMutations();
   const navigate = useNavigate();
 
   const form = useForm({
@@ -105,44 +95,49 @@ export function RepositoryProviderForm({
       const trimmedToken = value.patToken.trim();
       const trimmedUrl = value.url.trim();
 
-      try {
-        const credentialParams = {
-          ...DEFAULT_REPOSITORY_CREDENTIAL_PARAMS,
-          namespace: CredentialNamespace.REPOSITORY,
-          secret_kind: SecretKind.PAT,
-          provider_key: providerKey,
-          ...(trimmedUrl ? { url: trimmedUrl } : {}),
-        };
+      const credentialParams = {
+        ...DEFAULT_REPOSITORY_CREDENTIAL_PARAMS,
+        namespace: CredentialNamespace.REPOSITORY,
+        secret_kind: SecretKind.PAT,
+        provider_key: providerKey,
+        ...(trimmedUrl ? { url: trimmedUrl } : {}),
+      };
 
-        if (isUpdate) {
-          await updateGitHubToken(trimmedToken, credentialParams);
-          toast.success("Provider token updated successfully");
-        } else {
-          await submitGitHubToken(trimmedToken, credentialParams);
-          toast.success("Provider connected");
-        }
+      const mutation = isUpdate ? updateToken : submitToken;
 
-        await fetchProviders();
-        selectProvider(providerKey);
+      mutation.mutate(
+        { token: trimmedToken, params: credentialParams },
+        {
+          onSuccess: () => {
+            toast.success(
+              isUpdate
+                ? "Provider token updated successfully"
+                : "Provider connected",
+            );
 
-        if (!isUpdate) {
-          navigate({
-            to:
-              providerKey === ProviderKey.GITHUB_ENTERPRISE
-                ? "/onboarding/github-enterprise"
-                : "/onboarding/github",
-          });
-        }
+            if (!isUpdate) {
+              navigate({
+                to: "/onboarding/$provider",
+                params: {
+                  provider:
+                    providerKey === ProviderKey.GITHUB_ENTERPRISE
+                      ? "github-enterprise"
+                      : "github",
+                },
+              });
+            }
 
-        form.reset();
-        setOpen(false);
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : `Failed to ${isUpdate ? "update" : "connect"} provider`,
-        );
-      }
+            form.reset();
+            setOpen(false);
+          },
+          onError: (error: Error) => {
+            toast.error(
+              error.message ||
+                `Failed to ${isUpdate ? "update" : "connect"} provider`,
+            );
+          },
+        },
+      );
     },
   });
 
@@ -202,7 +197,7 @@ export function RepositoryProviderForm({
               {(field) => (
                 <div className="space-y-2 text-left">
                   <Label htmlFor="url" className="block text-left">
-                    Base URL
+                    Base URL (optional)
                   </Label>
                   <Input
                     id="url"
@@ -210,8 +205,7 @@ export function RepositoryProviderForm({
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="https://ghe.mycompany.com"
-                    required
+                    placeholder="https://yourcompany.ghe.com or https://github.mycompany.com"
                   />
                   {field.state.meta.isTouched &&
                     field.state.meta.errors.length > 0 && (
