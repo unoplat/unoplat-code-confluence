@@ -11,6 +11,9 @@ export default function HomePage(): React.ReactElement {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.debug("[ROUTER-DEBUG] HomePage.redirect", {
+      to: "/onboarding",
+    });
     // Redirect to the onboarding page
     navigate({ to: "/onboarding" });
   }, [navigate]);

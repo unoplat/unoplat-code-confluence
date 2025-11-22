@@ -7,13 +7,13 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { RepositoryProviderForm } from "@/components/custom/RepositoryProviderForm";
-import { useProviderStore } from "@/stores/providerStore";
+import { useProviderData } from "@/hooks/use-provider-data";
 import { ProviderTabNavigation } from "@/components/custom/ProviderTabNavigation";
 
 export default function OnboardingPage(): React.ReactElement {
-  const providers = useProviderStore((state) => state.providers);
+  const { data: providers, isPending } = useProviderData();
 
-  if (!providers.length) {
+  if (isPending || !providers || providers.length === 0) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-12">
         <Card>
