@@ -47,6 +47,10 @@ export function useProviderMutations() {
       void queryClient.invalidateQueries({
         queryKey: ["repository-providers"],
       });
+      // Refresh user profile so sidebar avatar updates immediately
+      void queryClient.invalidateQueries({
+        queryKey: ["githubUser"],
+      });
     },
   });
 
@@ -60,6 +64,9 @@ export function useProviderMutations() {
       // Invalidate provider list to refetch after successful update
       void queryClient.invalidateQueries({
         queryKey: ["repository-providers"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["githubUser"],
       });
     },
   });
@@ -76,7 +83,7 @@ export function useProviderMutations() {
         queryKey: ["repository-providers"],
       });
       void queryClient.invalidateQueries({
-        queryKey: ["flags", "isTokenSubmitted"],
+        queryKey: ["githubUser"],
       });
     },
   });

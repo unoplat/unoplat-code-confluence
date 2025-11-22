@@ -61,16 +61,6 @@ export function Layout(): React.ReactElement {
     select: (s) => ({ matches: s.matches, pathname: s.location.pathname }),
   });
 
-  console.debug("[ROUTER-DEBUG] Layout.state", {
-    pathname,
-    matches: matches.map((match) => ({
-      id: match.id,
-      routeId: match.routeId,
-      pathname: match.pathname,
-      params: match.params,
-    })),
-  });
-
   // Only include matches with a getTitle function in their context
   const crumbs = matches
     .filter((match) => hasGetTitle(match.context))
@@ -91,7 +81,6 @@ export function Layout(): React.ReactElement {
       idx,
   );
 
-  console.debug("[ROUTER-DEBUG] Layout.breadcrumbs", breadcrumbs);
 
   // Find the category for the current path
   let currentCategory: string | null = null;
@@ -104,7 +93,6 @@ export function Layout(): React.ReactElement {
     }
   }
 
-  console.debug("[ROUTER-DEBUG] Layout.currentCategory", currentCategory);
 
   return (
     <div className="flex h-screen flex-col">

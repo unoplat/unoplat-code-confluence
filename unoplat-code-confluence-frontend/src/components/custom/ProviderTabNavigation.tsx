@@ -13,11 +13,6 @@ export function ProviderTabNavigation(): React.ReactElement {
   const params = useParams({ strict: false });
   const { data: providers, isPending } = useProviderData();
 
-  console.debug("[ROUTER-DEBUG] ProviderTabNavigation.state", {
-    params,
-    providerKeys: providers?.map((provider) => provider.provider_key) ?? [],
-  });
-
   if (isPending) {
     return (
       <div className="border-border border-b">
@@ -44,13 +39,6 @@ export function ProviderTabNavigation(): React.ReactElement {
           if (!routeSlug) return null;
 
           const isActive = params?.provider === routeSlug;
-
-          console.debug("[ROUTER-DEBUG] ProviderTabNavigation.tab", {
-            providerKey: provider.provider_key,
-            routeSlug,
-            isActive,
-            currentProviderParam: params?.provider,
-          });
 
           return (
             // eslint-disable-next-line jsx-a11y/anchor-is-valid
