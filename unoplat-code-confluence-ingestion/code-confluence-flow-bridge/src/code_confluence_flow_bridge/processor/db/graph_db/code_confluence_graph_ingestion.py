@@ -44,16 +44,17 @@ class CodeConfluenceGraphIngestion:
     ) -> Record:
         """
         Transaction function for creating or updating CodeConfluenceGitRepository node
-        Based on domain model: repository_url (unique), repository_name, repository_metadata, readme
+        Based on domain model: qualified_name (unique), repository_url, repository_name, repository_metadata, readme
         """
         query = """
-        MERGE (r:CodeConfluenceGitRepository {repository_url: $repository_url})
+        MERGE (r:CodeConfluenceGitRepository {qualified_name: $qualified_name})
         ON CREATE SET
-            r.qualified_name = $qualified_name,
+            r.repository_url = $repository_url,
             r.repository_name = $repository_name,
             r.repository_metadata = $repository_metadata,
             r.readme = $readme
         ON MATCH SET
+            r.repository_url = $repository_url,
             r.repository_name = $repository_name,
             r.repository_metadata = $repository_metadata,
             r.readme = $readme
