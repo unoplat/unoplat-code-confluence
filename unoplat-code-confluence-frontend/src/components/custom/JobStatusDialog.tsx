@@ -113,8 +113,9 @@ export function JobStatusDialog({
       }
     },
     enabled: open && !!job,
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: 5000,
     refetchInterval: 1000 * 10,
+    refetchOnMount: "always",
   });
 
   // Transform the nested codebase_status_list into a flat array of FlattenedCodebaseRun objects

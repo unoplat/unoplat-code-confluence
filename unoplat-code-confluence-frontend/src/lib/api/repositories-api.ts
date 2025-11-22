@@ -1,15 +1,6 @@
-import axios, { AxiosInstance } from "axios";
 import type { ProviderKey } from "@/types/credential-enums";
 import type { GitHubRepoSummary, PaginatedResponse } from "@/types";
-import { env } from "@/lib/env";
-
-const apiClient: AxiosInstance = axios.create({
-  baseURL: env.apiBaseUrl,
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import { apiClient } from "./clients";
 
 interface FetchReposParams {
   providerKey: ProviderKey;
