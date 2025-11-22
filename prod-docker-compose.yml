@@ -147,7 +147,7 @@ services:
       timeout: 5s
       retries: 5
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.61.1
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.62.1
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
