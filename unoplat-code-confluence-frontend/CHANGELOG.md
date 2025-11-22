@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.2...unoplat-code-confluence-frontend-v1.34.3) (2025-11-22)
+
+
+### Bug Fixes
+
+* rely on provider state and based on repository provider fetch user details ([f3a2136](https://github.com/unoplat/unoplat-code-confluence/commit/f3a2136b42d180a307ede0bcdfbec8d24563c6ff))
+
 ## [1.34.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.1...unoplat-code-confluence-frontend-v1.34.2) (2025-11-22)
 
 
