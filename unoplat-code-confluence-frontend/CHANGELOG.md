@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.34.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.0...unoplat-code-confluence-frontend-v1.34.1) (2025-11-22)
+
+
+### Bug Fixes
+
+* **ai-slop:** fix ai slop by migrating from zustand store of provider store through custom hooks based on tanstack query which manages server state for all related sections. Moved away from hardcoded multiple child path based on provider to dyanmic param in tanstack router. ([09c0b5c](https://github.com/unoplat/unoplat-code-confluence/commit/09c0b5c6290fbc31f906485fdc5a96a426a95fb2))
+* Extract axios clients to shared module and reduce staletime and fetchonMount for jobStatusDialog ([083ff01](https://github.com/unoplat/unoplat-code-confluence/commit/083ff01d8c4b1c848f7efca01ef5ea72ed2fb3c7))
+* Extract axios clients to shared module and reduce staletime and fetchonMount for jobStatusDialog ([e9524b2](https://github.com/unoplat/unoplat-code-confluence/commit/e9524b2c78bb0e3e23acf71a48a73b4b416fb14d))
+
 ## [1.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.33.0...unoplat-code-confluence-frontend-v1.34.0) (2025-11-21)
 
 
