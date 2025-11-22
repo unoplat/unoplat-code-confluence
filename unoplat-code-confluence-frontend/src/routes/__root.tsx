@@ -40,18 +40,9 @@ function NotFoundComponent(): React.ReactElement {
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
-  beforeLoad: ({ location, matches }) => {
-    console.debug("[ROUTER-DEBUG] Root.beforeLoad", {
-      pathname: location.pathname,
-      matches: matches.map((match) => ({
-        id: match.id,
-        routeId: match.routeId,
-        pathname: match.pathname,
-      })),
-    });
+  beforeLoad: ({ location }) => {
     // Redirect from / to /onboarding
     if (location.pathname === "/") {
-      console.debug("[ROUTER-DEBUG] Root.beforeLoad redirect -> /onboarding");
       throw redirect({ to: "/onboarding", replace: true });
     }
     // No title needed from root as Layout adds Home icon
