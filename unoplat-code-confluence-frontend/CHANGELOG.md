@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.34.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.0...unoplat-code-confluence-frontend-v1.34.1) (2025-11-22)
+
+
+### Bug Fixes
+
+* Extract axios clients to shared module and reduce staletime and fetchonMount for jobStatusDialog ([083ff01](https://github.com/unoplat/unoplat-code-confluence/commit/083ff01d8c4b1c848f7efca01ef5ea72ed2fb3c7))
+* Extract axios clients to shared module and reduce staletime and fetchonMount for jobStatusDialog ([e9524b2](https://github.com/unoplat/unoplat-code-confluence/commit/e9524b2c78bb0e3e23acf71a48a73b4b416fb14d))
+
 ## [1.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.33.0...unoplat-code-confluence-frontend-v1.34.0) (2025-11-21)
 
 
