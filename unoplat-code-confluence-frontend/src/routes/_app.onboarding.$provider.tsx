@@ -73,7 +73,7 @@ function ProviderRoute(): React.ReactElement {
           <CardDescription>{metadata.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <RepositoryDataTable providerKey={providerKey} tokenStatus />
+          <RepositoryDataTable providerKey={providerKey} />
         </CardContent>
       </Card>
     </div>
