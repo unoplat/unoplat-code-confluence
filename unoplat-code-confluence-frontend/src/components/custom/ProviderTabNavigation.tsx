@@ -1,42 +1,63 @@
 import React from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import {
   getProviderDisplayName,
   getProviderIcon,
 } from "@/lib/utils/provider-utils";
-import { useProviderStore } from "@/stores/providerStore";
+import { getProviderRouteSlug } from "@/lib/utils/provider-route-utils";
+import { useProviderData } from "@/hooks/use-provider-data";
 import { AddProviderButton } from "./AddProviderButton";
 
 export function ProviderTabNavigation(): React.ReactElement {
-  const routerState = useRouterState();
-  const activePath = routerState.location.pathname;
-  const providers = useProviderStore((s) => s.providers);
+  const params = useParams({ strict: false });
+  const { data: providers, isPending } = useProviderData();
 
-  if (!providers.length) {
-    return <AddProviderButton />;
+  console.debug("[ROUTER-DEBUG] ProviderTabNavigation.state", {
+    params,
+    providerKeys: providers?.map((provider) => provider.provider_key) ?? [],
+  });
+
+  if (isPending) {
+    return (
+      <div className="border-border border-b">
+        <div className="flex gap-2">
+          <div className="bg-muted h-10 w-32 animate-pulse rounded-t-md" />
+          <div className="bg-muted h-10 w-32 animate-pulse rounded-t-md" />
+        </div>
+      </div>
+    );
   }
 
-  const activeId =
-    providers.find((tab) =>
-      activePath.includes(tab.provider_key.replace("_", "-")),
-    )?.provider_key ?? providers[0]?.provider_key;
+  if (!providers || providers.length === 0) {
+    return <AddProviderButton />;
+  }
 
   return (
     <div className="border-border border-b">
       <div className="flex flex-wrap items-center gap-2">
         {providers.map((provider) => {
           const Icon = getProviderIcon(provider.provider_key);
-          const isActive = provider.provider_key === activeId;
+          const routeSlug = getProviderRouteSlug(provider.provider_key);
+
+          // Skip providers without route support (e.g., GitLab not yet implemented)
+          if (!routeSlug) return null;
+
+          const isActive = params?.provider === routeSlug;
+
+          console.debug("[ROUTER-DEBUG] ProviderTabNavigation.tab", {
+            providerKey: provider.provider_key,
+            routeSlug,
+            isActive,
+            currentProviderParam: params?.provider,
+          });
 
           return (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <Link
               key={provider.provider_key}
-              to={
-                provider.provider_key === "github_enterprise"
-                  ? "/onboarding/github-enterprise"
-                  : "/onboarding/github"
-              }
+              to="/onboarding/$provider"
+              params={{ provider: routeSlug }}
               preload="intent"
               className={cn(
                 "flex items-center gap-2 rounded-t-md px-4 py-2 text-sm transition-colors",

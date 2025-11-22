@@ -145,9 +145,10 @@ Following the official shadcn/ui patterns and registry guidelines:
 ### Implementation Instructions
 
 1. Always use absolute imports with alias as mentioned in tsconfig. exmaple- starting with @
-2. Post edit run linter and formatter post edit are complete per file with help of below commands:
+2. Post edit run linter and formatter post edit of a single file for that file before proceeding to next file are complete per file with help of below commands:
     # Per-file operations (new capability)
     a. task lint FILE_PATH=src/components/Button.tsx
     b. task lint-fix FILE_PATH=src/pages/HomePage.tsx
     c. task format FILE_PATH=src/lib/api.ts
     d. task format-check FILE_PATH=src/components/ui/dialog.tsx
+3. Also ensure when editing multiple portions in a single file first plan using a general agent in terms of what is the outcome and any concerns you see or any advise you need from user. If yes ask user with outcome of the plan and concerns. Once user approves only then proceed to do the edits.

@@ -1,5 +1,5 @@
-import { env } from "./env";
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
+import axios, { AxiosResponse, AxiosError } from "axios";
+import { apiClient, queryEngineClient } from "./api/clients";
 import {
   FlagResponse,
   GitHubRepoSummary,
@@ -29,7 +29,10 @@ export type {
 };
 
 // Re-export provider API functions
-export { fetchProvidersApi, submitProviderForm } from "@/lib/api/repository-provider-api";
+export {
+  fetchProvidersApi,
+  submitProviderForm,
+} from "@/lib/api/repository-provider-api";
 
 // Re-export repositories API functions
 export { fetchRepositoriesApi } from "@/lib/api/repositories-api";
@@ -40,23 +43,7 @@ export { fetchRepositoriesApi } from "@/lib/api/repositories-api";
  * Collection of API service functions for backend communication.
  */
 
-// Create axios instance for ingestion service
-const apiClient: AxiosInstance = axios.create({
-  baseURL: env.apiBaseUrl,
-  timeout: 10000, // 10 seconds timeout
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Create axios instance for query engine service
-const queryEngineClient: AxiosInstance = axios.create({
-  baseURL: env.queryEngineUrl,
-  timeout: 10000, // 10 seconds timeout
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+// Axios clients are imported from ./api/clients.ts to avoid duplication
 
 // Response interface
 export interface ApiResponse {
@@ -616,7 +603,7 @@ export async function startRepositoryAgentRun(
     };
 
     const response: AxiosResponse<RepositoryWorkflowRunResponse> =
-      await axios.get(`${env.queryEngineUrl}/v1/codebase-agent-rules`, {
+      await queryEngineClient.get("/v1/codebase-agent-rules", {
         params,
       });
 
@@ -660,7 +647,7 @@ export async function getRepositoryAgentSnapshot(
       repo_name: repoName,
     };
     const response: AxiosResponse<RepositoryAgentSnapshotResponse> =
-      await axios.get(`${env.queryEngineUrl}/v1/repository-agent-snapshot`, {
+      await queryEngineClient.get("/v1/repository-agent-snapshot", {
         params,
       });
     const { status, agent_md_output } = response.data;

@@ -14,6 +14,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Home, Github, BookOpen } from "lucide-react";
 import { ModeToggle } from "./ModeToggle";
+import { useAuthData } from "@/hooks/use-auth-data";
 
 /**
  * Layout Component - Main Application Shell with Sidebar Navigation
@@ -53,15 +54,22 @@ function hasGetTitle(context: unknown): context is { getTitle: () => string } {
 }
 
 export function Layout(): React.ReactElement {
+  // Initialize auth data (token status and user details) for the entire app
+  useAuthData();
+
   const { matches, pathname } = useRouterState({
     select: (s) => ({ matches: s.matches, pathname: s.location.pathname }),
   });
 
-  // Debug logs
-
-  console.log("Layout matches:", matches);
-
-  console.log("Layout pathname:", pathname);
+  console.debug("[ROUTER-DEBUG] Layout.state", {
+    pathname,
+    matches: matches.map((match) => ({
+      id: match.id,
+      routeId: match.routeId,
+      pathname: match.pathname,
+      params: match.params,
+    })),
+  });
 
   // Only include matches with a getTitle function in their context
   const crumbs = matches
@@ -83,9 +91,7 @@ export function Layout(): React.ReactElement {
       idx,
   );
 
-  // Debug logs
-
-  console.log("Layout breadcrumbs:", breadcrumbs);
+  console.debug("[ROUTER-DEBUG] Layout.breadcrumbs", breadcrumbs);
 
   // Find the category for the current path
   let currentCategory: string | null = null;
@@ -98,9 +104,7 @@ export function Layout(): React.ReactElement {
     }
   }
 
-  // Debug logs
-
-  console.log("Layout currentCategory:", currentCategory);
+  console.debug("[ROUTER-DEBUG] Layout.currentCategory", currentCategory);
 
   return (
     <div className="flex h-screen flex-col">

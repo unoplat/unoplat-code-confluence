@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   Card,
   CardHeader,
@@ -8,7 +7,6 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Github, Trash2 } from "lucide-react";
-import { deleteGitHubToken } from "../lib/api";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -21,10 +19,11 @@ import {
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import { useAuthData } from "@/hooks/use-auth-data";
+import { useProviderData } from "@/hooks/use-provider-data";
+import { useProviderMutations } from "@/hooks/use-provider-mutations";
 import type { ApiResponse } from "../lib/api"; // Import ApiResponse type
 import { DEFAULT_REPOSITORY_CREDENTIAL_PARAMS } from "@/lib/constants/credentials";
 import { ProviderKey } from "@/types/credential-enums";
-import { useProviderStore } from "@/stores/providerStore";
 import { RepositoryProviderForm } from "@/components/custom/RepositoryProviderForm";
 import {
   Select,
@@ -40,65 +39,53 @@ export default function SettingsPage(): React.ReactElement {
   // console.log('[SettingsPage] Rendering SettingsPage component');
 
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
-  const providers = useProviderStore((s) => s.providers);
-  const removeProvider = useProviderStore((s) => s.removeProvider);
+  const { data: providers, isPending: isLoadingProviders } = useProviderData();
+  const { deleteToken } = useProviderMutations();
   const [selectedProvider, setSelectedProvider] = useState<ProviderKey | null>(
-    providers[0]?.provider_key ?? null,
+    providers?.[0]?.provider_key ?? null,
   );
   const providerOptions = useMemo(
-    () => providers.map((p) => p.provider_key as ProviderKey),
+    () => (providers ?? []).map((p) => p.provider_key as ProviderKey),
     [providers],
   );
-  // const [isDeleting, setIsDeleting] = useState<boolean>(false); // Removed isDeleting state
-  const queryClient = useQueryClient();
   const { tokenQuery } = useAuthData(); // Use the auth data hook
 
   // console.log('[SettingsPage] State:', { showTokenPopup, showDeleteDialog });
   // console.log('[SettingsPage] Auth Data:', { tokenQuery });
 
-  // Define the mutation for deleting the token
-  const deleteMutation = useMutation<ApiResponse, Error>({
-    mutationFn: () => {
-      if (!selectedProvider) {
-        throw new Error("Select a provider to delete");
-      }
-      return deleteGitHubToken({
+  // Handle delete token with automatic cache invalidation
+  const handleDeleteToken = () => {
+    if (!selectedProvider) {
+      toast.error("Select a provider to delete");
+      return;
+    }
+
+    deleteToken.mutate(
+      {
         ...DEFAULT_REPOSITORY_CREDENTIAL_PARAMS,
         provider_key: selectedProvider,
-      });
-    },
-    onSuccess: async (data: ApiResponse) => {
-      // console.log('[SettingsPage] Token deleted successfully via mutation, invalidating queries', data);
-      setShowDeleteDialog(false);
-
-      // Invalidate and refetch the flag status
-      await queryClient.invalidateQueries({
-        queryKey: ["flags", "isTokenSubmitted"],
-      });
-      // console.log('[SettingsPage] Queries invalidated via mutation');
-
-      toast.success(
-        data.message || "Provider token has been successfully removed",
-      );
-      if (selectedProvider) {
-        removeProvider(selectedProvider);
-        setSelectedProvider(
-          providers.filter((p) => p.provider_key !== selectedProvider)[0]
-            ?.provider_key ?? null,
-        );
-      }
-    },
-    onError: (error: Error) => {
-      console.error("[SettingsPage] Error deleting token via mutation:", error);
-      toast.error(error.message || "Failed to delete token");
-    },
-    // Optional: Reset mutation state when dialog closes
-    // onSettled: () => {
-    //   if (!showDeleteDialog) {
-    //     deleteMutation.reset();
-    //   }
-    // }
-  });
+      },
+      {
+        onSuccess: (data: ApiResponse) => {
+          setShowDeleteDialog(false);
+          toast.success(
+            data.message || "Provider token has been successfully removed",
+          );
+          // Update selected provider to next available
+          const remainingProviders =
+            providers?.filter((p) => p.provider_key !== selectedProvider) ?? [];
+          setSelectedProvider(remainingProviders[0]?.provider_key ?? null);
+        },
+        onError: (error: Error) => {
+          console.error(
+            "[SettingsPage] Error deleting token via mutation:",
+            error,
+          );
+          toast.error(error.message || "Failed to delete token");
+        },
+      },
+    );
+  };
 
   // Removed handleDeleteToken function
 
@@ -128,13 +115,15 @@ export default function SettingsPage(): React.ReactElement {
                     >
                       <Github className="h-4 w-4" />
                       <span>
-                        {providers.length > 0 ? "Update Token" : "Add Provider"}
+                        {providers && providers.length > 0
+                          ? "Update Token"
+                          : "Add Provider"}
                       </span>
                     </Button>
                   }
-                  isUpdate={providers.length > 0}
+                  isUpdate={(providers ?? []).length > 0}
                   existingProvider={
-                    selectedProvider ?? providers[0]?.provider_key
+                    selectedProvider ?? providers?.[0]?.provider_key
                   }
                 />
                 {providerOptions.length > 0 && (
@@ -146,7 +135,7 @@ export default function SettingsPage(): React.ReactElement {
                       setShowDeleteDialog(true);
                     }}
                     title="Delete GitHub Token"
-                    disabled={deleteMutation.isPending || tokenQuery.isLoading} // Use isPending instead of isLoading
+                    disabled={deleteToken.isPending || tokenQuery.isLoading || isLoadingProviders}
                     className="h-10 w-10"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -165,18 +154,18 @@ export default function SettingsPage(): React.ReactElement {
           setShowDeleteDialog(isOpen);
           if (!isOpen) {
             // console.log('[SettingsPage] Resetting delete mutation state on dialog close');
-            deleteMutation.reset(); // Reset mutation state if dialog is closed
+            deleteToken.reset(); // Reset mutation state if dialog is closed
           }
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete provider token</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <div>
+            <div className="space-y-3">
+              <AlertDialogDescription>
                 Choose the provider whose token you want to delete. This removes
                 access to its repositories and cannot be undone.
-              </div>
+              </AlertDialogDescription>
               <div>
                 <Label className="mb-1 block text-sm font-medium">
                   Provider
@@ -199,23 +188,18 @@ export default function SettingsPage(): React.ReactElement {
                   </SelectContent>
                 </Select>
               </div>
-            </AlertDialogDescription>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>
+            <AlertDialogCancel disabled={deleteToken.isPending}>
               Cancel
-            </AlertDialogCancel>{" "}
-            {/* Use isPending */}
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={(): void => {
-                if (!selectedProvider) return;
-                deleteMutation.mutate();
-              }}
-              disabled={deleteMutation.isPending} // Use isPending
+              onClick={handleDeleteToken}
+              disabled={deleteToken.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}{" "}
-              {/* Use isPending */}
+              {deleteToken.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
