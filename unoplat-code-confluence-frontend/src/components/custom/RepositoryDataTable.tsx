@@ -22,12 +22,10 @@ import { ProviderKey } from "@/types/credential-enums";
 import { getRepositoryDataTableColumns } from "./repository-data-table-columns";
 
 interface RepositoryDataTableProps {
-  tokenStatus: boolean;
   providerKey: ProviderKey;
 }
 
 export function RepositoryDataTable({
-  tokenStatus,
   providerKey,
 }: RepositoryDataTableProps) {
   const queryClient = useQueryClient();
@@ -113,7 +111,7 @@ export function RepositoryDataTable({
     getNextPageParam: (lastPage) =>
       lastPage.has_next ? (lastPage.next_cursor ?? undefined) : undefined,
     maxPages: 10,
-    enabled: tokenStatus,
+    enabled: true,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -133,10 +131,10 @@ export function RepositoryDataTable({
   const tableData = currentPage?.items ?? [];
 
   const pageCount = useMemo(() => {
-    if (!tokenStatus || !data) return -1;
+    if (!data) return -1;
     if (totalFetchedPages === 0) return 1;
     return hasNextPage ? totalFetchedPages + 1 : totalFetchedPages;
-  }, [tokenStatus, data, hasNextPage, totalFetchedPages]);
+  }, [data, hasNextPage, totalFetchedPages]);
 
   const { table } = useDataTable<GitHubRepoSummary>({
     data: tableData,
@@ -153,13 +151,12 @@ export function RepositoryDataTable({
   });
 
   useEffect(() => {
-    if (!tokenStatus || !data) return;
+    if (!data) return;
     if (!hasNextPage || isFetchingNextPage) return;
     if (pageIndexFromUrl < totalFetchedPages) return;
 
     void fetchNextPage();
   }, [
-    tokenStatus,
     data,
     pageIndexFromUrl,
     totalFetchedPages,
@@ -167,16 +164,6 @@ export function RepositoryDataTable({
     isFetchingNextPage,
     fetchNextPage,
   ]);
-
-  if (!tokenStatus) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-muted-foreground text-sm">
-          Connect your GitHub account to browse repositories.
-        </p>
-      </div>
-    );
-  }
 
   const showSkeleton = isPending && !data;
 

@@ -18,7 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
-import { useAuthData } from "@/hooks/use-auth-data";
 import { useProviderData } from "@/hooks/use-provider-data";
 import { useProviderMutations } from "@/hooks/use-provider-mutations";
 import type { ApiResponse } from "../lib/api"; // Import ApiResponse type
@@ -48,7 +47,7 @@ export default function SettingsPage(): React.ReactElement {
     () => (providers ?? []).map((p) => p.provider_key as ProviderKey),
     [providers],
   );
-  const { tokenQuery } = useAuthData(); // Use the auth data hook
+  const hasProvider = providerOptions.length > 0;
 
   // console.log('[SettingsPage] State:', { showTokenPopup, showDeleteDialog });
   // console.log('[SettingsPage] Auth Data:', { tokenQuery });
@@ -100,7 +99,7 @@ export default function SettingsPage(): React.ReactElement {
                   GitHub Authentication
                 </CardTitle>
                 <CardDescription className="text-muted-foreground text-base leading-relaxed">
-                  {tokenQuery.data?.status
+                  {hasProvider
                     ? "Update or remove your GitHub Personal Access Token."
                     : "Connect your GitHub account to access repositories."}
                 </CardDescription>
@@ -135,7 +134,7 @@ export default function SettingsPage(): React.ReactElement {
                       setShowDeleteDialog(true);
                     }}
                     title="Delete GitHub Token"
-                    disabled={deleteToken.isPending || tokenQuery.isLoading || isLoadingProviders}
+                    disabled={deleteToken.isPending || isLoadingProviders}
                     className="h-10 w-10"
                   >
                     <Trash2 className="h-4 w-4" />
