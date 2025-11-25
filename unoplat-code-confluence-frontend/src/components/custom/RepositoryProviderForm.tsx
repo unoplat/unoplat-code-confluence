@@ -57,7 +57,17 @@ const repositoryProviderSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.provider_key === ProviderKey.GITHUB_ENTERPRISE) {
-      if (data.url && !/^https?:\/\//i.test(data.url)) {
+      // URL is required for GitHub Enterprise (Server or Cloud with data residency)
+      if (!data.url) {
+        ctx.addIssue({
+          path: ["url"],
+          code: z.ZodIssueCode.custom,
+          message:
+            "URL is required for GitHub Enterprise Server or Enterprise Cloud with data residency",
+        });
+        return;
+      }
+      if (!/^https?:\/\//i.test(data.url)) {
         ctx.addIssue({
           path: ["url"],
           code: z.ZodIssueCode.custom,
@@ -197,7 +207,7 @@ export function RepositoryProviderForm({
               {(field) => (
                 <div className="space-y-2 text-left">
                   <Label htmlFor="url" className="block text-left">
-                    Base URL (optional)
+                    Base URL
                   </Label>
                   <Input
                     id="url"
@@ -207,6 +217,11 @@ export function RepositoryProviderForm({
                     onBlur={field.handleBlur}
                     placeholder="https://yourcompany.ghe.com or https://github.mycompany.com"
                   />
+                  <p className="text-muted-foreground text-xs">
+                    For Enterprise Server (self-hosted) or Enterprise Cloud with
+                    data residency (ghe.com). Use GitHub provider for standard
+                    Enterprise Cloud.
+                  </p>
                   {field.state.meta.isTouched &&
                     field.state.meta.errors.length > 0 && (
                       <p className="text-destructive text-sm">
@@ -280,23 +295,42 @@ export function RepositoryProviderForm({
 
       <div className="flex items-center justify-between">
         <form.Subscribe
-          selector={(state) => [state.values.provider_key, state.values.url]}
+          selector={(state) =>
+            [state.values.provider_key, state.values.url] as const
+          }
         >
-          {([provider_key, url]) => (
-            <a
-              className="text-primary text-sm font-medium underline underline-offset-4"
-              href={
-                provider_key === ProviderKey.GITHUB_ENTERPRISE && url
-                  ? buildGitHubPatLinkForHost(url)
-                  : buildGitHubPatLink()
-              }
-              target="_blank"
-              rel="noreferrer"
-            >
-              Generate token on{" "}
-              {getProviderDisplayName(provider_key as ProviderKey)}
-            </a>
-          )}
+          {([provider_key, url]) => {
+            const isEnterprise =
+              provider_key === ProviderKey.GITHUB_ENTERPRISE;
+            const isLinkDisabled = isEnterprise && !url?.trim();
+
+            const href =
+              isEnterprise && url
+                ? buildGitHubPatLinkForHost(url)
+                : buildGitHubPatLink();
+
+            if (isLinkDisabled) {
+              return (
+                <span
+                  className="text-muted-foreground cursor-not-allowed text-sm font-medium"
+                  title="Enter your Enterprise URL first to generate a token"
+                >
+                  Generate token on {getProviderDisplayName(provider_key)}
+                </span>
+              );
+            }
+
+            return (
+              <a
+                className="text-primary text-sm font-medium underline underline-offset-4"
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Generate token on {getProviderDisplayName(provider_key)}
+              </a>
+            );
+          }}
         </form.Subscribe>
         <div className="flex gap-2">
           {!inline && (
