@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.34.1...unoplat-code-confluence-commons-v0.35.0) (2025-11-21)
+
+
+### Features
+
+* support more repository providers starting with github enterprise. Improved Frontend Architecture and onboarding and some bugs squashed ([0974c76](https://github.com/unoplat/unoplat-code-confluence/commit/0974c76fe9df68b86fb1b180db1b41e04a16c9dd))
+
 ## [0.34.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.34.0...unoplat-code-confluence-commons-v0.34.1) (2025-11-10)
 
 

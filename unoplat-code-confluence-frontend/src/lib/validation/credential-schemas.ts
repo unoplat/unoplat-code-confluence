@@ -30,11 +30,12 @@ export const tokenFormSchema = z
   })
   .refine(
     (data) => {
-      // Enterprise providers require URL
-      const needsUrl = [
-        ProviderKey.GITHUB_ENTERPRISE,
-        ProviderKey.GITLAB_ENTERPRISE,
-      ].includes(data.provider_key);
+      // Enterprise providers that are always self-hosted require URL.
+      // GitHub Enterprise supports cloud configurations where URL is optional,
+      // so only GitLab Enterprise is strictly enforced here.
+      const needsUrl = [ProviderKey.GITLAB_ENTERPRISE].includes(
+        data.provider_key,
+      );
       return !needsUrl || (needsUrl && data.url && data.url.length > 0);
     },
     {

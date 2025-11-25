@@ -1,5 +1,43 @@
 # Changelog
 
+## [1.34.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.3...unoplat-code-confluence-frontend-v1.34.4) (2025-11-25)
+
+
+### Bug Fixes
+
+* support Enterprise Cloud data residency enterprise server and En… ([9de4794](https://github.com/unoplat/unoplat-code-confluence/commit/9de47940a9fc125be3b917ecd606af01a3f45ca1))
+* support Enterprise Cloud data residency enterprise server and Enterprise Server and improve ui validation and hints ([72b462a](https://github.com/unoplat/unoplat-code-confluence/commit/72b462a8b6146254b7d89329a2d935d2647f9626))
+
+## [1.34.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.2...unoplat-code-confluence-frontend-v1.34.3) (2025-11-22)
+
+
+### Bug Fixes
+
+* rely on provider state and based on repository provider fetch user details ([f3a2136](https://github.com/unoplat/unoplat-code-confluence/commit/f3a2136b42d180a307ede0bcdfbec8d24563c6ff))
+
+## [1.34.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.1...unoplat-code-confluence-frontend-v1.34.2) (2025-11-22)
+
+
+### Bug Fixes
+
+* **ai-slop:** fix ai slop by migrating from zustand store of provider store through custom hooks based on tanstack query which manages server state for all related sections. Moved away from hardcoded multiple child path based on provider to dyanmic param in tanstack router. ([09c0b5c](https://github.com/unoplat/unoplat-code-confluence/commit/09c0b5c6290fbc31f906485fdc5a96a426a95fb2))
+
+## [1.34.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.0...unoplat-code-confluence-frontend-v1.34.1) (2025-11-22)
+
+
+### Bug Fixes
+
+* **ai-slop:** fix ai slop by migrating from zustand store of provider store through custom hooks based on tanstack query which manages server state for all related sections. Moved away from hardcoded multiple child path based on provider to dyanmic param in tanstack router. ([09c0b5c](https://github.com/unoplat/unoplat-code-confluence/commit/09c0b5c6290fbc31f906485fdc5a96a426a95fb2))
+* Extract axios clients to shared module and reduce staletime and fetchonMount for jobStatusDialog ([083ff01](https://github.com/unoplat/unoplat-code-confluence/commit/083ff01d8c4b1c848f7efca01ef5ea72ed2fb3c7))
+* Extract axios clients to shared module and reduce staletime and fetchonMount for jobStatusDialog ([e9524b2](https://github.com/unoplat/unoplat-code-confluence/commit/e9524b2c78bb0e3e23acf71a48a73b4b416fb14d))
+
+## [1.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.33.0...unoplat-code-confluence-frontend-v1.34.0) (2025-11-21)
+
+
+### Features
+
+* support more repository providers starting with github enterprise. Improved Frontend Architecture and onboarding and some bugs squashed ([0974c76](https://github.com/unoplat/unoplat-code-confluence/commit/0974c76fe9df68b86fb1b180db1b41e04a16c9dd))
+
 ## [1.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.32.0...unoplat-code-confluence-frontend-v1.33.0) (2025-11-21)
 
 

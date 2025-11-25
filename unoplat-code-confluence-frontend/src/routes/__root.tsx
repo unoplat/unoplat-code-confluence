@@ -1,9 +1,15 @@
 import React from "react";
-import { createRootRoute, redirect } from "@tanstack/react-router";
+import { createRootRouteWithContext, redirect } from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
 import { Layout } from "../components/custom/Layout";
 
 // Import the styles
 import "../styles/app.css";
+
+// Define the router context interface
+interface MyRouterContext {
+  queryClient: QueryClient;
+}
 
 // Custom NotFound component
 // This will be displayed whenever a user navigates to a route that doesn't exist
@@ -31,7 +37,7 @@ function NotFoundComponent(): React.ReactElement {
 // 2. Serves as a wrapper for all other routes
 // 3. Provides a place to put UI elements that should appear on every page
 // 4. Can define the notFoundComponent that renders when no routes match
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   beforeLoad: ({ location }) => {

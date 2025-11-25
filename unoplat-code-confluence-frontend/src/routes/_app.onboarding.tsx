@@ -1,34 +1,43 @@
 import React from "react";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { ProviderTabNavigation } from "@/components/custom/ProviderTabNavigation";
-import { useProviderStore } from "@/stores/providerStore";
+import {
+  providersQueryOptions,
+  useProviderData,
+} from "@/hooks/use-provider-data";
+import { getProviderRouteSlug } from "@/lib/utils/provider-route-utils";
 
 export const Route = createFileRoute("/_app/onboarding")({
-  beforeLoad: async ({ location }) => {
-    const store = useProviderStore.getState();
+  loader: async ({ context }) => {
+    // Prefetch providers into TanStack Query cache
+    const providers = await context.queryClient.ensureQueryData(
+      providersQueryOptions(),
+    );
+    return { providers };
+  },
+  beforeLoad: async ({ context, location }) => {
+    // Fetch providers to check if redirect is needed
+    const providers = await context.queryClient.ensureQueryData(
+      providersQueryOptions(),
+    );
 
-    // Fetch providers if not already loaded
-    if (store.providers.length === 0) {
-      await store.fetchProviders();
-    }
-
+    // Treat /onboarding and /onboarding/ as index so we can redirect to first provider
     const isIndexPath =
       location.pathname === "/onboarding" ||
       location.pathname === "/onboarding/";
 
-    // Get updated providers after fetch
-    const providers = useProviderStore.getState().providers;
-    const firstProvider = providers[0];
+    // Redirect to first provider if providers exist and we're on the index
+    if (providers && providers.length > 0 && isIndexPath) {
+      const firstProvider = providers[0];
+      const routeSlug = getProviderRouteSlug(firstProvider.provider_key);
 
-    // Redirect to first provider if on index path
-    if (firstProvider && isIndexPath) {
-      throw redirect({
-        to:
-          firstProvider.provider_key === "github_enterprise"
-            ? "/onboarding/github-enterprise"
-            : "/onboarding/github",
-        replace: true,
-      });
+      if (routeSlug) {
+        throw redirect({
+          to: "/onboarding/$provider",
+          params: { provider: routeSlug },
+          replace: true,
+        });
+      }
     }
 
     return { getTitle: () => "Onboarding" };
@@ -37,12 +46,15 @@ export const Route = createFileRoute("/_app/onboarding")({
 });
 
 function OnboardingLayout(): React.ReactElement {
-  const providers = useProviderStore((s) => s.providers);
-  const isLoading = useProviderStore((s) => s.isLoading);
-  const error = useProviderStore((s) => s.error);
-  const fetchProviders = useProviderStore((s) => s.fetchProviders);
+  const {
+    data: providers,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = useProviderData();
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-12">
         <div className="space-y-3">
@@ -53,15 +65,17 @@ function OnboardingLayout(): React.ReactElement {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-12">
         <div className="space-y-4 rounded-lg border border-dashed p-8 text-center">
-          <p className="text-destructive text-sm">{error}</p>
+          <p className="text-destructive text-sm">
+            {error?.message || "Failed to load providers"}
+          </p>
           <button
             type="button"
             className="text-primary text-sm font-medium underline-offset-4 hover:underline"
-            onClick={() => void fetchProviders()}
+            onClick={() => void refetch()}
           >
             Try again
           </button>
@@ -70,7 +84,7 @@ function OnboardingLayout(): React.ReactElement {
     );
   }
 
-  if (!providers.length) {
+  if (!providers || providers.length === 0) {
     return (
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Outlet />
