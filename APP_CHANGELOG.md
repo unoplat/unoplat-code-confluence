@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.19.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.19.0...unoplat-code-confluence-v0.19.1) (2025-11-25)
+
+
+### Bug Fixes
+
+* **ai-slop:** fix ai slop by migrating from zustand store of provider store through custom hooks based on tanstack query which manages server state for all related sections. Moved away from hardcoded multiple child path based on provider to dyanmic param in tanstack router. ([09c0b5c](https://github.com/unoplat/unoplat-code-confluence/commit/09c0b5c6290fbc31f906485fdc5a96a426a95fb2))
+* Extract axios clients to shared module and reduce staletime and fetchonMount for jobStatusDialog ([083ff01](https://github.com/unoplat/unoplat-code-confluence/commit/083ff01d8c4b1c848f7efca01ef5ea72ed2fb3c7))
+* Extract axios clients to shared module and reduce staletime and fetchonMount for jobStatusDialog ([e9524b2](https://github.com/unoplat/unoplat-code-confluence/commit/e9524b2c78bb0e3e23acf71a48a73b4b416fb14d))
+* **graph-db:** Update CodeConfluenceGitRepository node creation to not cause cypher merge conflicts ([bde1103](https://github.com/unoplat/unoplat-code-confluence/commit/bde1103e6a744a6c3024e204bc5b5393232c0f30))
+* **graph-db:** Update CodeConfluenceGitRepository node creation to not cause cypher merge conflicts ([dd15257](https://github.com/unoplat/unoplat-code-confluence/commit/dd1525719cd5d4b7ab07528a0621023cd935d6e9))
+* rely on provider state and based on repository provider fetch user details ([f3a2136](https://github.com/unoplat/unoplat-code-confluence/commit/f3a2136b42d180a307ede0bcdfbec8d24563c6ff))
+* support Enterprise Cloud data residency enterprise server and En… ([9de4794](https://github.com/unoplat/unoplat-code-confluence/commit/9de47940a9fc125be3b917ecd606af01a3f45ca1))
+* support Enterprise Cloud data residency enterprise server and Enterprise Server and improve ui validation and hints ([72b462a](https://github.com/unoplat/unoplat-code-confluence/commit/72b462a8b6146254b7d89329a2d935d2647f9626))
+* updates for github enterprise and data residency server ([65655f9](https://github.com/unoplat/unoplat-code-confluence/commit/65655f9c6dbc5fcf039c135096b8c56d62305cd6))
+
 ## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.18.0...unoplat-code-confluence-v0.19.0) (2025-11-21)
 
 
