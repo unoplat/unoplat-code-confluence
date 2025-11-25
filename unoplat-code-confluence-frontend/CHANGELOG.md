@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.34.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.3...unoplat-code-confluence-frontend-v1.34.4) (2025-11-25)
+
+
+### Bug Fixes
+
+* support Enterprise Cloud data residency enterprise server and En… ([9de4794](https://github.com/unoplat/unoplat-code-confluence/commit/9de47940a9fc125be3b917ecd606af01a3f45ca1))
+* support Enterprise Cloud data residency enterprise server and Enterprise Server and improve ui validation and hints ([72b462a](https://github.com/unoplat/unoplat-code-confluence/commit/72b462a8b6146254b7d89329a2d935d2647f9626))
+
 ## [1.34.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.2...unoplat-code-confluence-frontend-v1.34.3) (2025-11-22)
 
 
