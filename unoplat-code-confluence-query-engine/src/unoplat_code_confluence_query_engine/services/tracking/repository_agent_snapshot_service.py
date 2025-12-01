@@ -13,7 +13,7 @@ from unoplat_code_confluence_commons.repo_models import (
 )
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
-from unoplat_code_confluence_query_engine.models.agent_events import (
+from unoplat_code_confluence_query_engine.models.events.agent_events import (
     RepositoryAgentEventDelta,
 )
 

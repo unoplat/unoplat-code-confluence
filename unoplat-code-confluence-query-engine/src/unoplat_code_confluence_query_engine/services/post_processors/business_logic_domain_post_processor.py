@@ -7,7 +7,7 @@ from loguru import logger
 from unoplat_code_confluence_query_engine.db.neo4j.business_logic_repository import (
     db_get_data_model_files,
 )
-from unoplat_code_confluence_query_engine.models.agent_md_output import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     BusinessLogicDomain,
     CoreFile,
 )

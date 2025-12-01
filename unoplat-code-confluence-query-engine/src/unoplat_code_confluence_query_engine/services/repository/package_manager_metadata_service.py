@@ -8,7 +8,7 @@ from neo4j import AsyncManagedTransaction, Record
 from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
     CodeConfluenceGraphQueryEngine,
 )
-from unoplat_code_confluence_query_engine.models.agent_md_output import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     ProgrammingLanguageMetadataOutput,
 )
 

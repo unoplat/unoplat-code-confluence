@@ -10,18 +10,17 @@ from typing import Dict, Optional
 
 import pytest
 from sqlalchemy import text
-
 from unoplat_code_confluence_commons.repo_models import RepoAgentSnapshotStatus
-from unoplat_code_confluence_query_engine.db.repository_agent_snapshot_service import (
-    RepositoryAgentSnapshotWriter,
-)
-from unoplat_code_confluence_query_engine.models.agent_events import (
+
+from tests.utils.sync_db_utils import cleanup_postgresql_sync, get_sync_postgres_session
+from unoplat_code_confluence_query_engine.models.events.agent_events import (
     AgentEventPayload,
     CodebaseEventDelta,
     RepositoryAgentEventDelta,
 )
-from tests.utils.sync_db_utils import get_sync_postgres_session, cleanup_postgresql_sync
-
+from unoplat_code_confluence_query_engine.services.tracking.repository_agent_snapshot_service import (
+    RepositoryAgentSnapshotWriter,
+)
 
 # Test constants
 TEST_OWNER = "test-owner"
@@ -35,6 +34,7 @@ TEST_CODEBASE_2 = "frontend"
 # SEED DATA HELPERS
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def create_test_repository(sync_session, owner: str, name: str) -> None:
     """Create minimal repository row for testing."""
     sync_session.execute(
@@ -43,7 +43,7 @@ def create_test_repository(sync_session, owner: str, name: str) -> None:
             VALUES (:owner, :name, 'github_open')
             ON CONFLICT DO NOTHING
         """),
-        {"owner": owner, "name": name}
+        {"owner": owner, "name": name},
     )
     sync_session.commit()
 
@@ -56,7 +56,7 @@ def get_snapshot_data(sync_session, owner: str, name: str) -> Optional[Dict]:
             FROM repository_agent_md_snapshot
             WHERE repository_owner_name = :owner AND repository_name = :name
         """),
-        {"owner": owner, "name": name}
+        {"owner": owner, "name": name},
     )
     row = result.fetchone()
     if row:
@@ -66,7 +66,7 @@ def get_snapshot_data(sync_session, owner: str, name: str) -> Optional[Dict]:
             "statistics": row[2],
             "status": row[3],
             "created_at": row[4],
-            "modified_at": row[5]
+            "modified_at": row[5],
         }
     return None
 
@@ -78,7 +78,7 @@ def count_snapshot_rows(sync_session, owner: str, name: str) -> int:
             SELECT COUNT(*) FROM repository_agent_md_snapshot
             WHERE repository_owner_name = :owner AND repository_name = :name
         """),
-        {"owner": owner, "name": name}
+        {"owner": owner, "name": name},
     )
     return result.scalar()
 
@@ -86,6 +86,7 @@ def count_snapshot_rows(sync_session, owner: str, name: str) -> int:
 # ──────────────────────────────────────────────────────────────────────────────
 # FIXTURES
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def writer(db_connections):
@@ -207,22 +208,17 @@ async def test_append_event_updates_events_json_and_timestamp(seeded_db, writer)
 
     # Append an event
     event_payload = AgentEventPayload(
-        id="event-1",
-        event="processing_step",
-        phase="result",
-        message="Step completed"
+        id="event-1", event="processing_step", phase="result", message="Step completed"
     )
 
     codebase_delta = CodebaseEventDelta(
-        codebase_name=TEST_CODEBASE_1,
-        progress=Decimal("50.0"),
-        new_event=event_payload
+        codebase_name=TEST_CODEBASE_1, progress=Decimal("50.0"), new_event=event_payload
     )
 
     repo_delta = RepositoryAgentEventDelta(
         repository_name=f"{TEST_OWNER}/{TEST_REPO}",
         overall_progress=Decimal("50.0"),
-        codebase_delta=codebase_delta
+        codebase_delta=codebase_delta,
     )
 
     await writer.append_event(repo_delta)
@@ -267,9 +263,9 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
     final_payload = {
         "agents_md": {
             "architecture": "Clean architecture pattern",
-            "security": "OAuth2 authentication"
+            "security": "OAuth2 authentication",
         },
-        "summary": "Analysis completed"
+        "summary": "Analysis completed",
     }
 
     statistics_payload = {
@@ -290,12 +286,14 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
                 "cache_write_tokens": 200,
                 "cache_read_tokens": 300,
                 "total_tokens": 2300,
-                "estimated_cost_usd": 0.05
+                "estimated_cost_usd": 0.05,
             }
-        }
+        },
     }
 
-    await writer.complete_run(final_payload=final_payload, statistics_payload=statistics_payload)
+    await writer.complete_run(
+        final_payload=final_payload, statistics_payload=statistics_payload
+    )
 
     # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
@@ -334,7 +332,7 @@ async def test_fail_run_updates_status_and_output(seeded_db, writer):
     error_payload = {
         "error": "TimeoutError",
         "message": "Processing timed out",
-        "details": {"step": "code_analysis"}
+        "details": {"step": "code_analysis"},
     }
 
     await writer.fail_run(error_payload=error_payload)
@@ -373,5 +371,3 @@ async def test_fail_run_with_no_payload_sets_empty_dict(seeded_db, writer):
 
         # Check agent_md_output is empty dict
         assert snapshot["agent_md_output"] == {}
-
-
