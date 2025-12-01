@@ -23,7 +23,7 @@ from unoplat_code_confluence_query_engine.db.neo4j.business_logic_repository imp
     DataModelSpanMap,
     db_get_data_model_files,
 )
-from unoplat_code_confluence_query_engine.models.agent_dependencies import (
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
 

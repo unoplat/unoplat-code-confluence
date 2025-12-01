@@ -6,12 +6,12 @@ from pydantic_ai import Agent
 from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
     CodeConfluenceGraphQueryEngine,
 )
-from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
+from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     CodebaseMetadata,
 )
 
 if TYPE_CHECKING:
-    from unoplat_code_confluence_query_engine.services.library_documentation_service import (
+    from unoplat_code_confluence_query_engine.services.workflow.library_documentation_service import (
         LibraryDocumentationService,
     )
 

@@ -19,7 +19,7 @@ from unoplat_code_confluence_query_engine.db.neo4j.framework_overview_repository
     db_list_framework_libraries,
 )
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
-from unoplat_code_confluence_query_engine.models.agent_md_output import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     FeatureLocationOutput,
     FeatureUsageOutput,
     FrameworkLibraryOutput,

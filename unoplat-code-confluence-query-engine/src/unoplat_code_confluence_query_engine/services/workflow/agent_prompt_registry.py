@@ -11,7 +11,7 @@ from typing import Callable, Dict, Optional, Union
 from pydantic import BaseModel
 from pydantic_ai import format_as_xml
 
-from unoplat_code_confluence_query_engine.models.agent_execution_request import (
+from unoplat_code_confluence_query_engine.models.runtime.agent_execution_request import (
     PromptProviderProtocol,
 )
 

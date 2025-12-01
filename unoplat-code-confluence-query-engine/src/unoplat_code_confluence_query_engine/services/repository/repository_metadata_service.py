@@ -13,17 +13,17 @@ from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
     CodeConfluenceGraphQueryEngine,
 )
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
-from unoplat_code_confluence_query_engine.models.agent_md_output import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     ProgrammingLanguageMetadataOutput,
 )
-from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
+from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     CodebaseMetadata,
     RepositoryRulesetMetadata,
 )
-from unoplat_code_confluence_query_engine.services.codebase_path_resolver import (
+from unoplat_code_confluence_query_engine.services.repository.codebase_path_resolver import (
     CodebasePathResolver,
 )
-from unoplat_code_confluence_query_engine.services.package_manager_metadata_service import (
+from unoplat_code_confluence_query_engine.services.repository.package_manager_metadata_service import (
     fetch_programming_language_metadata,
 )
 
