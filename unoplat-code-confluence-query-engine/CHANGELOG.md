@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.23.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.23.0...unoplat-code-confluence-query-engine-v0.23.1) (2025-12-01)
+
+
+### Bug Fixes
+
+* improving ai engine structure (first step towards improving prim… ([9e5b00b](https://github.com/unoplat/unoplat-code-confluence/commit/9e5b00bfad87027198fb51a9c5f6696e0dc4df44))
+* improving ai engine structure (first step towards improving primitives) ([b2950bc](https://github.com/unoplat/unoplat-code-confluence/commit/b2950bccba8c034b175a407eddd65599f4d666c0))
+
 ## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.22.0...unoplat-code-confluence-query-engine-v0.23.0) (2025-11-21)
 
 
