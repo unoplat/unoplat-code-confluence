@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.35.0...unoplat-code-confluence-commons-v0.36.0) (2025-12-01)
+
+
+### Features
+
+* support different operations for workflow ([65fd77e](https://github.com/unoplat/unoplat-code-confluence/commit/65fd77ee9380f7fb0476f738fe24f557a62961e9))
+* support different operations for workflow ([09becd3](https://github.com/unoplat/unoplat-code-confluence/commit/09becd3090d0eb2de76068cc861806442efc1e5b))
+
 ## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.34.1...unoplat-code-confluence-commons-v0.35.0) (2025-11-21)
 
 
