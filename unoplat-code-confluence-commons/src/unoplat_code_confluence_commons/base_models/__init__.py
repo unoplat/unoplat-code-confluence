@@ -88,6 +88,7 @@ from unoplat_code_confluence_commons.repo_models import (
     CodebaseConfig as CodebaseConfigSQLModel,
     CodebaseWorkflowRun,
     Repository,
+    RepositoryWorkflowOperation,
     RepositoryWorkflowRun,
 )
 
@@ -140,6 +141,7 @@ __all__ = [
     "CodebaseConfig",
     "RepositorySettings",
     "RepositoryWorkflowRun",
+    "RepositoryWorkflowOperation",
     "CodebaseWorkflowRun",
     "ProgrammingLanguageMetadata",
     "ProgrammingLanguage",

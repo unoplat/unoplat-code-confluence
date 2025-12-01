@@ -25,6 +25,14 @@ class RepoAgentSnapshotStatus(str, Enum):
     ERROR = "ERROR"
 
 
+class RepositoryWorkflowOperation(str, Enum):
+    """Supported operations a repository workflow can execute."""
+
+    INGESTION = "INGESTION"
+    AGENTS_GENERATION = "AGENTS_GENERATION"
+    AGENT_MD_UPDATE = "AGENT_MD_UPDATE"
+
+
 class RepositoryProvider(str, Enum):
     """Git provider type for repositories."""
 
@@ -110,8 +118,6 @@ class CodebaseConfig(SQLBase):
         overlaps="repository_workflow_run,workflow_runs",
     )
 
-
-class RepositoryWorkflowRun(SQLBase):
     """SQLModel for repository_workflow_run table in code_confluence schema."""
 
     __tablename__ = "repository_workflow_run"
@@ -138,6 +144,16 @@ class RepositoryWorkflowRun(SQLBase):
     )
     repository_workflow_id: Mapped[str] = mapped_column(
         comment="The ID of the repository workflow"
+    )
+    operation: Mapped[RepositoryWorkflowOperation] = mapped_column(
+        SQLEnum(
+            RepositoryWorkflowOperation,
+            name="repository_workflow_operation_type",
+            native_enum=False,
+        ),
+        default=RepositoryWorkflowOperation.INGESTION,
+        nullable=False,
+        comment="Operation this workflow run performs (e.g., INGESTION, AGENTS_GENERATION, AGENT_MD_UPDATE)",
     )
     status: Mapped[str] = mapped_column(
         String,
