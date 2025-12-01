@@ -7,17 +7,17 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_db_session
-from unoplat_code_confluence_query_engine.models.ai_model_config import (
+from unoplat_code_confluence_query_engine.models.config.ai_model_config import (
     AiModelConfigIn,
     AiModelConfigOut,
 )
-from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
+from unoplat_code_confluence_query_engine.services.config.ai_model_config_service import (
     AiModelConfigService,
 )
-from unoplat_code_confluence_query_engine.services.config_hot_reload import (
+from unoplat_code_confluence_query_engine.services.config.config_hot_reload import (
     update_app_agents,
 )
-from unoplat_code_confluence_query_engine.services.provider_catalog import (
+from unoplat_code_confluence_query_engine.services.config.provider_catalog import (
     ProviderCatalog,
     ProviderSchema,
     ProviderSchemaPublic,

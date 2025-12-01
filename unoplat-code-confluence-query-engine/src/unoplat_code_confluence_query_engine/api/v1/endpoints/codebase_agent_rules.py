@@ -5,10 +5,10 @@ from sqlalchemy import select
 from unoplat_code_confluence_commons.repo_models import RepositoryAgentMdSnapshot
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
-from unoplat_code_confluence_query_engine.db.repository_metadata_service import (
+from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
     fetch_repository_metadata,
 )
-from unoplat_code_confluence_query_engine.services.agent_execution_service import (
+from unoplat_code_confluence_query_engine.services.workflow.agent_execution_service import (
     AgentExecutionService,
 )
 

@@ -5,12 +5,12 @@ from pydantic_ai import Agent, RunContext, Tool
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 
-from unoplat_code_confluence_query_engine.models.agent_dependencies import (
-    AgentDependencies,
-)
-from unoplat_code_confluence_query_engine.models.agent_md_output import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     DevelopmentWorkflow,
     ProjectConfiguration,
+)
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
+    AgentDependencies,
 )
 from unoplat_code_confluence_query_engine.services.mcp.mcp_server_manager import (
     MCPServerManager,

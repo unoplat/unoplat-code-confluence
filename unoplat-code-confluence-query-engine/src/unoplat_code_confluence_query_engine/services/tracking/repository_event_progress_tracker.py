@@ -3,13 +3,13 @@ from typing import Any, Dict
 
 from loguru import logger
 
-from unoplat_code_confluence_query_engine.db.repository_agent_snapshot_service import (
-    RepositoryAgentSnapshotWriter,
-)
-from unoplat_code_confluence_query_engine.models.agent_events import (
+from unoplat_code_confluence_query_engine.models.events.agent_events import (
     AgentEventPayload,
     CodebaseEventDelta,
     RepositoryAgentEventDelta,
+)
+from unoplat_code_confluence_query_engine.services.tracking.repository_agent_snapshot_service import (
+    RepositoryAgentSnapshotWriter,
 )
 
 

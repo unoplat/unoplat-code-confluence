@@ -6,25 +6,28 @@ discovered by pytest and made available to all test files.
 """
 
 import os
+from pathlib import Path
 import shutil
 import socket
 import subprocess
 import time
-from pathlib import Path
 from typing import Dict, Iterator
 
 import docker
+from fastapi.testclient import TestClient
+from loguru import logger
 import pytest
 import pytest_asyncio
 import requests
-from fastapi.testclient import TestClient
-from loguru import logger
 from testcontainers.compose import DockerCompose
 
-from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
-from unoplat_code_confluence_query_engine.db.postgres.db import dispose_db_connections, init_db_connections
-from unoplat_code_confluence_query_engine.main import app
 from tests.utils.sync_db_utils import create_test_tables
+from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
+from unoplat_code_confluence_query_engine.db.postgres.db import (
+    dispose_db_connections,
+    init_db_connections,
+)
+from unoplat_code_confluence_query_engine.main import app
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -146,10 +149,12 @@ def docker_compose():
     logger.info(f"Starting docker-compose from {COMPOSE_FILE}")
 
     # Use our custom DockerCompose class
+    # Enable pulling in CI environments (GitHub Actions, etc.) where images aren't cached
+    is_ci = os.getenv("CI", "false").lower() == "true"
     compose = DockerComposeWithCleanup(
         filepath=str(COMPOSE_FILE.parent),
         compose_file_name=COMPOSE_FILE.name,
-        pull=False,  # Don't pull images, use local ones
+        pull=is_ci,  # Pull images in CI, use local ones in development
     )
 
     try:

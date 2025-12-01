@@ -4,7 +4,7 @@ from typing import Optional
 from aiopath import AsyncPath
 from pydantic_ai import ModelRetry, RunContext
 
-from unoplat_code_confluence_query_engine.models.agent_dependencies import (
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
 

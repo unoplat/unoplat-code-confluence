@@ -11,7 +11,7 @@ from typing import Any
 from loguru import logger
 from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio
 
-from unoplat_code_confluence_query_engine.models.mcp_config import (
+from unoplat_code_confluence_query_engine.models.config.mcp_config import (
     LocalMCPServerConfig,
     MCPServersConfig,
     MCPServerType,

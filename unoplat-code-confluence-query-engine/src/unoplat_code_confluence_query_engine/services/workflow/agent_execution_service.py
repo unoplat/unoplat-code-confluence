@@ -21,54 +21,54 @@ from pydantic_ai.messages import (
 )
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
-from unoplat_code_confluence_query_engine.db.repository_agent_snapshot_service import (
-    RepositoryAgentSnapshotWriter,
-)
-from unoplat_code_confluence_query_engine.models.agent_dependencies import (
-    AgentDependencies,
-)
-from unoplat_code_confluence_query_engine.models.agent_execution_request import (
-    AgentExecutionRequest,
-)
 
 # NOTE: Keep model imports minimal to avoid unused warnings; AgentMdOutput not needed here.
-from unoplat_code_confluence_query_engine.models.agent_md_aggregate import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_aggregate import (
     AgentMdAggregate,
 )
-from unoplat_code_confluence_query_engine.models.agent_md_output import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     BusinessLogicDomain,
     DevelopmentWorkflow,
     ProgrammingLanguageMetadataOutput,
     ProjectConfiguration,
 )
-from unoplat_code_confluence_query_engine.models.agent_usage_statistics import (
+from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
+    CodebaseMetadata,
+    RepositoryRulesetMetadata,
+)
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
+    AgentDependencies,
+)
+from unoplat_code_confluence_query_engine.models.runtime.agent_execution_request import (
+    AgentExecutionRequest,
+)
+from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
     UsageStatistics,
     UsageSummary,
     WorkflowStatistics,
 )
-from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
-    CodebaseMetadata,
-    RepositoryRulesetMetadata,
-)
-from unoplat_code_confluence_query_engine.services.agent_prompt_registry import (
-    AgentPromptRegistry,
-)
-from unoplat_code_confluence_query_engine.services.library_documentation_service import (
-    LibraryDocumentationService,
-)
-from unoplat_code_confluence_query_engine.services.mock_sse_service import (
-    MockSSEService,
-)
-from unoplat_code_confluence_query_engine.services.package_manager_metadata_service import (
+from unoplat_code_confluence_query_engine.services.repository.package_manager_metadata_service import (
     fetch_programming_language_metadata,
 )
-from unoplat_code_confluence_query_engine.services.post_processing_service import (
-    PostProcessingService,
+from unoplat_code_confluence_query_engine.services.tracking.repository_agent_snapshot_service import (
+    RepositoryAgentSnapshotWriter,
 )
-from unoplat_code_confluence_query_engine.services.repository_event_progress_tracker import (
+from unoplat_code_confluence_query_engine.services.tracking.repository_event_progress_tracker import (
     RepositoryEventProgressTracker,
 )
-from unoplat_code_confluence_query_engine.services.tool_message_policy import (
+from unoplat_code_confluence_query_engine.services.workflow.agent_prompt_registry import (
+    AgentPromptRegistry,
+)
+from unoplat_code_confluence_query_engine.services.workflow.library_documentation_service import (
+    LibraryDocumentationService,
+)
+from unoplat_code_confluence_query_engine.services.workflow.mock_sse_service import (
+    MockSSEService,
+)
+from unoplat_code_confluence_query_engine.services.workflow.post_processing_service import (
+    PostProcessingService,
+)
+from unoplat_code_confluence_query_engine.services.workflow.tool_message_policy import (
     DefaultToolMessagePolicy,
 )
 from unoplat_code_confluence_query_engine.utils.agent_error_logger import (

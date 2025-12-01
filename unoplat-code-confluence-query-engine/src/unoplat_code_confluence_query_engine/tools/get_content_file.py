@@ -5,7 +5,7 @@ from aiopath import AsyncPath
 from loguru import logger
 from pydantic_ai import ModelRetry, RunContext
 
-from unoplat_code_confluence_query_engine.models.agent_dependencies import (
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
 
