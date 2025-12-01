@@ -1,6 +1,6 @@
 """Tool message policies for consistent messaging across agents."""
 
-from unoplat_code_confluence_query_engine.models.agent_execution_request import (
+from unoplat_code_confluence_query_engine.models.runtime.agent_execution_request import (
     ToolMessagePolicyProtocol,
 )
 

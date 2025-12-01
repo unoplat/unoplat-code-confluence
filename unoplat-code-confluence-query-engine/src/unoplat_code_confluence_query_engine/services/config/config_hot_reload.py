@@ -24,10 +24,12 @@ from unoplat_code_confluence_query_engine.config.settings import (
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
-from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
+from unoplat_code_confluence_query_engine.services.config.ai_model_config_service import (
     AiModelConfigService,
 )
-from unoplat_code_confluence_query_engine.services.model_factory import ModelFactory
+from unoplat_code_confluence_query_engine.services.config.model_factory import (
+    ModelFactory,
+)
 
 if TYPE_CHECKING:
     from fastapi import FastAPI

@@ -11,7 +11,7 @@
 #     db_get_framework_with_features,
 #     db_list_framework_libraries,
 # )
-# from unoplat_code_confluence_query_engine.models.agent_dependencies import (
+# from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
 #     AgentDependencies,
 # )
 

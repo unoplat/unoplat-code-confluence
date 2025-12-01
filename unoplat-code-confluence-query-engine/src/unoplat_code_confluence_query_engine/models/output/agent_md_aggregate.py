@@ -4,14 +4,14 @@ from typing import Optional
 
 from loguru import logger
 
-from unoplat_code_confluence_query_engine.models.agent_md_output import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     AgentMdOutput,
     BusinessLogicDomain,
     DevelopmentWorkflow,
     ProgrammingLanguageMetadataOutput,
     ProjectConfiguration,
 )
-from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
+from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     CodebaseMetadata,
 )
 

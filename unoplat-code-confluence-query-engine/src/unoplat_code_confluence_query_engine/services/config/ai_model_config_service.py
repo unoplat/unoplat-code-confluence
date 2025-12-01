@@ -10,15 +10,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
-from unoplat_code_confluence_query_engine.models.ai_model_config import (
+from unoplat_code_confluence_query_engine.models.config.ai_model_config import (
     AiModelConfigIn,
     AiModelConfigOut,
     ProviderKind,
 )
-from unoplat_code_confluence_query_engine.services.credentials_service import (
+from unoplat_code_confluence_query_engine.services.config.credentials_service import (
     CredentialsService,
 )
-from unoplat_code_confluence_query_engine.services.provider_catalog import (
+from unoplat_code_confluence_query_engine.services.config.provider_catalog import (
     ProviderCatalog,
 )
 

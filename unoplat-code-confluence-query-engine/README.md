@@ -24,23 +24,17 @@ This starts all the necessary services (databases, APIs, flow-bridge) in Docker 
 #### Option B: Local Development Setup (For Development/Debugging)
 Run services from source for easier debugging:
 
-**Terminal 1 - Start Dependencies:**
+**Terminal 1 - Start Infrastructure and Ingestion Backend:**
 ```bash
-task dev-local
+task run-ingestion-backend-local
 ```
-This starts only the Docker dependencies (PostgreSQL, Neo4j, Temporal, etc.) with flow-bridge.
+This starts Docker dependencies (PostgreSQL, Neo4j, Temporal, etc.) and runs the flow-bridge server locally.
 
-**Terminal 2 - Run Flow-Bridge Locally:**
+**Terminal 2 - Run Query Engine Locally:**
 ```bash
-cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-core
+task run-query-engine-backend-dev
 ```
-
-**Terminal 3 - Run Query Engine Locally:**
-```bash
-task run-dev
-```
-
-This setup avoids duplicate Docker dependencies and allows you to run both servers from source.
+This runs the query engine FastAPI server on port 8001.
 
 ### 2. Set Up API Testing
 1. Open **Yaak** (the HTTP client)

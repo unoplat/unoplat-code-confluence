@@ -35,7 +35,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
-from unoplat_code_confluence_query_engine.services.credentials_service import (
+from unoplat_code_confluence_query_engine.services.config.credentials_service import (
     CredentialsService,
 )
 from unoplat_code_confluence_query_engine.utils.retry_http_client import (

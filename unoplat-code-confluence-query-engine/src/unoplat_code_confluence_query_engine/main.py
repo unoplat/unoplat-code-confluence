@@ -31,18 +31,20 @@ from unoplat_code_confluence_query_engine.db.postgres.db import (
     get_startup_session,
     init_db_connections,
 )
-from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
+from unoplat_code_confluence_query_engine.services.config.ai_model_config_service import (
     AiModelConfigService,
 )
-from unoplat_code_confluence_query_engine.services.config_hot_reload import (
+from unoplat_code_confluence_query_engine.services.config.config_hot_reload import (
     register_orm_events,
     unregister_orm_events,
 )
-from unoplat_code_confluence_query_engine.services.flag_service import FlagService
+from unoplat_code_confluence_query_engine.services.config.model_factory import (
+    ModelFactory,
+)
+from unoplat_code_confluence_query_engine.services.flags.flag_service import FlagService
 from unoplat_code_confluence_query_engine.services.mcp.mcp_server_manager import (
     MCPServerManager,
 )
-from unoplat_code_confluence_query_engine.services.model_factory import ModelFactory
 
 
 @asynccontextmanager

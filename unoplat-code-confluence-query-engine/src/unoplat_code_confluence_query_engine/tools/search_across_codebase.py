@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 from pydantic_ai import RunContext
 from pydantic_ai.exceptions import ModelRetry
 
-from unoplat_code_confluence_query_engine.models.agent_dependencies import (
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
 

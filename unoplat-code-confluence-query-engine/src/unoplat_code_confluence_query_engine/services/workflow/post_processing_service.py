@@ -6,11 +6,11 @@ from typing import Any, Dict, Optional, Union
 
 from pydantic import BaseModel
 
-from unoplat_code_confluence_query_engine.models.agent_dependencies import (
-    AgentDependencies,
-)
-from unoplat_code_confluence_query_engine.models.repository_ruleset_metadata import (
+from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     CodebaseMetadata,
+)
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
+    AgentDependencies,
 )
 from unoplat_code_confluence_query_engine.services.post_processors.business_logic_domain_post_processor import (
     BusinessLogicDomainPostProcessor,
