@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.63.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.62.1...code-confluence-flow-bridge-v0.63.0) (2025-12-02)
+
+
+### Features
+
+* enable operations as part of ingestion process to track/audit ([90dea8c](https://github.com/unoplat/unoplat-code-confluence/commit/90dea8c3e3ea0d406ee7923b95a8201778263c4e))
+* enable operations as part of ingestion process to track/audit ([95cb0a1](https://github.com/unoplat/unoplat-code-confluence/commit/95cb0a144066c763d31256a6301ed7db03a87f35))
+
+
+### Bug Fixes
+
+* update dependencies ([e89724e](https://github.com/unoplat/unoplat-code-confluence/commit/e89724e89042a69d5845fb294579d3a58aa18f40))
+
 ## [0.62.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.62.0...code-confluence-flow-bridge-v0.62.1) (2025-11-22)
 
 
