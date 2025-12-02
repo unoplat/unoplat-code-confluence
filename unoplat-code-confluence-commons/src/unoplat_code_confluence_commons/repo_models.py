@@ -118,6 +118,8 @@ class CodebaseConfig(SQLBase):
         overlaps="repository_workflow_run,workflow_runs",
     )
 
+
+class RepositoryWorkflowRun(SQLBase):
     """SQLModel for repository_workflow_run table in code_confluence schema."""
 
     __tablename__ = "repository_workflow_run"
