@@ -6,6 +6,7 @@ from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
+from unoplat_code_confluence_commons.repo_models import RepositoryWorkflowOperation
 
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
     UnoplatGitRepository,
@@ -79,6 +80,7 @@ class ParentWorkflowDbActivityEnvelope(BaseModel):
     status: str  # Using string to avoid circular imports with JobStatus
     error_report: Optional[ErrorReport] = None  # Using Any to avoid circular imports
     provider_key: ProviderKey = ProviderKey.GITHUB_OPEN
+    operation: RepositoryWorkflowOperation = RepositoryWorkflowOperation.INGESTION
     model_config = ConfigDict(extra="allow")
 
     @property

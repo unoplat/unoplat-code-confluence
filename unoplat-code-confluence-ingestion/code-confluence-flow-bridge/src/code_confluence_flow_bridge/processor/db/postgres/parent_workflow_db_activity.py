@@ -6,6 +6,7 @@ from temporalio import activity
 from unoplat_code_confluence_commons.base_models import (
     CodebaseConfigSQLModel as CodebaseConfig,
     Repository,
+    RepositoryWorkflowOperation,
     RepositoryWorkflowRun,
 )
 
@@ -45,6 +46,7 @@ class ParentWorkflowDbActivity:
         )  # Convert string to JobStatus enum
         error_report: Optional[ErrorReport] = envelope.error_report
         repository_provider = envelope.provider_key
+        operation: RepositoryWorkflowOperation = envelope.operation
 
         activity_id: str = "update_repository_workflow_status"
         log = seed_and_bind_logger_from_trace_id(
@@ -106,6 +108,7 @@ class ParentWorkflowDbActivity:
                         repository_owner_name=repository_owner_name,
                         repository_workflow_run_id=workflow_run_id,
                         repository_workflow_id=workflow_id,
+                        operation=operation,
                         status=status.value,
                         error_report=error_report.model_dump()
                         if error_report
