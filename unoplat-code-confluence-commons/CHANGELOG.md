@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.36.0...unoplat-code-confluence-commons-v0.36.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* commons repository workflow regression issue fi ([9359288](https://github.com/unoplat/unoplat-code-confluence/commit/9359288a1a1775922aa85994614f815b7999157b))
+* commons repository workflow regression issue fi ([e38fc24](https://github.com/unoplat/unoplat-code-confluence/commit/e38fc24a0826b40e8973344414de2005335642e5))
+
 ## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.35.0...unoplat-code-confluence-commons-v0.36.0) (2025-12-01)
 
 
