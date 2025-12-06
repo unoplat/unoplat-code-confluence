@@ -35,18 +35,24 @@ export default defineConfig({
       projects: ["./tsconfig.json"],
     }),
     tanstackStart({
-      spa: {
+      // Use full static prerendering instead of SPA mode
+      prerender: {
         enabled: true,
-        prerender: {
-          enabled: true,
-          crawlLinks: true,
-        },
+        autoSubfolderIndex: true,
+        autoStaticPathsDiscovery: true,
+        crawlLinks: true,
       },
+      // Pre-render the search API route for static search index
+      pages: [
+        {
+          path: "/api/search",
+          prerender: { enabled: true, outputPath: "/api/search" },
+        },
+      ],
       // Sitemap configuration for SEO
-      // Reference: @tanstack/start-plugin-core/src/schema.ts
       sitemap: {
         enabled: true,
-        host: "https://docs.unoplat.io", // Replace with your actual production domain
+        host: "https://docs.unoplat.io",
         outputPath: "sitemap.xml",
       },
     }),
