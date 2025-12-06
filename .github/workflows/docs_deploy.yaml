@@ -54,7 +54,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/client --project-name=unoplat-code-confluence
+          command: pages deploy
           workingDirectory: unoplat-code-confluence-docs
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
