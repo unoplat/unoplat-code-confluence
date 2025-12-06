@@ -2,7 +2,6 @@ import react from "@vitejs/plugin-react";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
-import tailwindcss from "@tailwindcss/vite";
 import mdx from "fumadocs-mdx/vite";
 
 export default defineConfig({
@@ -11,6 +10,16 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      output: {
+        // Use fixed filename for CSS to prevent SSR/client hash mismatch
+        // This ensures pre-rendered HTML references the same CSS file that exists after build
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.names?.some((name) => name.endsWith(".css"))) {
+            return "assets/app.css";
+          }
+          return "assets/[name]-[hash][extname]";
+        },
+      },
       onwarn(warning, warn) {
         // Suppress Fumadocs MDX architecture warnings
         // Fumadocs intentionally uses both static imports (for SSR) and dynamic imports (for client-side code-splitting)
@@ -30,7 +39,6 @@ export default defineConfig({
   },
   plugins: [
     mdx(await import("./source.config")),
-    tailwindcss(),
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
