@@ -1,0 +1,6 @@
+{
+  "title": "Quickstart",
+  "icon": "Rocket",
+  "defaultOpen": true,
+  "pages": ["how-to-run"]
+}

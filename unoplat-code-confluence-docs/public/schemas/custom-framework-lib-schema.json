@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema.json",
+  "title": "Unoplat Code Confluence Multi-Language Framework/Library Schema",
+  "description": "Framework / library feature signatures grouped by programming language.",
+  "type": "object",
+  "propertyNames": {
+    "$ref": "#/$defs/languageEnum"
+  },
+  "patternProperties": {
+    "^[a-z]+$": {
+      "$ref": "#/$defs/languageBlock"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "languageEnum": {
+      "type": "string",
+      "description": "Allowed lower-case language identifiers.",
+      "enum": [
+        "python",
+        "javascript",
+        "typescript",
+        "java",
+        "go"
+      ]
+    },
+    "languageBlock": {
+      "type": "object",
+      "description": "All libraries / frameworks implemented in a single language.",
+      "patternProperties": {
+        "^.+$": {
+          "$ref": "#/$defs/libraryDef"
+        }
+      },
+      "additionalProperties": false
+    },
+    "libraryDef": {
+      "type": "object",
+      "required": [
+        "docs_url",
+        "features"
+      ],
+      "properties": {
+        "docs_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical documentation URL."
+        },
+        "version": {
+          "type": "string",
+          "description": "Library version used to verify patterns (optional)."
+        },
+        "features": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Discoverable features keyed by contributor-chosen identifier.",
+          "patternProperties": {
+            "^.+$": {
+              "$ref": "#/$defs/featureDef"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "featureDef": {
+      "type": "object",
+      "required": [
+        "description",
+        "absolute_paths",
+        "target_level",
+        "concept",
+        "locator_strategy"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable explanation of the feature."
+        },
+        "docs_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Feature-specific documentation URL (optional)."
+        },
+        "absolute_paths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Fully-qualified symbols identifying the constructor / base class / annotation provider.",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$"
+          }
+        },
+        "target_level": {
+          "$ref": "#/$defs/targetLevelEnum"
+        },
+        "concept": {
+          "$ref": "#/$defs/conceptEnum"
+        },
+        "locator_strategy": {
+          "$ref": "#/$defs/locatorEnum"
+        },
+        "construct_query": {
+          "$ref": "#/$defs/constructQueryDef"
+        },
+        "startpoint": {
+          "type": "boolean",
+          "description": "Indicates whether this feature represents a starting point or entry point in the application, such as API endpoints (e.g., FastAPI routes) or message consumers (e.g., Kafka listeners).",
+          "default": false
+        },
+        "notes": {
+          "type": "string",
+          "description": "Contributor notes, caveats, links."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "CallExpression"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_level": {
+                "const": "function"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "Inheritance"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_level": {
+                "const": "class"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "targetLevelEnum": {
+      "type": "string",
+      "enum": [
+        "function",
+        "class"
+      ],
+      "description": "Granularity of the code element that owns the feature."
+    },
+    "conceptEnum": {
+      "type": "string",
+      "enum": [
+        "AnnotationLike",
+        "CallExpression",
+        "Inheritance"
+      ],
+      "description": "Language-agnostic construct category."
+    },
+    "locatorEnum": {
+      "type": "string",
+      "enum": [
+        "VariableBound",
+        "Direct"
+      ],
+      "description": "`VariableBound` – discover identifiers bound to a constructor/factory first; `Direct` – match the symbol verbatim."
+    },
+    "constructQueryDef": {
+      "type": "object",
+      "description": "Optional refinements to the auto-generated Tree-sitter query. Allowed keys depend on the feature's concept.",
+      "properties": {
+        "method_regex": {
+          "type": "string"
+        },
+        "annotation_name_regex": {
+          "type": "string"
+        },
+        "attribute_regex": {
+          "type": "string"
+        },
+        "callee_regex": {
+          "type": "string"
+        },
+        "superclass_regex": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
