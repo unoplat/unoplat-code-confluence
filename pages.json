@@ -1,0 +1,21 @@
+{
+  "pages": [
+    {
+      "path": "/",
+      "prerender": {
+        "outputPath": "/_shell",
+        "crawlLinks": true,
+        "retryCount": 0,
+        "enabled": true,
+        "headers": {
+          "X-TSS_SHELL": "true"
+        }
+      },
+      "sitemap": {
+        "exclude": true
+      }
+    }
+  ],
+  "host": "https://docs.unoplat.io",
+  "lastBuilt": "2025-12-06T04:00:38.739Z"
+}
