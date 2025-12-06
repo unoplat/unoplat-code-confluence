@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Docs to Cloudflare Pages
 
 on:
   push:
@@ -6,23 +6,28 @@ on:
       - main
       - dev
     paths:
-      - 'unoplat-code-confluence-docs/**'
+      - "unoplat-code-confluence-docs/**"
+      - ".github/workflows/docs_deploy.yaml"
   pull_request:
-    types: [closed]
     branches:
       - main
       - dev
     paths:
-      - 'unoplat-code-confluence-docs/**'
+      - "unoplat-code-confluence-docs/**"
+      - ".github/workflows/docs_deploy.yaml"
+
+concurrency:
+  group: docs-deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    name: Deploy to GitHub Pages
+    name: Deploy to Cloudflare Pages
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      contents: read
+      deployments: write
+      pull-requests: write
     defaults:
       run:
         working-directory: unoplat-code-confluence-docs
@@ -31,7 +36,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ GITHUB.HEAD_REF }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -44,16 +48,35 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Prepare for GitHub Pages
-        run: |
-          cp dist/client/_shell.html dist/client/index.html
-          cp dist/client/_shell.html dist/client/404.html
-          touch dist/client/.nojekyll
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./unoplat-code-confluence-docs/dist/client
-          cname: docs.unoplat.io
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/client --project-name=unoplat-code-confluence-docs
+          workingDirectory: unoplat-code-confluence-docs
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output Deployment URLs
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+        run: |
+          echo "Deployment URL: $DEPLOYMENT_URL"
+          echo "Branch Preview URL: $ALIAS_URL"
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+          ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Preview Deployment Ready!**\n\n**Preview URL**: ${process.env.ALIAS_URL || process.env.DEPLOYMENT_URL}\n\n---\n*Deployed via Cloudflare Pages*`
+            })
