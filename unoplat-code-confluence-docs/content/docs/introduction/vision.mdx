@@ -19,7 +19,8 @@ import { Settings, Workflow, Brain, Plug, Package, GitBranch, Target, Layers, Sh
 
   **Multi-repo Complexity**: The problem compounds with *multi-repo architectures*. When code is split across connected repositories, the agent exhausts its context just mapping dependencies between codebases—often before writing a single line.
 
-  **Internal Dependencies**: Internal dependencies and *niche packages* present another failure mode. The agent has no onboarding to proprietary systems, so it **hallucinates usage patterns**. Worse, when internal documentation has drifted from the actual implementation, the agent trusts those "lies" and produces code that doesn't work.
+  **Internal Dependencies**: Internal dependencies and *niche packages* present another failure mode. The agent has no onboarding to proprietary systems, so it **hallucinates usage patterns**. Worse, when internal documentation has drifted from the actual implementation, the agent trusts those "lies" and produces code that doesn't work.This problem compounds dramatically when working outside the *most popular ecosystems (Python and TypeScript/JavaScript)*.
+  
 
   The end result is the same across all scenarios: **slop code** requiring heavy rework.
 </Callout>
@@ -28,7 +29,7 @@ import { Settings, Workflow, Brain, Plug, Package, GitBranch, Target, Layers, Sh
 
 #### Unoplat Code Confluence App Context
 
-**`AGENTS.md`-first Context**: Auto-generates machine-readable `AGENTS.md` files *per repo* and an *org-wide index* to give coding agents a **precise source of truth** across:
+**`AGENTS.md`-first Context**: Auto-generates machine-readable `AGENTS.md` files *per repo* to give coding agents a **precise source of truth** which covers the following key areas:
 
 <Cards>
   <Card icon={<Settings />} title="Project Configuration">
