@@ -7,10 +7,12 @@ const server = createFromSource(source, {
   language: 'english',
 });
 
+// Static pre-rendered search index for fully static deployment
+// The search index is generated at build time and served as static JSON
 export const Route = createFileRoute('/api/search')({
   server: {
     handlers: {
-      GET: async ({ request }) => server.GET(request),
+      GET: async ({ request }) => server.staticGET(request),
     },
   },
 });
