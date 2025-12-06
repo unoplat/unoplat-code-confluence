@@ -56,6 +56,12 @@ jobs:
       - run: yarn install --refresh-lockfile
       - run: yarn build      
 
+      - name: Prepare for GitHub Pages
+        run: |
+          cp dist/client/_shell.html dist/client/index.html
+          cp dist/client/_shell.html dist/client/404.html
+          touch dist/client/.nojekyll
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
