@@ -1,0 +1,86 @@
+---
+title: Vision
+description: "Ship features atleast 2x faster with better quality by upgrading your AI coding workflow with complete, always-up-to-date app context."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Settings, Workflow, Brain, Plug, Package, GitBranch, Target, Layers, Shield, Zap } from 'lucide-react';
+
+<Callout type="info" title="Our Mission">
+  Unoplat Code Confluence is the **context engine** for application development, organizing precise, up-to-date knowledge of your *data models*, *entry points*, *endpoints*, and more—so coding agents can deliver and maintain features **2–3x faster** with higher quality.
+</Callout>
+
+## Why Unoplat Code Confluence?
+
+<Callout type="error" title="The Problem">
+  AI agents perform well on [greenfield projects](https://en.wikipedia.org/wiki/Greenfield_project) *(new codebases built from scratch)* but struggle with existing [brownfield codebases](https://en.wikipedia.org/wiki/Brownfield_(software_development)) *(mature, production systems with existing code)*. 
+  
+  The core problem: they burn most of their **context window** on exploration—searching files, tracing flows, connecting dots—leaving little capacity for actual implementation. By the time they're ready to code, they've hit the **"dumb zone"** where performance degrades sharply. And since they lack *long-term memory*, this cycle repeats with every conversation.
+
+  **Multi-repo Complexity**: The problem compounds with *multi-repo architectures*. When code is split across connected repositories, the agent exhausts its context just mapping dependencies between codebases—often before writing a single line.
+
+  **Internal Dependencies**: Internal dependencies and *niche packages* present another failure mode. The agent has no onboarding to proprietary systems, so it **hallucinates usage patterns**. Worse, when internal documentation has drifted from the actual implementation, the agent trusts those "lies" and produces code that doesn't work.
+
+  The end result is the same across all scenarios: **slop code** requiring heavy rework.
+</Callout>
+
+### The Solution
+
+#### Unoplat Code Confluence App Context
+
+**`AGENTS.md`-first Context**: Auto-generates machine-readable `AGENTS.md` files *per repo* and an *org-wide index* to give coding agents a **precise source of truth** across:
+
+<Cards>
+  <Card icon={<Settings />} title="Project Configuration">
+    Key **config files** and their responsibilities
+  </Card>
+  <Card icon={<Workflow />} title="Development Workflow">
+    *Dev/build/test* commands, infra, and third-party dependencies
+  </Card>
+  <Card icon={<Brain />} title="Business Logic">
+    Core application logic, **domain entities**, and **database entities**
+  </Card>
+  <Card icon={<Plug />} title="Entry Points & Interfaces">
+    Main *entry points*, **API endpoints**, and external interfaces
+  </Card>
+  <Card icon={<Package />} title="External Dependencies">
+    Roles and responsibilities of *external libraries*
+  </Card>
+  <Card icon={<GitBranch />} title="Cross-repo Linkage">
+    Connections to **related repositories** and codebases within the org
+  </Card>
+</Cards>
+
+#### Core Principles
+
+<Cards>
+  <Card icon={<Target />} title="Precision First">
+    [Extensible Language Support](https://github.com/unoplat/unoplat-code-confluence/tree/main/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/queries): Modular **Tree-sitter** based grammar extraction delivers *consistent, accurate* code context across all programming languages. [Extensible Framework-Aware Parsing](/docs/contribution/custom-framework-schema): Specialized grammar engines recognize *framework and library-specific patterns*.
+  </Card>
+  <Card icon={<Layers />} title="Context Engineering">
+    **Complete Context Graph**: All essential context—*internal/external dependencies*, *inbound/outbound interfaces*, *domain models*, *data stores*, and *service-to-service links*—kept fresh via workflow-based ingestion. **Selective Context Routing & Hierarchical Decomposition**: Route only what matters and break work into scoped steps.
+  </Card>
+  <Card icon={<Shield />} title="Enterprise-Grade Reliability">
+    **Scalable** and **reliable** processing and LLM analysis powered by *workflow orchestrator*.
+  </Card>
+  <Card icon={<Zap />} title="Performance as a First-Class Citizen">
+    Optimized algorithms across all aspects of *discovery*, *detection*, *ingestion* and *LLM-based insights*.
+  </Card>
+</Cards>
+
+---
+
+<Callout type="warn" title="Alpha Disclaimer">
+  We want to be **transparent** about our current state. While we're deeply committed to our core principles and have invested significant engineering effort to uphold them, Unoplat Code Confluence is currently in **alpha**. Despite our best intentions and rigorous development practices, there may be areas where we haven't fully achieved these principles yet.
+
+  If you encounter any *gaps* between our stated vision and the current implementation, or if you have suggestions for improvement, please don't hesitate to engage with us:
+
+  - **Report Issues**: [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues)
+  - **Start Discussions**: [GitHub Discussions](https://github.com/unoplat/unoplat-code-confluence/discussions)
+
+  Your feedback is *invaluable* as we work toward production readiness and helps us prioritize our roadmap to better serve the developer community.
+</Callout>
+
+<Callout type="idea" title="Ready to Get Started?">
+  Check out our [Quick Start Guide](/docs/quickstart/how-to-run) to begin your journey with Unoplat Code Confluence.
+</Callout>

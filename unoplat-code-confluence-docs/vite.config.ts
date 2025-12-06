@@ -1,0 +1,55 @@
+import react from "@vitejs/plugin-react";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { defineConfig } from "vite";
+import tsConfigPaths from "vite-tsconfig-paths";
+import tailwindcss from "@tailwindcss/vite";
+import mdx from "fumadocs-mdx/vite";
+
+export default defineConfig({
+  server: {
+    port: 3000,
+  },
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress Fumadocs MDX architecture warnings
+        // Fumadocs intentionally uses both static imports (for SSR) and dynamic imports (for client-side code-splitting)
+        // This is expected behavior, not a bug. See: https://github.com/vitejs/vite/issues/13848
+        if (
+          warning.code === "PLUGIN_WARNING" &&
+          warning.message.includes(
+            "dynamic import will not move module into another chunk",
+          ) &&
+          warning.message.includes(".source/")
+        ) {
+          return;
+        }
+        warn(warning);
+      },
+    },
+  },
+  plugins: [
+    mdx(await import("./source.config")),
+    tailwindcss(),
+    tsConfigPaths({
+      projects: ["./tsconfig.json"],
+    }),
+    tanstackStart({
+      spa: {
+        enabled: true,
+        prerender: {
+          enabled: true,
+          crawlLinks: true,
+        },
+      },
+      // Sitemap configuration for SEO
+      // Reference: @tanstack/start-plugin-core/src/schema.ts
+      sitemap: {
+        enabled: true,
+        host: "https://docs.unoplat.io", // Replace with your actual production domain
+        outputPath: "sitemap.xml",
+      },
+    }),
+    react(),
+  ],
+});

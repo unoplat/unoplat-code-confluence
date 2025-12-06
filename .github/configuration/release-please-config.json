@@ -6,12 +6,12 @@
             "include-component-in-tag": true,
             "component": "unoplat-code-confluence-commons"
         },
-        "code-confluence": {
+        "unoplat-code-confluence-docs": {
             "release-type": "node",
             "changelog-path": "CHANGELOG.md",
             "include-component-in-tag": true,
-            "component": "code-confluence-docs",
-            "package-name": "code-confluence-docs"
+            "component": "unoplat-code-confluence-docs",
+            "package-name": "unoplat-code-confluence-docs"
         },
         "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": {
             "release-type": "python",
