@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.23.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.23.0...unoplat-code-confluence-docs-v0.23.1) (2025-12-06)
+
+
+### Bug Fixes
+
+* gh pages requires index but tanstack start spa generates _shell ([fa8aef4](https://github.com/unoplat/unoplat-code-confluence/commit/fa8aef4be2bd6bdd7d700d8842febd570c293571))
+* gh pages requires index but tanstack start spa generates _shell ([939f9f4](https://github.com/unoplat/unoplat-code-confluence/commit/939f9f46ab886ec78ccce60b06f529ae31f059a5))
+
 ## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.22.0...unoplat-code-confluence-docs-v0.23.0) (2025-12-06)
 
 
