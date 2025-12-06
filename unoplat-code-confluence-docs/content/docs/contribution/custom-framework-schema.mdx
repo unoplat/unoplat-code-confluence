@@ -1,0 +1,659 @@
+---
+title: Custom Framework/Library Schema
+description: "Define framework and library patterns for Code Confluence"
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+# Custom Framework/Library Schema
+
+The **Custom Framework/Library Schema** enables contributors to define *framework and library patterns* for Code Confluence to detect and analyze across different programming languages. This schema provides a **structured way** to describe how frameworks and libraries should be identified in codebases.
+
+<Callout type="info" title="Quick Reference">
+  - **Schema**: [View Full Schema](/schemas/custom-framework-lib-schema.json) *(opens as JSON)*
+  - **Specification**: [JSON Schema Draft 2020-12](https://json-schema.org/specification)
+  - **Organization**: By *programming language* → *library* → *features*
+</Callout>
+
+## Schema Structure
+
+### Top Level Structure
+
+The schema organizes definitions hierarchically by **language** and **library**:
+
+```json
+{
+  "python": {
+    "fastapi": { /* library definition */ },
+    "django": { /* library definition */ }
+  },
+  "javascript": {
+    "express": { /* library definition */ },
+    "react": { /* library definition */ }
+  }
+}
+```
+
+### Supported Languages
+
+<TypeTable
+  type={{
+    python: {
+      description: 'Python programming language',
+      type: 'string',
+    },
+    javascript: {
+      description: 'JavaScript programming language',
+      type: 'string',
+    },
+    typescript: {
+      description: 'TypeScript programming language',
+      type: 'string',
+    },
+    java: {
+      description: 'Java programming language',
+      type: 'string',
+    },
+    go: {
+      description: 'Go programming language',
+      type: 'string',
+    },
+  }}
+/>
+
+---
+
+## Library Definition Structure
+
+Each **library definition** describes a framework or library that Code Confluence should recognize.
+
+### Required Fields
+
+<TypeTable
+  type={{
+    docs_url: {
+      description: 'The canonical documentation URL for the library (e.g., https://fastapi.tiangolo.com)',
+      type: 'string (URI format)',
+    },
+    features: {
+      description: 'A collection of discoverable features keyed by contributor-chosen identifiers',
+      type: 'Record<string, FeatureDefinition>',
+    },
+  }}
+/>
+
+### Optional Fields
+
+<TypeTable
+  type={{
+    version: {
+      description: 'Library version used to verify patterns (useful when patterns change between versions)',
+      type: 'string',
+      default: 'undefined',
+    },
+  }}
+/>
+
+---
+
+## Feature Definition Structure
+
+Each **feature** within a library describes a specific pattern that Code Confluence should detect.
+
+### Required Fields
+
+<TypeTable
+  type={{
+    description: {
+      description: 'Human-readable explanation of what this feature does',
+      type: 'string',
+    },
+    absolute_paths: {
+      description: 'Fully-qualified import paths identifying the constructor, base class, or annotation provider',
+      type: 'string[]',
+    },
+    target_level: {
+      description: 'Granularity of the code element that owns the feature',
+      type: '"function" | "class"',
+    },
+    concept: {
+      description: 'Language-agnostic construct category for pattern matching',
+      type: '"AnnotationLike" | "CallExpression" | "Inheritance"',
+    },
+    locator_strategy: {
+      description: 'Strategy for locating the feature in code',
+      type: '"VariableBound" | "Direct"',
+    },
+  }}
+/>
+
+### `target_level` Values
+
+<TypeTable
+  type={{
+    function: {
+      description: 'Function-level features — decorators on functions, function calls, method definitions',
+      type: 'enum',
+    },
+    class: {
+      description: 'Class-level features — class inheritance, class decorators, class-level attributes',
+      type: 'enum',
+    },
+  }}
+/>
+
+### `concept` Values
+
+<TypeTable
+  type={{
+    AnnotationLike: {
+      description: 'Decorators, annotations, and attributes that modify code behavior',
+      type: 'enum',
+    },
+    CallExpression: {
+      description: 'Function or method calls that create or configure objects',
+      type: 'enum',
+    },
+    Inheritance: {
+      description: 'Class inheritance patterns where a class extends a base class',
+      type: 'enum',
+    },
+  }}
+/>
+
+<Callout type="info" title="Concept Examples">
+  - **AnnotationLike**: `@app.get("/")`, `@Component`, `[HttpGet]`, `@dataclass`
+  - **CallExpression**: `mapped_column()`, `Field()`, `relationship()`, `useState()`
+  - **Inheritance**: `class User(BaseModel)`, `class MyView(APIView)`, `class App extends Component`
+</Callout>
+
+### `locator_strategy` Values
+
+<TypeTable
+  type={{
+    VariableBound: {
+      description: 'First discover identifiers bound to a constructor/factory, then find their usages. Use when the symbol is assigned to a variable before use.',
+      type: 'enum',
+    },
+    Direct: {
+      description: 'Match the symbol verbatim in code. Use when the symbol is used directly without variable assignment.',
+      type: 'enum',
+    },
+  }}
+/>
+
+<Callout type="info" title="Strategy Examples">
+  **VariableBound** — When `app = FastAPI()` is used, then `@app.get()` is detected:
+  ```python
+  app = FastAPI()  # First: find this binding
+  @app.get("/")    # Then: find usages of 'app'
+  def handler(): ...
+  ```
+
+  **Direct** — When the import is used directly:
+  ```python
+  from pydantic import BaseModel
+  class User(BaseModel): ...  # Direct match on 'BaseModel'
+  ```
+</Callout>
+
+### Optional Fields
+
+<TypeTable
+  type={{
+    docs_url: {
+      description: 'Feature-specific documentation URL (overrides library-level docs_url)',
+      type: 'string (URI format)',
+      default: 'undefined',
+    },
+    startpoint: {
+      description: 'Marks this feature as an application entry point (API endpoints, message consumers, event handlers)',
+      type: 'boolean',
+      default: 'false',
+    },
+    notes: {
+      description: 'Contributor notes, caveats, version-specific behavior, or additional links',
+      type: 'string',
+      default: 'undefined',
+    },
+    construct_query: {
+      description: 'Optional refinements to the auto-generated Tree-sitter query for more precise matching',
+      type: 'ConstructQuery',
+      default: 'undefined',
+    },
+  }}
+/>
+
+### `construct_query` Properties
+
+<Callout type="warn" title="Context-Dependent">
+  Available properties depend on the feature's `concept` value. Use the appropriate regex for your concept type.
+</Callout>
+
+<TypeTable
+  type={{
+    method_regex: {
+      description: 'Regular expression for method names. Best used with AnnotationLike concept.',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+    annotation_name_regex: {
+      description: 'Regular expression for annotation/decorator names',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+    attribute_regex: {
+      description: 'Regular expression for attribute names',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+    callee_regex: {
+      description: 'Regular expression for function call names. Best used with CallExpression concept.',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+    superclass_regex: {
+      description: 'Regular expression for superclass names. Best used with Inheritance concept.',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+  }}
+/>
+
+---
+
+## Real Framework Examples
+
+Explore actual schema definitions from the Code Confluence codebase:
+
+<Tabs items={['FastAPI', 'Pydantic', 'SQLAlchemy', 'SQLModel']}>
+  <Tab value="FastAPI">
+    **[FastAPI](https://fastapi.tiangolo.com)** — Modern, fast web framework for building APIs with Python
+
+    *Features*: HTTP endpoints, background tasks, API router organization
+
+    ```json
+    {
+      "python": {
+        "fastapi": {
+          "docs_url": "https://fastapi.tiangolo.com",
+          "features": {
+            "http_endpoint": {
+              "description": "HTTP verb decorator that registers a route handler",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "locator_strategy": "VariableBound",
+              "construct_query": {
+                "method_regex": "(get|post|put|delete|patch|head|options|trace)"
+              },
+              "startpoint": true
+            },
+            "background_tasks": {
+              "description": "Background task execution using BackgroundTasks",
+              "absolute_paths": [
+                "fastapi.BackgroundTasks"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "locator_strategy": "Direct"
+            },
+            "api_router": {
+              "description": "Route organization using APIRouter",
+              "absolute_paths": [
+                "fastapi.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "locator_strategy": "VariableBound",
+              "construct_query": {
+                "method_regex": "(get|post|put|delete|patch|head|options|trace|include_router)"
+              },
+              "startpoint": true
+            }
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Pydantic">
+    **[Pydantic](https://docs.pydantic.dev)** — Data validation using Python type annotations
+
+    *Features*: Data models with automatic validation
+
+    ```json
+    {
+      "python": {
+        "pydantic": {
+          "docs_url": "https://docs.pydantic.dev",
+          "features": {
+            "data_model": {
+              "description": "Base class for Pydantic models with automatic validation",
+              "absolute_paths": [
+                "pydantic.BaseModel",
+                "pydantic.main.BaseModel"
+              ],
+              "target_level": "class",
+              "concept": "Inheritance",
+              "locator_strategy": "Direct"
+            }
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="SQLAlchemy">
+    **[SQLAlchemy](https://docs.sqlalchemy.org)** — The Python SQL toolkit and ORM
+
+    *Features*: Declarative models, column definitions, relationships
+
+    ```json
+    {
+      "python": {
+        "sqlalchemy": {
+          "docs_url": "https://docs.sqlalchemy.org",
+          "features": {
+            "declarative_base": {
+              "description": "Base class for SQLAlchemy declarative models",
+              "absolute_paths": [
+                "sqlalchemy.ext.declarative.declarative_base",
+                "sqlalchemy.orm.declarative_base"
+              ],
+              "target_level": "class",
+              "concept": "Inheritance",
+              "locator_strategy": "VariableBound"
+            },
+            "mapped_column": {
+              "description": "Column definition using mapped_column for modern SQLAlchemy",
+              "absolute_paths": [
+                "sqlalchemy.orm.mapped_column"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "locator_strategy": "Direct"
+            },
+            "relationship": {
+              "description": "Relationship definition between models",
+              "absolute_paths": [
+                "sqlalchemy.orm.relationship"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "locator_strategy": "Direct"
+            },
+            "column": {
+              "description": "Traditional column definition using Column",
+              "absolute_paths": [
+                "sqlalchemy.Column",
+                "sqlalchemy.sql.schema.Column"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "locator_strategy": "Direct"
+            }
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="SQLModel">
+    **[SQLModel](https://sqlmodel.tiangolo.com)** — SQL databases in Python, designed for simplicity
+
+    *Features*: Combines Pydantic and SQLAlchemy — models, fields, relationships
+
+    ```json
+    {
+      "python": {
+        "sqlmodel": {
+          "docs_url": "https://sqlmodel.tiangolo.com",
+          "features": {
+            "sqlmodel_base": {
+              "description": "Base class for SQLModel models combining Pydantic and SQLAlchemy",
+              "absolute_paths": [
+                "sqlmodel.SQLModel"
+              ],
+              "target_level": "class",
+              "concept": "Inheritance",
+              "locator_strategy": "Direct"
+            },
+            "field_definition": {
+              "description": "Field definition using Field() function with SQLModel extensions",
+              "absolute_paths": [
+                "sqlmodel.Field"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "locator_strategy": "Direct"
+            },
+            "relationship": {
+              "description": "Relationship definition between SQLModel models",
+              "absolute_paths": [
+                "sqlmodel.Relationship"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "locator_strategy": "Direct"
+            }
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Complete Multi-Framework Example
+
+<Accordions>
+  <Accordion title="View Complete Multi-Framework Schema" id="complete-example">
+    Here's how **multiple frameworks** can be combined in a single schema file. This example shows a typical Python project using FastAPI for APIs, Pydantic for validation, and SQLAlchemy for database access:
+
+    ```json
+    {
+      "python": {
+        "fastapi": {
+          "docs_url": "https://fastapi.tiangolo.com",
+          "features": {
+            "http_endpoint": {
+              "description": "HTTP verb decorator that registers a route handler",
+              "absolute_paths": ["fastapi.FastAPI"],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "locator_strategy": "VariableBound",
+              "construct_query": {
+                "method_regex": "(get|post|put|delete|patch|head|options|trace)"
+              },
+              "startpoint": true
+            }
+          }
+        },
+        "pydantic": {
+          "docs_url": "https://docs.pydantic.dev",
+          "features": {
+            "data_model": {
+              "description": "Base class for Pydantic models with automatic validation",
+              "absolute_paths": ["pydantic.BaseModel"],
+              "target_level": "class",
+              "concept": "Inheritance",
+              "locator_strategy": "Direct"
+            }
+          }
+        },
+        "sqlalchemy": {
+          "docs_url": "https://docs.sqlalchemy.org",
+          "features": {
+            "mapped_column": {
+              "description": "Column definition using mapped_column for modern SQLAlchemy",
+              "absolute_paths": ["sqlalchemy.orm.mapped_column"],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "locator_strategy": "Direct"
+            }
+          }
+        }
+      }
+    }
+    ```
+  </Accordion>
+</Accordions>
+
+---
+
+## Validation Rules
+
+<Callout type="warn" title="Concept-Target Level Constraints">
+  The schema enforces these **mandatory constraints**:
+  - **CallExpression** features *must* use `target_level: "function"`
+  - **Inheritance** features *must* use `target_level: "class"`
+  
+  Violations will cause schema validation to fail.
+</Callout>
+
+### Pattern Validation
+
+<TypeTable
+  type={{
+    absolute_paths: {
+      description: 'Must follow the pattern: module.submodule.symbol (e.g., fastapi.FastAPI)',
+      type: 'regex: ^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$',
+    },
+    language_keys: {
+      description: 'Must be lowercase and match one of the supported languages',
+      type: 'enum: python | javascript | typescript | java | go',
+    },
+    library_names: {
+      description: 'Any non-empty string identifying the library',
+      type: 'string (non-empty)',
+    },
+  }}
+/>
+
+---
+
+## Best Practices
+
+### 1. Comprehensive Coverage
+- Define **all major features** of a framework/library
+- Include both *common* and *advanced* usage patterns
+- Cover different ways the same concept might be expressed
+
+### 2. Accurate Paths
+- Use **fully-qualified import paths**
+- Test paths against actual library documentation
+- Include `version` information when patterns change between versions
+
+### 3. Clear Descriptions
+- Write **human-readable descriptions**
+- Explain the *purpose* and *context* of each feature
+- Include examples in `notes` when helpful
+
+### 4. Proper Categorization
+- Choose appropriate `concept` values based on *how the feature is used*
+- Use `startpoint: true` for **entry points** like API endpoints
+- Set correct `target_level` based on where the feature applies
+
+### 5. Strategic Regex Usage
+- Use `construct_query` regex patterns to **refine matches**
+- Test regex patterns against real code examples
+- Keep patterns *specific enough* to avoid false positives
+
+---
+
+## Contributing Schema Updates
+
+To contribute new framework/library definitions:
+
+1. **Fork the repository** and create a feature branch
+2. **Update the schema file** at `/static/schemas/custom-framework-lib-schema.json`
+3. **Add comprehensive definitions** following the structure above
+4. **Test your definitions** against real codebases
+5. **Submit a pull request** with detailed examples and test cases
+
+### Testing Your Schema
+
+Before submitting, verify your schema definitions:
+
+1. **JSON Validation** — Ensure the file is valid JSON
+2. **Schema Validation** — Validate against the [JSON Schema specification](https://json-schema.org/specification)
+3. **Real-world Testing** — Test against actual codebases using the framework
+4. **Documentation** — Ensure all referenced URLs are accessible
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+<Accordions>
+  <Accordion title="Invalid absolute_paths" id="error-paths">
+    **Error Message:**
+    ```
+    Error: Pattern does not match required format
+    ```
+
+    **Cause:** The `absolute_paths` value doesn't follow the required pattern.
+
+    **Solution:** Ensure paths follow the format `module.submodule.symbol`:
+    - **Correct**: `fastapi.FastAPI`, `pydantic.BaseModel`
+    - **Incorrect**: `FastAPI`, `fastapi`, `fastapi/FastAPI`
+  </Accordion>
+
+  <Accordion title="Missing Required Fields" id="error-required">
+    **Error Message:**
+    ```
+    Error: Missing required property 'target_level'
+    ```
+
+    **Cause:** A feature definition is missing one or more required fields.
+
+    **Solution:** Include **all required fields** in every feature definition:
+    - `description`
+    - `absolute_paths`
+    - `target_level`
+    - `concept`
+    - `locator_strategy`
+  </Accordion>
+
+  <Accordion title="Concept-Target Level Mismatch" id="error-mismatch">
+    **Error Message:**
+    ```
+    Error: CallExpression requires target_level 'function'
+    ```
+
+    **Cause:** The `concept` and `target_level` values are incompatible.
+
+    **Solution:** Follow the concept-target level constraints:
+    - `CallExpression` → `target_level: "function"`
+    - `Inheritance` → `target_level: "class"`
+    - `AnnotationLike` → can be either `"function"` or `"class"`
+  </Accordion>
+
+  <Accordion title="Feature Not Detected" id="error-not-detected">
+    **Symptom:** Your schema is valid but the feature isn't being detected in code.
+
+    **Possible Causes:**
+    1. **Wrong `locator_strategy`** — Try switching between `VariableBound` and `Direct`
+    2. **Incorrect `absolute_paths`** — Verify the exact import path used in the library
+    3. **Missing `construct_query`** — Add regex patterns to narrow down matches
+
+    **Solution:** Test with a minimal code example and check the Tree-sitter output.
+  </Accordion>
+</Accordions>
+
+---
+
+## Future Enhancements
+
+The schema is designed to be **extensible**. Future versions may include:
+- *Additional programming languages* (Rust, C#, Kotlin)
+- *More concept types* for different framework constructs
+- *Enhanced query refinement* options for complex patterns
+- *Version-aware detection* for handling breaking changes between library versions
