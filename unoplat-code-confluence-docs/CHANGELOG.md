@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.23.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.23.2...unoplat-code-confluence-docs-v0.23.3) (2025-12-06)
+
+
+### Bug Fixes
+
+* minimal skeleton css to prevent flashes of unstyled content till css is loaded ([9094211](https://github.com/unoplat/unoplat-code-confluence/commit/90942110f5af58c3f1c3ebcef3fd3b6c3155d29d))
+* minimal skeleton css to prevent flashes of unstyled content till… ([7083995](https://github.com/unoplat/unoplat-code-confluence/commit/7083995c5b6b79fd4883968ea1eb44f87fe0cde3))
+* static app css name so no two different hashes are generated through rollout option ([985f4e6](https://github.com/unoplat/unoplat-code-confluence/commit/985f4e6d7459ab2980eec5d70ce54bccbd297e6c))
+
 ## [0.23.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.23.1...unoplat-code-confluence-docs-v0.23.2) (2025-12-06)
 
 
