@@ -33,6 +33,18 @@ from unoplat_code_confluence_commons.base_models.python_structural_signature imp
     PythonVariableInfo,
 )
 
+# SQL Base class
+from unoplat_code_confluence_commons.base_models.sql_base import (
+    SQLBase,
+)
+
+# Structural signature utilities
+from unoplat_code_confluence_commons.base_models.structural_signature_utils import (
+    StructuralSignatureUnion,
+    deserialize_structural_signature,
+    get_signature_type_for_language,
+)
+
 # TypeScript structural signature models
 from unoplat_code_confluence_commons.base_models.typescript_structural_signature import (
     TypeScriptClassInfo,
@@ -50,18 +62,6 @@ from unoplat_code_confluence_commons.base_models.typescript_structural_signature
     TypeScriptStructuralSignature,
     TypeScriptTypeAliasInfo,
     TypeScriptVariableInfo,
-)
-
-# Structural signature utilities
-from unoplat_code_confluence_commons.base_models.structural_signature_utils import (
-    StructuralSignatureUnion,
-    deserialize_structural_signature,
-    get_signature_type_for_language,
-)
-
-# SQL Base class
-from unoplat_code_confluence_commons.base_models.sql_base import (
-    SQLBase,
 )
 from unoplat_code_confluence_commons.configuration_models import (
     CodebaseConfig,

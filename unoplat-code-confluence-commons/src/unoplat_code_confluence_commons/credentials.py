@@ -14,7 +14,6 @@ import uuid
 from sqlalchemy import Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.sqltypes import DateTime
 
 

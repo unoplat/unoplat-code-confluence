@@ -82,8 +82,8 @@ from unoplat_code_confluence_commons.security import (
     encrypt_token,
 )
 from unoplat_code_confluence_commons.workflow_envelopes import (
-    CodebaseWorkflowDbEnvelope,
-    RepositoryWorkflowDbEnvelope,
+    CodebaseWorkflowDbActivityEnvelope,
+    ParentWorkflowDbActivityEnvelope,
 )
 from unoplat_code_confluence_commons.workflow_models import (
     ErrorReport,
@@ -165,6 +165,6 @@ __all__ = [
     'JobStatus',
     'ErrorReport',
     # Workflow envelope models
-    'RepositoryWorkflowDbEnvelope',
-    'CodebaseWorkflowDbEnvelope',
+    'ParentWorkflowDbActivityEnvelope',
+    'CodebaseWorkflowDbActivityEnvelope',
 ]
