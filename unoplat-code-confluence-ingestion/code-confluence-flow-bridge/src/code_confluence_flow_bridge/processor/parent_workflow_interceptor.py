@@ -15,17 +15,20 @@ from temporalio.worker._interceptor import (
 from temporalio.workflow import Info
 
 with workflow.unsafe.imports_passed_through():
-    from src.code_confluence_flow_bridge.logging.trace_utils import (
-        seed_and_bind_logger_from_trace_id,
+    from unoplat_code_confluence_commons.workflow_envelopes import (
+        CodebaseWorkflowDbActivityEnvelope,
+        ParentWorkflowDbActivityEnvelope,
     )
-    from src.code_confluence_flow_bridge.models.github.github_repo import (
+    from unoplat_code_confluence_commons.workflow_models import (
         ErrorReport,
         JobStatus,
     )
+
+    from src.code_confluence_flow_bridge.logging.trace_utils import (
+        seed_and_bind_logger_from_trace_id,
+    )
     from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
         CodebaseChildWorkflowEnvelope,
-        CodebaseWorkflowDbActivityEnvelope,
-        ParentWorkflowDbActivityEnvelope,
         RepoWorkflowRunEnvelope,
     )
     from src.code_confluence_flow_bridge.processor.activity_retries_config import (
