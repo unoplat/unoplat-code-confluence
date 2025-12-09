@@ -8,6 +8,7 @@ from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
+from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
 
 
 class GitHubOwner(BaseModel):
@@ -122,30 +123,6 @@ class IssueTracking(BaseModel):
     created_at: Optional[str] = Field(
         default=None, description="Timestamp when the issue was created"
     )
-
-
-# Error report model for detailed error context
-class ErrorReport(BaseModel):
-    """
-    Detailed error report capturing context of failure.
-    """
-
-    error_message: str = Field(..., description="Error message")
-    stack_trace: Optional[str] = Field(
-        default=None, description="Stack trace of the error, if available"
-    )
-    metadata: Optional[dict] = Field(
-        default=None, description="Metadata associated with the error"
-    )
-
-
-class JobStatus(str, Enum):
-    SUBMITTED = "SUBMITTED"
-    RUNNING = "RUNNING"
-    FAILED = "FAILED"
-    TIMED_OUT = "TIMED_OUT"
-    COMPLETED = "COMPLETED"
-    RETRYING = "RETRYING"
 
 
 class WorkflowRun(BaseModel):
