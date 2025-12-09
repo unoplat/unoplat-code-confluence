@@ -3,7 +3,13 @@ from unoplat_code_confluence_commons.graph_models.base_models import (
     ContainsRelationship,
 )
 
-from neomodel import ArrayProperty, AsyncOne, AsyncRelationshipTo, AsyncZeroOrMore, StringProperty
+from neomodel import (
+    ArrayProperty,
+    AsyncOne,
+    AsyncRelationshipTo,
+    AsyncZeroOrMore,
+    StringProperty,
+)
 
 
 class CodeConfluenceCodebase(BaseNode):

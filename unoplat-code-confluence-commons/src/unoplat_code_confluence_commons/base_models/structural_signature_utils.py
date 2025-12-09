@@ -1,13 +1,13 @@
 """Utility functions for working with language-specific structural signatures."""
 
-from typing import Union
-
 from unoplat_code_confluence_commons.base_models.python_structural_signature import (
     PythonStructuralSignature,
 )
 from unoplat_code_confluence_commons.base_models.typescript_structural_signature import (
     TypeScriptStructuralSignature,
 )
+
+from typing import Union
 
 # Type alias for all supported structural signatures
 StructuralSignatureUnion = Union[
