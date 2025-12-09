@@ -9,16 +9,16 @@ from unoplat_code_confluence_commons.base_models import (
     RepositoryWorkflowOperation,
     RepositoryWorkflowRun,
 )
-
-from src.code_confluence_flow_bridge.logging.trace_utils import (
-    seed_and_bind_logger_from_trace_id,
+from unoplat_code_confluence_commons.workflow_envelopes import (
+    ParentWorkflowDbActivityEnvelope,
 )
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from unoplat_code_confluence_commons.workflow_models import (
     ErrorReport,
     JobStatus,
 )
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
-    ParentWorkflowDbActivityEnvelope,
+
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    seed_and_bind_logger_from_trace_id,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
 
