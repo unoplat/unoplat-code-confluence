@@ -160,10 +160,8 @@ class FlagService:
             return result.scalar_one_or_none() is not None
 
         except SQLAlchemyError as e:
-            logger.error("Database error checking flag existence {}: {}", flag_name, e)
+            logger.error(f"Database error checking flag existence {flag_name}: {e}")
             raise
         except Exception as e:
-            logger.error(
-                "Unexpected error checking flag existence {}: {}", flag_name, e
-            )
+            logger.error(f"Unexpected error checking flag existence {flag_name}: {e}")
             raise

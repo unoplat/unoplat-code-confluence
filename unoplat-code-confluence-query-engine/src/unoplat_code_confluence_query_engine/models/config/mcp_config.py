@@ -18,6 +18,11 @@ class MCPServerType(str, Enum):
     REMOTE = "remote"
 
 
+class MCPServerProtocol(str, Enum):
+    SSE = "sse"
+    HTTP = "http"
+
+
 class LocalMCPServerConfig(BaseModel):
     """Configuration for local MCP servers using stdio transport."""
 
@@ -58,6 +63,9 @@ class RemoteMCPServerConfig(BaseModel):
     timeout: int = Field(default=5, description="Initial connection timeout in seconds")
     tool_prefix: str | None = Field(
         default=None, description="Prefix for tool names from this server"
+    )
+    protocol: MCPServerProtocol = Field(
+        default=MCPServerProtocol.SSE, description="Protocol to use for communication"
     )
 
     @field_validator("url")
