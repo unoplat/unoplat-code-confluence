@@ -81,6 +81,14 @@ from unoplat_code_confluence_commons.security import (
     decrypt_token,
     encrypt_token,
 )
+from unoplat_code_confluence_commons.workflow_envelopes import (
+    CodebaseWorkflowDbEnvelope,
+    RepositoryWorkflowDbEnvelope,
+)
+from unoplat_code_confluence_commons.workflow_models import (
+    ErrorReport,
+    JobStatus,
+)
 
 __all__ = [
     # Graph models
@@ -153,4 +161,10 @@ __all__ = [
     # Security utilities
     'encrypt_token',
     'decrypt_token',
+    # Workflow models
+    'JobStatus',
+    'ErrorReport',
+    # Workflow envelope models
+    'RepositoryWorkflowDbEnvelope',
+    'CodebaseWorkflowDbEnvelope',
 ]
