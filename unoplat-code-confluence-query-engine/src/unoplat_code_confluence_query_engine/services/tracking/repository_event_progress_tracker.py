@@ -105,7 +105,11 @@ class RepositoryEventProgressTracker:
         )
 
         try:
-            await self._writer.append_event(payload)
+            await self._writer.append_event(
+                owner_name=self._owner_name,
+                repo_name=self._repo_name,
+                delta=payload,
+            )
         except Exception as persist_error:  # noqa: BLE001
             logger.warning(
                 "SSE[{}] Failed to append event {} for {}/{}: {}",
@@ -145,7 +149,11 @@ class RepositoryEventProgressTracker:
             )
 
             try:
-                await self._writer.append_event(payload)
+                await self._writer.append_event(
+                    owner_name=self._owner_name,
+                    repo_name=self._repo_name,
+                    delta=payload,
+                )
             except Exception as persist_error:  # noqa: BLE001
                 logger.warning(
                     "SSE[{}] Failed to append final event for {}/{} codebase {}: {}",

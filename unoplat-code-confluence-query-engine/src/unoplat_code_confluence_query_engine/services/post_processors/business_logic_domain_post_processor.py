@@ -64,7 +64,7 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
             )
 
         except Exception as e:
-            logger.error("Error in BusinessLogicDomainPostProcessor: {}", e)
+            logger.error(f"Error in BusinessLogicDomainPostProcessor: {e}")
             description = (
                 str(agent_output).strip().strip('"')
                 if agent_output

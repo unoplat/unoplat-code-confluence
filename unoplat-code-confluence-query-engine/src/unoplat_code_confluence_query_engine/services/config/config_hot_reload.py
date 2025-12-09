@@ -1,9 +1,11 @@
 """ORM events service for hot-reload functionality of AI model configuration.
 
-NOTE: Not required in the current single-worker setup. We now refresh
-agents immediately in the PUT /v1/config endpoint. This module remains as
-scaffolding and will be replaced with a Postgres LISTEN/NOTIFY-based
-invalidation so changes propagate across workers when we move to multi-worker.
+NOTE: With Temporal-based agent execution, agents are initialized once at worker
+startup with model configuration loaded from the database. Hot-reload of model
+configuration requires restarting the Temporal worker to pick up changes.
+
+This module provides ORM event scaffolding that will be replaced with Postgres
+LISTEN/NOTIFY-based invalidation when we move to multi-worker deployments.
 """
 
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple
@@ -15,9 +17,6 @@ from sqlalchemy import event, inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
-    create_code_confluence_agents,
-)
 from unoplat_code_confluence_query_engine.config.settings import (
     EnvironmentSettings,
 )
@@ -33,8 +32,6 @@ from unoplat_code_confluence_query_engine.services.config.model_factory import (
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
-
-    from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 
 # Global state for tracking configuration changes and model instances
 _config_invalidated = False
@@ -101,13 +98,12 @@ def _mark_if_config_changed(
             if changed:
                 session.info[_CHANGED_FLAG] = True
                 logger.debug(
-                    "AI config update detected (changed fields: {}), marking for rebuild",
-                    changed,
+                    f"AI config update detected (changed fields: {changed}), marking for rebuild"
                 )
                 return
 
     except Exception as e:
-        logger.error("Error in config change detection: {}", e)
+        logger.error(f"Error in config change detection: {e}")
         # Don't raise - event handlers should not break the transaction
 
 
@@ -142,7 +138,7 @@ def _invalidate_config_on_commit(session: Session) -> None:
             session.info.pop(_CHANGED_FLAG, None)
 
     except Exception as e:
-        logger.error("Error in config invalidation: {}", e)
+        logger.error(f"Error in config invalidation: {e}")
         # Don't raise - event handlers should not break post-commit cleanup
 
 
@@ -189,9 +185,7 @@ async def get_current_model(
 
         # Build new model from configuration
         logger.info(
-            "Building AI model from config: provider={}, model={}",
-            config.provider_key,
-            config.model_name,
+            f"Building AI model from config: provider={config.provider_key}, model={config.model_name}"
         )
 
         # Use provided settings or fall back to creating new instance
@@ -213,7 +207,7 @@ async def get_current_model(
         return _current_model, _current_model_settings
 
     except Exception as e:
-        logger.error("Error rebuilding AI model: {}", e)
+        logger.error(f"Error rebuilding AI model: {e}")
         _current_model = None
         _config_invalidated = False
         return None, None
@@ -254,48 +248,38 @@ def unregister_orm_events() -> None:
         logger.info("AI model config hot-reload events unregistered")
 
     except Exception as e:
-        logger.warning("Error unregistering ORM events: {}", e)
+        logger.warning(f"Error unregistering ORM events: {e}")
 
 
 async def update_app_agents(app: "FastAPI", session: AsyncSession) -> None:
     """Update application agents with current model configuration.
 
-    NOTE: This is the explicit refresh used now after PUT /v1/config. When we
-    add LISTEN/NOTIFY, workers will invoke this on notifications.
+    NOTE: With Temporal-based agent execution, agents are initialized once at worker
+    startup. To pick up new model configuration, restart the Temporal worker.
 
-    This should be called when the application needs to refresh its agents
-    with the latest model configuration.
+    This function now only logs the configuration change. Future LISTEN/NOTIFY
+    implementation may trigger worker restarts or hot-reload.
 
     Args:
-        app: FastAPI application instance with agents in app.state
+        app: FastAPI application instance
         session: Active AsyncSession (request-scoped) containing the config transaction
     """
     try:
-        # Get the current model (will rebuild if needed) using the active request session
+        # Get the current model configuration (for logging purposes)
         current_model, current_model_settings = await get_current_model(
             session, app.state.settings
         )
 
         if current_model is None:
-            logger.warning("No model configuration available, keeping existing agents")
+            logger.warning("No model configuration available")
             return
 
-        # Recreate agents with new model
-        logger.info("Updating application agents with new model configuration")
-        try:
-            before_keys = list(getattr(app.state, "agents", {}).keys())  # type: ignore[attr-defined]
-        except Exception:
-            before_keys = []
-        logger.debug("Agents before update: {}", before_keys)
-        app.state.agents = create_code_confluence_agents(
-            app.state.mcp_manager, current_model, current_model_settings
+        logger.info(
+            "Model configuration updated. Restart Temporal worker to apply changes."
         )
-        after_keys = list(app.state.agents.keys())
-        logger.info("Application agents updated successfully")
-        logger.debug("Agents after update: {}", after_keys)
 
     except Exception as e:
-        logger.error("Failed to update application agents: {}", e)
+        logger.error(f"Error checking model configuration: {e}")
         raise
 
 
