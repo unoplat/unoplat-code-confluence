@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.36.1...unoplat-code-confluence-commons-v0.37.0) (2025-12-09)
+
+
+### Features
+
+* common pojos for any operation under workflow orchestrator ([46a2c91](https://github.com/unoplat/unoplat-code-confluence/commit/46a2c91d3d3245df65201e42c95c639bb739fd44))
+* common pojos for any operation under workflow orchestrator ([7aa8e4e](https://github.com/unoplat/unoplat-code-confluence/commit/7aa8e4e7ef6f096691d4dc660361455018778583))
+
 ## [0.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.36.0...unoplat-code-confluence-commons-v0.36.1) (2025-12-02)
 
 
