@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.64.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.63.0...code-confluence-flow-bridge-v0.64.0) (2025-12-09)
+
+
+### Features
+
+* move to common envelope models for workflow ([1105fb2](https://github.com/unoplat/unoplat-code-confluence/commit/1105fb2cde010d866b7ceb597f359ffc8b0cc206))
+* move to common envelope models for workflow ([c0ba37a](https://github.com/unoplat/unoplat-code-confluence/commit/c0ba37a9d4ea7ae2faa9ef1b9751666071fbca8d))
+
 ## [0.63.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.62.1...code-confluence-flow-bridge-v0.63.0) (2025-12-02)
 
 
