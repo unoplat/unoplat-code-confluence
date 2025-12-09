@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.37.0...unoplat-code-confluence-commons-v0.38.0) (2025-12-09)
+
+
+### Features
+
+* update model attributes ([03b1e84](https://github.com/unoplat/unoplat-code-confluence/commit/03b1e84fee23d150eb7ad012014543e29c36e35e))
+* update model attributes ([0e4f1c6](https://github.com/unoplat/unoplat-code-confluence/commit/0e4f1c6564985f82db06fc3f2ff174ad53ee25c0))
+
 ## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.36.1...unoplat-code-confluence-commons-v0.37.0) (2025-12-09)
 
 
