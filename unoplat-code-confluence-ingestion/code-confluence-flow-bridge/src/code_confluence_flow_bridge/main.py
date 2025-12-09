@@ -47,6 +47,10 @@ from unoplat_code_confluence_commons.security import (
     decrypt_token,
     encrypt_token,
 )
+from unoplat_code_confluence_commons.workflow_models import (
+    ErrorReport,
+    JobStatus,
+)
 
 from src.code_confluence_flow_bridge.github_app.router import (
     router as github_app_router,
@@ -64,7 +68,6 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseMetadataResponse,
     CodebaseStatus,
     CodebaseStatusList,
-    ErrorReport,
     GithubIssueSubmissionRequest,
     GitHubRepoResponseConfiguration,
     GithubRepoStatus,
@@ -74,7 +77,6 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     IssueStatus,
     IssueTracking,
     IssueType,
-    JobStatus,
     PaginatedResponse,
     ParentWorkflowJobListResponse,
     ParentWorkflowJobResponse,

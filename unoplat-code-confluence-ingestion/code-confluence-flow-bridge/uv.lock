@@ -284,7 +284,7 @@ wheels = [
 
 [[package]]
 name = "code-confluence-flow-bridge"
-version = "0.62.1"
+version = "0.63.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofile" },
@@ -367,7 +367,7 @@ requires-dist = [
     { name = "tomlkit", specifier = ">=0.13.2" },
     { name = "tree-sitter-language-pack", specifier = ">=0.8.0" },
     { name = "typing-extensions", specifier = ">=4.11" },
-    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.36.1" },
+    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.38.0" },
     { name = "validate-pyproject", extras = ["all"], specifier = ">=0.23" },
 ]
 
@@ -2106,8 +2106,8 @@ wheels = [
 
 [[package]]
 name = "unoplat-code-confluence-commons"
-version = "0.36.1"
-source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.36.1#cfc72812ceb5e1421abdf8428b30470884213a6c" }
+version = "0.38.0"
+source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.38.0#f549d0f7b744ec46dd60931d1afdc83c8bcbd4ad" }
 dependencies = [
     { name = "cryptography" },
     { name = "neomodel" },
