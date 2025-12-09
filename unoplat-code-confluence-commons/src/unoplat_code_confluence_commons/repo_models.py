@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     Enum as SQLEnum,
     ForeignKeyConstraint,
+    Numeric,
     String,
     func,
 )
@@ -285,6 +286,19 @@ class RepositoryAgentMdSnapshot(SQLBase):
             ["repository.repository_name", "repository.repository_owner_name"],
             ondelete="CASCADE",
         ),
+        ForeignKeyConstraint(
+            [
+                "repository_name",
+                "repository_owner_name",
+                "repository_workflow_run_id",
+            ],
+            [
+                "repository_workflow_run.repository_name",
+                "repository_workflow_run.repository_owner_name",
+                "repository_workflow_run.repository_workflow_run_id",
+            ],
+            ondelete="CASCADE",
+        ),
     )
 
     repository_name: Mapped[str] = mapped_column(
@@ -293,11 +307,36 @@ class RepositoryAgentMdSnapshot(SQLBase):
     repository_owner_name: Mapped[str] = mapped_column(
         primary_key=True, comment="The name of the repository owner"
     )
+    repository_workflow_run_id: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="The run ID of the repository workflow this snapshot belongs to",
+    )
     events: Mapped[Dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
         default=dict,
         comment="Events and progress captured during agent execution",
+    )
+
+    event_counters: Mapped[Dict[str, Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        comment=(
+            "Per-codebase event ID seeds to ensure monotonic append across workers,"
+            ' e.g., {"codebase": {"next_id": 7}}.sequence number for this codebase’s event stream'
+        ),
+    )
+
+    codebase_progress: Mapped[Dict[str, Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        comment=(
+            "Per-codebase progress state persisted in the DB:"
+            ' {"codebase": {"progress": 66.67,'
+            ' "completed_namespaces": ["project_configuration_agent"]}}'
+        ),
     )
 
     agent_md_output: Mapped[Dict[str, Any]] = mapped_column(
@@ -310,6 +349,18 @@ class RepositoryAgentMdSnapshot(SQLBase):
         nullable=True,
         default=None,
         comment="Aggregated usage and pricing statistics for the latest agent workflow",
+    )
+    overall_progress: Mapped[Optional[float]] = mapped_column(
+        Numeric(5, 2),
+        nullable=True,
+        default=None,
+        comment="Cached overall progress percentage for fast polling",
+    )
+    latest_event_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        comment="Timestamp of the most recent appended event for this run",
     )
     status: Mapped[RepoAgentSnapshotStatus] = mapped_column(
         SQLEnum(
