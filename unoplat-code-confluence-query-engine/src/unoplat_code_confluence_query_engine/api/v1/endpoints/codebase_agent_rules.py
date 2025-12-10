@@ -139,7 +139,11 @@ async def get_repository_agent_snapshot(
         ..., description="Repository workflow run ID to query"
     ),
 ) -> dict[str, object]:
-    """Retrieve the agent snapshot (status plus aggregated payload) for a specific workflow run.
+    """Retrieve the agent snapshot output for a specific workflow run.
+
+    Note: Workflow status is tracked by Temporal via RepositoryWorkflowRun,
+    not in the snapshot. Use the Temporal API or RepositoryWorkflowRun table
+    to query workflow status.
 
     Args:
         owner_name: Repository owner name
@@ -147,7 +151,7 @@ async def get_repository_agent_snapshot(
         repository_workflow_run_id: The specific workflow run ID to query
 
     Returns:
-        Dictionary with status and agent_md_output for the specified workflow run
+        Dictionary with agent_md_output for the specified workflow run
     """
     try:
         async with get_startup_session() as session:
@@ -176,7 +180,6 @@ async def get_repository_agent_snapshot(
                 repository_workflow_run_id,
             )
             return {
-                "status": snapshot.status.value,
                 "agent_md_output": snapshot.agent_md_output,
             }
 
