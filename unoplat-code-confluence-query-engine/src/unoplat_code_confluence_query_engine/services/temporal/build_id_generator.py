@@ -18,14 +18,37 @@ if TYPE_CHECKING:
 DEPLOYMENT_NAME = "llm_agents"
 
 
-def generate_build_id(config: AiModelConfig) -> str:
+def compute_credential_hash(credential: str) -> str:
+    """Compute deterministic SHA256 hash of credential for build ID.
+
+    This creates a consistent hash from the plaintext credential that can be
+    included in the build ID. We cannot use the encrypted credential directly
+    because Fernet encryption includes a random IV, producing different
+    ciphertext for the same plaintext.
+
+    Args:
+        credential: Plaintext credential value
+
+    Returns:
+        First 12 characters of SHA256 hash
+    """
+    return hashlib.sha256(credential.encode()).hexdigest()[:12]
+
+
+def generate_build_id(
+    config: AiModelConfig,
+    credential_hash: str | None,
+) -> str:
     """Generate deterministic Build ID from AI model configuration.
 
-    The Build ID is derived from provider, model, and configuration
-    to ensure workers with different model configurations get unique versions.
+    The Build ID is derived from provider, model, configuration,
+    and credential hash to ensure workers with different configurations
+    or credentials get unique versions.
 
     Args:
         config: AI model configuration from database
+        credential_hash: Hash of the credential (from compute_credential_hash),
+            or None if no credential is stored
 
     Returns:
         Build ID in format: {deployment_name}.{hash}
@@ -37,6 +60,10 @@ def generate_build_id(config: AiModelConfig) -> str:
     if config.extra_config:
         sorted_items = sorted(config.extra_config.items())
         config_str += f":{sorted_items}"
+
+    # Include credential hash if provided
+    if credential_hash:
+        config_str += f":cred:{credential_hash}"
 
     # Generate SHA256 hash and take first 12 characters
     hash_digest = hashlib.sha256(config_str.encode()).hexdigest()[:12]

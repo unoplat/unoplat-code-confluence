@@ -10,7 +10,6 @@ from typing import Dict, Optional
 
 import pytest
 from sqlalchemy import text
-from unoplat_code_confluence_commons.repo_models import RepoAgentSnapshotStatus
 
 from tests.utils.sync_db_utils import cleanup_postgresql_sync, get_sync_postgres_session
 from unoplat_code_confluence_query_engine.models.events.agent_events import (
@@ -72,10 +71,14 @@ def create_test_repository_workflow_run(
 
 
 def get_snapshot_data(sync_session, owner: str, name: str) -> Optional[Dict]:
-    """Fetch complete row from repository_agent_md_snapshot."""
+    """Fetch complete row from repository_agent_md_snapshot.
+
+    Note: status column is excluded as workflow status is now tracked
+    by Temporal via RepositoryWorkflowRun.
+    """
     result = sync_session.execute(
         text("""
-            SELECT events, agent_md_output, statistics, status, created_at, modified_at
+            SELECT events, agent_md_output, statistics, created_at, modified_at
             FROM repository_agent_md_snapshot
             WHERE repository_owner_name = :owner AND repository_name = :name
         """),
@@ -87,9 +90,8 @@ def get_snapshot_data(sync_session, owner: str, name: str) -> Optional[Dict]:
             "events": row[0],
             "agent_md_output": row[1],
             "statistics": row[2],
-            "status": row[3],
-            "created_at": row[4],
-            "modified_at": row[5],
+            "created_at": row[3],
+            "modified_at": row[4],
         }
     return None
 
@@ -161,9 +163,6 @@ async def test_begin_run_creates_snapshot_row(seeded_db, writer):
 
         snapshot = get_snapshot_data(session, TEST_OWNER, TEST_REPO)
         assert snapshot is not None
-
-        # Check status
-        assert snapshot["status"] == RepoAgentSnapshotStatus.RUNNING.value
 
         # Check agent_md_output is empty dict
         assert snapshot["agent_md_output"] == {}
@@ -283,14 +282,11 @@ async def test_append_event_updates_events_json_and_timestamp(seeded_db, writer)
         # Check timestamp updated
         assert snapshot["modified_at"] > initial_modified_at
 
-        # Status should still be RUNNING
-        assert snapshot["status"] == RepoAgentSnapshotStatus.RUNNING.value
-
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
-async def test_complete_run_updates_status_and_output(seeded_db, writer):
-    """Test that complete_run updates status to COMPLETED and sets agent_md_output and statistics."""
+async def test_complete_run_updates_output_and_statistics(seeded_db, writer):
+    """Test that complete_run sets agent_md_output and statistics."""
     # Setup: initialize snapshot
     await writer.begin_run(
         owner_name=TEST_OWNER,
@@ -340,6 +336,7 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
     await writer.complete_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
+        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         final_payload=final_payload,
         statistics_payload=statistics_payload,
     )
@@ -347,9 +344,6 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
     # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
         snapshot = get_snapshot_data(session, TEST_OWNER, TEST_REPO)
-
-        # Check status updated
-        assert snapshot["status"] == RepoAgentSnapshotStatus.COMPLETED.value
 
         # Check agent_md_output updated
         assert snapshot["agent_md_output"] == final_payload
@@ -368,8 +362,8 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
-async def test_fail_run_updates_status_and_output(seeded_db, writer):
-    """Test that fail_run updates status to ERROR and sets agent_md_output."""
+async def test_fail_run_updates_output(seeded_db, writer):
+    """Test that fail_run sets agent_md_output with error payload."""
     # Setup: initialize snapshot
     await writer.begin_run(
         owner_name=TEST_OWNER,
@@ -395,9 +389,6 @@ async def test_fail_run_updates_status_and_output(seeded_db, writer):
     # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
         snapshot = get_snapshot_data(session, TEST_OWNER, TEST_REPO)
-
-        # Check status updated
-        assert snapshot["status"] == RepoAgentSnapshotStatus.ERROR.value
 
         # Check agent_md_output updated
         assert snapshot["agent_md_output"] == error_payload
@@ -425,9 +416,6 @@ async def test_fail_run_with_no_payload_sets_empty_dict(seeded_db, writer):
     # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
         snapshot = get_snapshot_data(session, TEST_OWNER, TEST_REPO)
-
-        # Check status updated
-        assert snapshot["status"] == RepoAgentSnapshotStatus.ERROR.value
 
         # Check agent_md_output is empty dict
         assert snapshot["agent_md_output"] == {}

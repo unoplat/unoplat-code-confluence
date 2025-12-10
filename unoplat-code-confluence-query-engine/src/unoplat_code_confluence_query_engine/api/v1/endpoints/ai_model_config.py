@@ -20,12 +20,16 @@ from unoplat_code_confluence_query_engine.services.config.ai_model_config_servic
 from unoplat_code_confluence_query_engine.services.config.config_hot_reload import (
     update_app_agents,
 )
+from unoplat_code_confluence_query_engine.services.config.credentials_service import (
+    CredentialsService,
+)
 from unoplat_code_confluence_query_engine.services.config.provider_catalog import (
     ProviderCatalog,
     ProviderSchema,
     ProviderSchemaPublic,
 )
 from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
+    compute_credential_hash,
     generate_build_id,
 )
 from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
@@ -64,7 +68,11 @@ async def _handle_worker_versioning(
         logger.warning("No AI model config found after upsert, cannot start worker")
         return
 
-    new_build_id = generate_build_id(config)
+    # Load current credential and compute hash for build ID
+    credential = await CredentialsService.get_model_credential(session)
+    credential_hash = compute_credential_hash(credential) if credential else None
+
+    new_build_id = generate_build_id(config, credential_hash)
 
     # Case 1: Worker not running - start it
     if not worker_manager.is_running:

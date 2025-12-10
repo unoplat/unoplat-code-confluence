@@ -4,6 +4,7 @@ This module defines the RepositoryAgentWorkflow that orchestrates
 sequential execution of all agents per codebase.
 """
 
+from datetime import timedelta
 from typing import Any
 
 from temporalio import common, workflow
@@ -23,8 +24,17 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
         AgentDependencies,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
+        RepositoryAgentSnapshotActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
+        DB_ACTIVITY_RETRY_POLICY,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
         get_temporal_agents,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
+        AgentSnapshotCompleteEnvelope,
     )
 
 
@@ -304,6 +314,27 @@ class RepositoryAgentWorkflow:
         logger.info(
             f"[workflow] RepositoryAgentWorkflow completed for {repository_qualified_name}"
         )
+
+        # Persist final agent output to database via activity
+        owner_name, repo_name = repository_qualified_name.split("/", maxsplit=1)
+        complete_envelope = AgentSnapshotCompleteEnvelope(
+            owner_name=owner_name,
+            repo_name=repo_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            final_payload=results,
+            statistics_payload=None,  # task-013 will add statistics collection
+        )
+        await workflow.execute_activity(
+            RepositoryAgentSnapshotActivity.persist_agent_snapshot_complete,
+            args=[complete_envelope],
+            start_to_close_timeout=timedelta(minutes=2),
+            retry_policy=DB_ACTIVITY_RETRY_POLICY,
+        )
+        logger.info(
+            "[workflow] Agent snapshot output persisted for {}",
+            repository_qualified_name,
+        )
+
         logger.debug("[workflow] RepositoryAgentWorkflow.run END")
 
         return results
