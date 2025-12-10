@@ -8,10 +8,7 @@ from typing import Any, Sequence
 from loguru import logger
 from sqlalchemy import func, select, text, update
 from sqlalchemy.dialects.postgresql import insert
-from unoplat_code_confluence_commons.repo_models import (
-    RepoAgentSnapshotStatus,
-    RepositoryAgentMdSnapshot,
-)
+from unoplat_code_confluence_commons.repo_models import RepositoryAgentMdSnapshot
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.models.events.agent_events import (
@@ -65,7 +62,6 @@ class RepositoryAgentSnapshotWriter:
                 repository_owner_name=owner_name,
                 repository_name=repo_name,
                 repository_workflow_run_id=repository_workflow_run_id,
-                status=RepoAgentSnapshotStatus.RUNNING,
                 events=events_payload,
                 event_counters=event_counters,
                 codebase_progress=codebase_progress,
@@ -80,7 +76,6 @@ class RepositoryAgentSnapshotWriter:
                     RepositoryAgentMdSnapshot.repository_workflow_run_id,
                 ],
                 set_={
-                    "status": RepoAgentSnapshotStatus.RUNNING,
                     "events": stmt.excluded.events,
                     "event_counters": stmt.excluded.event_counters,
                     "codebase_progress": stmt.excluded.codebase_progress,
@@ -91,45 +86,6 @@ class RepositoryAgentSnapshotWriter:
             )
 
             await session.execute(stmt)
-
-    async def get_active_run_id(
-        self,
-        *,
-        owner_name: str,
-        repo_name: str,
-    ) -> str | None:
-        """Return the currently running workflow ID if a run is in progress."""
-        async with get_startup_session() as session:
-            stmt = (
-                select(
-                    RepositoryAgentMdSnapshot.status,
-                    RepositoryAgentMdSnapshot.events,
-                )
-                .where(
-                    RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-                    RepositoryAgentMdSnapshot.repository_name == repo_name,
-                )
-                .limit(1)
-            )
-
-            result = await session.execute(stmt)
-            row = result.first()
-            if row is None:
-                return None
-
-            status, events_payload = row
-            if status != RepoAgentSnapshotStatus.RUNNING:
-                return None
-
-            if not isinstance(events_payload, dict):
-                return None
-
-            events_dict: dict[str, Any] = events_payload
-            run_id: str | None = events_dict.get("repository_workflow_run_id")
-            if isinstance(run_id, str) and run_id:
-                return run_id
-
-            return None
 
     async def append_event(
         self,
@@ -404,7 +360,10 @@ class RepositoryAgentSnapshotWriter:
         final_payload: dict[str, object],
         statistics_payload: dict[str, object] | None = None,
     ) -> None:
-        """Mark the snapshot as completed and persist the final agent output."""
+        """Persist the final agent output and statistics.
+
+        Note: Status is tracked by Temporal via RepositoryWorkflowRun, not here.
+        """
         # Log what's being persisted
         if statistics_payload:
             logger.info(
@@ -429,7 +388,6 @@ class RepositoryAgentSnapshotWriter:
                     RepositoryAgentMdSnapshot.repository_name == repo_name,
                 )
                 .values(
-                    status=RepoAgentSnapshotStatus.COMPLETED,
                     agent_md_output=final_payload,
                     statistics=statistics_payload,
                     modified_at=func.now(),
@@ -444,7 +402,10 @@ class RepositoryAgentSnapshotWriter:
         repo_name: str,
         error_payload: dict[str, object] | None = None,
     ) -> None:
-        """Mark the snapshot as errored and optionally persist diagnostic payload."""
+        """Persist error diagnostic payload on workflow failure.
+
+        Note: Status is tracked by Temporal via RepositoryWorkflowRun, not here.
+        """
         payload = error_payload or {}
         async with get_startup_session() as session:
             stmt = (
@@ -454,7 +415,6 @@ class RepositoryAgentSnapshotWriter:
                     RepositoryAgentMdSnapshot.repository_name == repo_name,
                 )
                 .values(
-                    status=RepoAgentSnapshotStatus.ERROR,
                     agent_md_output=payload,
                     modified_at=func.now(),
                 )
