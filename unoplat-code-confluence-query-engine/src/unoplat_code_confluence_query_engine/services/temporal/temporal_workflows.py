@@ -320,6 +320,7 @@ class RepositoryAgentWorkflow:
         complete_envelope = AgentSnapshotCompleteEnvelope(
             owner_name=owner_name,
             repo_name=repo_name,
+            repository_workflow_run_id=repository_workflow_run_id,
             final_payload=results,
             statistics_payload=None,  # task-013 will add statistics collection
         )

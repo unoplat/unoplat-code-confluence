@@ -28,25 +28,28 @@ class RepositoryAgentSnapshotActivity:
         to persist agent_md_output and statistics to the database.
 
         Args:
-            envelope: Contains owner_name, repo_name, final_payload,
-                     and optional statistics_payload
+            envelope: Contains owner_name, repo_name, repository_workflow_run_id,
+                     final_payload, and optional statistics_payload
         """
         logger.info(
-            "[agent_snapshot_activity] Persisting output for {}/{}",
+            "[agent_snapshot_activity] Persisting output for {}/{} run_id={}",
             envelope.owner_name,
             envelope.repo_name,
+            envelope.repository_workflow_run_id,
         )
 
         writer = get_snapshot_writer()
         await writer.complete_run(
             owner_name=envelope.owner_name,
             repo_name=envelope.repo_name,
+            repository_workflow_run_id=envelope.repository_workflow_run_id,
             final_payload=envelope.final_payload,
             statistics_payload=envelope.statistics_payload,
         )
 
         logger.info(
-            "[agent_snapshot_activity] Successfully persisted output for {}/{}",
+            "[agent_snapshot_activity] Successfully persisted output for {}/{} run_id={}",
             envelope.owner_name,
             envelope.repo_name,
+            envelope.repository_workflow_run_id,
         )
