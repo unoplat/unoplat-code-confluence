@@ -1,8 +1,8 @@
 type: http_request
 model: http_request
-id: rq_zcJSFbvhRK
-createdAt: 2025-08-26T06:34:22.722423
-updatedAt: 2025-12-10T09:26:34.101001
+id: rq_jYUERjcyUf
+createdAt: 2025-12-10T09:23:14.862054
+updatedAt: 2025-12-10T09:23:19.460316
 workspaceId: wk_KULjx4bEa8
 folderId: fl_jtBaK7a5pU
 authentication: {}
@@ -32,7 +32,7 @@ headers:
   value: ''
   id: sQHXIdUvn2
 method: PUT
-name: jay-set-model-provider-huggingface
-sortPriority: -0.0002
+name: jay-set-model-provider-huggingface Copy
+sortPriority: 0.0008
 url: http://127.0.0.1:8001/v1/model-config
 urlParameters: []
