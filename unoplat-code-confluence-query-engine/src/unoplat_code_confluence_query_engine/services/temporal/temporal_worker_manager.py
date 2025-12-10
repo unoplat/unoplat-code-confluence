@@ -27,17 +27,24 @@ from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
+from unoplat_code_confluence_query_engine.services.config.credentials_service import (
+    CredentialsService,
+)
 from unoplat_code_confluence_query_engine.services.config.model_factory import (
     ModelFactory,
 )
 from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_db_activity import (
     CodebaseWorkflowDbActivity,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
+    RepositoryAgentSnapshotActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_db_activity import (
     RepositoryWorkflowDbActivity,
 )
 from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
     DEPLOYMENT_NAME,
+    compute_credential_hash,
     generate_build_id,
 )
 from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
@@ -223,11 +230,19 @@ class TemporalWorkerManager:
                 model_config.model_name,
             )
 
-        # Generate build ID for worker versioning
-        build_id = generate_build_id(model_config)
+        # Load credential and compute hash for build ID
+        credential_hash: str | None = None
+        async with get_startup_session() as session:
+            credential = await CredentialsService.get_model_credential(session)
+            if credential:
+                credential_hash = compute_credential_hash(credential)
+
+        # Generate build ID for worker versioning (includes credential hash)
+        build_id = generate_build_id(model_config, credential_hash)
         logger.info(
-            "[temporal_worker_manager] Generated build ID for worker versioning: {}",
+            "[temporal_worker_manager] Generated build ID for worker versioning: {} (credential_included={})",
             build_id,
+            credential_hash is not None,
         )
 
         # Initialize temporal agents with model from database
@@ -270,6 +285,7 @@ class TemporalWorkerManager:
         # Create DB activity instances
         repo_db_activity = RepositoryWorkflowDbActivity()
         codebase_db_activity = CodebaseWorkflowDbActivity()
+        snapshot_activity = RepositoryAgentSnapshotActivity()
 
         # Build interceptor list - always include status interceptor
         all_interceptors: list[Interceptor] = [AgentWorkflowStatusInterceptor()]
@@ -307,6 +323,7 @@ class TemporalWorkerManager:
             activities=[
                 repo_db_activity.update_repository_workflow_status,
                 codebase_db_activity.update_codebase_workflow_status,
+                snapshot_activity.persist_agent_snapshot_complete,
             ],
             plugins=agent_plugins,
             interceptors=all_interceptors,

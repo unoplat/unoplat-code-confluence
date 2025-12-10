@@ -2721,7 +2721,7 @@ wheels = [
 
 [[package]]
 name = "unoplat-code-confluence-commons"
-version = "0.38.0"
+version = "0.38.1"
 source = { directory = "../unoplat-code-confluence-commons" }
 dependencies = [
     { name = "cryptography" },
