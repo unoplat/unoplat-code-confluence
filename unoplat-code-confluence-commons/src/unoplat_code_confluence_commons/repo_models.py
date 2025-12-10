@@ -18,14 +18,6 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
-class RepoAgentSnapshotStatus(str, Enum):
-    """Lifecycle status for repository agent markdown snapshot persistence."""
-
-    RUNNING = "RUNNING"
-    COMPLETED = "COMPLETED"
-    ERROR = "ERROR"
-
-
 class RepositoryWorkflowOperation(str, Enum):
     """Supported operations a repository workflow can execute."""
 
@@ -361,16 +353,6 @@ class RepositoryAgentMdSnapshot(SQLBase):
         nullable=True,
         default=None,
         comment="Timestamp of the most recent appended event for this run",
-    )
-    status: Mapped[RepoAgentSnapshotStatus] = mapped_column(
-        SQLEnum(
-            RepoAgentSnapshotStatus,
-            name="repo_agent_snapshot_status",
-            native_enum=False,
-        ),
-        default=RepoAgentSnapshotStatus.RUNNING,
-        nullable=False,
-        comment="Lifecycle status for the snapshot: RUNNING, COMPLETED, or ERROR",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
