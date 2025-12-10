@@ -48,6 +48,29 @@ def create_test_repository(sync_session, owner: str, name: str) -> None:
     sync_session.commit()
 
 
+def create_test_repository_workflow_run(
+    sync_session, owner: str, name: str, workflow_run_id: str
+) -> None:
+    """Create minimal repository_workflow_run row for testing (required by FK constraint)."""
+    sync_session.execute(
+        text("""
+            INSERT INTO repository_workflow_run (
+                repository_owner_name,
+                repository_name,
+                repository_workflow_run_id,
+                repository_workflow_id,
+                operation,
+                status,
+                started_at
+            )
+            VALUES (:owner, :name, :run_id, 'test-workflow-id', 'AGENTS_GENERATION', 'RUNNING', NOW())
+            ON CONFLICT DO NOTHING
+        """),
+        {"owner": owner, "name": name, "run_id": workflow_run_id},
+    )
+    sync_session.commit()
+
+
 def get_snapshot_data(sync_session, owner: str, name: str) -> Optional[Dict]:
     """Fetch complete row from repository_agent_md_snapshot."""
     result = sync_session.execute(
@@ -91,7 +114,7 @@ def count_snapshot_rows(sync_session, owner: str, name: str) -> int:
 @pytest.fixture
 def writer(db_connections):
     """Create RepositoryAgentSnapshotWriter instance for testing."""
-    return RepositoryAgentSnapshotWriter(TEST_OWNER, TEST_REPO)
+    return RepositoryAgentSnapshotWriter()
 
 
 @pytest.fixture
@@ -100,6 +123,9 @@ def seeded_db(service_ports, test_database_tables):
     with get_sync_postgres_session(service_ports["postgresql"]) as session:
         cleanup_postgresql_sync(session)
         create_test_repository(session, TEST_OWNER, TEST_REPO)
+        create_test_repository_workflow_run(
+            session, TEST_OWNER, TEST_REPO, TEST_WORKFLOW_RUN_ID
+        )
 
     yield service_ports
 
@@ -122,6 +148,8 @@ async def test_begin_run_creates_snapshot_row(seeded_db, writer):
 
     # Execute begin_run
     await writer.begin_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1, TEST_CODEBASE_2],
@@ -155,9 +183,15 @@ async def test_begin_run_creates_snapshot_row(seeded_db, writer):
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_begin_run_upserts_existing_row(seeded_db, writer):
-    """Test that begin_run updates existing row instead of creating duplicate."""
-    # First begin_run
+    """Test that begin_run updates existing row instead of creating duplicate.
+
+    With the current schema, rows are keyed by (owner, repo, workflow_run_id),
+    so upsert happens when begin_run is called with the same workflow_run_id.
+    """
+    # First begin_run with one codebase
     await writer.begin_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1],
@@ -167,22 +201,26 @@ async def test_begin_run_upserts_existing_row(seeded_db, writer):
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
         initial_snapshot = get_snapshot_data(session, TEST_OWNER, TEST_REPO)
         initial_created_at = initial_snapshot["created_at"]
+        # Verify initially one codebase
+        assert len(initial_snapshot["events"]["codebases"]) == 1
 
-    # Second begin_run with different data
+    # Second begin_run with SAME workflow_run_id but different codebases
     await writer.begin_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
-        repository_workflow_run_id="different-run-id",
+        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1, TEST_CODEBASE_2],
     )
 
-    # Verify still only one row, but updated
+    # Verify still only one row, but updated with new codebases
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
         assert count_snapshot_rows(session, TEST_OWNER, TEST_REPO) == 1
 
         snapshot = get_snapshot_data(session, TEST_OWNER, TEST_REPO)
 
-        # Check updated values
-        assert snapshot["events"]["repository_workflow_run_id"] == "different-run-id"
+        # Check updated values - same workflow_run_id but new codebase list
+        assert snapshot["events"]["repository_workflow_run_id"] == TEST_WORKFLOW_RUN_ID
         assert len(snapshot["events"]["codebases"]) == 2
 
         # created_at should remain the same, modified_at should change
@@ -196,6 +234,8 @@ async def test_append_event_updates_events_json_and_timestamp(seeded_db, writer)
     """Test that append_event correctly updates events JSON and modified_at timestamp."""
     # Setup: initialize snapshot
     await writer.begin_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1],
@@ -221,7 +261,11 @@ async def test_append_event_updates_events_json_and_timestamp(seeded_db, writer)
         codebase_delta=codebase_delta,
     )
 
-    await writer.append_event(repo_delta)
+    await writer.append_event(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+        delta=repo_delta,
+    )
 
     # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
@@ -249,6 +293,8 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
     """Test that complete_run updates status to COMPLETED and sets agent_md_output and statistics."""
     # Setup: initialize snapshot
     await writer.begin_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1],
@@ -292,7 +338,10 @@ async def test_complete_run_updates_status_and_output(seeded_db, writer):
     }
 
     await writer.complete_run(
-        final_payload=final_payload, statistics_payload=statistics_payload
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+        final_payload=final_payload,
+        statistics_payload=statistics_payload,
     )
 
     # Verify updates
@@ -323,6 +372,8 @@ async def test_fail_run_updates_status_and_output(seeded_db, writer):
     """Test that fail_run updates status to ERROR and sets agent_md_output."""
     # Setup: initialize snapshot
     await writer.begin_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1],
@@ -335,7 +386,11 @@ async def test_fail_run_updates_status_and_output(seeded_db, writer):
         "details": {"step": "code_analysis"},
     }
 
-    await writer.fail_run(error_payload=error_payload)
+    await writer.fail_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+        error_payload=error_payload,
+    )
 
     # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
@@ -354,13 +409,18 @@ async def test_fail_run_with_no_payload_sets_empty_dict(seeded_db, writer):
     """Test that fail_run with no error_payload sets empty dict."""
     # Setup: initialize snapshot
     await writer.begin_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1],
     )
 
     # Fail the run without payload
-    await writer.fail_run()
+    await writer.fail_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+    )
 
     # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:

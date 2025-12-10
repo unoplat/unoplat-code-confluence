@@ -1,7 +1,13 @@
+from pathlib import Path
 from typing import Optional
 
 from pydantic import Field, SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Compute absolute path to .env.dev from settings.py location
+# settings.py is at: src/unoplat_code_confluence_query_engine/config/settings.py
+# .env.dev is at: project root (unoplat-code-confluence-query-engine/.env.dev)
+_ENV_FILE_PATH = Path(__file__).parent.parent.parent.parent / ".env.dev"
 
 
 class EnvironmentSettings(BaseSettings):
@@ -13,7 +19,7 @@ class EnvironmentSettings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file="../../.env.dev",
+        env_file=str(_ENV_FILE_PATH),
         env_file_encoding="utf-8",
         case_sensitive=False,
         validate_default=True,
@@ -136,6 +142,23 @@ class EnvironmentSettings(BaseSettings):
         default="/Users/jayghiya/Documents/unoplat/unoplat-code-confluence/unoplat-code-confluence-query-engine/docs/mock/agent-md-result.json",
         alias="MOCK_SSE_RESULT_PATH",
         description="Path to mock final agent MD result JSON",
+    )
+
+    # Temporal Settings
+    temporal_address: str = Field(
+        default="localhost:7233",
+        alias="TEMPORAL_ADDRESS",
+        description="Temporal server address for workflows",
+    )
+    temporal_namespace: str = Field(
+        default="default",
+        alias="TEMPORAL_NAMESPACE",
+        description="Temporal namespace for workflows",
+    )
+    temporal_enabled: bool = Field(
+        default=True,
+        alias="TEMPORAL_ENABLED",
+        description="Enable Temporal worker at app startup",
     )
 
     @computed_field  # type: ignore[prop-decorator]

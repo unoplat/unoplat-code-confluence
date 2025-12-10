@@ -1,0 +1,13 @@
+type: folder
+model: folder
+id: fl_cw4csidXwA
+createdAt: 2025-12-08T06:19:06.945584
+updatedAt: 2025-12-08T06:19:06.945585
+workspaceId: wk_KULjx4bEa8
+folderId: fl_zukJtBcFCC
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: poc-temporal-ingestion
+sortPriority: -1765174746942.0
