@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.38.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.0...unoplat-code-confluence-commons-v0.38.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* remove redundant status column post moving to workflow orchestra… ([2757da8](https://github.com/unoplat/unoplat-code-confluence/commit/2757da82915ccf5e5ceb98752ded484988bad4ec))
+* remove redundant status column post moving to workflow orchestrator for status management ([bf35527](https://github.com/unoplat/unoplat-code-confluence/commit/bf3552711f907c6dd0d3e57c77840f8defd79ddd))
+
 ## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.37.0...unoplat-code-confluence-commons-v0.38.0) (2025-12-09)
 
 
