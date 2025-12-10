@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.23.1...unoplat-code-confluence-query-engine-v0.24.0) (2025-12-10)
+
+
+### Features
+
+* first draft of reliable auditable agent ([8a361c6](https://github.com/unoplat/unoplat-code-confluence/commit/8a361c611e97162dfb0a755bfce3a858042db491))
+* first draft of reliable auditable agents ([9fc6eee](https://github.com/unoplat/unoplat-code-confluence/commit/9fc6eeec90432442d06742f223fde22606ff6c88))
+
+
+### Bug Fixes
+
+* tests ([26ab79d](https://github.com/unoplat/unoplat-code-confluence/commit/26ab79d76d8ccf9835909fb2fb3bab3764bd5d90))
+* tests ([46b087a](https://github.com/unoplat/unoplat-code-confluence/commit/46b087acaa06f155903b99bf46cd3ea4cd420b8f))
+
 ## [0.23.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.23.0...unoplat-code-confluence-query-engine-v0.23.1) (2025-12-01)
 
 
