@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.24.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.0...unoplat-code-confluence-query-engine-v0.24.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* agent md persistence ([348b4d4](https://github.com/unoplat/unoplat-code-confluence/commit/348b4d440e05949fd24606dd6f3f1f72730d477c))
+* insert based on repository workflow run id ([0a298b4](https://github.com/unoplat/unoplat-code-confluence/commit/0a298b4e00864e6b116198b4aeffaa02f480e41a))
+* removal of duplicate status column for agent snapshot tracking ([24d2b40](https://github.com/unoplat/unoplat-code-confluence/commit/24d2b40642643eb149db68fbeae2a4bbbf6a610e))
+* test with repository workflow run id ([d011ed7](https://github.com/unoplat/unoplat-code-confluence/commit/d011ed7dac7397de0dcf3e6e0a40277fe99ce98b))
+
 ## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.23.1...unoplat-code-confluence-query-engine-v0.24.0) (2025-12-10)
 
 
