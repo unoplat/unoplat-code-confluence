@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_zcJSFbvhRK
 createdAt: 2025-08-26T06:34:22.722423
-updatedAt: 2025-11-18T05:14:47.768920
+updatedAt: 2025-12-09T10:04:02.374255
 workspaceId: wk_KULjx4bEa8
 folderId: fl_jtBaK7a5pU
 authentication: {}
@@ -14,7 +14,7 @@ body:
       "model_name" :
       "moonshotai/Kimi-K2-Thinking",
       "provider_name":
-      "together"
+      "novita"
     }
 bodyType: application/json
 description: ''

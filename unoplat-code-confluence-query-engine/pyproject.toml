@@ -12,8 +12,8 @@ dependencies = [
     "logfire[fastapi]>=4.4.0",
     "loguru>=0.7.3",
     "neomodel>=5.5.0",
+    "pydantic-ai>=1.25.1",
     "pydantic-ai-slim[retries]>=1.0.5",
-    "pydantic-ai>=0.6.2",
     "qs-codec>=1.1.1",
     "sqlalchemy[asyncio]>=2.0.0",
     "sqlmodel>=0.0.24",
@@ -31,7 +31,6 @@ test = [
     "testcontainers>=3.7.0",
     "requests>=2.28.0",
     "python-dotenv>=1.0.0",
-    "temporalio>=1.9.0",
     "psycopg2-binary>=2.9.10"
 ]
 dev = [
@@ -52,8 +51,8 @@ markers = [
 
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
-# unoplat-code-confluence-commons = { path = "../unoplat-code-confluence-commons" }
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.34.1" }
+#unoplat-code-confluence-commons = { path = "../unoplat-code-confluence-commons" }
+ unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.38.0" }
 
 [tool.basedpyright]
 typeCheckingMode = "strict"

@@ -41,7 +41,7 @@ class CodeConfluenceGraphQueryEngine:
             await adb.close_connection()
             logger.info("Successfully closed Neo4j connection")
         except Exception as e:
-            logger.error("Error closing Neo4j connection: {}", str(e))
+            logger.error(f"Error closing Neo4j connection: {e!s}")
             raise
 
     @asynccontextmanager

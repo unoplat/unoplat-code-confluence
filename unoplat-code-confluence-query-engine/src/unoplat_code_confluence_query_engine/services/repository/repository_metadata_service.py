@@ -153,7 +153,7 @@ async def fetch_repository_metadata(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("Database error while fetching repository metadata: {}", e)
+        logger.error(f"Database error while fetching repository metadata: {e}")
         raise HTTPException(
             status_code=500, detail=f"Failed to fetch repository metadata: {str(e)}"
         )

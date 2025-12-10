@@ -17,6 +17,7 @@ Agents should:
 
 from __future__ import annotations
 
+from loguru import logger
 from pydantic_ai import ModelRetry, RunContext
 
 from unoplat_code_confluence_query_engine.db.neo4j.business_logic_repository import (
@@ -25,6 +26,9 @@ from unoplat_code_confluence_query_engine.db.neo4j.business_logic_repository imp
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
+)
+from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
+    get_neo4j_manager,
 )
 
 
@@ -40,17 +44,50 @@ async def get_data_model_files(
         ModelRetry: If there's an error retrieving data model spans from the database.
     """
     codebase_path = ctx.deps.codebase_metadata.codebase_path
+    codebase_name = ctx.deps.codebase_metadata.codebase_name
+
+    logger.debug(
+        "[get_data_model_files] Called for codebase={}, path={}",
+        codebase_name,
+        codebase_path,
+    )
 
     try:
-        result = await db_get_data_model_files(
-            ctx.deps.neo4j_conn_manager, codebase_path
+        neo4j_manager = get_neo4j_manager()
+        logger.debug("[get_data_model_files] Neo4j manager acquired successfully")
+
+        result = await db_get_data_model_files(neo4j_manager, codebase_path)
+
+        logger.info(
+            "[get_data_model_files] Found {} files with data models for {}",
+            len(result),
+            codebase_name,
         )
+
+        # Log first few entries for debugging
+        for file_path, models in list(result.items())[:3]:
+            logger.debug(
+                "[get_data_model_files]   File: {}, models: {}",
+                file_path,
+                list(models.keys()),
+            )
+
         return result
-    except Exception as e:
-        raise ModelRetry(
-            f"Unexpected error retrieving data model files for {codebase_path}: {str(e)}"
+
+    except RuntimeError as e:
+        logger.error(
+            "[get_data_model_files] ServiceRegistry error for {}: {}",
+            codebase_name,
+            str(e),
         )
-    finally:
-        # Do not close the shared Neo4j connection manager here; lifecycle is managed at the app level.
-        # Closing it here can break subsequent DB-dependent steps (e.g., post-processing or repeated tool calls).
-        pass
+        raise ModelRetry(f"Service not initialized: {str(e)}")
+    except Exception as e:
+        logger.error(
+            "[get_data_model_files] Unexpected error for {}: {} - {}",
+            codebase_name,
+            type(e).__name__,
+            str(e),
+        )
+        raise ModelRetry(
+            f"Error retrieving data model files for {codebase_path}: {str(e)}"
+        )

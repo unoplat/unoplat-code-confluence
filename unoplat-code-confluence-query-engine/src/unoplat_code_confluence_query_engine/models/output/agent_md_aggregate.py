@@ -83,7 +83,7 @@ class AgentMdAggregate:
         """
         self.business_logic = business_logic
         logger.debug(
-            "Updated business logic for codebase: {}", self.codebase.codebase_name
+            f"Updated business logic for codebase: {self.codebase.codebase_name}"
         )
 
     def to_final_model(self) -> AgentMdOutput:

@@ -89,7 +89,7 @@ async def _fetch_feature_entrypoints_from_postgres(
                 lib_map = entrypoints.setdefault(feat.library, {})
                 lib_map[feat.feature_key] = bool(feat.startpoint)
     except Exception as e:  # noqa: BLE001
-        logger.warning("Failed to fetch feature entrypoints from PostgreSQL: {}", e)
+        logger.warning(f"Failed to fetch feature entrypoints from PostgreSQL: {e}")
 
     return entrypoints
 
@@ -129,9 +129,7 @@ async def fetch_baseline_frameworks_as_outputs(
                 neo4j_manager, codebase_path, lib
             )
         except Exception as e:  # noqa: BLE001
-            logger.debug(
-                "Failed to get features for {} in {}: {}", lib, codebase_path, e
-            )
+            logger.debug(f"Failed to get features for {lib} in {codebase_path}: {e}")
             continue
 
         features_used: List[FeatureUsageOutput] = []

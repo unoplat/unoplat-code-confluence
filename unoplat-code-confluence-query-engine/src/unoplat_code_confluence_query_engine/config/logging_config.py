@@ -21,17 +21,18 @@ def setup_logging(settings: Any) -> None:
     log_dir.mkdir(exist_ok=True)
 
     # Console handler with colorization for development
+    # Note: enqueue=False (default) to avoid multiprocessing which conflicts with Temporal sandbox
     logger.add(
         sys.stdout,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | <level>{message}</level>",
         level=settings.log_level,
         colorize=True,
-        enqueue=True,  # Async-safe for FastAPI
         diagnose=False,  # Safe for production
         backtrace=True,
     )
 
     # File handler with rotation and retention
+    # Note: enqueue=False (default) to avoid multiprocessing which conflicts with Temporal sandbox
     logger.add(
         log_dir / "app_{time:YYYY-MM-DD}.log",
         format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message}",
@@ -39,7 +40,6 @@ def setup_logging(settings: Any) -> None:
         rotation=settings.log_rotation_size,
         retention=f"{settings.log_retention_days} days",
         compression="gz",
-        enqueue=True,
         diagnose=False,
         backtrace=True,
     )
