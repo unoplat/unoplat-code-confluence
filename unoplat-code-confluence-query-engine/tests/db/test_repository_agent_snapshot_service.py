@@ -336,6 +336,7 @@ async def test_complete_run_updates_output_and_statistics(seeded_db, writer):
     await writer.complete_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
+        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         final_payload=final_payload,
         statistics_payload=statistics_payload,
     )
