@@ -357,27 +357,37 @@ class RepositoryAgentSnapshotWriter:
         *,
         owner_name: str,
         repo_name: str,
+        repository_workflow_run_id: str,
         final_payload: dict[str, object],
         statistics_payload: dict[str, object] | None = None,
     ) -> None:
         """Persist the final agent output and statistics.
 
         Note: Status is tracked by Temporal via RepositoryWorkflowRun, not here.
+
+        Args:
+            owner_name: Repository owner name
+            repo_name: Repository name
+            repository_workflow_run_id: Workflow run ID for correct row targeting
+            final_payload: Final agent MD output payload to persist
+            statistics_payload: Usage statistics (optional)
         """
         # Log what's being persisted
         if statistics_payload:
             logger.info(
-                "Persisting statistics for {}/{}: {} keys, has_cost={}",
+                "Persisting statistics for {}/{} run_id={}: {} keys, has_cost={}",
                 owner_name,
                 repo_name,
+                repository_workflow_run_id,
                 len(statistics_payload),
                 "total_estimated_cost_usd" in statistics_payload,
             )
         else:
             logger.warning(
-                "No statistics payload to persist for {}/{}",
+                "No statistics payload to persist for {}/{} run_id={}",
                 owner_name,
                 repo_name,
+                repository_workflow_run_id,
             )
 
         async with get_startup_session() as session:
@@ -386,6 +396,8 @@ class RepositoryAgentSnapshotWriter:
                 .where(
                     RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
                     RepositoryAgentMdSnapshot.repository_name == repo_name,
+                    RepositoryAgentMdSnapshot.repository_workflow_run_id
+                    == repository_workflow_run_id,
                 )
                 .values(
                     agent_md_output=final_payload,

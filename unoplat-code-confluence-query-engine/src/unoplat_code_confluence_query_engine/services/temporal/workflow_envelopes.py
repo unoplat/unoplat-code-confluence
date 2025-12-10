@@ -19,6 +19,9 @@ class AgentSnapshotCompleteEnvelope(BaseModel):
 
     owner_name: str = Field(..., description="Repository owner name")
     repo_name: str = Field(..., description="Repository name")
+    repository_workflow_run_id: str = Field(
+        ..., description="Workflow run ID for correct row targeting"
+    )
     final_payload: dict[str, Any] = Field(
         ..., description="Final agent MD output payload to persist"
     )
