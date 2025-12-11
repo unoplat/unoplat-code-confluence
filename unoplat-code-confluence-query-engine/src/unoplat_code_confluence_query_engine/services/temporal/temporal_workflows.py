@@ -1,17 +1,20 @@
 """Temporal workflow definitions for durable agent execution.
 
 This module defines the RepositoryAgentWorkflow that orchestrates
-sequential execution of all agents per codebase.
+parallel execution of CodebaseAgentWorkflows for each codebase in a repository.
 """
 
 from datetime import timedelta
 from typing import Any
 
 from temporalio import common, workflow
+from temporalio.workflow import ChildWorkflowHandle, ParentClosePolicy
 
 # Import non-deterministic/logging/DB-dependent modules outside the sandbox
 # so the workflow sandbox does not attempt to proxy them.
 with workflow.unsafe.imports_passed_through():
+    import asyncio
+
     from loguru import logger
 
     from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
@@ -308,56 +311,67 @@ class RepositoryAgentWorkflow:
         # Track per-codebase statistics for workflow-level aggregation
         codebase_statistics_map: dict[str, UsageStatistics] = {}
 
-        # Execute CodebaseAgentWorkflow for each codebase
-        # Note: In production, this could use child workflows for better isolation
+        # Phase 1: Start all child workflows (non-blocking)
+        # Each start_child_workflow returns immediately with a handle
+        child_handles: list[tuple[str, ChildWorkflowHandle[CodebaseAgentWorkflow, dict[str, Any]]]] = []
+
         for idx, codebase_dict in enumerate(codebase_metadata_list):
             codebase_name = codebase_dict.get("codebase_name", "unknown")
             logger.debug(
-                "[workflow] Processing codebase {}/{}: {}",
+                "[workflow] Starting child workflow {}/{}: {}",
                 idx + 1,
                 len(codebase_metadata_list),
                 codebase_name,
             )
 
-            try:
-                # Execute as child workflow for durability
-                logger.debug(
-                    "[workflow] Executing child workflow for {}", codebase_name
-                )
-                codebase_result = await workflow.execute_child_workflow(  # type: ignore[reportUnknownMemberType]
-                    CodebaseAgentWorkflow.run,
-                    args=[
-                        repository_qualified_name,
-                        codebase_dict,
-                        repository_workflow_run_id,
-                        trace_id,
-                    ],
-                    id=f"{repository_qualified_name.replace('/', '-')}-{codebase_name}",
-                )
-                logger.debug(
-                    "[workflow] Child workflow completed for {}", codebase_name
-                )
-                results["codebases"][codebase_name] = codebase_result
+            child_handle = await workflow.start_child_workflow(  # type: ignore[reportUnknownMemberType]
+                CodebaseAgentWorkflow.run,
+                args=[
+                    repository_qualified_name,
+                    codebase_dict,
+                    repository_workflow_run_id,
+                    trace_id,
+                ],
+                id=f"{repository_qualified_name.replace('/', '-')}-{codebase_name}",
+                parent_close_policy=ParentClosePolicy.TERMINATE,
+            )
+            child_handles.append((codebase_name, child_handle))
 
-                # Extract per-codebase statistics from child workflow result
-                if "statistics" in codebase_result and codebase_result["statistics"]:
-                    codebase_stats = UsageStatistics.model_validate(
-                        codebase_result["statistics"]
-                    )
-                    codebase_statistics_map[codebase_name] = codebase_stats
-                else:
-                    codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
-            except Exception as e:
+        logger.info(
+            "[workflow] Started {} child workflows, waiting for parallel completion",
+            len(child_handles),
+        )
+
+        # Phase 2: Wait for all children in parallel using asyncio.gather
+        # return_exceptions=True ensures partial failures don't stop other children
+        results_list: list[dict[str, Any] | BaseException] = await asyncio.gather(
+            *[handle for _, handle in child_handles],
+            return_exceptions=True,
+        )
+
+        # Phase 3: Process results and build statistics map
+        for (codebase_name, _), result in zip(child_handles, results_list):
+            if isinstance(result, BaseException):
                 logger.error(
                     "[workflow] CodebaseAgentWorkflow failed for {}/{}: {}",
                     repository_qualified_name,
                     codebase_name,
-                    e,
+                    result,
                 )
-                logger.exception("[workflow] Full traceback:")
-                results["codebases"][codebase_name] = {"error": str(e)}
-                # Failed codebases contribute zero to statistics
+                results["codebases"][codebase_name] = {"error": str(result)}
                 codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
+            else:
+                logger.debug(
+                    "[workflow] Child workflow completed for {}", codebase_name
+                )
+                results["codebases"][codebase_name] = result
+
+                # Extract per-codebase statistics from child workflow result
+                if "statistics" in result and result["statistics"]:
+                    codebase_stats = UsageStatistics.model_validate(result["statistics"])
+                    codebase_statistics_map[codebase_name] = codebase_stats
+                else:
+                    codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
 
         logger.info(
             f"[workflow] RepositoryAgentWorkflow completed for {repository_qualified_name}"
