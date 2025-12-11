@@ -9,13 +9,6 @@ export interface GitHubRepoSummary {
   owner_name: string;
 }
 
-// Local repository data interface
-export interface LocalRepositoryData {
-  repositoryPath: string;
-  repositoryName: string;
-  repositorySource: "local";
-}
-
 // Repository configuration for dialog props - supports both GitHub and local repositories
 export interface RepositoryConfigDialogData {
   repositoryName: string;
