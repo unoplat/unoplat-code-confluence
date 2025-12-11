@@ -34,6 +34,13 @@ const badgeVariants = cva(
         beta: "border-transparent bg-indigo-500 text-white [a&]:hover:bg-indigo-600",
         stable:
           "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600",
+        // Operation type variants
+        ingestion:
+          "border-transparent bg-info/10 text-info [a&]:hover:bg-info/20",
+        agents_generation:
+          "border-transparent bg-purple-500/10 text-purple-600 dark:text-purple-400 [a&]:hover:bg-purple-500/20",
+        agent_md_update:
+          "border-transparent bg-amber-500/10 text-amber-600 dark:text-amber-400 [a&]:hover:bg-amber-500/20",
       },
     },
     defaultVariants: {

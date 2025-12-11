@@ -3,6 +3,7 @@ import type { AgentMdOutput } from "@/types/sse";
 
 import {
   repositoryAgentSnapshotRowSchema,
+  type AgentMdCodebaseOutput,
   type AgentMdOutputRecord,
   type RepositoryAgentCodebaseProgress,
   type RepositoryAgentEvent,
@@ -16,8 +17,10 @@ export interface RepositoryAgentCodebaseState {
   events: RepositoryAgentEvent[];
 }
 
+// NOTE: status field does NOT exist in PostgreSQL repository_agent_md_snapshot table
+// Use job.status from REST API (ParentWorkflowJobResponse) for status display
 export interface ParsedRepositoryAgentSnapshot {
-  status: RepositoryAgentSnapshotRow["status"];
+  repositoryWorkflowRunId: string;
   overallProgress: number;
   codebases: RepositoryAgentCodebaseState[];
   markdownByCodebase: Record<string, AgentMdOutput>;
@@ -25,6 +28,7 @@ export interface ParsedRepositoryAgentSnapshot {
   statistics: WorkflowStatistics | null;
   createdAt: string;
   updatedAt: string;
+  latestEventAt?: string;
 }
 
 export function useParsedSnapshot(
@@ -42,10 +46,13 @@ export function parseSnapshotRow(
     hydrateCodebase(codebase),
   );
 
+  // Use top-level overall_progress (new PostgreSQL column) with fallback to events or computed average
   const baseOverall =
-    typeof parsed.events?.overall_progress === "number"
-      ? parsed.events?.overall_progress
-      : null;
+    typeof parsed.overall_progress === "number"
+      ? parsed.overall_progress
+      : typeof parsed.events?.overall_progress === "number"
+        ? parsed.events?.overall_progress
+        : null;
   const overallProgress = normalizeProgress(
     baseOverall ?? averageProgress(codebases),
   );
@@ -55,7 +62,7 @@ export function parseSnapshotRow(
   );
 
   return {
-    status: parsed.status,
+    repositoryWorkflowRunId: parsed.repository_workflow_run_id,
     overallProgress,
     codebases,
     markdownByCodebase,
@@ -63,6 +70,7 @@ export function parseSnapshotRow(
     statistics: parsed.statistics ?? null,
     createdAt: parsed.created_at,
     updatedAt: parsed.modified_at,
+    latestEventAt: parsed.latest_event_at ?? undefined,
   };
 }
 
@@ -77,17 +85,27 @@ export function parseAgentMdOutputs(
   const codebasesEntries = agentMdOutput?.codebases
     ? Object.entries(agentMdOutput.codebases)
     : [];
-  for (const [codebaseName, jsonString] of codebasesEntries) {
-    if (typeof jsonString !== "string") {
+
+  for (const [codebaseName, codebaseData] of codebasesEntries) {
+    // Electric SQL auto-parses JSONB columns, so data is already an object
+    if (isAgentMdOutput(codebaseData)) {
+      markdownByCodebase[codebaseName] = codebaseData;
       continue;
     }
 
-    try {
-      markdownByCodebase[codebaseName] = JSON.parse(
-        jsonString,
-      ) as AgentMdOutput;
-    } catch (error) {
-      console.error(`Failed to parse AgentMdOutput for ${codebaseName}`, error);
+    // Fallback for legacy stringified data (e.g., from SSE events)
+    if (typeof codebaseData === "string") {
+      try {
+        const parsed = JSON.parse(codebaseData) as unknown;
+        if (isAgentMdOutput(parsed)) {
+          markdownByCodebase[codebaseName] = parsed;
+        }
+      } catch (error) {
+        console.error(
+          `Failed to parse AgentMdOutput for ${codebaseName}`,
+          error,
+        );
+      }
     }
   }
 
@@ -97,11 +115,30 @@ export function parseAgentMdOutputs(
   };
 }
 
+// Type guard to check if data conforms to AgentMdOutput structure
+function isAgentMdOutput(data: unknown): data is AgentMdOutput {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "project_configuration" in data
+  );
+}
+
+// Converts AgentMdCodebaseOutput (Zod schema type) to AgentMdOutput (SSE type)
+// These types have similar structures but different field names in some cases
+export function codebaseOutputToAgentMdOutput(
+  _codebaseOutput: AgentMdCodebaseOutput,
+): AgentMdOutput | null {
+  // This function can be implemented if needed for type conversion
+  // Currently, Electric SQL returns data matching the SSE type directly
+  return null;
+}
+
 export function parseAgentMdOutputsFromSnapshot(
   snapshot:
     | {
         repository?: string;
-        codebases: Record<string, string>;
+        codebases: Record<string, AgentMdCodebaseOutput | string>;
       }
     | null
     | undefined,
@@ -113,9 +150,10 @@ export function parseAgentMdOutputsFromSnapshot(
     };
   }
 
+  // Cast to AgentMdOutputRecord since the actual parsing handles both types
   return parseAgentMdOutputs({
     repository: snapshot.repository,
-    codebases: snapshot.codebases,
+    codebases: snapshot.codebases as AgentMdOutputRecord["codebases"],
   });
 }
 
