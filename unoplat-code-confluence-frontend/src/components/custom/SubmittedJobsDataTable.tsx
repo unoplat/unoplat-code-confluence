@@ -24,8 +24,8 @@ import {
 import { submittedJobsColumns } from "./submitted-jobs-data-table-columns";
 
 // Import the API function to fetch repository data along with type definitions.
-import type { ParentWorkflowJobResponse } from "../../types";
-import { getParentWorkflowJobs } from "../../lib/api";
+import type { ParentWorkflowJobResponse } from "@/types";
+import { getParentWorkflowJobs } from "@/lib/api";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 // Import the new JobStatusDialog component
 import { JobStatusDialog } from "./JobStatusDialog";
@@ -131,7 +131,7 @@ export function SubmittedJobsDataTable(): React.ReactElement {
   return (
     <div className="mx-auto w-full max-w-7xl px-4">
       {isInitialLoading ? (
-        <DataTableSkeleton columnCount={6} rowCount={7} />
+        <DataTableSkeleton columnCount={7} rowCount={7} />
       ) : (
         <DataTable table={table} actionBar={null}>
           <DataTableToolbar table={table} />

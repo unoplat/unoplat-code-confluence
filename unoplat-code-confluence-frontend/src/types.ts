@@ -162,11 +162,18 @@ export type JobStatus =
   | "COMPLETED"
   | "RETRYING";
 
+// Repository workflow operation type
+export type RepositoryWorkflowOperation =
+  | "INGESTION"
+  | "AGENTS_GENERATION"
+  | "AGENT_MD_UPDATE";
+
 // Parent workflow job response from API
 export interface ParentWorkflowJobResponse {
   repository_name: string;
   repository_owner_name: string;
   repository_workflow_run_id: string;
+  operation: RepositoryWorkflowOperation;
   status: JobStatus;
   started_at: string;
   completed_at?: string | null;
