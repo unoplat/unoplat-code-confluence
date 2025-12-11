@@ -1,5 +1,4 @@
 import React from "react";
-import type { IngestedRepository } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,14 +15,18 @@ import type {
 } from "@/features/repository-agent-snapshots/transformers";
 
 interface GenerateAgentsProgressProps {
-  repository: IngestedRepository;
+  repositoryOwnerName: string;
+  repositoryName: string;
+  runId: string;
   snapshot: ParsedRepositoryAgentSnapshot | null;
   codebaseIds: string[];
   isSyncing: boolean;
 }
 
 export function GenerateAgentsProgress({
-  repository,
+  repositoryOwnerName,
+  repositoryName,
+  runId,
   snapshot,
   codebaseIds,
   isSyncing,
@@ -93,7 +96,13 @@ export function GenerateAgentsProgress({
           <div className="space-y-1">
             <div className="text-muted-foreground text-sm">Overall</div>
             <div className="text-sm font-medium">
-              {repository.repository_owner_name}/{repository.repository_name}
+              {repositoryOwnerName}/{repositoryName}
+            </div>
+            <div
+              className="text-muted-foreground truncate font-mono text-xs"
+              title={runId}
+            >
+              Run: {runId}
             </div>
           </div>
           <div className="w-1/2">

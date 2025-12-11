@@ -27,8 +27,9 @@ import { submittedJobsColumns } from "./submitted-jobs-data-table-columns";
 import type { ParentWorkflowJobResponse } from "@/types";
 import { getParentWorkflowJobs } from "@/lib/api";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-// Import the new JobStatusDialog component
-import { JobStatusDialog } from "./JobStatusDialog";
+// Import dialog components for different operation types
+import { JobStatusDialog } from "@/components/custom/JobStatusDialog";
+import { GenerateAgentsDialog } from "@/components/custom/GenerateAgentsDialog";
 
 interface RowAction {
   row: Row<ParentWorkflowJobResponse>;
@@ -101,28 +102,43 @@ export function SubmittedJobsDataTable(): React.ReactElement {
       row.repository_workflow_run_id,
   });
 
-  // State to control the visibility of the JobStatusDialog
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  // State to control dialog visibility based on operation type
+  const [isIngestionDialogOpen, setIsIngestionDialogOpen] = useState(false);
+  const [isAgentDialogOpen, setIsAgentDialogOpen] = useState(false);
 
-  // Handle row actions
+  // Handle row actions - open correct dialog based on operation type
   useEffect(() => {
     if (rowAction) {
       console.log(
         `[SubmittedJobsDataTable] Row action: ${rowAction.variant} on job ${rowAction.row.original.repository_workflow_run_id}`,
       );
 
-      // Implement action handling here
       if (rowAction.variant === "view") {
-        setIsDialogOpen(true);
+        const operation = rowAction.row.original.operation;
+        if (operation === "INGESTION") {
+          setIsIngestionDialogOpen(true);
+        } else if (
+          operation === "AGENTS_GENERATION" ||
+          operation === "AGENT_MD_UPDATE"
+        ) {
+          setIsAgentDialogOpen(true);
+        }
       }
     }
   }, [rowAction]);
 
-  // Handle dialog close
-  const handleDialogOpenChange = (open: boolean) => {
-    setIsDialogOpen(open);
+  // Handle ingestion dialog close
+  const handleIngestionDialogOpenChange = (open: boolean) => {
+    setIsIngestionDialogOpen(open);
     if (!open) {
-      // Clear row action when dialog is closed
+      setRowAction(null);
+    }
+  };
+
+  // Handle agent dialog close
+  const handleAgentDialogOpenChange = (open: boolean) => {
+    setIsAgentDialogOpen(open);
+    if (!open) {
       setRowAction(null);
     }
   };
@@ -138,11 +154,18 @@ export function SubmittedJobsDataTable(): React.ReactElement {
         </DataTable>
       )}
 
-      {/* Use the new JobStatusDialog component */}
+      {/* Dialog for INGESTION operations */}
       <JobStatusDialog
-        open={isDialogOpen}
-        onOpenChange={handleDialogOpenChange}
+        open={isIngestionDialogOpen}
+        onOpenChange={handleIngestionDialogOpenChange}
         job={rowAction?.row.original || null}
+      />
+
+      {/* Dialog for AGENTS_GENERATION and AGENT_MD_UPDATE operations */}
+      <GenerateAgentsDialog
+        open={isAgentDialogOpen}
+        onOpenChange={handleAgentDialogOpenChange}
+        job={rowAction?.row.original ?? null}
       />
     </div>
   );

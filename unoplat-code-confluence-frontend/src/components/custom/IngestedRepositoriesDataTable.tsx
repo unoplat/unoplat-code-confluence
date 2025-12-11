@@ -16,8 +16,6 @@ import { getIngestedRepositoriesColumns } from "./ingested-repositories-data-tab
 import { RefreshRepositoryDialog } from "./RefreshRepositoryDialog";
 import { DeleteRepositoryDialog } from "./DeleteRepositoryDialog";
 import { toast } from "sonner";
-import { useAgentGenerationUIStore } from "@/stores/useAgentGenerationUIStore";
-import { GenerateAgentsDialog } from "@/components/custom/GenerateAgentsDialog";
 import { useModelConfig } from "@/hooks/useModelConfig";
 
 import type { IngestedRepository } from "../../types";
@@ -26,6 +24,7 @@ import {
   refreshRepository,
   deleteRepository,
   getModelConfig,
+  startRepositoryAgentRun,
 } from "@/lib/api";
 
 interface RowAction {
@@ -35,14 +34,6 @@ interface RowAction {
 
 export function IngestedRepositoriesDataTable(): React.ReactElement {
   const [rowAction, setRowAction] = useState<RowAction | null>(null);
-  const isGenerationDialogOpen = useAgentGenerationUIStore(
-    (s) => s.isDialogOpen,
-  );
-  const selectedRepository = useAgentGenerationUIStore(
-    (s) => s.selectedRepository,
-  );
-  const closeGenerationDialog = useAgentGenerationUIStore((s) => s.closeDialog);
-  const openGenerationDialog = useAgentGenerationUIStore((s) => s.openDialog);
 
   const queryClient = useQueryClient();
   const modelConfigQuery = useModelConfig();
@@ -93,6 +84,27 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
     },
   });
 
+  // Agent generation mutation - starts workflow and shows toast
+  const agentGenerationMutation = useMutation({
+    mutationFn: (repository: IngestedRepository) =>
+      startRepositoryAgentRun(
+        repository.repository_owner_name,
+        repository.repository_name,
+      ),
+    onSuccess: (_data, repository) => {
+      toast.success(
+        `Agent MD generation started for ${repository.repository_owner_name}/${repository.repository_name}. View progress in Operations.`,
+      );
+      // Invalidate parent workflow jobs so the new job appears in SubmittedJobsDataTable
+      queryClient.invalidateQueries({ queryKey: ["parentWorkflowJobs"] });
+    },
+    onError: (_error, repository) => {
+      toast.error(
+        `Failed to start Agent MD generation for ${repository.repository_owner_name}/${repository.repository_name}. Please try again.`,
+      );
+    },
+  });
+
   // Build columns with row action setter
   const handleGenerateAgents = useCallback(
     async (repository: IngestedRepository) => {
@@ -111,14 +123,15 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
           return;
         }
 
-        openGenerationDialog(repository);
+        // Directly start the generation - toast will confirm
+        agentGenerationMutation.mutate(repository);
       } catch {
         toast.error(
           "Unable to verify model provider configuration. Please try again.",
         );
       }
     },
-    [modelConfigQuery.data, openGenerationDialog, queryClient],
+    [modelConfigQuery.data, agentGenerationMutation, queryClient],
   );
 
   const columns = useMemo(() => {
@@ -199,12 +212,6 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
         onOpenChange={handleDialogClose}
         onConfirm={handleDeleteConfirm}
         repository={rowAction?.row.original || null}
-      />
-
-      <GenerateAgentsDialog
-        repository={selectedRepository}
-        open={isGenerationDialogOpen}
-        onOpenChange={closeGenerationDialog}
       />
     </div>
   );
