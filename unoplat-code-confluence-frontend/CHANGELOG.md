@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.4...unoplat-code-confluence-frontend-v1.35.0) (2025-12-11)
+
+
+### Features
+
+* **migration-to-auditable-reliable-agents:** migration work and bug fixes for anti patterns in local sync with postgres ([c35c473](https://github.com/unoplat/unoplat-code-confluence/commit/c35c4736991180ace4666c84010d3e4ff52a84be))
+
+
+### Bug Fixes
+
+* operations management component for ingestion/agent md generation/agent md update ([ac261eb](https://github.com/unoplat/unoplat-code-confluence/commit/ac261eb77e0d3f158acd980c7b9dce20ec5860be))
+
 ## [1.34.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.3...unoplat-code-confluence-frontend-v1.34.4) (2025-11-25)
 
 
