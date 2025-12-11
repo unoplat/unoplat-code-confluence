@@ -24,11 +24,20 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
         AgentDependencies,
     )
+    from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
+        UsageStatistics,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
         RepositoryAgentSnapshotActivity,
     )
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
         DB_ACTIVITY_RETRY_POLICY,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.statistics_helpers import (
+        aggregate_usage_statistics,
+        build_workflow_statistics,
+        create_zero_usage_statistics,
+        extract_usage_statistics,
     )
     from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
         get_temporal_agents,
@@ -87,6 +96,9 @@ class CodebaseAgentWorkflow:
             "business_logic_domain": None,
         }
 
+        # Track usage statistics from each agent for aggregation
+        agent_stats: list[UsageStatistics] = []
+
         # Step 1: Project Configuration Agent
         if "project_configuration_agent" in temporal_agents:
             try:
@@ -119,6 +131,8 @@ class CodebaseAgentWorkflow:
                     "[workflow] project_configuration_agent completed for {}",
                     codebase_metadata.codebase_name,
                 )
+                # Extract usage statistics from successful agent run
+                agent_stats.append(extract_usage_statistics(config_result.usage()))
             except Exception as e:
                 logger.error(
                     "[workflow] project_configuration_agent failed for {}: {}",
@@ -127,11 +141,15 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 results["project_configuration_error"] = str(e)
+                # Failed agents contribute zero to statistics
+                agent_stats.append(create_zero_usage_statistics())
         else:
             logger.info(
                 "[workflow] project_configuration_agent is disabled, skipping for {}",
                 codebase_metadata.codebase_name,
             )
+            # Disabled agents contribute zero to statistics
+            agent_stats.append(create_zero_usage_statistics())
 
         # Step 2: Development Workflow Agent (depends on Step 1)
         if "development_workflow_agent" in temporal_agents:
@@ -170,6 +188,8 @@ class CodebaseAgentWorkflow:
                     "[workflow] development_workflow_agent completed for {}",
                     codebase_metadata.codebase_name,
                 )
+                # Extract usage statistics from successful agent run
+                agent_stats.append(extract_usage_statistics(workflow_result.usage()))
             except Exception as e:
                 logger.error(
                     "[workflow] development_workflow_agent failed for {}: {}",
@@ -178,11 +198,15 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 results["development_workflow_error"] = str(e)
+                # Failed agents contribute zero to statistics
+                agent_stats.append(create_zero_usage_statistics())
         else:
             logger.info(
                 "[workflow] development_workflow_agent is disabled, skipping for {}",
                 codebase_metadata.codebase_name,
             )
+            # Disabled agents contribute zero to statistics
+            agent_stats.append(create_zero_usage_statistics())
 
         # Step 3: Business Logic Domain Agent
         if "business_logic_domain_agent" in temporal_agents:
@@ -212,6 +236,8 @@ class CodebaseAgentWorkflow:
                     "[workflow] business_logic_domain_agent completed for {}",
                     codebase_metadata.codebase_name,
                 )
+                # Extract usage statistics from successful agent run
+                agent_stats.append(extract_usage_statistics(domain_result.usage()))
             except Exception as e:
                 logger.error(
                     "[workflow] business_logic_domain_agent failed for {}: {}",
@@ -220,11 +246,19 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 results["business_logic_domain_error"] = str(e)
+                # Failed agents contribute zero to statistics
+                agent_stats.append(create_zero_usage_statistics())
         else:
             logger.info(
                 "[workflow] business_logic_domain_agent is disabled, skipping for {}",
                 codebase_metadata.codebase_name,
             )
+            # Disabled agents contribute zero to statistics
+            agent_stats.append(create_zero_usage_statistics())
+
+        # Aggregate statistics from all agents and add to results
+        codebase_statistics = aggregate_usage_statistics(agent_stats)
+        results["statistics"] = codebase_statistics.model_dump()
 
         logger.info(
             "[workflow] CodebaseAgentWorkflow completed for {}/{}",
@@ -271,6 +305,9 @@ class RepositoryAgentWorkflow:
             "codebases": {},
         }
 
+        # Track per-codebase statistics for workflow-level aggregation
+        codebase_statistics_map: dict[str, UsageStatistics] = {}
+
         # Execute CodebaseAgentWorkflow for each codebase
         # Note: In production, this could use child workflows for better isolation
         for idx, codebase_dict in enumerate(codebase_metadata_list):
@@ -301,6 +338,15 @@ class RepositoryAgentWorkflow:
                     "[workflow] Child workflow completed for {}", codebase_name
                 )
                 results["codebases"][codebase_name] = codebase_result
+
+                # Extract per-codebase statistics from child workflow result
+                if "statistics" in codebase_result and codebase_result["statistics"]:
+                    codebase_stats = UsageStatistics.model_validate(
+                        codebase_result["statistics"]
+                    )
+                    codebase_statistics_map[codebase_name] = codebase_stats
+                else:
+                    codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
             except Exception as e:
                 logger.error(
                     "[workflow] CodebaseAgentWorkflow failed for {}/{}: {}",
@@ -310,10 +356,15 @@ class RepositoryAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 results["codebases"][codebase_name] = {"error": str(e)}
+                # Failed codebases contribute zero to statistics
+                codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
 
         logger.info(
             f"[workflow] RepositoryAgentWorkflow completed for {repository_qualified_name}"
         )
+
+        # Build workflow-level statistics from all codebases
+        workflow_statistics = build_workflow_statistics(codebase_statistics_map)
 
         # Persist final agent output to database via activity
         owner_name, repo_name = repository_qualified_name.split("/", maxsplit=1)
@@ -322,7 +373,7 @@ class RepositoryAgentWorkflow:
             repo_name=repo_name,
             repository_workflow_run_id=repository_workflow_run_id,
             final_payload=results,
-            statistics_payload=None,  # task-013 will add statistics collection
+            statistics_payload=workflow_statistics.model_dump(),
         )
         await workflow.execute_activity(
             RepositoryAgentSnapshotActivity.persist_agent_snapshot_complete,
