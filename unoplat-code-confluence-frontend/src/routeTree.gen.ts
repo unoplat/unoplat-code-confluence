@@ -15,7 +15,7 @@ import { Route as SettingsModelProvidersRouteImport } from './routes/settings.mo
 import { Route as SettingsDeveloperRouteImport } from './routes/settings.developer'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppRepositoryOperationsRouteImport } from './routes/_app.repositoryOperations'
-import { Route as AppRepositoryManagementRouteImport } from './routes/_app.repositoryManagement'
+import { Route as AppOperationsManagementRouteImport } from './routes/_app.operationsManagement'
 import { Route as AppOnboardingRouteImport } from './routes/_app.onboarding'
 import { Route as AppDeveloperRouteImport } from './routes/_app.developer'
 import { Route as AppOnboardingIndexRouteImport } from './routes/_app.onboarding.index'
@@ -50,9 +50,9 @@ const AppRepositoryOperationsRoute = AppRepositoryOperationsRouteImport.update({
   path: '/repositoryOperations',
   getParentRoute: () => AppRoute,
 } as any)
-const AppRepositoryManagementRoute = AppRepositoryManagementRouteImport.update({
-  id: '/repositoryManagement',
-  path: '/repositoryManagement',
+const AppOperationsManagementRoute = AppOperationsManagementRouteImport.update({
+  id: '/operationsManagement',
+  path: '/operationsManagement',
   getParentRoute: () => AppRoute,
 } as any)
 const AppOnboardingRoute = AppOnboardingRouteImport.update({
@@ -79,7 +79,7 @@ const AppOnboardingProviderRoute = AppOnboardingProviderRouteImport.update({
 export interface FileRoutesByFullPath {
   '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRouteWithChildren
-  '/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/operationsManagement': typeof AppOperationsManagementRoute
   '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
@@ -90,7 +90,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/developer': typeof AppDeveloperRoute
-  '/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/operationsManagement': typeof AppOperationsManagementRoute
   '/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
@@ -104,7 +104,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/developer': typeof AppDeveloperRoute
   '/_app/onboarding': typeof AppOnboardingRouteWithChildren
-  '/_app/repositoryManagement': typeof AppRepositoryManagementRoute
+  '/_app/operationsManagement': typeof AppOperationsManagementRoute
   '/_app/repositoryOperations': typeof AppRepositoryOperationsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
@@ -118,7 +118,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/developer'
     | '/onboarding'
-    | '/repositoryManagement'
+    | '/operationsManagement'
     | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
@@ -129,7 +129,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/developer'
-    | '/repositoryManagement'
+    | '/operationsManagement'
     | '/repositoryOperations'
     | '/settings'
     | '/settings/developer'
@@ -142,7 +142,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/developer'
     | '/_app/onboarding'
-    | '/_app/repositoryManagement'
+    | '/_app/operationsManagement'
     | '/_app/repositoryOperations'
     | '/_app/settings'
     | '/settings/developer'
@@ -202,11 +202,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRepositoryOperationsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/repositoryManagement': {
-      id: '/_app/repositoryManagement'
-      path: '/repositoryManagement'
-      fullPath: '/repositoryManagement'
-      preLoaderRoute: typeof AppRepositoryManagementRouteImport
+    '/_app/operationsManagement': {
+      id: '/_app/operationsManagement'
+      path: '/operationsManagement'
+      fullPath: '/operationsManagement'
+      preLoaderRoute: typeof AppOperationsManagementRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/onboarding': {
@@ -257,7 +257,7 @@ const AppOnboardingRouteWithChildren = AppOnboardingRoute._addFileChildren(
 interface AppRouteChildren {
   AppDeveloperRoute: typeof AppDeveloperRoute
   AppOnboardingRoute: typeof AppOnboardingRouteWithChildren
-  AppRepositoryManagementRoute: typeof AppRepositoryManagementRoute
+  AppOperationsManagementRoute: typeof AppOperationsManagementRoute
   AppRepositoryOperationsRoute: typeof AppRepositoryOperationsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -266,7 +266,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDeveloperRoute: AppDeveloperRoute,
   AppOnboardingRoute: AppOnboardingRouteWithChildren,
-  AppRepositoryManagementRoute: AppRepositoryManagementRoute,
+  AppOperationsManagementRoute: AppOperationsManagementRoute,
   AppRepositoryOperationsRoute: AppRepositoryOperationsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,

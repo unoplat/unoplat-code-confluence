@@ -2,16 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SubmittedJobsDataTable } from "@/components/custom/SubmittedJobsDataTable";
 import React from "react";
 
-export const Route = createFileRoute("/_app/repositoryManagement")({
-  component: RepositoryManagementPage,
+export const Route = createFileRoute("/_app/operationsManagement")({
+  component: OperationsManagementPage,
   beforeLoad: () => {
     return {
-      getTitle: () => "Ingestion Management",
+      getTitle: () => "Operations Management",
     };
   },
 });
 
-function RepositoryManagementPage(): React.ReactElement {
+function OperationsManagementPage(): React.ReactElement {
   return (
     <div className="flex flex-col gap-4">
       <SubmittedJobsDataTable />

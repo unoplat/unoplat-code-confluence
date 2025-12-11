@@ -9,13 +9,6 @@ export interface GitHubRepoSummary {
   owner_name: string;
 }
 
-// Local repository data interface
-export interface LocalRepositoryData {
-  repositoryPath: string;
-  repositoryName: string;
-  repositorySource: "local";
-}
-
 // Repository configuration for dialog props - supports both GitHub and local repositories
 export interface RepositoryConfigDialogData {
   repositoryName: string;
@@ -162,11 +155,18 @@ export type JobStatus =
   | "COMPLETED"
   | "RETRYING";
 
+// Repository workflow operation type
+export type RepositoryWorkflowOperation =
+  | "INGESTION"
+  | "AGENTS_GENERATION"
+  | "AGENT_MD_UPDATE";
+
 // Parent workflow job response from API
 export interface ParentWorkflowJobResponse {
   repository_name: string;
   repository_owner_name: string;
   repository_workflow_run_id: string;
+  operation: RepositoryWorkflowOperation;
   status: JobStatus;
   started_at: string;
   completed_at?: string | null;
