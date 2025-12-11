@@ -1,0 +1,137 @@
+version: '3'
+
+tasks:
+  launch-all-mcp:
+    desc: Launch all MCP tools in background
+    cmds:
+      - task: launch-browser-tools-bg
+      - task: launch-think-mcp-bg
+      - echo "All MCP tools launched in background. Use 'task stop-all-mcp' to stop them."
+
+  launch-browser-tools:
+    desc: Launch browser tools MCP server (foreground)
+    cmds:
+      - npx @agentdeskai/browser-tools-server@latest
+
+  launch-browser-tools-bg:
+    desc: Launch browser tools MCP server in background
+    cmds:
+      - sh -c "npx @agentdeskai/browser-tools-server@latest > /tmp/browser-tools-server.log 2>&1 &"
+      - echo "Browser tools server started on port 3025 (logs at /tmp/browser-tools-server.log)"
+
+  stop-browser-tools:
+    desc: Stop browser tools MCP server
+    cmds:
+      - sh -c "kill $(lsof -ti:3025) || echo 'Browser tools server not running'"
+
+  launch-think-mcp:
+    desc: Launch think MCP server (foreground)
+    dir: /Users/jayghiya/Documents/unoplat/mcp-tools/think-mcp-server
+    cmds:
+      - npm install
+      - npm run build
+      - npm start
+
+  launch-think-mcp-bg:
+    desc: Launch think MCP server in background
+    dir: /Users/jayghiya/Documents/unoplat/mcp-tools/think-mcp-server
+    cmds:
+      - npm install
+      - npm run build
+      - sh -c "npm start > /tmp/think-mcp-server.log 2>&1 &"
+      - echo "Think MCP server started (logs at /tmp/think-mcp-server.log)"
+
+  stop-think-mcp:
+    desc: Stop think MCP server
+    cmds:
+      # Using pkill to find and kill the think-mcp-server process
+      - sh -c "pkill -f 'node.*think-mcp-server' || echo 'Think MCP server not running'"
+
+  stop-all-mcp:
+    desc: Stop all MCP tools
+    cmds:
+      - task: stop-browser-tools
+      - task: stop-think-mcp
+      - echo "All MCP tools stopped"
+
+  # GitHub Actions local testing with act
+  install-act:
+    desc: Install act tool for running GitHub Actions locally
+    cmds:
+      - |
+        if ! command -v act &> /dev/null; then
+          echo "Installing act via Homebrew..."
+          brew install act
+        else
+          echo "act is already installed ($(act --version))"
+        fi
+
+  act-list-jobs:
+    desc: List all GitHub Actions jobs that can be run locally
+    deps: [install-act]
+    cmds:
+      - act --container-architecture linux/amd64 -l
+
+  act-test-uv-projects:
+    desc: Run the test-uv-projects GitHub Actions job locally using act
+    deps: [install-act]
+    cmds:
+      - |
+        echo "Running test-uv-projects job locally with act..."
+        echo "Note: This requires Docker to be running and GITHUB_PAT_TOKEN to be set"
+        echo ""
+        # Check if GITHUB_PAT_TOKEN is set
+        if [ -z "$GITHUB_PAT_TOKEN" ]; then
+          echo "Warning: GITHUB_PAT_TOKEN environment variable is not set"
+          echo "You may need to create a .env file with: GITHUB_PAT_TOKEN=your_token_here"
+          echo "Or export it: export GITHUB_PAT_TOKEN=your_token_here"
+          echo ""
+        fi
+        # Run the specific job with environment file support
+        if [ -f ".env" ]; then
+          act --container-architecture linux/amd64 -j test-uv-projects --env-file .env
+        else
+          act --container-architecture linux/amd64 -j test-uv-projects
+        fi
+
+  act-test-uv-projects-dry:
+    desc: Dry-run the test-uv-projects job to see what would be executed
+    deps: [install-act]
+    cmds:
+      - |
+        echo "Dry-run mode for test-uv-projects job..."
+        if [ -f ".env" ]; then
+          act --container-architecture linux/amd64 -j test-uv-projects --env-file .env -n
+        else
+          act --container-architecture linux/amd64 -j test-uv-projects -n
+        fi
+
+  act-test-uv-projects-verbose:
+    desc: Run the test-uv-projects job with verbose logging
+    deps: [install-act]
+    cmds:
+      - |
+        echo "Running test-uv-projects job with verbose logging..."
+        if [ -f ".env" ]; then
+          act --container-architecture linux/amd64 -j test-uv-projects --env-file .env -v
+        else
+          act --container-architecture linux/amd64 -j test-uv-projects -v
+        fi
+
+  act-setup-env:
+    desc: Create a template .env file for act with required environment variables
+    cmds:
+      - |
+        if [ ! -f ".env" ]; then
+          echo "Creating .env template file..."
+          cat > .env << 'EOF'
+        # GitHub Personal Access Token for act
+        # Generate one at: https://github.com/settings/tokens
+        GITHUB_PAT_TOKEN=your_github_token_here
+        
+        # Add other environment variables needed for GitHub Actions here
+        EOF
+          echo ".env file created. Please edit it and add your actual GitHub token."
+        else
+          echo ".env file already exists."
+        fi
