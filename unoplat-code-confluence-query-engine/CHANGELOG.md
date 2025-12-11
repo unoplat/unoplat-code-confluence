@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.2...unoplat-code-confluence-query-engine-v0.24.3) (2025-12-11)
+
+
+### Bug Fixes
+
+* **perf:** parallelism per codebase agent md in monorepo ([d71e0e4](https://github.com/unoplat/unoplat-code-confluence/commit/d71e0e4d19fe2ec8ba6707e098ed36a58969676f))
+* **perf:** parallelism per codebase agent md in monorepo ([7ae3ad8](https://github.com/unoplat/unoplat-code-confluence/commit/7ae3ad8c98612cd30e52753b7b0d78f3442beb14))
+
 ## [0.24.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.1...unoplat-code-confluence-query-engine-v0.24.2) (2025-12-11)
 
 
