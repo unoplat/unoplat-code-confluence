@@ -40,7 +40,7 @@ import { useAuthData } from "@/hooks/use-auth-data";
 
 // Map category titles to their base paths
 const categoryMap: Record<string, string[]> = {
-  Workspace: ["/onboarding", "/repositoryManagement", "/repositoryOperations"],
+  Workspace: ["/onboarding", "/operationsManagement", "/repositoryOperations"],
   Settings: ["/settings"],
 };
 

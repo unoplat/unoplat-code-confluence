@@ -85,13 +85,13 @@ export function AppSidebar(): React.ReactElement {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Ingestion Management">
+                      <SidebarMenuButton asChild tooltip="Operations Management">
                         <Link
-                          to="/repositoryManagement"
+                          to="/operationsManagement"
                           className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
                         >
                           <span className="text-sm font-medium">
-                            Ingestion Management
+                            Operations Management
                           </span>
                         </Link>
                       </SidebarMenuButton>
