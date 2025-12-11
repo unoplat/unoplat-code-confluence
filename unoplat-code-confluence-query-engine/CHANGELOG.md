@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.1...unoplat-code-confluence-query-engine-v0.24.2) (2025-12-11)
+
+
+### Bug Fixes
+
+* statistics calculation ([d549274](https://github.com/unoplat/unoplat-code-confluence/commit/d5492746c114bcee255dc3e12c04f2789d586123))
+* statistics persistence ([6c03e05](https://github.com/unoplat/unoplat-code-confluence/commit/6c03e0587775fb5e8e7c8c2e102f7ec3e2184d4d))
+
 ## [0.24.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.0...unoplat-code-confluence-query-engine-v0.24.1) (2025-12-10)
 
 
