@@ -15,6 +15,7 @@ class JobStatus(str, Enum):
     TIMED_OUT = "TIMED_OUT"
     COMPLETED = "COMPLETED"
     RETRYING = "RETRYING"
+    ERROR = "ERROR"  # Partial failures (some agents succeeded, some failed)
 
 
 class ErrorReport(BaseModel):
