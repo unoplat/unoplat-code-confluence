@@ -4,5 +4,5 @@
   "unoplat-code-confluence-query-engine": "0.24.3",
   ".": "0.9.0",
   "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": "0.64.0",
-  "unoplat-code-confluence-frontend": "1.35.0"
+  "unoplat-code-confluence-frontend": "1.36.0"
 }
