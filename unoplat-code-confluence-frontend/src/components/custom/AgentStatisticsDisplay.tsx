@@ -5,6 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronDown } from "lucide-react";
 import type {
   WorkflowStatistics,
@@ -103,34 +104,49 @@ export function AgentStatisticsDisplay({
     statistics.by_codebase && Object.keys(statistics.by_codebase).length > 0;
 
   return (
-    <div className="space-y-4">
-      <Card className="p-4">
-        <h3 className="mb-3 text-sm font-semibold">
-          Overall Workflow Statistics
-        </h3>
-        <UsageStatsGrid stats={overallStats} />
-      </Card>
+    <Card className="p-4">
+      <Tabs defaultValue="totals">
+        <TabsList className="mb-4 w-full justify-start rounded-none border-b bg-transparent p-0">
+          <TabsTrigger
+            value="totals"
+            className="data-[state=active]:border-primary rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Total
+          </TabsTrigger>
+          {hasCodebaseBreakdown && (
+            <TabsTrigger
+              value="by-codebase"
+              className="data-[state=active]:border-primary rounded-none border-b-2 border-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
+              By Codebase
+            </TabsTrigger>
+          )}
+        </TabsList>
 
-      {hasCodebaseBreakdown && (
-        <Card className="p-4">
-          <h3 className="mb-3 text-sm font-semibold">Per-Codebase Breakdown</h3>
-          <div className="space-y-2">
-            {Object.entries(statistics.by_codebase).map(
-              ([codebaseName, stats]) => (
-                <Collapsible key={codebaseName}>
-                  <CollapsibleTrigger className="hover:bg-accent flex w-full items-center justify-between rounded-md border p-2 text-sm">
-                    <span className="font-medium">{codebaseName}</span>
-                    <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-2 rounded-md border p-3">
-                    <UsageStatsGrid stats={stats} />
-                  </CollapsibleContent>
-                </Collapsible>
-              ),
-            )}
-          </div>
-        </Card>
-      )}
-    </div>
+        <TabsContent value="totals">
+          <UsageStatsGrid stats={overallStats} />
+        </TabsContent>
+
+        {hasCodebaseBreakdown && (
+          <TabsContent value="by-codebase">
+            <div className="space-y-2">
+              {Object.entries(statistics.by_codebase).map(
+                ([codebaseName, stats]) => (
+                  <Collapsible key={codebaseName}>
+                    <CollapsibleTrigger className="hover:bg-accent flex w-full items-center justify-between rounded-md border p-2 text-sm">
+                      <span className="font-medium">{codebaseName}</span>
+                      <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 rounded-md border p-3">
+                      <UsageStatsGrid stats={stats} />
+                    </CollapsibleContent>
+                  </Collapsible>
+                ),
+              )}
+            </div>
+          </TabsContent>
+        )}
+      </Tabs>
+    </Card>
   );
 }

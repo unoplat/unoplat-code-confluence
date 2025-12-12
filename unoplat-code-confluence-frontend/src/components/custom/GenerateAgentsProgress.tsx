@@ -15,18 +15,12 @@ import type {
 } from "@/features/repository-agent-snapshots/transformers";
 
 interface GenerateAgentsProgressProps {
-  repositoryOwnerName: string;
-  repositoryName: string;
-  runId: string;
   snapshot: ParsedRepositoryAgentSnapshot | null;
   codebaseIds: string[];
   isSyncing: boolean;
 }
 
 export function GenerateAgentsProgress({
-  repositoryOwnerName,
-  repositoryName,
-  runId,
   snapshot,
   codebaseIds,
   isSyncing,
@@ -91,27 +85,19 @@ export function GenerateAgentsProgress({
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <Card className="p-4">
+      {/* Repository Progress Card */}
+      <Card className="p-4 mb-3">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="text-muted-foreground text-sm">Overall</div>
-            <div className="text-sm font-medium">
-              {repositoryOwnerName}/{repositoryName}
-            </div>
-            <div
-              className="text-muted-foreground truncate font-mono text-xs"
-              title={runId}
-            >
-              Run: {runId}
-            </div>
-          </div>
+          <div className="text-muted-foreground text-sm">Repository Progress</div>
           <div className="w-1/2">
             <Progress value={overallProgress} />
           </div>
         </div>
       </Card>
 
+      {/* Codebase Progress Card */}
       <Card className="flex min-h-0 flex-1 flex-col p-4">
+        {/* Codebase Selector (if multiple codebases) */}
         {!isSingleRootCodebase && (
           <div className="mb-4 flex items-center justify-center">
             <Select value={active} onValueChange={setActive}>
@@ -130,7 +116,7 @@ export function GenerateAgentsProgress({
         )}
         <div className="flex min-h-0 flex-1 flex-col gap-3">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">{getDisplayName(active)}</div>
+            <div className="text-muted-foreground text-sm">Codebase Progress</div>
             <div className="w-1/2">
               <Progress value={progress} />
             </div>
