@@ -36,6 +36,10 @@ function createCollectionForScope({
       schema: repositoryAgentSnapshotRowSchema,
       getKey: (row: RepositoryAgentSnapshotRow) =>
         `${row.repository_owner_name}/${row.repository_name}/${row.repository_workflow_run_id}`,
+      // Let the first subscriber start syncing and GC after a short TTL
+      startSync: false,
+      gcTime: 1000 * 60 * 2,
+      syncMode: "on-demand",
       shapeOptions: {
         url: electricShapeUrl,
         params: {
@@ -73,14 +77,4 @@ export const getRepositoryAgentSnapshotCollection = (
   const collection = createCollectionForScope(scope);
   snapshotCollections.set(key, collection);
   return collection;
-};
-
-// Destroy a collection and clean up subscriptions
-export const destroyRepositoryAgentSnapshotCollection = async (
-  scope: RepositoryAgentSnapshotScope,
-): Promise<void> => {
-  const key = createScopeKey(scope);
-  const collection = snapshotCollections.get(key);
-  snapshotCollections.delete(key);
-  await collection?.cleanup();
 };
