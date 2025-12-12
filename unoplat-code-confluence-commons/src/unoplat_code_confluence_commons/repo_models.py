@@ -118,7 +118,7 @@ class RepositoryWorkflowRun(SQLBase):
     __tablename__ = "repository_workflow_run"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('SUBMITTED','RUNNING','FAILED','TIMED_OUT','COMPLETED','RETRYING')",
+            "status IN ('SUBMITTED','RUNNING','FAILED','TIMED_OUT','COMPLETED','RETRYING','ERROR')",
             name="status_check",
         ),
         ForeignKeyConstraint(
@@ -153,7 +153,7 @@ class RepositoryWorkflowRun(SQLBase):
     status: Mapped[str] = mapped_column(
         String,
         nullable=False,
-        comment="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING.",
+        comment="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING, ERROR.",
     )
     error_report: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSONB, default=None, comment="Error report if the workflow run failed"
@@ -191,7 +191,7 @@ class CodebaseWorkflowRun(SQLBase):
     __tablename__ = "codebase_workflow_run"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('SUBMITTED','RUNNING','FAILED','TIMED_OUT','COMPLETED','RETRYING')",
+            "status IN ('SUBMITTED','RUNNING','FAILED','TIMED_OUT','COMPLETED','RETRYING','ERROR')",
             name="codebase_status_check",
         ),
         ForeignKeyConstraint(
@@ -236,7 +236,7 @@ class CodebaseWorkflowRun(SQLBase):
     status: Mapped[str] = mapped_column(
         String,
         nullable=False,
-        comment="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING.",
+        comment="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING, ERROR.",
     )
     error_report: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSONB, default=None, comment="Error report if the workflow run failed"
