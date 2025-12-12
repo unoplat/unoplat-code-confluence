@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { GenerateAgentsProgress } from "@/components/custom/GenerateAgentsProgress";
 import { Button } from "@/components/ui/button";
@@ -108,43 +109,48 @@ export function GenerateAgentsDialog({
     return null;
   }
 
-  // Determine dialog title based on operation type
-  const dialogTitle =
-    job.operation === "AGENTS_GENERATION"
-      ? "Agent MD Generation"
-      : "Agent MD Update";
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85vh] flex-col p-6 sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{dialogTitle} Progress</DialogTitle>
+          <DialogTitle>AGENTS.md</DialogTitle>
           <DialogDescription>
-            View real-time progress and results for agent documentation
-            generation.
+            Track generation progress, preview results, and view usage
+            statistics.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Repository Info Card */}
-        <Card className="p-4">
-          <div className="space-y-2">
-            <div>
-              <div className="text-muted-foreground text-sm">Repository</div>
-              <div className="text-sm font-medium">
-                {job.repository_owner_name}/{job.repository_name}
-              </div>
+        {/* Section: Run Details */}
+        <div className="mt-6 mb-4 flex justify-center">
+          <Badge variant="section">Run Details</Badge>
+        </div>
+
+        <Card className="p-4 space-y-3">
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              Repository
             </div>
-            <div>
-              <div className="text-muted-foreground text-sm">Run ID</div>
-              <div className="text-muted-foreground font-mono text-xs">
-                {job.repository_workflow_run_id}
-              </div>
+            <div className="text-sm font-medium">
+              {job.repository_owner_name}/{job.repository_name}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
+              Run ID
+            </div>
+            <div className="text-muted-foreground font-mono text-xs">
+              {job.repository_workflow_run_id}
             </div>
           </div>
         </Card>
 
+        {/* Section: Progress */}
+        <div className="mt-6 mb-4 flex justify-center">
+          <Badge variant="section">Progress</Badge>
+        </div>
+
         {/* Main Content Area */}
-        <div className="mt-4 flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {/* Loading State */}
           {isLiveLoading && !isLiveReady && (
             <div className="text-sm">Connecting to real-time updates...</div>
@@ -197,9 +203,6 @@ export function GenerateAgentsDialog({
           {/* Progress Display - shown when we have codebaseIds */}
           {codebaseIds.length > 0 && (
             <GenerateAgentsProgress
-              repositoryOwnerName={job.repository_owner_name}
-              repositoryName={job.repository_name}
-              runId={job.repository_workflow_run_id}
               snapshot={parsedSnapshot}
               codebaseIds={codebaseIds}
               isSyncing={isLiveLoading || isRunning}
@@ -218,35 +221,25 @@ export function GenerateAgentsDialog({
 
           {/* Statistics Display (for completed jobs) */}
           {showStatistics && parsedSnapshot?.statistics && (
-            <div className="mt-6">
+            <>
+              {/* Section: Statistics */}
+              <div className="mt-6 mb-4 flex justify-center">
+                <Badge variant="section">Statistics</Badge>
+              </div>
               <AgentStatisticsDisplay statistics={parsedSnapshot.statistics} />
-            </div>
+            </>
           )}
         </div>
 
         {/* Footer Actions */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          {isCompleted && hasPreviewContent && (
-            <div
-              className="flex items-center gap-2 rounded-md bg-green-50 px-2 py-1 text-sm text-green-600"
-              title="Generation completed successfully."
-            >
-              <span aria-hidden="true">✓</span>
-              <span>Agents.md present</span>
-            </div>
-          )}
-
-          {!isCompleted && !hasPreviewContent && <div className="flex-1" />}
-
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              disabled={!hasPreviewContent || isRunning}
-              onClick={() => setIsPreviewOpen(true)}
-            >
-              Preview Result
-            </Button>
-          </div>
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <Button
+            size="sm"
+            disabled={!hasPreviewContent || isRunning}
+            onClick={() => setIsPreviewOpen(true)}
+          >
+            Preview Result
+          </Button>
         </div>
 
         {/* Preview Dialog */}
