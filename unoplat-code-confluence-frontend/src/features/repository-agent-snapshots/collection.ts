@@ -39,7 +39,9 @@ function createCollectionForScope({
       // Let the first subscriber start syncing and GC after a short TTL
       startSync: false,
       gcTime: 1000 * 60 * 2,
-      syncMode: "on-demand",
+      // Electric sync does not currently return a loadSubset handler,
+      // so on-demand mode is unsupported. Keep eager syncing.
+      syncMode: "eager",
       shapeOptions: {
         url: electricShapeUrl,
         params: {
