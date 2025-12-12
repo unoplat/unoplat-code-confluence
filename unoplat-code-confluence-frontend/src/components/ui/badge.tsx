@@ -41,6 +41,9 @@ const badgeVariants = cva(
           "border-transparent bg-purple-500/10 text-purple-600 dark:text-purple-400 [a&]:hover:bg-purple-500/20",
         agent_md_update:
           "border-transparent bg-amber-500/10 text-amber-600 dark:text-amber-400 [a&]:hover:bg-amber-500/20",
+        // Section separator badge variant
+        section:
+          "border-transparent bg-primary/10 text-primary text-[0.7rem] font-semibold uppercase tracking-wide px-3 py-1",
       },
     },
     defaultVariants: {

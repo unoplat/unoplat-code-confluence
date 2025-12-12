@@ -1,8 +1,6 @@
-import { useEffect } from "react";
 import { useLiveQuery } from "@tanstack/react-db";
 
 import {
-  destroyRepositoryAgentSnapshotCollection,
   getRepositoryAgentSnapshotCollection,
   type RepositoryAgentSnapshotScope,
   type RepositoryAgentSnapshotCollection,
@@ -40,31 +38,8 @@ export function useRepositoryAgentSnapshot(
     ? getRepositoryAgentSnapshotCollection(scope)
     : undefined;
 
-  // Preload collection on mount, cleanup on unmount
-  // Using primitive dependencies for proper change detection
-  useEffect(() => {
-    if (!scope || !collection) {
-      return;
-    }
-
-    let isUnmounted = false;
-
-    // Preload is idempotent - concurrent calls share the same promise
-    collection.preload().catch((error) => {
-      if (!isUnmounted) {
-        console.error(
-          "Failed to preload repository agent snapshot collection",
-          error,
-        );
-      }
-    });
-
-    // Cleanup: destroy collection and stop Electric SQL sync
-    return () => {
-      isUnmounted = true;
-      void destroyRepositoryAgentSnapshotCollection(scope);
-    };
-  }, [scope, collection]);
+  // Lifecycle is handled by the collection itself (startSync/gcTime).
+  // Sync starts when the first live query subscribes and GC runs after gcTime.
 
   // useLiveQuery handles all reactivity internally via D2S (differential dataflow)
   // Collection reference is stable from singleton cache
