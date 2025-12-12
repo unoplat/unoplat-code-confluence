@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.35.0...unoplat-code-confluence-frontend-v1.36.0) (2025-12-12)
+
+
+### Features
+
+* **ui-ux:** improved intuitive agent dialog interface for tracking progress and viewing cost/statistics ([bbed6e0](https://github.com/unoplat/unoplat-code-confluence/commit/bbed6e04837d7e9a46d94113ed8db7739b935b45))
+
+
+### Bug Fixes
+
+* **real-time-sync:** improvements to lifecyle handling (to ensure multi consumers of live query are not affected) and increase gc time to pull in cached data for quick refreshes ([9bc5d69](https://github.com/unoplat/unoplat-code-confluence/commit/9bc5d69a424fd1364c9bc8122b8a3e16589490a6))
+* **real-time-sync:** postgres sync engine only supports eager ([58a9d1e](https://github.com/unoplat/unoplat-code-confluence/commit/58a9d1ec659c8c8951c94147e7e6102cf81243f7))
+
 ## [1.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.34.4...unoplat-code-confluence-frontend-v1.35.0) (2025-12-11)
 
 
