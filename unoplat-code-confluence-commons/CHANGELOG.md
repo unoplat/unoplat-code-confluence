@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.38.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.1...unoplat-code-confluence-commons-v0.38.2) (2025-12-12)
+
+
+### Bug Fixes
+
+* **better-status-model:** added error status enum for ai operations ([29b0ba6](https://github.com/unoplat/unoplat-code-confluence/commit/29b0ba6d1713d10c0340a7f7931d0e22db5efc83))
+* **better-status-model:** added error status enum for ai operations ([e0dbcf9](https://github.com/unoplat/unoplat-code-confluence/commit/e0dbcf9016a98cb36ea17b1d7d9eab5338bb7d80))
+
 ## [0.38.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.0...unoplat-code-confluence-commons-v0.38.1) (2025-12-10)
 
 
