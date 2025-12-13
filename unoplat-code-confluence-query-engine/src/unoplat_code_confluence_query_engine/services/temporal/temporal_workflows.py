@@ -96,6 +96,10 @@ class CodebaseAgentWorkflow:
 
         results: dict[str, Any] = {
             "codebase_name": codebase_metadata.codebase_name,
+            "programming_language_metadata": {
+                "primary_language": codebase_metadata.codebase_programming_language,
+                "package_manager": codebase_metadata.codebase_package_manager,
+            },
             "project_configuration": None,
             "development_workflow": None,
             "business_logic_domain": None,

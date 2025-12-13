@@ -79,10 +79,14 @@ class RepositoryWorkflowDbActivity:
             else:
                 # UPDATE existing record
                 # Status preservation: FAILED/ERROR status should never be overwritten with COMPLETED
-                if existing.status in (
-                    JobStatus.FAILED.value,
-                    JobStatus.ERROR.value,
-                ) and envelope.status == JobStatus.COMPLETED.value:
+                if (
+                    existing.status
+                    in (
+                        JobStatus.FAILED.value,
+                        JobStatus.ERROR.value,
+                    )
+                    and envelope.status == JobStatus.COMPLETED.value
+                ):
                     logger.warning(
                         "[repository_workflow_db_activity] Preserving {} status - "
                         "ignoring COMPLETED update for {}/{} run_id={}",
