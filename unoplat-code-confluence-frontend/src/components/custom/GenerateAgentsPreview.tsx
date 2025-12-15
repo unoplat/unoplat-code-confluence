@@ -80,24 +80,23 @@ export function GenerateAgentsPreview({
                   value={codebaseName}
                   className="border-b"
                 >
-                  <AccordionTrigger className="py-4 hover:no-underline">
-                    <div className="flex w-full items-center justify-between pr-2">
+                  <div className="flex items-center gap-2">
+                    <AccordionTrigger className="flex-1 py-4 hover:no-underline">
                       <span className="text-left font-medium">
                         {codebaseName}
                       </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void handleCopyCodebase(codebaseMarkdown);
-                        }}
-                        aria-label={`Copy markdown for ${codebaseName}`}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </AccordionTrigger>
+                    </AccordionTrigger>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        void handleCopyCodebase(codebaseMarkdown);
+                      }}
+                      aria-label={`Copy markdown for ${codebaseName}`}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
 
                   <AccordionContent className="pb-4">
                     <div className="border-border bg-muted/50 rounded-md border p-4">
