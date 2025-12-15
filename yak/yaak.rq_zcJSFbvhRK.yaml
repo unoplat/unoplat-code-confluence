@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_zcJSFbvhRK
 createdAt: 2025-08-26T06:34:22.722423
-updatedAt: 2025-12-10T09:26:34.101001
+updatedAt: 2025-12-15T10:48:05.546495
 workspaceId: wk_KULjx4bEa8
 folderId: fl_jtBaK7a5pU
 authentication: {}
@@ -12,9 +12,9 @@ body:
     {
       "provider_key" : "huggingface",
       "model_name" :
-      "moonshotai/Kimi-K2-Thinking",
+      "deepseek-ai/DeepSeek-V3.2",
       "provider_name":
-      "together"
+      "fireworks-ai"
     }
 bodyType: application/json
 description: ''
@@ -25,12 +25,12 @@ headers:
   id: aimBYzq2DQ
 - enabled: true
   name: X-Model-API-Key
-  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RzVFNjBJSGlyUDlreXpBdEZzbzhTM1orSnpDSWlGTUZoU3lqUTVBbGFVbmNURTNyWWRBM0w2UEhGUXBvSW5TNHdkVGp6NmlQUEc1MVFPelhaZHVxSWM3S3A4R3hyMG1pcHR3MW1ZQnc9PQ') ]}
+  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3SHBweU51RmF3MDhnazZKRW1UOG55SWlBazNaM3FlWXJkVkNKSDZlS1BRbDNmRSsxa1BMN1Z3RGRYZmM1NDdweVFOMmRCYUJoQXkzVFdWRnZTUlVCM093SURRWitQTXNkdW1qc2Vzamc9PQ') ]}
   id: GpqDtwVjyC
 - enabled: true
   name: ''
   value: ''
-  id: sQHXIdUvn2
+  id: EwSutcaN4T
 method: PUT
 name: jay-set-model-provider-huggingface
 sortPriority: -0.0002
