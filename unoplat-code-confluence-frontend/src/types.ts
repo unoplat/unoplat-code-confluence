@@ -147,13 +147,15 @@ export interface ApiResponse {
 // Job submission types
 
 // Job status enum for parent workflow and repository status
+// Must match backend JobStatus enum in workflow_models.py
 export type JobStatus =
   | "SUBMITTED"
   | "RUNNING"
   | "FAILED"
   | "TIMED_OUT"
   | "COMPLETED"
-  | "RETRYING";
+  | "RETRYING"
+  | "ERROR"; // Partial failures (some agents succeeded, some failed)
 
 // Repository workflow operation type
 export type RepositoryWorkflowOperation =
