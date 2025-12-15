@@ -9,7 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
-from unoplat_code_confluence_query_engine.db.postgres.db import get_db_session
+from unoplat_code_confluence_query_engine.db.postgres.db import (
+    get_db_session,
+    get_startup_session,
+)
 from unoplat_code_confluence_query_engine.models.config.ai_model_config import (
     AiModelConfigIn,
     AiModelConfigOut,
@@ -161,15 +164,19 @@ async def upsert_ai_model_config(
     request: Request,
     config: AiModelConfigIn,
     x_model_api_key: str | None = Header(None, alias="X-Model-API-Key"),
-    session: AsyncSession = Depends(get_db_session),
 ) -> AiModelConfigOut:
     """Create or update AI model configuration.
+
+    Uses two-phase commit to ensure credential durability:
+    1. Config and credential are committed first (Phase 1)
+    2. Worker versioning happens after commit (Phase 2, can fail independently)
+
+    This ensures credential is persisted even if worker restart fails.
 
     Args:
         request: FastAPI request object to access app state
         config: AI model configuration input
         x_model_api_key: API key from X-Model-API-Key header
-        session: Database session
 
     Returns:
         AiModelConfigOut with the saved configuration
@@ -182,15 +189,22 @@ async def upsert_ai_model_config(
         worker_manager = get_worker_manager()
         old_build_id = worker_manager.current_build_id
 
-        service: AiModelConfigService = request.app.state.ai_model_config_service
-        result = await service.upsert_config(config, x_model_api_key, session)
-        logger.info("AI model config upserted for provider: {}", config.provider_key)
+        # PHASE 1: Commit config and credential
+        # Uses explicit session that commits at context exit
+        async with get_startup_session() as session:
+            service: AiModelConfigService = request.app.state.ai_model_config_service
+            result = await service.upsert_config(config, x_model_api_key, session)
+            logger.info("AI model config upserted for provider: {}", config.provider_key)
 
-        # Notify about model configuration update (Temporal worker manages agents)
-        await update_app_agents(request.app, session)
+            # update_app_agents rebuilds model cache - safe in same transaction
+            await update_app_agents(request.app, session)
 
-        # Handle Temporal worker versioning
-        await _handle_worker_versioning(request, session, worker_manager, old_build_id)
+        # Transaction committed here - credential now visible to other sessions
+
+        # PHASE 2: Worker versioning (after commit)
+        # Worker restart failure does NOT rollback the config/credential
+        async with get_startup_session() as session:
+            await _handle_worker_versioning(request, session, worker_manager, old_build_id)
 
         return result
 
