@@ -1,6 +1,6 @@
 [project]
 name = "unoplat-code-confluence-query-engine"
-version = "0.24.4"
+version = "0.24.5"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
