@@ -13,7 +13,7 @@ from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_m
 from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
     get_snapshot_writer,
 )
-from unoplat_code_confluence_query_engine.services.temporal.temporal_worker import (
+from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
     TASK_QUEUE,
 )
 from unoplat_code_confluence_query_engine.services.temporal.temporal_workflows import (

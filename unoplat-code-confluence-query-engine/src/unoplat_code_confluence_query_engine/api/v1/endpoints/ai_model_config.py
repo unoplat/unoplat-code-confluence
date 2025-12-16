@@ -116,7 +116,7 @@ async def _handle_worker_versioning(
         )
     except Exception as e:
         logger.error("Failed to restart Temporal worker: {}", e)
-        request.app.state.temporal_worker_manager = None
+        request.app.state.temporal_worker_manager = None    
 
 
 @router.get("/model-config", response_model=AiModelConfigOut)
@@ -194,7 +194,9 @@ async def upsert_ai_model_config(
         async with get_startup_session() as session:
             service: AiModelConfigService = request.app.state.ai_model_config_service
             result = await service.upsert_config(config, x_model_api_key, session)
-            logger.info("AI model config upserted for provider: {}", config.provider_key)
+            logger.info(
+                "AI model config upserted for provider: {}", config.provider_key
+            )
 
             # update_app_agents rebuilds model cache - safe in same transaction
             await update_app_agents(request.app, session)
@@ -204,7 +206,9 @@ async def upsert_ai_model_config(
         # PHASE 2: Worker versioning (after commit)
         # Worker restart failure does NOT rollback the config/credential
         async with get_startup_session() as session:
-            await _handle_worker_versioning(request, session, worker_manager, old_build_id)
+            await _handle_worker_versioning(
+                request, session, worker_manager, old_build_id
+            )
 
         return result
 

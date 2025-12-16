@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_M8yaqNfPSj
 createdAt: 2025-09-09T06:18:32.221021
-updatedAt: 2025-12-15T11:21:44.710816
+updatedAt: 2025-12-16T10:49:46.949698
 workspaceId: wk_KULjx4bEa8
 folderId: fl_ed4G8NrPdv
 authentication: {}
@@ -12,7 +12,7 @@ body:
     {
       "provider_key" : "openrouter",
       "model_name" :
-      "mistralai/devstral-2512:free"
+      "x-ai/grok-code-fast-1"
     }
 bodyType: application/json
 description: ''
