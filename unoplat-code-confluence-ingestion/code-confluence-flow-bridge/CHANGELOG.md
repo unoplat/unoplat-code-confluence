@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.64.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.0...code-confluence-flow-bridge-v0.64.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* automatic error capture post exhausion of retries during ai work… ([415de05](https://github.com/unoplat/unoplat-code-confluence/commit/415de05f4c9785afe22264d5439f20f2819a19e8))
+* **connection-pool-recommendation-settings:** reuse stale connections and increase connection pool for postgres ([2935799](https://github.com/unoplat/unoplat-code-confluence/commit/2935799a5a1c160ebba5b6da76d4adbdcd73eadf))
+
 ## [0.64.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.63.0...code-confluence-flow-bridge-v0.64.0) (2025-12-09)
 
 
