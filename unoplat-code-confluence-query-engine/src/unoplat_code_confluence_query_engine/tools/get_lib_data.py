@@ -7,8 +7,8 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
     AgentDependencies,
 )
 from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
+    get_context7_agent,
     get_library_documentation_service,
-    get_temporal_context7_agent,
 )
 
 
@@ -46,12 +46,12 @@ async def get_lib_data(
     )
 
     try:
-        # Get Context7 TemporalAgent and service from ServiceRegistry
-        logger.debug(
-            "[get_lib_data] Fetching Context7 TemporalAgent from ServiceRegistry..."
-        )
-        context7_temporal_agent = get_temporal_context7_agent()
-        logger.debug("[get_lib_data] Context7 TemporalAgent retrieved successfully")
+        # Get singleton Context7 Agent from ServiceRegistry.
+        # The agent is initialized at worker startup with its MCPServer and model configuration.
+        # Using a singleton avoids connection overhead of creating fresh MCPServer per call.
+        logger.debug("[get_lib_data] Getting singleton Context7 Agent from registry...")
+        context7_agent = get_context7_agent()
+        logger.debug("[get_lib_data] Context7 Agent retrieved successfully")
 
         logger.debug("[get_lib_data] Fetching LibraryDocumentationService...")
         library_service = get_library_documentation_service()
@@ -59,15 +59,14 @@ async def get_lib_data(
             "[get_lib_data] LibraryDocumentationService retrieved successfully"
         )
 
-        # type: ignore[reportArgumentType]
         logger.info(
-            "[get_lib_data] Calling Context7 TemporalAgent for {} ({})...",
+            "[get_lib_data] Calling Context7 Agent for {} ({})...",
             lib_name,
             programming_language,
         )
 
         result = await library_service.get_library_documentation(
-            context7_temporal_agent=context7_temporal_agent,
+            context7_agent=context7_agent,
             lib_name=lib_name,
             programming_language=programming_language,
             feature_description=feature_description,

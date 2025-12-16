@@ -42,25 +42,27 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.repositor
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_db_activity import (
     RepositoryWorkflowDbActivity,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.business_logic_post_process_activity import (
+    BusinessLogicPostProcessActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
     DEPLOYMENT_NAME,
     compute_credential_hash,
     generate_build_id,
 )
+from unoplat_code_confluence_query_engine.services.temporal.context7_agents import (
+    create_context7_agent,
+)
 from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
     AgentWorkflowStatusInterceptor,
 )
 from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
+    Context7AgentConfig,
     ServiceRegistry,
 )
 from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
-    create_context7_agent,
-    create_context7_temporal_agent,
     get_temporal_agents,
     initialize_temporal_agents,
-)
-from unoplat_code_confluence_query_engine.services.temporal.temporal_worker import (
-    TASK_QUEUE,
 )
 from unoplat_code_confluence_query_engine.services.temporal.temporal_workflows import (
     CodebaseAgentWorkflow,
@@ -72,6 +74,9 @@ from unoplat_code_confluence_query_engine.services.temporal.version_management i
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+# Task queue name for the agent workflows
+TASK_QUEUE = "agent-queue"
 
 
 def _setup_logfire(settings: EnvironmentSettings) -> logfire.Logfire:
@@ -246,46 +251,57 @@ class TemporalWorkerManager:
         )
 
         # Initialize temporal agents with model from database
-        initialize_temporal_agents(model, model_settings)
+        # Note: initialize_temporal_agents creates its own TemporalAgentRetryConfig internally
+        initialize_temporal_agents(model, settings, model_settings)
         logger.info(
             "[temporal_worker_manager] Temporal agents initialized with database model"
         )
 
-        # Create Context7 agents
+        # Store Context7 agent configuration for request-scoped plain Agent creation.
+        # We use plain Agent (NOT TemporalAgent) for Context7 because:
+        # - TemporalAgent wraps MCP operations (get_tools, call_tool) in separate activities
+        # - MCP's cancel scope gets entered in one activity task and exited in another
+        # - This causes RuntimeError: "cancel scope in different task"
+        # - Plain Agent executes MCP calls directly within the calling activity's async context
+        context7_config = Context7AgentConfig(
+            model=model,
+            mcp_server_name="context7",
+            model_settings=model_settings,
+        )
+        self._registry.context7_agent_config = context7_config
+        logger.info(
+            "[temporal_worker_manager] Stored Context7AgentConfig for request-scoped plain Agent creation"
+        )
+
+        # Create plain Context7 agent for the registry (non-Temporal use cases if any)
         context7_server = self._registry.mcp_server_manager.get_server_by_name(
             "context7"
         )
-        context7_agent = create_context7_agent(model, context7_server)
-        temporal_context7_agent = create_context7_temporal_agent(model, context7_server)
-
-        # Store Context7 agents in registry for tools to access
+        context7_agent = create_context7_agent(model, context7_server, model_settings)
         self._registry.context7_agent = context7_agent
-        self._registry.temporal_context7_agent = temporal_context7_agent
         logger.info(
-            "[temporal_worker_manager] Created Context7 agents (MCP server: {})",
-            "enabled" if context7_server else "disabled",
+            "[temporal_worker_manager] Created plain Context7 agent (no AgentPlugin - uses direct execution)"
         )
 
         # Get temporal agents and create plugins
+        # Note: Context7 is NOT registered as AgentPlugin because we use plain Agent
+        # (not TemporalAgent) to avoid MCP cancel scope conflicts
         temporal_agents = get_temporal_agents()
         agent_plugins: list[AgentPlugin] = [
             AgentPlugin(agent) for agent in temporal_agents.values()
         ]
 
-        # Add Context7 agent plugin
-        context7_plugin = AgentPlugin(temporal_context7_agent)
-        agent_plugins.append(context7_plugin)
-
         logger.info(
             "[temporal_worker_manager] Created {} agent plugins: {}",
             len(agent_plugins),
-            list(temporal_agents.keys()) + ["context7_agent"],
+            list(temporal_agents.keys()),
         )
 
         # Create DB activity instances
         repo_db_activity = RepositoryWorkflowDbActivity()
         codebase_db_activity = CodebaseWorkflowDbActivity()
         snapshot_activity = RepositoryAgentSnapshotActivity()
+        business_logic_post_process_activity = BusinessLogicPostProcessActivity()
 
         # Build interceptor list - always include status interceptor
         all_interceptors: list[Interceptor] = [AgentWorkflowStatusInterceptor()]
@@ -324,6 +340,7 @@ class TemporalWorkerManager:
                 repo_db_activity.update_repository_workflow_status,
                 codebase_db_activity.update_codebase_workflow_status,
                 snapshot_activity.persist_agent_snapshot_complete,
+                business_logic_post_process_activity.post_process_business_logic,
             ],
             plugins=agent_plugins,
             interceptors=all_interceptors,

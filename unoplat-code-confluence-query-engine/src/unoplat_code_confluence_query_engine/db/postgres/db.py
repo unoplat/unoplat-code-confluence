@@ -98,7 +98,18 @@ async def init_db_connections(settings: EnvironmentSettings) -> None:
         pass
 
     async_engine = create_async_engine(
-        settings.postgres_url, echo=settings.db_echo, pool_size=20, max_overflow=10
+        settings.postgres_url,
+        echo=settings.db_echo,
+        pool_size=20,
+        max_overflow=10,
+        pool_pre_ping=True,
+        pool_recycle=1800,
+        pool_timeout=30,
+        connect_args={
+            "server_settings": {
+                "application_name": "query-engine"
+            }
+        },
     )
 
     AsyncSessionFactory = async_sessionmaker(
