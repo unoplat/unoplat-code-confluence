@@ -78,10 +78,21 @@ export const agentMdBusinessLogicSchema = z.object({
   ),
 });
 
+export const agentMdProgrammingLanguageMetadataSchema = z.object({
+  primary_language: z.string(),
+  package_manager: z.string(),
+});
+
+export type AgentMdProgrammingLanguageMetadata = z.infer<
+  typeof agentMdProgrammingLanguageMetadataSchema
+>;
+
 export const agentMdCodebaseOutputSchema = z.object({
   codebase_name: z.string(),
   // Use .nullish() to accept both null (from PostgreSQL/Python None) and undefined (missing key)
   statistics: z.lazy(() => usageStatisticsSchema).nullish(),
+  programming_language_metadata:
+    agentMdProgrammingLanguageMetadataSchema.nullish(),
   project_configuration: agentMdProjectConfigurationSchema.nullish(),
   development_workflow: agentMdDevelopmentWorkflowSchema.nullish(),
   business_logic_domain: agentMdBusinessLogicSchema.nullish(),
