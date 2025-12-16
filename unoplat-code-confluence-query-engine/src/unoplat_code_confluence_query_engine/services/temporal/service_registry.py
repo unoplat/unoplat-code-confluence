@@ -6,8 +6,10 @@ AgentDependencies, since deps must be Pydantic-serializable for Temporal.
 
 from pathlib import Path
 
+from pydantic import BaseModel, ConfigDict
 from pydantic_ai import Agent
-from pydantic_ai.durable_exec.temporal import TemporalAgent
+from pydantic_ai.models import Model
+from pydantic_ai.settings import ModelSettings
 
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
@@ -24,6 +26,26 @@ from unoplat_code_confluence_query_engine.services.workflow.library_documentatio
 )
 
 
+class Context7AgentConfig(BaseModel):
+    """Configuration for creating plain Context7 Agent on-demand.
+
+    Stores the parameters needed to build a fresh Context7 agent per call,
+    avoiding shared MCPServer lifecycle issues under concurrency.
+
+    We use plain Agent (NOT TemporalAgent) for Context7 because TemporalAgent
+    wraps MCP operations (get_tools, call_tool) in separate activities, causing
+    cancel scope conflicts when the MCP exit stack is closed in a different
+    task than it was created. Plain Agent executes MCP calls directly within
+    the calling activity's async context, keeping cancel scopes in the same task.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    model: Model
+    mcp_server_name: str
+    model_settings: ModelSettings | None = None
+
+
 class ServiceRegistry:
     """Holds non-serializable services for activity access."""
 
@@ -34,8 +56,8 @@ class ServiceRegistry:
         self._neo4j_manager: CodeConfluenceGraphQueryEngine | None = None
         self._settings: EnvironmentSettings | None = None
         self._mcp_server_manager: MCPServerManager | None = None
-        self._temporal_context7_agent: TemporalAgent[None, str] | None = None
         self._context7_agent: Agent[None, str] | None = None
+        self._context7_agent_config: Context7AgentConfig | None = None
         self._library_documentation_service: LibraryDocumentationService | None = None
         self._snapshot_writer: RepositoryAgentSnapshotWriter | None = None
 
@@ -114,29 +136,6 @@ class ServiceRegistry:
         return self._mcp_server_manager
 
     @property
-    def temporal_context7_agent(self) -> TemporalAgent[None, str]:
-        """Get Context7 TemporalAgent instance.
-
-        Returns:
-            Configured TemporalAgent for Context7.
-
-        Raises:
-            RuntimeError: If Context7 agent not configured.
-        """
-        if not self._temporal_context7_agent:
-            raise RuntimeError("Context7 TemporalAgent not configured")
-        return self._temporal_context7_agent
-
-    @temporal_context7_agent.setter
-    def temporal_context7_agent(self, agent: TemporalAgent[None, str]) -> None:
-        """Set Context7 TemporalAgent instance.
-
-        Args:
-            agent: TemporalAgent wrapping Context7 agent
-        """
-        self._temporal_context7_agent = agent
-
-    @property
     def context7_agent(self) -> Agent[None, str]:
         """Get plain Context7 Agent instance (non-durable).
 
@@ -153,6 +152,29 @@ class ServiceRegistry:
         """Set plain Context7 Agent instance."""
 
         self._context7_agent = agent
+
+    @property
+    def context7_agent_config(self) -> Context7AgentConfig:
+        """Get Context7 agent configuration for on-demand creation.
+
+        Returns:
+            Configuration for creating Context7 agents on-demand.
+
+        Raises:
+            RuntimeError: If configuration not set.
+        """
+        if not self._context7_agent_config:
+            raise RuntimeError("Context7AgentConfig not configured")
+        return self._context7_agent_config
+
+    @context7_agent_config.setter
+    def context7_agent_config(self, config: Context7AgentConfig) -> None:
+        """Set Context7 agent configuration.
+
+        Args:
+            config: Configuration for creating Context7 agents on-demand.
+        """
+        self._context7_agent_config = config
 
     @property
     def library_documentation_service(self) -> LibraryDocumentationService:
@@ -203,15 +225,6 @@ def get_mcp_server_manager() -> MCPServerManager:
     return ServiceRegistry.get_instance().mcp_server_manager
 
 
-def get_temporal_context7_agent() -> TemporalAgent[None, str]:
-    """Get Context7 TemporalAgent from registry.
-
-    Returns:
-        TemporalAgent instance for Context7.
-    """
-    return ServiceRegistry.get_instance().temporal_context7_agent
-
-
 def get_context7_agent() -> Agent[None, str]:
     """Get plain Context7 Agent from registry.
 
@@ -220,6 +233,15 @@ def get_context7_agent() -> Agent[None, str]:
     """
 
     return ServiceRegistry.get_instance().context7_agent
+
+
+def get_context7_agent_config() -> Context7AgentConfig:
+    """Get Context7AgentConfig from registry.
+
+    Returns:
+        Configuration for creating Context7 agents on-demand.
+    """
+    return ServiceRegistry.get_instance().context7_agent_config
 
 
 def get_library_documentation_service() -> LibraryDocumentationService:

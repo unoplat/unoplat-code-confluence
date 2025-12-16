@@ -1,11 +1,10 @@
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import HTTPException
 from loguru import logger
 from sqlalchemy import select
 from unoplat_code_confluence_commons.base_models import (
     CodebaseConfigSQLModel,
-    ProgrammingLanguageMetadata,
     Repository,
 )
 
@@ -100,13 +99,8 @@ async def fetch_repository_metadata(
             path_mapping = {path: None for path in relative_paths}
 
         # Convert to CodebaseMetadata objects
-        codebase_metadata_list = []
+        codebase_metadata_list: List[CodebaseMetadata] = []
         for config in codebase_configs:
-            # Parse programming_language_metadata JSON field
-            prog_lang_metadata = ProgrammingLanguageMetadata(
-                **config.programming_language_metadata
-            )
-
             # Get absolute path from Neo4j mapping, fallback to relative path if not found
             relative_path = config.codebase_folder
             absolute_path = path_mapping.get(relative_path)
@@ -135,11 +129,21 @@ async def fetch_repository_metadata(
                 else "None",
             )
 
+            # Use Neo4j metadata which has the authoritative programming language data
+            if not neo4j_prog_lang_metadata:
+                raise HTTPException(
+                    status_code=404,
+                    detail=(
+                        f"Programming language metadata not found in Neo4j for codebase: "
+                        f"{relative_path}"
+                    ),
+                )
+
             codebase_metadata = CodebaseMetadata(
-                codebase_name=relative_path,  # Use relative path as identifier
-                codebase_path=absolute_path,  # Use absolute path from Neo4j
-                codebase_programming_language=prog_lang_metadata.language.value,
-                codebase_package_manager=prog_lang_metadata.package_manager.value,
+                codebase_name=relative_path,
+                codebase_path=absolute_path,
+                codebase_programming_language=neo4j_prog_lang_metadata.primary_language,
+                codebase_package_manager=neo4j_prog_lang_metadata.package_manager,
             )
             codebase_metadata_list.append(codebase_metadata)
 

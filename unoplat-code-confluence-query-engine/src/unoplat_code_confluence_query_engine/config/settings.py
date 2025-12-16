@@ -161,6 +161,97 @@ class EnvironmentSettings(BaseSettings):
         description="Enable Temporal worker at app startup",
     )
 
+    # Temporal Activity Retry Settings (for TemporalAgent activities)
+    # Model activities - for LLM provider requests (more tolerant of transient issues)
+    temporal_model_activity_max_attempts: int = Field(
+        default=5,
+        alias="TEMPORAL_MODEL_ACTIVITY_MAX_ATTEMPTS",
+        description="Maximum retry attempts for model request activities",
+        ge=1,
+        le=10,
+    )
+    temporal_model_activity_initial_interval_s: float = Field(
+        default=2.0,
+        alias="TEMPORAL_MODEL_ACTIVITY_INITIAL_INTERVAL_S",
+        description="Initial backoff interval in seconds for model activities",
+        ge=0.5,
+        le=30.0,
+    )
+    temporal_model_activity_backoff_coefficient: float = Field(
+        default=2.0,
+        alias="TEMPORAL_MODEL_ACTIVITY_BACKOFF_COEFFICIENT",
+        description="Backoff coefficient for model activities",
+        ge=1.0,
+        le=5.0,
+    )
+    temporal_model_activity_max_interval_s: float = Field(
+        default=60.0,
+        alias="TEMPORAL_MODEL_ACTIVITY_MAX_INTERVAL_S",
+        description="Maximum backoff interval in seconds for model activities",
+        ge=10.0,
+        le=300.0,
+    )
+
+    # Toolset activities - for get-tools/list-tools operations (toolset level)
+    temporal_toolset_activity_max_attempts: int = Field(
+        default=3,
+        alias="TEMPORAL_TOOLSET_ACTIVITY_MAX_ATTEMPTS",
+        description="Maximum retry attempts for toolset activities (get-tools/list-tools)",
+        ge=1,
+        le=5,
+    )
+    temporal_toolset_activity_initial_interval_s: float = Field(
+        default=1.0,
+        alias="TEMPORAL_TOOLSET_ACTIVITY_INITIAL_INTERVAL_S",
+        description="Initial backoff interval in seconds for toolset activities",
+        ge=0.1,
+        le=10.0,
+    )
+    temporal_toolset_activity_backoff_coefficient: float = Field(
+        default=1.5,
+        alias="TEMPORAL_TOOLSET_ACTIVITY_BACKOFF_COEFFICIENT",
+        description="Backoff coefficient for toolset activities",
+        ge=1.0,
+        le=3.0,
+    )
+    temporal_toolset_activity_max_interval_s: float = Field(
+        default=10.0,
+        alias="TEMPORAL_TOOLSET_ACTIVITY_MAX_INTERVAL_S",
+        description="Maximum backoff interval in seconds for toolset activities",
+        ge=1.0,
+        le=60.0,
+    )
+
+    # Tool activities - for individual tool call execution (more conservative)
+    temporal_tool_activity_max_attempts: int = Field(
+        default=3,
+        alias="TEMPORAL_TOOL_ACTIVITY_MAX_ATTEMPTS",
+        description="Maximum retry attempts for individual tool call activities",
+        ge=1,
+        le=5,
+    )
+    temporal_tool_activity_initial_interval_s: float = Field(
+        default=1.0,
+        alias="TEMPORAL_TOOL_ACTIVITY_INITIAL_INTERVAL_S",
+        description="Initial backoff interval in seconds for tool activities",
+        ge=0.1,
+        le=10.0,
+    )
+    temporal_tool_activity_backoff_coefficient: float = Field(
+        default=1.5,
+        alias="TEMPORAL_TOOL_ACTIVITY_BACKOFF_COEFFICIENT",
+        description="Backoff coefficient for tool activities",
+        ge=1.0,
+        le=3.0,
+    )
+    temporal_tool_activity_max_interval_s: float = Field(
+        default=10.0,
+        alias="TEMPORAL_TOOL_ACTIVITY_MAX_INTERVAL_S",
+        description="Maximum backoff interval in seconds for tool activities",
+        ge=1.0,
+        le=60.0,
+    )
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def retry_status_codes_list(self) -> list[int]:
