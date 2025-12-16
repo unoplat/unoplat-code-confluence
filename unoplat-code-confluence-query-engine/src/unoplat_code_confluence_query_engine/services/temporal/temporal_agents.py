@@ -42,6 +42,7 @@ from unoplat_code_confluence_query_engine.tools.get_data_model_files import (
 from unoplat_code_confluence_query_engine.tools.get_directory_tree import (
     get_directory_tree,
 )
+from unoplat_code_confluence_query_engine.tools.get_lib_data import get_lib_data
 from unoplat_code_confluence_query_engine.tools.search_across_codebase import (
     search_across_codebase,
 )
@@ -90,7 +91,7 @@ def create_project_configuration_agent(
             Tool(get_directory_tree, takes_ctx=True),
             Tool(read_file_content, takes_ctx=True),
             Tool(search_across_codebase, takes_ctx=True),
-            # Tool(get_lib_data),
+            Tool(get_lib_data),
         ],
         output_type=ProjectConfiguration,
         model_settings=model_settings,
@@ -123,7 +124,7 @@ def create_development_workflow_agent(
         tools=[
             Tool(get_directory_tree, takes_ctx=True),
             Tool(read_file_content, takes_ctx=True),
-            # Tool(get_lib_data),
+            Tool(get_lib_data),
         ],
         output_type=DevelopmentWorkflow,
         model_settings=model_settings,
@@ -261,7 +262,8 @@ def create_temporal_agents(
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
             toolset_activity_config={default_toolset_id: toolset_activity_config},
-            # Disable activity for get_lib_data since it calls Context7 TemporalAgent internally.
+            # Disable activity for get_lib_data since it calls
+            # Context7 TemporalAgent internally.
             tool_activity_config={
                 default_toolset_id: {
                     "get_lib_data": tool_activity_config_base,
