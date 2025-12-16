@@ -4,10 +4,12 @@ This module defines the RepositoryAgentWorkflow that orchestrates
 parallel execution of CodebaseAgentWorkflows for each codebase in a repository.
 """
 
+import traceback
 from datetime import timedelta
 from typing import Any
 
 from temporalio import common, workflow
+from temporalio.exceptions import ApplicationError
 from temporalio.workflow import ChildWorkflowHandle, ParentClosePolicy
 
 # Import non-deterministic/logging/DB-dependent modules outside the sandbox
@@ -94,6 +96,10 @@ class CodebaseAgentWorkflow:
 
         results: dict[str, Any] = {
             "codebase_name": codebase_metadata.codebase_name,
+            "programming_language_metadata": {
+                "primary_language": codebase_metadata.codebase_programming_language,
+                "package_manager": codebase_metadata.codebase_package_manager,
+            },
             "project_configuration": None,
             "development_workflow": None,
             "business_logic_domain": None,
@@ -101,6 +107,9 @@ class CodebaseAgentWorkflow:
 
         # Track usage statistics from each agent for aggregation
         agent_stats: list[UsageStatistics] = []
+
+        # Track errors from agent execution (continue & collect all strategy)
+        agent_errors: list[dict[str, Any]] = []
 
         # Step 1: Project Configuration Agent
         if "project_configuration_agent" in temporal_agents:
@@ -143,7 +152,13 @@ class CodebaseAgentWorkflow:
                     e,
                 )
                 logger.exception("[workflow] Full traceback:")
-                results["project_configuration_error"] = str(e)
+                # Collect error for aggregation - do NOT store in results
+                agent_errors.append({
+                    "agent": "project_configuration_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                })
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -200,7 +215,13 @@ class CodebaseAgentWorkflow:
                     e,
                 )
                 logger.exception("[workflow] Full traceback:")
-                results["development_workflow_error"] = str(e)
+                # Collect error for aggregation - do NOT store in results
+                agent_errors.append({
+                    "agent": "development_workflow_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                })
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -248,7 +269,13 @@ class CodebaseAgentWorkflow:
                     e,
                 )
                 logger.exception("[workflow] Full traceback:")
-                results["business_logic_domain_error"] = str(e)
+                # Collect error for aggregation - do NOT store in results
+                agent_errors.append({
+                    "agent": "business_logic_domain_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                })
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -262,6 +289,21 @@ class CodebaseAgentWorkflow:
         # Aggregate statistics from all agents and add to results
         codebase_statistics = aggregate_usage_statistics(agent_stats)
         results["statistics"] = codebase_statistics.model_dump()
+
+        # If any agents failed, raise ApplicationError to propagate to interceptor
+        # This triggers ERROR status in DB and populates error_report
+        if agent_errors:
+            error_summary = f"Agent execution failed for {len(agent_errors)} agent(s) in codebase '{codebase_metadata.codebase_name}'"
+            logger.warning(
+                "[workflow] {} - raising ApplicationError to propagate to interceptor",
+                error_summary,
+            )
+            raise ApplicationError(
+                error_summary,
+                agent_errors,
+                type="AgentExecutionError",
+                non_retryable=True,
+            )
 
         logger.info(
             "[workflow] CodebaseAgentWorkflow completed for {}/{}",
@@ -349,7 +391,10 @@ class RepositoryAgentWorkflow:
             return_exceptions=True,
         )
 
-        # Phase 3: Process results and build statistics map
+        # Phase 3: Process results, build statistics map, and track child errors
+        # Track child workflow errors for aggregation - do NOT store in results
+        child_errors: list[dict[str, str]] = []
+
         for (codebase_name, _), result in zip(child_handles, results_list):
             if isinstance(result, BaseException):
                 logger.error(
@@ -358,7 +403,11 @@ class RepositoryAgentWorkflow:
                     codebase_name,
                     result,
                 )
-                results["codebases"][codebase_name] = {"error": str(result)}
+                # Collect error for aggregation - do NOT store in results
+                child_errors.append({
+                    "codebase": codebase_name,
+                    "error": str(result),
+                })
                 codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
             else:
                 logger.debug(
@@ -374,7 +423,7 @@ class RepositoryAgentWorkflow:
                     codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
 
         logger.info(
-            f"[workflow] RepositoryAgentWorkflow completed for {repository_qualified_name}"
+            f"[workflow] RepositoryAgentWorkflow processed {len(codebase_metadata_list)} codebases for {repository_qualified_name}"
         )
 
         # Build workflow-level statistics from all codebases
@@ -399,6 +448,22 @@ class RepositoryAgentWorkflow:
             "[workflow] Agent snapshot output persisted for {}",
             repository_qualified_name,
         )
+
+        # If any child workflows failed, raise ApplicationError to propagate to interceptor
+        # This triggers ERROR status in DB and populates error_report
+        # Raise AFTER persisting snapshot so we don't lose partial results
+        if child_errors:
+            error_summary = f"{len(child_errors)} codebase(s) failed during agent execution"
+            logger.warning(
+                "[workflow] {} - raising ApplicationError to propagate to interceptor",
+                error_summary,
+            )
+            raise ApplicationError(
+                error_summary,
+                child_errors,
+                type="CodebaseWorkflowError",
+                non_retryable=True,
+            )
 
         logger.debug("[workflow] RepositoryAgentWorkflow.run END")
 

@@ -627,7 +627,7 @@ interface RepositoryAgentSnapshotResponse {
 export interface RepositoryAgentSnapshot {
   status: RepoAgentSnapshotStatus;
   repository?: string;
-  codebases: Record<string, string>; // codebase_name -> JSON string of AgentMdOutput
+  codebases: Record<string, string>; // codebase_name -> JSON string of AgentMdCodebaseOutput
 }
 
 /**

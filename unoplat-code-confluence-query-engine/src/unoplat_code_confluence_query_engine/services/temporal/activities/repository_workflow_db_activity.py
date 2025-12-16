@@ -78,14 +78,19 @@ class RepositoryWorkflowDbActivity:
                 session.add(new_record)
             else:
                 # UPDATE existing record
-                # Status preservation: FAILED status should never be overwritten with COMPLETED
+                # Status preservation: FAILED/ERROR status should never be overwritten with COMPLETED
                 if (
-                    existing.status == JobStatus.FAILED.value
+                    existing.status
+                    in (
+                        JobStatus.FAILED.value,
+                        JobStatus.ERROR.value,
+                    )
                     and envelope.status == JobStatus.COMPLETED.value
                 ):
                     logger.warning(
-                        "[repository_workflow_db_activity] Preserving FAILED status - "
+                        "[repository_workflow_db_activity] Preserving {} status - "
                         "ignoring COMPLETED update for {}/{} run_id={}",
+                        existing.status,
                         envelope.repository_owner_name,
                         envelope.repository_name,
                         envelope.workflow_run_id,
@@ -104,6 +109,7 @@ class RepositoryWorkflowDbActivity:
                     JobStatus.COMPLETED.value,
                     JobStatus.FAILED.value,
                     JobStatus.TIMED_OUT.value,
+                    JobStatus.ERROR.value,
                 ):
                     existing.completed_at = now
 

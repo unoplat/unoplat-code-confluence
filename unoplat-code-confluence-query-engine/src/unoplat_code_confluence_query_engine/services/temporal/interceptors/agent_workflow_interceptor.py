@@ -228,7 +228,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             )
         except (ActivityError, ChildWorkflowError, ApplicationError, Exception) as e:
             exc = e
-            status = JobStatus.FAILED.value
+            status = JobStatus.ERROR.value
             error_report = self._build_error_report(e)
             bound_logger.error(
                 "[agent_workflow_interceptor] RepositoryAgentWorkflow failed: {}",
@@ -360,7 +360,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             )
         except (ActivityError, ChildWorkflowError, ApplicationError, Exception) as e:
             exc = e
-            status = JobStatus.FAILED.value
+            status = JobStatus.ERROR.value
             error_report = self._build_error_report(e)
             bound_logger.error(
                 "[agent_workflow_interceptor] CodebaseAgentWorkflow failed: {}",
@@ -390,11 +390,11 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 status,
             )
 
-            # CASCADE FAILURE: If codebase workflow failed, mark parent as FAILED too
-            if status == JobStatus.FAILED.value and repository_workflow_run_id:
+            # CASCADE FAILURE: If codebase workflow failed, mark parent as ERROR too
+            if status == JobStatus.ERROR.value and repository_workflow_run_id:
                 bound_logger.warning(
                     "[agent_workflow_interceptor] Codebase workflow failed, "
-                    "marking parent repository workflow {} as FAILED",
+                    "marking parent repository workflow {} as ERROR",
                     repository_workflow_run_id,
                 )
                 parent_failed_envelope = ParentWorkflowDbActivityEnvelope(
@@ -402,7 +402,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     repository_owner_name=owner_name,
                     workflow_id=workflow_id,
                     workflow_run_id=repository_workflow_run_id,
-                    status=JobStatus.FAILED.value,
+                    status=JobStatus.ERROR.value,
                     error_report=None,
                     trace_id=trace_id,
                 )
@@ -413,7 +413,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     retry_policy=DB_ACTIVITY_RETRY_POLICY,
                 )
                 bound_logger.info(
-                    "[agent_workflow_interceptor] Parent repository workflow marked as FAILED"
+                    "[agent_workflow_interceptor] Parent repository workflow marked as ERROR"
                 )
 
         if exc:
