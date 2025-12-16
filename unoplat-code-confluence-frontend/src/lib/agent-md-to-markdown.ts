@@ -1,16 +1,15 @@
 import json2md from "json2md";
-import type { AgentMdOutput } from "@/types/sse";
+import type { AgentMdCodebaseOutput } from "@/features/repository-agent-snapshots/schema";
 
 interface AgentMdToMarkdownOptions {
   title?: string;
 }
 
 export function agentMdOutputToMarkdown(
-  agent: AgentMdOutput,
+  agent: AgentMdCodebaseOutput,
   options?: AgentMdToMarkdownOptions,
 ): string {
   const title: string = options?.title ?? "Agents Documentation";
-
   const entries: unknown[] = [];
 
   entries.push({ h1: title });
@@ -61,13 +60,13 @@ export function agentMdOutputToMarkdown(
 
   // Business logic domain
   entries.push({ h2: "Business Logic Domain" });
-  if (agent?.business_logic?.description) {
-    entries.push({ p: agent.business_logic.description });
+  if (agent?.business_logic_domain?.description) {
+    entries.push({ p: agent.business_logic_domain.description });
   }
-  if (agent?.business_logic?.data_models?.length) {
+  if (agent?.business_logic_domain?.data_models?.length) {
     entries.push({ h3: "Core Files" });
     entries.push({
-      ul: agent.business_logic.data_models.map(
+      ul: agent.business_logic_domain.data_models.map(
         (m) => `${m.path}${m.responsibility ? ` — ${m.responsibility}` : ""}`,
       ),
     });
@@ -77,7 +76,7 @@ export function agentMdOutputToMarkdown(
 }
 
 export function codebasesToMarkdown(
-  codebases: Record<string, AgentMdOutput>,
+  codebases: Record<string, AgentMdCodebaseOutput>,
   options?: AgentMdToMarkdownOptions,
 ): string {
   const title: string = options?.title ?? "Agents Documentation";
@@ -135,13 +134,13 @@ export function codebasesToMarkdown(
 
     // Business logic domain
     entries.push({ h3: "Business Logic Domain" });
-    if (agent?.business_logic?.description) {
-      entries.push({ p: agent.business_logic.description });
+    if (agent?.business_logic_domain?.description) {
+      entries.push({ p: agent.business_logic_domain.description });
     }
-    if (agent?.business_logic?.data_models?.length) {
+    if (agent?.business_logic_domain?.data_models?.length) {
       entries.push({ h4: "Core Files" });
       entries.push({
-        ul: agent.business_logic.data_models.map(
+        ul: agent.business_logic_domain.data_models.map(
           (m) => `${m.path}${m.responsibility ? ` — ${m.responsibility}` : ""}`,
         ),
       });
