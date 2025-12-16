@@ -116,7 +116,7 @@ async def _handle_worker_versioning(
         )
     except Exception as e:
         logger.error("Failed to restart Temporal worker: {}", e)
-        request.app.state.temporal_worker_manager = None
+        request.app.state.temporal_worker_manager = None    
 
 
 @router.get("/model-config", response_model=AiModelConfigOut)
