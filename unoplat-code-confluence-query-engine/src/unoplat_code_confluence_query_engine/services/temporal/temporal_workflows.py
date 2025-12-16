@@ -4,8 +4,8 @@ This module defines the RepositoryAgentWorkflow that orchestrates
 parallel execution of CodebaseAgentWorkflows for each codebase in a repository.
 """
 
-import traceback
 from datetime import timedelta
+import traceback
 from typing import Any
 
 from temporalio import common, workflow
@@ -31,6 +31,9 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.business_logic_post_process_activity import (
+        BusinessLogicPostProcessActivity,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
         RepositoryAgentSnapshotActivity,
@@ -255,7 +258,18 @@ class CodebaseAgentWorkflow:
                     deps=business_logic_deps,
                 )
                 logger.debug("[workflow] business_logic_domain_agent.run() returned")
-                results["business_logic_domain"] = domain_result.output
+                # Post-process to enrich with data model files from Neo4j
+                business_logic_result = await workflow.execute_activity(
+                    BusinessLogicPostProcessActivity.post_process_business_logic,
+                    args=[
+                        domain_result.output,  # str description from agent
+                        codebase_metadata.codebase_path,
+                        codebase_metadata.codebase_programming_language,
+                    ],
+                    start_to_close_timeout=timedelta(minutes=1),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
+                results["business_logic_domain"] = business_logic_result
                 logger.info(
                     "[workflow] business_logic_domain_agent completed for {}",
                     codebase_metadata.codebase_name,

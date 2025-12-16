@@ -1,19 +1,20 @@
-"""Service for handling library documentation lookups using Context7 TemporalAgent."""
+"""Service for handling library documentation lookups using Context7 Agent."""
 
 from loguru import logger
-from pydantic_ai.durable_exec.temporal import TemporalAgent
+from pydantic_ai import Agent
 
 
 class LibraryDocumentationService:
-    """Service for retrieving library documentation using Context7 TemporalAgent.
+    """Service for retrieving library documentation using plain Context7 Agent.
 
-    With TemporalAgent, each run() is isolated in a separate Temporal activity,
-    providing natural isolation and eliminating CancelScope conflicts.
+    Uses plain Agent (NOT TemporalAgent) to execute MCP calls directly within
+    the calling async context, avoiding cancel scope conflicts when running
+    under Temporal activities.
     """
 
     async def get_library_documentation(
         self,
-        context7_temporal_agent: TemporalAgent[None, str],
+        context7_agent: Agent[None, str],
         lib_name: str,
         programming_language: str,
         feature_description: str | None = None,
@@ -22,7 +23,7 @@ class LibraryDocumentationService:
         """Get concise library/framework documentation summary.
 
         Args:
-            context7_temporal_agent: Context7 TemporalAgent for durable execution (120s timeout)
+            context7_agent: Plain Context7 Agent for MCP-based lookups.
             lib_name: Name of the library/framework
             programming_language: Programming language context (required)
             feature_description: Optional specific feature name or functionality description
@@ -67,8 +68,9 @@ class LibraryDocumentationService:
                     f"2) Primary use case, 3) Key differentiator."
                 )
 
-            # Run the Context7 TemporalAgent (durable execution in isolated activity)
-            final_result = await context7_temporal_agent.run(user_message)
+            # Run the Context7 Agent (plain execution, avoids CancelScope conflicts)
+            
+            final_result = await context7_agent.run(user_message)
 
             # Extract and return the response
             if final_result and final_result.output:
