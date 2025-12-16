@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.24.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.3...unoplat-code-confluence-query-engine-v0.24.4) (2025-12-16)
+
+
+### Bug Fixes
+
+* automatic error capture post exhausion of retries during ai work… ([415de05](https://github.com/unoplat/unoplat-code-confluence/commit/415de05f4c9785afe22264d5439f20f2819a19e8))
+* automatic error capture post exhausion of retries during ai workflow for user to easily submit github issues with all details ([af42e1f](https://github.com/unoplat/unoplat-code-confluence/commit/af42e1f35d9ceb03462fd706f27d12b89ad32940))
+* **connection-pool-recommendation-settings:** reuse stale connections and increase connection pool for postgres ([2935799](https://github.com/unoplat/unoplat-code-confluence/commit/2935799a5a1c160ebba5b6da76d4adbdcd73eadf))
+* **model-config:** do two phase operation for model config upsert and worker upgrade ensuring one does not affect anothert ([bd3be65](https://github.com/unoplat/unoplat-code-confluence/commit/bd3be653a203385e43fcd338a346c66bab053727))
+* regression for package manager and programming language metadata ([5b705e9](https://github.com/unoplat/unoplat-code-confluence/commit/5b705e91ac4d308fd588cc30ee8b33026bd1b477))
+
 ## [0.24.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.2...unoplat-code-confluence-query-engine-v0.24.3) (2025-12-11)
 
 
