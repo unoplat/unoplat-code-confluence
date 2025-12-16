@@ -28,6 +28,8 @@ const badgeVariants = cva(
           "border-transparent bg-info/10 text-info [a&]:hover:bg-info/20",
         cancelled:
           "border-transparent bg-muted text-muted-foreground [a&]:hover:bg-muted/80",
+        error:
+          "border-transparent bg-destructive/10 text-destructive [a&]:hover:bg-destructive/20",
         // Feature status variants
         alpha:
           "border-transparent bg-purple-500 text-white [a&]:hover:bg-purple-600",

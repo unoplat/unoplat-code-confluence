@@ -17,6 +17,7 @@ import {
 import {
   Ellipsis,
   AlertCircle,
+  AlertTriangle,
   CheckCircle,
   Clock,
   PauseCircle,
@@ -39,6 +40,8 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
       return <PauseCircle className="text-info h-4 w-4" />;
     case "RETRYING":
       return <RefreshCw className="text-info h-4 w-4" />;
+    case "ERROR":
+      return <AlertTriangle className="text-destructive h-4 w-4" />;
     default:
       return <Clock className="text-muted-foreground h-4 w-4" />;
   }
@@ -46,7 +49,7 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
 
 export const getStatusVariant = (
   status: JobStatus,
-): "completed" | "failed" | "pending" | "running" | "cancelled" => {
+): "completed" | "failed" | "pending" | "running" | "cancelled" | "error" => {
   switch (status) {
     case "COMPLETED":
       return "completed";
@@ -58,6 +61,8 @@ export const getStatusVariant = (
     case "RUNNING":
     case "RETRYING":
       return "running";
+    case "ERROR":
+      return "error";
     default:
       return "cancelled";
   }
@@ -210,6 +215,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
         { label: "Failed", value: "FAILED" },
         { label: "Timed Out", value: "TIMED_OUT" },
         { label: "Retrying", value: "RETRYING" },
+        { label: "Error", value: "ERROR" },
       ],
     },
     enableColumnFilter: true,

@@ -95,7 +95,7 @@ export function SubmittedJobsDataTable(): React.ReactElement {
     onColumnFiltersChange: setColumnFilters,
     initialState: {
       pagination: {
-        pageSize: 7, // Default page size
+        pageSize: 10, // Default page size (must match DataTablePagination options)
       },
     },
     getRowId: (row: ParentWorkflowJobResponse): string =>
