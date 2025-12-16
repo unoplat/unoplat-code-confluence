@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.36.0...unoplat-code-confluence-frontend-v1.36.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* automatic error capture post exhausion of retries during ai work… ([415de05](https://github.com/unoplat/unoplat-code-confluence/commit/415de05f4c9785afe22264d5439f20f2819a19e8))
+* **codebase-metadata:** schema fixes ([4bc624e](https://github.com/unoplat/unoplat-code-confluence/commit/4bc624ed7e26d2012cb6ac618fd2d9b46adc0a31))
+* **legacy-sse-complete-removal:** types and logic related to legacy sse system removed shifted to local sync completely ([ac335e4](https://github.com/unoplat/unoplat-code-confluence/commit/ac335e47a8d00ff6fdde1b611f270d13139d9358))
+* **operations-management:** number of rows selection fix and filter on status column of jobs ([30d0279](https://github.com/unoplat/unoplat-code-confluence/commit/30d02793da6a33b0088874e72e8b289660867811))
+* **react-hydration:** generate agent preview had button inside a button ([20cc0b4](https://github.com/unoplat/unoplat-code-confluence/commit/20cc0b4ccff30fa4f35159e7b33195e9b123f038))
+
 ## [1.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.35.0...unoplat-code-confluence-frontend-v1.36.0) (2025-12-12)
 
 
