@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.24.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.4...unoplat-code-confluence-query-engine-v0.24.5) (2025-12-16)
+
+
+### Bug Fixes
+
+* **mcp-toolset-fix:** fix for getting library data ([9540acf](https://github.com/unoplat/unoplat-code-confluence/commit/9540acfeb17a917d6eac40026c9d838af971a07a))
+* **post-processing-business-domain:** workflow orchestrator services/worker responsibilities clean up and post processing fix for agent md ([d21c465](https://github.com/unoplat/unoplat-code-confluence/commit/d21c4655328e29a6cbde1e98f1638834e199a768))
+* **version-upgrade:** update pydantic ai with various fixes ([035e91a](https://github.com/unoplat/unoplat-code-confluence/commit/035e91ae59c44e961452bf6a40f224796f8b8913))
+
 ## [0.24.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.3...unoplat-code-confluence-query-engine-v0.24.4) (2025-12-16)
 
 
