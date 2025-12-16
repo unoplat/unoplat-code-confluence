@@ -68,13 +68,23 @@ export type AgentMdDevelopmentWorkflow = z.infer<
   typeof agentMdDevelopmentWorkflowSchema
 >;
 
+export const agentMdBusinessLogicSchema = z.object({
+  description: z.string(),
+  data_models: z.array(
+    z.object({
+      path: z.string(),
+      responsibility: z.string().nullable(),
+    }),
+  ),
+});
+
 export const agentMdCodebaseOutputSchema = z.object({
   codebase_name: z.string(),
   // Use .nullish() to accept both null (from PostgreSQL/Python None) and undefined (missing key)
   statistics: z.lazy(() => usageStatisticsSchema).nullish(),
   project_configuration: agentMdProjectConfigurationSchema.nullish(),
   development_workflow: agentMdDevelopmentWorkflowSchema.nullish(),
-  business_logic_domain: z.string().nullish(),
+  business_logic_domain: agentMdBusinessLogicSchema.nullish(),
 });
 
 export type AgentMdCodebaseOutput = z.infer<typeof agentMdCodebaseOutputSchema>;

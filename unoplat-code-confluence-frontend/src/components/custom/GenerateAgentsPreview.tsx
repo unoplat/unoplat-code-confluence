@@ -27,11 +27,11 @@ import {
   codeBlockPlugin,
   codeMirrorPlugin,
 } from "@mdxeditor/editor";
-import type { AgentMdOutput } from "@/types/sse";
+import type { AgentMdCodebaseOutput } from "@/features/repository-agent-snapshots/schema";
 import { agentMdOutputToMarkdown } from "@/lib/agent-md-to-markdown";
 
 interface GenerateAgentsPreviewProps {
-  codebases: Record<string, AgentMdOutput>;
+  codebases: Record<string, AgentMdCodebaseOutput>;
   repositoryName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;

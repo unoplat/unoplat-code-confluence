@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import type { AgentMdOutput } from "@/types/sse";
 
 import {
   repositoryAgentSnapshotRowSchema,
@@ -23,7 +22,7 @@ export interface ParsedRepositoryAgentSnapshot {
   repositoryWorkflowRunId: string;
   overallProgress: number;
   codebases: RepositoryAgentCodebaseState[];
-  markdownByCodebase: Record<string, AgentMdOutput>;
+  markdownByCodebase: Record<string, AgentMdCodebaseOutput>;
   repositoryMarkdown?: string;
   statistics: WorkflowStatistics | null;
   createdAt: string;
@@ -77,10 +76,10 @@ export function parseSnapshotRow(
 export function parseAgentMdOutputs(
   agentMdOutput: AgentMdOutputRecord | null | undefined,
 ): {
-  markdownByCodebase: Record<string, AgentMdOutput>;
+  markdownByCodebase: Record<string, AgentMdCodebaseOutput>;
   repositoryMarkdown?: string;
 } {
-  const markdownByCodebase: Record<string, AgentMdOutput> = {};
+  const markdownByCodebase: Record<string, AgentMdCodebaseOutput> = {};
 
   const codebasesEntries = agentMdOutput?.codebases
     ? Object.entries(agentMdOutput.codebases)
@@ -88,7 +87,7 @@ export function parseAgentMdOutputs(
 
   for (const [codebaseName, codebaseData] of codebasesEntries) {
     // Electric SQL auto-parses JSONB columns, so data is already an object
-    if (isAgentMdOutput(codebaseData)) {
+    if (isAgentMdCodebaseOutput(codebaseData)) {
       markdownByCodebase[codebaseName] = codebaseData;
       continue;
     }
@@ -97,12 +96,12 @@ export function parseAgentMdOutputs(
     if (typeof codebaseData === "string") {
       try {
         const parsed = JSON.parse(codebaseData) as unknown;
-        if (isAgentMdOutput(parsed)) {
+        if (isAgentMdCodebaseOutput(parsed)) {
           markdownByCodebase[codebaseName] = parsed;
         }
       } catch (error) {
         console.error(
-          `Failed to parse AgentMdOutput for ${codebaseName}`,
+          `Failed to parse AgentMdCodebaseOutput for ${codebaseName}`,
           error,
         );
       }
@@ -115,23 +114,13 @@ export function parseAgentMdOutputs(
   };
 }
 
-// Type guard to check if data conforms to AgentMdOutput structure
-function isAgentMdOutput(data: unknown): data is AgentMdOutput {
+// Type guard to check if data conforms to AgentMdCodebaseOutput structure
+function isAgentMdCodebaseOutput(data: unknown): data is AgentMdCodebaseOutput {
   return (
     typeof data === "object" &&
     data !== null &&
     "project_configuration" in data
   );
-}
-
-// Converts AgentMdCodebaseOutput (Zod schema type) to AgentMdOutput (SSE type)
-// These types have similar structures but different field names in some cases
-export function codebaseOutputToAgentMdOutput(
-  _codebaseOutput: AgentMdCodebaseOutput,
-): AgentMdOutput | null {
-  // This function can be implemented if needed for type conversion
-  // Currently, Electric SQL returns data matching the SSE type directly
-  return null;
 }
 
 export function parseAgentMdOutputsFromSnapshot(
@@ -145,7 +134,7 @@ export function parseAgentMdOutputsFromSnapshot(
 ) {
   if (!snapshot) {
     return {
-      markdownByCodebase: {} as Record<string, AgentMdOutput>,
+      markdownByCodebase: {} as Record<string, AgentMdCodebaseOutput>,
       repositoryMarkdown: undefined as string | undefined,
     };
   }
