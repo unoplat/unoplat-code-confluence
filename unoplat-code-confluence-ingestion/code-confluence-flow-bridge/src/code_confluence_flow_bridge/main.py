@@ -1546,7 +1546,7 @@ async def get_parent_workflow_jobs(
     """Get all parent workflow jobs data without pagination.
 
     Returns job information for all parent workflows (RepositoryWorkflowRun).
-    Includes repository_name, repository_owner_name, repository_workflow_run_id, status, started_at, completed_at.
+    Includes repository_name, repository_owner_name, repository_workflow_run_id, operation, status, started_at, completed_at.
     """
     try:
         # Query to get all parent workflow jobs (RepositoryWorkflowRun records)
@@ -1560,6 +1560,7 @@ async def get_parent_workflow_jobs(
                 repository_name=run.repository_name,
                 repository_owner_name=run.repository_owner_name,
                 repository_workflow_run_id=run.repository_workflow_run_id,
+                operation=run.operation,
                 status=JobStatus(run.status),
                 started_at=run.started_at,
                 completed_at=run.completed_at,

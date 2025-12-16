@@ -8,6 +8,7 @@ from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
+from unoplat_code_confluence_commons.repo_models import RepositoryWorkflowOperation
 from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
 
 
@@ -262,6 +263,9 @@ class ParentWorkflowJobResponse(BaseModel):
     repository_owner_name: str = Field(description="The name of the repository owner")
     repository_workflow_run_id: str = Field(
         description="The run ID of the repository workflow"
+    )
+    operation: RepositoryWorkflowOperation = Field(
+        description="Operation type of the workflow run. One of: INGESTION, AGENTS_GENERATION, AGENT_MD_UPDATE."
     )
     status: JobStatus = Field(
         description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING."
