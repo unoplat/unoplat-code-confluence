@@ -1,5 +1,14 @@
 import React from "react";
-import type { ParentWorkflowJobResponse } from "@/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+  ParentWorkflowJobResponse,
+  FlattenedCodebaseRun,
+  GithubRepoStatus,
+  ApiErrorReport,
+  CodebaseStatus,
+  WorkflowStatus,
+  WorkflowRun,
+} from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +24,23 @@ import { GenerateAgentsPreview } from "@/components/custom/GenerateAgentsPreview
 import { AgentStatisticsDisplay } from "@/components/custom/AgentStatisticsDisplay";
 import { codebasesToMarkdown } from "@/lib/agent-md-to-markdown";
 import { useRepositoryAgentSnapshot } from "@/features/repository-agent-snapshots/hooks";
+import { getRepositoryStatus } from "@/lib/api";
+import { apiToUiErrorReport } from "@/lib/error-utils";
+import { FeedbackDialog } from "@/components/custom/FeedbackDialog";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { XCircle, ExternalLink } from "lucide-react";
+
+// Data structure for aggregated errors (repository + codebase errors combined)
+interface AggregatedErrorData {
+  repository: GithubRepoStatus;
+  failedCodebases: FlattenedCodebaseRun[];
+}
+
+// Define FeedbackSource type to match the one in FeedbackDialog
+type FeedbackSource =
+  | { type: "codebase"; data: FlattenedCodebaseRun }
+  | { type: "repository"; data: GithubRepoStatus }
+  | { type: "aggregated"; data: AggregatedErrorData };
 
 interface GenerateAgentsDialogProps {
   open: boolean;
@@ -37,6 +63,11 @@ export function GenerateAgentsDialog({
   job,
 }: GenerateAgentsDialogProps): React.ReactElement | null {
   const [isPreviewOpen, setIsPreviewOpen] = React.useState<boolean>(false);
+  const [feedbackDialogOpen, setFeedbackDialogOpen] =
+    React.useState<boolean>(false);
+  const [feedbackSource, setFeedbackSource] =
+    React.useState<FeedbackSource | null>(null);
+  const queryClient = useQueryClient();
 
   // Build scope for Electric SQL query - requires runId from job
   const scope = React.useMemo(() => {
@@ -82,10 +113,150 @@ export function GenerateAgentsDialog({
   const jobStatus = job?.status ?? "SUBMITTED";
   const isRunning = jobStatus === "RUNNING" || jobStatus === "SUBMITTED";
   const isCompleted = jobStatus === "COMPLETED";
-  const isFailed = jobStatus === "FAILED";
+  // ERROR = partial failure (some agents succeeded, some failed)
+  const isFailed = jobStatus === "FAILED" || jobStatus === "ERROR";
+
+  // Fetch repository status ONLY when job has failed (to get error details)
+  // Electric SQL snapshot does NOT contain error data - must fetch via REST API
+  const { data: repositoryStatus } = useQuery({
+    queryKey: [
+      "repositoryStatus",
+      job?.repository_name,
+      job?.repository_owner_name,
+      job?.repository_workflow_run_id,
+    ],
+    queryFn: async () => {
+      if (!job) return null;
+      const status = await getRepositoryStatus(
+        job.repository_name,
+        job.repository_owner_name,
+        job.repository_workflow_run_id,
+      );
+      // Convert API error report to UI error report if present
+      if (status.error_report) {
+        status.error_report = apiToUiErrorReport(
+          status.error_report as ApiErrorReport,
+          {
+            error_type: "REPOSITORY",
+            repository_name: status.repository_name,
+            repository_owner_name: status.repository_owner_name,
+            parent_workflow_run_id: status.repository_workflow_run_id,
+          },
+        );
+      }
+      return status;
+    },
+    enabled: open && isFailed && !!job, // CONDITIONAL: only fetch when failed
+    staleTime: 5000,
+  });
 
   // Show statistics only when completed and data available
   const showStatistics = isCompleted && parsedSnapshot?.statistics;
+
+  // Transform nested codebase structure to flat array of failed runs with UI error reports
+  const failedCodebaseRuns = React.useMemo((): FlattenedCodebaseRun[] => {
+    if (!repositoryStatus?.codebase_status_list?.codebases) return [];
+
+    return repositoryStatus.codebase_status_list.codebases.flatMap(
+      (codebase: CodebaseStatus) => {
+        return codebase.workflows.flatMap((workflow: WorkflowStatus) => {
+          return workflow.codebase_workflow_runs
+            .filter((run: WorkflowRun) => run.status === "FAILED" || run.status === "ERROR")
+            .map((run: WorkflowRun): FlattenedCodebaseRun => {
+              const uiErrorReport = run.error_report
+                ? apiToUiErrorReport(run.error_report, {
+                    error_type: "CODEBASE",
+                    repository_name: repositoryStatus.repository_name,
+                    repository_owner_name:
+                      repositoryStatus.repository_owner_name,
+                    parent_workflow_run_id:
+                      repositoryStatus.repository_workflow_run_id,
+                    workflow_id: workflow.codebase_workflow_id,
+                    workflow_run_id: run.codebase_workflow_run_id,
+                  })
+                : null;
+              return {
+                codebase_folder: codebase.codebase_folder,
+                codebase_workflow_run_id: run.codebase_workflow_run_id,
+                codebase_status: run.status,
+                codebase_started_at: run.started_at,
+                codebase_completed_at: run.completed_at,
+                codebase_error_report: uiErrorReport,
+                codebase_issue_tracking: run.issue_tracking,
+              };
+            });
+        });
+      },
+    );
+  }, [repositoryStatus]);
+
+  // Check if repository has a reportable error (failed/error + has error report + no issue yet)
+  const hasReportableRepositoryError = React.useMemo(() => {
+    if (!repositoryStatus) return false;
+    const isErrorState = repositoryStatus.status === "FAILED" || repositoryStatus.status === "ERROR";
+    return (
+      isErrorState &&
+      !!repositoryStatus.error_report &&
+      !repositoryStatus.issue_tracking?.issue_url
+    );
+  }, [repositoryStatus]);
+
+  // Check if there are ANY reportable errors (repository or codebase level)
+  const hasAnyReportableError = React.useMemo(() => {
+    // If repository-level issue exists, it covers ALL errors (aggregated submission)
+    // No need to show "Submit Error" - all errors are already tracked
+    if (repositoryStatus?.issue_tracking?.issue_url) return false;
+
+    // Check repository-level error
+    if (hasReportableRepositoryError) return true;
+
+    // Check codebase-level errors (any failed codebase with error report and no issue)
+    const hasReportableCodebaseErrors = failedCodebaseRuns.some(
+      (run) =>
+        run.codebase_error_report && !run.codebase_issue_tracking?.issue_url,
+    );
+
+    return hasReportableCodebaseErrors;
+  }, [repositoryStatus?.issue_tracking?.issue_url, hasReportableRepositoryError, failedCodebaseRuns]);
+
+  // Get the tracked issue URL (prefer repository-level, fallback to first codebase with issue)
+  const trackedIssueUrl = React.useMemo((): string | null => {
+    // Check repository-level issue first
+    if (repositoryStatus?.issue_tracking?.issue_url) {
+      return repositoryStatus.issue_tracking.issue_url;
+    }
+    // Fallback to first codebase with a tracked issue
+    const codebaseWithIssue = failedCodebaseRuns.find(
+      (run) => run.codebase_issue_tracking?.issue_url,
+    );
+    return codebaseWithIssue?.codebase_issue_tracking?.issue_url ?? null;
+  }, [repositoryStatus, failedCodebaseRuns]);
+
+  // Handle aggregated feedback submission (single button for all errors)
+  const handleSubmitAggregatedFeedback = (): void => {
+    if (!repositoryStatus) return;
+
+    setFeedbackSource({
+      type: "aggregated",
+      data: {
+        repository: repositoryStatus,
+        failedCodebases: failedCodebaseRuns,
+      },
+    });
+    setFeedbackDialogOpen(true);
+  };
+
+  // Handle feedback success - invalidate query to refresh data
+  const handleFeedbackSuccess = (): void => {
+    queryClient.invalidateQueries({
+      queryKey: [
+        "repositoryStatus",
+        job?.repository_name,
+        job?.repository_owner_name,
+        job?.repository_workflow_run_id,
+      ],
+    });
+  };
 
   const handleDownloadAll = (): void => {
     if (!previewContent) {
@@ -110,8 +281,9 @@ export function GenerateAgentsDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col p-6 sm:max-w-2xl">
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="flex max-h-[85vh] flex-col p-6 sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>AGENTS.md</DialogTitle>
           <DialogDescription>
@@ -191,14 +363,6 @@ export function GenerateAgentsDialog({
             </div>
           )}
 
-          {/* Failed Job State */}
-          {isFailed && (
-            <div className="space-y-2">
-              <div className="text-sm text-red-600">
-                The operation ended with an error.
-              </div>
-            </div>
-          )}
 
           {/* Progress Display - shown when we have codebaseIds */}
           {codebaseIds.length > 0 && (
@@ -232,7 +396,43 @@ export function GenerateAgentsDialog({
         </div>
 
         {/* Footer Actions */}
-        <div className="mt-6 flex items-center justify-end gap-3">
+        <div className="mt-6 flex items-center justify-between gap-3">
+          {/* Left side: Status + Submit Error (only when failed) */}
+          {isFailed ? (
+            <ButtonGroup>
+              <Badge
+                variant="failed"
+                className="gap-1 rounded-md border-destructive/30"
+              >
+                <XCircle className="h-3 w-3" />
+                Failed
+              </Badge>
+              {hasAnyReportableError ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSubmitAggregatedFeedback}
+                >
+                  Submit Error
+                </Button>
+              ) : trackedIssueUrl ? (
+                <Button size="sm" variant="outline" asChild>
+                  <a
+                    href={trackedIssueUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="mr-1.5 h-3 w-3" />
+                    Track Error
+                  </a>
+                </Button>
+              ) : null}
+            </ButtonGroup>
+          ) : (
+            <div />
+          )}
+
+          {/* Right side: Preview Result */}
           <Button
             size="sm"
             disabled={!hasPreviewContent || isRunning}
@@ -242,17 +442,27 @@ export function GenerateAgentsDialog({
           </Button>
         </div>
 
-        {/* Preview Dialog */}
-        {hasPreviewContent && previewCodebases && (
-          <GenerateAgentsPreview
-            codebases={previewCodebases}
-            repositoryName={`${job.repository_owner_name}/${job.repository_name}`}
-            open={isPreviewOpen}
-            onOpenChange={setIsPreviewOpen}
-            onDownloadAll={handleDownloadAll}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+          {/* Preview Dialog */}
+          {hasPreviewContent && previewCodebases && (
+            <GenerateAgentsPreview
+              codebases={previewCodebases}
+              repositoryName={`${job.repository_owner_name}/${job.repository_name}`}
+              open={isPreviewOpen}
+              onOpenChange={setIsPreviewOpen}
+              onDownloadAll={handleDownloadAll}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Feedback Dialog for aggregated error reporting */}
+      <FeedbackDialog
+        open={feedbackDialogOpen}
+        onOpenChange={setFeedbackDialogOpen}
+        source={feedbackSource}
+        operationType={job.operation}
+        onSuccess={handleFeedbackSuccess}
+      />
+    </>
   );
 }

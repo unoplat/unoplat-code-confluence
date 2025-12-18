@@ -47,6 +47,7 @@ from unoplat_code_confluence_commons.security import (
     decrypt_token,
     encrypt_token,
 )
+from unoplat_code_confluence_commons.repo_models import RepositoryWorkflowOperation
 from unoplat_code_confluence_commons.workflow_models import (
     ErrorReport,
     JobStatus,
@@ -1924,6 +1925,37 @@ async def get_user_details(
     }
 
 
+def generate_issue_title(request: GithubIssueSubmissionRequest) -> str:
+    """
+    Generate a concise, contextual issue title (max 80 chars).
+
+    Format: [Operation] Error Scope: context
+    Examples:
+        - [Agent MD] Repository Error: owner/repo
+        - [Ingestion] Codebase Error: src/module
+        - [Agent MD Update] Repository Error: owner/repo
+    """
+    operation_labels = {
+        RepositoryWorkflowOperation.AGENTS_GENERATION: "Agent MD",
+        RepositoryWorkflowOperation.AGENT_MD_UPDATE: "Agent MD Update",
+        RepositoryWorkflowOperation.INGESTION: "Ingestion",
+    }
+
+    prefix = f"[{operation_labels.get(request.operation_type, 'Error')}]"
+    error_scope = "Repository" if request.error_type == IssueType.REPOSITORY else "Codebase"
+
+    repo_context = f"{request.repository_owner_name}/{request.repository_name}"
+    if request.codebase_folder and request.error_type == IssueType.CODEBASE:
+        context = request.codebase_folder
+    else:
+        context = repo_context
+
+    title = f"{prefix} {error_scope} Error: {context}"
+    if len(title) > 80:
+        title = title[:77] + "..."
+    return title
+
+
 @app.post("/code-confluence/issues", response_model=IssueTracking)
 async def create_github_issue(
     request: GithubIssueSubmissionRequest, session: AsyncSession = Depends(get_session)
@@ -1943,12 +1975,8 @@ async def create_github_issue(
 
         # Create GitHub issue
 
-        # Create issue title and body from error information
-        title = (
-            f"Error: {request.error_message_body[:50]}..."
-            if len(request.error_message_body) > 50
-            else f"Error: {request.error_message_body}"
-        )
+        # Generate contextual issue title using operation type
+        title = generate_issue_title(request)
         body = f"## Error Details\n\n{request.error_message_body}\n\n"
 
         # Add workflow context information to the issue body

@@ -25,11 +25,17 @@ const textareaVariants = cva(
         horizontal: "resize-x",
         vertical: "resize-y",
       },
+      wrap: {
+        normal: "",
+        code: "whitespace-pre-wrap break-all",
+        prose: "whitespace-pre-wrap break-words",
+      },
     },
     defaultVariants: {
       size: "default",
       state: "default",
       resize: "vertical",
+      wrap: "normal",
     },
   },
 );
@@ -39,10 +45,10 @@ export interface TextareaProps
     VariantProps<typeof textareaVariants> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, size, state, resize, ...props }, ref) => {
+  ({ className, size, state, resize, wrap, ...props }, ref) => {
     return (
       <textarea
-        className={cn(textareaVariants({ size, state, resize }), className)}
+        className={cn(textareaVariants({ size, state, resize, wrap }), className)}
         ref={ref}
         {...props}
       />
