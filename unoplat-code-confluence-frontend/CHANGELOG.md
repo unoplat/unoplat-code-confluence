@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.36.1...unoplat-code-confluence-frontend-v1.37.0) (2025-12-18)
+
+
+### Features
+
+* **error-submission-ai-workflows:** components and data implemented … ([7dcfd2e](https://github.com/unoplat/unoplat-code-confluence/commit/7dcfd2e5b33b9faef3776bc0d7c74d6974066087))
+* **error-submission-ai-workflows:** components and data implemented needed for github issue submission ([06b36b8](https://github.com/unoplat/unoplat-code-confluence/commit/06b36b8f1e9f7b7dd366a33770495cb9d65d2f36))
+
+
+### Bug Fixes
+
+* **variant-name-conflicts:** fix shadcn variant names conflicting with native html ([43612b3](https://github.com/unoplat/unoplat-code-confluence/commit/43612b37c59bb8b5ef3d173a4307fa67f42c564b))
+
 ## [1.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.36.0...unoplat-code-confluence-frontend-v1.36.1) (2025-12-16)
 
 
