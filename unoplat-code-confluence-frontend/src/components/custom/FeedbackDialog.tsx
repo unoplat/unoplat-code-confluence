@@ -34,7 +34,7 @@ import { Label } from "../ui/label";
 const markdownComponents: Components = {
   pre: ({ children, ...props }) => (
     <pre
-      className="max-h-64 overflow-y-auto whitespace-pre-wrap break-all"
+      className="max-h-64 overflow-y-auto break-all whitespace-pre-wrap"
       {...props}
     >
       {children}
@@ -299,7 +299,7 @@ export function FeedbackDialog({
                     id="content"
                     placeholder="Describe the error and any additional context..."
                     className="min-h-[400px] font-mono text-sm"
-                    wrap="code"
+                    textWrap="code"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                   />
