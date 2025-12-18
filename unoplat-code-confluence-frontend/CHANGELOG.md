@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.37.0...unoplat-code-confluence-frontend-v1.38.0) (2025-12-18)
+
+
+### Features
+
+* **revamp-real-time-progress-ux:** improvements to events for realti… ([534bda9](https://github.com/unoplat/unoplat-code-confluence/commit/534bda93acf9128f75bd07090092dfc953f57e97))
+* **revamp-real-time-progress-ux:** improvements to events for realtime progress ([bf76b93](https://github.com/unoplat/unoplat-code-confluence/commit/bf76b93ed3c8cfb43e9812829711c8a121704fd2))
+
 ## [1.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.36.1...unoplat-code-confluence-frontend-v1.37.0) (2025-12-18)
 
 
