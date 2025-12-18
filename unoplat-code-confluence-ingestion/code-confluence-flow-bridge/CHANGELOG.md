@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.65.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.1...code-confluence-flow-bridge-v0.65.0) (2025-12-18)
+
+
+### Features
+
+* **error-submission-ai-workflows:** components and data implemented … ([7dcfd2e](https://github.com/unoplat/unoplat-code-confluence/commit/7dcfd2e5b33b9faef3776bc0d7c74d6974066087))
+* **error-submission-ai-workflows:** components and data implemented needed for github issue submission ([06b36b8](https://github.com/unoplat/unoplat-code-confluence/commit/06b36b8f1e9f7b7dd366a33770495cb9d65d2f36))
+
+
+### Bug Fixes
+
+* merge conflicts ([abb2396](https://github.com/unoplat/unoplat-code-confluence/commit/abb239688da11a5f22a8af7845aff60c559e347d))
+
 ## [0.64.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.0...code-confluence-flow-bridge-v0.64.1) (2025-12-16)
 
 
