@@ -20,26 +20,52 @@ import type {
   GithubRepoStatus,
   IssueTracking,
   IssueStatus,
+  RepositoryWorkflowOperation,
 } from "../../types";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Label } from "../ui/label";
 
+// Stable component config for ReactMarkdown to prevent re-renders
+// whitespace-pre-wrap preserves formatting while allowing text to wrap
+// break-all ensures long paths/URLs break at any character to fit container
+// max-h-64 + overflow-y-auto creates internal vertical scroll for long code blocks
+const markdownComponents: Components = {
+  pre: ({ children, ...props }) => (
+    <pre
+      className="max-h-64 overflow-y-auto break-all whitespace-pre-wrap"
+      {...props}
+    >
+      {children}
+    </pre>
+  ),
+};
+
 // Import API submission function and utilities
-import { submitFeedback } from "../../lib/api";
-import { formatErrorReportContent } from "../../lib/error-utils";
-import { IssueCreatedDialog } from "./IssueCreatedDialog";
+import { submitFeedback } from "@/lib/api";
+import { formatErrorReportContent } from "@/lib/error-utils";
+import { formatAggregatedErrorReportContent } from "@/lib/agent-error-utils";
+import { IssueCreatedDialog } from "@/components/custom/IssueCreatedDialog";
+
+// Data structure for aggregated errors (repository + codebase errors combined)
+interface AggregatedErrorData {
+  repository: GithubRepoStatus;
+  failedCodebases: FlattenedCodebaseRun[];
+}
 
 // Union type for different feedback sources
 type FeedbackSource =
   | { type: "codebase"; data: FlattenedCodebaseRun }
-  | { type: "repository"; data: GithubRepoStatus };
+  | { type: "repository"; data: GithubRepoStatus }
+  | { type: "aggregated"; data: AggregatedErrorData };
 
 interface FeedbackDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   source: FeedbackSource | null;
+  /** Operation type for generating contextual GitHub issue titles */
+  operationType: RepositoryWorkflowOperation;
   onSuccess?: () => void;
 }
 
@@ -47,6 +73,7 @@ export function FeedbackDialog({
   open,
   onOpenChange,
   source,
+  operationType,
   onSuccess,
 }: FeedbackDialogProps): React.ReactElement | null {
   const [content, setContent] = useState<string>("");
@@ -57,9 +84,14 @@ export function FeedbackDialog({
   // Get appropriate title based on feedback source type
   const getDialogTitle = (): string => {
     if (!source) return "Submit Feedback";
-    return source.type === "codebase"
-      ? "Submit Codebase Feedback"
-      : "Submit Repository Feedback";
+    switch (source.type) {
+      case "codebase":
+        return "Submit Codebase Feedback";
+      case "repository":
+        return "Submit Repository Feedback";
+      case "aggregated":
+        return "Submit Aggregated Error Report";
+    }
   };
 
   // Initialize with error report content if available
@@ -69,6 +101,25 @@ export function FeedbackDialog({
       return;
     }
 
+    // Handle aggregated type separately - combines all errors into one markdown
+    if (source.type === "aggregated") {
+      const { repository, failedCodebases } = source.data;
+      const repoError = repository.error_report ?? null;
+      const codebaseErrors = failedCodebases
+        .filter((cb) => cb.codebase_error_report)
+        .map((cb) => ({
+          folder: cb.codebase_folder,
+          error: cb.codebase_error_report!,
+        }));
+      const formattedContent = formatAggregatedErrorReportContent(
+        repoError,
+        codebaseErrors,
+      );
+      setContent(formattedContent);
+      return;
+    }
+
+    // Handle single error types (codebase or repository)
     let errorReport: UiErrorReport | null | undefined;
 
     if (source.type === "codebase") {
@@ -90,6 +141,29 @@ export function FeedbackDialog({
   const submitMutation = useMutation({
     mutationFn: async () => {
       if (!source) return null;
+
+      // Handle aggregated type - submit as repository-level issue with combined content
+      if (source.type === "aggregated") {
+        const { repository } = source.data;
+
+        // Check if issue is already submitted
+        if (repository.issue_tracking?.issue_url) {
+          toast.info("This issue has already been submitted.");
+          return repository.issue_tracking;
+        }
+
+        // Aggregated errors are submitted as REPOSITORY type
+        return submitFeedback({
+          repository_name: repository.repository_name,
+          repository_owner_name: repository.repository_owner_name,
+          parent_workflow_run_id: repository.repository_workflow_run_id,
+          error_type: "REPOSITORY",
+          codebase_folder: null,
+          codebase_workflow_run_id: null,
+          error_message_body: content,
+          operation_type: operationType,
+        });
+      }
 
       // Determine issue type based on source type
       const issueType: IssueType =
@@ -115,6 +189,7 @@ export function FeedbackDialog({
           codebase_folder: codebaseRun.codebase_folder,
           codebase_workflow_run_id: codebaseRun.codebase_workflow_run_id,
           error_message_body: content,
+          operation_type: operationType,
         });
       } else {
         const repoStatus = source.data;
@@ -133,9 +208,10 @@ export function FeedbackDialog({
           repository_owner_name: repoStatus.repository_owner_name,
           parent_workflow_run_id: repoStatus.repository_workflow_run_id,
           error_type: issueType,
-          codebase_folder: null, // No specific codebase folder for repository-level issues
-          codebase_workflow_run_id: null, // No specific codebase run ID for repository-level issues
+          codebase_folder: null,
+          codebase_workflow_run_id: null,
           error_message_body: content,
+          operation_type: operationType,
         });
       }
     },
@@ -180,10 +256,17 @@ export function FeedbackDialog({
   if (!source) return null;
 
   // Get appropriate label based on feedback source type
-  const contentLabel =
-    source.type === "codebase"
-      ? "Codebase Error Description"
-      : "Repository Error Description";
+  const getContentLabel = (): string => {
+    switch (source.type) {
+      case "codebase":
+        return "Codebase Error Description";
+      case "repository":
+        return "Repository Error Description";
+      case "aggregated":
+        return "Aggregated Error Report";
+    }
+  };
+  const contentLabel = getContentLabel();
 
   return (
     <>
@@ -216,6 +299,7 @@ export function FeedbackDialog({
                     id="content"
                     placeholder="Describe the error and any additional context..."
                     className="min-h-[400px] font-mono text-sm"
+                    textWrap="code"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                   />
@@ -224,7 +308,9 @@ export function FeedbackDialog({
 
               <TabsContent value="preview" className="space-y-4 p-4">
                 <div className="border-border prose dark:prose-invert prose-sm min-h-[400px] max-w-none overflow-auto rounded-md border p-4">
-                  <ReactMarkdown>{content}</ReactMarkdown>
+                  <ReactMarkdown components={markdownComponents}>
+                    {content}
+                  </ReactMarkdown>
                 </div>
               </TabsContent>
             </Tabs>
