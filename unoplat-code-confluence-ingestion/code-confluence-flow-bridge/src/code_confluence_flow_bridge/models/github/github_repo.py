@@ -301,6 +301,9 @@ class GithubIssueSubmissionRequest(BaseModel):
         default=None, description="The run ID of the codebase workflow"
     )
     error_message_body: str = Field(description="Error message")
+    operation_type: RepositoryWorkflowOperation = Field(
+        description="Operation type for generating contextual issue titles"
+    )
 
 
 class IngestedRepositoryResponse(BaseModel):
