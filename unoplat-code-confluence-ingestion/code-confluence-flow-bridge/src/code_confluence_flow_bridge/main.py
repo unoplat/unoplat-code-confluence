@@ -314,8 +314,6 @@ def create_worker(
         raise ApplicationError(error_message, type="WORKER_INITIALIZATION_ERROR") from e
 
 
-
-
 async def start_workflow(
     temporal_client: Client,
     repo_request: RepositoryRequestConfiguration,
@@ -1874,5 +1872,3 @@ async def get_user_details(
         "avatar_url": user_data.get("avatar_url"),
         "email": email,
     }
-
-
