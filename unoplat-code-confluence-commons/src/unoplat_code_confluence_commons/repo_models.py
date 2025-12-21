@@ -163,6 +163,12 @@ class RepositoryWorkflowRun(SQLBase):
         default=None,
         comment="GitHub issue tracking info for this repository workflow run",
     )
+    feedback_issue_url: Mapped[Optional[str]] = mapped_column(
+        String,
+        default=None,
+        nullable=True,
+        comment="GitHub issue URL for user feedback on agent generation",
+    )
 
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
