@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.64.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.1...code-confluence-flow-bridge-v0.64.2) (2025-12-21)
+
+
+### Bug Fixes
+
+* merge conflicts ([abb2396](https://github.com/unoplat/unoplat-code-confluence/commit/abb239688da11a5f22a8af7845aff60c559e347d))
+* **standardise-github-issue:** error collection ,creation and submission ([79d0cab](https://github.com/unoplat/unoplat-code-confluence/commit/79d0cabfbea89ba6aaeaadf5202c606b536c6850))
+
 ## [0.64.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.0...code-confluence-flow-bridge-v0.64.1) (2025-12-16)
 
 
