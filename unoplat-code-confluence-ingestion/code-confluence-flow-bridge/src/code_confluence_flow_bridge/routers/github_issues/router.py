@@ -271,6 +271,30 @@ async def submit_agent_feedback(
             created_at=datetime.now(timezone.utc).isoformat(),
         )
 
+        # Update the repository workflow run with feedback issue URL
+        condition = (
+            (RepositoryWorkflowRun.repository_name == request.repository_name)
+            & (
+                RepositoryWorkflowRun.repository_owner_name
+                == request.repository_owner_name
+            )
+            & (
+                RepositoryWorkflowRun.repository_workflow_run_id
+                == request.parent_workflow_run_id
+            )
+        )  # type: ignore
+        repo_run_query = select(RepositoryWorkflowRun).where(condition)
+        repo_run_result = await session.execute(repo_run_query)
+        repo_run = repo_run_result.scalar_one_or_none()
+
+        if repo_run:
+            repo_run.feedback_issue_url = github_issue.html_url
+        else:
+            logger.warning(
+                "Repository workflow run {} not found for feedback update",
+                request.parent_workflow_run_id,
+            )
+
         return issue_tracking_full
 
     except HTTPException:
