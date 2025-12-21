@@ -27,8 +27,9 @@ import { useRepositoryAgentSnapshot } from "@/features/repository-agent-snapshot
 import { getRepositoryStatus } from "@/lib/api";
 import { apiToUiErrorReport } from "@/lib/error-utils";
 import { FeedbackDialog } from "@/components/custom/FeedbackDialog";
+import { AgentFeedbackSheet } from "@/features/agent-feedback";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { XCircle, ExternalLink } from "lucide-react";
+import { XCircle, ExternalLink, MessageSquare } from "lucide-react";
 
 // Data structure for aggregated errors (repository + codebase errors combined)
 interface AggregatedErrorData {
@@ -67,6 +68,8 @@ export function GenerateAgentsDialog({
     React.useState<boolean>(false);
   const [feedbackSource, setFeedbackSource] =
     React.useState<FeedbackSource | null>(null);
+  const [agentFeedbackSheetOpen, setAgentFeedbackSheetOpen] =
+    React.useState<boolean>(false);
   const queryClient = useQueryClient();
 
   // Build scope for Electric SQL query - requires runId from job
@@ -397,7 +400,7 @@ export function GenerateAgentsDialog({
 
         {/* Footer Actions */}
         <div className="mt-6 flex items-center justify-between gap-3">
-          {/* Left side: Status + Submit Error (only when failed) */}
+          {/* Left side: Status + Actions based on job state */}
           {isFailed ? (
             <ButtonGroup>
               <Badge
@@ -428,6 +431,29 @@ export function GenerateAgentsDialog({
                 </Button>
               ) : null}
             </ButtonGroup>
+          ) : isCompleted ? (
+            // Completed state: Show Give Feedback or Track Feedback button
+            job.feedback_issue_url ? (
+              <Button size="sm" variant="outline" asChild>
+                <a
+                  href={job.feedback_issue_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="mr-1.5 h-3 w-3" />
+                  Track Feedback
+                </a>
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setAgentFeedbackSheetOpen(true)}
+              >
+                <MessageSquare className="mr-1.5 h-3 w-3" />
+                Give Feedback
+              </Button>
+            )
           ) : (
             <div />
           )}
@@ -463,6 +489,16 @@ export function GenerateAgentsDialog({
         operationType={job.operation}
         onSuccess={handleFeedbackSuccess}
       />
+
+      {/* Agent Feedback Sheet for rating agent generation quality */}
+      {parsedSnapshot?.codebases && (
+        <AgentFeedbackSheet
+          open={agentFeedbackSheetOpen}
+          onOpenChange={setAgentFeedbackSheetOpen}
+          job={job}
+          codebases={parsedSnapshot.codebases}
+        />
+      )}
     </>
   );
 }
