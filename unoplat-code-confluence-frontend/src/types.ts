@@ -172,6 +172,8 @@ export interface ParentWorkflowJobResponse {
   status: JobStatus;
   started_at: string;
   completed_at?: string | null;
+  /** GitHub issue URL for user feedback on agent generation (if submitted) */
+  feedback_issue_url?: string | null;
 }
 
 // Parent workflow jobs list response
