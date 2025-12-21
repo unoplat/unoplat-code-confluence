@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.2...unoplat-code-confluence-commons-v0.39.0) (2025-12-21)
+
+
+### Features
+
+* **core-feedback:** feedback field for all major operations ([548ed61](https://github.com/unoplat/unoplat-code-confluence/commit/548ed619405ef9637f60a0a847aab769731f130f))
+* **core-feedback:** feedback field for all major operations ([83d1b38](https://github.com/unoplat/unoplat-code-confluence/commit/83d1b380e45d4dc164b9eb397670a91fdd852c7d))
+
 ## [0.38.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.1...unoplat-code-confluence-commons-v0.38.2) (2025-12-12)
 
 
