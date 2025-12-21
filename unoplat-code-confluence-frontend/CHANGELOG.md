@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.36.1...unoplat-code-confluence-frontend-v1.37.0) (2025-12-21)
+
+
+### Features
+
+* **components:** components for agent md feedback ([05bae76](https://github.com/unoplat/unoplat-code-confluence/commit/05bae76c9868b0929d2d2e131a9f2864d5c54161))
+
 ## [1.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.36.0...unoplat-code-confluence-frontend-v1.36.1) (2025-12-16)
 
 
