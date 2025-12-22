@@ -1516,6 +1516,7 @@ async def get_parent_workflow_jobs(
                 status=JobStatus(run.status),
                 started_at=run.started_at,
                 completed_at=run.completed_at,
+                feedback_issue_url=run.feedback_issue_url,
             )
             for run in workflow_runs
         ]

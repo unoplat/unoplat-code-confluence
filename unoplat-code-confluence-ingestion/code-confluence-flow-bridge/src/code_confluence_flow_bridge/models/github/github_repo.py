@@ -274,6 +274,10 @@ class ParentWorkflowJobResponse(BaseModel):
     completed_at: Optional[datetime] = Field(
         default=None, description="Timestamp when the workflow run completed"
     )
+    feedback_issue_url: Optional[str] = Field(
+        default=None,
+        description="URL of the GitHub issue created from agent feedback submission",
+    )
 
 
 class ParentWorkflowJobListResponse(BaseModel):
