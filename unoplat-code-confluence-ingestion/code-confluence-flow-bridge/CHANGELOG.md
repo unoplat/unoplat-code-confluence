@@ -1,5 +1,77 @@
 # Changelog
 
+## [0.66.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.65.0...code-confluence-flow-bridge-v0.66.0) (2025-12-22)
+
+
+### Features
+
+* **agent_md_output:** upgrade unoplat-code-confluence-commons to v0.28.0 and endpoint for retrieval ([1cda97f](https://github.com/unoplat/unoplat-code-confluence/commit/1cda97fab3cf571290940b89415c0942f22b5c64))
+* **agent_md_output:** upgrade unoplat-code-confluence-commons to v0.28.0 and endpoint for retrieval ([8c9903b](https://github.com/unoplat/unoplat-code-confluence/commit/8c9903b0e7ab9939c81c1900c6955d9b1f49a9b6))
+* **create-feedback-github-issue-url:** support operation in a separate router ([96b0aec](https://github.com/unoplat/unoplat-code-confluence/commit/96b0aeca2eb5e8b65d3513edcb830840c17e05f5))
+* **create-feedback-github-issue-url:** support operation in a separate router ([d5056d3](https://github.com/unoplat/unoplat-code-confluence/commit/d5056d370f3c8d6bd8aacc525df1948602854005))
+* enable operations as part of ingestion process to track/audit ([90dea8c](https://github.com/unoplat/unoplat-code-confluence/commit/90dea8c3e3ea0d406ee7923b95a8201778263c4e))
+* enable operations as part of ingestion process to track/audit ([95cb0a1](https://github.com/unoplat/unoplat-code-confluence/commit/95cb0a144066c763d31256a6301ed7db03a87f35))
+* enable typescript native data model extraction grammar support with start line and end line ([8efe033](https://github.com/unoplat/unoplat-code-confluence/commit/8efe033c484e6941037a7e282a8ae45a3815d0fc))
+* enhance api endpoints and processing logic to support multiple repository providers starting with github enterprise , introduce oauth utils and also assign intuitive names for agents for easier experiment tracking with workflow monitoring solution ([ba05d6b](https://github.com/unoplat/unoplat-code-confluence/commit/ba05d6ba13eb951ab43f8d0553622582fced7b4b))
+* **error-submission-ai-workflows:** components and data implemented needed for github issue submission ([c1567f0](https://github.com/unoplat/unoplat-code-confluence/commit/c1567f044f713db973bfd20e71a4aa6386f282cf))
+* **error-submission-ai-workflows:** components and data implemented needed for github issue submission ([06b36b8](https://github.com/unoplat/unoplat-code-confluence/commit/06b36b8f1e9f7b7dd366a33770495cb9d65d2f36))
+* **github-app:** Add GitHub App manifest and webhook handling (not integrated with frontend and not tested yet) ([988ffe5](https://github.com/unoplat/unoplat-code-confluence/commit/988ffe519a9f85b7a3a1d6887a8a228f6993f0db))
+* move to common envelope models for workflow ([1105fb2](https://github.com/unoplat/unoplat-code-confluence/commit/1105fb2cde010d866b7ceb597f359ffc8b0cc206))
+* move to common envelope models for workflow ([c0ba37a](https://github.com/unoplat/unoplat-code-confluence/commit/c0ba37a9d4ea7ae2faa9ef1b9751666071fbca8d))
+* **package-manager:** Add TypeScript package manager detection ([9cff38b](https://github.com/unoplat/unoplat-code-confluence/commit/9cff38bbf0349556a714402b3cfe7bc371c3a2fb))
+* **package-manager:** Add TypeScript package manager detection ([ab4d9a5](https://github.com/unoplat/unoplat-code-confluence/commit/ab4d9a55dbdb05122631b24672df235736508a4d))
+* **package-manager:** Optimize metadata storage and serialization ([21130a9](https://github.com/unoplat/unoplat-code-confluence/commit/21130a93fc17949986aa0c5ece151886ad2c5045))
+* **parser:** Add base language processor and context classes , improved design to extend code grammar, add npm, yarn, bun common core package metadata parsing and ingestion and updated tree sitter language pack apis for better reliability for new versions ([124d693](https://github.com/unoplat/unoplat-code-confluence/commit/124d6932b1c8e9ff360ed96e5879d1e48edb56d5))
+* **parser:** Add base language processor and context classes , improved design to extend code grammar, add npm, yarn, bun common core package metadata parsing and ingestion and updated tree sitter language pack apis for better reliability for new versions ([4c46e4a](https://github.com/unoplat/unoplat-code-confluence/commit/4c46e4a166f6ad0ddda3e058f9755c7ef1d7432c))
+* **python-typescript-grammar-context-engineering:** Extract precise data model positions for TypeScript and Python files for precise ([2297666](https://github.com/unoplat/unoplat-code-confluence/commit/22976661260330303504f898c56937ed971ba3ae))
+* **python-typescript-grammar-context-engineering:** Extract precise data model positions for TypeScript and Python files for precise ([3682393](https://github.com/unoplat/unoplat-code-confluence/commit/368239331cedc8409b25b975160284ebdc7ad6f9))
+* **repository:** Enhance repository refresh and provider management and update temporal from 1.12 to 1.19 for better performance reliability etc ([685a31c](https://github.com/unoplat/unoplat-code-confluence/commit/685a31cb315995e80acc0b88a440ce9e371be0bf))
+* **repository:** Enhance repository refresh and provider management and update temporal from 1.12 to 1.19 for better performance reliability etc ([b8f8cff](https://github.com/unoplat/unoplat-code-confluence/commit/b8f8cfff91c99a32cfa999f6cbcc64b0ff14fd4a))
+* support more repository providers starting with github enterprise. Improved Frontend Architecture and onboarding and some bugs squashed ([0974c76](https://github.com/unoplat/unoplat-code-confluence/commit/0974c76fe9df68b86fb1b180db1b41e04a16c9dd))
+* Upgrade unoplat-code-confluence-commons to v0.29.0 ([b1fc6ed](https://github.com/unoplat/unoplat-code-confluence/commit/b1fc6ed3af1d4eac0a45f51e1145fca33729e8a1))
+* Upgrade unoplat-code-confluence-commons to v0.29.0 ([328eab0](https://github.com/unoplat/unoplat-code-confluence/commit/328eab045ef62e808c2cfc0e2d000ab27ac12e1e))
+* **workflow:** Enhance agent execution with usage statistics tracking ([c68e53e](https://github.com/unoplat/unoplat-code-confluence/commit/c68e53ef83243b55a8fbb0dc330891517b80d086))
+* **workflow:** Enhance agent execution with usage statistics tracking ([b05ce65](https://github.com/unoplat/unoplat-code-confluence/commit/b05ce659a701763dbc561539146c40c65635c5af))
+
+
+### Bug Fixes
+
+* automatic error capture post exhausion of retries during ai work… ([415de05](https://github.com/unoplat/unoplat-code-confluence/commit/415de05f4c9785afe22264d5439f20f2819a19e8))
+* **backend-github-issue-feedback-error:** fixes around endpoints and grouping them in separate router ([31da659](https://github.com/unoplat/unoplat-code-confluence/commit/31da65942a3e75fda0bc6428e668b09499d0f760))
+* **connection-pool-recommendation-settings:** reuse stale connections and increase connection pool for postgres ([2935799](https://github.com/unoplat/unoplat-code-confluence/commit/2935799a5a1c160ebba5b6da76d4adbdcd73eadf))
+* **detection:** Simplify codebase detection and remove SSE streaming ([6fec78b](https://github.com/unoplat/unoplat-code-confluence/commit/6fec78b1633966f281c3b241aa099fd1cd4055dc))
+* **docker:** update PostgreSQL image and configuration ([2b5a90b](https://github.com/unoplat/unoplat-code-confluence/commit/2b5a90be535500921eed96c8a97deaa85e5358be))
+* **docker:** Update PostgreSQL image and configuration ([95d9242](https://github.com/unoplat/unoplat-code-confluence/commit/95d92421f2a79e6d6b658e44fd91b27e165a43f1))
+* **flow-bridge-backend-tests:** assertions fixes post updates ([1160821](https://github.com/unoplat/unoplat-code-confluence/commit/1160821818e828fb104da3ca65f77b8c67664c37))
+* **github_helper:** Improve handling of local branch and uncommitted changes ([c5959f3](https://github.com/unoplat/unoplat-code-confluence/commit/c5959f3d98971af38992eada893ef4077f3d3449))
+* **github-issue-data-model:** feedback fixes ([17a16ba](https://github.com/unoplat/unoplat-code-confluence/commit/17a16badebd4f386e7d22669fd8aa41c682a3481))
+* **graph-db:** Remove redundant qualified_name update in repository node ([151afd1](https://github.com/unoplat/unoplat-code-confluence/commit/151afd1ddd475943011e0929cf8ba686d7e61df3))
+* **graph-db:** Update CodeConfluenceGitRepository node creation to not cause cypher merge conflicts ([bde1103](https://github.com/unoplat/unoplat-code-confluence/commit/bde1103e6a744a6c3024e204bc5b5393232c0f30))
+* **graph-db:** Update CodeConfluenceGitRepository node creation to not cause cypher merge conflicts ([dd15257](https://github.com/unoplat/unoplat-code-confluence/commit/dd1525719cd5d4b7ab07528a0621023cd935d6e9))
+* merge conflicts ([abb2396](https://github.com/unoplat/unoplat-code-confluence/commit/abb239688da11a5f22a8af7845aff60c559e347d))
+* **package-manager:** common data parsing for typescript across yarn , bun , pnpm and npm and comprehensive package manager tests for TypeScript ([26611b9](https://github.com/unoplat/unoplat-code-confluence/commit/26611b9955516b93e431847e4afbffd5e645eab5))
+* **package-manager:** common data parsing for typescript across yarn , bun , pnpm and npm and comprehensive package manager tests for TypeScript ([5dc1a0b](https://github.com/unoplat/unoplat-code-confluence/commit/5dc1a0b64cd290111f1f6337f150c3f8205ff228))
+* **parser:** Refactor GenericCodebaseParser to focus on file insertion ([be17754](https://github.com/unoplat/unoplat-code-confluence/commit/be17754ab8a80b276820b205e37f0c9859e2b6b2))
+* **parser:** Refactor parser to focus on file insertion ([c0bd597](https://github.com/unoplat/unoplat-code-confluence/commit/c0bd5974bbe8298b1a8e9a6931bf0eae850c1cca))
+* **pip:** migrate to grouped dependencies, add PEP 503/735 normalization, fix -r includes mis-grouping bug ([855405b](https://github.com/unoplat/unoplat-code-confluence/commit/855405b5f5402b886729578a155c00b46f7d7327))
+* **poetry:** migrate to grouped dependency structure and add Poetry 1.2+  include-groups support ([3aae96a](https://github.com/unoplat/unoplat-code-confluence/commit/3aae96a4ca08ee3d83d7b9c014f8ee26fe9d4bb7))
+* remove support for local repository parsing ([2f8be69](https://github.com/unoplat/unoplat-code-confluence/commit/2f8be69c2a1de7ab8b631822a1214ac9699fcf65))
+* **standardise-github-issue:** error collection ,creation and submission ([36124e2](https://github.com/unoplat/unoplat-code-confluence/commit/36124e255a9d70366085ed5075867e50ab70ad09))
+* **standardise-github-issue:** error collection ,creation and submission ([79d0cab](https://github.com/unoplat/unoplat-code-confluence/commit/79d0cabfbea89ba6aaeaadf5202c606b536c6850))
+* test assertions ([82f2810](https://github.com/unoplat/unoplat-code-confluence/commit/82f2810ef38769438b3bc2015920e0d970e31f76))
+* **typescript:** Improve TypeScript project detection ([77a47c3](https://github.com/unoplat/unoplat-code-confluence/commit/77a47c3ce2f4948655ca62b523c9f5d112226893))
+* **typescript:** Improve TypeScript project detection ([98103ac](https://github.com/unoplat/unoplat-code-confluence/commit/98103ace7290a086f23b1661207669834916b7d6))
+* update dependencies ([e89724e](https://github.com/unoplat/unoplat-code-confluence/commit/e89724e89042a69d5845fb294579d3a58aa18f40))
+* Update function signature test for generate events method ([008eebc](https://github.com/unoplat/unoplat-code-confluence/commit/008eebc2bb18824932606fdb7b39ed5b74c5c818))
+* Update unoplat-code-confluence-commons to v0.31.2 ([956b029](https://github.com/unoplat/unoplat-code-confluence/commit/956b0293bcbc554d8772a9f1ca0a3b5b0a64ff8b))
+* **uv:** migrate to grouped dependency structure and add dependency-groups section support and modify tests ([379d203](https://github.com/unoplat/unoplat-code-confluence/commit/379d203f4c764936f0d2eb5d16ffb6bb5c971b4d))
+* **version:** update ignore rules for reliable codebase detection across typescript and python ([7caa4d2](https://github.com/unoplat/unoplat-code-confluence/commit/7caa4d24aecf7aea24ac97c576aa469bd7bb893f))
+
+
+### Dependencies
+
+* Bump unoplat-code-confluence-commons to v0.34.1 ([75b3e48](https://github.com/unoplat/unoplat-code-confluence/commit/75b3e489496005a5cc6f7281a63c14ea9b9db7e4))
+
 ## [0.65.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.2...code-confluence-flow-bridge-v0.65.0) (2025-12-22)
 
 
