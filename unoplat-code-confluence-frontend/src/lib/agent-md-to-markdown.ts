@@ -42,7 +42,7 @@ export function agentMdOutputToMarkdown(
     {
       kind: string;
       command: string;
-      description?: string;
+      description?: string | null;
       config_files: string[];
     }[]
   > = {};
@@ -116,7 +116,7 @@ export function codebasesToMarkdown(
       {
         kind: string;
         command: string;
-        description?: string;
+        description?: string | null;
         config_files: string[];
       }[]
     > = {};
