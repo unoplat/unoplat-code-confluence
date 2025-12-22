@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.65.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.2...code-confluence-flow-bridge-v0.65.0) (2025-12-22)
+
+
+### Features
+
+* **create-feedback-github-issue-url:** support operation in a separate router ([96b0aec](https://github.com/unoplat/unoplat-code-confluence/commit/96b0aeca2eb5e8b65d3513edcb830840c17e05f5))
+* **error-submission-ai-workflows:** components and data implemented needed for github issue submission ([c1567f0](https://github.com/unoplat/unoplat-code-confluence/commit/c1567f044f713db973bfd20e71a4aa6386f282cf))
+
+
+### Bug Fixes
+
+* **flow-bridge-backend-tests:** assertions fixes post updates ([1160821](https://github.com/unoplat/unoplat-code-confluence/commit/1160821818e828fb104da3ca65f77b8c67664c37))
+* **github-issue-data-model:** feedback fixes ([17a16ba](https://github.com/unoplat/unoplat-code-confluence/commit/17a16badebd4f386e7d22669fd8aa41c682a3481))
+* **standardise-github-issue:** error collection ,creation and submission ([36124e2](https://github.com/unoplat/unoplat-code-confluence/commit/36124e255a9d70366085ed5075867e50ab70ad09))
+
 ## [0.64.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.1...code-confluence-flow-bridge-v0.64.2) (2025-12-21)
 
 
