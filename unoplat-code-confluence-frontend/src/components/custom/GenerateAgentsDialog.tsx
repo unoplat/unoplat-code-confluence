@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   ParentWorkflowJobResponse,
   FlattenedCodebaseRun,
@@ -72,6 +72,27 @@ export function GenerateAgentsDialog({
     React.useState<boolean>(false);
   const queryClient = useQueryClient();
 
+  // Fresh job lookup from query cache - prevents stale prop issues
+  // The job prop is a snapshot from row click; this gets the latest data after invalidation/refetch
+  const { data: freshJob } = useQuery<
+    ParentWorkflowJobResponse[],
+    Error,
+    ParentWorkflowJobResponse | undefined
+  >({
+    queryKey: ["parentWorkflowJobs"],
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 1, // Match the source query's stale time
+    select: (jobs) =>
+      jobs.find(
+        (j) =>
+          j.repository_workflow_run_id === job?.repository_workflow_run_id,
+      ),
+    enabled: open && !!job,
+  });
+
+  // Use fresh data from cache when available, fallback to prop for initial render
+  const actualJob = freshJob ?? job;
+
   // Build scope for Electric SQL query - requires runId from job
   const scope = React.useMemo(() => {
     if (!job) return null;
@@ -112,8 +133,8 @@ export function GenerateAgentsDialog({
     });
   }, [job, hasPreviewContent, previewCodebases]);
 
-  // Derive status from job prop (REST API source)
-  const jobStatus = job?.status ?? "SUBMITTED";
+  // Derive status from actualJob (fresh cache data or prop fallback)
+  const jobStatus = actualJob?.status ?? "SUBMITTED";
   const isRunning = jobStatus === "RUNNING" || jobStatus === "SUBMITTED";
   const isCompleted = jobStatus === "COMPLETED";
   // ERROR = partial failure (some agents succeeded, some failed)
@@ -433,10 +454,11 @@ export function GenerateAgentsDialog({
             </ButtonGroup>
           ) : isCompleted ? (
             // Completed state: Show Give Feedback or Track Feedback button
-            job.feedback_issue_url ? (
+            // Use actualJob for fresh feedback_issue_url data from cache
+            actualJob?.feedback_issue_url ? (
               <Button size="sm" variant="outline" asChild>
                 <a
-                  href={job.feedback_issue_url}
+                  href={actualJob.feedback_issue_url}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -491,11 +513,11 @@ export function GenerateAgentsDialog({
       />
 
       {/* Agent Feedback Sheet for rating agent generation quality */}
-      {parsedSnapshot?.codebases && (
+      {parsedSnapshot?.codebases && actualJob && (
         <AgentFeedbackSheet
           open={agentFeedbackSheetOpen}
           onOpenChange={setAgentFeedbackSheetOpen}
-          job={job}
+          job={actualJob}
           codebases={parsedSnapshot.codebases}
         />
       )}
