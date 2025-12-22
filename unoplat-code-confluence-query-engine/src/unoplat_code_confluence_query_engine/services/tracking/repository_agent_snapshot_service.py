@@ -407,47 +407,5 @@ class RepositoryAgentSnapshotWriter:
             )
             await session.execute(stmt)
 
-    async def fail_run(
-        self,
-        *,
-        owner_name: str,
-        repo_name: str,
-        error_payload: dict[str, object] | None = None,
-    ) -> None:
-        """Persist error diagnostic payload on workflow failure.
-
-        Note: Status is tracked by Temporal via RepositoryWorkflowRun, not here.
-        """
-        payload = error_payload or {}
-        async with get_startup_session() as session:
-            stmt = (
-                update(RepositoryAgentMdSnapshot)
-                .where(
-                    RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-                    RepositoryAgentMdSnapshot.repository_name == repo_name,
-                )
-                .values(
-                    agent_md_output=payload,
-                    modified_at=func.now(),
-                )
-            )
-            await session.execute(stmt)
-
-    async def fetch_events(
-        self,
-        *,
-        owner_name: str,
-        repo_name: str,
-    ) -> dict[str, object] | None:
-        """Fetch the current events document for diagnostics or fallback flows."""
-        async with get_startup_session() as session:
-            stmt = select(RepositoryAgentMdSnapshot.events).where(
-                RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-                RepositoryAgentMdSnapshot.repository_name == repo_name,
-            )
-            result = await session.execute(stmt)
-            row = result.scalar_one_or_none()
-            return row
-
 
 __all__ = ["RepositoryAgentSnapshotWriter"]
