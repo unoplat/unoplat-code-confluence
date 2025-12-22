@@ -52,7 +52,7 @@ export type AgentMdProjectConfiguration = z.infer<
 export const agentMdDevelopmentCommandSchema = z.object({
   kind: z.string(),
   command: z.string(),
-  description: z.string().optional(),
+  description: z.string().nullish(), // Accept both null (from Python None) and undefined
   config_files: z.array(z.string()).default([]),
 });
 
