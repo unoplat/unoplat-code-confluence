@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AgentEventsAccordion } from "@/components/custom/agent-events";
 import type {
   ParsedRepositoryAgentSnapshot,
   RepositoryAgentCodebaseState,
@@ -86,9 +87,11 @@ export function GenerateAgentsProgress({
   return (
     <div className="flex h-full flex-col gap-4">
       {/* Repository Progress Card */}
-      <Card className="p-4 mb-3">
+      <Card className="mb-3 p-4">
         <div className="flex items-center justify-between">
-          <div className="text-muted-foreground text-sm">Repository Progress</div>
+          <div className="text-muted-foreground text-sm">
+            Repository Progress
+          </div>
           <div className="w-1/2">
             <Progress value={overallProgress} />
           </div>
@@ -116,7 +119,9 @@ export function GenerateAgentsProgress({
         )}
         <div className="flex min-h-0 flex-1 flex-col gap-3">
           <div className="flex items-center justify-between">
-            <div className="text-muted-foreground text-sm">Codebase Progress</div>
+            <div className="text-muted-foreground text-sm">
+              Codebase Progress
+            </div>
             <div className="w-1/2">
               <Progress value={progress} />
             </div>
@@ -125,22 +130,16 @@ export function GenerateAgentsProgress({
             className="border-border h-64 w-full rounded-md border"
             viewportRef={viewportRef}
           >
-            <div className="space-y-2 overflow-x-hidden p-3">
-              {waitingForEvents && (
-                <div className="text-muted-foreground text-sm">
+            <div className="overflow-x-hidden p-3">
+              {waitingForEvents ? (
+                <p className="text-muted-foreground text-sm">
                   {isSyncing
                     ? "Waiting for ElectricSQL updates…"
                     : "No events available yet."}
-                </div>
+                </p>
+              ) : (
+                <AgentEventsAccordion events={events} />
               )}
-              {events.map((event) => (
-                <div
-                  key={`${event.id}-${event.event}`}
-                  className="max-w-full text-xs break-all whitespace-pre-wrap"
-                >
-                  {event.message ?? event.event}
-                </div>
-              ))}
             </div>
           </ScrollArea>
         </div>

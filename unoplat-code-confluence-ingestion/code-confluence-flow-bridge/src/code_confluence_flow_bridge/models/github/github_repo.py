@@ -274,6 +274,10 @@ class ParentWorkflowJobResponse(BaseModel):
     completed_at: Optional[datetime] = Field(
         default=None, description="Timestamp when the workflow run completed"
     )
+    feedback_issue_url: Optional[str] = Field(
+        default=None,
+        description="URL of the GitHub issue created from agent feedback submission",
+    )
 
 
 class ParentWorkflowJobListResponse(BaseModel):
@@ -301,6 +305,9 @@ class GithubIssueSubmissionRequest(BaseModel):
         default=None, description="The run ID of the codebase workflow"
     )
     error_message_body: str = Field(description="Error message")
+    operation_type: RepositoryWorkflowOperation = Field(
+        description="Operation type for generating contextual issue titles"
+    )
 
 
 class IngestedRepositoryResponse(BaseModel):

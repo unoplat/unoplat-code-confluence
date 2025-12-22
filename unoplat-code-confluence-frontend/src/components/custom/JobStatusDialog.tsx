@@ -412,6 +412,7 @@ export function JobStatusDialog({
         open={feedbackDialogOpen}
         onOpenChange={setFeedbackDialogOpen}
         source={feedbackSource}
+        operationType="INGESTION"
         onSuccess={handleFeedbackSuccess}
       />
     </>
