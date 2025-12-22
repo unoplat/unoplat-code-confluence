@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.24.6](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.5...unoplat-code-confluence-query-engine-v0.24.6) (2025-12-22)
+
+
+### Bug Fixes
+
+* alter tests fail cases (now being handled by workflow orchestrator) ([abb94f9](https://github.com/unoplat/unoplat-code-confluence/commit/abb94f93315ce17167955b05ab8d038be11e82eb))
+* **deps-version:** pin common lib dependencies version to latest ([e5d5db2](https://github.com/unoplat/unoplat-code-confluence/commit/e5d5db2c358fee88b4afae35ff7a8a68807836de))
+* **deps-version:** pin common lib dependencies version to latest ([ed5b60f](https://github.com/unoplat/unoplat-code-confluence/commit/ed5b60f70f0ae254ea2a583a10f13a53b2df4740))
+
 ## [0.24.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.4...unoplat-code-confluence-query-engine-v0.24.5) (2025-12-16)
 
 
