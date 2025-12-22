@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.7](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.6...unoplat-code-confluence-query-engine-v0.24.7) (2025-12-22)
+
+
+### Bug Fixes
+
+* **regression-eza:** add eza to dockerfile of query engine for direct… ([d1bbd38](https://github.com/unoplat/unoplat-code-confluence/commit/d1bbd3874a7ba3566bd331cda522aa72b50b5a90))
+* **regression-eza:** add eza to dockerfile of query engine for directory tree tool and remove old commented code ([4282fea](https://github.com/unoplat/unoplat-code-confluence/commit/4282feaa9f61b20211c99b22346710eda405492a))
+
 ## [0.24.6](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.5...unoplat-code-confluence-query-engine-v0.24.6) (2025-12-22)
 
 
