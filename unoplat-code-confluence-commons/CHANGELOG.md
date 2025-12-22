@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.39.0...unoplat-code-confluence-commons-v0.40.0) (2025-12-22)
+
+
+### Features
+
+* **docs-update:** docs update for roadmap ([eca1ac9](https://github.com/unoplat/unoplat-code-confluence/commit/eca1ac9d107a30df3f01ab87089c4ecc57c592c6))
+
+
+### Bug Fixes
+
+* lockfile update for commons for feedback ([c0c1ab8](https://github.com/unoplat/unoplat-code-confluence/commit/c0c1ab8c4ddddcd6394f29822fb87c992327b6f9))
+
 ## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.2...unoplat-code-confluence-commons-v0.39.0) (2025-12-21)
 
 
