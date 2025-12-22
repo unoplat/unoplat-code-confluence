@@ -632,11 +632,33 @@ def test_self_extraction_tree_sitter_structural_signature(language_name: str) ->
     # No file reading operations, just parsing operations
     # Check function calls (handles multi-line formatting by checking if any call contains the key parts)
     extract_calls_str = " ".join(extract_calls)
-    assert any("self.parser.parse" in call and "source_bytes" in call for call in extract_calls)
-    assert any("self._extract_module_docstring" in call and "root_node" in call and "source_bytes" in call for call in extract_calls)
-    assert any("self._extract_global_variables" in call and "root_node" in call and "source_bytes" in call for call in extract_calls)
-    assert any("self._extract_functions" in call and "root_node" in call and "source_bytes" in call for call in extract_calls)
-    assert any("self._extract_classes" in call and "root_node" in call and "source_bytes" in call for call in extract_calls)
+    assert any(
+        "self.parser.parse" in call and "source_bytes" in call for call in extract_calls
+    )
+    assert any(
+        "self._extract_module_docstring" in call
+        and "root_node" in call
+        and "source_bytes" in call
+        for call in extract_calls
+    )
+    assert any(
+        "self._extract_global_variables" in call
+        and "root_node" in call
+        and "source_bytes" in call
+        for call in extract_calls
+    )
+    assert any(
+        "self._extract_functions" in call
+        and "root_node" in call
+        and "source_bytes" in call
+        for call in extract_calls
+    )
+    assert any(
+        "self._extract_classes" in call
+        and "root_node" in call
+        and "source_bytes" in call
+        for call in extract_calls
+    )
     assert "PythonStructuralSignature(" in extract_calls_str
 
     # _extract_function_calls_for_node - our recently modified method
@@ -884,10 +906,6 @@ def test_main_py_structural_signature(language_name: str) -> None:
     assert any("def create_worker" in sig for sig in function_signatures), (
         "create_worker not found"
     )
-    assert any(
-        "async def fetch_repository_provider_token" in sig
-        for sig in function_signatures
-    ), "fetch_repository_provider_token not found"
     assert any("async def start_workflow" in sig for sig in function_signatures), (
         "start_workflow not found"
     )

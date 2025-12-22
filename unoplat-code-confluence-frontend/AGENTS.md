@@ -13,7 +13,7 @@ bun eslint src/path/file.tsx    # Lint single file
 - **TypeScript**: Use interfaces over types, avoid enums (use maps), no `any` types, precise types always
 - **Functions**: Use `function` keyword for pure functions, functional/declarative patterns over classes
 - **Naming**: Descriptive with auxiliary verbs (isLoading, hasError), lowercase-with-dashes for directories
-- **Imports**: Preserve existing formatting, use `@/*` path alias, use axios for HTTP (never fetch)
+- **Imports**: Preserve existing formatting, use `@/*` absolute path alias, use axios for HTTP (never fetch)
 - **Formatting**: Preserve existing code/comments unless necessary, curly braces for all conditionals
 - **Constraints**: Do not remove code/comments unless necessary, just do what's asked (ask before doing more)
 
