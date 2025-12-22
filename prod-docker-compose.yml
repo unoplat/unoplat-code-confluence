@@ -153,7 +153,7 @@ services:
       timeout: 5s
       retries: 5
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.62.1
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.66.1
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
@@ -180,12 +180,13 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.23.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.24.6
     environment:
       - NEO4J_HOST=neo4j
       - NEO4J_PORT=7687
       - NEO4J_USERNAME=neo4j
       - NEO4J_PASSWORD=password
+      - TEMPORAL_ADDRESS=temporal:7233
       - DB_HOST=postgresql
       - DB_PORT=5432
       - DB_USER=postgres
@@ -200,13 +201,15 @@ services:
     networks:
       - temporal-network
     depends_on:
+      temporal:
+        condition: service_healthy
       postgresql:
         condition: service_healthy
       neo4j:
         condition: service_healthy
 
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.34.4
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.39.0
     depends_on:
       - code-confluence-flow-bridge
     ports:
