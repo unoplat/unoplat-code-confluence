@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.66.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.66.0...code-confluence-flow-bridge-v0.66.1) (2025-12-22)
+
+
+### Bug Fixes
+
+* **deps-version:** pin common lib dependencies version to latest ([e5d5db2](https://github.com/unoplat/unoplat-code-confluence/commit/e5d5db2c358fee88b4afae35ff7a8a68807836de))
+* **deps-version:** pin common lib dependencies version to latest ([ed5b60f](https://github.com/unoplat/unoplat-code-confluence/commit/ed5b60f70f0ae254ea2a583a10f13a53b2df4740))
+
 ## [0.66.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.65.0...code-confluence-flow-bridge-v0.66.0) (2025-12-22)
 
 
