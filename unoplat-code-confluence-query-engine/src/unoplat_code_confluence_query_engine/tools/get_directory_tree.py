@@ -8,15 +8,6 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
     AgentDependencies,
 )
 
-# class DirectoryTree(BaseModel):
-#     """Directory tree structure returned by the eza utility.
-
-#     This model represents the formatted output from the eza command-line tool,
-#     which provides a tree-like view of directory structure with files and folders.
-#     """
-
-#     tree: str = Field(..., description="Formatted directory tree produced by eza")
-
 
 async def get_directory_tree(
     ctx: RunContext[AgentDependencies],

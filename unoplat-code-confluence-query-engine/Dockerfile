@@ -54,7 +54,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Install minimal runtime dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        curl unzip git ripgrep \
+        curl unzip git ripgrep eza \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
