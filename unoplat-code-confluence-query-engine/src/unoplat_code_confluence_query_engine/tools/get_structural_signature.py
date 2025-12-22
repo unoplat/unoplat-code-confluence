@@ -10,7 +10,7 @@ from unoplat_code_confluence_commons.base_models import (
     deserialize_structural_signature,
 )
 
-from unoplat_code_confluence_query_engine.models.agent_dependencies import (
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
 

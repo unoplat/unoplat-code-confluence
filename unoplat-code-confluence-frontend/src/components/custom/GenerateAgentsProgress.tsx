@@ -1,5 +1,4 @@
 import React from "react";
-import type { IngestedRepository } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,20 +9,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AgentEventsAccordion } from "@/components/custom/agent-events";
 import type {
   ParsedRepositoryAgentSnapshot,
   RepositoryAgentCodebaseState,
 } from "@/features/repository-agent-snapshots/transformers";
 
 interface GenerateAgentsProgressProps {
-  repository: IngestedRepository;
   snapshot: ParsedRepositoryAgentSnapshot | null;
   codebaseIds: string[];
   isSyncing: boolean;
 }
 
 export function GenerateAgentsProgress({
-  repository,
   snapshot,
   codebaseIds,
   isSyncing,
@@ -88,13 +86,11 @@ export function GenerateAgentsProgress({
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <Card className="p-4">
+      {/* Repository Progress Card */}
+      <Card className="mb-3 p-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="text-muted-foreground text-sm">Overall</div>
-            <div className="text-sm font-medium">
-              {repository.repository_owner_name}/{repository.repository_name}
-            </div>
+          <div className="text-muted-foreground text-sm">
+            Repository Progress
           </div>
           <div className="w-1/2">
             <Progress value={overallProgress} />
@@ -102,7 +98,9 @@ export function GenerateAgentsProgress({
         </div>
       </Card>
 
+      {/* Codebase Progress Card */}
       <Card className="flex min-h-0 flex-1 flex-col p-4">
+        {/* Codebase Selector (if multiple codebases) */}
         {!isSingleRootCodebase && (
           <div className="mb-4 flex items-center justify-center">
             <Select value={active} onValueChange={setActive}>
@@ -121,7 +119,9 @@ export function GenerateAgentsProgress({
         )}
         <div className="flex min-h-0 flex-1 flex-col gap-3">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">{getDisplayName(active)}</div>
+            <div className="text-muted-foreground text-sm">
+              Codebase Progress
+            </div>
             <div className="w-1/2">
               <Progress value={progress} />
             </div>
@@ -130,22 +130,16 @@ export function GenerateAgentsProgress({
             className="border-border h-64 w-full rounded-md border"
             viewportRef={viewportRef}
           >
-            <div className="space-y-2 overflow-x-hidden p-3">
-              {waitingForEvents && (
-                <div className="text-muted-foreground text-sm">
+            <div className="overflow-x-hidden p-3">
+              {waitingForEvents ? (
+                <p className="text-muted-foreground text-sm">
                   {isSyncing
                     ? "Waiting for ElectricSQL updates…"
                     : "No events available yet."}
-                </div>
+                </p>
+              ) : (
+                <AgentEventsAccordion events={events} />
               )}
-              {events.map((event) => (
-                <div
-                  key={`${event.id}-${event.event}`}
-                  className="max-w-full text-xs break-all whitespace-pre-wrap"
-                >
-                  {event.message ?? event.event}
-                </div>
-              ))}
             </div>
           </ScrollArea>
         </div>

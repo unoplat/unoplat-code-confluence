@@ -40,7 +40,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
         async with session.begin():
             yield session
     except Exception as e:
-        logger.error("Session error: {}", e)
+        logger.error(f"Session error: {e}")
         raise
     finally:
         await session.close()
@@ -69,7 +69,7 @@ async def get_startup_session() -> AsyncGenerator[AsyncSession, None]:
         async with session.begin():
             yield session
     except Exception as e:
-        logger.error("Session error: {}", e)
+        logger.error(f"Session error: {e}")
         raise
     finally:
         await session.close()
@@ -98,7 +98,18 @@ async def init_db_connections(settings: EnvironmentSettings) -> None:
         pass
 
     async_engine = create_async_engine(
-        settings.postgres_url, echo=settings.db_echo, pool_size=20, max_overflow=10
+        settings.postgres_url,
+        echo=settings.db_echo,
+        pool_size=20,
+        max_overflow=10,
+        pool_pre_ping=True,
+        pool_recycle=1800,
+        pool_timeout=30,
+        connect_args={
+            "server_settings": {
+                "application_name": "query-engine"
+            }
+        },
     )
 
     AsyncSessionFactory = async_sessionmaker(
@@ -116,4 +127,4 @@ async def dispose_db_connections() -> None:
             await async_engine.dispose()
         logger.info("Database connections disposed successfully")
     except Exception as e:
-        logger.error("Error disposing database connections: {}", e)
+        logger.error(f"Error disposing database connections: {e}")

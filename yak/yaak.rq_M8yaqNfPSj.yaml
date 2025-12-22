@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_M8yaqNfPSj
 createdAt: 2025-09-09T06:18:32.221021
-updatedAt: 2025-09-12T04:41:13.695753
+updatedAt: 2025-12-21T10:51:14.033981
 workspaceId: wk_KULjx4bEa8
 folderId: fl_ed4G8NrPdv
 authentication: {}
@@ -12,7 +12,7 @@ body:
     {
       "provider_key" : "openrouter",
       "model_name" :
-      "moonshotai/kimi-k2-0905"
+      "x-ai/grok-code-fast-1"
     }
 bodyType: application/json
 description: ''
@@ -23,14 +23,14 @@ headers:
   id: aimBYzq2DQ
 - enabled: true
   name: X-Model-API-Key
-  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RXErRGdxOUppSWFXRld3aVhUd1V5bzZCZERuVHIxSEpWemJweXhWaGVVRnRlaVFQeFhuM0hvdFY4c2k4Ni9SMk1Vc0VTN0tSU0dPbUVERkwrc2Z1N2dnVHhwckhWR0VKK1BBVUxxdG1mK25ieDI0Nnc4Uk5ic2Z5QVYreStqTXBpNHJCYktaZkVWOXF6UE91SWc4YUl2Z3c9PQ') ]}
+  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RmRoaEMzNGpQNG5iSXRPNUl4Z2w3blVWS0lnY0dYdUdsbEExTlcxa29IR3B4cWs4eVRNdERGVzhlT1RBQkdjWjJiWmprdnFLQnNySXJsbThRallEeUJNc0Z0bEdEb3JDclVpWHBBamZYMjgrd2FtVkxHYTdSU095YVM2MVZlSFBhS0xXRFcrZnFjT1RRaFBldEtLaC9ON0E9PQ') ]}
   id: GpqDtwVjyC
 - enabled: true
   name: ''
   value: ''
-  id: nwzfKebKsB
+  id: kBwGzhBCG4
 method: PUT
 name: jay-set-model-provider-openrouter-kimi
 sortPriority: 1000.0
-url: http://127.0.0.1:8001/v1/config
+url: http://127.0.0.1:8001/v1/model-config
 urlParameters: []

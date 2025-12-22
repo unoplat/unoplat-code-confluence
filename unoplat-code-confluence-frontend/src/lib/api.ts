@@ -10,6 +10,9 @@ import {
   IngestedRepositoriesResponse,
   RefreshRepositoryResponse,
   CodebaseMetadataResponse,
+  ParentWorkflowJobListResponse,
+  GithubRepoStatus,
+  RepositoryWorkflowOperation,
 } from "@/types";
 import { CredentialParams, ProviderKey } from "@/types/credential-enums";
 import { providerCatalogSchema } from "@/features/model-config/provider-schema";
@@ -418,20 +421,18 @@ export async function fetchGitHubUser(
  *
  * @returns Promise with the parent workflow jobs list response
  */
-export const getParentWorkflowJobs = async (): Promise<
-  import("../types").ParentWorkflowJobListResponse
-> => {
-  console.log("[API] getParentWorkflowJobs called");
-  try {
-    const response: AxiosResponse<
-      import("../types").ParentWorkflowJobListResponse
-    > = await apiClient.get("/parent-workflow-jobs");
-    console.log("[API] getParentWorkflowJobs response data:", response.data);
-    return response.data;
-  } catch (error: unknown) {
-    throw handleApiError(error);
-  }
-};
+export const getParentWorkflowJobs =
+  async (): Promise<ParentWorkflowJobListResponse> => {
+    console.log("[API] getParentWorkflowJobs called");
+    try {
+      const response: AxiosResponse<ParentWorkflowJobListResponse> =
+        await apiClient.get("/parent-workflow-jobs");
+      console.log("[API] getParentWorkflowJobs response data:", response.data);
+      return response.data;
+    } catch (error: unknown) {
+      throw handleApiError(error);
+    }
+  };
 
 /**
  * Get repository status for a specific workflow run
@@ -445,7 +446,7 @@ export const getRepositoryStatus = async (
   repositoryName: string,
   repositoryOwnerName: string,
   workflowRunId: string,
-): Promise<import("../types").GithubRepoStatus> => {
+): Promise<GithubRepoStatus> => {
   console.log("[API] getRepositoryStatus called with params:", {
     repositoryName,
     repositoryOwnerName,
@@ -458,8 +459,10 @@ export const getRepositoryStatus = async (
       workflow_run_id: workflowRunId,
     };
     console.log("[API] getRepositoryStatus params:", params);
-    const response: AxiosResponse<import("../types").GithubRepoStatus> =
-      await apiClient.get("/repository-status", { params });
+    const response: AxiosResponse<GithubRepoStatus> = await apiClient.get(
+      "/repository-status",
+      { params },
+    );
     console.log("[API] getRepositoryStatus response data:", response.data);
     return response.data;
   } catch (error: unknown) {
@@ -478,6 +481,8 @@ export interface GithubIssueSubmissionRequest {
   codebase_folder?: string | null;
   codebase_workflow_run_id?: string | null;
   error_message_body: string;
+  /** Operation type for generating contextual GitHub issue titles */
+  operation_type: RepositoryWorkflowOperation;
 }
 
 /**
@@ -573,7 +578,7 @@ export const refreshRepository = async (
  * @returns Promise with the response data
  */
 export const deleteRepository = async (
-  repository: import("../types").IngestedRepository,
+  repository: IngestedRepository,
 ): Promise<ApiResponse> => {
   try {
     const response: AxiosResponse<ApiResponse> = await apiClient.delete(
@@ -627,7 +632,7 @@ interface RepositoryAgentSnapshotResponse {
 export interface RepositoryAgentSnapshot {
   status: RepoAgentSnapshotStatus;
   repository?: string;
-  codebases: Record<string, string>; // codebase_name -> JSON string of AgentMdOutput
+  codebases: Record<string, string>; // codebase_name -> JSON string of AgentMdCodebaseOutput
 }
 
 /**

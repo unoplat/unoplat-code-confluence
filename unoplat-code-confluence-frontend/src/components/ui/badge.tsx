@@ -28,12 +28,24 @@ const badgeVariants = cva(
           "border-transparent bg-info/10 text-info [a&]:hover:bg-info/20",
         cancelled:
           "border-transparent bg-muted text-muted-foreground [a&]:hover:bg-muted/80",
+        error:
+          "border-transparent bg-destructive/10 text-destructive [a&]:hover:bg-destructive/20",
         // Feature status variants
         alpha:
           "border-transparent bg-purple-500 text-white [a&]:hover:bg-purple-600",
         beta: "border-transparent bg-indigo-500 text-white [a&]:hover:bg-indigo-600",
         stable:
           "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600",
+        // Operation type variants
+        ingestion:
+          "border-transparent bg-info/10 text-info [a&]:hover:bg-info/20",
+        agents_generation:
+          "border-transparent bg-purple-500/10 text-purple-600 dark:text-purple-400 [a&]:hover:bg-purple-500/20",
+        agent_md_update:
+          "border-transparent bg-amber-500/10 text-amber-600 dark:text-amber-400 [a&]:hover:bg-amber-500/20",
+        // Section separator badge variant
+        section:
+          "border-transparent bg-primary/10 text-primary text-[0.7rem] font-semibold uppercase tracking-wide px-3 py-1",
       },
     },
     defaultVariants: {

@@ -6,24 +6,117 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from unoplat_code_confluence_query_engine.db.postgres.db import get_db_session
-from unoplat_code_confluence_query_engine.models.ai_model_config import (
+from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
+    AiModelConfig,
+)
+from unoplat_code_confluence_query_engine.db.postgres.db import (
+    get_db_session,
+    get_startup_session,
+)
+from unoplat_code_confluence_query_engine.models.config.ai_model_config import (
     AiModelConfigIn,
     AiModelConfigOut,
 )
-from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
+from unoplat_code_confluence_query_engine.services.config.ai_model_config_service import (
     AiModelConfigService,
 )
-from unoplat_code_confluence_query_engine.services.config_hot_reload import (
+from unoplat_code_confluence_query_engine.services.config.config_hot_reload import (
     update_app_agents,
 )
-from unoplat_code_confluence_query_engine.services.provider_catalog import (
+from unoplat_code_confluence_query_engine.services.config.credentials_service import (
+    CredentialsService,
+)
+from unoplat_code_confluence_query_engine.services.config.provider_catalog import (
     ProviderCatalog,
     ProviderSchema,
     ProviderSchemaPublic,
 )
+from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
+    compute_credential_hash,
+    generate_build_id,
+)
+from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
+    TemporalWorkerManager,
+    get_worker_manager,
+)
 
 router = APIRouter(prefix="/v1", tags=["ai-model-config"])
+
+
+async def _handle_worker_versioning(
+    request: Request,
+    session: AsyncSession,
+    worker_manager: TemporalWorkerManager,
+    old_build_id: str | None,
+) -> None:
+    """Handle Temporal worker versioning after config change.
+
+    Starts the worker if not running, or restarts if build ID changed.
+
+    Args:
+        request: FastAPI request to access app state and settings
+        session: Database session for loading config
+        worker_manager: Temporal worker manager instance
+        old_build_id: Build ID before config change (None if worker not running)
+    """
+    settings = request.app.state.settings
+
+    if not settings.temporal_enabled:
+        logger.debug("Temporal disabled, skipping worker versioning")
+        return
+
+    # Load the updated config to generate new build ID
+    config = await session.get(AiModelConfig, 1)
+    if not config:
+        logger.warning("No AI model config found after upsert, cannot start worker")
+        return
+
+    # Load current credential and compute hash for build ID
+    credential = await CredentialsService.get_model_credential(session)
+    credential_hash = compute_credential_hash(credential) if credential else None
+
+    new_build_id = generate_build_id(config, credential_hash)
+
+    # Case 1: Worker not running - start it
+    if not worker_manager.is_running:
+        logger.info(f"Starting Temporal worker with build ID: {new_build_id}")
+        try:
+            await worker_manager.start(settings=settings, config=config)
+            request.app.state.temporal_worker_manager = worker_manager
+            logger.info(
+                "Temporal worker started successfully with build ID: {}",
+                worker_manager.current_build_id,
+            )
+        except Exception as e:
+            logger.error("Failed to start Temporal worker: {}", e)
+        return
+
+    # Case 2: Worker running, check if build ID changed
+    if old_build_id == new_build_id:
+        logger.debug(
+            "Build ID unchanged ({}), no worker restart needed",
+            new_build_id,
+        )
+        return
+
+    # Case 3: Build ID changed - restart worker
+    logger.info(
+        "Build ID changed ({} -> {}), restarting Temporal worker",
+        old_build_id,
+        new_build_id,
+    )
+
+    try:
+        await worker_manager.stop()
+        await worker_manager.start(settings=settings, config=config)
+        request.app.state.temporal_worker_manager = worker_manager
+        logger.info(
+            "Temporal worker restarted with new build ID: {}",
+            worker_manager.current_build_id,
+        )
+    except Exception as e:
+        logger.error("Failed to restart Temporal worker: {}", e)
+        request.app.state.temporal_worker_manager = None    
 
 
 @router.get("/model-config", response_model=AiModelConfigOut)
@@ -71,15 +164,19 @@ async def upsert_ai_model_config(
     request: Request,
     config: AiModelConfigIn,
     x_model_api_key: str | None = Header(None, alias="X-Model-API-Key"),
-    session: AsyncSession = Depends(get_db_session),
 ) -> AiModelConfigOut:
     """Create or update AI model configuration.
+
+    Uses two-phase commit to ensure credential durability:
+    1. Config and credential are committed first (Phase 1)
+    2. Worker versioning happens after commit (Phase 2, can fail independently)
+
+    This ensures credential is persisted even if worker restart fails.
 
     Args:
         request: FastAPI request object to access app state
         config: AI model configuration input
         x_model_api_key: API key from X-Model-API-Key header
-        session: Database session
 
     Returns:
         AiModelConfigOut with the saved configuration
@@ -88,22 +185,30 @@ async def upsert_ai_model_config(
         HTTPException: If provider is unknown or validation fails
     """
     try:
-        service: AiModelConfigService = request.app.state.ai_model_config_service
-        result = await service.upsert_config(config, x_model_api_key, session)
-        logger.info("AI model config upserted for provider: {}", config.provider_key)
+        # Get current build ID before update (if worker is running)
+        worker_manager = get_worker_manager()
+        old_build_id = worker_manager.current_build_id
 
-        # Immediately refresh application agents so new config/credentials take effect
-        try:
-            before_keys = list(getattr(request.app.state, "agents", {}).keys())  # type: ignore[attr-defined]
-        except Exception:
-            before_keys = []
-        logger.debug("Agents before refresh: {}", before_keys)
+        # PHASE 1: Commit config and credential
+        # Uses explicit session that commits at context exit
+        async with get_startup_session() as session:
+            service: AiModelConfigService = request.app.state.ai_model_config_service
+            result = await service.upsert_config(config, x_model_api_key, session)
+            logger.info(
+                "AI model config upserted for provider: {}", config.provider_key
+            )
 
-        await update_app_agents(request.app, session)
+            # update_app_agents rebuilds model cache - safe in same transaction
+            await update_app_agents(request.app, session)
 
-        after_keys = list(request.app.state.agents.keys())
-        logger.info("Application agents refreshed after config upsert")
-        logger.debug("Agents after refresh: {}", after_keys)
+        # Transaction committed here - credential now visible to other sessions
+
+        # PHASE 2: Worker versioning (after commit)
+        # Worker restart failure does NOT rollback the config/credential
+        async with get_startup_session() as session:
+            await _handle_worker_versioning(
+                request, session, worker_manager, old_build_id
+            )
 
         return result
 
@@ -200,7 +305,7 @@ async def get_provider_schema(provider_key: str) -> ProviderSchema:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("Error getting provider schema for {}: {}", provider_key, e)
+        logger.error(f"Error getting provider schema for {provider_key}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve provider schema",

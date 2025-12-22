@@ -74,12 +74,19 @@ from unoplat_code_confluence_commons.graph_models import (
     UsesFeatureRelationship,
 )
 from unoplat_code_confluence_commons.repo_models import (
-    RepoAgentSnapshotStatus,
     RepositoryAgentMdSnapshot,
 )
 from unoplat_code_confluence_commons.security import (
     decrypt_token,
     encrypt_token,
+)
+from unoplat_code_confluence_commons.workflow_envelopes import (
+    CodebaseWorkflowDbActivityEnvelope,
+    ParentWorkflowDbActivityEnvelope,
+)
+from unoplat_code_confluence_commons.workflow_models import (
+    ErrorReport,
+    JobStatus,
 )
 
 __all__ = [
@@ -142,7 +149,6 @@ __all__ = [
     'ProgrammingLanguage',
     'PackageManagerType',
     'RepositoryAgentMdSnapshot',
-    'RepoAgentSnapshotStatus',
     # Credentials and related enums
     'Credentials',
     'CredentialNamespace',
@@ -153,4 +159,10 @@ __all__ = [
     # Security utilities
     'encrypt_token',
     'decrypt_token',
+    # Workflow models
+    'JobStatus',
+    'ErrorReport',
+    # Workflow envelope models
+    'ParentWorkflowDbActivityEnvelope',
+    'CodebaseWorkflowDbActivityEnvelope',
 ]

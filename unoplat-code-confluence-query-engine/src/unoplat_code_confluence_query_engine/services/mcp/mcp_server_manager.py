@@ -9,10 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from loguru import logger
-from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio
+from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio, MCPServerStreamableHTTP
 
-from unoplat_code_confluence_query_engine.models.mcp_config import (
+from unoplat_code_confluence_query_engine.models.config.mcp_config import (
     LocalMCPServerConfig,
+    MCPServerProtocol,
     MCPServersConfig,
     MCPServerType,
     RemoteMCPServerConfig,
@@ -113,25 +114,41 @@ class MCPServerManager:
 
     def create_remote_server_instance(
         self, name: str, config: RemoteMCPServerConfig
-    ) -> MCPServerSSE:
-        """Create a remote MCP server instance."""
-        logger.debug("Creating remote MCP server '{}' with URL: {}", name, config.url)
+    ) -> MCPServerSSE | MCPServerStreamableHTTP:
+        """Create a remote MCP server instance based on protocol configuration."""
+        logger.debug(
+            "Creating remote MCP server '{}' with URL: {} (protocol: {})",
+            name,
+            config.url,
+            config.protocol.value,
+        )
 
         # Use tool_prefix if provided, otherwise use server name
         tool_prefix = config.tool_prefix or name
 
         try:
-            server = MCPServerSSE(
-                url=config.url,
-                headers=config.headers if config.headers else None,
-                timeout=config.timeout,
-                tool_prefix=tool_prefix,
-            )
+            server: MCPServerSSE | MCPServerStreamableHTTP
+            match config.protocol:
+                case MCPServerProtocol.HTTP:
+                    server = MCPServerStreamableHTTP(
+                        url=config.url,
+                        headers=config.headers if config.headers else None,
+                        timeout=config.timeout,
+                        tool_prefix=tool_prefix,
+                    )
+                case MCPServerProtocol.SSE:
+                    server = MCPServerSSE(
+                        url=config.url,
+                        headers=config.headers if config.headers else None,
+                        timeout=config.timeout,
+                        tool_prefix=tool_prefix,
+                    )
 
             logger.info(
-                "Successfully created remote MCP server '{}' at URL: {}",
+                "Successfully created remote MCP server '{}' at URL: {} (protocol: {})",
                 name,
                 config.url,
+                config.protocol.value,
             )
             logger.debug(
                 "Remote MCP server '{}' - timeout: {}s, headers count: {}",
@@ -171,7 +188,9 @@ class MCPServerManager:
         """
         return bool(self.get_server_config(name))
 
-    def get_server_by_name(self, name: str) -> MCPServerStdio | MCPServerSSE | None:
+    def get_server_by_name(
+        self, name: str
+    ) -> MCPServerStdio | MCPServerSSE | MCPServerStreamableHTTP | None:
         """Create a new MCP server instance from configuration.
 
         IMPORTANT: Caller is responsible for managing the server lifecycle.
@@ -194,8 +213,3 @@ class MCPServerManager:
                 return self.create_local_server_instance(name, config)
             case MCPServerType.REMOTE:
                 return self.create_remote_server_instance(name, config)
-            case _:
-                logger.error(
-                    "Unknown server type for '{}': {}", name, config.server_type
-                )
-                return None

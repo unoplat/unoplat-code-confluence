@@ -8,34 +8,47 @@ import {
   type RepositoryAgentSnapshotRow,
 } from "./schema";
 
+// Scope for querying by composite primary key (owner + repository + runId)
 export interface RepositoryAgentSnapshotScope {
   owner: string;
   repository: string;
+  runId: string;
 }
 
 const electricShapeUrl = `${env.electricBaseUrl.replace(/\/$/, "")}/v1/shape`;
 
+// Create scope key for composite PK queries
 const createScopeKey = ({
   owner,
   repository,
-}: RepositoryAgentSnapshotScope): string => `${owner}/${repository}`;
+  runId,
+}: RepositoryAgentSnapshotScope): string => `${owner}/${repository}/${runId}`;
 
+// Create collection filtered by full composite primary key (owner + repo + runId)
 function createCollectionForScope({
   owner,
   repository,
+  runId,
 }: RepositoryAgentSnapshotScope) {
   return createCollection(
     electricCollectionOptions({
-      id: `repository-agent-snapshots-${owner}-${repository}`,
+      id: `repository-agent-snapshots-${owner}-${repository}-${runId}`,
       schema: repositoryAgentSnapshotRowSchema,
       getKey: (row: RepositoryAgentSnapshotRow) =>
-        `${row.repository_owner_name}/${row.repository_name}`,
+        `${row.repository_owner_name}/${row.repository_name}/${row.repository_workflow_run_id}`,
+      // Let the first subscriber start syncing and GC after a short TTL
+      startSync: false,
+      gcTime: 1000 * 60 * 2,
+      // Electric sync does not currently return a loadSubset handler,
+      // so on-demand mode is unsupported. Keep eager syncing.
+      syncMode: "eager",
       shapeOptions: {
         url: electricShapeUrl,
         params: {
           table: "repository_agent_md_snapshot",
-          where: "repository_owner_name = $1 AND repository_name = $2",
-          params: [owner, repository],
+          where:
+            "repository_owner_name = $1 AND repository_name = $2 AND repository_workflow_run_id = $3",
+          params: [owner, repository, runId],
           replica: "full",
         },
         subscribe: true,
@@ -53,6 +66,7 @@ const snapshotCollections = new Map<
   RepositoryAgentSnapshotCollection
 >();
 
+// Get or create a collection for a specific workflow run
 export const getRepositoryAgentSnapshotCollection = (
   scope: RepositoryAgentSnapshotScope,
 ): RepositoryAgentSnapshotCollection => {
@@ -65,13 +79,4 @@ export const getRepositoryAgentSnapshotCollection = (
   const collection = createCollectionForScope(scope);
   snapshotCollections.set(key, collection);
   return collection;
-};
-
-export const destroyRepositoryAgentSnapshotCollection = async (
-  scope: RepositoryAgentSnapshotScope,
-): Promise<void> => {
-  const key = createScopeKey(scope);
-  const collection = snapshotCollections.get(key);
-  snapshotCollections.delete(key);
-  await collection?.cleanup();
 };

@@ -3,15 +3,11 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import logfire
 from loguru import logger
 from sqlalchemy import select
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 from unoplat_code_confluence_commons.flags import Flag
 
-from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
-    create_code_confluence_agents,
-)
 from unoplat_code_confluence_query_engine.api.v1.endpoints import (
     ai_model_config,
     codebase_agent_rules,
@@ -31,18 +27,20 @@ from unoplat_code_confluence_query_engine.db.postgres.db import (
     get_startup_session,
     init_db_connections,
 )
-from unoplat_code_confluence_query_engine.services.ai_model_config_service import (
+from unoplat_code_confluence_query_engine.services.config.ai_model_config_service import (
     AiModelConfigService,
 )
-from unoplat_code_confluence_query_engine.services.config_hot_reload import (
+from unoplat_code_confluence_query_engine.services.config.config_hot_reload import (
     register_orm_events,
     unregister_orm_events,
 )
-from unoplat_code_confluence_query_engine.services.flag_service import FlagService
+from unoplat_code_confluence_query_engine.services.flags.flag_service import FlagService
 from unoplat_code_confluence_query_engine.services.mcp.mcp_server_manager import (
     MCPServerManager,
 )
-from unoplat_code_confluence_query_engine.services.model_factory import ModelFactory
+from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
+    get_worker_manager,
+)
 
 
 @asynccontextmanager
@@ -70,16 +68,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.neo4j_manager = CodeConfluenceGraphQueryEngine(app.state.settings)
     await app.state.neo4j_manager.connect()
 
-    # initiliase logfire telemetry in dev environment
-    if app.state.settings.logfire_sdk_write_key:
-        logger.info("Initialising logfire telemetry")
-        logfire.configure(
-            token=app.state.settings.logfire_sdk_write_key.get_secret_value(),
-            service_name="unoplat-code-confluence-query-engine",
-            environment=app.state.settings.environment,
-        )
-        logfire.instrument_pydantic_ai()
-
     # Initialize MCP Server Manager (configuration only - no server startup)
     # MCP servers are created on-demand by agent factories
     app.state.mcp_manager = MCPServerManager()
@@ -99,78 +87,70 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.flag_service = FlagService()
     logger.info("Services initialized and stored in app state")
 
-    # Load AI model configuration and build model within same transaction
+    # Check if AI model configuration exists and update flag
     async with get_startup_session() as session:
         result = await session.execute(
             select(AiModelConfig).where(AiModelConfig.id == 1)
         )
         config = result.scalar_one_or_none()
+        model_configured = config is not None
 
-        # Build model within transaction (needs session for credential access)
-        if config:
-            try:
-                model_factory = ModelFactory()
-                model, model_settings = await model_factory.build(
-                    config, app.state.settings, session
-                )
-                app.state.model = model
-                logger.debug(
-                    "Initializing agents with model: {}/{} and settings present? {}",
-                    config.provider_key,
-                    config.model_name,
-                    bool(model_settings),
-                )
-                app.state.agents = create_code_confluence_agents(
-                    app.state.mcp_manager, model, model_settings
-                )
-                logger.info(
-                    "Agents initialized with model: {}/{}",
-                    config.provider_key,
-                    config.model_name,
-                )
-                logger.debug(
-                    "Agent registry initialized: {} agents -> {}",
-                    len(app.state.agents),
-                    list(app.state.agents.keys()),
-                )
-
-                # Sanity check for required agents and factory
-                required_agents = [
-                    "project_configuration_agent",
-                    "development_workflow_agent",
-                    "business_logic_domain_agent",
-                    "context7_agent_factory",  # Changed to factory
-                ]
-                missing = [a for a in required_agents if a not in app.state.agents]
-                if missing:
-                    logger.error("Missing required agents at startup: {}", missing)
-                else:
-                    logger.debug("All required agents and factories present at startup")
-            except Exception as e:
-                logger.error("Failed to initialize model from config: {}", e)
-                app.state.model = None
-                app.state.agents = {}
+        if model_configured:
+            logger.info(
+                "AI model configured: {}/{}",
+                config.provider_key,
+                config.model_name,
+            )
         else:
-            # No configuration - agents remain uninitialized
-            app.state.model = None
-            app.state.agents = {}
-            logger.warning("No AI model configuration found. Agents not initialized.")
-            logger.debug("Agent registry is empty at startup")
+            logger.warning(
+                "No AI model configuration found. "
+                "Please configure via /ai-model-config endpoint."
+            )
 
-    # Ensure isModelConfigured flag reflects current state in a fresh transaction
-    async with get_startup_session() as session:
+        # Ensure isModelConfigured flag reflects current state
         flag_result = await session.execute(
             select(Flag).where(Flag.name == "isModelConfigured")
         )
         flag = flag_result.scalar_one_or_none()
         if flag:
-            flag.status = config is not None
+            flag.status = model_configured
         else:
-            session.add(Flag(name="isModelConfigured", status=config is not None))
+            session.add(Flag(name="isModelConfigured", status=model_configured))
+
+    # Start Temporal worker if enabled AND model is configured
+    worker_manager = get_worker_manager()
+    app.state.temporal_worker_manager = None
+
+    if not app.state.settings.temporal_enabled:
+        logger.info("Temporal worker disabled (TEMPORAL_ENABLED=false)")
+    elif not model_configured:
+        logger.info(
+            "Temporal worker startup deferred: no AI model configured. "
+            "Worker will start when model is configured via /ai-model-config."
+        )
+    else:
+        try:
+            await worker_manager.start(settings=app.state.settings)
+            app.state.temporal_worker_manager = worker_manager
+            logger.info(
+                "Temporal worker started with build ID: {}",
+                worker_manager.current_build_id,
+            )
+        except Exception as e:
+            logger.error("Failed to start Temporal worker: {}", e)
+            logger.warning("Agent endpoints will return 503 Service Unavailable")
 
     yield
 
     # Shutdown
+    # Stop Temporal worker
+    if app.state.temporal_worker_manager:
+        try:
+            await app.state.temporal_worker_manager.stop()
+            logger.info("Temporal worker stopped")
+        except Exception as e:
+            logger.error("Error stopping Temporal worker: {}", e)
+
     # Unregister ORM events
     try:
         unregister_orm_events()
@@ -182,7 +162,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         await app.state.neo4j_manager.close()
     except Exception as e:
-        logger.error("Error closing Neo4j connection: {}", e)
+        logger.error(f"Error closing Neo4j connection: {e}")
 
     # MCP servers are now created on-demand by agent factories
     # Each agent manages its own MCP server lifecycle automatically

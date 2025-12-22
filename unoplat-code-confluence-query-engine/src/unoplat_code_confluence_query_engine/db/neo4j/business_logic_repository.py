@@ -8,6 +8,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import DefaultDict, Dict, Tuple
 
+from loguru import logger
 from neo4j import AsyncManagedTransaction
 from unoplat_code_confluence_commons.base_models import DataModelPosition
 
@@ -23,6 +24,11 @@ async def _txn_get_data_model_files(
 ) -> DataModelSpanMap:
     """Fetch data model spans for a codebase grouped by file."""
 
+    logger.debug(
+        "[db_get_data_model_files] Querying for codebase_path={}",
+        codebase_path,
+    )
+
     grouped_spans: DefaultDict[str, Dict[str, Tuple[int, int]]] = defaultdict(dict)
 
     direct_query = """
@@ -34,6 +40,11 @@ async def _txn_get_data_model_files(
 
     direct_result = await tx.run(direct_query, {"codebase_path": codebase_path})
     direct_records = await direct_result.data()
+
+    logger.debug(
+        "[db_get_data_model_files] Direct query returned {} records",
+        len(direct_records),
+    )
 
     for record in direct_records:
         path = record["path"]
@@ -71,6 +82,11 @@ async def _txn_get_data_model_files(
     feature_result = await tx.run(feature_query, {"codebase_path": codebase_path})
     feature_records = await feature_result.data()
 
+    logger.debug(
+        "[db_get_data_model_files] Feature query returned {} records",
+        len(feature_records),
+    )
+
     for record in feature_records:
         path = record["path"]
         match_text = (record.get("match_text") or "").strip()
@@ -97,11 +113,18 @@ async def _txn_get_data_model_files(
 
         grouped_spans[path][identifier] = (start, end)
 
-    return {
+    final_result = {
         file_path: dict(sorted(models.items()))
         for file_path, models in sorted(grouped_spans.items())
         if models
     }
+
+    logger.info(
+        "[db_get_data_model_files] Final result: {} files with data models",
+        len(final_result),
+    )
+
+    return final_result
 
 
 async def db_get_data_model_files(

@@ -8,6 +8,8 @@ from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
+from unoplat_code_confluence_commons.repo_models import RepositoryWorkflowOperation
+from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
 
 
 class GitHubOwner(BaseModel):
@@ -122,30 +124,6 @@ class IssueTracking(BaseModel):
     created_at: Optional[str] = Field(
         default=None, description="Timestamp when the issue was created"
     )
-
-
-# Error report model for detailed error context
-class ErrorReport(BaseModel):
-    """
-    Detailed error report capturing context of failure.
-    """
-
-    error_message: str = Field(..., description="Error message")
-    stack_trace: Optional[str] = Field(
-        default=None, description="Stack trace of the error, if available"
-    )
-    metadata: Optional[dict] = Field(
-        default=None, description="Metadata associated with the error"
-    )
-
-
-class JobStatus(str, Enum):
-    SUBMITTED = "SUBMITTED"
-    RUNNING = "RUNNING"
-    FAILED = "FAILED"
-    TIMED_OUT = "TIMED_OUT"
-    COMPLETED = "COMPLETED"
-    RETRYING = "RETRYING"
 
 
 class WorkflowRun(BaseModel):
@@ -286,12 +264,19 @@ class ParentWorkflowJobResponse(BaseModel):
     repository_workflow_run_id: str = Field(
         description="The run ID of the repository workflow"
     )
+    operation: RepositoryWorkflowOperation = Field(
+        description="Operation type of the workflow run. One of: INGESTION, AGENTS_GENERATION, AGENT_MD_UPDATE."
+    )
     status: JobStatus = Field(
         description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING."
     )
     started_at: datetime = Field(description="Timestamp when the workflow run started")
     completed_at: Optional[datetime] = Field(
         default=None, description="Timestamp when the workflow run completed"
+    )
+    feedback_issue_url: Optional[str] = Field(
+        default=None,
+        description="URL of the GitHub issue created from agent feedback submission",
     )
 
 
@@ -320,6 +305,9 @@ class GithubIssueSubmissionRequest(BaseModel):
         default=None, description="The run ID of the codebase workflow"
     )
     error_message_body: str = Field(description="Error message")
+    operation_type: RepositoryWorkflowOperation = Field(
+        description="Operation type for generating contextual issue titles"
+    )
 
 
 class IngestedRepositoryResponse(BaseModel):

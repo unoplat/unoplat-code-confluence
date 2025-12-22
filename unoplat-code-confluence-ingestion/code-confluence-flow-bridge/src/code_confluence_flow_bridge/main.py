@@ -19,7 +19,6 @@ from typing import (
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-from github import Github
 from gql import Client as GQLClient, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 import httpx
@@ -43,9 +42,10 @@ from unoplat_code_confluence_commons.credential_enums import (
     ProviderKey,
     SecretKind,
 )
-from unoplat_code_confluence_commons.security import (
-    decrypt_token,
-    encrypt_token,
+from unoplat_code_confluence_commons.security import encrypt_token
+from unoplat_code_confluence_commons.workflow_models import (
+    ErrorReport,
+    JobStatus,
 )
 
 from src.code_confluence_flow_bridge.github_app.router import (
@@ -64,17 +64,12 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseMetadataResponse,
     CodebaseStatus,
     CodebaseStatusList,
-    ErrorReport,
-    GithubIssueSubmissionRequest,
     GitHubRepoResponseConfiguration,
     GithubRepoStatus,
     GitHubRepoSummary,
     IngestedRepositoriesListResponse,
     IngestedRepositoryResponse,
-    IssueStatus,
     IssueTracking,
-    IssueType,
-    JobStatus,
     PaginatedResponse,
     ParentWorkflowJobListResponse,
     ParentWorkflowJobResponse,
@@ -140,7 +135,13 @@ from src.code_confluence_flow_bridge.processor.parent_workflow_interceptor impor
     ParentWorkflowStatusInterceptor,
 )
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+from src.code_confluence_flow_bridge.routers.github_issues.router import (
+    router as github_issues_router,
+)
 from src.code_confluence_flow_bridge.utility.deps import trace_dependency
+from src.code_confluence_flow_bridge.utility.token_utils import (
+    fetch_repository_provider_token,
+)
 
 # Setup logging - override imported logger with configured one
 logger = setup_logging(
@@ -313,54 +314,6 @@ def create_worker(
         raise ApplicationError(error_message, type="WORKER_INITIALIZATION_ERROR") from e
 
 
-async def fetch_repository_provider_token(
-    session: AsyncSession,
-    namespace: CredentialNamespace,
-    provider_key: ProviderKey,
-) -> Tuple[str, Optional[Dict[str, Any]]]:
-    """
-    Fetch and decrypt repository provider token from database using enums.
-
-    Args:
-        session: Database session
-        namespace: Credential namespace (e.g., REPOSITORY)
-        provider_key: Provider key (e.g., GITHUB_OPEN, GITHUB_ENTERPRISE, GITLAB_CE)
-
-    Returns:
-        Tuple of (decrypted token, metadata_json dict or None)
-
-    Raises:
-        HTTPException: If no credentials found or decryption fails
-    """
-    try:
-        result = await session.execute(
-            select(Credentials)
-            .where(Credentials.namespace == namespace)
-            .where(Credentials.provider_key == provider_key)
-            .where(Credentials.secret_kind == SecretKind.PAT)
-        )
-        credential: Optional[Credentials] = result.scalars().first()
-    except Exception as db_error:
-        logger.error("Database error while fetching credentials: {}", db_error)
-        raise HTTPException(
-            status_code=500, detail="Database error while fetching credentials"
-        )
-
-    if not credential:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No credentials found for {namespace.value}/{provider_key.value}",
-        )
-
-    try:
-        decrypted_token = decrypt_token(credential.token_hash)
-        return decrypted_token, credential.metadata_json
-    except Exception as decrypt_error:
-        logger.error("Failed to decrypt token: {}", decrypt_error)
-        raise HTTPException(
-            status_code=500,
-            detail="Internal error during authentication token decryption",
-        )
 
 
 async def start_workflow(
@@ -628,6 +581,7 @@ app.add_middleware(
 )
 
 app.include_router(github_app_router)
+app.include_router(github_issues_router)
 
 
 # Create background task for workflow completion
@@ -765,25 +719,40 @@ def get_github_graphql_url(
     provider_key: ProviderKey, metadata: Optional[Dict[str, Any]]
 ) -> str:
     """
-    Get GitHub GraphQL API URL based on provider type.
+    Get GitHub GraphQL API endpoint URL.
+
+    Supports:
+    - GitHub.com (GITHUB_OPEN): https://api.github.com/graphql
+    - Enterprise Server (GITHUB_ENTERPRISE + URL): https://HOSTNAME/api/graphql
+    - Enterprise Cloud standard (GITHUB_ENTERPRISE, no URL): https://api.github.com/graphql
+    - Enterprise Cloud data residency (GITHUB_ENTERPRISE + ghe.com): https://api.SUBDOMAIN.ghe.com/graphql
 
     Args:
         provider_key: Provider key (GITHUB_OPEN or GITHUB_ENTERPRISE)
         metadata: Metadata containing base URL for enterprise instances
 
     Returns:
-        GitHub GraphQL API URL
+        GitHub GraphQL API endpoint URL
 
     Raises:
-        HTTPException: If enterprise instance URL is missing
+        HTTPException: If enterprise configuration is invalid
     """
     if provider_key == ProviderKey.GITHUB_ENTERPRISE:
-        if not metadata or "url" not in metadata:
-            raise HTTPException(
-                status_code=400,
-                detail="Enterprise GitHub instance requires URL in metadata",
-            )
+        # Enterprise configurations require metadata, but URL is optional
+        if not metadata or "url" not in metadata or not metadata["url"]:
+            # No URL provided - assume Enterprise Cloud (standard) using github.com
+            return "https://api.github.com/graphql"
+
         base_url = metadata["url"].rstrip("/")
+
+        # Check for Enterprise Cloud with data residency (ghe.com subdomain)
+        if ".ghe.com" in base_url:
+            # Example: https://octocorp.ghe.com -> https://api.octocorp.ghe.com/graphql
+            domain = base_url.replace("https://", "").replace("http://", "")
+            return f"https://api.{domain}/graphql"
+
+        # GitHub Enterprise Server (self-hosted)
+        # Example: https://github.mycompany.com -> https://github.mycompany.com/api/graphql
         return f"{base_url}/api/graphql"
     else:
         # Default to GitHub.com for GITHUB_OPEN
@@ -796,6 +765,12 @@ def get_github_rest_api_base_url(
     """
     Get GitHub REST API base URL based on provider type.
 
+    Supports:
+    - GitHub.com (GITHUB_OPEN): https://api.github.com
+    - Enterprise Server (GITHUB_ENTERPRISE + URL): https://HOSTNAME/api/v3
+    - Enterprise Cloud standard (GITHUB_ENTERPRISE, no URL): https://api.github.com
+    - Enterprise Cloud data residency (GITHUB_ENTERPRISE + ghe.com): https://api.SUBDOMAIN.ghe.com
+
     Args:
         provider_key: Provider key (GITHUB_OPEN or GITHUB_ENTERPRISE)
         metadata: Metadata containing base URL for enterprise instances
@@ -804,15 +779,24 @@ def get_github_rest_api_base_url(
         GitHub REST API base URL
 
     Raises:
-        HTTPException: If enterprise instance URL is missing
+        HTTPException: If enterprise configuration is invalid
     """
     if provider_key == ProviderKey.GITHUB_ENTERPRISE:
-        if not metadata or "url" not in metadata:
-            raise HTTPException(
-                status_code=400,
-                detail="Enterprise GitHub instance requires URL in metadata",
-            )
+        # Enterprise configurations require metadata, but URL is optional
+        if not metadata or "url" not in metadata or not metadata["url"]:
+            # No URL provided - assume Enterprise Cloud (standard) using github.com
+            return "https://api.github.com"
+
         base_url = metadata["url"].rstrip("/")
+
+        # Check for Enterprise Cloud with data residency (ghe.com subdomain)
+        if ".ghe.com" in base_url:
+            # Example: https://octocorp.ghe.com -> https://api.octocorp.ghe.com
+            domain = base_url.replace("https://", "").replace("http://", "")
+            return f"https://api.{domain}"
+
+        # GitHub Enterprise Server (self-hosted)
+        # Example: https://github.mycompany.com -> https://github.mycompany.com/api/v3
         return f"{base_url}/api/v3"
     else:
         # Default to GitHub.com for GITHUB_OPEN
@@ -825,8 +809,21 @@ def build_repository_git_url(
     provider_key: ProviderKey,
     metadata: Optional[Dict[str, Any]],
 ) -> str:
-    """Construct the git clone URL for a repository based on provider configuration."""
+    """
+    Construct the git clone URL for a repository based on provider configuration.
 
+    Args:
+        repository_owner_name: Repository owner/organization name
+        repository_name: Repository name
+        provider_key: Provider key (GITHUB_OPEN or GITHUB_ENTERPRISE)
+        metadata: Metadata containing base URL for enterprise instances
+
+    Returns:
+        Git clone URL (HTTPS format)
+
+    Raises:
+        HTTPException: If repository details or enterprise configuration is invalid
+    """
     owner = repository_owner_name.strip()
     repo = repository_name.strip()
     if not owner or not repo:
@@ -838,15 +835,12 @@ def build_repository_git_url(
     if provider_key == ProviderKey.GITHUB_OPEN:
         base_url = "https://github.com"
     else:
+        # GITHUB_ENTERPRISE
         if not metadata or not metadata.get("url"):
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"Provider {provider_key.value} requires a base URL in credential metadata. "
-                    "Please reconfigure the credential with a 'url' value before refreshing."
-                ),
-            )
-        base_url = metadata["url"].rstrip("/")
+            # No URL - assume Enterprise Cloud (standard) using github.com
+            base_url = "https://github.com"
+        else:
+            base_url = metadata["url"].rstrip("/")
 
     return f"{base_url}/{owner}/{repo}.git"
 
@@ -1504,7 +1498,7 @@ async def get_parent_workflow_jobs(
     """Get all parent workflow jobs data without pagination.
 
     Returns job information for all parent workflows (RepositoryWorkflowRun).
-    Includes repository_name, repository_owner_name, repository_workflow_run_id, status, started_at, completed_at.
+    Includes repository_name, repository_owner_name, repository_workflow_run_id, operation, status, started_at, completed_at.
     """
     try:
         # Query to get all parent workflow jobs (RepositoryWorkflowRun records)
@@ -1518,9 +1512,11 @@ async def get_parent_workflow_jobs(
                 repository_name=run.repository_name,
                 repository_owner_name=run.repository_owner_name,
                 repository_workflow_run_id=run.repository_workflow_run_id,
+                operation=run.operation,
                 status=JobStatus(run.status),
                 started_at=run.started_at,
                 completed_at=run.completed_at,
+                feedback_issue_url=run.feedback_issue_url,
             )
             for run in workflow_runs
         ]
@@ -1881,175 +1877,3 @@ async def get_user_details(
     }
 
 
-@app.post("/code-confluence/issues", response_model=IssueTracking)
-async def create_github_issue(
-    request: GithubIssueSubmissionRequest, session: AsyncSession = Depends(get_session)
-) -> IssueTracking:
-    """
-    Create a GitHub issue based on error information and track it in the database.
-
-    This endpoint creates a GitHub issue using the provided error information and then updates
-    either the codebase workflow run or repository workflow run record with the issue details.
-    """
-    try:
-        # Get GitHub token from credentials for our open source repository
-        # This endpoint is for users to create issues on our product repository
-        token, _ = await fetch_repository_provider_token(
-            session, CredentialNamespace.REPOSITORY, ProviderKey.GITHUB_OPEN
-        )
-
-        # Create GitHub issue
-
-        # Create issue title and body from error information
-        title = (
-            f"Error: {request.error_message_body[:50]}..."
-            if len(request.error_message_body) > 50
-            else f"Error: {request.error_message_body}"
-        )
-        body = f"## Error Details\n\n{request.error_message_body}\n\n"
-
-        # Add workflow context information to the issue body
-        body += "## Workflow Information\n\n"
-        body += (
-            f"- Repository: {request.repository_owner_name}/{request.repository_name}\n"
-        )
-
-        if request.codebase_folder:
-            body += f"- Codebase Folder: {request.codebase_folder}\n"
-
-        # Build the GitHub API request data
-        github_issue_data = {
-            "title": title,
-            "body": body,
-            # Assignees and labels could be added here if needed
-            # "assignees": [],
-            "labels": ["bug", "automated"],
-        }
-
-        # Create GitHub issue using PyGithub
-        try:
-            # Initialize GitHub client with token
-            g = Github(token)
-
-            # Get the repository
-            repo = g.get_repo("unoplat/unoplat-code-confluence")
-
-            # Create the issue
-            labels = github_issue_data["labels"]
-            github_issue = repo.create_issue(
-                title=title,
-                body=body,
-                labels=labels,  # type: ignore
-            )
-        except Exception as e:
-            logger.error("GitHub API error: {}", str(e))
-            raise HTTPException(
-                status_code=500, detail=f"Failed to create GitHub issue: {str(e)}"
-            )
-
-        # Create issue tracking record
-        issue_tracking = IssueTracking(
-            issue_id=str(github_issue.id),
-            issue_url=github_issue.html_url,
-            issue_status=IssueStatus.OPEN,
-        )
-
-        # Prepare issue tracking data for database using IssueTracking model
-        issue_tracking_full = IssueTracking(
-            issue_id=issue_tracking.issue_id,
-            issue_number=github_issue.number,
-            issue_url=issue_tracking.issue_url,
-            issue_status=issue_tracking.issue_status,
-            created_at=datetime.now(timezone.utc).isoformat(),
-        )
-        issue_data = (
-            issue_tracking_full.model_dump()
-        )  # or use .json() if the DB expects a JSON string
-
-        # Save to appropriate table based on issue type
-        if (
-            request.error_type == IssueType.CODEBASE
-            and request.codebase_workflow_run_id
-        ):
-            # Update codebase workflow run with issue tracking
-            condition = (
-                (CodebaseWorkflowRun.repository_name == request.repository_name)
-                & (
-                    CodebaseWorkflowRun.repository_owner_name
-                    == request.repository_owner_name
-                )
-                & (CodebaseWorkflowRun.codebase_folder == request.codebase_folder)
-                & (
-                    CodebaseWorkflowRun.codebase_workflow_run_id
-                    == request.codebase_workflow_run_id
-                )
-            )  # type: ignore
-            codebase_run_query = select(CodebaseWorkflowRun).where(condition)
-            codebase_run_result = await session.execute(codebase_run_query)
-            codebase_run = codebase_run_result.scalar_one_or_none()
-
-            if not codebase_run:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Codebase workflow run {request.codebase_workflow_run_id} not found",
-                )
-
-            codebase_run.issue_tracking = issue_data
-
-        else:  # repository workflow run
-            # Update repository workflow run with issue tracking
-            condition = (
-                (RepositoryWorkflowRun.repository_name == request.repository_name)
-                & (
-                    RepositoryWorkflowRun.repository_owner_name
-                    == request.repository_owner_name
-                )
-                & (
-                    RepositoryWorkflowRun.repository_workflow_run_id
-                    == request.parent_workflow_run_id
-                )
-            )  # type: ignore
-            repo_run_query = select(RepositoryWorkflowRun).where(condition)
-            repo_run_result = await session.execute(repo_run_query)
-            repo_run = repo_run_result.scalar_one_or_none()
-
-            if not repo_run:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Repository workflow run {request.parent_workflow_run_id} not found",
-                )
-
-            repo_run.issue_tracking = issue_data
-
-        return issue_tracking_full
-
-    except Exception as e:
-        logger.error("Error creating GitHub issue: {}", str(e))
-        # Follow standardized error handling pattern from memories
-        workflow_context = {
-            "workflow_id": request.parent_workflow_run_id,
-            "repository": f"{request.repository_owner_name}/{request.repository_name}",
-        }
-        if (
-            request.error_type == IssueType.CODEBASE
-            and request.codebase_workflow_run_id
-        ):
-            workflow_context["codebase_workflow_run_id"] = (
-                request.codebase_workflow_run_id
-            )
-            if request.codebase_folder:
-                workflow_context["codebase_folder"] = request.codebase_folder
-
-        error_context = {
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-            "workflow_context": workflow_context,
-        }
-
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "message": "Faced an error while creating GitHub issue. Please try after some time.",
-                "error_context": error_context,
-            },
-        )

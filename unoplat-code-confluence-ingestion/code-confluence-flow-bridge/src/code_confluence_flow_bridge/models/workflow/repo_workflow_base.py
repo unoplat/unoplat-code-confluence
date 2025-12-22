@@ -1,10 +1,12 @@
 from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict
-from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
-from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
+)
+from unoplat_code_confluence_commons.workflow_envelopes import (
+    CodebaseWorkflowDbActivityEnvelope,
+    ParentWorkflowDbActivityEnvelope,
 )
 
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
@@ -14,9 +16,21 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
     UnoplatPackageManagerMetadata,
 )
 from src.code_confluence_flow_bridge.models.github.github_repo import (
-    ErrorReport,
     RepositoryRequestConfiguration,
 )
+
+# Re-export from commons for backwards compatibility
+__all__ = [
+    "CodebaseChildWorkflowEnvelope",
+    "CodebaseProcessingActivityEnvelope",
+    "CodebaseWorkflowDbActivityEnvelope",
+    "ConfluenceGitGraphEnvelope",
+    "GitActivityEnvelope",
+    "PackageManagerMetadataIngestionEnvelope",
+    "PackageMetadataActivityEnvelope",
+    "ParentWorkflowDbActivityEnvelope",
+    "RepoWorkflowRunEnvelope",
+]
 
 
 class RepoWorkflowRunEnvelope(BaseModel):
@@ -67,25 +81,6 @@ class CodebaseChildWorkflowEnvelope(BaseModel):
         return dict(self.model_extra or {})
 
 
-class ParentWorkflowDbActivityEnvelope(BaseModel):
-    repository_name: str
-    repository_owner_name: str
-    workflow_id: Optional[str] = None
-    workflow_run_id: str
-    trace_id: Optional[str] = None
-    repository_metadata: Optional[List[CodebaseConfig]] = (
-        None  # Using Any to avoid circular imports
-    )
-    status: str  # Using string to avoid circular imports with JobStatus
-    error_report: Optional[ErrorReport] = None  # Using Any to avoid circular imports
-    provider_key: ProviderKey = ProviderKey.GITHUB_OPEN
-    model_config = ConfigDict(extra="allow")
-
-    @property
-    def extras(self) -> dict[str, Any]:
-        return dict(self.model_extra or {})
-
-
 class PackageMetadataActivityEnvelope(BaseModel):
     codebase_path: str
     programming_language_metadata: ProgrammingLanguageMetadata
@@ -116,24 +111,6 @@ class CodebaseProcessingActivityEnvelope(BaseModel):
     dependencies: Optional[List[str]]
     programming_language_metadata: ProgrammingLanguageMetadata
     trace_id: str
-    model_config = ConfigDict(extra="allow")
-
-    @property
-    def extras(self) -> dict[str, Any]:
-        return dict(self.model_extra or {})
-
-
-# Envelope for codebase workflow DB activity
-class CodebaseWorkflowDbActivityEnvelope(BaseModel):
-    repository_name: str
-    repository_owner_name: str
-    codebase_folder: str
-    repository_workflow_run_id: str
-    codebase_workflow_id: str
-    codebase_workflow_run_id: str
-    trace_id: str
-    status: str
-    error_report: Optional[ErrorReport] = None
     model_config = ConfigDict(extra="allow")
 
     @property

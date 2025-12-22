@@ -1,5 +1,61 @@
 # Changelog
 
+## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.2...unoplat-code-confluence-commons-v0.39.0) (2025-12-21)
+
+
+### Features
+
+* **core-feedback:** feedback field for all major operations ([548ed61](https://github.com/unoplat/unoplat-code-confluence/commit/548ed619405ef9637f60a0a847aab769731f130f))
+* **core-feedback:** feedback field for all major operations ([83d1b38](https://github.com/unoplat/unoplat-code-confluence/commit/83d1b380e45d4dc164b9eb397670a91fdd852c7d))
+
+## [0.38.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.1...unoplat-code-confluence-commons-v0.38.2) (2025-12-12)
+
+
+### Bug Fixes
+
+* **better-status-model:** added error status enum for ai operations ([29b0ba6](https://github.com/unoplat/unoplat-code-confluence/commit/29b0ba6d1713d10c0340a7f7931d0e22db5efc83))
+* **better-status-model:** added error status enum for ai operations ([e0dbcf9](https://github.com/unoplat/unoplat-code-confluence/commit/e0dbcf9016a98cb36ea17b1d7d9eab5338bb7d80))
+
+## [0.38.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.38.0...unoplat-code-confluence-commons-v0.38.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* remove redundant status column post moving to workflow orchestra… ([2757da8](https://github.com/unoplat/unoplat-code-confluence/commit/2757da82915ccf5e5ceb98752ded484988bad4ec))
+* remove redundant status column post moving to workflow orchestrator for status management ([bf35527](https://github.com/unoplat/unoplat-code-confluence/commit/bf3552711f907c6dd0d3e57c77840f8defd79ddd))
+
+## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.37.0...unoplat-code-confluence-commons-v0.38.0) (2025-12-09)
+
+
+### Features
+
+* update model attributes ([03b1e84](https://github.com/unoplat/unoplat-code-confluence/commit/03b1e84fee23d150eb7ad012014543e29c36e35e))
+* update model attributes ([0e4f1c6](https://github.com/unoplat/unoplat-code-confluence/commit/0e4f1c6564985f82db06fc3f2ff174ad53ee25c0))
+
+## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.36.1...unoplat-code-confluence-commons-v0.37.0) (2025-12-09)
+
+
+### Features
+
+* common pojos for any operation under workflow orchestrator ([46a2c91](https://github.com/unoplat/unoplat-code-confluence/commit/46a2c91d3d3245df65201e42c95c639bb739fd44))
+* common pojos for any operation under workflow orchestrator ([7aa8e4e](https://github.com/unoplat/unoplat-code-confluence/commit/7aa8e4e7ef6f096691d4dc660361455018778583))
+
+## [0.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.36.0...unoplat-code-confluence-commons-v0.36.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* commons repository workflow regression issue fi ([9359288](https://github.com/unoplat/unoplat-code-confluence/commit/9359288a1a1775922aa85994614f815b7999157b))
+* commons repository workflow regression issue fi ([e38fc24](https://github.com/unoplat/unoplat-code-confluence/commit/e38fc24a0826b40e8973344414de2005335642e5))
+
+## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.35.0...unoplat-code-confluence-commons-v0.36.0) (2025-12-01)
+
+
+### Features
+
+* support different operations for workflow ([65fd77e](https://github.com/unoplat/unoplat-code-confluence/commit/65fd77ee9380f7fb0476f738fe24f557a62961e9))
+* support different operations for workflow ([09becd3](https://github.com/unoplat/unoplat-code-confluence/commit/09becd3090d0eb2de76068cc861806442efc1e5b))
+
 ## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.34.1...unoplat-code-confluence-commons-v0.35.0) (2025-11-21)
 
 

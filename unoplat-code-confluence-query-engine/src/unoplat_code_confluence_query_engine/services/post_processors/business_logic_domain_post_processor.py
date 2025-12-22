@@ -7,7 +7,7 @@ from loguru import logger
 from unoplat_code_confluence_query_engine.db.neo4j.business_logic_repository import (
     db_get_data_model_files,
 )
-from unoplat_code_confluence_query_engine.models.agent_md_output import (
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     BusinessLogicDomain,
     CoreFile,
 )
@@ -64,7 +64,7 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
             )
 
         except Exception as e:
-            logger.error("Error in BusinessLogicDomainPostProcessor: {}", e)
+            logger.error(f"Error in BusinessLogicDomainPostProcessor: {e}")
             description = (
                 str(agent_output).strip().strip('"')
                 if agent_output

@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.65.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.2...code-confluence-flow-bridge-v0.65.0) (2025-12-22)
+
+
+### Features
+
+* **create-feedback-github-issue-url:** support operation in a separate router ([96b0aec](https://github.com/unoplat/unoplat-code-confluence/commit/96b0aeca2eb5e8b65d3513edcb830840c17e05f5))
+* **error-submission-ai-workflows:** components and data implemented needed for github issue submission ([c1567f0](https://github.com/unoplat/unoplat-code-confluence/commit/c1567f044f713db973bfd20e71a4aa6386f282cf))
+
+
+### Bug Fixes
+
+* **flow-bridge-backend-tests:** assertions fixes post updates ([1160821](https://github.com/unoplat/unoplat-code-confluence/commit/1160821818e828fb104da3ca65f77b8c67664c37))
+* **github-issue-data-model:** feedback fixes ([17a16ba](https://github.com/unoplat/unoplat-code-confluence/commit/17a16badebd4f386e7d22669fd8aa41c682a3481))
+* **standardise-github-issue:** error collection ,creation and submission ([36124e2](https://github.com/unoplat/unoplat-code-confluence/commit/36124e255a9d70366085ed5075867e50ab70ad09))
+
+## [0.64.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.1...code-confluence-flow-bridge-v0.64.2) (2025-12-21)
+
+
+### Bug Fixes
+
+* merge conflicts ([abb2396](https://github.com/unoplat/unoplat-code-confluence/commit/abb239688da11a5f22a8af7845aff60c559e347d))
+* **standardise-github-issue:** error collection ,creation and submission ([79d0cab](https://github.com/unoplat/unoplat-code-confluence/commit/79d0cabfbea89ba6aaeaadf5202c606b536c6850))
+
+## [0.64.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.64.0...code-confluence-flow-bridge-v0.64.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* automatic error capture post exhausion of retries during ai work… ([415de05](https://github.com/unoplat/unoplat-code-confluence/commit/415de05f4c9785afe22264d5439f20f2819a19e8))
+* **connection-pool-recommendation-settings:** reuse stale connections and increase connection pool for postgres ([2935799](https://github.com/unoplat/unoplat-code-confluence/commit/2935799a5a1c160ebba5b6da76d4adbdcd73eadf))
+
+## [0.64.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.63.0...code-confluence-flow-bridge-v0.64.0) (2025-12-09)
+
+
+### Features
+
+* move to common envelope models for workflow ([1105fb2](https://github.com/unoplat/unoplat-code-confluence/commit/1105fb2cde010d866b7ceb597f359ffc8b0cc206))
+* move to common envelope models for workflow ([c0ba37a](https://github.com/unoplat/unoplat-code-confluence/commit/c0ba37a9d4ea7ae2faa9ef1b9751666071fbca8d))
+
+## [0.63.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.62.1...code-confluence-flow-bridge-v0.63.0) (2025-12-02)
+
+
+### Features
+
+* enable operations as part of ingestion process to track/audit ([90dea8c](https://github.com/unoplat/unoplat-code-confluence/commit/90dea8c3e3ea0d406ee7923b95a8201778263c4e))
+* enable operations as part of ingestion process to track/audit ([95cb0a1](https://github.com/unoplat/unoplat-code-confluence/commit/95cb0a144066c763d31256a6301ed7db03a87f35))
+
+
+### Bug Fixes
+
+* update dependencies ([e89724e](https://github.com/unoplat/unoplat-code-confluence/commit/e89724e89042a69d5845fb294579d3a58aa18f40))
+
 ## [0.62.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.62.0...code-confluence-flow-bridge-v0.62.1) (2025-11-22)
 
 

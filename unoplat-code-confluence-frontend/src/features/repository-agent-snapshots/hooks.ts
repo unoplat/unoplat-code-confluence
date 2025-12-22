@@ -1,11 +1,9 @@
-import { useEffect, useMemo } from "react";
 import { useLiveQuery } from "@tanstack/react-db";
 
 import {
-  destroyRepositoryAgentSnapshotCollection,
   getRepositoryAgentSnapshotCollection,
-  type RepositoryAgentSnapshotCollection,
   type RepositoryAgentSnapshotScope,
+  type RepositoryAgentSnapshotCollection,
 } from "./collection";
 import {
   type ParsedRepositoryAgentSnapshot,
@@ -23,44 +21,28 @@ export interface UseRepositoryAgentSnapshotResult {
   collection: RepositoryAgentSnapshotCollection | undefined;
 }
 
+/**
+ * Hook to query repository agent snapshot by composite primary key (owner + repository + runId).
+ *
+ * Uses TanStack DB's useLiveQuery for automatic reactivity - no external memoization needed.
+ * Collection instances are cached in a singleton Map (see collection.ts), so retrieval is stable.
+ *
+ * @param scope - Composite key (owner + repository + runId). Pass null/undefined to skip querying.
+ */
 export function useRepositoryAgentSnapshot(
   scope: RepositoryAgentSnapshotScope | null | undefined,
 ): UseRepositoryAgentSnapshotResult {
-  const memoizedScope = useMemo(() => {
-    if (!scope) {
-      return null;
-    }
-    return { owner: scope.owner, repository: scope.repository };
-  }, [scope?.owner, scope?.repository]);
+  // Get or create collection from singleton cache
+  // No memoization needed - getRepositoryAgentSnapshotCollection handles caching internally
+  const collection = scope
+    ? getRepositoryAgentSnapshotCollection(scope)
+    : undefined;
 
-  const collection = useMemo(() => {
-    return memoizedScope
-      ? getRepositoryAgentSnapshotCollection(memoizedScope)
-      : undefined;
-  }, [memoizedScope?.owner, memoizedScope?.repository]);
+  // Lifecycle is handled by the collection itself (startSync/gcTime).
+  // Sync starts when the first live query subscribes and GC runs after gcTime.
 
-  useEffect(() => {
-    if (!memoizedScope || !collection) {
-      return;
-    }
-
-    let isUnmounted = false;
-
-    collection.preload().catch((error) => {
-      if (!isUnmounted) {
-        console.error(
-          "Failed to preload repository agent snapshot collection",
-          error,
-        );
-      }
-    });
-
-    return () => {
-      isUnmounted = true;
-      void destroyRepositoryAgentSnapshotCollection(memoizedScope);
-    };
-  }, [memoizedScope?.owner, memoizedScope?.repository, collection]);
-
+  // useLiveQuery handles all reactivity internally via D2S (differential dataflow)
+  // Collection reference is stable from singleton cache
   const liveQueryResult = useLiveQuery(
     (q) => {
       if (!collection) return undefined;

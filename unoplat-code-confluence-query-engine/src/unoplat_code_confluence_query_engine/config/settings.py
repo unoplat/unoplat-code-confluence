@@ -1,7 +1,13 @@
+from pathlib import Path
 from typing import Optional
 
 from pydantic import Field, SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Compute absolute path to .env.dev from settings.py location
+# settings.py is at: src/unoplat_code_confluence_query_engine/config/settings.py
+# .env.dev is at: project root (unoplat-code-confluence-query-engine/.env.dev)
+_ENV_FILE_PATH = Path(__file__).parent.parent.parent.parent / ".env.dev"
 
 
 class EnvironmentSettings(BaseSettings):
@@ -13,7 +19,7 @@ class EnvironmentSettings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file="../../.env.dev",
+        env_file=str(_ENV_FILE_PATH),
         env_file_encoding="utf-8",
         case_sensitive=False,
         validate_default=True,
@@ -136,6 +142,114 @@ class EnvironmentSettings(BaseSettings):
         default="/Users/jayghiya/Documents/unoplat/unoplat-code-confluence/unoplat-code-confluence-query-engine/docs/mock/agent-md-result.json",
         alias="MOCK_SSE_RESULT_PATH",
         description="Path to mock final agent MD result JSON",
+    )
+
+    # Temporal Settings
+    temporal_address: str = Field(
+        default="localhost:7233",
+        alias="TEMPORAL_ADDRESS",
+        description="Temporal server address for workflows",
+    )
+    temporal_namespace: str = Field(
+        default="default",
+        alias="TEMPORAL_NAMESPACE",
+        description="Temporal namespace for workflows",
+    )
+    temporal_enabled: bool = Field(
+        default=True,
+        alias="TEMPORAL_ENABLED",
+        description="Enable Temporal worker at app startup",
+    )
+
+    # Temporal Activity Retry Settings (for TemporalAgent activities)
+    # Model activities - for LLM provider requests (more tolerant of transient issues)
+    temporal_model_activity_max_attempts: int = Field(
+        default=5,
+        alias="TEMPORAL_MODEL_ACTIVITY_MAX_ATTEMPTS",
+        description="Maximum retry attempts for model request activities",
+        ge=1,
+        le=10,
+    )
+    temporal_model_activity_initial_interval_s: float = Field(
+        default=2.0,
+        alias="TEMPORAL_MODEL_ACTIVITY_INITIAL_INTERVAL_S",
+        description="Initial backoff interval in seconds for model activities",
+        ge=0.5,
+        le=30.0,
+    )
+    temporal_model_activity_backoff_coefficient: float = Field(
+        default=2.0,
+        alias="TEMPORAL_MODEL_ACTIVITY_BACKOFF_COEFFICIENT",
+        description="Backoff coefficient for model activities",
+        ge=1.0,
+        le=5.0,
+    )
+    temporal_model_activity_max_interval_s: float = Field(
+        default=60.0,
+        alias="TEMPORAL_MODEL_ACTIVITY_MAX_INTERVAL_S",
+        description="Maximum backoff interval in seconds for model activities",
+        ge=10.0,
+        le=300.0,
+    )
+
+    # Toolset activities - for get-tools/list-tools operations (toolset level)
+    temporal_toolset_activity_max_attempts: int = Field(
+        default=3,
+        alias="TEMPORAL_TOOLSET_ACTIVITY_MAX_ATTEMPTS",
+        description="Maximum retry attempts for toolset activities (get-tools/list-tools)",
+        ge=1,
+        le=5,
+    )
+    temporal_toolset_activity_initial_interval_s: float = Field(
+        default=1.0,
+        alias="TEMPORAL_TOOLSET_ACTIVITY_INITIAL_INTERVAL_S",
+        description="Initial backoff interval in seconds for toolset activities",
+        ge=0.1,
+        le=10.0,
+    )
+    temporal_toolset_activity_backoff_coefficient: float = Field(
+        default=1.5,
+        alias="TEMPORAL_TOOLSET_ACTIVITY_BACKOFF_COEFFICIENT",
+        description="Backoff coefficient for toolset activities",
+        ge=1.0,
+        le=3.0,
+    )
+    temporal_toolset_activity_max_interval_s: float = Field(
+        default=10.0,
+        alias="TEMPORAL_TOOLSET_ACTIVITY_MAX_INTERVAL_S",
+        description="Maximum backoff interval in seconds for toolset activities",
+        ge=1.0,
+        le=60.0,
+    )
+
+    # Tool activities - for individual tool call execution (more conservative)
+    temporal_tool_activity_max_attempts: int = Field(
+        default=3,
+        alias="TEMPORAL_TOOL_ACTIVITY_MAX_ATTEMPTS",
+        description="Maximum retry attempts for individual tool call activities",
+        ge=1,
+        le=5,
+    )
+    temporal_tool_activity_initial_interval_s: float = Field(
+        default=1.0,
+        alias="TEMPORAL_TOOL_ACTIVITY_INITIAL_INTERVAL_S",
+        description="Initial backoff interval in seconds for tool activities",
+        ge=0.1,
+        le=10.0,
+    )
+    temporal_tool_activity_backoff_coefficient: float = Field(
+        default=1.5,
+        alias="TEMPORAL_TOOL_ACTIVITY_BACKOFF_COEFFICIENT",
+        description="Backoff coefficient for tool activities",
+        ge=1.0,
+        le=3.0,
+    )
+    temporal_tool_activity_max_interval_s: float = Field(
+        default=10.0,
+        alias="TEMPORAL_TOOL_ACTIVITY_MAX_INTERVAL_S",
+        description="Maximum backoff interval in seconds for tool activities",
+        ge=1.0,
+        le=60.0,
     )
 
     @computed_field  # type: ignore[prop-decorator]

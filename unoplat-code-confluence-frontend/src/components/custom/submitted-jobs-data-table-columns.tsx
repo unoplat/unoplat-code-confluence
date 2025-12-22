@@ -1,22 +1,29 @@
 import React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ParentWorkflowJobResponse, JobStatus } from "../../types";
+import type {
+  ParentWorkflowJobResponse,
+  JobStatus,
+  RepositoryWorkflowOperation,
+} from "@/types";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "../ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import {
   Ellipsis,
   AlertCircle,
+  AlertTriangle,
   CheckCircle,
   Clock,
   PauseCircle,
   RefreshCw,
+  Cpu,
+  FileCode,
 } from "lucide-react";
 
 export const getStatusIcon = (status: JobStatus): React.ReactNode => {
@@ -33,6 +40,8 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
       return <PauseCircle className="text-info h-4 w-4" />;
     case "RETRYING":
       return <RefreshCw className="text-info h-4 w-4" />;
+    case "ERROR":
+      return <AlertTriangle className="text-destructive h-4 w-4" />;
     default:
       return <Clock className="text-muted-foreground h-4 w-4" />;
   }
@@ -40,7 +49,7 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
 
 export const getStatusVariant = (
   status: JobStatus,
-): "completed" | "failed" | "pending" | "running" | "cancelled" => {
+): "completed" | "failed" | "pending" | "running" | "cancelled" | "error" => {
   switch (status) {
     case "COMPLETED":
       return "completed";
@@ -52,8 +61,55 @@ export const getStatusVariant = (
     case "RUNNING":
     case "RETRYING":
       return "running";
+    case "ERROR":
+      return "error";
     default:
       return "cancelled";
+  }
+};
+
+export const getOperationIcon = (
+  operation: RepositoryWorkflowOperation,
+): React.ReactNode => {
+  switch (operation) {
+    case "INGESTION":
+      return <Cpu className="h-4 w-4" />;
+    case "AGENTS_GENERATION":
+      return <FileCode className="h-4 w-4" />;
+    case "AGENT_MD_UPDATE":
+      return <RefreshCw className="h-4 w-4" />;
+    default:
+      return null;
+  }
+};
+
+export const getOperationVariant = (
+  operation: RepositoryWorkflowOperation,
+): "ingestion" | "agents_generation" | "agent_md_update" | "default" => {
+  switch (operation) {
+    case "INGESTION":
+      return "ingestion";
+    case "AGENTS_GENERATION":
+      return "agents_generation";
+    case "AGENT_MD_UPDATE":
+      return "agent_md_update";
+    default:
+      return "default";
+  }
+};
+
+export const getOperationLabel = (
+  operation: RepositoryWorkflowOperation,
+): string => {
+  switch (operation) {
+    case "INGESTION":
+      return "Ingestion";
+    case "AGENTS_GENERATION":
+      return "Agents Generation";
+    case "AGENT_MD_UPDATE":
+      return "Agent MD Update";
+    default:
+      return operation;
   }
 };
 
@@ -89,6 +145,34 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
     },
     enableSorting: false,
     enableColumnFilter: true,
+  },
+  {
+    accessorKey: "operation",
+    header: ({ column }): React.ReactNode => (
+      <DataTableColumnHeader column={column} label="Operation" />
+    ),
+    cell: ({ row }): React.ReactNode => (
+      <div className="flex items-center gap-2">
+        <Badge
+          variant={getOperationVariant(row.original.operation)}
+          className="gap-1"
+        >
+          {getOperationIcon(row.original.operation)}
+          {getOperationLabel(row.original.operation)}
+        </Badge>
+      </div>
+    ),
+    meta: {
+      label: "Operation",
+      variant: "select",
+      options: [
+        { label: "Ingestion", value: "INGESTION" },
+        { label: "Agents Generation", value: "AGENTS_GENERATION" },
+        { label: "Agent MD Update", value: "AGENT_MD_UPDATE" },
+      ],
+    },
+    enableColumnFilter: true,
+    enableSorting: false,
   },
   {
     accessorKey: "repository_workflow_run_id",
@@ -131,6 +215,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
         { label: "Failed", value: "FAILED" },
         { label: "Timed Out", value: "TIMED_OUT" },
         { label: "Retrying", value: "RETRYING" },
+        { label: "Error", value: "ERROR" },
       ],
     },
     enableColumnFilter: true,

@@ -9,13 +9,6 @@ export interface GitHubRepoSummary {
   owner_name: string;
 }
 
-// Local repository data interface
-export interface LocalRepositoryData {
-  repositoryPath: string;
-  repositoryName: string;
-  repositorySource: "local";
-}
-
 // Repository configuration for dialog props - supports both GitHub and local repositories
 export interface RepositoryConfigDialogData {
   repositoryName: string;
@@ -154,22 +147,33 @@ export interface ApiResponse {
 // Job submission types
 
 // Job status enum for parent workflow and repository status
+// Must match backend JobStatus enum in workflow_models.py
 export type JobStatus =
   | "SUBMITTED"
   | "RUNNING"
   | "FAILED"
   | "TIMED_OUT"
   | "COMPLETED"
-  | "RETRYING";
+  | "RETRYING"
+  | "ERROR"; // Partial failures (some agents succeeded, some failed)
+
+// Repository workflow operation type
+export type RepositoryWorkflowOperation =
+  | "INGESTION"
+  | "AGENTS_GENERATION"
+  | "AGENT_MD_UPDATE";
 
 // Parent workflow job response from API
 export interface ParentWorkflowJobResponse {
   repository_name: string;
   repository_owner_name: string;
   repository_workflow_run_id: string;
+  operation: RepositoryWorkflowOperation;
   status: JobStatus;
   started_at: string;
   completed_at?: string | null;
+  /** GitHub issue URL for user feedback on agent generation (if submitted) */
+  feedback_issue_url?: string | null;
 }
 
 // Parent workflow jobs list response

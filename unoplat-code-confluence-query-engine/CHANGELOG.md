@@ -1,5 +1,73 @@
 # Changelog
 
+## [0.24.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.4...unoplat-code-confluence-query-engine-v0.24.5) (2025-12-16)
+
+
+### Bug Fixes
+
+* **mcp-toolset-fix:** fix for getting library data ([9540acf](https://github.com/unoplat/unoplat-code-confluence/commit/9540acfeb17a917d6eac40026c9d838af971a07a))
+* **post-processing-business-domain:** workflow orchestrator services/worker responsibilities clean up and post processing fix for agent md ([d21c465](https://github.com/unoplat/unoplat-code-confluence/commit/d21c4655328e29a6cbde1e98f1638834e199a768))
+* **version-upgrade:** update pydantic ai with various fixes ([035e91a](https://github.com/unoplat/unoplat-code-confluence/commit/035e91ae59c44e961452bf6a40f224796f8b8913))
+
+## [0.24.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.3...unoplat-code-confluence-query-engine-v0.24.4) (2025-12-16)
+
+
+### Bug Fixes
+
+* automatic error capture post exhausion of retries during ai work… ([415de05](https://github.com/unoplat/unoplat-code-confluence/commit/415de05f4c9785afe22264d5439f20f2819a19e8))
+* automatic error capture post exhausion of retries during ai workflow for user to easily submit github issues with all details ([af42e1f](https://github.com/unoplat/unoplat-code-confluence/commit/af42e1f35d9ceb03462fd706f27d12b89ad32940))
+* **connection-pool-recommendation-settings:** reuse stale connections and increase connection pool for postgres ([2935799](https://github.com/unoplat/unoplat-code-confluence/commit/2935799a5a1c160ebba5b6da76d4adbdcd73eadf))
+* **model-config:** do two phase operation for model config upsert and worker upgrade ensuring one does not affect anothert ([bd3be65](https://github.com/unoplat/unoplat-code-confluence/commit/bd3be653a203385e43fcd338a346c66bab053727))
+* regression for package manager and programming language metadata ([5b705e9](https://github.com/unoplat/unoplat-code-confluence/commit/5b705e91ac4d308fd588cc30ee8b33026bd1b477))
+
+## [0.24.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.2...unoplat-code-confluence-query-engine-v0.24.3) (2025-12-11)
+
+
+### Bug Fixes
+
+* **perf:** parallelism per codebase agent md in monorepo ([d71e0e4](https://github.com/unoplat/unoplat-code-confluence/commit/d71e0e4d19fe2ec8ba6707e098ed36a58969676f))
+* **perf:** parallelism per codebase agent md in monorepo ([7ae3ad8](https://github.com/unoplat/unoplat-code-confluence/commit/7ae3ad8c98612cd30e52753b7b0d78f3442beb14))
+
+## [0.24.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.1...unoplat-code-confluence-query-engine-v0.24.2) (2025-12-11)
+
+
+### Bug Fixes
+
+* statistics calculation ([d549274](https://github.com/unoplat/unoplat-code-confluence/commit/d5492746c114bcee255dc3e12c04f2789d586123))
+* statistics persistence ([6c03e05](https://github.com/unoplat/unoplat-code-confluence/commit/6c03e0587775fb5e8e7c8c2e102f7ec3e2184d4d))
+
+## [0.24.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.0...unoplat-code-confluence-query-engine-v0.24.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* agent md persistence ([348b4d4](https://github.com/unoplat/unoplat-code-confluence/commit/348b4d440e05949fd24606dd6f3f1f72730d477c))
+* insert based on repository workflow run id ([0a298b4](https://github.com/unoplat/unoplat-code-confluence/commit/0a298b4e00864e6b116198b4aeffaa02f480e41a))
+* removal of duplicate status column for agent snapshot tracking ([24d2b40](https://github.com/unoplat/unoplat-code-confluence/commit/24d2b40642643eb149db68fbeae2a4bbbf6a610e))
+* test with repository workflow run id ([d011ed7](https://github.com/unoplat/unoplat-code-confluence/commit/d011ed7dac7397de0dcf3e6e0a40277fe99ce98b))
+
+## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.23.1...unoplat-code-confluence-query-engine-v0.24.0) (2025-12-10)
+
+
+### Features
+
+* first draft of reliable auditable agent ([8a361c6](https://github.com/unoplat/unoplat-code-confluence/commit/8a361c611e97162dfb0a755bfce3a858042db491))
+* first draft of reliable auditable agents ([9fc6eee](https://github.com/unoplat/unoplat-code-confluence/commit/9fc6eeec90432442d06742f223fde22606ff6c88))
+
+
+### Bug Fixes
+
+* tests ([26ab79d](https://github.com/unoplat/unoplat-code-confluence/commit/26ab79d76d8ccf9835909fb2fb3bab3764bd5d90))
+* tests ([46b087a](https://github.com/unoplat/unoplat-code-confluence/commit/46b087acaa06f155903b99bf46cd3ea4cd420b8f))
+
+## [0.23.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.23.0...unoplat-code-confluence-query-engine-v0.23.1) (2025-12-01)
+
+
+### Bug Fixes
+
+* improving ai engine structure (first step towards improving prim… ([9e5b00b](https://github.com/unoplat/unoplat-code-confluence/commit/9e5b00bfad87027198fb51a9c5f6696e0dc4df44))
+* improving ai engine structure (first step towards improving primitives) ([b2950bc](https://github.com/unoplat/unoplat-code-confluence/commit/b2950bccba8c034b175a407eddd65599f4d666c0))
+
 ## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.22.0...unoplat-code-confluence-query-engine-v0.23.0) (2025-11-21)
 
 
