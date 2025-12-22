@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.21.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.20.0...unoplat-code-confluence-v0.21.0) (2025-12-22)
+
+
+### Features
+
+* **docs-update:** docs update for roadmap ([eca1ac9](https://github.com/unoplat/unoplat-code-confluence/commit/eca1ac9d107a30df3f01ab87089c4ecc57c592c6))
+* **docs-update:** docs update for roadmap ([3d5e529](https://github.com/unoplat/unoplat-code-confluence/commit/3d5e52984b37af22b871890a8aa2c18403e3d646))
+
+
+### Bug Fixes
+
+* alter tests fail cases (now being handled by workflow orchestrator) ([abb94f9](https://github.com/unoplat/unoplat-code-confluence/commit/abb94f93315ce17167955b05ab8d038be11e82eb))
+* **deps-version:** pin common lib dependencies version to latest ([e5d5db2](https://github.com/unoplat/unoplat-code-confluence/commit/e5d5db2c358fee88b4afae35ff7a8a68807836de))
+* **deps-version:** pin common lib dependencies version to latest ([ed5b60f](https://github.com/unoplat/unoplat-code-confluence/commit/ed5b60f70f0ae254ea2a583a10f13a53b2df4740))
+* **env:** docker versions and env update for query-engine ([4ae4306](https://github.com/unoplat/unoplat-code-confluence/commit/4ae4306c268ec130c0127ce6da048361e128812d))
+* lockfile update for commons for feedback ([c0c1ab8](https://github.com/unoplat/unoplat-code-confluence/commit/c0c1ab8c4ddddcd6394f29822fb87c992327b6f9))
+* **md-schema-fix:** allow null descriptions ([ee76e9e](https://github.com/unoplat/unoplat-code-confluence/commit/ee76e9e6c8293f90cadb27f2dfa13cd3a1c489c5))
+* **md-schema-fix:** allow null descriptions ([54f51b5](https://github.com/unoplat/unoplat-code-confluence/commit/54f51b5e0080b50556992e3d4da7579fd1d59e02))
+* **types fix:** allow null ([0e7968e](https://github.com/unoplat/unoplat-code-confluence/commit/0e7968e663ec3aa498008280f3af1bf50443b083))
+
 ## [0.20.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.19.1...unoplat-code-confluence-v0.20.0) (2025-12-22)
 
 
