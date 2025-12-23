@@ -2,5 +2,5 @@
   "title": "Introduction",
   "icon": "BookOpen",
   "defaultOpen": true,
-  "pages": ["vision", "roadmap", "how-it-works"]
+  "pages": ["problem-statement", "vision", "roadmap", "how-it-works"]
 }
