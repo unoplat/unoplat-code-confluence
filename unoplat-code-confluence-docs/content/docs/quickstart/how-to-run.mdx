@@ -23,9 +23,9 @@ Before you begin, ensure you have the following tool installed:
 |------|---------|
 | [**Docker & Docker Compose**](https://www.portainer.io/) | For running services |
 
-## Setting Up Code Confluence
+## Setting Up Unoplat Code Confluence
 
-Follow these steps to set up Code Confluence:
+Follow these steps to set up **Unoplat Code Confluence**:
 
 1. **Create Project Directory and Download Configuration:**
    ```bash
@@ -52,9 +52,9 @@ Follow these steps to set up Code Confluence:
 
 ### 2. Connect a Repository Provider
 - When prompted, select your repository provider and enter a Personal Access Token (PAT) with read access to the repositories you want to ingest.
-- This is required for Code Confluence to clone and analyze your repositories.
+- This is required for **Unoplat Code Confluence** to clone and analyze your repositories.
 
-Code Confluence supports **two provider options**:
+**Unoplat Code Confluence** supports **two provider options**:
 
 #### GitHub
 For **GitHub.com** and **standard GitHub Enterprise Cloud** users:
@@ -96,7 +96,7 @@ If you're using self-hosted Enterprise Server or Enterprise Cloud with data resi
 
 ### 4. Ingest Repository
 - In the **Actions** column, click on **Ingest Repo** for the repository you want to analyze.
-- Code Confluence will *automatically detect* Python and TypeScript codebases as part of repository along with corresponding *package manager metadata*.
+- **Unoplat Code Confluence** will *automatically detect* Python and TypeScript codebases as part of repository along with corresponding *package manager metadata*.
 
 ![Ingest Repo Action](../../../src/assets/images/repository_ingest_action.jpeg)
 
@@ -117,7 +117,7 @@ If you encounter any issues, such as codebases not being detected or errors duri
 After ingestion completes, configure your *AI model provider* to enable **code intelligence** features.
 
 - Navigate to **Settings > Model Providers** in the application
-- Code Confluence supports *multiple AI model providers* for code analysis and understanding
+- **Unoplat Code Confluence** supports *multiple AI model providers* for code analysis and understanding
 
 #### Recommended Configuration: OpenRouter with Grok
 
@@ -141,7 +141,7 @@ OpenRouter provides access to multiple AI models including Grok with competitive
 </Callout>
 
 <Callout type="info" title="Other Model Providers">
-While we recommend **OpenRouter with Grok** for the best experience, Code Confluence supports *other model providers* as well. You can experiment with different providers and models based on your preferences and requirements.
+While we recommend **OpenRouter with Grok** for the best experience, **Unoplat Code Confluence** supports *other model providers* as well. You can experiment with different providers and models based on your preferences and requirements.
 </Callout>
 
 <Callout type="warn" title="Known Limitations">
@@ -159,11 +159,11 @@ After successfully ingesting your repository, you can perform various operations
 
 ![Repository Operations](../../../src/assets/images/repository-operations.png)
 
-Code Confluence provides **three key repository operations**:
+**Unoplat Code Confluence** provides **three key repository operations**:
 
 - **Generate Agents.md** — *Automatically generates* required metadata for AI agents to understand your codebase and operate on it effectively.
 - **Refresh Repository** — *Updates* your ingested codebase to reflect the latest changes from the source repository
-- **Delete Repository** — *Removes* the ingested repository and all associated data from Code Confluence
+- **Delete Repository** — *Removes* the ingested repository and all associated data from **Unoplat Code Confluence**
 
 #### `AGENTS.md`
 
