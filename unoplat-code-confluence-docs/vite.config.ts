@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import mdx from "fumadocs-mdx/vite";
+import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
   server: {
@@ -38,6 +39,30 @@ export default defineConfig({
     },
   },
   plugins: [
+    svgr({
+      svgrOptions: {
+        // Replace hardcoded colors with currentColor for theme compatibility
+        plugins: ["@svgr/plugin-svgo", "@svgr/plugin-jsx"],
+        svgoConfig: {
+          plugins: [
+            {
+              name: "preset-default",
+              params: {
+                overrides: {
+                  removeViewBox: false,
+                },
+              },
+            },
+            {
+              name: "convertColors",
+              params: {
+                currentColor: true,
+              },
+            },
+          ],
+        },
+      },
+    }),
     mdx(await import("./source.config")),
     tsConfigPaths({
       projects: ["./tsconfig.json"],

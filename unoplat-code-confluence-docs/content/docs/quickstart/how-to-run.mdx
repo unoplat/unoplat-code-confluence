@@ -23,9 +23,9 @@ Before you begin, ensure you have the following tool installed:
 |------|---------|
 | [**Docker & Docker Compose**](https://www.portainer.io/) | For running services |
 
-## Setting Up Code Confluence
+## Setting Up Unoplat Code Confluence
 
-Follow these steps to set up Code Confluence:
+Follow these steps to set up **Unoplat Code Confluence**:
 
 1. **Create Project Directory and Download Configuration:**
    ```bash
@@ -50,16 +50,42 @@ Follow these steps to set up Code Confluence:
 ### 1. Access the Web Interface
 - Open your browser and go to [http://localhost:3000](http://localhost:3000)
 
-### 2. Enter Your GitHub Personal Access Token (PAT)
-- When prompted, enter a GitHub PAT with read access to the repositories you want to ingest.
-- This is required for Code Confluence to clone and analyze your repositories.
+### 2. Connect a Repository Provider
+- When prompted, select your repository provider and enter a Personal Access Token (PAT) with read access to the repositories you want to ingest.
+- This is required for **Unoplat Code Confluence** to clone and analyze your repositories.
 
-![Enter GitHub PAT Token](../../../src/assets/images/new_github_token.png)
+**Unoplat Code Confluence** supports **two provider options**:
+
+#### GitHub
+For **GitHub.com** and **standard GitHub Enterprise Cloud** users:
+1. Select **GitHub** from the Provider dropdown
+2. Enter your Personal Access Token
+3. Click **Connect**
+
+![Connect GitHub Provider](../../../src/assets/images/add-repository-provider.png)
+
+#### GitHub Enterprise
+For **Enterprise Server (self-hosted)** or **Enterprise Cloud with data residency**:
+1. Select **GitHub Enterprise** from the Provider dropdown
+2. Enter your **Base URL** (e.g., `https://yourcompany.ghe.com` or `https://github.mycompany.com`)
+3. Enter your Personal Access Token
+4. Click **Connect**
+
+![Connect GitHub Enterprise Provider](../../../src/assets/images/github-enterprise.png)
 
 <Callout type="info" title="Getting a GitHub PAT">
 If you don't have a GitHub PAT:
-1. Click "Generate new token on github (classic)"
-2. Click "Generate token" and copy it in the dialog box.
+1. Click "Generate token on GitHub" (or "Generate token on GitHub Enterprise") to create a new token
+2. Copy the generated token and paste it in the Personal Access Token field
+3. Click **Connect** to add the provider
+</Callout>
+
+<Callout type="warn" title="GitHub Enterprise Testing Status">
+- **GitHub Enterprise Cloud** (standard): Tested and working
+- **GitHub Enterprise Server** (self-hosted): Not yet fully tested
+- **Enterprise Cloud with data residency**: Not yet fully tested
+
+If you're using self-hosted Enterprise Server or Enterprise Cloud with data residency and encounter any issues, please [report them on our GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) to help us improve support.
 </Callout>
 
 ### 3. Search for GitHub Repositories
@@ -70,7 +96,7 @@ If you don't have a GitHub PAT:
 
 ### 4. Ingest Repository
 - In the **Actions** column, click on **Ingest Repo** for the repository you want to analyze.
-- Code Confluence will *automatically detect* Python and TypeScript codebases as part of repository along with corresponding *package manager metadata*.
+- **Unoplat Code Confluence** will *automatically detect* Python and TypeScript codebases as part of repository along with corresponding *package manager metadata*.
 
 ![Ingest Repo Action](../../../src/assets/images/repository_ingest_action.jpeg)
 
@@ -91,7 +117,7 @@ If you encounter any issues, such as codebases not being detected or errors duri
 After ingestion completes, configure your *AI model provider* to enable **code intelligence** features.
 
 - Navigate to **Settings > Model Providers** in the application
-- Code Confluence supports *multiple AI model providers* for code analysis and understanding
+- **Unoplat Code Confluence** supports *multiple AI model providers* for code analysis and understanding
 
 #### Recommended Configuration: OpenRouter with Grok
 
@@ -115,13 +141,14 @@ OpenRouter provides access to multiple AI models including Grok with competitive
 </Callout>
 
 <Callout type="info" title="Other Model Providers">
-While we recommend **OpenRouter with Grok** for the best experience, Code Confluence supports *other model providers* as well. You can experiment with different providers and models based on your preferences and requirements.
+While we recommend **OpenRouter with Grok** for the best experience, **Unoplat Code Confluence** supports *other model providers* as well. You can experiment with different providers and models based on your preferences and requirements.
 </Callout>
 
 <Callout type="warn" title="Known Limitations">
-**Testing Status**: We have *not thoroughly tested* all model providers. **OpenRouter with Grok** has been tested extensively and is our recommended configuration.
-
-**Streaming Bug**: There is a known issue with model providers that *do not support streaming*—agents may fail when using these providers. For details, see [GitHub Issue #727](https://github.com/unoplat/unoplat-code-confluence/issues/727).
+**Provider Support**: Most *standard AI model providers* are supported. We have tested **OpenRouter** with the following models:
+- `moonshotai/kimi-k2` (Kimi K2 Thinking)
+- `x-ai/grok-code-fast-1` (Grok Code Fast 1)
+- `minimax/minimax-m1` (MiniMax M1)
 
 If you encounter issues with a specific provider, please report them on our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page.
 </Callout>
@@ -132,15 +159,23 @@ After successfully ingesting your repository, you can perform various operations
 
 ![Repository Operations](../../../src/assets/images/repository-operations.png)
 
-Code Confluence provides **three key repository operations**:
+**Unoplat Code Confluence** provides **three key repository operations**:
 
-- **Generate Agents.md** — *Automatically generates* comprehensive documentation for AI agents to understand your codebase
+- **Generate Agents.md** — *Automatically generates* required metadata for AI agents to understand your codebase and operate on it effectively.
 - **Refresh Repository** — *Updates* your ingested codebase to reflect the latest changes from the source repository
-- **Delete Repository** — *Removes* the ingested repository and all associated data from Code Confluence
+- **Delete Repository** — *Removes* the ingested repository and all associated data from **Unoplat Code Confluence**
 
 #### `AGENTS.md`
 
-When you trigger the **Generate Agents.md** operation, you can monitor the progress *in real-time*. The workflow shows progress for each codebase individually, as well as *overall progress* when your repository contains multiple codebases. You can view **agent events** in real-time as actions are performed.
+When you trigger the **Generate Agents.md** operation:
+
+1. Navigate to **Workspace > Operations Management** in the sidebar
+2. Find your **Agents Generation** job in the operations table
+3. Click the **Actions** menu (`...`) for your job and select **View Details**
+
+![Operations Management Panel](../../../src/assets/images/operations-panel.png)
+
+You can monitor the progress *in real-time*. The workflow shows progress for each codebase individually, as well as *overall progress* when your repository contains multiple codebases. You can view **agent events** in real-time as actions are performed.
 
 ![AGENTS.md Workflow Progress](../../../src/assets/images/agents-md-workflow.png)
 
@@ -155,37 +190,6 @@ The generated `AGENTS.md` provides **structured documentation** covering:
 
 <Callout type="info" title="Coming Soon">
 We're continuously expanding the `AGENTS.md` sections to provide even more *comprehensive codebase documentation* for AI agents.
-</Callout>
-
-### 7. Monitor Ingestion & Enable Developer Mode
-- Navigate to **Settings > Developer Mode**, and toggle the switch on to unlock *infrastructure tooling*.
-- Once enabled, you will see **two new tools**:
-
-![Developer Mode](../../../src/assets/images/developer_mode.png)
-
-#### Workflow Orchestrator
-- Access and manage *automated workflows*
-- View **execution logs** and debug orchestration issues
-- Monitor *real-time workflow performance*
-- **Click the "Workflow Orchestrator" button** to open the [Temporal](https://temporal.io/) workflow orchestrator dashboard.
-
-#### Knowledge Graph
-- Explore the **knowledge graph**, inspect *entities and relationships*, and debug data connections
-- **Click the "Knowledge Graph" button** to open the [Neo4j](https://neo4j.com/) Browser directly
-- When Neo4j Browser opens, you'll be prompted to log in with:
-  ```
-  Username: neo4j
-  Password: password
-  ```
-- Once logged in, try this query to explore your code graph:
-  ```cypher
-  MATCH (n)
-  RETURN n
-  LIMIT 25
-  ```
-
-<Callout type="info" title="Tip">
-The above query displays the first 25 nodes in your code graph, perfect for a quick overview!
 </Callout>
 
 ## Troubleshooting
