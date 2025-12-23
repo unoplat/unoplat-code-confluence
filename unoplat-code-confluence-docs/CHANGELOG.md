@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.24.0...unoplat-code-confluence-docs-v0.25.0) (2025-12-23)
+
+
+### Features
+
+* add common links as part of sidebar ([fb065d4](https://github.com/unoplat/unoplat-code-confluence/commit/fb065d41c6dc95c5373294504a28bc2128ec800a))
+* **add-submit-feedback-docs:** docs for submitting feedback ([e718d1d](https://github.com/unoplat/unoplat-code-confluence/commit/e718d1d2016d08d5e73ef4e24fb31f41ee15cbac))
+* **better-depiction-problem-statement:** added corresponding image ([a342138](https://github.com/unoplat/unoplat-code-confluence/commit/a3421385f408e162e66cff06ff5ebabf47ab1cb7))
+* **docs-images:** add zoom and preview support across all mdx docs ([71011a3](https://github.com/unoplat/unoplat-code-confluence/commit/71011a366ef2f1159fd71fe757a839df64e8a40c))
+* **images-support-operations:** add images for submission for support and also new operations panel ([fa7135b](https://github.com/unoplat/unoplat-code-confluence/commit/fa7135bbcc74cea562934a0145eb7ae3e8812bf1))
+* **support-docs:** add support documentation for submitting errors ([c1604af](https://github.com/unoplat/unoplat-code-confluence/commit/c1604af5b11ad601e758a56bd0c2e6f5ed47ca5e))
+
+
+### Bug Fixes
+
+* **content-why-solution-doc-site-map:** better content ([9f0587b](https://github.com/unoplat/unoplat-code-confluence/commit/9f0587b9ce0d67f2f121c0b13f9d0cc5575cf0e4))
+* **product-name-prefix:** company name prefixed and product name highlighted across ([a62e69d](https://github.com/unoplat/unoplat-code-confluence/commit/a62e69da1bd7961eb18686c771179d86a3b222e7))
+
 ## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.23.5...unoplat-code-confluence-docs-v0.24.0) (2025-12-22)
 
 
