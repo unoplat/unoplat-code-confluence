@@ -3,33 +3,165 @@ title: Contribution Guidelines
 description: "How to contribute to Unoplat Code Confluence"
 ---
 
-# Contribution Guidelines
+import { Cards, Card } from 'fumadocs-ui/components/card';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import { Bug, Server, Zap, AlertTriangle, Monitor, BookCheck, FileText, MessageSquare, ExternalLink, Heart, Brain } from 'lucide-react';
 
-## Current Project Status
+# Contributing to Unoplat Code Confluence
 
-**Unoplat Code Confluence** is currently in **alpha** stage of development. During this phase, we are *not accepting direct code contributions* as the core design, architecture, and features are still being actively developed and may undergo significant changes.
+Welcome to the **Unoplat Code Confluence** community! We appreciate your interest in contributing to our project. This guide will help you understand how you can help improve the project.
 
-## How You Can Help
+<Callout type="info" title="Current Project Status">
+**Unoplat Code Confluence** is currently in **alpha** stage. During this phase, we are *not accepting direct code contributions* as the core design, architecture, and features are still being actively developed. However, there are still **valuable ways** you can help!
+</Callout>
 
-While we're not accepting code contributions at this time, there are still **valuable ways** you can help improve **Unoplat Code Confluence**:
+---
 
-### Reporting Bugs
+## Open Issues for Contribution
 
-If you encounter any *bugs* or *issues*:
+We actively track issues across several categories. Browse our open issues and help us improve **Unoplat Code Confluence**:
 
-1. **Check** if the issue has already been reported in our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues)
-2. If not, **create a new issue** following our bug report template
-3. Provide **detailed steps** to reproduce the issue
-4. Include relevant information about your *environment*
-5. Add **screenshots** if applicable
+<Cards>
+  <Card
+    icon={<Bug />}
+    title="Bug Fixes"
+    description="Help identify and fix unexpected behavior or errors in the application"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue+is%3Aopen+label%3Abug"
+  />
+  <Card
+    icon={<Server />}
+    title="Provider Issues"
+    description="Issues related to GitHub, GitHub Enterprise, or other repository providers"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue+is%3Aopen+label%3Aprovider"
+  />
+  <Card
+    icon={<Brain />}
+    title="Model/Provider Issues"
+    description="Issues related to AI model usage, LLM providers, or model-specific behavior"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue+is%3Aopen+label%3Amodel-provider"
+  />
+  <Card
+    icon={<Zap />}
+    title="Performance Issues"
+    description="Help optimize speed, memory usage, and overall application performance"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue+is%3Aopen+label%3Aperformance"
+  />
+  <Card
+    icon={<AlertTriangle />}
+    title="Error Handling"
+    description="Improve error messages, recovery mechanisms, and user feedback"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue+is%3Aopen+label%3Aerror-handling"
+  />
+  <Card
+    icon={<Monitor />}
+    title="Environment-Specific"
+    description="Issues related to specific operating systems, Docker setups, or configurations"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue+is%3Aopen+label%3Aenvironment"
+  />
+  <Card
+    icon={<BookCheck />}
+    title="Missing Behavior"
+    description="Standard functionality that's missing or incomplete"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue+is%3Aopen+label%3Amissing-behavior"
+  />
+  <Card
+    icon={<FileText />}
+    title="Documentation"
+    description="Improve guides, tutorials, API references, and examples"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue+is%3Aopen+label%3Adocumentation"
+  />
+</Cards>
 
-### Feature Requests
+<div className="mt-8">
+  <Accordions type="single">
+    <Accordion title="How to Report a New Issue">
+      If you've found a bug or issue that isn't already reported:
 
-Have ideas for *new features* or *improvements*?
+      1. **Search existing issues** — Check our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) to avoid duplicates
+      2. **Create a new issue** — Use our issue templates for structured reporting
+      3. **Provide details** — Include steps to reproduce, expected vs actual behavior
+      4. **Add context** — Share your environment details, logs, and screenshots if applicable
+    </Accordion>
+  </Accordions>
+</div>
 
-1. **Check** our existing issues and feature requests first
-2. **Create a new issue**
-3. Clearly describe the feature and its *use cases*
-4. Explain how it would **benefit** the project and its users
+---
 
-We appreciate your interest in **Unoplat Code Confluence** and look forward to your feedback as we continue to develop the project!
+## Pull Request Expectations
+
+When contributing code to **Unoplat Code Confluence**, please follow these guidelines:
+
+<Steps>
+<Step>
+
+### Keep PRs Small and Focused
+
+Each pull request should address **a single concern**. This makes reviews faster and reduces the chance of introducing bugs. If you have multiple unrelated changes, split them into separate PRs.
+
+</Step>
+
+<Step>
+
+### Attach Relevant Issues
+
+Every PR should reference the issue it addresses. Use keywords like `Fixes #123` or `Closes #456` in your PR description to automatically link and close related issues when the PR is merged.
+
+</Step>
+</Steps>
+
+<div className="mt-6">
+  <Callout type="warn" title="Before Opening a PR">
+  Since we're in alpha and not accepting direct code contributions yet, please **discuss your proposed changes** by opening an issue first. This helps ensure your contribution aligns with the project's direction.
+  </Callout>
+</div>
+
+---
+
+## Feature Requests
+
+<Card
+  icon={<MessageSquare />}
+  title="Have an Idea? Start a Discussion!"
+  description="We use GitHub Discussions for feature requests and ideas. Share your thoughts with the community and help shape the future of Unoplat Code Confluence."
+  href="https://github.com/unoplat/unoplat-code-confluence/discussions"
+/>
+
+<div className="mt-8">
+  <Accordions type="single">
+    <Accordion title="What Makes a Great Feature Request?">
+      When proposing a new feature:
+
+      - **Describe the problem** — What pain point does this feature solve?
+      - **Explain the use case** — How would you use this feature in your workflow?
+      - **Consider alternatives** — Have you explored other ways to achieve this goal?
+      - **Share examples** — Reference similar features in other tools if applicable
+    </Accordion>
+  </Accordions>
+</div>
+
+---
+
+## Community & Support
+
+<Cards>
+  <Card
+    icon={<ExternalLink />}
+    title="GitHub Repository"
+    description="Browse the source code, issues, and project activity"
+    href="https://github.com/unoplat/unoplat-code-confluence"
+  />
+  <Card
+    icon={<Heart />}
+    title="Discord Community"
+    description="Connect with other users and get real-time assistance"
+    href="https://discord.com/channels/1131597983058755675/1169968780953260106"
+  />
+</Cards>
+
+---
+
+<Callout type="info" title="Thank You!">
+We appreciate your interest in **Unoplat Code Confluence** and look forward to your feedback as we continue to develop the project! Every bug report, feature suggestion, and piece of feedback helps us build a better tool.
+</Callout>
