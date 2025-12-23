@@ -19,6 +19,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 import { staticFunctionMiddleware } from "@tanstack/start-static-server-functions";
 import { TypeTable } from "fumadocs-ui/components/type-table";
+import { ImageZoom } from "fumadocs-ui/components/image-zoom";
 
 // Server function to load page data - runs on server during dev, pre-rendered for static build if static middleware present
 const serverLoader = createServerFn({
@@ -57,6 +58,12 @@ const clientLoader = browserCollections.docs.createClientLoader({
           <MDX
             components={{
               ...defaultMdxComponents,
+              img: (props) => (
+                <ImageZoom
+                  {...props}
+                  className="rounded-lg border border-fd-border my-4"
+                />
+              ),
               RoadmapCard,
               RoadmapSection,
               Tab,

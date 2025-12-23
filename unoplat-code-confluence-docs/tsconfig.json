@@ -7,7 +7,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["vite/client"],
+    "types": ["vite/client", "vite-plugin-svgr/client"],
     "isolatedModules": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,

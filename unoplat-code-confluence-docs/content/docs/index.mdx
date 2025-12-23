@@ -5,39 +5,65 @@ icon: BrainCircuit
 ---
 
 import { Cards, Card } from 'fumadocs-ui/components/card';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Rocket, BookOpen, Map, LifeBuoy, GitPullRequest } from 'lucide-react';
 
-## Get Started
+<Callout type="warn" title="Alpha">
+Currently in active development. Supports **Python** and **TypeScript** codebases.
+</Callout>
+
+Auto-generate `AGENTS.md` files that give AI coding agents complete context about your codebase — *data models*, *entry points*, *endpoints*, and *dependencies* — so they can ship features **2-3x faster**.
+
+---
+
+## Learn
 
 <Cards>
   <Card
-    title="Quick Start Guide"
-    description="Set up Code Confluence and analyze your first repository"
+    icon={<BookOpen />}
+    title="Why"
+    description="The problem AI agents face with existing codebases"
+    href="/docs/introduction/problem-statement"
+  />
+  <Card
+    icon={<BookOpen />}
+    title="Solution"
+    description="How Unoplat Code Confluence solves this"
+    href="/docs/introduction/vision"
+  />
+</Cards>
+
+## Start
+
+<Cards>
+  <Card
+    icon={<Rocket />}
+    title="Quick Start"
+    description="Set up and analyze your first repository in minutes"
     href="/docs/quickstart/how-to-run"
   />
   <Card
-    title="Vision & Mission"
-    description="Learn about our goals and core principles"
-    href="/docs/introduction/vision"
-  />
-  <Card
-    title="Product Roadmap"
-    description="See what we're building and our development progress"
+    icon={<Map />}
+    title="Roadmap"
+    description="Track shipped features and what's coming next"
     href="/docs/introduction/roadmap"
   />
+</Cards>
+
+## Support
+
+<Cards>
   <Card
-    title="Contribution Guidelines"
-    description="Learn how you can help improve Code Confluence"
+    icon={<LifeBuoy />}
+    title="Get Help"
+    description="Report errors and submit feedback"
+    href="/docs/getting-help/submitting-error"
+  />
+  <Card
+    icon={<GitPullRequest />}
+    title="Contribute"
+    description="Help improve Unoplat Code Confluence"
     href="/docs/contribution/guidelines"
   />
 </Cards>
 
-
-## Current Status
-
-Unoplat Code Confluence is currently in **alpha**. Check out our [Product Roadmap](/docs/introduction/roadmap) to see *shipped features*, *work in progress*, and *planned items*.
-
-## Resources
-
-- **Source Code**: [GitHub Repository](https://github.com/unoplat/unoplat-code-confluence)
-- **Community**: [Discord Community](https://discord.com/channels/1131597983058755675/1169968780953260106)
-- **Issues**: [Report Issues](https://github.com/unoplat/unoplat-code-confluence/issues)
