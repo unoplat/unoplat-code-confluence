@@ -74,14 +74,10 @@ export default defineConfig({
         autoSubfolderIndex: true,
         autoStaticPathsDiscovery: true,
         crawlLinks: true,
+        // Skip API routes except the static search index export.
+        filter: ({ path }) =>
+          !path.startsWith("/api/") || path === "/api/search",
       },
-      // Pre-render the search API route for static search index
-      pages: [
-        {
-          path: "/api/search",
-          prerender: { enabled: true, outputPath: "/api/search" },
-        },
-      ],
       // Sitemap configuration for SEO
       sitemap: {
         enabled: true,
