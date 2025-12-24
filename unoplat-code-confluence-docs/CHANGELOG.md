@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.25.0...unoplat-code-confluence-docs-v0.25.1) (2025-12-24)
+
+
+### Bug Fixes
+
+* **social-media-icons:** fix colors inversion based on theme ([afc274e](https://github.com/unoplat/unoplat-code-confluence/commit/afc274e65ef9848c92df65c13e6d08804ef049ec))
+* **social-media-icons:** fix colors inversion based on theme ([a3625d1](https://github.com/unoplat/unoplat-code-confluence/commit/a3625d153770a5e22ea1c00f7f0f90ab4e533417))
+
 ## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.24.0...unoplat-code-confluence-docs-v0.25.0) (2025-12-23)
 
 
