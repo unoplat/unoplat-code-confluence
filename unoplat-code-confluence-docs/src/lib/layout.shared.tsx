@@ -11,6 +11,11 @@ export function baseOptions(): BaseLayoutProps {
     githubUrl: "https://github.com/unoplat/unoplat-code-confluence",
     links: [
       {
+        type: "main",
+        text: "Changelog",
+        url: "/changelog",
+      },
+      {
         type: "icon",
         text: "Discord",
         label: "Discord Community",

@@ -1,7 +1,8 @@
 import { createElement } from "react";
 import { loader } from "fumadocs-core/source";
 import { icons } from "lucide-react";
-import { docs } from "fumadocs-mdx:collections/server";
+import { docs, changelog } from "fumadocs-mdx:collections/server";
+import { toFumadocsSource } from "fumadocs-mdx/runtime/server";
 
 export const source = loader({
   source: docs.toFumadocsSource(),
@@ -17,4 +18,9 @@ export const source = loader({
 
     return createElement(Icon);
   },
+});
+
+export const changelogSource = loader({
+  source: toFumadocsSource(changelog, []),
+  baseUrl: "/changelog",
 });
