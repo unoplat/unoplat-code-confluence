@@ -1,6 +1,7 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import { Linkedin } from "lucide-react";
 import DiscordIcon from "@/assets/brands/discord-icon-svgrepo-com.svg?react";
+import XIcon from "@/assets/brands/x-icon.svg?react";
 
 export function baseOptions(): BaseLayoutProps {
   return {
@@ -23,6 +24,14 @@ export function baseOptions(): BaseLayoutProps {
         label: "LinkedIn Page",
         url: "https://www.linkedin.com/company/unoplat/",
         icon: <Linkedin />,
+        external: true,
+      },
+      {
+        type: "icon",
+        text: "X",
+        label: "X (Twitter)",
+        url: "https://x.com/unoplatio",
+        icon: <XIcon className="size-5" />,
         external: true,
       },
     ],
