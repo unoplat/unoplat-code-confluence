@@ -9,6 +9,7 @@ import * as React from "react";
 import { forwardRef } from "react";
 import appCss from "@/styles/app.css?url";
 import { RootProvider } from "fumadocs-ui/provider/tanstack";
+import DefaultSearchDialog from "@/components/search-dialog";
 
 // Minimal skeleton CSS to prevent FOUC (Flash of Unstyled Content)
 // Matches fumadocs 3-column grid layout with correct colors and dimensions
@@ -102,10 +103,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           components={{ Link: CustomLink }}
           search={{
             enabled: true,
-            options: {
-              type: "static",
-              api: "/api/search",
-            },
+            SearchDialog: DefaultSearchDialog,
           }}
         >
           {children}
