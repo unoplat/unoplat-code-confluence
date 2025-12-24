@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.25.1...unoplat-code-confluence-docs-v0.26.0) (2025-12-24)
+
+
+### Features
+
+* **support-changelog-rss:** support changelog theme support aligning with application and other fixes ([87e587a](https://github.com/unoplat/unoplat-code-confluence/commit/87e587a6238283e8a810f2fc42b865e00a10a9d6))
+* **support-changelog-rss:** support changelog theme support aligning… ([0f3540b](https://github.com/unoplat/unoplat-code-confluence/commit/0f3540bf9c3152d1775eeddfd4c27a6a7caa73ee))
+
 ## [0.25.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.25.0...unoplat-code-confluence-docs-v0.25.1) (2025-12-24)
 
 
