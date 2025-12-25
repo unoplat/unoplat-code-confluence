@@ -12,7 +12,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-import { changelogSource } from "@/lib/source";
+import { formatReleaseDate } from "@/lib/changelog-utils";
 import { baseOptions } from "@/lib/layout.shared";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,18 +39,16 @@ const serverLoader = createServerFn({ method: "GET" })
   .inputValidator((slug: string) => slug)
   .handler(async ({ data: slug }): Promise<ChangelogPageData> => {
     if (!slug) throw notFound();
+
+    // Dynamic imports to keep server-only code out of client bundle
+    const { changelogSource } = await import("@/lib/source");
+    const { getSortedChangelogPages } = await import("@/lib/changelog");
+
     const slugs = [slug];
     const page = changelogSource.getPage(slugs);
     if (!page) throw notFound();
 
-    const allPages = changelogSource
-      .getPages()
-      .filter((entry) => entry.slugs.length === 1)
-      .sort(
-        (a, b) =>
-          new Date(b.data.releaseDate as string).getTime() -
-          new Date(a.data.releaseDate as string).getTime(),
-      );
+    const allPages = getSortedChangelogPages();
 
     const currentIndex = allPages.findIndex(
       (p) => p.slugs.join("/") === slugs.join("/"),
@@ -112,11 +110,7 @@ function ChangelogPage() {
   const data = Route.useLoaderData();
   const Content = clientLoader.getComponent(data.path);
 
-  const formattedDate = new Date(data.releaseDate).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formattedDate = formatReleaseDate(data.releaseDate);
 
   return (
     <HomeLayout {...baseOptions()}>
@@ -140,7 +134,7 @@ function ChangelogPage() {
               dateTime={data.releaseDate}
               className="text-fd-muted-foreground text-sm"
             >
-              {formattedDate}
+              {formattedDate ?? "Unknown date"}
             </time>
             {data.githubRelease && (
               <>
