@@ -11,29 +11,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-
-interface ChangelogRelease {
-  slug: string;
-  title: string;
-  description: string;
-  version: string;
-  releaseDate: string;
-  githubRelease?: string;
-}
+import type { ChangelogEntry } from "@/lib/changelog-utils";
+import { formatReleaseDate } from "@/lib/changelog-utils";
 
 interface ChangelogCardProps {
-  release: ChangelogRelease;
+  release: ChangelogEntry;
 }
 
 export function ChangelogCard({ release }: ChangelogCardProps) {
-  const formattedDate = new Date(release.releaseDate).toLocaleDateString(
-    "en-US",
-    {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    },
-  );
+  const formattedDate = formatReleaseDate(release.releaseDate);
 
   return (
     <Card className="group relative transition-colors hover:bg-fd-accent/50">
@@ -58,7 +44,11 @@ export function ChangelogCard({ release }: ChangelogCardProps) {
         <div className="flex items-center gap-3 text-sm text-fd-muted-foreground">
           <div className="flex items-center gap-1.5">
             <CalendarDays className="size-4" />
-            <time dateTime={release.releaseDate}>{formattedDate}</time>
+            {formattedDate ? (
+              <time dateTime={release.releaseDate}>{formattedDate}</time>
+            ) : (
+              <span>Unknown date</span>
+            )}
           </div>
           {release.githubRelease && (
             <>
