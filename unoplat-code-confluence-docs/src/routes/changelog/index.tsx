@@ -4,39 +4,25 @@ import { staticFunctionMiddleware } from "@tanstack/start-static-server-function
 import { HomeLayout } from "fumadocs-ui/layouts/home";
 import { Rss } from "lucide-react";
 
-import { changelogSource } from "@/lib/source";
+import type { ChangelogEntry } from "@/lib/changelog-utils";
 import { baseOptions } from "@/lib/layout.shared";
 import { ChangelogCard } from "@/components/changelog-card";
 import { Button } from "@/components/ui/button";
 
-interface ChangelogEntry {
-  slug: string;
-  title: string;
-  description: string;
-  version: string;
-  releaseDate: string;
-  githubRelease?: string;
-}
-
 const serverLoader = createServerFn({ method: "GET" })
   .middleware([staticFunctionMiddleware])
   .handler(async (): Promise<ChangelogEntry[]> => {
-    const pages = changelogSource
-      .getPages()
-      .filter((page) => page.slugs.length === 1 && page.slugs[0]);
-    return pages
-      .map((page) => ({
-        slug: page.slugs[0] ?? "",
-        title: page.data.title as string,
-        description: page.data.description as string,
-        version: page.data.version as string,
-        releaseDate: page.data.releaseDate as string,
-        githubRelease: page.data.githubRelease as string | undefined,
-      }))
-      .sort(
-        (a, b) =>
-          new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime(),
-      );
+    // Dynamic import to keep server-only code out of client bundle
+    const { getSortedChangelogPages } = await import("@/lib/changelog");
+    const pages = getSortedChangelogPages();
+    return pages.map((page) => ({
+      slug: page.slugs[0] ?? "",
+      title: page.data.title as string,
+      description: page.data.description as string,
+      version: page.data.version as string,
+      releaseDate: page.data.releaseDate as string,
+      githubRelease: page.data.githubRelease as string | undefined,
+    }));
   });
 
 export const Route = createFileRoute("/changelog/")({
