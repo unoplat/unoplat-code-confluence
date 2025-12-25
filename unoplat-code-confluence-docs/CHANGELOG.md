@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.26.0...unoplat-code-confluence-docs-v0.27.0) (2025-12-25)
+
+
+### Features
+
+* **introduce-banner:** introduce banner for latest changes and fixes around handling changelog collection (resuable utils) ([a3d0f7a](https://github.com/unoplat/unoplat-code-confluence/commit/a3d0f7a47df52a6a2c1c88ee3ae6ad1cad23016e))
+* **introduce-banner:** introduce banner for latest changes and fixes… ([f5fc3a4](https://github.com/unoplat/unoplat-code-confluence/commit/f5fc3a4a3bc2233ba1ce3a978b6652a076624004))
+
+
+### Bug Fixes
+
+* **duplicate-sort:** changelog entries ([87da8f6](https://github.com/unoplat/unoplat-code-confluence/commit/87da8f676f639f62a4379e9f86bb90a9715a3c02))
+* **sorting-descending:** changelog should be sorted first on release date and then on version number ([83c7536](https://github.com/unoplat/unoplat-code-confluence/commit/83c7536b72f661c9a179a7f6ec817d370c9ca71c))
+
 ## [0.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.25.1...unoplat-code-confluence-docs-v0.26.0) (2025-12-24)
 
 
