@@ -15,19 +15,14 @@ const serverLoader = createServerFn({ method: "GET" })
     // Dynamic import to keep server-only code out of client bundle
     const { getSortedChangelogPages } = await import("@/lib/changelog");
     const pages = getSortedChangelogPages();
-    return pages
-      .map((page) => ({
-        slug: page.slugs[0] ?? "",
-        title: page.data.title as string,
-        description: page.data.description as string,
-        version: page.data.version as string,
-        releaseDate: page.data.releaseDate as string,
-        githubRelease: page.data.githubRelease as string | undefined,
-      }))
-      .sort(
-        (a, b) =>
-          new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime(),
-      );
+    return pages.map((page) => ({
+      slug: page.slugs[0] ?? "",
+      title: page.data.title as string,
+      description: page.data.description as string,
+      version: page.data.version as string,
+      releaseDate: page.data.releaseDate as string,
+      githubRelease: page.data.githubRelease as string | undefined,
+    }));
   });
 
 export const Route = createFileRoute("/changelog/")({
