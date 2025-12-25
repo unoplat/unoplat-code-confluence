@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Feed } from "feed";
 
-import { changelogSource } from "@/lib/source";
+const SITE_URL = process.env.PUBLIC_SITE_URL ?? "https://docs.unoplat.io";
 
-const SITE_URL = "https://docs.unoplat.io";
+async function generateFeed(): Promise<string> {
+  // Dynamic imports to keep server-only code out of client bundle
+  const { Feed } = await import("feed");
+  const { getSortedChangelogPages } = await import("@/lib/changelog");
+  const { toReleaseDate } = await import("@/lib/changelog-utils");
 
-function generateFeed(): string {
   const feed = new Feed({
     title: "Unoplat Code Confluence Changelog",
     description: "Release notes and updates for Unoplat Code Confluence",
@@ -22,24 +24,19 @@ function generateFeed(): string {
     },
   });
 
-  const pages = changelogSource
-    .getPages()
-    .filter((page) => page.slugs.length === 1)
-    .sort(
-      (a, b) =>
-        new Date(b.data.releaseDate as string).getTime() -
-        new Date(a.data.releaseDate as string).getTime(),
-    );
+  const pages = getSortedChangelogPages();
 
   for (const page of pages) {
     const slug = page.slugs[0];
     if (!slug) continue;
+    const releaseDate = toReleaseDate(page.data.releaseDate as string);
+    if (!releaseDate) continue;
     feed.addItem({
       title: page.data.title as string,
       id: `${SITE_URL}/changelog/${slug}`,
       link: `${SITE_URL}/changelog/${slug}`,
       description: page.data.description as string,
-      date: new Date(page.data.releaseDate as string),
+      date: releaseDate,
     });
   }
 
@@ -50,7 +47,7 @@ export const Route = createFileRoute("/changelog/feed/xml")({
   server: {
     handlers: {
       GET: async () => {
-        const xml = generateFeed();
+        const xml = await generateFeed();
         return new Response(xml, {
           headers: {
             "Content-Type": "application/xml; charset=utf-8",
