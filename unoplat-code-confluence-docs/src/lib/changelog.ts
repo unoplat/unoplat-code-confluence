@@ -13,9 +13,16 @@ export function getSortedChangelogPages() {
   return changelogSource
     .getPages()
     .filter((page) => page.slugs.length === 1 && page.slugs[0])
-    .sort(
-      (a, b) =>
-        new Date(b.data.releaseDate as string).getTime() -
-        new Date(a.data.releaseDate as string).getTime(),
-    );
+    .sort((a, b) => {
+      // Primary sort: by releaseDate descending (latest first)
+      const dateA = new Date(a.data.releaseDate as string).getTime();
+      const dateB = new Date(b.data.releaseDate as string).getTime();
+      if (dateB !== dateA) {
+        return dateB - dateA;
+      }
+      // Secondary sort: by version descending (higher version first)
+      const versionA = a.data.version as string;
+      const versionB = b.data.version as string;
+      return versionB.localeCompare(versionA, undefined, { numeric: true });
+    });
 }
