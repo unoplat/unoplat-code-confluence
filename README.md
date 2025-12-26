@@ -1,3 +1,5 @@
+<a name="top"></a>
+
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -11,7 +13,7 @@
   <h3 align="center">The Universal Code Context Engine</h3>
 
   <p align="center">
-    Extract, understand, and provide precise code context and related metadata across repositories tied through domains
+    Always keep your agents ready with all the context required per repository.
     <br />
     <a href="https://docs.unoplat.io"><strong>Explore the docs »</strong></a>
     <br />
@@ -49,6 +51,22 @@
   </p>
 </div>
 
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#demo-agentsmd-first-context">Demo</a></li>
+    <li><a href="#%EF%B8%8F-the-problem">The Problem</a></li>
+    <li><a href="#-the-solution">The Solution</a></li>
+    <li><a href="#-core-principles">Core Principles</a></li>
+    <li><a href="#-getting-started">Getting Started</a></li>
+    <li><a href="#-project-status">Project Status</a></li>
+    <li><a href="#maintainers">Maintainers</a></li>
+    <li><a href="#-product-feedback--alpha-disclaimer">Product Feedback</a></li>
+    <li><a href="#license">License</a></li>
+  </ol>
+</details>
+
 <!-- DEMO SECTION -->
 <a id="demo-agentsmd-first-context"></a>
 ## 🎥 Demo: Agents.md-first Context
@@ -83,22 +101,6 @@ AI coding agents excel at **greenfield projects** (new codebases built from scra
 The end result: **slop code** requiring heavy rework.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li><a href="#demo-agentsmd-first-context">Demo</a></li>
-    <li><a href="#%EF%B8%8F-the-problem">The Problem</a></li>
-    <li><a href="#-the-solution">The Solution</a></li>
-    <li><a href="#-core-principles">Core Principles</a></li>
-    <li><a href="#-getting-started">Getting Started</a></li>
-    <li><a href="#-project-status">Project Status</a></li>
-    <li><a href="#maintainers">Maintainers</a></li>
-    <li><a href="#-product-feedback--alpha-disclaimer">Product Feedback</a></li>
-    <li><a href="#license">License</a></li>
-  </ol>
-</details>
 
 <!-- SOLUTION SECTION -->
 ## 🎯 The Solution
@@ -193,6 +195,3 @@ Your feedback is invaluable as we work toward production readiness and helps us 
 Unoplat-CodeConfluence is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0) + COMMONS CLAUSE](LICENSE).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- ANCHOR FOR BACK TO TOP LINKS -->
-<a name="top"></a>
