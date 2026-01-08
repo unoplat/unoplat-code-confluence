@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.27.0...unoplat-code-confluence-docs-v0.27.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* **refactor:** move from structural signature based detection of fram… ([e44d26f](https://github.com/unoplat/unoplat-code-confluence/commit/e44d26f3fb281f2ee5d569209215d0813d8d4d41))
+* tests and docs ([728c897](https://github.com/unoplat/unoplat-code-confluence/commit/728c897bb75bd78d1cb70e657d879c773b2282a3))
+
 ## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.26.0...unoplat-code-confluence-docs-v0.27.0) (2025-12-25)
 
 
