@@ -1,3 +1,0 @@
-"""
-Python-specific engine components.
-"""

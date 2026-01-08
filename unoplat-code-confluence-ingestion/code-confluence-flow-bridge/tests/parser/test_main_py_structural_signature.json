@@ -7,14 +7,14 @@
       "signature": "logger = setup_logging(\n    service_name=\"code-confluence-flow-bridge\", app_name=\"unoplat-code-confluence\"\n)"
     },
     {
-      "start_line": 570,
-      "end_line": 570,
-      "signature": "app = FastAPI(lifespan=lifespan)"
-    },
-    {
       "start_line": 573,
       "end_line": 573,
       "signature": "origins: List[str] = os.getenv(\"ALLOWED_ORIGINS\", \"http://localhost:5173\").split(\",\")"
+    },
+    {
+      "start_line": 570,
+      "end_line": 570,
+      "signature": "app = FastAPI(lifespan=lifespan)"
     }
   ],
   "functions": [
@@ -154,8 +154,8 @@
         "metrics.get(\"skipped\")",
         "logger.info(\n                        \"Framework definitions loaded in {:.3f}s\", metrics[\"total_time\"]\n                    )",
         "logger.error(\"Failed to load framework definitions: {}\", e)",
-        "os.getenv(\"FRAMEWORK_DEFINITIONS_REQUIRED\", \"false\").lower()",
         "os.getenv(\"FRAMEWORK_DEFINITIONS_REQUIRED\", \"false\")",
+        "os.getenv(\"FRAMEWORK_DEFINITIONS_REQUIRED\", \"false\").lower()",
         "create_worker(\n        activities=activities,\n        client=app.state.temporal_client,\n        activity_executor=app.state.activity_executor,\n        env_settings=app.state.code_confluence_env,\n    )",
         "asyncio.Event()",
         "asyncio.create_task(_serve_worker(stop_event, worker))",
@@ -208,12 +208,12 @@
         "encrypt_token(token)",
         "datetime.now(timezone.utc)",
         "session.execute(\n            select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)\n        )",
-        "select(Credentials)",
+        "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)",
         "select(Credentials)\n            .where(Credentials.namespace == namespace)",
         "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)",
-        "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)",
-        "result.scalars()",
+        "select(Credentials)",
         "result.scalars().first()",
+        "result.scalars()",
         "HTTPException(\n                status_code=409,\n                detail=f\"Credential for {namespace.value}/{provider_key.value}/{secret_kind.value} already exists. Use update-token to update it.\",\n            )",
         "Credentials(\n            namespace=namespace,\n            provider_key=provider_key,\n            secret_kind=secret_kind,\n            token_hash=encrypted_token,\n            metadata_json=metadata,\n            created_at=current_time,\n            updated_at=current_time,\n        )",
         "session.add(credential)",
@@ -247,9 +247,9 @@
         "encrypt_token(token)",
         "datetime.now(timezone.utc)",
         "session.execute(\n            select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)\n        )",
-        "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)",
-        "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)",
         "select(Credentials)",
+        "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)",
+        "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)",
         "select(Credentials)\n            .where(Credentials.namespace == namespace)",
         "result.scalars()",
         "result.scalars().first()",
@@ -282,8 +282,8 @@
       "docstring": "\n    Get GitHub REST API base URL based on provider type.\n\n    Supports:\n    - GitHub.com (GITHUB_OPEN): https://api.github.com\n    - Enterprise Server (GITHUB_ENTERPRISE + URL): https://HOSTNAME/api/v3\n    - Enterprise Cloud standard (GITHUB_ENTERPRISE, no URL): https://api.github.com\n    - Enterprise Cloud data residency (GITHUB_ENTERPRISE + ghe.com): https://api.SUBDOMAIN.ghe.com\n\n    Args:\n        provider_key: Provider key (GITHUB_OPEN or GITHUB_ENTERPRISE)\n        metadata: Metadata containing base URL for enterprise instances\n\n    Returns:\n        GitHub REST API base URL\n\n    Raises:\n        HTTPException: If enterprise configuration is invalid\n    ",
       "function_calls": [
         "metadata[\"url\"].rstrip(\"/\")",
-        "base_url.replace(\"https://\", \"\").replace(\"http://\", \"\")",
-        "base_url.replace(\"https://\", \"\")"
+        "base_url.replace(\"https://\", \"\")",
+        "base_url.replace(\"https://\", \"\").replace(\"http://\", \"\")"
       ],
       "nested_functions": [],
       "instance_variables": []
@@ -314,17 +314,17 @@
         "Query(..., description=\"Secret kind\")",
         "Depends(get_session)",
         "session.execute(\n            select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)\n        )",
-        "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)",
         "select(Credentials)",
         "select(Credentials)\n            .where(Credentials.namespace == namespace)",
         "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)",
+        "select(Credentials)\n            .where(Credentials.namespace == namespace)\n            .where(Credentials.provider_key == provider_key)\n            .where(Credentials.secret_kind == secret_kind)",
         "result.scalars().first()",
         "result.scalars()",
         "HTTPException(\n                status_code=404,\n                detail=f\"No credential found for {namespace.value}/{provider_key.value}/{secret_kind.value}\",\n            )",
         "session.delete(credential)",
         "session.execute(\n            select(Flag).where(Flag.name == \"isTokenSubmitted\")\n        )",
-        "select(Flag)",
         "select(Flag).where(Flag.name == \"isTokenSubmitted\")",
+        "select(Flag)",
         "flag_result.scalar_one_or_none()",
         "Flag(name=\"isTokenSubmitted\", status=False)",
         "session.add(token_flag)",
@@ -444,8 +444,8 @@
         "Depends(get_session)",
         "session.execute(select(Flag))",
         "select(Flag)",
-        "result.scalars()",
         "result.scalars().all()",
+        "result.scalars()",
         "logger.error(\"Failed to get flags: {}\", str(e))",
         "str(e)",
         "HTTPException(status_code=500, detail=\"Failed to get flags\")"
@@ -484,8 +484,8 @@
         "Query(\n        ..., description=\"The name of the repository owner\"\n    )",
         "Query(\n        ..., description=\"The workflow run ID to fetch status for\"\n    )",
         "Depends(get_session)",
-        "select(RepositoryWorkflowRun)",
         "select(RepositoryWorkflowRun).where(\n            RepositoryWorkflowRun.repository_name == repository_name,\n            RepositoryWorkflowRun.repository_owner_name == repository_owner_name,\n            RepositoryWorkflowRun.repository_workflow_run_id == workflow_run_id,\n        )",
+        "select(RepositoryWorkflowRun)",
         "(await session.execute(stmt)).scalar_one_or_none()",
         "session.execute(stmt)",
         "\"Workflow run {} not found for {}/{}\".format(\n                workflow_run_id, repository_name, repository_owner_name\n            )",
@@ -608,8 +608,8 @@
         "Depends(get_session)",
         "select(Repository)",
         "session.execute(query)",
-        "result.scalars().all()",
         "result.scalars()",
+        "result.scalars().all()",
         "IngestedRepositoryResponse(\n                repository_name=repo.repository_name,\n                repository_owner_name=repo.repository_owner_name,\n                provider_key=repo.repository_provider,\n            )",
         "IngestedRepositoriesListResponse(repositories=repo_list)",
         "logger.error(\"Error retrieving ingested repositories: {}\", str(e))",
