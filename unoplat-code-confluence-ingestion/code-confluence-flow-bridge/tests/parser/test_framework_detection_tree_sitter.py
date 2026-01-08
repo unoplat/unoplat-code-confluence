@@ -121,10 +121,7 @@ def build():
         det.feature_key == "relationship" and det.library == "sqlalchemy"
         for det in detections
     )
-    assert any(
-        det.feature_key == "field_definition" and det.library == "sqlmodel"
-        for det in detections
-    )
+    # field_definition removed from sqlmodel in schema v3
     assert any(
         det.feature_key == "relationship" and det.library == "sqlmodel"
         for det in detections

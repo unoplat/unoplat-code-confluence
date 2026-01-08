@@ -7,6 +7,11 @@
       "signature": "GLOBAL_CONFIG = {\"debug\": True}"
     },
     {
+      "start_line": 5,
+      "end_line": 5,
+      "signature": "app_instance = None"
+    },
+    {
       "start_line": 231,
       "end_line": 231,
       "signature": "ANOTHER_GLOBAL = \"global\""
@@ -15,11 +20,6 @@
       "start_line": 232,
       "end_line": 232,
       "signature": "module_config = {\"module\": True}"
-    },
-    {
-      "start_line": 5,
-      "end_line": 5,
-      "signature": "app_instance = None"
     }
   ],
   "functions": [
@@ -214,8 +214,8 @@
             "config.get(\"host\", \"localhost\")",
             "config.get(\"port\", 8000)",
             "config.get('version', '1.0')",
-            "x.strip().lower()",
             "x.strip()",
+            "x.strip().lower()",
             "config.get(\"routes\", [])",
             "route.startswith(\"/\")"
           ],
