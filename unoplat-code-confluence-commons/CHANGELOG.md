@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.40.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.40.0...unoplat-code-confluence-commons-v0.40.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* **refactor:** move from structural signature based detection of fram… ([e44d26f](https://github.com/unoplat/unoplat-code-confluence/commit/e44d26f3fb281f2ee5d569209215d0813d8d4d41))
+* **refactor:** move from structural signature based detection of framework/libs to direct source code and import based and also remove variable bound strategy from schema as it is brittle and can easily break. ([059e8da](https://github.com/unoplat/unoplat-code-confluence/commit/059e8daec3c3d08405df757019bb31262329fb84))
+
 ## [0.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.39.0...unoplat-code-confluence-commons-v0.40.0) (2025-12-22)
 
 
