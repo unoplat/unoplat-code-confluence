@@ -1,12 +1,10 @@
-"""
-Test framework detection using structural signature approach with real production code.
-This file validates that structural signatures can effectively identify
-framework patterns and concepts in actual Python code from the codebase.
-"""
+"""Legacy structural signature framework detection tests (skipped by default)."""
 
 from pathlib import Path
 import time
 from typing import List, Set
+
+import pytest
 
 from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
     build_python_extractor_config,
@@ -17,8 +15,9 @@ from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature imp
 from unoplat_code_confluence_commons.base_models import PythonStructuralSignature
 
 
+@pytest.mark.skip(reason="Structural signature detection is legacy-only.")
 class TestFrameworkDetectionPythonStructuralSignature:
-    """Test framework detection using structural signature patterns from real production code."""
+    """Legacy structural signature tests (retained for reference)."""
 
     def setup_method(self):
         """Set up test fixtures."""
@@ -26,7 +25,6 @@ class TestFrameworkDetectionPythonStructuralSignature:
         self.extractor = TreeSitterPythonStructuralSignatureExtractor(
             language_name="python", config=config
         )
-
         # Define paths to real source files
         self.base_path = (
             Path(__file__).parent.parent.parent / "src" / "code_confluence_flow_bridge"

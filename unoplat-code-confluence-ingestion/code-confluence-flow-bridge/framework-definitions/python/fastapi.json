@@ -12,7 +12,6 @@
           ],
           "target_level": "function",
           "concept": "AnnotationLike",
-          "locator_strategy": "VariableBound",
           "construct_query": {
             "method_regex": "(get|post|put|delete|patch|head|options|trace)"
           },
@@ -24,8 +23,7 @@
             "fastapi.BackgroundTasks"
           ],
           "target_level": "function",
-          "concept": "CallExpression",
-          "locator_strategy": "Direct"
+          "concept": "CallExpression"
         },
         "api_router": {
           "description": "Route organization using APIRouter",
@@ -34,7 +32,6 @@
           ],
           "target_level": "function",
           "concept": "AnnotationLike",
-          "locator_strategy": "VariableBound",
           "construct_query": {
             "method_regex": "(get|post|put|delete|patch|head|options|trace|include_router)"
           },
