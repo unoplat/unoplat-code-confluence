@@ -1,11 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.com/schemas/library-schema-v2.json",
-  "title": "Code-Confluence Multi-Language Library Feature Schema",
+  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v3.json",
+  "title": "Code-Confluence Multi-Language Library Feature Schema v3",
   "description": "Framework / library feature signatures grouped by programming language.",
   "type": "object",
 
-  
   "propertyNames": { "$ref": "#/$defs/languageEnum" },
   "patternProperties": {
     "^[a-z]+$": { "$ref": "#/$defs/languageBlock" }
@@ -13,16 +12,11 @@
   "additionalProperties": false,
 
   "$defs": {
-  
     "languageEnum": {
       "type": "string",
       "description": "Allowed lower-case language identifiers.",
-      "enum": [
-        "python", "javascript", "typescript", "java", "go"
-      ]
+      "enum": ["python", "javascript", "typescript", "java", "go"]
     },
-
-
     "languageBlock": {
       "type": "object",
       "description": "All libraries / frameworks implemented in a single language.",
@@ -31,28 +25,27 @@
       },
       "additionalProperties": false
     },
-
     "libraryDef": {
-      "type":       "object",
-      "required":   ["docs_url", "features"],
+      "type": "object",
+      "required": ["docs_url", "features"],
       "properties": {
         "docs_url": {
-          "type":        "string",
-          "format":      "uri",
+          "type": "string",
+          "format": "uri",
           "description": "Canonical documentation URL."
         },
         "description": {
-          "type":        "string",
+          "type": "string",
           "description": "Human-readable description of the library. This is a short description of the library that is used to describe the library in the documentation."
         },
         "version": {
-          "type":        "string",
+          "type": "string",
           "description": "Library version used to verify patterns (optional)."
         },
         "features": {
-          "type":              "object",
-          "minProperties":     1,
-          "description":       "Discoverable features keyed by contributor-chosen identifier.",
+          "type": "object",
+          "minProperties": 1,
+          "description": "Discoverable features keyed by contributor-chosen identifier.",
           "patternProperties": { "^.+$": { "$ref": "#/$defs/featureDef" } },
           "additionalProperties": false
         }
@@ -60,48 +53,36 @@
       "additionalProperties": false
     },
 
-
     "featureDef": {
-      "type":     "object",
-      "required": [
-
-        
-        "description",
-        "absolute_paths",
-        "target_level",
-        "concept",
-        "locator_strategy"
-      ],
+      "type": "object",
+      "required": ["description", "absolute_paths", "target_level", "concept"],
 
       "properties": {
         "description": {
-          "type":        "string",
+          "type": "string",
           "description": "Human-readable explanation of the feature."
         },
 
         "docs_url": {
-          "type":        "string",
-          "format":      "uri",
+          "type": "string",
+          "format": "uri",
           "description": "Feature-specific documentation URL (optional)."
         },
 
         "absolute_paths": {
-          "type":        "array",
-          "minItems":    1,
+          "type": "array",
+          "minItems": 1,
           "uniqueItems": true,
-          "description":
-            "Fully-qualified symbols identifying the constructor / base class / annotation provider.",
+          "description": "Fully-qualified symbols identifying the constructor / base class / annotation provider.",
           "items": {
-            "type":    "string",
+            "type": "string",
             "pattern": "^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$"
           }
         },
+        "target_level": { "$ref": "#/$defs/targetLevelEnum" },
+        "concept": { "$ref": "#/$defs/conceptEnum" },
 
-        "target_level":     { "$ref": "#/$defs/targetLevelEnum" },
-        "concept":          { "$ref": "#/$defs/conceptEnum" },
-        "locator_strategy": { "$ref": "#/$defs/locatorEnum" },
-
-        "construct_query":  { "$ref": "#/$defs/constructQueryDef" },
+        "construct_query": { "$ref": "#/$defs/constructQueryDef" },
 
         "startpoint": {
           "type": "boolean",
@@ -110,7 +91,7 @@
         },
 
         "notes": {
-          "type":        "string",
+          "type": "string",
           "description": "Contributor notes, caveats, links."
         }
       },
@@ -118,17 +99,16 @@
 
       "allOf": [
         {
-          "if":   { "properties": { "concept": { "const": "CallExpression" } } },
+          "if": { "properties": { "concept": { "const": "CallExpression" } } },
           "then": { "properties": { "target_level": { "const": "function" } } }
         },
         {
-          "if":   { "properties": { "concept": { "const": "Inheritance" } } },
+          "if": { "properties": { "concept": { "const": "Inheritance" } } },
           "then": { "properties": { "target_level": { "const": "class" } } }
         }
       ]
     },
 
-    
     "targetLevelEnum": {
       "type": "string",
       "enum": ["function", "class"],
@@ -141,26 +121,17 @@
       "description": "Language-agnostic construct category."
     },
 
-    "locatorEnum": {
-      "type": "string",
-      "enum": ["VariableBound", "Direct"],
-      "description": "`VariableBound` – discover identifiers bound to a constructor/factory first; `Direct` – match the symbol verbatim."
-    },
-
     "constructQueryDef": {
       "type": "object",
       "description": "Optional refinements to the auto-generated Tree-sitter query. Allowed keys depend on the feature's concept.",
       "properties": {
-        
-        "method_regex":          { "type": "string" },
+        "method_regex": { "type": "string" },
         "annotation_name_regex": { "type": "string" },
-        "attribute_regex":       { "type": "string" },
+        "attribute_regex": { "type": "string" },
 
-        
-        "callee_regex":          { "type": "string" },
+        "callee_regex": { "type": "string" },
 
-        
-        "superclass_regex":      { "type": "string" }
+        "superclass_regex": { "type": "string" }
       },
       "additionalProperties": false
     }

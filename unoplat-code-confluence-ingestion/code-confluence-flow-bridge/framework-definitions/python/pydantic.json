@@ -11,8 +11,7 @@
             "pydantic.main.BaseModel"
           ],
           "target_level": "class",
-          "concept": "Inheritance",
-          "locator_strategy": "Direct"
+          "concept": "Inheritance"
         }
       }
     }

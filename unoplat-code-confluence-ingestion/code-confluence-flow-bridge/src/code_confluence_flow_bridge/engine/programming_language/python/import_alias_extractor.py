@@ -31,7 +31,7 @@ def extract_imports_from_source(
     root_node: tree_sitter.Node = tree.root_node
 
     # Load the imports query from the query file
-    query_dir = Path(__file__).parent.parent.parent / "parser" / "queries" / language
+    query_dir = Path(__file__).parent / "queries"
     imports_query_file = query_dir / "imports.scm"
 
     if not imports_query_file.exists():

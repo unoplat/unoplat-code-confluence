@@ -12,8 +12,7 @@
             "unoplat_code_confluence_commons.base_models.sql_base.SQLBase"
           ],
           "target_level": "class",
-          "concept": "Inheritance",
-          "locator_strategy": "VariableBound"
+          "concept": "Inheritance"
         },
         "mapped_column": {
           "description": "Column definition using mapped_column for modern SQLAlchemy",
@@ -21,8 +20,7 @@
             "sqlalchemy.orm.mapped_column"
           ],
           "target_level": "function",
-          "concept": "CallExpression",
-          "locator_strategy": "Direct"
+          "concept": "CallExpression"
         },
         "relationship": {
           "description": "Relationship definition between models",
@@ -30,8 +28,7 @@
             "sqlalchemy.orm.relationship"
           ],
           "target_level": "function",
-          "concept": "CallExpression",
-          "locator_strategy": "Direct"
+          "concept": "CallExpression"
         },
         "column": {
           "description": "Traditional column definition using Column",
@@ -40,8 +37,7 @@
             "sqlalchemy.sql.schema.Column"
           ],
           "target_level": "function",
-          "concept": "CallExpression",
-          "locator_strategy": "Direct"
+          "concept": "CallExpression"
         }
       }
     }

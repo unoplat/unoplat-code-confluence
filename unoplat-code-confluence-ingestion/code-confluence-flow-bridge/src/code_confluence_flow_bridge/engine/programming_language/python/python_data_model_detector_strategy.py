@@ -10,7 +10,7 @@ import tree_sitter
 from tree_sitter_language_pack import get_language, get_parser
 from unoplat_code_confluence_commons.base_models import DataModelPosition
 
-from src.code_confluence_flow_bridge.detector.data_model_detector_strategy import (
+from src.code_confluence_flow_bridge.engine.detector.data_model_detector_strategy import (
     DataModelDetectorStrategy,
 )
 
@@ -20,11 +20,7 @@ class PythonDataModelDetectorStrategy(DataModelDetectorStrategy):
 
     _LANGUAGE_NAME = "python"
     _DATACLASS_QUERY_PATH = (
-        Path(__file__).resolve().parents[2]
-        / "parser"
-        / "queries"
-        / "python"
-        / "dataclasses.scm"
+        Path(__file__).resolve().parent / "queries" / "dataclasses.scm"
     )
 
     def detect(
