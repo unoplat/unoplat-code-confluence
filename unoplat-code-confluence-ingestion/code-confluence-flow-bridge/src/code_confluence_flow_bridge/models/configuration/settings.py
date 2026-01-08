@@ -232,6 +232,12 @@ class EnvironmentSettings(BaseSettings):
         description="Absolute path to framework definitions directory containing language-specific definition files",
     )
 
+    extract_structural_signatures: bool = Field(
+        default=False,
+        alias="EXTRACT_STRUCTURAL_SIGNATURES",
+        description="Whether to compute and store structural signatures during parsing",
+    )
+
     # File processing concurrency configuration
     codebase_parser_file_processing_concurrency: int = Field(
         default=3,

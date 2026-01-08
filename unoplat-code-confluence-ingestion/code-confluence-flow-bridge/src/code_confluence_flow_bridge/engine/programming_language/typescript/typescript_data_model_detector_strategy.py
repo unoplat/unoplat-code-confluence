@@ -15,7 +15,7 @@ from unoplat_code_confluence_commons.base_models import (
     TypeScriptStructuralSignature,
 )
 
-from src.code_confluence_flow_bridge.detector.data_model_detector_strategy import (
+from src.code_confluence_flow_bridge.engine.detector.data_model_detector_strategy import (
     DataModelDetectorStrategy,
 )
 
@@ -24,13 +24,7 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
     """Detects TypeScript data models (interfaces, types, Zod schemas, class-validator, etc.)."""
 
     _LANGUAGE_NAME = "typescript"
-    _TYPES_QUERY_PATH = (
-        Path(__file__).resolve().parents[2]
-        / "parser"
-        / "queries"
-        / "typescript"
-        / "types.scm"
-    )
+    _TYPES_QUERY_PATH = Path(__file__).resolve().parent / "queries" / "types.scm"
 
     def detect(
         self,

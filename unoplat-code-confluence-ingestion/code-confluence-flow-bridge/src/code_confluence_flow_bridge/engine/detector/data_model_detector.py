@@ -13,7 +13,7 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguage,
 )
 
-from src.code_confluence_flow_bridge.detector.data_model_detector_factory import (
+from src.code_confluence_flow_bridge.engine.detector.data_model_detector_factory import (
     DataModelDetectorFactory,
     UnsupportedLanguageForDataModelDetectionError,
 )

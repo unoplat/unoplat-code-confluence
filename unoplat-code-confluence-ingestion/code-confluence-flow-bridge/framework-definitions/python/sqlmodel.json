@@ -6,30 +6,15 @@
       "features": {
         "db_data_model": {
           "description": "Base class for SQLModel models combining Pydantic and SQLAlchemy",
-          "absolute_paths": [
-            "sqlmodel.SQLModel"
-          ],
+          "absolute_paths": ["sqlmodel.SQLModel"],
           "target_level": "class",
-          "concept": "Inheritance",
-          "locator_strategy": "Direct"
-        },
-        "field_definition": {
-          "description": "Field definition using Field() function with SQLModel extensions",
-          "absolute_paths": [
-            "sqlmodel.Field"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression",
-          "locator_strategy": "Direct"
+          "concept": "Inheritance"
         },
         "relationship": {
           "description": "Relationship definition between SQLModel models",
-          "absolute_paths": [
-            "sqlmodel.Relationship"
-          ],
+          "absolute_paths": ["sqlmodel.Relationship"],
           "target_level": "function",
-          "concept": "CallExpression",
-          "locator_strategy": "Direct"
+          "concept": "CallExpression"
         }
       }
     }

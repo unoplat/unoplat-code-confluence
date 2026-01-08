@@ -6,13 +6,13 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguage,
 )
 
-from src.code_confluence_flow_bridge.detector.data_model_detector_strategy import (
+from src.code_confluence_flow_bridge.engine.detector.data_model_detector_strategy import (
     DataModelDetectorStrategy,
 )
-from src.code_confluence_flow_bridge.detector.python.python_data_model_detector_strategy import (
+from src.code_confluence_flow_bridge.engine.programming_language.python.python_data_model_detector_strategy import (
     PythonDataModelDetectorStrategy,
 )
-from src.code_confluence_flow_bridge.detector.typescript.typescript_data_model_detector_strategy import (
+from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_data_model_detector_strategy import (
     TypeScriptDataModelDetectorStrategy,
 )
 

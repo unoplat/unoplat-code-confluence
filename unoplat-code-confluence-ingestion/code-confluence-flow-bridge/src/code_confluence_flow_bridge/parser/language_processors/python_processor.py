@@ -9,10 +9,10 @@ from aiofile import async_open
 from loguru import logger
 
 # First Party
-from src.code_confluence_flow_bridge.detector.data_model_detector import (
+from src.code_confluence_flow_bridge.engine.detector.data_model_detector import (
     detect_data_model,
 )
-from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
+from src.code_confluence_flow_bridge.engine.programming_language.python.import_alias_extractor import (
     extract_imports_from_source,
 )
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
@@ -36,8 +36,8 @@ from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature imp
 # ---------------------------------------------------------------------------
 
 # Base directory for Python query files
-_BASE_DIR = Path(__file__).resolve().parent.parent
-_PYTHON_QUERY_DIR = _BASE_DIR / "queries" / "python"
+_BASE_DIR = Path(__file__).resolve().parent.parent.parent
+_PYTHON_QUERY_DIR = _BASE_DIR / "engine" / "programming_language" / "python" / "queries"
 
 # Python query file paths
 PYTHON_QUERY_FILES: Dict[str, Path] = {
@@ -126,9 +126,11 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
         super().__init__(context)
         # Build Python extractor config and pass to extractor
         self._extractor_config = build_python_extractor_config()
-        self.extractor = TreeSitterPythonStructuralSignatureExtractor(
-            language_name="python", config=self._extractor_config
-        )
+        self.extractor: TreeSitterPythonStructuralSignatureExtractor | None = None
+        if self.context.env_config.extract_structural_signatures:
+            self.extractor = TreeSitterPythonStructuralSignatureExtractor(
+                language_name="python", config=self._extractor_config
+            )
 
     @property
     def supported_extensions(self) -> Set[str]:
@@ -166,9 +168,11 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
             checksum = await asyncio.to_thread(
                 self._calculate_file_checksum, content_bytes
             )
-            signature = await asyncio.to_thread(
-                self.extractor.extract_structural_signature, content_bytes
-            )
+            signature = None
+            if self.context.env_config.extract_structural_signatures and self.extractor:
+                signature = await asyncio.to_thread(
+                    self.extractor.extract_structural_signature, content_bytes
+                )
             imports = await asyncio.to_thread(self._extract_imports, content)
 
             data_model_detected, data_model_positions = detect_data_model(

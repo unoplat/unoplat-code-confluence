@@ -23,7 +23,7 @@ class CodeConfluenceFile(AsyncStructuredNode):
     file_path = StringProperty(required=True, unique_index=True)
     content = StringProperty()
     checksum  = StringProperty()
-    structural_signature = JSONProperty()
+    structural_signature = JSONProperty(default=None)
     imports = ArrayProperty(
         StringProperty(),
         default=[],
