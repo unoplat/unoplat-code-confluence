@@ -110,7 +110,7 @@ async def per_programming_language_configuration_prompt(
         f"<step>For each matched configuration file, inspect it using read_file_content tool if needed to understand its contents.</step>"
         f"<step>For any configuration file whose purpose is unclear or unfamiliar, MUST use get_lib_data tool with the tool/library name and programming language to retrieve official documentation. This ensures accurate descriptions and prevents hallucination.</step>"
         f"<step>Write a descriptive 'purpose' field (10-20 words) for each config file based on official documentation from get_lib_data or actual file inspection, following the examples in purpose_field_instructions.</step>"
-        f"<step>Produce output JSON exactly as requested with all config files having descriptive purposes.</step>"
+        f"<step>Produce output JSON exactly as requested; include every relevant config file and never omit the config_files key.</step>"
         f"</steps>"
     )
     if ctx.deps.codebase_metadata.codebase_programming_language == "typescript":
@@ -163,6 +163,7 @@ async def per_language_development_workflow_prompt(
 
     output_contract = (
         "Output format: DevelopmentWorkflow JSON with a single field 'commands' as a list of CommandSpec.\n"
+        "Include all applicable commands; never omit the commands key.\n"
         "Each CommandSpec must include: kind (build|dev|test|lint|type_check), command (string). Optional: description, config_files[].\n\n"
     )
 

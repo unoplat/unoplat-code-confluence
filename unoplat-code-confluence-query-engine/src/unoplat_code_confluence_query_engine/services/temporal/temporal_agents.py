@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Any
 
 from loguru import logger
-from pydantic_ai import Agent, Tool
+from pydantic_ai import Agent, ModelRetry, Tool
 from pydantic_ai.durable_exec.temporal import TemporalAgent
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
@@ -64,6 +64,26 @@ ENABLED_AGENTS: set[AgentType] = {
 }
 
 
+def validate_project_configuration_output(
+    output: ProjectConfiguration,
+) -> ProjectConfiguration:
+    if not output.config_files:
+        raise ModelRetry(
+            "config_files is empty. Re-scan and return all configuration files; do not omit any."
+        )
+    return output
+
+
+def validate_development_workflow_output(
+    output: DevelopmentWorkflow,
+) -> DevelopmentWorkflow:
+    if not output.commands:
+        raise ModelRetry(
+            "commands is empty. Extract build/dev/test/lint/type_check commands and return all applicable commands."
+        )
+    return output
+
+
 # ──────────────────────────────────────────────
 # Agent Definitions
 # ──────────────────────────────────────────────
@@ -94,9 +114,11 @@ def create_project_configuration_agent(
             Tool(get_lib_data),
         ],
         output_type=ProjectConfiguration,
+        output_retries=2,
         model_settings=model_settings,
         event_stream_handler=event_stream_handler,
     )
+    agent.output_validator(validate_project_configuration_output)
     # Attach dynamic per-language system prompt (always enabled)
     agent.system_prompt(per_programming_language_configuration_prompt)
     logger.debug("Dynamic system prompt attached to project_configuration_agent")
@@ -127,9 +149,11 @@ def create_development_workflow_agent(
             Tool(get_lib_data),
         ],
         output_type=DevelopmentWorkflow,
+        output_retries=2,
         model_settings=model_settings,
         event_stream_handler=event_stream_handler,
     )
+    agent.output_validator(validate_development_workflow_output)
     # Attach dynamic per-language system prompt (always enabled)
     agent.system_prompt(per_language_development_workflow_prompt)
     logger.debug("Dynamic system prompt attached to development_workflow_agent")
