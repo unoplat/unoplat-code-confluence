@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.8](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.7...unoplat-code-confluence-query-engine-v0.24.8) (2026-01-09)
+
+
+### Bug Fixes
+
+* **agent-description:** improve system prompts and tool descriptions … ([780b624](https://github.com/unoplat/unoplat-code-confluence/commit/780b624e5af02767bceb7212d8c62a43e2be511f))
+* **agent-description:** improve system prompts and tool descriptions and add output validator for open source models to work reliably. solved issues with minmax2.1 ([8cb0968](https://github.com/unoplat/unoplat-code-confluence/commit/8cb096893c72b8626968234218b1a36db7367cf6))
+
 ## [0.24.7](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.6...unoplat-code-confluence-query-engine-v0.24.7) (2025-12-22)
 
 
