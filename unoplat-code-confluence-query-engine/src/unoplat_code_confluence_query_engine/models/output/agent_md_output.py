@@ -286,7 +286,10 @@ class ProjectConfiguration(BaseModel):
 
     config_files: List[ConfigFile] = Field(
         ...,
-        description="Configuration files - linter,test,package manager, deployment config files etc",
+        description=(
+            "Complete list of configuration files (lint, test, package manager, build, deploy, etc). "
+            "Include every relevant config file; do not omit any."
+        ),
     )
 
     model_config = ConfigDict(extra="forbid")
@@ -296,7 +299,10 @@ class DevelopmentWorkflow(BaseModel):
     """Development workflow configuration with a unified command list."""
 
     commands: List[CommandSpec] = Field(
-        ..., description="Unified list of workflow commands"
+        ...,
+        description=(
+            "Complete list of workflow commands; include all build/dev/test/lint/type_check commands found."
+        ),
     )
     model_config = ConfigDict(extra="forbid")
 
