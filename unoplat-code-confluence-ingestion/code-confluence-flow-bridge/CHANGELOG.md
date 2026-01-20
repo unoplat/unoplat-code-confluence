@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.66.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.66.2...code-confluence-flow-bridge-v0.66.3) (2026-01-20)
+
+
+### Bug Fixes
+
+* fallback to owner name when no organisation exists for user repos ([31f81ec](https://github.com/unoplat/unoplat-code-confluence/commit/31f81ec03bcbf72f71cc94273890f3890a792947))
+* **logging:** add rotating file sinks for ingestion ([ad92980](https://github.com/unoplat/unoplat-code-confluence/commit/ad92980634d5011d5f107e8500450a304913d038))
+
 ## [0.66.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.66.1...code-confluence-flow-bridge-v0.66.2) (2026-01-08)
 
 
