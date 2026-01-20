@@ -97,9 +97,26 @@ class PythonTreeSitterFrameworkDetector:
         detections: List[Detection] = []
         for spec in feature_specs:
             try:
-                if not _is_feature_imported(spec.absolute_paths, context.import_aliases):
+                if not _is_feature_imported(
+                    spec.absolute_paths, context.import_aliases
+                ):
+                    logger.opt(lazy=True).debug(
+                        "Skipping feature; import not found | library={} | feature_key={} | paths={} | aliases={}",
+                        lambda: spec.library,
+                        lambda: spec.feature_key,
+                        lambda: spec.absolute_paths,
+                        lambda: sorted(context.import_aliases.keys()),
+                    )
                     continue
-                detections.extend(self._detect_feature(context, spec))
+                feature_detections = self._detect_feature(context, spec)
+                if feature_detections:
+                    logger.opt(lazy=True).debug(
+                        "Feature detections | library={} | feature_key={} | count={}",
+                        lambda: spec.library,
+                        lambda: spec.feature_key,
+                        lambda: len(feature_detections),
+                    )
+                detections.extend(feature_detections)
             except Exception as exc:
                 logger.warning(
                     "Framework detection failed | feature_key={} | error={}",
