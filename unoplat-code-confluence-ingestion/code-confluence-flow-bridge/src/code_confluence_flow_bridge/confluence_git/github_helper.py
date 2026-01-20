@@ -56,6 +56,57 @@ def _relative_manifest_path(
         return name if name else manifest.as_posix()
 
 
+def _has_unmerged_files(repo: Repo) -> bool:
+    """
+    Check if the repository has unmerged files (merge conflicts).
+
+    Uses git status --porcelain to detect unmerged entries.
+    Unmerged status codes: DD, AU, UD, UA, DU, AA, UU (contain 'U' or DD/AA)
+    """
+    try:
+        status_output: str = repo.git.status("--porcelain")
+        if not status_output:
+            return False
+
+        for line in status_output.splitlines():
+            if len(line) < 2:
+                continue
+            status_code = line[:2]
+            if "U" in status_code or status_code in ("DD", "AA"):
+                return True
+        return False
+    except Exception:
+        return False
+
+
+def _reset_to_remote(repo: Repo, default_branch: str, repo_path: str) -> None:
+    """
+    Hard reset repository to remote branch state and clean untracked files.
+
+    Used when repository is in a conflicted state that prevents stashing.
+    """
+    logger.warning(
+        "Repository in conflicted state, resetting to remote | repo_path={} | branch=origin/{} | status=resetting",
+        repo_path,
+        default_branch,
+    )
+
+    # Abort any in-progress merge
+    try:
+        repo.git.merge("--abort")
+        logger.debug("Aborted in-progress merge | repo_path={}", repo_path)
+    except Exception:
+        pass  # No merge in progress
+
+    # Hard reset to remote branch
+    repo.git.reset("--hard", f"origin/{default_branch}")
+    logger.debug("Hard reset completed | repo_path={}", repo_path)
+
+    # Clean untracked files and directories
+    repo.git.clean("-fd")
+    logger.debug("Cleaned untracked files | repo_path={}", repo_path)
+
+
 class GithubHelper:
     # works with - vhttps://github.com/organization/repository,https://github.com/organization/repository.git,git@github.com:organization/repository.git
     def clone_repository(
@@ -120,8 +171,20 @@ class GithubHelper:
                 local_repo = Repo(repo_path)
 
                 try:
-                    # Check if there are uncommitted changes and stash them before fetch/checkout
-                    if local_repo.is_dirty(untracked_files=True):
+                    # Fetch first - we need remote refs for reset/pull operations
+                    logger.debug("Fetching from remote | repo_path={}", repo_path)
+                    local_repo.git.fetch("origin")
+
+                    # Get default branch (needed for reset or checkout)
+                    default_branch = github_repo.default_branch
+
+                    # Check for unmerged files BEFORE attempting stash
+                    # Git cannot stash when files are in an unmerged state (merge conflicts)
+                    if _has_unmerged_files(local_repo):
+                        # Cannot stash with unmerged files - reset to remote state
+                        _reset_to_remote(local_repo, default_branch, repo_path)
+                    elif local_repo.is_dirty(untracked_files=True):
+                        # Normal dirty state - stash works
                         logger.info(
                             "Found uncommitted changes, stashing | repo_path={} | status=stashing",
                             repo_path,
@@ -137,12 +200,7 @@ class GithubHelper:
                             repo_path,
                         )
 
-                    # Fetch latest refs from remote
-                    logger.debug("Fetching from remote | repo_path={}", repo_path)
-                    local_repo.git.fetch("origin")
-
                     # Ensure we're on the default branch
-                    default_branch = github_repo.default_branch
                     logger.debug(
                         "Checking out default branch | branch={} | repo_path={}",
                         default_branch,
@@ -322,9 +380,11 @@ class GithubHelper:
                 repository_metadata=repo_metadata,  # type: ignore
                 codebases=codebases,
                 readme=readme_content,
-                github_organization=github_repo.organization.login
-                if github_repo.organization
-                else None,
+                github_organization=(
+                    github_repo.organization.login
+                    if github_repo.organization
+                    else github_repo.owner.login
+                ),
             )
 
         except Exception as e:
