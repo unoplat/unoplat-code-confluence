@@ -13,9 +13,6 @@ from unoplat_code_confluence_query_engine.services.post_processors.business_logi
 from unoplat_code_confluence_query_engine.services.post_processors.post_processor_base import (
     ProcessorDependencies,
 )
-from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
-    get_neo4j_manager,
-)
 
 
 class BusinessLogicPostProcessActivity:
@@ -28,11 +25,11 @@ class BusinessLogicPostProcessActivity:
         codebase_path: str,
         programming_language: str,
     ) -> dict[str, Any]:
-        """Enrich business logic description with data model files from Neo4j.
+        """Enrich business logic description with data model files from PostgreSQL.
 
         Args:
             agent_output: Plain text description from business_logic_domain_agent
-            codebase_path: Path to the codebase for Neo4j lookup
+            codebase_path: Path to the codebase for Postgres lookup
             programming_language: Programming language of the codebase
 
         Returns:
@@ -46,7 +43,6 @@ class BusinessLogicPostProcessActivity:
         processor = BusinessLogicDomainPostProcessor()
         deps = ProcessorDependencies(
             codebase_path=codebase_path,
-            neo4j_conn_manager=get_neo4j_manager(),
             programming_language=programming_language,
         )
 

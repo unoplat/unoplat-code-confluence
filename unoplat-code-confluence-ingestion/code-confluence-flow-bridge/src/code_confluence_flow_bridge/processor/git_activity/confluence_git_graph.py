@@ -11,42 +11,34 @@ from src.code_confluence_flow_bridge.logging.trace_utils import (
     workflow_id_var,
     workflow_run_id_var,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
-    EnvironmentSettings,
-)
 from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import (
     ParentChildCloneMetadata,
 )
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     ConfluenceGitGraphEnvelope,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
-    CodeConfluenceGraph,
+from src.code_confluence_flow_bridge.processor.db.postgres.code_confluence_relational_ingestion import (
+    CodeConfluenceRelationalIngestion,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import (
-    CodeConfluenceGraphIngestion,
+from src.code_confluence_flow_bridge.processor.db.postgres.db import (
+    get_session_cm,
 )
 
 
 class ConfluenceGitGraph:
     """
     Temporal activity class for GitHub operations.
-    Uses shared Neo4j connection pool via CodeConfluenceGraph instance.
     """
 
-    def __init__(self, code_confluence_graph: CodeConfluenceGraph) -> None:
-        self.env_settings = EnvironmentSettings()
-        self.code_confluence_graph = code_confluence_graph
-        logger.debug(
-            "Initialized ConfluenceGitGraph with shared CodeConfluenceGraph instance"
-        )
+    def __init__(self) -> None:
+        logger.debug("Initialized ConfluenceGitGraph activity")
 
     @activity.defn
     async def insert_git_repo_into_graph_db(
         self, envelope: "ConfluenceGitGraphEnvelope"
     ) -> ParentChildCloneMetadata:
         """
-        Insert a git repository into the graph database
+        Insert a git repository into relational tables
 
         Args:
             envelope: ConfluenceGitGraphEnvelope containing git repository data and trace id
@@ -75,20 +67,24 @@ class ConfluenceGitGraph:
         )
         try:
             log.debug(
-                "Starting graph db insertion for repo: {} ", git_repo.repository_url
+                "Starting relational insertion for repo: {} ", git_repo.repository_url
             )
 
-            # Use managed transaction from shared connection pool
-            async with self.code_confluence_graph.get_session() as session:
-                graph = CodeConfluenceGraphIngestion()
-                parent_child_clone_metadata = (
-                    await graph.insert_code_confluence_git_repo_managed(
-                        session=session, git_repo=git_repo
-                    )
+            async with get_session_cm() as session:
+                ingestion = CodeConfluenceRelationalIngestion(session)
+                repo_qualified_name = await ingestion.upsert_repository(git_repo)
+                codebase_qualified_names = await ingestion.upsert_codebases(
+                    repo_qualified_name,
+                    git_repo.codebases,
+                    include_package_metadata=False,
+                )
+                parent_child_clone_metadata = ParentChildCloneMetadata(
+                    repository_qualified_name=repo_qualified_name,
+                    codebase_qualified_names=codebase_qualified_names,
                 )
 
             log.debug(
-                "Successfully inserted git repo into graph db: {} ",
+                "Successfully inserted git repo into relational tables: {} ",
                 git_repo.repository_url,
             )
             return parent_child_clone_metadata
@@ -100,7 +96,8 @@ class ConfluenceGitGraph:
 
             # For other exceptions, wrap in ApplicationError with detailed info
             error_msg = (
-                f"Failed to insert git repo into graph db: {git_repo.repository_url}"
+                "Failed to insert git repo into relational tables:"
+                f" {git_repo.repository_url}"
             )
             log.error(
                 "{} | error_type={} | error={} | status=failed",

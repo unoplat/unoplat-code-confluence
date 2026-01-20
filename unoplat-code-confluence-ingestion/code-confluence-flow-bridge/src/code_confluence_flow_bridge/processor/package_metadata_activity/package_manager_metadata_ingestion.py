@@ -7,39 +7,31 @@ from temporalio.exceptions import ApplicationError
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     seed_and_bind_logger_from_trace_id,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
-    EnvironmentSettings,
-)
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     PackageManagerMetadataIngestionEnvelope,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
-    CodeConfluenceGraph,
+from src.code_confluence_flow_bridge.processor.db.postgres.code_confluence_relational_ingestion import (
+    CodeConfluenceRelationalIngestion,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_ingestion import (
-    CodeConfluenceGraphIngestion,
+from src.code_confluence_flow_bridge.processor.db.postgres.db import (
+    get_session_cm,
 )
 
 
 class PackageManagerMetadataIngestion:
     """
     Temporal activity class for package manager metadata ingestion.
-    Uses individual Neo4j transactions from the connection pool.
     """
 
-    def __init__(self, code_confluence_graph: CodeConfluenceGraph) -> None:
-        self.env_settings = EnvironmentSettings()
-        self.code_confluence_graph = code_confluence_graph
-        logger.debug(
-            "Initialized PackageManagerMetadataIngestion with CodeConfluenceGraph instance"
-        )
+    def __init__(self) -> None:
+        logger.debug("Initialized PackageManagerMetadataIngestion activity")
 
     @activity.defn
     async def insert_package_manager_metadata(
         self, envelope: PackageManagerMetadataIngestionEnvelope
     ) -> None:
         """
-        Insert package manager metadata into graph database
+        Insert package manager metadata into relational tables
 
         Args:
             codebase_qualified_name: Qualified name of the codebase
@@ -71,22 +63,28 @@ class PackageManagerMetadataIngestion:
                 package_manager_metadata.package_manager,
             )
 
-            # Use managed transaction from the connection pool
-            async with self.code_confluence_graph.get_session() as session:
-                graph = CodeConfluenceGraphIngestion()
-
-                await graph.insert_code_confluence_codebase_package_manager_metadata_managed(
-                    session=session,
-                    codebase_qualified_name=codebase_qualified_name,
-                    package_manager_metadata=package_manager_metadata,
+            async with get_session_cm() as session:
+                ingestion = CodeConfluenceRelationalIngestion(session)
+                await ingestion.upsert_package_manager_metadata(
+                    codebase_qualified_name, package_manager_metadata
                 )
 
-                # Sync frameworks within the same session (PostgreSQL operations stay separate)
-                await graph.sync_frameworks_for_codebase_managed(
-                    session=session,
-                    codebase_qualified_name=codebase_qualified_name,
-                    package_manager_metadata=package_manager_metadata,
+                language = package_manager_metadata.programming_language
+                known_frameworks = set(
+                    await ingestion.get_framework_libraries_for_language(language)
                 )
+                default_dependencies = package_manager_metadata.dependencies.get(
+                    "default", {}
+                )
+                frameworks_used = [
+                    (language, dependency_name)
+                    for dependency_name in default_dependencies.keys()
+                    if dependency_name in known_frameworks
+                ]
+                if frameworks_used:
+                    await ingestion.upsert_codebase_frameworks(
+                        codebase_qualified_name, frameworks_used
+                    )
 
             log.debug(
                 "Successfully ingested package manager metadata | codebase_name={} | status=success",

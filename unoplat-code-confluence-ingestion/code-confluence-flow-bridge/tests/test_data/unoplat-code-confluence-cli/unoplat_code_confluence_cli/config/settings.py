@@ -19,7 +19,7 @@ class PackageManagerType(str, Enum):
 
 
 class DatabaseType(str, Enum):
-    NEO4J = "neo4j"
+    POSTGRESQL = "postgresql"
 
 
 # Configuration Models (BaseModel for JSON config)
@@ -76,8 +76,7 @@ class AppConfig(BaseModel):
     @classmethod
     def load(cls, config_path: Optional[str] = None) -> "AppConfig":
         """Load configuration from JSON file"""
-        if config_path:
-            config_file = config_path
+        config_file = config_path or "config.json"
         with open(config_file, "r") as f:
             config_data = json.loads(f.read())
         return cls(**config_data)

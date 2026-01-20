@@ -22,8 +22,3 @@ class AgentDependencies:
     codebase_metadata: CodebaseMetadata
     repository_workflow_run_id: str
     agent_name: str
-    # neo4j_conn_manager: CodeConfluenceGraphQueryEngine
-    # # Use a factory so each tool call can create an isolated Context7 agent instance,
-    # # avoiding CancelScope leaks when tool calls run concurrently.
-    # context7_agent_factory: Callable[[], Agent]
-    # library_documentation_service: "LibraryDocumentationService"

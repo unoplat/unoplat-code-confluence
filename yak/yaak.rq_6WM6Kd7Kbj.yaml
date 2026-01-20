@@ -1,0 +1,26 @@
+type: http_request
+model: http_request
+id: rq_6WM6Kd7Kbj
+createdAt: 2026-01-17T06:59:39.596815
+updatedAt: 2026-01-17T06:59:41.377443
+workspaceId: wk_KULjx4bEa8
+folderId: fl_GHkbzPYyG5
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: postgres-get-datamodels-codebase Copy 2
+sortPriority: 0.0
+url: http://localhost:8002/postgres/codebases/data-models/
+urlParameters:
+- enabled: true
+  name: codebase_qualified_name
+  value: acme/widgets/api
+  id: WbSGKYrc5C
+- enabled: true
+  name: ''
+  value: ''
+  id: e5fJhHNRZt

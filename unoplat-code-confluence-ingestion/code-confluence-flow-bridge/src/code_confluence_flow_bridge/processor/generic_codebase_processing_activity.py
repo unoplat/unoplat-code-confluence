@@ -2,7 +2,7 @@
 Generic codebase processing activity for Temporal workflows.
 
 This activity replaces the legacy CodebaseProcessingActivity with a new language-agnostic
-approach that uses TreeSitterStructuralSignatureExtractor and optimized Neo4j streaming ingestion.
+approach that uses TreeSitterStructuralSignatureExtractor and PostgreSQL ingestion.
 """
 
 import traceback
@@ -17,11 +17,11 @@ from src.code_confluence_flow_bridge.logging.trace_utils import (
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     CodebaseProcessingActivityEnvelope,
 )
-from src.code_confluence_flow_bridge.parser.generic_codebase_parser import (
-    GenericCodebaseParser,
+from src.code_confluence_flow_bridge.parser.code_confluence_codebase_parser import (
+    CodeConfluenceCodebaseParser,
 )
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
-    CodeConfluenceGraph,
+from src.code_confluence_flow_bridge.processor.db.postgres.db import (
+    get_session_cm,
 )
 
 if TYPE_CHECKING:
@@ -30,21 +30,17 @@ if TYPE_CHECKING:
 
 class GenericCodebaseProcessingActivity:
     """
-    New Temporal activity for processing codebases with streaming Neo4j insertion.
+    New Temporal activity for processing codebases with PostgreSQL insertion.
 
-    Uses the revamped architecture with language-agnostic parsing and optimized
-    batch operations for high-performance, memory-efficient processing.
+    Uses the revamped architecture with language-agnostic parsing.
     """
-
-    def __init__(self, code_confluence_graph: CodeConfluenceGraph) -> None:
-        self.code_confluence_graph = code_confluence_graph
 
     @activity.defn
     async def process_codebase_generic(
         self, envelope: CodebaseProcessingActivityEnvelope
     ) -> None:
         """
-        Process a codebase using the new generic parser with direct Neo4j insertion.
+        Process a codebase using the new parser with PostgreSQL insertion.
 
         Args:
             envelope: Activity envelope containing codebase processing parameters
@@ -74,13 +70,13 @@ class GenericCodebaseProcessingActivity:
 
         try:
             log.info(
-                "Starting generic codebase processing | codebase_qualified_name={} | codebase_path={} | programming_language={}",
-                codebase_qualified_name,
-                codebase_path,
-                programming_language_metadata.language.value,
-            )
+            "Starting generic codebase processing | codebase_qualified_name={} | codebase_path={} | programming_language={}",
+            codebase_qualified_name,
+            codebase_path,
+            programming_language_metadata.language.value,
+        )
 
-            # Process codebase with parser (AST generation and parsing, direct Neo4j insertion)
+            # Process codebase with parser (AST generation and parsing, PostgreSQL insertion)
             await self._process_codebase_with_parser(envelope, log)
 
             log.info(
@@ -115,11 +111,13 @@ class GenericCodebaseProcessingActivity:
         self, envelope: CodebaseProcessingActivityEnvelope, log: "Logger"
     ) -> None:
         """
-        Process codebase using GenericCodebaseParser with streaming Neo4j insertion.
+        Process codebase using CodeConfluenceCodebaseParser with PostgreSQL ingestion.
 
         Args:
             envelope: Activity envelope with codebase parameters
         """
+        parser: CodeConfluenceCodebaseParser | None = None
+        files_processed: int = 0
         try:
             log.info(
                 "Starting generic parser processing | codebase_qualified_name={} | programming_language={} | root_packages={} ",
@@ -128,23 +126,22 @@ class GenericCodebaseProcessingActivity:
                 envelope.root_packages,
             )
 
-            # Create parser instance
-            parser = GenericCodebaseParser(
-                codebase_name=envelope.codebase_qualified_name,
-                codebase_path=envelope.codebase_path,
-                root_packages=envelope.root_packages,
-                programming_language_metadata=envelope.programming_language_metadata,
-                trace_id=envelope.trace_id,
-                code_confluence_graph=self.code_confluence_graph,
-            )
-
-            # Process with fresh connection - parser will handle its own transactions
-            await parser.process_and_insert_codebase()
+            async with get_session_cm() as session:
+                parser = CodeConfluenceCodebaseParser(
+                    codebase_name=envelope.codebase_qualified_name,
+                    codebase_path=envelope.codebase_path,
+                    root_packages=envelope.root_packages,
+                    programming_language_metadata=envelope.programming_language_metadata,
+                    trace_id=envelope.trace_id,
+                    session=session,
+                )
+                await parser.process_and_insert_codebase()
+                files_processed = getattr(parser, "files_processed", 0)
 
             log.info(
                 "Parser processing completed successfully | codebase_qualified_name={} | files_processed={}",
                 envelope.codebase_qualified_name,
-                getattr(parser, "files_processed", 0),
+                files_processed,
             )
 
         except Exception as e:
@@ -152,7 +149,7 @@ class GenericCodebaseProcessingActivity:
                 "Failed to process codebase | codebase_qualified_name={} | error={} | files_processed={}",
                 envelope.codebase_qualified_name,
                 str(e),
-                getattr(parser, "files_processed", 0) if "parser" in locals() else 0,
+                files_processed,
             )
             raise
 
