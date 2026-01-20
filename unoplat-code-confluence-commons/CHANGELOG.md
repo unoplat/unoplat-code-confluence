@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.40.1...unoplat-code-confluence-commons-v0.41.0) (2026-01-20)
+
+
+### Features
+
+* **migration-to-postgres:** knowledge graph with minimal traversals in postgres. Removal of neo4j related models/schema ([9e4dbbb](https://github.com/unoplat/unoplat-code-confluence/commit/9e4dbbb3d8fc4ea4c22078260630600a01b26529))
+
 ## [0.40.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.40.0...unoplat-code-confluence-commons-v0.40.1) (2026-01-08)
 
 
