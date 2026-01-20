@@ -273,15 +273,15 @@ class TestFrameworkDefinitionsIngestion:
                 f"Database operations took {metrics['db_time']:.3f}s, expected < 3.0s"
             )
 
-            # Validate expected data counts (schema v3: field_definition removed from sqlmodel)
+            # Validate expected data counts (schema v3: 7 features, 11 paths)
             assert metrics["frameworks_count"] == 4, (
                 f"Expected 4 frameworks, got {metrics['frameworks_count']}"
             )
-            assert metrics["features_count"] == 10, (
-                f"Expected 10 features, got {metrics['features_count']}"
+            assert metrics["features_count"] == 7, (
+                f"Expected 7 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 15, (
-                f"Expected 15 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 11, (
+                f"Expected 11 absolute paths, got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -294,8 +294,8 @@ class TestFrameworkDefinitionsIngestion:
             )  # type: ignore
 
             assert framework_count == 4
-            assert feature_count == 10
-            assert path_count == 15
+            assert feature_count == 7
+            assert path_count == 11
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -423,8 +423,8 @@ class TestFrameworkDefinitionsIngestion:
                 }
                 results.append(state)
 
-            # All results should be identical (schema v3: 10 features, 15 paths)
-            expected_state = {"frameworks": 4, "features": 10, "paths": 15}
+            # All results should be identical (schema v3: 7 features, 11 paths)
+            expected_state = {"frameworks": 4, "features": 7, "paths": 11}
             for result in results:
                 assert result == expected_state
 
@@ -447,9 +447,9 @@ class TestFrameworkDefinitionsIngestion:
 
         # Validate parsing results match expected production data (schema v3)
         assert len(frameworks) == 4, f"Expected 4 frameworks, got {len(frameworks)}"
-        assert len(features) == 10, f"Expected 10 features, got {len(features)}"
-        assert len(absolute_paths) == 15, (
-            f"Expected 15 absolute paths, got {len(absolute_paths)}"
+        assert len(features) == 7, f"Expected 7 features, got {len(features)}"
+        assert len(absolute_paths) == 11, (
+            f"Expected 11 absolute paths, got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI

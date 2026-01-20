@@ -59,7 +59,7 @@ class OutboundKind(str, Enum):
     DB_SQL = "db_sql"  # Classic RDBMS (OLTP)
     DB_DISTSQ_HTAP = "db_dist_sql_htap"  # Spanner/Cockroach/Yugabyte/TiDB/SingleStore
     DB_NOSQL = "db_nosql"  # Key-value, document, wide-column. Examples: Redis/Aerospike/RocksDB/MongoDB/Couchbase/Cassandra/HBase/Scylla
-    DB_GRAPH = "db_graph"  # Property or RDF graph. Examples: Neo4j/JanusGraph/Neptune/Stardog/Virtuoso
+    DB_GRAPH = "db_graph"  # Property or RDF graph. Examples: JanusGraph/Neptune/Stardog/Virtuoso
     DB_ANALYTIC_OLAP = "db_olap"  # Snowflake/BigQuery/Redshift/ClickHouse/Druid/Pinot
     DB_LAKEHOUSE = "db_lakehouse"  # Delta/Iceberg/Hudi (+ Spark/Trino)
     DB_TSDB = "db_timeseries"  # Influx/Timescale/Prometheus/VictoriaMetrics/QuestDB

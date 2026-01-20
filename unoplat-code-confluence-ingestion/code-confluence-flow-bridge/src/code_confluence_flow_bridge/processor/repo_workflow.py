@@ -85,8 +85,8 @@ class RepoWorkflow:
                 retry_policy=ActivityRetriesConfig.DEFAULT,
             )
 
-            # 2. Then insert the git repo into the graph db
-            log.info("Inserting git repository metadata into graph database")
+            # 2. Then insert the git repo into relational tables
+            log.info("Inserting git repository metadata into relational tables")
             # Create ConfluenceGitGraphEnvelope
             git_graph_envelope = ConfluenceGitGraphEnvelope(
                 git_repo=git_repo_metadata, trace_id=trace_id

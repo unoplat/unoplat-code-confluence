@@ -42,6 +42,9 @@ from unoplat_code_confluence_commons.credential_enums import (
     ProviderKey,
     SecretKind,
 )
+from unoplat_code_confluence_commons.relational_models import (
+    UnoplatCodeConfluenceGitRepository,
+)
 from unoplat_code_confluence_commons.security import encrypt_token
 from unoplat_code_confluence_commons.workflow_models import (
     ErrorReport,
@@ -94,12 +97,6 @@ from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor impo
 )
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import (
     CodebaseChildWorkflow,
-)
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph import (
-    CodeConfluenceGraph,
-)
-from src.code_confluence_flow_bridge.processor.db.graph_db.code_confluence_graph_deletion import (
-    CodeConfluenceGraphDeletion,
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
     ChildWorkflowDbActivity,
@@ -409,14 +406,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.code_confluence_env = EnvironmentSettings()
     app.state.temporal_client = await get_temporal_client()
 
-    # Initialize Neo4j connection and schema once during application startup
-    app.state.code_confluence_graph = CodeConfluenceGraph(
-        code_confluence_env=app.state.code_confluence_env
-    )
-    await app.state.code_confluence_graph.connect()
-    await app.state.code_confluence_graph.create_schema()
-    logger.info("Neo4j connection and schema initialized successfully")
-
     # Initialize shared PythonRipgrepDetector instance
     app.state.python_codebase_detector = PythonRipgrepDetector()
     await app.state.python_codebase_detector.initialize_rules()
@@ -432,12 +421,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         "python": app.state.python_codebase_detector,
         "typescript": app.state.typescript_codebase_detector,
     }
-
-    # Initialize graph deletion service (reuses the global connection)
-    app.state.code_confluence_graph_deletion = CodeConfluenceGraphDeletion(
-        app.state.code_confluence_graph
-    )
-    # Note: Don't call initialize() on deletion service since global connection is already established
 
     # Calculate thread pool size based on Temporal best practice: one thread per activity slot plus a buffer
     # This ensures we have enough threads to handle all concurrent activities plus overhead
@@ -466,21 +449,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     package_metadata_activity = PackageMetadataActivity()
     activities.append(package_metadata_activity.get_package_metadata)
 
-    # Create activities with shared graph instance for managed transactions
-    confluence_git_graph = ConfluenceGitGraph(
-        code_confluence_graph=app.state.code_confluence_graph
-    )
+    confluence_git_graph = ConfluenceGitGraph()
     activities.append(confluence_git_graph.insert_git_repo_into_graph_db)
 
-    codebase_package_ingestion = PackageManagerMetadataIngestion(
-        code_confluence_graph=app.state.code_confluence_graph
-    )
+    codebase_package_ingestion = PackageManagerMetadataIngestion()
     activities.append(codebase_package_ingestion.insert_package_manager_metadata)
 
-    # Create generic codebase processing activity with shared graph instance
-    generic_activity = GenericCodebaseProcessingActivity(
-        code_confluence_graph=app.state.code_confluence_graph
-    )
+    generic_activity = GenericCodebaseProcessingActivity()
     activities.append(generic_activity.process_codebase_generic)
 
     # Create database tables during startup
@@ -544,22 +519,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
         # 3. Temporal client doesn't need explicit disconnect - it cleans up on garbage collection
 
-        # 4. Close Neo4j connections
-        try:
-            # Close the main graph connection first (this closes the global connection)
-            await app.state.code_confluence_graph.close()
-            logger.info("Neo4j global connection closed")
-        except Exception as e:
-            logger.error("Error closing Neo4j connections: {}", e)
-
-        # 5. Dispose SQLAlchemy async engine
+        # 4. Dispose SQLAlchemy async engine
         try:
             await dispose_current_engine()
             logger.info("SQLAlchemy engine disposed")
         except Exception as exc:
             logger.warning("Failed to dispose async engine during shutdown: {}", exc)
 
-        # 6. Shut down the thread pool executor (after worker is done)
+        # 5. Shut down the thread pool executor (after worker is done)
         try:
             app.state.activity_executor.shutdown(wait=True)
             logger.info("Thread pool executor shut down")
@@ -662,6 +629,9 @@ async def ingest_token(
         raise
     except Exception as e:
         logger.error("Failed to process token: {}", str(e))
+        raise HTTPException(
+            status_code=500, detail="Failed to process token: {}".format(str(e))
+        )
 
 
 @app.put("/update-token", status_code=200)
@@ -1572,11 +1542,11 @@ async def get_ingested_repositories(
 async def delete_repository(
     repo_info: IngestedRepositoryResponse, session: AsyncSession = Depends(get_session)
 ) -> Dict[str, Any]:
-    """Delete a repository from both PostgreSQL and Neo4j databases.
+    """Delete a repository from PostgreSQL relational tables.
 
     This endpoint removes a repository and all its associated data including:
-    - Repository record and cascaded relations in PostgreSQL
-    - Repository node and all connected nodes/relationships in Neo4j
+    - Repository record and cascaded relations in PostgreSQL (base tables)
+    - Code Confluence relational tables (git repo, codebases, files, metadata)
 
     Args:
         repo_info: IngestedRepositoryResponse containing repository_name and repository_owner_name
@@ -1604,8 +1574,17 @@ async def delete_repository(
                 ),
             )
 
+        qualified_name = "{}_{}".format(repository_owner_name, repository_name)
+        relational_repo = await session.get(
+            UnoplatCodeConfluenceGitRepository, qualified_name
+        )
+
         # Delete from PostgreSQL - cascade will handle related tables
         await session.delete(db_obj)
+        relational_status = "not_found"
+        if relational_repo:
+            await session.delete(relational_repo)
+            relational_status = "deleted"
         await session.commit()
 
         logger.info(
@@ -1613,30 +1592,16 @@ async def delete_repository(
             repository_owner_name,
             repository_name,
         )
-
-        # Delete from Neo4j using qualified name format
-        qualified_name = "{}_{}".format(repository_owner_name, repository_name)
-
-        try:
-            async with app.state.code_confluence_graph.get_session() as neo4j_session:
-                neo4j_stats = await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name_managed(
-                    session=neo4j_session, qualified_name=qualified_name
-                )
-            logger.info("Deleted repository from Neo4j: {}", qualified_name)
-        except ApplicationError as neo4j_error:
-            # Log Neo4j error but don't fail if already deleted
-            if neo4j_error.type == "REPOSITORY_NOT_FOUND":
-                logger.warning(
-                    "Repository not found in Neo4j (may have been already deleted): {}",
-                    qualified_name,
-                )
-                neo4j_stats = {
-                    "repository_qualified_name": qualified_name,
-                    "status": "not_found",
-                }
-            else:
-                # For other errors, re-raise
-                raise neo4j_error
+        if relational_status == "deleted":
+            logger.info(
+                "Deleted repository from Code Confluence relational tables: {}",
+                qualified_name,
+            )
+        else:
+            logger.warning(
+                "Repository not found in Code Confluence relational tables: {}",
+                qualified_name,
+            )
 
         return {
             "message": "Successfully deleted repository {}/{}".format(
@@ -1644,19 +1609,13 @@ async def delete_repository(
             ),
             "repository_name": repository_name,
             "repository_owner_name": repository_owner_name,
-            "neo4j_deletion_stats": neo4j_stats,
+            "repository_qualified_name": qualified_name,
+            "relational_deletion_status": relational_status,
         }
 
     except HTTPException:
         # Re-raise HTTP exceptions
         raise
-    except ApplicationError as e:
-        # Handle Neo4j application errors
-        logger.error("Neo4j deletion error: {}", str(e))
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to delete repository from graph database: {}".format(str(e)),
-        )
     except Exception as e:
         logger.error("Error deleting repository: {}", str(e))
         raise HTTPException(
@@ -1673,12 +1632,11 @@ async def refresh_repository(
     request_logger: "Logger" = Depends(trace_dependency),  # type: ignore
 ) -> RefreshRepositoryResponse:
     """
-    Refresh a repository by purging Neo4j data and re-ingesting.
+    Refresh a repository by re-detecting codebases and re-ingesting.
 
     This endpoint:
-    1. Deletes all repository data from Neo4j (keeps PostgreSQL intact)
-    2. Re-detects codebases using configured detectors
-    3. Starts a new Temporal workflow for ingestion
+    1. Re-detects codebases using configured detectors
+    2. Starts a new Temporal workflow for ingestion
 
     Args:
         repo_request: Repository request configuration with provider_key
@@ -1716,32 +1674,12 @@ async def refresh_repository(
             )
             provider_key = db_repo.repository_provider
 
-        # 2. Delete from Neo4j (reuse existing pattern from delete-repository)
-        qualified_name: str = "{}_{}".format(repository_owner_name, repository_name)
-
-        try:
-            async with app.state.code_confluence_graph.get_session() as neo4j_session:
-                await app.state.code_confluence_graph_deletion.delete_repository_by_qualified_name_managed(
-                    session=neo4j_session, qualified_name=qualified_name
-                )
-            request_logger.info("Deleted repository from Neo4j: {}", qualified_name)
-        except ApplicationError as neo4j_error:
-            # Log but don't fail if already deleted
-            if neo4j_error.type == "REPOSITORY_NOT_FOUND":
-                request_logger.warning(
-                    "Repository not found in Neo4j: {}", qualified_name
-                )
-            else:
-                raise HTTPException(
-                    status_code=500, detail=f"Neo4j deletion failed: {str(neo4j_error)}"
-                )
-
-        # 3. Fetch repository provider token from database using provider_key
+        # 2. Fetch repository provider token from database using provider_key
         provider_token, metadata = await fetch_repository_provider_token(
             session, CredentialNamespace.REPOSITORY, provider_key
         )
 
-        # 4. Use repository URL from request or build for provider
+        # 3. Use repository URL from request or build for provider
         repository_url = refresh_request.repository_git_url or build_repository_git_url(
             repository_owner_name=repository_owner_name,
             repository_name=repository_name,
@@ -1757,7 +1695,7 @@ async def refresh_repository(
             provider_key=provider_key,
         )
 
-        # 5. Detect codebases using multi-language detector registry
+        # 4. Detect codebases using multi-language detector registry
         try:
             # Use multi-language detection helper
             detected_codebases = await detect_codebases_multi_language(
@@ -1875,5 +1813,3 @@ async def get_user_details(
         "avatar_url": user_data.get("avatar_url"),
         "email": email,
     }
-
-

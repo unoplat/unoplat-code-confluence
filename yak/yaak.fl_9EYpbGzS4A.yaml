@@ -1,0 +1,13 @@
+type: folder
+model: folder
+id: fl_9EYpbGzS4A
+createdAt: 2026-01-17T04:21:19.480411
+updatedAt: 2026-01-17T04:21:45.709418
+workspaceId: wk_KULjx4bEa8
+folderId: fl_ZwwFo3jTXL
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: Experiments
+sortPriority: 333.3333333333333

@@ -25,7 +25,7 @@ from unoplat_code_confluence_commons.credential_enums import (
     SecretKind,
 )
 
-from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
+from tests.utils.sync_db_cleanup import cleanup_postgresql_sync
 from tests.utils.sync_db_utils import get_sync_postgres_session
 
 
@@ -173,13 +173,11 @@ class TestStartIngestionEndpoint:
         test_client: TestClient,
         github_token: str,
         service_ports: Dict[str, int],
-        neo4j_client,
     ) -> None:
         """Full happy-path flow: ingest token -> start ingestion -> verify response."""
         # Clean up databases using context manager for isolated sessions
         with get_sync_postgres_session(service_ports["postgresql"]) as session:
             cleanup_postgresql_sync(session)
-        cleanup_neo4j_sync(neo4j_client)
         await dispose_current_engine()
         # ------------------------------------------------------------------
         # 0️⃣  TERMINATE all running workflows before test
@@ -259,4 +257,3 @@ class TestStartIngestionEndpoint:
             except Exception as e:
                 logger.warning(f"Failed to terminate workflow during cleanup: {e}")
 
-        cleanup_neo4j_sync(neo4j_client)

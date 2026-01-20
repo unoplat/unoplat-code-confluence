@@ -35,7 +35,7 @@ class AgentMdAggregate:
     def set_language_metadata(
         self, meta: Optional[ProgrammingLanguageMetadataOutput]
     ) -> None:
-        """Set programming language metadata from Neo4j.
+        """Set programming language metadata from PostgreSQL.
 
         Args:
             meta: Programming language metadata or None if not found

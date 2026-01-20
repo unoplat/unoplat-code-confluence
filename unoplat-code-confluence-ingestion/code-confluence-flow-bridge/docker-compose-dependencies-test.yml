@@ -1,5 +1,5 @@
 # Simplified Docker Compose for testing - excludes SigNoz dependencies
-# Contains only essential services: PostgreSQL, Elasticsearch, Temporal, Neo4j
+# Contains only essential services: PostgreSQL, Elasticsearch, Temporal
 
 # Add default config for Temporal
 configs:
@@ -65,14 +65,11 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s http://localhost:9200/_cluster/health | grep -q '\\\"status\\\":\\\"green\\\"\\\\|\\\"status\\\":\\\"yellow\\\"'",
-        ]
+      test: ["CMD-SHELL", "curl -s --fail http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1"]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 5
+      start_period: 40s
     restart: unless-stopped
     logging:
       options:
@@ -148,37 +145,6 @@ services:
       - code-confluence-test-network
     ports:
       - "8081:8081"
-    restart: unless-stopped
-    logging:
-      options:
-        max-size: 50m
-        max-file: "3"
-
-  # Neo4j graph database
-  neo4j:
-    container_name: neo4j-test
-    image: graphstack/dozerdb:5.25.1.0-alpha.1
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - ${HOME}/neo4j/data:/data
-      - ${HOME}/neo4j/logs:/logs
-      - ${HOME}/neo4j/import:/var/lib/neo4j/import
-      - ${HOME}/neo4j/plugins:/plugins
-    environment:
-      NEO4J_AUTH: neo4j/password
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_apoc_export_file_enabled: "true"
-      NEO4J_apoc_import_file_enabled: "true"
-      NEO4J_dbms_security_procedures_unrestricted: "*"
-    networks:
-      - code-confluence-test-network
-    healthcheck:
-      test: ["CMD-SHELL", "neo4j status | grep -q 'Neo4j is running' || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
     logging:
       options:
