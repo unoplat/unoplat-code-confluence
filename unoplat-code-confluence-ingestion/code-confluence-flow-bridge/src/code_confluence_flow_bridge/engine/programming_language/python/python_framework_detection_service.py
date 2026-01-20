@@ -74,6 +74,11 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
 
         try:
             context = PythonSourceContext.from_source(source_code)
+            logger.opt(lazy=True).debug(
+                "Framework detection imports | count={} | aliases={}",
+                lambda: len(context.import_aliases),
+                lambda: sorted(context.import_aliases.keys()),
+            )
             if not context.import_aliases:
                 logger.debug("No import aliases found in source")
                 return []
@@ -88,6 +93,12 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
                 feature_specs = await get_framework_features_for_imports(
                     session, programming_language.lower(), absolute_paths
                 )
+
+            logger.opt(lazy=True).debug(
+                "Framework feature specs loaded | count={} | imports={}",
+                lambda: len(feature_specs),
+                lambda: absolute_paths,
+            )
 
             if not feature_specs:
                 logger.debug(
