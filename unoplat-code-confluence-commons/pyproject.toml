@@ -1,6 +1,6 @@
 [project]
 name = "unoplat-code-confluence-commons"
-version = "0.40.1"
+version = "0.41.0"
 description = "this will hold common operations/models required across code confluence ingestion and query utilities"
 authors = [{ name = "JayGhiya", email = "ghiya6548@gmail.com" }]
 requires-python = ">=3.10"

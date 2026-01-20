@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.9](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.8...unoplat-code-confluence-query-engine-v0.24.9) (2026-01-20)
+
+
+### Bug Fixes
+
+* **improve-system-prompt:** improve system prompt for getting library information to work more reliably with open source models ([469a8e1](https://github.com/unoplat/unoplat-code-confluence/commit/469a8e10a411418197b3d4fbecdcfddf8868675a))
+
 ## [0.24.8](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.7...unoplat-code-confluence-query-engine-v0.24.8) (2026-01-09)
 
 
