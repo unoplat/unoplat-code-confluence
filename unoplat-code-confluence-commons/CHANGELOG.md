@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.41.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.41.0...unoplat-code-confluence-commons-v0.41.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* **dependencies:** get rid of unused dependencies - neomodel ([61e42a2](https://github.com/unoplat/unoplat-code-confluence/commit/61e42a202a7981a7e8cc1347e0b60e40131371ec))
+* **dependencies:** get rid of unused dependencies - neomodel ([c3880a4](https://github.com/unoplat/unoplat-code-confluence/commit/c3880a4518f937c643b9307e961bf6ce9483ebf9))
+
 ## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.40.1...unoplat-code-confluence-commons-v0.41.0) (2026-01-20)
 
 
