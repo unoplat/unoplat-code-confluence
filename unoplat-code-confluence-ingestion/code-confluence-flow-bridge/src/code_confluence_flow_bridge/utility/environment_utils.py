@@ -36,7 +36,7 @@ def is_running_in_docker() -> bool:
     Detect if the application is running inside a Docker container.
 
     Uses environment variables to determine the runtime environment:
-    - In Docker: DB_HOST points to service names like "postgresql", "neo4j"
+    - In Docker: DB_HOST points to service names like "postgresql"
     - In local dev: DB_HOST points to "localhost" or is unset
 
     Returns:

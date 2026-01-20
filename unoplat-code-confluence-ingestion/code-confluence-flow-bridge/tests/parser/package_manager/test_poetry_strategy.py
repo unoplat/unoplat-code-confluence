@@ -218,8 +218,6 @@ def test_process_metadata_unoplat(
         "sentence-transformers",
         "einops",
         "rich",
-        "neo4j",
-        "neomodel",
         "requirements-parser",
         "tomlkit",
         "stdlib-list",
@@ -234,8 +232,6 @@ def test_process_metadata_unoplat(
 
     # Check specific version constraints
     assert flattened_deps["pygithub"].version.specifier == ">=1.59.1,<2.0.0"
-    assert flattened_deps["neo4j"].version.specifier == "5.19.0"
-
     # Check git dependency
     assert "unoplat-code-confluence-commons" in flattened_deps
     git_dep = flattened_deps["unoplat-code-confluence-commons"]

@@ -12,11 +12,9 @@ class ProcessorDependencies:
         self,
         *,
         codebase_path: str,
-        neo4j_conn_manager: Any,
         programming_language: str,
     ) -> None:
         self.codebase_path = codebase_path
-        self.neo4j_conn_manager = neo4j_conn_manager
         self.programming_language = programming_language
 
 

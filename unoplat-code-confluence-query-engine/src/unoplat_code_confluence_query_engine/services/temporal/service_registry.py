@@ -12,9 +12,6 @@ from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
-from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
-    CodeConfluenceGraphQueryEngine,
-)
 from unoplat_code_confluence_query_engine.services.mcp.mcp_server_manager import (
     MCPServerManager,
 )
@@ -53,7 +50,6 @@ class ServiceRegistry:
     _initialized: bool = False
 
     def __init__(self) -> None:
-        self._neo4j_manager: CodeConfluenceGraphQueryEngine | None = None
         self._settings: EnvironmentSettings | None = None
         self._mcp_server_manager: MCPServerManager | None = None
         self._context7_agent: Agent[None, str] | None = None
@@ -83,8 +79,6 @@ class ServiceRegistry:
             return
 
         self._settings = settings or EnvironmentSettings()
-        self._neo4j_manager = CodeConfluenceGraphQueryEngine(self._settings)
-        await self._neo4j_manager.connect()
 
         # Initialize MCP server manager
         self._mcp_server_manager = MCPServerManager()
@@ -101,25 +95,7 @@ class ServiceRegistry:
 
     async def shutdown(self) -> None:
         """Cleanup services. Called by worker at shutdown."""
-        if self._neo4j_manager:
-            await self._neo4j_manager.close()
         self._initialized = False
-
-    @property
-    def neo4j_manager(self) -> CodeConfluenceGraphQueryEngine:
-        """Get Neo4j manager instance.
-
-        Returns:
-            Configured CodeConfluenceGraphQueryEngine instance.
-
-        Raises:
-            RuntimeError: If registry not initialized.
-        """
-        if not self._neo4j_manager:
-            raise RuntimeError(
-                "ServiceRegistry not initialized. Call initialize() first."
-            )
-        return self._neo4j_manager
 
     @property
     def mcp_server_manager(self) -> MCPServerManager:
@@ -203,17 +179,6 @@ class ServiceRegistry:
         if not self._snapshot_writer:
             raise RuntimeError("RepositoryAgentSnapshotWriter not initialized")
         return self._snapshot_writer
-
-
-def get_neo4j_manager() -> CodeConfluenceGraphQueryEngine:
-    """Get Neo4j manager from registry.
-
-    Use in activity/tool functions to access the shared Neo4j connection.
-
-    Returns:
-        CodeConfluenceGraphQueryEngine instance from the registry.
-    """
-    return ServiceRegistry.get_instance().neo4j_manager
 
 
 def get_mcp_server_manager() -> MCPServerManager:

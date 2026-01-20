@@ -258,7 +258,7 @@ class CodebaseAgentWorkflow:
                     deps=business_logic_deps,
                 )
                 logger.debug("[workflow] business_logic_domain_agent.run() returned")
-                # Post-process to enrich with data model files from Neo4j
+                # Post-process to enrich with data model files from PostgreSQL
                 business_logic_result = await workflow.execute_activity(
                     BusinessLogicPostProcessActivity.post_process_business_logic,
                     args=[

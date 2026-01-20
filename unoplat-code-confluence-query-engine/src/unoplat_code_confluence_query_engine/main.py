@@ -15,9 +15,6 @@ from unoplat_code_confluence_query_engine.api.v1.endpoints import (
 )
 from unoplat_code_confluence_query_engine.config.logging_config import setup_logging
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
-from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
-    CodeConfluenceGraphQueryEngine,
-)
 from unoplat_code_confluence_query_engine.db.postgres import db
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
@@ -50,12 +47,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.settings = EnvironmentSettings()
 
     # Initialize logging system
-    setup_logging(app.state.settings)
+    setup_logging(
+        service_name="unoplat-code-confluence-query-engine",
+        app_name="query-engine",
+        log_level=app.state.settings.log_level,
+    )
 
     # Initialize PostgreSQL connections
     await init_db_connections(app.state.settings)
 
     # Create database tables if they don't exist
+    if db.async_engine is None:
+        raise RuntimeError("PostgreSQL engine not initialized")
+
     async with db.async_engine.begin() as conn:
         await conn.run_sync(SQLBase.metadata.create_all)
         logger.info("Database tables created/verified")
@@ -63,10 +67,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Register ORM events for hot-reload
     register_orm_events()
     logger.info("ORM hot-reload events registered")
-
-    # Initialize Neo4j connection and store in app state
-    app.state.neo4j_manager = CodeConfluenceGraphQueryEngine(app.state.settings)
-    await app.state.neo4j_manager.connect()
 
     # Initialize MCP Server Manager (configuration only - no server startup)
     # MCP servers are created on-demand by agent factories
@@ -157,12 +157,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("ORM events unregistered")
     except Exception as e:
         logger.warning("Error unregistering ORM events: {}", e)
-
-    # Close Neo4j connection
-    try:
-        await app.state.neo4j_manager.close()
-    except Exception as e:
-        logger.error(f"Error closing Neo4j connection: {e}")
 
     # MCP servers are now created on-demand by agent factories
     # Each agent manages its own MCP server lifecycle automatically

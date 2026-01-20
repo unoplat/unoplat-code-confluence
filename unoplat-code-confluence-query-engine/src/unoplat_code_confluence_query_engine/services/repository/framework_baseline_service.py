@@ -1,4 +1,4 @@
-"""Service to fetch baseline frameworks from Neo4j and map to output models.
+"""Service to fetch baseline frameworks from PostgreSQL and map to output models.
 
 Produces List[FrameworkLibraryOutput] so it can be merged with agent results.
 """
@@ -11,12 +11,12 @@ from loguru import logger
 from sqlalchemy import select
 from unoplat_code_confluence_commons.base_models import Framework, FrameworkFeature
 
-from unoplat_code_confluence_query_engine.db.neo4j.connection_manager import (
-    CodeConfluenceGraphQueryEngine,
+from unoplat_code_confluence_commons.relational_models import (
+    UnoplatCodeConfluenceCodebase,
+    UnoplatCodeConfluenceCodebaseFramework,
 )
-from unoplat_code_confluence_query_engine.db.neo4j.framework_overview_repository import (
+from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_repository import (
     db_get_framework_with_features,
-    db_list_framework_libraries,
 )
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
@@ -94,19 +94,48 @@ async def _fetch_feature_entrypoints_from_postgres(
     return entrypoints
 
 
+async def _fetch_framework_libraries_for_codebase(
+    codebase_path: str, programming_language: str | None = None
+) -> List[str]:
+    if not codebase_path:
+        return []
+
+    async with get_startup_session() as session:
+        stmt = (
+            select(UnoplatCodeConfluenceCodebaseFramework.framework_library)
+            .join(
+                UnoplatCodeConfluenceCodebase,
+                UnoplatCodeConfluenceCodebase.qualified_name
+                == UnoplatCodeConfluenceCodebaseFramework.codebase_qualified_name,
+            )
+            .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
+        )
+        if programming_language:
+            stmt = stmt.where(
+                UnoplatCodeConfluenceCodebaseFramework.framework_language
+                == programming_language
+            )
+
+        result = await session.execute(stmt)
+        libraries = {row[0] for row in result.all() if row[0]}
+
+    return sorted(libraries)
+
+
 async def fetch_baseline_frameworks_as_outputs(
-    neo4j_manager: CodeConfluenceGraphQueryEngine,
     codebase_path: str,
     programming_language: str = "python",
 ) -> List[FrameworkLibraryOutput]:
-    """Fetch baseline frameworks from Neo4j and map to FrameworkLibraryOutput.
+    """Fetch baseline frameworks from PostgreSQL and map to FrameworkLibraryOutput.
 
     - Includes only frameworks with at least one feature that has ≥1 usage location.
     - Sets FeatureLocationOutput.is_entry_point from PostgreSQL `framework_feature.startpoint`.
     - Leaves documentation_url unset (None); description is a concise default.
     """
     try:
-        libraries = await db_list_framework_libraries(neo4j_manager, codebase_path)
+        libraries = await _fetch_framework_libraries_for_codebase(
+            codebase_path, programming_language
+        )
     except Exception as e:  # noqa: BLE001
         logger.warning("Baseline fetch failed for {}: {}", codebase_path, e)
         return []
@@ -126,7 +155,7 @@ async def fetch_baseline_frameworks_as_outputs(
     for lib in libraries:
         try:
             data = await db_get_framework_with_features(
-                neo4j_manager, codebase_path, lib
+                codebase_path, lib, programming_language
             )
         except Exception as e:  # noqa: BLE001
             logger.debug(f"Failed to get features for {lib} in {codebase_path}: {e}")

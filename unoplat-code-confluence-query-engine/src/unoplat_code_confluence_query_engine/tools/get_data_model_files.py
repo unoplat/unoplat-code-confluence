@@ -20,15 +20,12 @@ from __future__ import annotations
 from loguru import logger
 from pydantic_ai import ModelRetry, RunContext
 
-from unoplat_code_confluence_query_engine.db.neo4j.business_logic_repository import (
+from unoplat_code_confluence_query_engine.db.postgres.code_confluence_business_logic_repository import (
     DataModelSpanMap,
     db_get_data_model_files,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
-)
-from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
-    get_neo4j_manager,
 )
 
 
@@ -53,10 +50,7 @@ async def get_data_model_files(
     )
 
     try:
-        neo4j_manager = get_neo4j_manager()
-        logger.debug("[get_data_model_files] Neo4j manager acquired successfully")
-
-        result = await db_get_data_model_files(neo4j_manager, codebase_path)
+        result = await db_get_data_model_files(codebase_path)
 
         logger.info(
             "[get_data_model_files] Found {} files with data models for {}",
@@ -74,13 +68,6 @@ async def get_data_model_files(
 
         return result
 
-    except RuntimeError as e:
-        logger.error(
-            "[get_data_model_files] ServiceRegistry error for {}: {}",
-            codebase_name,
-            str(e),
-        )
-        raise ModelRetry(f"Service not initialized: {str(e)}")
     except Exception as e:
         logger.error(
             "[get_data_model_files] Unexpected error for {}: {} - {}",

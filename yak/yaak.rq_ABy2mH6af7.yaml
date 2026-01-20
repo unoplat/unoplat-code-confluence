@@ -1,0 +1,38 @@
+type: http_request
+model: http_request
+id: rq_ABy2mH6af7
+createdAt: 2026-01-13T11:32:53.411085
+updatedAt: 2026-01-20T05:38:44.914573
+workspaceId: wk_KULjx4bEa8
+folderId: fl_jtBaK7a5pU
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "provider_key" : "huggingface",
+      "model_name" :
+      "deepseek-ai/DeepSeek-V3.2",
+      "provider_name":
+      "nebius"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: aimBYzq2DQ
+- enabled: true
+  name: X-Model-API-Key
+  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3SHBweU51RmF3MDhnazZKRW1UOG55SWlBazNaM3FlWXJkVkNKSDZlS1BRbDNmRSsxa1BMN1Z3RGRYZmM1NDdweVFOMmRCYUJoQXkzVFdWRnZTUlVCM093SURRWitQTXNkdW1qc2Vzamc9PQ') ]}
+  id: GpqDtwVjyC
+- enabled: true
+  name: ''
+  value: ''
+  id: EwSutcaN4T
+method: PUT
+name: Deepseek-3.2
+sortPriority: 0.0018
+url: http://127.0.0.1:8001/v1/model-config
+urlParameters: []
