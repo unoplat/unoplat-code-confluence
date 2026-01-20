@@ -62,19 +62,16 @@ from unoplat_code_confluence_commons.credential_enums import (
     ProviderKey,
     SecretKind,
 )
-from unoplat_code_confluence_commons.graph_models import (
-    BaseNode,
-    CodeConfluenceCodebase,
-    CodeConfluenceFile,
-    CodeConfluenceFramework,
-    CodeConfluenceFrameworkFeature,
-    CodeConfluenceGitRepository,
-    CodeConfluencePackageManagerMetadata,
-    ContainsRelationship,
-    UsesFeatureRelationship,
-)
 from unoplat_code_confluence_commons.repo_models import (
     RepositoryAgentMdSnapshot,
+)
+from unoplat_code_confluence_commons.relational_models import (
+    UnoplatCodeConfluenceCodebase,
+    UnoplatCodeConfluenceCodebaseFramework,
+    UnoplatCodeConfluenceFile,
+    UnoplatCodeConfluenceFileFrameworkFeature,
+    UnoplatCodeConfluenceGitRepository,
+    UnoplatCodeConfluencePackageManagerMetadata,
 )
 from unoplat_code_confluence_commons.security import (
     decrypt_token,
@@ -90,16 +87,6 @@ from unoplat_code_confluence_commons.workflow_models import (
 )
 
 __all__ = [
-    # Graph models
-    'BaseNode',
-    'CodeConfluenceCodebase',
-    'CodeConfluenceFile',
-    'CodeConfluenceFramework',
-    'CodeConfluenceFrameworkFeature',
-    'CodeConfluenceGitRepository',
-    'CodeConfluencePackageManagerMetadata',
-    'ContainsRelationship',
-    'UsesFeatureRelationship',
     # Python structural signature models
     'PythonVariableInfo',
     'PythonFunctionInfo',
@@ -156,6 +143,13 @@ __all__ = [
     'SecretKind',
     # Flags model
     'Flag',
+    # Relational models (PostgreSQL)
+    'UnoplatCodeConfluenceGitRepository',
+    'UnoplatCodeConfluenceCodebase',
+    'UnoplatCodeConfluencePackageManagerMetadata',
+    'UnoplatCodeConfluenceFile',
+    'UnoplatCodeConfluenceCodebaseFramework',
+    'UnoplatCodeConfluenceFileFrameworkFeature',
     # Security utilities
     'encrypt_token',
     'decrypt_token',
