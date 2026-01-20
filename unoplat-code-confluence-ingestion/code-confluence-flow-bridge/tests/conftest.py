@@ -8,7 +8,6 @@ discovered by pytest and made available to all test files.
 # Standard Library
 import os
 from pathlib import Path
-import shutil
 import socket
 import subprocess
 import time
@@ -16,6 +15,7 @@ from typing import Dict, Iterator
 
 # Third Party
 import docker
+from docker.errors import APIError, NotFound
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from loguru import logger
@@ -42,17 +42,19 @@ class DockerComposeWithCleanup(DockerCompose):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._compose_context = kwargs.get("context")
+        if self._compose_context is None and args:
+            self._compose_context = args[0]
         self._docker_client = docker.from_env()
 
-    def stop(self, delete_volumes=True):
+    def stop(self, down: bool = True):
         """Stop compose with optional volume deletion control."""
-        if delete_volumes:
-            # Default behavior - volumes will be deleted by docker-compose down -v
+        if down:
             super().stop()
         else:
-            # Custom stop without -v flag
             down_cmd = self.docker_compose_command() + ["down"]
-            subprocess.call(down_cmd, cwd=self.filepath)
+            context_dir = self._compose_context
+            subprocess.call(down_cmd, cwd=context_dir)
 
     def cleanup_volumes(self):
         """Explicitly clean up named volumes from compose file."""
@@ -66,36 +68,12 @@ class DockerComposeWithCleanup(DockerCompose):
                 volume.remove(force=True)
                 logger.info(f"Removed volume: {volume_name}")
                 cleaned_count += 1
-            except docker.errors.NotFound:
+            except NotFound:
                 logger.debug(f"Volume {volume_name} not found (may already be removed)")
-            except docker.errors.APIError as e:
+            except APIError as e:
                 logger.warning(f"Could not remove volume {volume_name}: {e}")
 
         logger.info(f"Cleaned up {cleaned_count} volumes")
-
-    def cleanup_neo4j_directories(self):
-        """Clean up Neo4j host-mounted directories."""
-        neo4j_base = Path.home() / "neo4j"
-        neo4j_subdirs = ["data", "logs", "import", "plugins"]
-
-        cleaned_count = 0
-        for subdir in neo4j_subdirs:
-            dir_path = neo4j_base / subdir
-            if dir_path.exists():
-                try:
-                    shutil.rmtree(dir_path)
-                    logger.info(f"Removed directory: {dir_path}")
-                    cleaned_count += 1
-                except Exception as e:
-                    logger.warning(f"Could not remove directory {dir_path}: {e}")
-
-        # Remove the base neo4j directory if empty
-        if neo4j_base.exists() and not any(neo4j_base.iterdir()):
-            try:
-                neo4j_base.rmdir()
-                logger.info(f"Removed empty neo4j base directory: {neo4j_base}")
-            except Exception as e:
-                logger.warning(f"Could not remove neo4j base directory: {e}")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -132,6 +110,13 @@ def _wait_for_http(url: str, timeout: int = 60) -> None:
     )
 
 
+def _get_service_port(compose: DockerCompose, service: str, port: int) -> int:
+    service_port = compose.get_service_port(service, port)
+    if service_port is None:
+        raise RuntimeError(f"Service {service} port {port} not available")
+    return int(service_port)
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # FIXTURES
 # ──────────────────────────────────────────────────────────────────────────────
@@ -152,7 +137,7 @@ def docker_compose():
 
     # Use our custom DockerCompose class
     compose = DockerComposeWithCleanup(
-        filepath=str(COMPOSE_FILE.parent),
+        context=str(COMPOSE_FILE.parent),
         compose_file_name=COMPOSE_FILE.name,
         pull=False,  # Don't pull images, use local ones
     )
@@ -166,25 +151,19 @@ def docker_compose():
             try:
                 # PostgreSQL - wait for port to be available
                 logger.info("Waiting for PostgreSQL...")
-                pg_port = compose.get_service_port("postgresql", 5432)
+                pg_port = _get_service_port(compose, "postgresql", 5432)
                 _wait_for_port("localhost", pg_port, timeout=60)
                 logger.info("PostgreSQL is ready")
 
-                # Neo4j - wait for HTTP interface
-                logger.info("Waiting for Neo4j...")
-                neo4j_http_port = compose.get_service_port("neo4j", 7474)
-                _wait_for_http(f"http://localhost:{neo4j_http_port}", timeout=120)
-                logger.info("Neo4j is ready")
-
                 # Temporal - wait for port
                 logger.info("Waiting for Temporal...")
-                temporal_port = compose.get_service_port("temporal", 7233)
+                temporal_port = _get_service_port(compose, "temporal", 7233)
                 _wait_for_port("localhost", temporal_port, timeout=120)
                 logger.info("Temporal is ready")
 
                 # Elasticsearch - wait for HTTP interface
                 logger.info("Waiting for Elasticsearch...")
-                es_port = compose.get_service_port("elasticsearch", 9200)
+                es_port = _get_service_port(compose, "elasticsearch", 9200)
                 _wait_for_http(f"http://localhost:{es_port}", timeout=120)
                 logger.info("Elasticsearch is ready")
 
@@ -204,9 +183,6 @@ def docker_compose():
 
         # Double-check volume cleanup (in case some were missed)
         compose.cleanup_volumes()
-
-        # Clean up Neo4j host directories
-        compose.cleanup_neo4j_directories()
 
         # Additional cleanup using docker client for any dangling resources
         client = docker.from_env()
@@ -233,10 +209,9 @@ def docker_compose():
 def service_ports(docker_compose: DockerCompose) -> Dict[str, int]:
     """Get the exposed ports for each service."""
     return {
-        "postgresql": docker_compose.get_service_port("postgresql", 5432),
-        "neo4j": docker_compose.get_service_port("neo4j", 7687),
-        "temporal": docker_compose.get_service_port("temporal", 7233),
-        "elasticsearch": docker_compose.get_service_port("elasticsearch", 9200),
+        "postgresql": _get_service_port(docker_compose, "postgresql", 5432),
+        "temporal": _get_service_port(docker_compose, "temporal", 7233),
+        "elasticsearch": _get_service_port(docker_compose, "elasticsearch", 9200),
     }
 
 
@@ -253,10 +228,6 @@ def test_client(service_ports: Dict[str, int]) -> Iterator[TestClient]:
             "DB_USER": "postgres",
             "DB_PASSWORD": "postgres",
             "DB_NAME": "code_confluence",
-            "NEO4J_HOST": "localhost",
-            "NEO4J_PORT": str(service_ports["neo4j"]),
-            "NEO4J_USERNAME": "neo4j",
-            "NEO4J_PASSWORD": "password",
             "TEMPORAL_SERVER_ADDRESS": f"localhost:{service_ports['temporal']}",
             "FRAMEWORK_DEFINITIONS_PATH": str(framework_definitions_path),
         }
@@ -289,25 +260,3 @@ def github_token() -> str:
         pytest.fail("GITHUB_PAT_TOKEN not found in environment or .env.testing file")
 
     return token
-
-
-@pytest.fixture(scope="session")
-def neo4j_client(service_ports: Dict[str, int]):
-    """
-    Session-scoped synchronous Neo4j client for database operations.
-    Uses the regular Neo4j driver with neomodel's synchronous API.
-    """
-    from neomodel import config, db
-
-    # Configure neomodel with the test database
-    neo4j_url = f"bolt://neo4j:password@localhost:{service_ports['neo4j']}"
-    config.DATABASE_URL = neo4j_url
-
-    # Initialize connection through neomodel
-    db.set_connection(url=neo4j_url)
-
-    # Yield the db object for direct access
-    yield db
-
-    # Cleanup connection
-    db.close_connection()

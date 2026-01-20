@@ -94,8 +94,8 @@ class CodebaseChildWorkflow:
             )
         )
 
-        # 2. Ingest package metadata into graph
-        log.info("Ingesting package metadata into graph")
+        # 2. Ingest package metadata into relational tables
+        log.info("Ingesting package metadata into relational tables")
         # Create PackageManagerMetadataIngestionEnvelope
         package_manager_metadata_envelope = PackageManagerMetadataIngestionEnvelope(
             codebase_qualified_name=codebase_qualified_name,

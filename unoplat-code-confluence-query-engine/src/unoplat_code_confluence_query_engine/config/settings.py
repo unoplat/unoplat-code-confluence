@@ -34,23 +34,6 @@ class EnvironmentSettings(BaseSettings):
     db_name: str = Field(default="code_confluence", alias="DB_NAME")
     db_echo: bool = Field(default=False, alias="DB_ECHO")
 
-    # Neo4j Database Settings
-    neo4j_host: str = Field(default="localhost", alias="NEO4J_HOST")
-    neo4j_port: int = Field(default=7687, alias="NEO4J_PORT")
-    neo4j_username: str = Field(default="neo4j", alias="NEO4J_USERNAME")
-    neo4j_password: SecretStr = Field(
-        default=SecretStr("password"), alias="NEO4J_PASSWORD"
-    )
-    neo4j_max_connection_lifetime: int = Field(
-        default=3600, alias="NEO4J_MAX_CONNECTION_LIFETIME"
-    )
-    neo4j_max_connection_pool_size: int = Field(
-        default=100, alias="NEO4J_MAX_CONNECTION_POOL_SIZE"
-    )
-    neo4j_connection_acquisition_timeout: int = Field(
-        default=60, alias="NEO4J_CONNECTION_ACQUISITION_TIMEOUT"
-    )
-
     # MCP Server Settings
     mcp_servers_enabled: bool = Field(default=True, alias="MCP_SERVERS_ENABLED")
     mcp_servers_config_path: str = Field(
@@ -265,16 +248,4 @@ class EnvironmentSettings(BaseSettings):
         return (
             f"postgresql+asyncpg://{self.db_user}:{self.db_password.get_secret_value()}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
-        )
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def neo4j_url(self) -> str:
-        """Build Neo4j Bolt connection URL from settings."""
-        return (
-            f"bolt://{self.neo4j_username}:{self.neo4j_password.get_secret_value()}"
-            f"@{self.neo4j_host}:{self.neo4j_port}"
-            f"?max_connection_lifetime={self.neo4j_max_connection_lifetime}"
-            f"&max_connection_pool_size={self.neo4j_max_connection_pool_size}"
-            f"&connection_acquisition_timeout={self.neo4j_connection_acquisition_timeout}"
         )

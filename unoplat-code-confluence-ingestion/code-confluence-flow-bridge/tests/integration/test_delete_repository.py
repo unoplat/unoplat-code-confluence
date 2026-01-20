@@ -23,13 +23,12 @@ from unoplat_code_confluence_commons.credential_enums import (
     SecretKind,
 )
 
-from tests.utils.graph_assertions import (
-    assert_deletion_stats_accuracy,
-    assert_repository_completely_deleted,
-    capture_repository_state_snapshot,
-    count_nodes_by_label,
+from tests.utils.relational_assertions import (
+    assert_relational_repository_deleted,
+    capture_relational_state_snapshot,
+    get_framework_catalog_counts,
 )
-from tests.utils.sync_db_cleanup import cleanup_neo4j_sync, cleanup_postgresql_sync
+from tests.utils.sync_db_cleanup import cleanup_postgresql_sync
 from tests.utils.sync_db_utils import get_sync_postgres_session
 
 
@@ -169,7 +168,6 @@ class TestDeleteRepositoryEndpoint:
         test_client: TestClient,
         github_token: str,
         service_ports: Dict[str, int],
-        neo4j_client,
     ) -> None:
         """
         Test complete remote repository deletion flow:
@@ -183,7 +181,6 @@ class TestDeleteRepositoryEndpoint:
         # Clean up databases using context manager for isolated sessions
         with get_sync_postgres_session(service_ports["postgresql"]) as session:
             cleanup_postgresql_sync(session)
-        cleanup_neo4j_sync(neo4j_client)
 
         # Temporal address for workflow monitoring
         temporal_address = f"localhost:{service_ports['temporal']}"
@@ -257,23 +254,25 @@ class TestDeleteRepositoryEndpoint:
             )
 
         # ------------------------------------------------------------------
-        # 5️⃣  ENHANCED: Capture pre-deletion state snapshot
+        # 5️⃣  Capture pre-deletion relational snapshot
         # ------------------------------------------------------------------
         repo_qualified_name = (
             f"{repo_request.repository_owner_name}_{repo_request.repository_name}"
         )
 
-        # Capture comprehensive state before deletion to validate API statistics
-        pre_deletion_snapshot = capture_repository_state_snapshot(
-            neo4j_client, repo_qualified_name
-        )
+        # Capture relational state before deletion
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            pre_deletion_snapshot = capture_relational_state_snapshot(
+                session, repo_qualified_name
+            )
+            framework_catalog_before = get_framework_catalog_counts(session)
 
         # Log pre-deletion state for debugging
         logger.info(f"Pre-deletion state for {repo_qualified_name}:")
-        logger.info(f"  Node counts: {pre_deletion_snapshot['node_counts']}")
+        logger.info(f"  Relational counts: {pre_deletion_snapshot['counts']}")
 
         # Sanity check: Ensure we have content to delete
-        files_count = pre_deletion_snapshot["node_counts"].get("CodeConfluenceFile", 0)
+        files_count = pre_deletion_snapshot["counts"].get("files", 0)
         assert files_count > 0, (
             f"Sanity check failed: No files found after ingestion for {repo_qualified_name}"
         )
@@ -307,33 +306,11 @@ class TestDeleteRepositoryEndpoint:
             f"Expected dict response, got {type(deletion_response)}"
         )
 
-        # Extract deletion statistics from neo4j_deletion_stats
-        assert "neo4j_deletion_stats" in deletion_response, (
-            "Missing 'neo4j_deletion_stats' in response"
-        )
-        deletion_stats = deletion_response["neo4j_deletion_stats"]
+        assert deletion_response.get("repository_qualified_name") == repo_qualified_name
+        assert deletion_response.get("relational_deletion_status") == "deleted"
+        assert "neo4j_deletion_stats" not in deletion_response
 
-        # Check that deletion statistics contain expected keys
-        expected_keys = [
-            "repositories_deleted",
-            "codebases_deleted",
-            "files_deleted",
-            "metadata_deleted",
-        ]
-        for key in expected_keys:
-            assert key in deletion_stats, f"Missing key '{key}' in deletion statistics"
-            assert isinstance(deletion_stats[key], int), (
-                f"Key '{key}' should be an integer"
-            )
-
-        # Log deletion statistics for debugging
-        logger.info(f"API deletion statistics: {deletion_stats}")
-        logger.info(f"Full deletion response: {deletion_response}")
-
-        # ------------------------------------------------------------------
-        # 8️⃣  ENHANCED: Validate deletion stats against pre-snapshot
-        # ------------------------------------------------------------------
-        assert_deletion_stats_accuracy(deletion_stats, pre_deletion_snapshot)
+        logger.info(f"Deletion response: {deletion_response}")
 
         # ------------------------------------------------------------------
         # 9️⃣  Verify repository is no longer in ingested repositories list
@@ -354,31 +331,16 @@ class TestDeleteRepositoryEndpoint:
         )
 
         # ------------------------------------------------------------------
-        # 1️⃣0️⃣  ENHANCED: Comprehensive post-deletion verification
+        # 1️⃣0️⃣  Relational post-deletion verification
         # ------------------------------------------------------------------
-        # Use the new comprehensive helper that replaces all the manual verification above
-        assert_repository_completely_deleted(neo4j_client, repo_qualified_name)
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            assert_relational_repository_deleted(session, repo_qualified_name)
+            framework_catalog_after = get_framework_catalog_counts(session)
 
-        logger.info(
-            f"✅ Enhanced deletion verification completed successfully for {repo_qualified_name}"
+        assert framework_catalog_after == framework_catalog_before, (
+            "Framework catalog counts changed during repository deletion"
         )
 
-        # Optional: Log residual node counts for test pollution detection
-        total_nodes_by_type = {}
-        for node_type in [
-            "CodeConfluenceCodebase",
-            "CodeConfluenceFile",
-            "CodeConfluencePackageManagerMetadata",
-        ]:
-            count = count_nodes_by_label(neo4j_client, node_type)
-            total_nodes_by_type[node_type] = count
-
-        residual_nodes = {k: v for k, v in total_nodes_by_type.items() if v > 0}
-        if residual_nodes:
-            logger.warning(
-                f"Residual nodes detected (may be from other tests): {residual_nodes}"
-            )
-        else:
-            logger.info(
-                "✅ Complete graph cleanup verified - no residual nodes detected"
-            )
+        logger.info(
+            f"✅ Relational deletion verification completed successfully for {repo_qualified_name}"
+        )

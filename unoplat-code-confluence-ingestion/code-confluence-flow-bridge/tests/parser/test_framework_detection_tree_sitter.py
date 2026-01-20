@@ -109,18 +109,6 @@ def build():
 
     detections = detector.detect(context, feature_specs)
 
-    assert any(
-        det.feature_key == "column" and det.library == "sqlalchemy"
-        for det in detections
-    )
-    assert any(
-        det.feature_key == "mapped_column" and det.library == "sqlalchemy"
-        for det in detections
-    )
-    assert any(
-        det.feature_key == "relationship" and det.library == "sqlalchemy"
-        for det in detections
-    )
     # field_definition removed from sqlmodel in schema v3
     assert any(
         det.feature_key == "relationship" and det.library == "sqlmodel"

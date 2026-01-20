@@ -50,7 +50,7 @@ async def start_repository_agent_run(
 
     This endpoint:
     1. Generates trace_id from owner_name/repo_name via trace_dependency
-    2. Fetches repository metadata from PostgreSQL and Neo4j
+    2. Fetches repository metadata from PostgreSQL
     3. Starts a Temporal RepositoryAgentWorkflow with trace_id
     4. Returns the workflow run ID for tracking
 
@@ -81,7 +81,6 @@ async def start_repository_agent_run(
         ruleset_metadata = await fetch_repository_metadata(
             owner_name,
             repo_name,
-            request.app.state.neo4j_manager,
         )
     except HTTPException:
         raise

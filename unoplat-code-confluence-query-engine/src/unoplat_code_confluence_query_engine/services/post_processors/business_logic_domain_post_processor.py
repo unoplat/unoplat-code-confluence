@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from loguru import logger
 
-from unoplat_code_confluence_query_engine.db.neo4j.business_logic_repository import (
+from unoplat_code_confluence_query_engine.db.postgres.code_confluence_business_logic_repository import (
     db_get_data_model_files,
 )
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
@@ -21,7 +21,7 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
     """Post-processor for business logic domain agent output.
 
     The agent returns only a description string. This processor:
-    1. Fetches all data model files from Neo4j
+    1. Fetches all data model files from PostgreSQL
     2. Creates CoreFile entries for each file path
     3. Returns complete BusinessLogicDomain with description + data_models
     """
@@ -36,7 +36,7 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
 
         Args:
             agent_output: Plain text description of the business domain (2-4 sentences)
-            deps: Processor dependencies including Neo4j connection manager
+            deps: Processor dependencies
 
         Returns:
             Complete BusinessLogicDomain with description and data_models list
@@ -45,11 +45,11 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
             description = str(agent_output).strip().strip('"')
 
             try:
-                span_map = await db_get_data_model_files(
-                    deps.neo4j_conn_manager, deps.codebase_path
-                )
+                span_map = await db_get_data_model_files(deps.codebase_path)
             except Exception as e:
-                logger.warning("Could not fetch data model files from Neo4j: {}", e)
+                logger.warning(
+                    "Could not fetch data model files from PostgreSQL: {}", e
+                )
                 span_map = {}
 
             file_paths = sorted(span_map.keys())

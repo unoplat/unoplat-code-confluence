@@ -1,0 +1,32 @@
+[project]
+name = "tree-sitter-debug-cli"
+version = "0.1.0"
+description = "CLI tool for debugging tree-sitter parsing and AST analysis"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "rich>=14.2.0",
+    "tree-sitter-language-pack>=0.13.0",
+    "typer>=0.21.1",
+]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.37.1",
+    "ruff>=0.14.13",
+]
+
+[tool.basedpyright]
+typeCheckingMode = "strict"
+include = ["."]
+exclude = ["**/__pycache__", ".venv", "dist", "build"]
+useLibraryCodeForTypes = true
+reportMissingTypeStubs = false
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

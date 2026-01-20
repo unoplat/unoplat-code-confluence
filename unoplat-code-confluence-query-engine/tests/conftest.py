@@ -7,13 +7,13 @@ discovered by pytest and made available to all test files.
 
 import os
 from pathlib import Path
-import shutil
 import socket
 import subprocess
 import time
 from typing import Dict, Iterator
 
 import docker
+from docker.errors import APIError, NotFound
 from fastapi.testclient import TestClient
 from loguru import logger
 import pytest
@@ -70,36 +70,12 @@ class DockerComposeWithCleanup(DockerCompose):
                 volume.remove(force=True)
                 logger.info(f"Removed volume: {volume_name}")
                 cleaned_count += 1
-            except docker.errors.NotFound:
+            except NotFound:
                 logger.debug(f"Volume {volume_name} not found (may already be removed)")
-            except docker.errors.APIError as e:
+            except APIError as e:
                 logger.warning(f"Could not remove volume {volume_name}: {e}")
 
         logger.info(f"Cleaned up {cleaned_count} volumes")
-
-    def cleanup_neo4j_directories(self):
-        """Clean up Neo4j host-mounted directories."""
-        neo4j_base = Path.home() / "neo4j"
-        neo4j_subdirs = ["data", "logs", "import", "plugins"]
-
-        cleaned_count = 0
-        for subdir in neo4j_subdirs:
-            dir_path = neo4j_base / subdir
-            if dir_path.exists():
-                try:
-                    shutil.rmtree(dir_path)
-                    logger.info(f"Removed directory: {dir_path}")
-                    cleaned_count += 1
-                except Exception as e:
-                    logger.warning(f"Could not remove directory {dir_path}: {e}")
-
-        # Remove the base neo4j directory if empty
-        if neo4j_base.exists() and not any(neo4j_base.iterdir()):
-            try:
-                neo4j_base.rmdir()
-                logger.info(f"Removed empty neo4j base directory: {neo4j_base}")
-            except Exception as e:
-                logger.warning(f"Could not remove neo4j base directory: {e}")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -166,35 +142,33 @@ def docker_compose():
             try:
                 # PostgreSQL - wait for port to be available
                 logger.info("Waiting for PostgreSQL...")
-                pg_port = compose.get_service_port("postgresql", 5432)
+                pg_port = int(compose.get_service_port("postgresql", 5432))
                 _wait_for_port("localhost", pg_port, timeout=60)
                 logger.info("PostgreSQL is ready")
 
-                # Neo4j - wait for HTTP interface
-                logger.info("Waiting for Neo4j...")
-                neo4j_http_port = compose.get_service_port("neo4j", 7474)
-                _wait_for_http(f"http://localhost:{neo4j_http_port}", timeout=120)
-                logger.info("Neo4j is ready")
-
                 # Temporal - wait for port
                 logger.info("Waiting for Temporal...")
-                temporal_port = compose.get_service_port("temporal", 7233)
+                temporal_port = int(compose.get_service_port("temporal", 7233))
                 _wait_for_port("localhost", temporal_port, timeout=120)
                 logger.info("Temporal is ready")
 
                 # Temporal UI - wait for HTTP interface
                 logger.info("Waiting for Temporal UI...")
-                temporal_ui_port = compose.get_service_port("temporal-ui", 8080)
+                temporal_ui_port = int(compose.get_service_port("temporal-ui", 8080))
                 _wait_for_http(f"http://localhost:{temporal_ui_port}", timeout=120)
                 logger.info("Temporal UI is ready")
 
-                # Code Confluence Flow Bridge - wait for port and add delay for startup
-                logger.info("Waiting for Code Confluence Flow Bridge...")
-                flow_bridge_port = compose.get_service_port("code-confluence-flow-bridge", 8000)
-                _wait_for_port("localhost", flow_bridge_port, timeout=120)
-                logger.info("Code Confluence Flow Bridge port is available, waiting 15s for startup...")
-                time.sleep(15)
-                logger.info("Code Confluence Flow Bridge is ready")
+                # Code Confluence Flow Bridge - optional, skip if not available
+                # Most tests only need PostgreSQL and Temporal, not the flow bridge
+                try:
+                    logger.info("Checking for Code Confluence Flow Bridge (optional)...")
+                    flow_bridge_port = int(
+                        compose.get_service_port("code-confluence-flow-bridge", 8000)
+                    )
+                    _wait_for_port("localhost", flow_bridge_port, timeout=60)
+                    logger.info("Code Confluence Flow Bridge is available")
+                except Exception as e:
+                    logger.warning(f"Code Confluence Flow Bridge not available (optional): {e}")
 
             except Exception as e:
                 logger.error(f"Service health check failed: {e}")
@@ -213,9 +187,6 @@ def docker_compose():
         # Double-check volume cleanup (in case some were missed)
         compose.cleanup_volumes()
 
-        # Clean up Neo4j host directories
-        compose.cleanup_neo4j_directories()
-
         # Additional cleanup using docker client for any dangling resources
         client = docker.from_env()
 
@@ -232,14 +203,27 @@ def docker_compose():
 
 @pytest.fixture(scope="session")
 def service_ports(docker_compose: DockerCompose) -> Dict[str, int]:
-    """Get the exposed ports for each service."""
-    return {
-        "postgresql": docker_compose.get_service_port("postgresql", 5432),
-        "neo4j": docker_compose.get_service_port("neo4j", 7687),
-        "temporal": docker_compose.get_service_port("temporal", 7233),
-        "temporal_ui": docker_compose.get_service_port("temporal-ui", 8080),
-        "code_confluence_flow_bridge": docker_compose.get_service_port("code-confluence-flow-bridge", 8000),
+    """Get the exposed ports for each service.
+
+    Note: code-confluence-flow-bridge is optional - most tests only need
+    PostgreSQL and Temporal. If the flow bridge isn't available, it won't
+    be included in the returned dict.
+    """
+    ports: Dict[str, int] = {
+        "postgresql": int(docker_compose.get_service_port("postgresql", 5432)),
+        "temporal": int(docker_compose.get_service_port("temporal", 7233)),
+        "temporal_ui": int(docker_compose.get_service_port("temporal-ui", 8080)),
     }
+
+    # Try to get flow bridge port, but don't fail if unavailable
+    try:
+        ports["code_confluence_flow_bridge"] = int(
+            docker_compose.get_service_port("code-confluence-flow-bridge", 8000)
+        )
+    except Exception as e:
+        logger.warning(f"code-confluence-flow-bridge port not available: {e}")
+
+    return ports
 
 
 @pytest.fixture(scope="session")
@@ -258,10 +242,6 @@ async def app_settings(service_ports):
         "DB_USER": "postgres",
         "DB_PASSWORD": "postgres",
         "DB_NAME": "code_confluence",
-        "NEO4J_HOST": "localhost",
-        "NEO4J_PORT": str(service_ports["neo4j"]),
-        "NEO4J_USERNAME": "neo4j",
-        "NEO4J_PASSWORD": "password",
         "TEMPORAL_SERVER_ADDRESS": f"localhost:{service_ports['temporal']}",
     })
 
@@ -284,10 +264,6 @@ def test_client(service_ports: Dict[str, int], test_database_tables, db_connecti
         "DB_USER": "postgres",
         "DB_PASSWORD": "postgres",
         "DB_NAME": "code_confluence",
-        "NEO4J_HOST": "localhost",
-        "NEO4J_PORT": str(service_ports["neo4j"]),
-        "NEO4J_USERNAME": "neo4j",
-        "NEO4J_PASSWORD": "password",
         "TEMPORAL_SERVER_ADDRESS": f"localhost:{service_ports['temporal']}",
     })
 

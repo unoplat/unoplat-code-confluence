@@ -4,7 +4,7 @@
       "docs_url": "https://docs.sqlalchemy.org",
       "description": "SQLAlchemy is the Database Toolkit for Python, providing a comprehensive suite of tools for working with databases including an Object Relational Mapper (ORM) and Core expression language for SQL operations.",
       "features": {
-        "declarative_base": {
+        "db_data_model": {
           "description": "Base class for SQLAlchemy declarative models",
           "absolute_paths": [
             "sqlalchemy.ext.declarative.declarative_base",
@@ -13,31 +13,6 @@
           ],
           "target_level": "class",
           "concept": "Inheritance"
-        },
-        "mapped_column": {
-          "description": "Column definition using mapped_column for modern SQLAlchemy",
-          "absolute_paths": [
-            "sqlalchemy.orm.mapped_column"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression"
-        },
-        "relationship": {
-          "description": "Relationship definition between models",
-          "absolute_paths": [
-            "sqlalchemy.orm.relationship"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression"
-        },
-        "column": {
-          "description": "Traditional column definition using Column",
-          "absolute_paths": [
-            "sqlalchemy.Column",
-            "sqlalchemy.sql.schema.Column"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression"
         }
       }
     }

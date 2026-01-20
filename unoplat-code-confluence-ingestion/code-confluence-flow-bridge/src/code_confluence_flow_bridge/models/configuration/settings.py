@@ -1,16 +1,11 @@
 # Standard Library
-from enum import Enum
 from typing import Any, Dict, List, Literal, Optional
 
 # Third Party
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Import from commons package
-
-
-class DatabaseType(str, Enum):
-    NEO4J = "neo4j"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -92,33 +87,6 @@ class EnvironmentSettings(BaseSettings):
         env_parse_none_str=None,  # Changed from list to None to fix type error
     )
 
-    neo4j_host: str = Field(default="localhost", alias="NEO4J_HOST")
-
-    neo4j_port: int = Field(default=7687, alias="NEO4J_PORT")
-
-    neo4j_username: str = Field(default="neo4j", alias="NEO4J_USERNAME")
-    neo4j_password: SecretStr = Field(
-        default=SecretStr("password"), alias="NEO4J_PASSWORD"
-    )
-
-    neo4j_max_connection_lifetime: int = Field(
-        default=3600,
-        alias="NEO4J_MAX_CONNECTION_LIFETIME",
-        description="The maximum lifetime of a connection to the Neo4j database in seconds",
-    )
-
-    neo4j_max_connection_pool_size: int = Field(
-        default=50,
-        alias="NEO4J_MAX_CONNECTION_POOL_SIZE",
-        description="The maximum number of connections in the Neo4j connection pool",
-    )
-
-    neo4j_connection_acquisition_timeout: int = Field(
-        default=60,
-        alias="NEO4J_CONNECTION_ACQUISITION_TIMEOUT",
-        description="The maximum time to wait for a connection to be acquired from the Neo4j connection pool in seconds",
-    )
-
     # Temporal worker concurrency settings
     temporal_max_concurrent_activities: int = Field(
         default=4,
@@ -181,7 +149,7 @@ class EnvironmentSettings(BaseSettings):
     codebase_parser_file_batch_size: int = Field(
         default=1000,
         alias="CODEBASE_PARSER_FILE_BATCH_SIZE",
-        description="Number of files to process in a single Neo4j UNWIND batch operation. Optimal for performance vs memory usage.",
+        description="Number of files to process in a single batch operation. Optimal for performance vs memory usage.",
         ge=100,  # minimum 100
         le=5000,  # maximum 5000
     )
@@ -205,7 +173,7 @@ class EnvironmentSettings(BaseSettings):
     codebase_parser_max_retry_wait: int = Field(
         default=30,
         alias="CODEBASE_PARSER_MAX_RETRY_WAIT",
-        description="Maximum wait time in seconds for exponential backoff when Neo4j operations fail",
+        description="Maximum wait time in seconds for exponential backoff when batch operations fail",
         ge=5,  # minimum 5 seconds
         le=300,  # maximum 5 minutes
     )
@@ -213,7 +181,7 @@ class EnvironmentSettings(BaseSettings):
     codebase_parser_initial_retry_wait: float = Field(
         default=1.0,
         alias="CODEBASE_PARSER_INITIAL_RETRY_WAIT",
-        description="Initial wait time in seconds for exponential backoff when Neo4j operations fail",
+        description="Initial wait time in seconds for exponential backoff when batch operations fail",
         ge=0.1,  # minimum 0.1 seconds
         le=10.0,  # maximum 10 seconds
     )
