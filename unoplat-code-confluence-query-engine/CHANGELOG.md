@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.9...unoplat-code-confluence-query-engine-v0.25.0) (2026-01-20)
+
+
+### Features
+
+* **migrate-postgres:** ingestion and query engine services ([06edb7f](https://github.com/unoplat/unoplat-code-confluence/commit/06edb7fb05997754e73f5ba2104b8a764cba5e79))
+
+
+### Bug Fixes
+
+* **dependencies:** get rid of unused dependencies - neomodel ([61e42a2](https://github.com/unoplat/unoplat-code-confluence/commit/61e42a202a7981a7e8cc1347e0b60e40131371ec))
+
 ## [0.24.9](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.8...unoplat-code-confluence-query-engine-v0.24.9) (2026-01-20)
 
 
