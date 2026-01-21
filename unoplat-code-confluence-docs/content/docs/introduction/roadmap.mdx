@@ -27,10 +27,19 @@ description: "Current roadmap and development status of Unoplat Code Confluence"
   <RoadmapCard
     title="Popular Frameworks & Libraries Support"
     description="Enhanced AGENTS.md generation with framework-specific context for popular libraries and frameworks."
-    status="planned"
+    status="in-progress"
     href="https://github.com/unoplat/unoplat-code-confluence/issues/933"
   />
+<RoadmapCard
+    title="Dependency Guide"
+    description="A quick, repo-specific guide to what each dependency is for and when to use it."
+    status="in-progress"
+    href="https://github.com/unoplat/unoplat-code-confluence/issues/933"
+  />
+
 </RoadmapSection>
+
+
 
 <RoadmapSection title="Workflow & Reliability" description="Robust and auditable ingestion and agent workflows">
   <RoadmapCard
@@ -51,11 +60,11 @@ description: "Current roadmap and development status of Unoplat Code Confluence"
   
   <RoadmapCard
     title="Reducing Complexity in Storing Context"
-    description=""
-    status="in-progress"
-    href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue%20state%3Aopen%20label%3Areduce-complexity"
+    description="Migrated from Neo4j graph database to PostgreSQL with optimized recursive CTEs for knowledge graph traversals."
+    status="shipped"
+    subStatus="stable"
   />
-
+  
 <RoadmapCard
     title="Reducing Complexity in Realtime information for user"
     description="Realtime sync engine for n number of clients for realtime progress of agents by moving away from traditional tech such as sse/websockets"
