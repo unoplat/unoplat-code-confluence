@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.22.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.21.1...unoplat-code-confluence-v0.22.0) (2026-01-21)
+
+
+### Features
+
+* add common links as part of sidebar ([fb065d4](https://github.com/unoplat/unoplat-code-confluence/commit/fb065d41c6dc95c5373294504a28bc2128ec800a))
+* **add-submit-feedback-docs:** docs for submitting feedback ([e718d1d](https://github.com/unoplat/unoplat-code-confluence/commit/e718d1d2016d08d5e73ef4e24fb31f41ee15cbac))
+* **better-depiction-problem-statement:** added corresponding image ([a342138](https://github.com/unoplat/unoplat-code-confluence/commit/a3421385f408e162e66cff06ff5ebabf47ab1cb7))
+* **docs-images:** add zoom and preview support across all mdx docs ([71011a3](https://github.com/unoplat/unoplat-code-confluence/commit/71011a366ef2f1159fd71fe757a839df64e8a40c))
+* **images-support-operations:** add images for submission for support and also new operations panel ([fa7135b](https://github.com/unoplat/unoplat-code-confluence/commit/fa7135bbcc74cea562934a0145eb7ae3e8812bf1))
+* **introduce-banner:** introduce banner for latest changes and fixes around handling changelog collection (resuable utils) ([a3d0f7a](https://github.com/unoplat/unoplat-code-confluence/commit/a3d0f7a47df52a6a2c1c88ee3ae6ad1cad23016e))
+* **introduce-banner:** introduce banner for latest changes and fixes… ([f5fc3a4](https://github.com/unoplat/unoplat-code-confluence/commit/f5fc3a4a3bc2233ba1ce3a978b6652a076624004))
+* **migrate-postgres:** ingestion and query engine services ([06edb7f](https://github.com/unoplat/unoplat-code-confluence/commit/06edb7fb05997754e73f5ba2104b8a764cba5e79))
+* **migration-to-postgres:** knowledge graph with minimal traversals in postgres. Removal of neo4j related models/schema ([9e4dbbb](https://github.com/unoplat/unoplat-code-confluence/commit/9e4dbbb3d8fc4ea4c22078260630600a01b26529))
+* **support-changelog-rss:** support changelog theme support aligning with application and other fixes ([87e587a](https://github.com/unoplat/unoplat-code-confluence/commit/87e587a6238283e8a810f2fc42b865e00a10a9d6))
+* **support-changelog-rss:** support changelog theme support aligning… ([0f3540b](https://github.com/unoplat/unoplat-code-confluence/commit/0f3540bf9c3152d1775eeddfd4c27a6a7caa73ee))
+* **support-docs:** add support documentation for submitting errors ([c1604af](https://github.com/unoplat/unoplat-code-confluence/commit/c1604af5b11ad601e758a56bd0c2e6f5ed47ca5e))
+
+
+### Bug Fixes
+
+* **agent-description:** improve system prompts and tool descriptions … ([780b624](https://github.com/unoplat/unoplat-code-confluence/commit/780b624e5af02767bceb7212d8c62a43e2be511f))
+* **agent-description:** improve system prompts and tool descriptions and add output validator for open source models to work reliably. solved issues with minmax2.1 ([8cb0968](https://github.com/unoplat/unoplat-code-confluence/commit/8cb096893c72b8626968234218b1a36db7367cf6))
+* **content-why-solution-doc-site-map:** better content ([9f0587b](https://github.com/unoplat/unoplat-code-confluence/commit/9f0587b9ce0d67f2f121c0b13f9d0cc5575cf0e4))
+* **dependencies:** get rid of unused dependencies - neomodel ([61e42a2](https://github.com/unoplat/unoplat-code-confluence/commit/61e42a202a7981a7e8cc1347e0b60e40131371ec))
+* **dependencies:** get rid of unused dependencies - neomodel ([c3880a4](https://github.com/unoplat/unoplat-code-confluence/commit/c3880a4518f937c643b9307e961bf6ce9483ebf9))
+* **dependency-version:** commons dependency version with model update… ([dbdd027](https://github.com/unoplat/unoplat-code-confluence/commit/dbdd02708a379d3277d50f62e19d3934ef4a82fe))
+* **dependency-version:** commons dependency version with model updates for ingestion/query services ([890f4ca](https://github.com/unoplat/unoplat-code-confluence/commit/890f4cad1d3a5aaa3e1f4119f4ce122ab54b9d0d))
+* **duplicate-sort:** changelog entries ([87da8f6](https://github.com/unoplat/unoplat-code-confluence/commit/87da8f676f639f62a4379e9f86bb90a9715a3c02))
+* fallback to owner name when no organisation exists for user repos ([31f81ec](https://github.com/unoplat/unoplat-code-confluence/commit/31f81ec03bcbf72f71cc94273890f3890a792947))
+* **image:** image for readme ([b5ad081](https://github.com/unoplat/unoplat-code-confluence/commit/b5ad081e89b1b0241ff131faf095b113b6684038))
+* **improve-system-prompt:** improve system prompt for getting library information to work more reliably with open source models ([469a8e1](https://github.com/unoplat/unoplat-code-confluence/commit/469a8e10a411418197b3d4fbecdcfddf8868675a))
+* **logging:** add rotating file sinks for ingestion ([ad92980](https://github.com/unoplat/unoplat-code-confluence/commit/ad92980634d5011d5f107e8500450a304913d038))
+* **product-name-prefix:** company name prefixed and product name highlighted across ([a62e69d](https://github.com/unoplat/unoplat-code-confluence/commit/a62e69da1bd7961eb18686c771179d86a3b222e7))
+* **refactor:** move from structural signature based detection of fram… ([e44d26f](https://github.com/unoplat/unoplat-code-confluence/commit/e44d26f3fb281f2ee5d569209215d0813d8d4d41))
+* **refactor:** move from structural signature based detection of framework/libs to direct source code and import based and also remove variable bound strategy from schema as it is brittle and can easily break. ([059e8da](https://github.com/unoplat/unoplat-code-confluence/commit/059e8daec3c3d08405df757019bb31262329fb84))
+* **social-media-icons:** fix colors inversion based on theme ([afc274e](https://github.com/unoplat/unoplat-code-confluence/commit/afc274e65ef9848c92df65c13e6d08804ef049ec))
+* **social-media-icons:** fix colors inversion based on theme ([a3625d1](https://github.com/unoplat/unoplat-code-confluence/commit/a3625d153770a5e22ea1c00f7f0f90ab4e533417))
+* **sorting-descending:** changelog should be sorted first on release date and then on version number ([83c7536](https://github.com/unoplat/unoplat-code-confluence/commit/83c7536b72f661c9a179a7f6ec817d370c9ca71c))
+* tests and docs ([728c897](https://github.com/unoplat/unoplat-code-confluence/commit/728c897bb75bd78d1cb70e657d879c773b2282a3))
+
 ## [0.21.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.21.0...unoplat-code-confluence-v0.21.1) (2025-12-22)
 
 
