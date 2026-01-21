@@ -59,7 +59,7 @@ class OutboundKind(str, Enum):
     DB_SQL = "db_sql"  # Classic RDBMS (OLTP)
     DB_DISTSQ_HTAP = "db_dist_sql_htap"  # Spanner/Cockroach/Yugabyte/TiDB/SingleStore
     DB_NOSQL = "db_nosql"  # Key-value, document, wide-column. Examples: Redis/Aerospike/RocksDB/MongoDB/Couchbase/Cassandra/HBase/Scylla
-    DB_GRAPH = "db_graph"  # Property or RDF graph. Examples: Neo4j/JanusGraph/Neptune/Stardog/Virtuoso
+    DB_GRAPH = "db_graph"  # Property or RDF graph. Examples: JanusGraph/Neptune/Stardog/Virtuoso
     DB_ANALYTIC_OLAP = "db_olap"  # Snowflake/BigQuery/Redshift/ClickHouse/Druid/Pinot
     DB_LAKEHOUSE = "db_lakehouse"  # Delta/Iceberg/Hudi (+ Spark/Trino)
     DB_TSDB = "db_timeseries"  # Influx/Timescale/Prometheus/VictoriaMetrics/QuestDB
@@ -286,7 +286,10 @@ class ProjectConfiguration(BaseModel):
 
     config_files: List[ConfigFile] = Field(
         ...,
-        description="Configuration files - linter,test,package manager, deployment config files etc",
+        description=(
+            "Complete list of configuration files (lint, test, package manager, build, deploy, etc). "
+            "Include every relevant config file; do not omit any."
+        ),
     )
 
     model_config = ConfigDict(extra="forbid")
@@ -296,7 +299,10 @@ class DevelopmentWorkflow(BaseModel):
     """Development workflow configuration with a unified command list."""
 
     commands: List[CommandSpec] = Field(
-        ..., description="Unified list of workflow commands"
+        ...,
+        description=(
+            "Complete list of workflow commands; include all build/dev/test/lint/type_check commands found."
+        ),
     )
     model_config = ConfigDict(extra="forbid")
 

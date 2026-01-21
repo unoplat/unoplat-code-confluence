@@ -1,9 +1,8 @@
 """
 Integration tests for framework detection using PostgreSQL database fixtures.
 
-This module tests the simplified framework detection implementation that uses
-PostgreSQL to store framework definitions and the new SimplifiedPythonDetector
-that works with structural signatures instead of re-parsing source code.
+This module tests framework detection using PostgreSQL-backed definitions and
+tree-sitter source analysis (structural signatures are not required).
 """
 
 from pathlib import Path
@@ -11,17 +10,11 @@ import tempfile
 
 from fastapi.testclient import TestClient
 import pytest
-from src.code_confluence_flow_bridge.engine.python.import_alias_extractor import (
+from src.code_confluence_flow_bridge.engine.programming_language.python.import_alias_extractor import (
     extract_imports_from_source,
 )
-from src.code_confluence_flow_bridge.engine.python.python_framework_detection_service import (
+from src.code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
-)
-from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
-    build_python_extractor_config,
-)
-from src.code_confluence_flow_bridge.parser.tree_sitter_structural_signature import (
-    TreeSitterPythonStructuralSignatureExtractor,
 )
 
 
@@ -33,20 +26,11 @@ class TestFrameworkDetectionWithPostgres:
         """Create Python framework detection service."""
         return PythonFrameworkDetectionService()
 
-    def get_structural_extractor(self) -> TreeSitterPythonStructuralSignatureExtractor:
-        """Create Tree-sitter structural signature extractor."""
-        config = build_python_extractor_config()
-        return TreeSitterPythonStructuralSignatureExtractor(
-            language_name="python", config=config
-        )
-
     @pytest.mark.asyncio(loop_scope="session")
     async def test_detect_fastapi_endpoints_main_py(self, test_client: TestClient):
         """Test FastAPI endpoint detection using the real main.py file."""
 
         detection_service = self.get_detection_service()
-        structural_extractor = self.get_structural_extractor()
-
         # Load framework definitions first (wrap sync operation in asyncio.to_thread)
 
         # Read the actual main.py file
@@ -60,18 +44,11 @@ class TestFrameworkDetectionWithPostgres:
 
         source_code = main_py_path.read_text(encoding="utf-8")
 
-        # Extract structural signature
-        with open(main_py_path, "rb") as f:
-            content = f.read()
-        structural_signature = structural_extractor.extract_structural_signature(
-            content
-        )
-
         # Run framework detection (keep async business logic)
         detections = await detection_service.detect_features(
             source_code=source_code,
             imports=extract_imports_from_source(source_code),
-            structural_signature=structural_signature,
+            structural_signature=None,
             programming_language="python",
         )
 
@@ -107,8 +84,6 @@ class TestFrameworkDetectionWithPostgres:
         """Test detection of instance variable binding patterns like self.app = FastAPI()."""
 
         detection_service = self.get_detection_service()
-        structural_extractor = self.get_structural_extractor()
-
         # Test source code with instance variable pattern
         test_source = """
 from fastapi import FastAPI
@@ -134,13 +109,6 @@ class MyApp:
             temp_path = f.name
 
         try:
-            # Extract structural signature
-            with open(temp_path, "rb") as f:
-                content = f.read()
-            structural_signature = structural_extractor.extract_structural_signature(
-                content
-            )
-
             # Extract imports
             import_strings = extract_imports_from_source(test_source)
 
@@ -148,7 +116,7 @@ class MyApp:
             detections = await detection_service.detect_features(
                 source_code=test_source,
                 imports=import_strings,
-                structural_signature=structural_signature,
+                structural_signature=None,
                 programming_language="python",
             )
 
@@ -190,7 +158,6 @@ class MyApp:
         """Test Pydantic model detection."""
 
         detection_service = self.get_detection_service()
-        structural_extractor = self.get_structural_extractor()
 
         test_source = """
 from pydantic import BaseModel
@@ -213,19 +180,13 @@ class Product(BaseModel):
             temp_path = f.name
 
         try:
-            with open(temp_path, "rb") as f:
-                content = f.read()
-            structural_signature = structural_extractor.extract_structural_signature(
-                content
-            )
-
             import_strings = extract_imports_from_source(test_source)
 
             # Run framework detection (keep async business logic)
             detections = await detection_service.detect_features(
                 source_code=test_source,
                 imports=import_strings,
-                structural_signature=structural_signature,
+                structural_signature=None,
                 programming_language="python",
             )
 
@@ -257,7 +218,6 @@ class Product(BaseModel):
         """Test detection of multiple frameworks in one file."""
 
         detection_service = self.get_detection_service()
-        structural_extractor = self.get_structural_extractor()
 
         test_source = """
 from fastapi import FastAPI, Depends
@@ -291,19 +251,13 @@ async def create_user(user: UserModel, db=Depends(get_db)):
             temp_path = f.name
 
         try:
-            with open(temp_path, "rb") as f:
-                content = f.read()
-            structural_signature = structural_extractor.extract_structural_signature(
-                content
-            )
-
             import_strings = extract_imports_from_source(test_source)
 
             # Run framework detection (keep async business logic)
             detections = await detection_service.detect_features(
                 source_code=test_source,
                 imports=import_strings,
-                structural_signature=structural_signature,
+                structural_signature=None,
                 programming_language="python",
             )
 

@@ -1,0 +1,38 @@
+type: http_request
+model: http_request
+id: rq_9DuEaRGoQG
+createdAt: 2026-01-09T04:47:09.125755
+updatedAt: 2026-01-09T04:48:17.766960
+workspaceId: wk_KULjx4bEa8
+folderId: fl_jtBaK7a5pU
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "provider_key" : "huggingface",
+      "model_name" :
+      "MiniMaxAI/MiniMax-M2.1",
+      "provider_name":
+      "novita"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: aimBYzq2DQ
+- enabled: true
+  name: X-Model-API-Key
+  value: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3SHBweU51RmF3MDhnazZKRW1UOG55SWlBazNaM3FlWXJkVkNKSDZlS1BRbDNmRSsxa1BMN1Z3RGRYZmM1NDdweVFOMmRCYUJoQXkzVFdWRnZTUlVCM093SURRWitQTXNkdW1qc2Vzamc9PQ') ]}
+  id: GpqDtwVjyC
+- enabled: true
+  name: ''
+  value: ''
+  id: EwSutcaN4T
+method: PUT
+name: Minimax-2.1-model-config
+sortPriority: 0.0008
+url: http://127.0.0.1:8001/v1/model-config
+urlParameters: []

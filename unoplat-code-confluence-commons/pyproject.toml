@@ -1,13 +1,11 @@
 [project]
 name = "unoplat-code-confluence-commons"
-version = "0.40.0"
+version = "0.41.1"
 description = "this will hold common operations/models required across code confluence ingestion and query utilities"
 authors = [{ name = "JayGhiya", email = "ghiya6548@gmail.com" }]
 requires-python = ">=3.10"
 readme = "README.md"
 dependencies = [
-    "neomodel>=5.4.2,<6",
-    "testcontainers[neo4j]>=3.7.1,<4",
     "pytest==8.3.4",
     "pytest-asyncio>=0.25.0,<0.26",
     "pydantic>=2.11.7",
@@ -30,7 +28,3 @@ asyncio_default_fixture_loop_scope = "session"
 check_untyped_defs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
-
-[[tool.mypy.overrides]]
-module               = ["neomodel.*"]
-ignore_missing_imports = true

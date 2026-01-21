@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Any
 
 from loguru import logger
-from pydantic_ai import Agent, Tool
+from pydantic_ai import Agent, ModelRetry, Tool
 from pydantic_ai.durable_exec.temporal import TemporalAgent
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
@@ -64,6 +64,47 @@ ENABLED_AGENTS: set[AgentType] = {
 }
 
 
+def validate_project_configuration_output(
+    output: ProjectConfiguration,
+) -> ProjectConfiguration:
+    if not output.config_files:
+        raise ModelRetry(
+            "config_files is empty. Re-scan and return all configuration files; do not omit any."
+        )
+    return output
+
+
+def validate_development_workflow_output(
+    output: DevelopmentWorkflow,
+) -> DevelopmentWorkflow:
+    if not output.commands:
+        raise ModelRetry(
+            "commands is empty. Extract build/dev/test/lint/type_check commands and return all applicable commands."
+        )
+    return output
+
+
+def validate_business_logic_domain_output(output: str) -> str:
+    """Validate business logic domain output.
+
+    Ensures the model returns a non-empty plain text description
+    of the business domain (2-4 sentences as requested in the prompt).
+    """
+    if not output or not output.strip():
+        raise ModelRetry(
+            "Output is empty. Return a plain text description (2-4 sentences) "
+            "summarizing the business logic domain based on the data models analyzed."
+        )
+    # Check if model returned JSON/structured content instead of plain text
+    stripped = output.strip()
+    if stripped.startswith("{") or stripped.startswith("["):
+        raise ModelRetry(
+            "Return ONLY plain text (2-4 sentences), NOT JSON or structured data. "
+            "Summarize the business logic domain in natural language."
+        )
+    return output
+
+
 # ──────────────────────────────────────────────
 # Agent Definitions
 # ──────────────────────────────────────────────
@@ -94,9 +135,11 @@ def create_project_configuration_agent(
             Tool(get_lib_data),
         ],
         output_type=ProjectConfiguration,
+        output_retries=2,
         model_settings=model_settings,
         event_stream_handler=event_stream_handler,
     )
+    agent.output_validator(validate_project_configuration_output)
     # Attach dynamic per-language system prompt (always enabled)
     agent.system_prompt(per_programming_language_configuration_prompt)
     logger.debug("Dynamic system prompt attached to project_configuration_agent")
@@ -127,9 +170,11 @@ def create_development_workflow_agent(
             Tool(get_lib_data),
         ],
         output_type=DevelopmentWorkflow,
+        output_retries=2,
         model_settings=model_settings,
         event_stream_handler=event_stream_handler,
     )
+    agent.output_validator(validate_development_workflow_output)
     # Attach dynamic per-language system prompt (always enabled)
     agent.system_prompt(per_language_development_workflow_prompt)
     logger.debug("Dynamic system prompt attached to development_workflow_agent")
@@ -149,7 +194,7 @@ def create_business_logic_domain_agent(
     Returns:
         Business logic domain agent instance
     """
-    return Agent(
+    agent = Agent(
         model,
         name="business_logic_domain_agent",
         system_prompt=r"""You are the Business Logic Domain Agent.
@@ -168,6 +213,13 @@ Strict workflow:
 2) Create a coverage checklist from ALL returned (file_path, model_identifier) pairs and process UNTIL NONE REMAIN
 3) After inspecting ALL spans, synthesize the overall business domain they represent
 4) Return ONLY a plain text description (2-4 sentences) summarizing the domain
+
+<output_format>
+IMPORTANT: Your final output must be PLAIN TEXT only (2-4 sentences).
+- Do NOT return JSON, markdown, or structured data
+- Do NOT wrap your response in quotes or code blocks
+- Simply write the domain description as natural language text
+</output_format>
 """,
         deps_type=AgentDependencies,
         tools=[
@@ -175,9 +227,12 @@ Strict workflow:
             Tool(read_file_content, takes_ctx=True),
         ],
         output_type=str,
+        output_retries=3,
         model_settings=model_settings,
         event_stream_handler=event_stream_handler,
     )
+    agent.output_validator(validate_business_logic_domain_output)
+    return agent
 
 
 # ──────────────────────────────────────────────

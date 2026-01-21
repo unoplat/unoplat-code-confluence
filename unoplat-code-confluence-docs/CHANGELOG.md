@@ -1,5 +1,61 @@
 # Changelog
 
+## [0.27.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.27.0...unoplat-code-confluence-docs-v0.27.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* **refactor:** move from structural signature based detection of fram… ([e44d26f](https://github.com/unoplat/unoplat-code-confluence/commit/e44d26f3fb281f2ee5d569209215d0813d8d4d41))
+* tests and docs ([728c897](https://github.com/unoplat/unoplat-code-confluence/commit/728c897bb75bd78d1cb70e657d879c773b2282a3))
+
+## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.26.0...unoplat-code-confluence-docs-v0.27.0) (2025-12-25)
+
+
+### Features
+
+* **introduce-banner:** introduce banner for latest changes and fixes around handling changelog collection (resuable utils) ([a3d0f7a](https://github.com/unoplat/unoplat-code-confluence/commit/a3d0f7a47df52a6a2c1c88ee3ae6ad1cad23016e))
+* **introduce-banner:** introduce banner for latest changes and fixes… ([f5fc3a4](https://github.com/unoplat/unoplat-code-confluence/commit/f5fc3a4a3bc2233ba1ce3a978b6652a076624004))
+
+
+### Bug Fixes
+
+* **duplicate-sort:** changelog entries ([87da8f6](https://github.com/unoplat/unoplat-code-confluence/commit/87da8f676f639f62a4379e9f86bb90a9715a3c02))
+* **sorting-descending:** changelog should be sorted first on release date and then on version number ([83c7536](https://github.com/unoplat/unoplat-code-confluence/commit/83c7536b72f661c9a179a7f6ec817d370c9ca71c))
+
+## [0.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.25.1...unoplat-code-confluence-docs-v0.26.0) (2025-12-24)
+
+
+### Features
+
+* **support-changelog-rss:** support changelog theme support aligning with application and other fixes ([87e587a](https://github.com/unoplat/unoplat-code-confluence/commit/87e587a6238283e8a810f2fc42b865e00a10a9d6))
+* **support-changelog-rss:** support changelog theme support aligning… ([0f3540b](https://github.com/unoplat/unoplat-code-confluence/commit/0f3540bf9c3152d1775eeddfd4c27a6a7caa73ee))
+
+## [0.25.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.25.0...unoplat-code-confluence-docs-v0.25.1) (2025-12-24)
+
+
+### Bug Fixes
+
+* **social-media-icons:** fix colors inversion based on theme ([afc274e](https://github.com/unoplat/unoplat-code-confluence/commit/afc274e65ef9848c92df65c13e6d08804ef049ec))
+* **social-media-icons:** fix colors inversion based on theme ([a3625d1](https://github.com/unoplat/unoplat-code-confluence/commit/a3625d153770a5e22ea1c00f7f0f90ab4e533417))
+
+## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.24.0...unoplat-code-confluence-docs-v0.25.0) (2025-12-23)
+
+
+### Features
+
+* add common links as part of sidebar ([fb065d4](https://github.com/unoplat/unoplat-code-confluence/commit/fb065d41c6dc95c5373294504a28bc2128ec800a))
+* **add-submit-feedback-docs:** docs for submitting feedback ([e718d1d](https://github.com/unoplat/unoplat-code-confluence/commit/e718d1d2016d08d5e73ef4e24fb31f41ee15cbac))
+* **better-depiction-problem-statement:** added corresponding image ([a342138](https://github.com/unoplat/unoplat-code-confluence/commit/a3421385f408e162e66cff06ff5ebabf47ab1cb7))
+* **docs-images:** add zoom and preview support across all mdx docs ([71011a3](https://github.com/unoplat/unoplat-code-confluence/commit/71011a366ef2f1159fd71fe757a839df64e8a40c))
+* **images-support-operations:** add images for submission for support and also new operations panel ([fa7135b](https://github.com/unoplat/unoplat-code-confluence/commit/fa7135bbcc74cea562934a0145eb7ae3e8812bf1))
+* **support-docs:** add support documentation for submitting errors ([c1604af](https://github.com/unoplat/unoplat-code-confluence/commit/c1604af5b11ad601e758a56bd0c2e6f5ed47ca5e))
+
+
+### Bug Fixes
+
+* **content-why-solution-doc-site-map:** better content ([9f0587b](https://github.com/unoplat/unoplat-code-confluence/commit/9f0587b9ce0d67f2f121c0b13f9d0cc5575cf0e4))
+* **product-name-prefix:** company name prefixed and product name highlighted across ([a62e69d](https://github.com/unoplat/unoplat-code-confluence/commit/a62e69da1bd7961eb18686c771179d86a3b222e7))
+
 ## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.23.5...unoplat-code-confluence-docs-v0.24.0) (2025-12-22)
 
 

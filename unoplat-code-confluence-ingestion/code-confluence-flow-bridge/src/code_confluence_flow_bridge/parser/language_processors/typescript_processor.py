@@ -8,7 +8,7 @@ from aiofile import async_open
 from loguru import logger
 
 # First Party
-from src.code_confluence_flow_bridge.detector.data_model_detector import (
+from src.code_confluence_flow_bridge.engine.detector.data_model_detector import (
     detect_data_model,
 )
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (

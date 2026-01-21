@@ -243,14 +243,13 @@ class TestFrameworkDefinitionsIngestion:
                 f"Framework {framework_name} has no features"
             )
 
-            # Validate feature structure
+            # Validate feature structure (schema v3: locator_strategy removed)
             for feature_key, feature_def in framework_def["features"].items():
                 required_fields = [
                     "description",
                     "absolute_paths",
                     "target_level",
                     "concept",
-                    "locator_strategy",
                 ]
                 for field in required_fields:
                     assert field in feature_def, (
@@ -274,15 +273,15 @@ class TestFrameworkDefinitionsIngestion:
                 f"Database operations took {metrics['db_time']:.3f}s, expected < 3.0s"
             )
 
-            # Validate expected data counts
+            # Validate expected data counts (schema v3: 7 features, 11 paths)
             assert metrics["frameworks_count"] == 4, (
                 f"Expected 4 frameworks, got {metrics['frameworks_count']}"
             )
-            assert metrics["features_count"] == 11, (
-                f"Expected 11 features, got {metrics['features_count']}"
+            assert metrics["features_count"] == 7, (
+                f"Expected 7 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 16, (
-                f"Expected 16 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 11, (
+                f"Expected 11 absolute paths, got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -295,8 +294,8 @@ class TestFrameworkDefinitionsIngestion:
             )  # type: ignore
 
             assert framework_count == 4
-            assert feature_count == 11
-            assert path_count == 16
+            assert feature_count == 7
+            assert path_count == 11
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -354,10 +353,8 @@ class TestFrameworkDefinitionsIngestion:
             assert "fastapi.FastAPI" in path_values
             assert "fastapi.applications.FastAPI" in path_values
 
-    def test_concept_and_locator_strategy_validation(
-        self, test_client: TestClient, service_ports
-    ):
-        """Test that concept and locator strategy fields are correctly stored."""
+    def test_concept_validation(self, test_client: TestClient, service_ports):
+        """Test that concept fields are correctly stored (schema v3: locator_strategy removed)."""
         with get_sync_postgres_session(service_ports["postgresql"]) as session:
             framework_data = load_framework_definitions()
 
@@ -369,25 +366,13 @@ class TestFrameworkDefinitionsIngestion:
                     FrameworkFeature.concept, func.count(FrameworkFeature.concept)
                 ).group_by(FrameworkFeature.concept)
             )
-            concepts = dict(concepts_query.fetchall())
+            # Use .value to get the enum string value (e.g., "AnnotationLike")
+            concepts = {row[0].value: row[1] for row in concepts_query.fetchall()}
 
             # Should have all three concept types
             assert "AnnotationLike" in concepts
             assert "CallExpression" in concepts
             assert "Inheritance" in concepts
-
-            # Test locator strategies
-            strategies_query = session.execute(
-                select(
-                    FrameworkFeature.locator_strategy,
-                    func.count(FrameworkFeature.locator_strategy),
-                ).group_by(FrameworkFeature.locator_strategy)
-            )
-            strategies = dict(strategies_query.fetchall())
-
-            # Should have both locator strategies
-            assert "Direct" in strategies
-            assert "VariableBound" in strategies
 
     def test_construct_query_jsonb_storage(
         self, test_client: TestClient, service_ports
@@ -438,8 +423,8 @@ class TestFrameworkDefinitionsIngestion:
                 }
                 results.append(state)
 
-            # All results should be identical
-            expected_state = {"frameworks": 4, "features": 11, "paths": 16}
+            # All results should be identical (schema v3: 7 features, 11 paths)
+            expected_state = {"frameworks": 4, "features": 7, "paths": 11}
             for result in results:
                 assert result == expected_state
 
@@ -460,11 +445,11 @@ class TestFrameworkDefinitionsIngestion:
         # Parse data using the same logic as production
         frameworks, features, absolute_paths = parse_json_data(framework_data)
 
-        # Validate parsing results match expected production data
+        # Validate parsing results match expected production data (schema v3)
         assert len(frameworks) == 4, f"Expected 4 frameworks, got {len(frameworks)}"
-        assert len(features) == 11, f"Expected 11 features, got {len(features)}"
-        assert len(absolute_paths) == 16, (
-            f"Expected 16 absolute paths, got {len(absolute_paths)}"
+        assert len(features) == 7, f"Expected 7 features, got {len(features)}"
+        assert len(absolute_paths) == 11, (
+            f"Expected 11 absolute paths, got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI
@@ -523,7 +508,8 @@ class TestFrameworkDefinitionsIngestion:
                 "CallExpression",
                 "Inheritance",
             ]
-            assert feature.locator_strategy in ["VariableBound", "Direct"]
+            # locator_strategy defaults to "VariableBound" (schema v3 removed this field)
+            assert feature.locator_strategy == "VariableBound"
             assert isinstance(feature.startpoint, bool)
 
         # Validate all absolute paths have required fields

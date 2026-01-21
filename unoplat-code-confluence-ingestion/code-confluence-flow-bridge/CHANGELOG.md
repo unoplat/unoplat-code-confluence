@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.67.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.67.0...code-confluence-flow-bridge-v0.67.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* **dependency-version:** commons dependency version with model update… ([dbdd027](https://github.com/unoplat/unoplat-code-confluence/commit/dbdd02708a379d3277d50f62e19d3934ef4a82fe))
+* **dependency-version:** commons dependency version with model updates for ingestion/query services ([890f4ca](https://github.com/unoplat/unoplat-code-confluence/commit/890f4cad1d3a5aaa3e1f4119f4ce122ab54b9d0d))
+
+## [0.67.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.66.3...code-confluence-flow-bridge-v0.67.0) (2026-01-20)
+
+
+### Features
+
+* **migrate-postgres:** ingestion and query engine services ([06edb7f](https://github.com/unoplat/unoplat-code-confluence/commit/06edb7fb05997754e73f5ba2104b8a764cba5e79))
+
+
+### Bug Fixes
+
+* **dependencies:** get rid of unused dependencies - neomodel ([61e42a2](https://github.com/unoplat/unoplat-code-confluence/commit/61e42a202a7981a7e8cc1347e0b60e40131371ec))
+
+## [0.66.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.66.2...code-confluence-flow-bridge-v0.66.3) (2026-01-20)
+
+
+### Bug Fixes
+
+* fallback to owner name when no organisation exists for user repos ([31f81ec](https://github.com/unoplat/unoplat-code-confluence/commit/31f81ec03bcbf72f71cc94273890f3890a792947))
+* **logging:** add rotating file sinks for ingestion ([ad92980](https://github.com/unoplat/unoplat-code-confluence/commit/ad92980634d5011d5f107e8500450a304913d038))
+
+## [0.66.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.66.1...code-confluence-flow-bridge-v0.66.2) (2026-01-08)
+
+
+### Bug Fixes
+
+* **refactor:** move from structural signature based detection of fram… ([e44d26f](https://github.com/unoplat/unoplat-code-confluence/commit/e44d26f3fb281f2ee5d569209215d0813d8d4d41))
+* **refactor:** move from structural signature based detection of framework/libs to direct source code and import based and also remove variable bound strategy from schema as it is brittle and can easily break. ([059e8da](https://github.com/unoplat/unoplat-code-confluence/commit/059e8daec3c3d08405df757019bb31262329fb84))
+* tests and docs ([728c897](https://github.com/unoplat/unoplat-code-confluence/commit/728c897bb75bd78d1cb70e657d879c773b2282a3))
+
 ## [0.66.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.66.0...code-confluence-flow-bridge-v0.66.1) (2025-12-22)
 
 

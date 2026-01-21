@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.25.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.25.0...unoplat-code-confluence-query-engine-v0.25.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* **dependency-version:** commons dependency version with model update… ([dbdd027](https://github.com/unoplat/unoplat-code-confluence/commit/dbdd02708a379d3277d50f62e19d3934ef4a82fe))
+* **dependency-version:** commons dependency version with model updates for ingestion/query services ([890f4ca](https://github.com/unoplat/unoplat-code-confluence/commit/890f4cad1d3a5aaa3e1f4119f4ce122ab54b9d0d))
+
+## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.9...unoplat-code-confluence-query-engine-v0.25.0) (2026-01-20)
+
+
+### Features
+
+* **migrate-postgres:** ingestion and query engine services ([06edb7f](https://github.com/unoplat/unoplat-code-confluence/commit/06edb7fb05997754e73f5ba2104b8a764cba5e79))
+
+
+### Bug Fixes
+
+* **dependencies:** get rid of unused dependencies - neomodel ([61e42a2](https://github.com/unoplat/unoplat-code-confluence/commit/61e42a202a7981a7e8cc1347e0b60e40131371ec))
+
+## [0.24.9](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.8...unoplat-code-confluence-query-engine-v0.24.9) (2026-01-20)
+
+
+### Bug Fixes
+
+* **improve-system-prompt:** improve system prompt for getting library information to work more reliably with open source models ([469a8e1](https://github.com/unoplat/unoplat-code-confluence/commit/469a8e10a411418197b3d4fbecdcfddf8868675a))
+
+## [0.24.8](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.7...unoplat-code-confluence-query-engine-v0.24.8) (2026-01-09)
+
+
+### Bug Fixes
+
+* **agent-description:** improve system prompts and tool descriptions … ([780b624](https://github.com/unoplat/unoplat-code-confluence/commit/780b624e5af02767bceb7212d8c62a43e2be511f))
+* **agent-description:** improve system prompts and tool descriptions and add output validator for open source models to work reliably. solved issues with minmax2.1 ([8cb0968](https://github.com/unoplat/unoplat-code-confluence/commit/8cb096893c72b8626968234218b1a36db7367cf6))
+
 ## [0.24.7](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.24.6...unoplat-code-confluence-query-engine-v0.24.7) (2025-12-22)
 
 

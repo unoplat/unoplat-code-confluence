@@ -5,7 +5,7 @@ dataclass-decorated classes and extracts their names and line positions.
 """
 
 import pytest
-from src.code_confluence_flow_bridge.detector.python.python_data_model_detector_strategy import (
+from src.code_confluence_flow_bridge.engine.programming_language.python.python_data_model_detector_strategy import (
     PythonDataModelDetectorStrategy,
 )
 

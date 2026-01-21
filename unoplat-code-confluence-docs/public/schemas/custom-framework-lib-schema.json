@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema.json",
-  "title": "Unoplat Code Confluence Multi-Language Framework/Library Schema",
+  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v3.json",
+  "title": "Unoplat Code Confluence Multi-Language Framework/Library Schema v3",
   "description": "Framework / library feature signatures grouped by programming language.",
   "type": "object",
   "propertyNames": {
@@ -71,8 +71,7 @@
         "description",
         "absolute_paths",
         "target_level",
-        "concept",
-        "locator_strategy"
+        "concept"
       ],
       "properties": {
         "description": {
@@ -99,9 +98,6 @@
         },
         "concept": {
           "$ref": "#/$defs/conceptEnum"
-        },
-        "locator_strategy": {
-          "$ref": "#/$defs/locatorEnum"
         },
         "construct_query": {
           "$ref": "#/$defs/constructQueryDef"
@@ -168,14 +164,6 @@
         "Inheritance"
       ],
       "description": "Language-agnostic construct category."
-    },
-    "locatorEnum": {
-      "type": "string",
-      "enum": [
-        "VariableBound",
-        "Direct"
-      ],
-      "description": "`VariableBound` – discover identifiers bound to a constructor/factory first; `Direct` – match the symbol verbatim."
     },
     "constructQueryDef": {
       "type": "object",

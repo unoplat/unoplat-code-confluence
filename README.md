@@ -1,3 +1,5 @@
+<a name="top"></a>
+
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -11,12 +13,12 @@
   <h3 align="center">The Universal Code Context Engine</h3>
 
   <p align="center">
-    Extract, understand, and provide precise code context and related metadata across repositories tied through domains
+    Always keep your agents ready with all the context required per repository.
     <br />
     <a href="https://docs.unoplat.io"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://docs.unoplat.io/docs/category/quickstart">Quick Start</a>
+    <a href="https://docs.unoplat.io/docs/quickstart/how-to-run">Quick Start</a>
     ·
     <a href="https://github.com/unoplat/unoplat-code-confluence/issues">Report Bug</a>
     ·
@@ -49,6 +51,22 @@
   </p>
 </div>
 
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#demo-agentsmd-first-context">Demo</a></li>
+    <li><a href="#%EF%B8%8F-the-problem">The Problem</a></li>
+    <li><a href="#-the-solution">The Solution</a></li>
+    <li><a href="#-core-principles">Core Principles</a></li>
+    <li><a href="#-getting-started">Getting Started</a></li>
+    <li><a href="#-project-status">Project Status</a></li>
+    <li><a href="#maintainers">Maintainers</a></li>
+    <li><a href="#-product-feedback--alpha-disclaimer">Product Feedback</a></li>
+    <li><a href="#license">License</a></li>
+  </ol>
+</details>
+
 <!-- DEMO SECTION -->
 <a id="demo-agentsmd-first-context"></a>
 ## 🎥 Demo: Agents.md-first Context
@@ -63,40 +81,45 @@
   <a href="https://youtu.be/fRBV_f9fDKc?si=XYKkDv4IBGoFBS9u">Watch on YouTube</a>
 </p>
 
-**What’s in the demo:** automatic `AGENTS.md` generation per repo and an org index that gives any coding agent a precise source of truth.
+**What's in the demo:** automatic `AGENTS.md` generation per repo and an org index that gives any coding agent a precise source of truth.
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li><a href="#-vision">Vision</a></li>
-    <li><a href="#-why-unoplat-codeconfluence">Why Unoplat-CodeConfluence?</a></li>
-    <li><a href="#-for-knowledge-engine-and-ai-coding-assistants">For Knowledge Engine and AI Coding Assistants</a></li>
-    <li><a href="#-getting-started">Getting Started</a></li>
-    <li><a href="#demo-agentsmd-first-context">Demo</a></li>
-    <li><a href="#project-status">Project Status</a>
-      <ul>
-        <li><a href="#programming-language-support">Programming Language Support</a></li>
-        <li><a href="#tasks-status">Tasks Status</a></li>
-        <li><a href="#code-grammar">Code Grammar</a></li>
-      </ul>
-    </li>
-    <li><a href="#creditsheeroessupportersinspirations">Credits/Heroes/Supporters/Inspirations</a></li>
-    <li><a href="#maintainers">Maintainers</a></li>
-    <li><a href="#-product-feedback">Product Feedback</a></li>
-    <li><a href="#community-channel">Community Channel</a></li>
-    <li><a href="#license">License</a></li>
-  </ol>
-</details>
+<!-- THE PROBLEM SECTION -->
+## ⚠️ The Problem
 
-<!-- VISION SECTION -->
-## 🎯 Vision
+<p align="center">
+  <img src="images/problem-statement.png" alt="Greenfield vs Brownfield Project comparison showing AI agent challenges" width="800">
+</p>
 
-Unoplat Code Confluence aims to be the definitive solution for discovering, extracting, ingesting, understanding, and providing precise code context across repositories. By combining deterministic code grammar with state-of-the-art LLM pipelines, we unlock a wide range of use cases around code understanding, maintainability, and collaboration.
+AI coding agents excel at **greenfield projects** (new codebases built from scratch) but struggle with **brownfield codebases** (mature, production systems with existing code).
+
+**Why?** They burn most of their context window on exploration—searching files, tracing flows, connecting dots—leaving little capacity for actual implementation. By the time they're ready to code, they've hit the "dumb zone" where performance degrades sharply. And since they lack long-term memory, this cycle repeats with every conversation.
+
+**Multi-repo complexity** makes it worse. When code is split across connected repositories, the agent exhausts its context just mapping dependencies between codebases—often before writing a single line.
+
+**Internal dependencies** present another failure mode. The agent has no onboarding to proprietary systems, so it hallucinates usage patterns. Worse, when internal documentation has drifted from actual implementation, the agent trusts those "lies" and produces code that doesn't work.
+
+The end result: **slop code** requiring heavy rework.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-<!-- WHY SECTION -->
+<!-- SOLUTION SECTION -->
+## 🎯 The Solution
+
+Unoplat Code Confluence is the **context engine** for application development, organizing precise, up-to-date knowledge of your data models, entry points, endpoints, and more—so coding agents can deliver and maintain features **2–3x faster** with higher quality.
+
+### AGENTS.md-first Context
+
+Auto-generates machine-readable `AGENTS.md` files per repo to give coding agents a **precise source of truth**:
+
+- **Project Configuration** — Key config files and their responsibilities
+- **Development Workflow** — Dev/build/test commands, infra, and third-party dependencies
+- **Business Logic** — Core application logic, domain entities, and database entities
+- **Entry Points & Interfaces** — Main entry points, API endpoints, and external interfaces
+- **External Dependencies** — Roles and responsibilities of external libraries
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+<!-- CORE PRINCIPLES SECTION -->
 ## 🌟 Core Principles
 
 ### 1. **Precision First**
@@ -104,22 +127,13 @@ Unoplat Code Confluence aims to be the definitive solution for discovering, extr
 - **[Extensible Framework-Aware Parsing](https://docs.unoplat.io/contribution/custom-framework-schema)**: Specialized grammar engines recognize framework and library-specific patterns based on project dependencies
 
 ### 2. **Context Engineering**
-- **Complete Context Graph**: All essential context—internal/external dependencies, inbound/outbound interfaces, domain models, data stores will be preserved.
-- **Selective Context Routing & Hierarchical Decomposition**: Route only what matters to boost accuracy and efficiency across tasks. For example our structural signature focuses on declarations and important bits of function such as function calls instead of passing the entire content of function.
+- All important metadata about application—dependencies, inbound/outbound interfaces, domain models, and data store models—are identified and their relationships preserved
 
-### 3. **Enterprise-Grade Reliability**
-- Scalable and reliable processing powered by workflow orchestrator
+### 3. **Enterprise-Grade Scalability, Reliability and Auditability**
+- Scalable, auditable and reliable processing powered by workflow orchestrator
 
 ### 4. **Performance Optimization**
 - Optimized algorithms across all aspects of discovery, detection, ingestion and AI-based insights
-
-## 🚀 Use Cases
-
-### In Progress
-- **AGENTS.md-first Context**: Auto-generate machine-readable AGENTS.md per repo and an org index, giving any coding agent a precise source of truth
-
-### Planned
-- **Application Overview**: Comprehensive understanding of application architecture.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -128,38 +142,21 @@ Unoplat Code Confluence aims to be the definitive solution for discovering, extr
 
 Ready to enhance your development workflow?
 
-Check out our [Quick Start Guide](https://docs.unoplat.io/).
+Check out our [Quick Start Guide](https://docs.unoplat.io/docs/quickstart/how-to-run).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- PROJECT STATUS SECTION -->
-## Project Status
+## 📊 Project Status
 
 <div align="center">
   <h3>ALPHA</h3>
+  <p>We're actively developing Unoplat Code Confluence. Currently supports <b>Python</b> and <b>TypeScript</b> codebases.</p>
 </div>
 
-### Programming Language Support
+For detailed roadmap, language support status, and planned features, see our **[Product Roadmap](https://docs.unoplat.io/docs/introduction/roadmap)**.
 
-| Language   | In-POC | Alpha | Beta | Stable |
-|------------|--------|-------|------|--------|
-| Python     | ✓      | ✓     | ✓    |        |
-| Java       | ✓      |       |      |        |
-| TypeScript |        |       |      |        |
-| Go         |        |       |      |        |
-
-### Tasks Status
-
-| Task                       | Done | In Progress | Planned |
-|----------------------------|:----:|:-----------:|:-------:|
-| Repository Discovery       |  ✓   |             |         |
-| Auto Codebase Detection    |  ✓   |             |         |
-| GitHub Ingestion           |  ✓   |             |         |
-| GitHub Manual Sync         |  ✓   |             |         |
-| Local Ingestion            |  ✓   |             |         |
-| Local Manual Sync          |  ✓   |             |         |
-| AGENTS.md-first Context    |      |       ✓     |         |
-| Application Overview       |      |             |    ✓    |
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- MAINTAINERS SECTION -->
 ## Maintainers
@@ -198,6 +195,3 @@ Your feedback is invaluable as we work toward production readiness and helps us 
 Unoplat-CodeConfluence is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0) + COMMONS CLAUSE](LICENSE).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- ANCHOR FOR BACK TO TOP LINKS -->
-<a name="top"></a>

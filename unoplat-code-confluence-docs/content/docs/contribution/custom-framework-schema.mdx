@@ -1,16 +1,17 @@
 ---
 title: Custom Framework/Library Schema
-description: "Define framework and library patterns for Code Confluence"
+description: "Define framework and library patterns for Unoplat Code Confluence"
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
 # Custom Framework/Library Schema
 
-The **Custom Framework/Library Schema** enables contributors to define *framework and library patterns* for Code Confluence to detect and analyze across different programming languages. This schema provides a **structured way** to describe how frameworks and libraries should be identified in codebases.
+The **Custom Framework/Library Schema** enables contributors to define *framework and library patterns* for **Unoplat Code Confluence** to detect and analyze across different programming languages. This schema provides a **structured way** to describe how frameworks and libraries should be identified in codebases.
 
 <Callout type="info" title="Quick Reference">
-  - **Schema**: [View Full Schema](/schemas/custom-framework-lib-schema.json) *(opens as JSON)*
+  - **Latest Schema**: [custom-framework-lib-schema.json](/schemas/custom-framework-lib-schema.json) *(opens as JSON)*
+  - **Schema v3**: [custom-framework-lib-schema-v3.json](/schemas/custom-framework-lib-schema-v3.json) *(opens as JSON)*
   - **Specification**: [JSON Schema Draft 2020-12](https://json-schema.org/specification)
   - **Organization**: By *programming language* → *library* → *features*
 </Callout>
@@ -65,7 +66,7 @@ The schema organizes definitions hierarchically by **language** and **library**:
 
 ## Library Definition Structure
 
-Each **library definition** describes a framework or library that Code Confluence should recognize.
+Each **library definition** describes a framework or library that **Unoplat Code Confluence** should recognize.
 
 ### Required Fields
 
@@ -98,7 +99,7 @@ Each **library definition** describes a framework or library that Code Confluenc
 
 ## Feature Definition Structure
 
-Each **feature** within a library describes a specific pattern that Code Confluence should detect.
+Each **feature** within a library describes a specific pattern that **Unoplat Code Confluence** should detect.
 
 ### Required Fields
 
@@ -119,10 +120,6 @@ Each **feature** within a library describes a specific pattern that Code Conflue
     concept: {
       description: 'Language-agnostic construct category for pattern matching',
       type: '"AnnotationLike" | "CallExpression" | "Inheritance"',
-    },
-    locator_strategy: {
-      description: 'Strategy for locating the feature in code',
-      type: '"VariableBound" | "Direct"',
     },
   }}
 />
@@ -167,35 +164,9 @@ Each **feature** within a library describes a specific pattern that Code Conflue
   - **Inheritance**: `class User(BaseModel)`, `class MyView(APIView)`, `class App extends Component`
 </Callout>
 
-### `locator_strategy` Values
+### Detection Heuristics (v3)
 
-<TypeTable
-  type={{
-    VariableBound: {
-      description: 'First discover identifiers bound to a constructor/factory, then find their usages. Use when the symbol is assigned to a variable before use.',
-      type: 'enum',
-    },
-    Direct: {
-      description: 'Match the symbol verbatim in code. Use when the symbol is used directly without variable assignment.',
-      type: 'enum',
-    },
-  }}
-/>
-
-<Callout type="info" title="Strategy Examples">
-  **VariableBound** — When `app = FastAPI()` is used, then `@app.get()` is detected:
-  ```python
-  app = FastAPI()  # First: find this binding
-  @app.get("/")    # Then: find usages of 'app'
-  def handler(): ...
-  ```
-
-  **Direct** — When the import is used directly:
-  ```python
-  from pydantic import BaseModel
-  class User(BaseModel): ...  # Direct match on 'BaseModel'
-  ```
-</Callout>
+Detection is import-gated and regex-based. `absolute_paths` must be present in the file imports, and `construct_query` refines the tree-sitter regex patterns used to match decorators, calls, and inheritance.
 
 ### Optional Fields
 
@@ -264,7 +235,7 @@ Each **feature** within a library describes a specific pattern that Code Conflue
 
 ## Real Framework Examples
 
-Explore actual schema definitions from the Code Confluence codebase:
+Explore actual schema definitions from the **Unoplat Code Confluence** codebase:
 
 <Tabs items={['FastAPI', 'Pydantic', 'SQLAlchemy', 'SQLModel']}>
   <Tab value="FastAPI">
@@ -286,7 +257,6 @@ Explore actual schema definitions from the Code Confluence codebase:
               ],
               "target_level": "function",
               "concept": "AnnotationLike",
-              "locator_strategy": "VariableBound",
               "construct_query": {
                 "method_regex": "(get|post|put|delete|patch|head|options|trace)"
               },
@@ -298,8 +268,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "fastapi.BackgroundTasks"
               ],
               "target_level": "function",
-              "concept": "CallExpression",
-              "locator_strategy": "Direct"
+              "concept": "CallExpression"
             },
             "api_router": {
               "description": "Route organization using APIRouter",
@@ -308,7 +277,6 @@ Explore actual schema definitions from the Code Confluence codebase:
               ],
               "target_level": "function",
               "concept": "AnnotationLike",
-              "locator_strategy": "VariableBound",
               "construct_query": {
                 "method_regex": "(get|post|put|delete|patch|head|options|trace|include_router)"
               },
@@ -338,8 +306,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "pydantic.main.BaseModel"
               ],
               "target_level": "class",
-              "concept": "Inheritance",
-              "locator_strategy": "Direct"
+              "concept": "Inheritance"
             }
           }
         }
@@ -365,8 +332,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "sqlalchemy.orm.declarative_base"
               ],
               "target_level": "class",
-              "concept": "Inheritance",
-              "locator_strategy": "VariableBound"
+              "concept": "Inheritance"
             },
             "mapped_column": {
               "description": "Column definition using mapped_column for modern SQLAlchemy",
@@ -374,8 +340,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "sqlalchemy.orm.mapped_column"
               ],
               "target_level": "function",
-              "concept": "CallExpression",
-              "locator_strategy": "Direct"
+              "concept": "CallExpression"
             },
             "relationship": {
               "description": "Relationship definition between models",
@@ -383,8 +348,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "sqlalchemy.orm.relationship"
               ],
               "target_level": "function",
-              "concept": "CallExpression",
-              "locator_strategy": "Direct"
+              "concept": "CallExpression"
             },
             "column": {
               "description": "Traditional column definition using Column",
@@ -393,8 +357,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "sqlalchemy.sql.schema.Column"
               ],
               "target_level": "function",
-              "concept": "CallExpression",
-              "locator_strategy": "Direct"
+              "concept": "CallExpression"
             }
           }
         }
@@ -419,8 +382,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "sqlmodel.SQLModel"
               ],
               "target_level": "class",
-              "concept": "Inheritance",
-              "locator_strategy": "Direct"
+              "concept": "Inheritance"
             },
             "field_definition": {
               "description": "Field definition using Field() function with SQLModel extensions",
@@ -428,8 +390,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "sqlmodel.Field"
               ],
               "target_level": "function",
-              "concept": "CallExpression",
-              "locator_strategy": "Direct"
+              "concept": "CallExpression"
             },
             "relationship": {
               "description": "Relationship definition between SQLModel models",
@@ -437,8 +398,7 @@ Explore actual schema definitions from the Code Confluence codebase:
                 "sqlmodel.Relationship"
               ],
               "target_level": "function",
-              "concept": "CallExpression",
-              "locator_strategy": "Direct"
+              "concept": "CallExpression"
             }
           }
         }
@@ -454,7 +414,7 @@ Explore actual schema definitions from the Code Confluence codebase:
 
 <Accordions>
   <Accordion title="View Complete Multi-Framework Schema" id="complete-example">
-    Here's how **multiple frameworks** can be combined in a single schema file. This example shows a typical Python project using FastAPI for APIs, Pydantic for validation, and SQLAlchemy for database access:
+    Here's how **multiple frameworks** can be combined in a single schema file for **Unoplat Code Confluence**. This example shows a typical Python project using FastAPI for APIs, Pydantic for validation, and SQLAlchemy for database access:
 
     ```json
     {
@@ -467,7 +427,6 @@ Explore actual schema definitions from the Code Confluence codebase:
               "absolute_paths": ["fastapi.FastAPI"],
               "target_level": "function",
               "concept": "AnnotationLike",
-              "locator_strategy": "VariableBound",
               "construct_query": {
                 "method_regex": "(get|post|put|delete|patch|head|options|trace)"
               },
@@ -482,8 +441,7 @@ Explore actual schema definitions from the Code Confluence codebase:
               "description": "Base class for Pydantic models with automatic validation",
               "absolute_paths": ["pydantic.BaseModel"],
               "target_level": "class",
-              "concept": "Inheritance",
-              "locator_strategy": "Direct"
+              "concept": "Inheritance"
             }
           }
         },
@@ -494,8 +452,7 @@ Explore actual schema definitions from the Code Confluence codebase:
               "description": "Column definition using mapped_column for modern SQLAlchemy",
               "absolute_paths": ["sqlalchemy.orm.mapped_column"],
               "target_level": "function",
-              "concept": "CallExpression",
-              "locator_strategy": "Direct"
+              "concept": "CallExpression"
             }
           }
         }
@@ -572,7 +529,7 @@ Explore actual schema definitions from the Code Confluence codebase:
 To contribute new framework/library definitions:
 
 1. **Fork the repository** and create a feature branch
-2. **Update the schema file** at `/static/schemas/custom-framework-lib-schema.json`
+2. **Update the schema file** at `/public/schemas/custom-framework-lib-schema.json`
 3. **Add comprehensive definitions** following the structure above
 4. **Test your definitions** against real codebases
 5. **Submit a pull request** with detailed examples and test cases
@@ -619,7 +576,7 @@ Before submitting, verify your schema definitions:
     - `absolute_paths`
     - `target_level`
     - `concept`
-    - `locator_strategy`
+
   </Accordion>
 
   <Accordion title="Concept-Target Level Mismatch" id="error-mismatch">
@@ -640,9 +597,9 @@ Before submitting, verify your schema definitions:
     **Symptom:** Your schema is valid but the feature isn't being detected in code.
 
     **Possible Causes:**
-    1. **Wrong `locator_strategy`** — Try switching between `VariableBound` and `Direct`
-    2. **Incorrect `absolute_paths`** — Verify the exact import path used in the library
-    3. **Missing `construct_query`** — Add regex patterns to narrow down matches
+    1. **Incorrect `absolute_paths`** — Verify the exact import path used in the library
+    2. **Missing `construct_query`** — Add regex patterns to narrow down matches
+    3. **Import not present** — Detection is import-gated; ensure the file imports the library
 
     **Solution:** Test with a minimal code example and check the Tree-sitter output.
   </Accordion>
