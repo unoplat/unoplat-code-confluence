@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.27.1...unoplat-code-confluence-docs-v0.28.0) (2026-01-21)
+
+
+### Features
+
+* **docs:** upgrade roadmap and release notes ([fc32918](https://github.com/unoplat/unoplat-code-confluence/commit/fc32918ebdb25f0d61801a8d4b2b691fc7db4408))
+* **docs:** upgrade roadmap and release notes ([3d706b6](https://github.com/unoplat/unoplat-code-confluence/commit/3d706b61c79794165f80233be76b220d3ebb17ec))
+
 ## [0.27.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.27.0...unoplat-code-confluence-docs-v0.27.1) (2026-01-08)
 
 
