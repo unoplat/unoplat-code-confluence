@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.67.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.67.0...code-confluence-flow-bridge-v0.67.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* **dependency-version:** commons dependency version with model update… ([dbdd027](https://github.com/unoplat/unoplat-code-confluence/commit/dbdd02708a379d3277d50f62e19d3934ef4a82fe))
+* **dependency-version:** commons dependency version with model updates for ingestion/query services ([890f4ca](https://github.com/unoplat/unoplat-code-confluence/commit/890f4cad1d3a5aaa3e1f4119f4ce122ab54b9d0d))
+
 ## [0.67.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.66.3...code-confluence-flow-bridge-v0.67.0) (2026-01-20)
 
 
