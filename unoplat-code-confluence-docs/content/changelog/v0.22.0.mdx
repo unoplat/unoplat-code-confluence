@@ -1,0 +1,45 @@
+---
+title: "Release v0.22.0"
+description: "Major infrastructure simplification: PostgreSQL migration replaces Neo4j for knowledge graph storage"
+version: "0.22.0"
+releaseDate: "2025-01-21"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.22.0"
+---
+
+## Highlights
+
+This release marks a significant architectural simplification by migrating from Neo4j to PostgreSQL for knowledge graph storage, reducing operational complexity while maintaining performance through optimized rdbms schema.
+
+## What's New
+
+### PostgreSQL Migration (Major)
+
+- Migrated ingestion and query engine services to PostgreSQL
+- Removed Neo4j related models, schema, and dependencies
+
+### Infrastructure Savings
+
+By removing Neo4j and consolidating on PostgreSQL (which was already required for Temporal workflow data), self-hosted deployments benefit from reduced resource requirements:
+
+| Resource | Neo4j Requirement | Savings |
+|----------|-------------------|---------|
+| **RAM** | 2GB minimum (8GB+ recommended for production) | 2-8GB freed |
+| **CPU** | 2 vCPU minimum (16+ recommended) | 2+ vCPU freed |
+| **JVM Overhead** | Requires Java runtime | Eliminated |
+
+### Documentation Improvements
+
+- Added common links in sidebar for better navigation
+- Zoom and preview support across all MDX docs
+- Submit feedback documentation added
+- Changelog RSS feed with theme alignment
+
+## Bug Fixes
+
+- System prompt refinements for improved agent descriptions
+- Validations and Retries across agent harness to improve compatibility with open source models. 
+- Framework/lib features' detection across codebase for inbound and outbound interfaces refactored from structural signatures to source code analysis which will improve scalability across programming languages.
+- Owner name fallback for user repositories
+- Theme-based icon color adjustments
+- Changelog sorting by release date and version number
+- Documentation content improvements
