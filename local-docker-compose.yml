@@ -134,40 +134,12 @@ services:
       - temporal-network
     ports:
       - 8081:8080
-  neo4j:
-    # container_name: neo4j
-    image: docker.io/graphstack/dozerdb:5.25.1.0-alpha.1
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - ${HOME}/neo4j/data:/data
-      - ${HOME}/neo4j/logs:/logs
-      - ${HOME}/neo4j/import:/var/lib/neo4j/import
-      - ${HOME}/neo4j/plugins:/plugins
-    environment:
-      NEO4J_AUTH: neo4j/password
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_apoc_export_file_enabled: "true"
-      NEO4J_apoc_import_file_enabled: "true"
-      NEO4J_dbms_security_procedures_unrestricted: "*"
-    networks:
-      - temporal-network
-    healthcheck:
-      test: ["CMD-SHELL", "neo4j status | grep -q 'Neo4j is running' || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
   code-confluence-flow-bridge:
     # image: ghcr.io/unoplat/code-confluence-flow-bridge:0.53.1
     build:
       context: ./unoplat-code-confluence-ingestion/code-confluence-flow-bridge
       dockerfile: Dockerfile
     environment:
-      - NEO4J_HOST=neo4j
-      - NEO4J_PORT=7687
-      - NEO4J_USERNAME=neo4j
-      - NEO4J_PASSWORD=password
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001,http://localhost:5173,http://127.0.0.1:3000
       - DB_HOST=postgresql
@@ -200,10 +172,6 @@ services:
       context: ./unoplat-code-confluence-query-engine
       dockerfile: Dockerfile
     environment:
-      - NEO4J_HOST=neo4j
-      - NEO4J_PORT=7687
-      - NEO4J_USERNAME=neo4j
-      - NEO4J_PASSWORD=password
       - DB_HOST=postgresql
       - DB_PORT=5432
       - DB_USER=postgres
@@ -219,8 +187,6 @@ services:
       - temporal-network
     depends_on:
       postgresql:
-        condition: service_healthy
-      neo4j:
         condition: service_healthy
 
   unoplat-code-confluence-frontend:
