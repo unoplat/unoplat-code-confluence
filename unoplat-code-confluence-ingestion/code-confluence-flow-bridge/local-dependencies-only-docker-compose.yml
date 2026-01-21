@@ -190,32 +190,6 @@ services:
     ports:
       - "8081:8081"
 
-  # Neo4j graph database
-  neo4j:
-    container_name: neo4j
-    image: graphstack/dozerdb:5.25.1.0-alpha.1
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - ${HOME}/neo4j/data:/data
-      - ${HOME}/neo4j/logs:/logs
-      - ${HOME}/neo4j/import:/var/lib/neo4j/import
-      - ${HOME}/neo4j/plugins:/plugins
-    environment:
-      NEO4J_AUTH: neo4j/password
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_apoc_export_file_enabled: "true"
-      NEO4J_apoc_import_file_enabled: "true"
-      NEO4J_dbms_security_procedures_unrestricted: "*"
-    networks:
-      - code-confluence-network
-    healthcheck:
-      test: ["CMD-SHELL", "neo4j status | grep -q 'Neo4j is running' || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   init-clickhouse:
     !!merge <<: *common
     image: clickhouse/clickhouse-server:24.1.2-alpine
