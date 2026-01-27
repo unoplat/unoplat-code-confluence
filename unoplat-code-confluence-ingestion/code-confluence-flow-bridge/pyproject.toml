@@ -63,7 +63,7 @@ dev = [
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
 #unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.41.1" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.42.0" }
 
 [tool.basedpyright]
 typeCheckingMode = "strict"
