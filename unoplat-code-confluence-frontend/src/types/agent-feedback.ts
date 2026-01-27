@@ -145,7 +145,9 @@ export function formatFeedbackAsMarkdown(
 
   // Overall rating
   const overallConfig = SENTIMENT_CONFIG[formData.overallRating];
-  lines.push(`### Overall Rating: ${overallConfig.emoji} ${overallConfig.label}`);
+  lines.push(
+    `### Overall Rating: ${overallConfig.emoji} ${overallConfig.label}`,
+  );
   lines.push("");
 
   // Categories

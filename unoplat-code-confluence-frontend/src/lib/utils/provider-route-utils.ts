@@ -35,14 +35,18 @@ const REPOSITORY_PROVIDER_ROUTE_SLUGS: Record<ProviderKey, string | null> = {
  * Provider metadata for UI display
  * Only includes active repository providers
  */
-const REPOSITORY_PROVIDER_METADATA: Partial<Record<ProviderKey, Omit<ProviderMetadata, "routeSlug">>> = {
+const REPOSITORY_PROVIDER_METADATA: Partial<
+  Record<ProviderKey, Omit<ProviderMetadata, "routeSlug">>
+> = {
   [ProviderKey.GITHUB_OPEN]: {
     title: "GitHub Repositories",
-    description: "Connect your GitHub repositories to ingest them into Unoplat Code Confluence.",
+    description:
+      "Connect your GitHub repositories to ingest them into Unoplat Code Confluence.",
   },
   [ProviderKey.GITHUB_ENTERPRISE]: {
     title: "GitHub Enterprise Repositories",
-    description: "Connect your GitHub Enterprise account. For Enterprise Cloud on github.com you can leave the Base URL empty. For data residency (ghe.com) or self-hosted Enterprise Server, supply the instance URL and a PAT.",
+    description:
+      "Connect your GitHub Enterprise account. For Enterprise Cloud on github.com you can leave the Base URL empty. For data residency (ghe.com) or self-hosted Enterprise Server, supply the instance URL and a PAT.",
   },
   // Future providers will be added here
 };
@@ -76,7 +80,9 @@ export function getProviderRouteSlug(providerKey: ProviderKey): string | null {
  * // { title: "GitHub Repositories", description: "...", routeSlug: "github" }
  * ```
  */
-export function getProviderMetadata(providerKey: ProviderKey): ProviderMetadata | null {
+export function getProviderMetadata(
+  providerKey: ProviderKey,
+): ProviderMetadata | null {
   const slug = REPOSITORY_PROVIDER_ROUTE_SLUGS[providerKey];
   const metadata = REPOSITORY_PROVIDER_METADATA[providerKey];
 
@@ -105,7 +111,7 @@ export function getProviderMetadata(providerKey: ProviderKey): ProviderMetadata 
  */
 export function getProviderFromSlug(slug: string): ProviderKey | null {
   const entry = Object.entries(REPOSITORY_PROVIDER_ROUTE_SLUGS).find(
-    ([, routeSlug]) => routeSlug === slug
+    ([, routeSlug]) => routeSlug === slug,
   );
   return entry ? (entry[0] as ProviderKey) : null;
 }
@@ -128,9 +134,7 @@ export function getProviderFromSlug(slug: string): ProviderKey | null {
  * // pathname="/settings" -> null
  * ```
  */
-export function getProviderFromPathname(
-  pathname: string,
-): ProviderKey | null {
+export function getProviderFromPathname(pathname: string): ProviderKey | null {
   // Extract the last segment from the pathname
   const segments = pathname.split("/").filter(Boolean);
   const lastSegment = segments[segments.length - 1];

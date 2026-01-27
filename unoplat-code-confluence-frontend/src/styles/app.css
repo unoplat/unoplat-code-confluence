@@ -247,6 +247,42 @@
     color: oklch(var(--foreground)) !important;
   }
 
+  /* Fix prose inline code artifacts - remove backtick pseudo-elements */
+  & .prose code::before {
+    content: none !important;
+  }
+
+  & .prose code::after {
+    content: none !important;
+  }
+
+  & .prose-sm code::before {
+    content: none !important;
+  }
+
+  & .prose-sm code::after {
+    content: none !important;
+  }
+
+  /* Style inline code properly within MDXEditor */
+  & .prose code:not(pre code) {
+    background-color: oklch(var(--muted)) !important;
+    color: oklch(var(--foreground)) !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: calc(var(--radius) - 4px) !important;
+    font-size: 0.875em !important;
+    font-weight: 400 !important;
+  }
+
+  & .prose-sm code:not(pre code) {
+    background-color: oklch(var(--muted)) !important;
+    color: oklch(var(--foreground)) !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: calc(var(--radius) - 4px) !important;
+    font-size: 0.875em !important;
+    font-weight: 400 !important;
+  }
+
   & .mdx-editor-wrapper pre {
     background-color: oklch(var(--muted)) !important;
     color: oklch(var(--foreground)) !important;
@@ -393,6 +429,85 @@
     border-color: oklch(var(--border)) !important;
     color: oklch(var(--foreground)) !important;
   }
+
+  /* Fix prose inline code artifacts - remove backtick pseudo-elements */
+  /* Note: Using &.prose (no space) because prose and mdx-editor-wrapper are on same element */
+  & .prose code::before,
+  &.prose code::before,
+  .dark & .prose code::before,
+  .dark &.prose code::before {
+    content: none !important;
+  }
+
+  & .prose code::after,
+  &.prose code::after,
+  .dark & .prose code::after,
+  .dark &.prose code::after {
+    content: none !important;
+  }
+
+  & .prose-sm code::before,
+  &.prose-sm code::before,
+  .dark & .prose-sm code::before,
+  .dark &.prose-sm code::before {
+    content: none !important;
+  }
+
+  & .prose-sm code::after,
+  &.prose-sm code::after,
+  .dark & .prose-sm code::after,
+  .dark &.prose-sm code::after {
+    content: none !important;
+  }
+
+  & .mdxeditor-root-contenteditable code::before,
+  &.mdxeditor-root-contenteditable code::before,
+  & .mdxeditor-rich-text-editor code::before,
+  & code::before,
+  .dark & .mdxeditor-root-contenteditable code::before,
+  .dark &.mdxeditor-root-contenteditable code::before,
+  .dark & .mdxeditor-rich-text-editor code::before,
+  .dark & code::before {
+    --tw-content: "";
+    content: "" !important;
+  }
+
+  & .mdxeditor-root-contenteditable code::after,
+  &.mdxeditor-root-contenteditable code::after,
+  & .mdxeditor-rich-text-editor code::after,
+  & code::after,
+  .dark & .mdxeditor-root-contenteditable code::after,
+  .dark &.mdxeditor-root-contenteditable code::after,
+  .dark & .mdxeditor-rich-text-editor code::after,
+  .dark & code::after {
+    --tw-content: "";
+    content: "" !important;
+  }
+
+  /* Style inline code properly (not code blocks) */
+  & .prose code:not(pre code),
+  &.prose code:not(pre code),
+  .dark & .prose code:not(pre code),
+  .dark &.prose code:not(pre code) {
+    background-color: oklch(var(--muted)) !important;
+    color: oklch(var(--foreground)) !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: calc(var(--radius) - 4px) !important;
+    font-size: 0.875em !important;
+    font-weight: 400 !important;
+  }
+
+  & .prose-sm code:not(pre code),
+  &.prose-sm code:not(pre code),
+  .dark & .prose-sm code:not(pre code),
+  .dark &.prose-sm code:not(pre code) {
+    background-color: oklch(var(--muted)) !important;
+    color: oklch(var(--foreground)) !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: calc(var(--radius) - 4px) !important;
+    font-size: 0.875em !important;
+    font-weight: 400 !important;
+  }
 }
 @utility mdx-editor-content {
   .dark & {
@@ -482,6 +597,85 @@
   .dark & td {
     border-color: oklch(var(--border)) !important;
     color: oklch(var(--foreground)) !important;
+  }
+
+  /* Fix prose inline code artifacts - remove backtick pseudo-elements */
+  /* Note: Using &.prose (no space) because prose and mdx-editor-content are on SAME element */
+  & .prose code::before,
+  &.prose code::before,
+  .dark & .prose code::before,
+  .dark &.prose code::before {
+    content: none !important;
+  }
+
+  & .prose code::after,
+  &.prose code::after,
+  .dark & .prose code::after,
+  .dark &.prose code::after {
+    content: none !important;
+  }
+
+  & .prose-sm code::before,
+  &.prose-sm code::before,
+  .dark & .prose-sm code::before,
+  .dark &.prose-sm code::before {
+    content: none !important;
+  }
+
+  & .prose-sm code::after,
+  &.prose-sm code::after,
+  .dark & .prose-sm code::after,
+  .dark &.prose-sm code::after {
+    content: none !important;
+  }
+
+  & .mdxeditor-root-contenteditable code::before,
+  &.mdxeditor-root-contenteditable code::before,
+  & .mdxeditor-rich-text-editor code::before,
+  & code::before,
+  .dark & .mdxeditor-root-contenteditable code::before,
+  .dark &.mdxeditor-root-contenteditable code::before,
+  .dark & .mdxeditor-rich-text-editor code::before,
+  .dark & code::before {
+    --tw-content: "";
+    content: "" !important;
+  }
+
+  & .mdxeditor-root-contenteditable code::after,
+  &.mdxeditor-root-contenteditable code::after,
+  & .mdxeditor-rich-text-editor code::after,
+  & code::after,
+  .dark & .mdxeditor-root-contenteditable code::after,
+  .dark &.mdxeditor-root-contenteditable code::after,
+  .dark & .mdxeditor-rich-text-editor code::after,
+  .dark & code::after {
+    --tw-content: "";
+    content: "" !important;
+  }
+
+  /* Style inline code properly (not code blocks) */
+  & .prose code:not(pre code),
+  &.prose code:not(pre code),
+  .dark & .prose code:not(pre code),
+  .dark &.prose code:not(pre code) {
+    background-color: oklch(var(--muted)) !important;
+    color: oklch(var(--foreground)) !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: calc(var(--radius) - 4px) !important;
+    font-size: 0.875em !important;
+    font-weight: 400 !important;
+  }
+
+  & .prose-sm code:not(pre code),
+  &.prose-sm code:not(pre code),
+  .dark & .prose-sm code:not(pre code),
+  .dark &.prose-sm code:not(pre code) {
+    background-color: oklch(var(--muted)) !important;
+    color: oklch(var(--foreground)) !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: calc(var(--radius) - 4px) !important;
+    font-size: 0.875em !important;
+    font-weight: 400 !important;
   }
 }
 @utility mdxeditor-rich-text-editor {

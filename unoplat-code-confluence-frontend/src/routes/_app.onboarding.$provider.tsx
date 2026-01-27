@@ -29,7 +29,9 @@ export const Route = createFileRoute("/_app/onboarding/$provider")({
     // Validate: provider must be supported; if we already have providers cached,
     // ensure it exists. When the list is empty (fresh connect), allow it so
     // we don't bounce back before the list refetches.
-    const exists = providers.some((p: Provider) => p.provider_key === providerKey);
+    const exists = providers.some(
+      (p: Provider) => p.provider_key === providerKey,
+    );
 
     if (!providerKey) {
       throw redirect({ to: "/onboarding", replace: true });
