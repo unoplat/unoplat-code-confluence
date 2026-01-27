@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.41.1...unoplat-code-confluence-commons-v0.42.0) (2026-01-27)
+
+
+### Features
+
+* **tool-support:** support mcp tools auth through schema ([cdab28a](https://github.com/unoplat/unoplat-code-confluence/commit/cdab28a0446729195b09b39c41527ee1d6e4c4aa))
+* **tool-support:** support mcp tools auth through schema ([bf0b895](https://github.com/unoplat/unoplat-code-confluence/commit/bf0b89590cbe135b0e83c8c9e98fe92fae343708))
+
 ## [0.41.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.41.0...unoplat-code-confluence-commons-v0.41.1) (2026-01-20)
 
 
