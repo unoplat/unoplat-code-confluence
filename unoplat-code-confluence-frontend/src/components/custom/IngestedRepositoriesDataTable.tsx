@@ -98,10 +98,18 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
       // Invalidate parent workflow jobs so the new job appears in SubmittedJobsDataTable
       queryClient.invalidateQueries({ queryKey: ["parentWorkflowJobs"] });
     },
-    onError: (_error, repository) => {
-      toast.error(
-        `Failed to start Agent MD generation for ${repository.repository_owner_name}/${repository.repository_name}. Please try again.`,
-      );
+    onError: (error, repository) => {
+      // Use backend error message if available, otherwise show generic message
+      // Note: error can be an ApiError object (plain object with message) or an Error instance
+      const errorMessage =
+        error &&
+        typeof error === "object" &&
+        "message" in error &&
+        typeof error.message === "string"
+          ? error.message
+          : `Failed to start Agent MD generation for ${repository.repository_owner_name}/${repository.repository_name}. Please try again.`;
+
+      toast.error(errorMessage);
     },
   });
 
