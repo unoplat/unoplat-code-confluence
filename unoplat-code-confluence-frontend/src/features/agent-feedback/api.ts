@@ -4,7 +4,11 @@ import { apiClient } from "@/lib/api/clients";
 import { handleApiError } from "@/lib/api";
 import type { IssueTracking, ParentWorkflowJobResponse } from "@/types";
 
-import type { AgentFeedbackFormValues, FeedbackCategory, SentimentRating } from "./schema";
+import type {
+  AgentFeedbackFormValues,
+  FeedbackCategory,
+  SentimentRating,
+} from "./schema";
 
 /**
  * Agent rating for API submission
@@ -47,7 +51,9 @@ export async function submitAgentFeedback(
 ): Promise<IssueTracking> {
   // Filter out null ratings and transform to API format
   const agentRatingsPayload: AgentRatingPayload[] = formValues.agentRatings
-    .filter((ar): ar is typeof ar & { rating: SentimentRating } => ar.rating !== null)
+    .filter(
+      (ar): ar is typeof ar & { rating: SentimentRating } => ar.rating !== null,
+    )
     .map((ar) => ({
       codebase_name: ar.codebase_name,
       agent_id: ar.agent_id,
@@ -59,7 +65,8 @@ export async function submitAgentFeedback(
     repository_owner_name: job.repository_owner_name,
     parent_workflow_run_id: job.repository_workflow_run_id,
     overall_rating: formValues.overallRating,
-    agent_ratings: agentRatingsPayload.length > 0 ? agentRatingsPayload : undefined,
+    agent_ratings:
+      agentRatingsPayload.length > 0 ? agentRatingsPayload : undefined,
     categories: formValues.categories,
     comments: formValues.comments || undefined,
   };

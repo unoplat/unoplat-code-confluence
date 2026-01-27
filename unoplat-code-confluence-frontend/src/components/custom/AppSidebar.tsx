@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { NavUser } from "./NavUser";
+import codeConfluenceLogo from "@/assets/unoplat-code-confluence-logo.svg";
 
 export function AppSidebar(): React.ReactElement {
   const { user } = useAuthStore();
@@ -42,11 +43,12 @@ export function AppSidebar(): React.ReactElement {
       className="group w-full max-w-[14rem]"
     >
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-4 py-2">
-          {/* <img src={logoUnoplat} alt="Unoplat Code Confluence" className="h-8 w-8 object-contain" /> */}
-          <h1 className="truncate bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-lg font-semibold text-transparent">
-            Code Confluence
-          </h1>
+        <div className="flex items-center px-4 py-2">
+          <img
+            src={codeConfluenceLogo}
+            alt="Code Confluence"
+            className="h-auto w-full max-w-[10rem] object-contain dark:brightness-[1.8] dark:saturate-[1.4]"
+          />
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -85,7 +87,10 @@ export function AppSidebar(): React.ReactElement {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Operations Management">
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="Operations Management"
+                      >
                         <Link
                           to="/operationsManagement"
                           className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
@@ -157,6 +162,18 @@ export function AppSidebar(): React.ReactElement {
                         >
                           <span className="text-sm font-medium">
                             Model Providers
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="Tool Configuration">
+                        <Link
+                          to="/settings/tool-config"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">
+                            Tool Configuration
                           </span>
                         </Link>
                       </SidebarMenuButton>

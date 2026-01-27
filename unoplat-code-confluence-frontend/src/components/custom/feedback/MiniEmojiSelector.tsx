@@ -2,10 +2,7 @@ import * as React from "react";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import {
-  SENTIMENT_CONFIG,
-  type SentimentRating,
-} from "@/types/agent-feedback";
+import { SENTIMENT_CONFIG, type SentimentRating } from "@/types/agent-feedback";
 
 const RATING_ORDER: SentimentRating[] = ["unhappy", "neutral", "happy"];
 
@@ -65,7 +62,7 @@ export function MiniEmojiSelector({
               "transition-all duration-150",
               "hover:scale-110 active:scale-95",
               // Default state
-              "bg-transparent text-muted-foreground/60",
+              "text-muted-foreground/60 bg-transparent",
               "hover:bg-muted hover:text-muted-foreground",
               // Selected state with sentiment-specific colors
               isSelected && [

@@ -1,5 +1,9 @@
 import React from "react";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type {
   ParentWorkflowJobResponse,
   FlattenedCodebaseRun,
@@ -84,8 +88,7 @@ export function GenerateAgentsDialog({
     staleTime: 1000 * 60 * 1, // Match the source query's stale time
     select: (jobs) =>
       jobs.find(
-        (j) =>
-          j.repository_workflow_run_id === job?.repository_workflow_run_id,
+        (j) => j.repository_workflow_run_id === job?.repository_workflow_run_id,
       ),
     enabled: open && !!job,
   });
@@ -185,7 +188,10 @@ export function GenerateAgentsDialog({
       (codebase: CodebaseStatus) => {
         return codebase.workflows.flatMap((workflow: WorkflowStatus) => {
           return workflow.codebase_workflow_runs
-            .filter((run: WorkflowRun) => run.status === "FAILED" || run.status === "ERROR")
+            .filter(
+              (run: WorkflowRun) =>
+                run.status === "FAILED" || run.status === "ERROR",
+            )
             .map((run: WorkflowRun): FlattenedCodebaseRun => {
               const uiErrorReport = run.error_report
                 ? apiToUiErrorReport(run.error_report, {
@@ -217,7 +223,9 @@ export function GenerateAgentsDialog({
   // Check if repository has a reportable error (failed/error + has error report + no issue yet)
   const hasReportableRepositoryError = React.useMemo(() => {
     if (!repositoryStatus) return false;
-    const isErrorState = repositoryStatus.status === "FAILED" || repositoryStatus.status === "ERROR";
+    const isErrorState =
+      repositoryStatus.status === "FAILED" ||
+      repositoryStatus.status === "ERROR";
     return (
       isErrorState &&
       !!repositoryStatus.error_report &&
@@ -241,7 +249,11 @@ export function GenerateAgentsDialog({
     );
 
     return hasReportableCodebaseErrors;
-  }, [repositoryStatus?.issue_tracking?.issue_url, hasReportableRepositoryError, failedCodebaseRuns]);
+  }, [
+    repositoryStatus?.issue_tracking?.issue_url,
+    hasReportableRepositoryError,
+    failedCodebaseRuns,
+  ]);
 
   // Get the tracked issue URL (prefer repository-level, fallback to first codebase with issue)
   const trackedIssueUrl = React.useMemo((): string | null => {
@@ -308,187 +320,188 @@ export function GenerateAgentsDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="flex max-h-[85vh] flex-col p-6 sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>AGENTS.md</DialogTitle>
-          <DialogDescription>
-            Track generation progress, preview results, and view usage
-            statistics.
-          </DialogDescription>
-        </DialogHeader>
+          <DialogHeader>
+            <DialogTitle>AGENTS.md</DialogTitle>
+            <DialogDescription>
+              Track generation progress, preview results, and view usage
+              statistics.
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Section: Run Details */}
-        <div className="mt-6 mb-4 flex justify-center">
-          <Badge variant="section">Run Details</Badge>
-        </div>
-
-        <Card className="p-4 space-y-3">
-          <div>
-            <div className="text-muted-foreground text-xs uppercase tracking-wide">
-              Repository
-            </div>
-            <div className="text-sm font-medium">
-              {job.repository_owner_name}/{job.repository_name}
-            </div>
+          {/* Section: Run Details */}
+          <div className="mt-6 mb-4 flex justify-center">
+            <Badge variant="section">Run Details</Badge>
           </div>
-          <div>
-            <div className="text-muted-foreground text-xs uppercase tracking-wide">
-              Run ID
-            </div>
-            <div className="text-muted-foreground font-mono text-xs">
-              {job.repository_workflow_run_id}
-            </div>
-          </div>
-        </Card>
 
-        {/* Section: Progress */}
-        <div className="mt-6 mb-4 flex justify-center">
-          <Badge variant="section">Progress</Badge>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {/* Loading State */}
-          {isLiveLoading && !isLiveReady && (
-            <div className="text-sm">Connecting to real-time updates...</div>
-          )}
-
-          {/* Error State */}
-          {isLiveError && (
-            <div className="space-y-2" role="alert">
-              <div className="text-sm text-red-600">
-                Electric sync encountered an error.
+          <Card className="space-y-3 p-4">
+            <div>
+              <div className="text-muted-foreground text-xs tracking-wide uppercase">
+                Repository
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const restart = async (): Promise<void> => {
-                      if (!collection) {
-                        return;
-                      }
+              <div className="text-sm font-medium">
+                {job.repository_owner_name}/{job.repository_name}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground text-xs tracking-wide uppercase">
+                Run ID
+              </div>
+              <div className="text-muted-foreground font-mono text-xs">
+                {job.repository_workflow_run_id}
+              </div>
+            </div>
+          </Card>
 
-                      await collection.cleanup();
-                      if (collection.utils.clearError) {
-                        collection.utils.clearError();
-                      }
-                      await collection.preload();
-                    };
+          {/* Section: Progress */}
+          <div className="mt-6 mb-4 flex justify-center">
+            <Badge variant="section">Progress</Badge>
+          </div>
 
-                    void restart();
-                  }}
-                >
-                  Retry Sync
-                </Button>
-                <div className="text-muted-foreground text-xs">
-                  Status: {liveStatus}
+          {/* Main Content Area */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            {/* Loading State */}
+            {isLiveLoading && !isLiveReady && (
+              <div className="text-sm">Connecting to real-time updates...</div>
+            )}
+
+            {/* Error State */}
+            {isLiveError && (
+              <div className="space-y-2" role="alert">
+                <div className="text-sm text-red-600">
+                  Electric sync encountered an error.
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const restart = async (): Promise<void> => {
+                        if (!collection) {
+                          return;
+                        }
+
+                        await collection.cleanup();
+                        if (collection.utils.clearError) {
+                          collection.utils.clearError();
+                        }
+                        await collection.preload();
+                      };
+
+                      void restart();
+                    }}
+                  >
+                    Retry Sync
+                  </Button>
+                  <div className="text-muted-foreground text-xs">
+                    Status: {liveStatus}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
+            {/* Progress Display - shown when we have codebaseIds */}
+            {codebaseIds.length > 0 && (
+              <GenerateAgentsProgress
+                snapshot={parsedSnapshot}
+                codebaseIds={codebaseIds}
+                isSyncing={isLiveLoading || isRunning}
+              />
+            )}
 
-          {/* Progress Display - shown when we have codebaseIds */}
-          {codebaseIds.length > 0 && (
-            <GenerateAgentsProgress
-              snapshot={parsedSnapshot}
-              codebaseIds={codebaseIds}
-              isSyncing={isLiveLoading || isRunning}
-            />
-          )}
-
-          {/* Waiting for data state */}
-          {!isLiveError && codebaseIds.length === 0 && isRunning && (
-            <div className="text-muted-foreground py-8 text-center">
-              <p>Waiting for workflow to start...</p>
-              <p className="mt-2 text-sm">
-                Real-time updates will appear automatically.
-              </p>
-            </div>
-          )}
-
-          {/* Statistics Display (for completed jobs) */}
-          {showStatistics && parsedSnapshot?.statistics && (
-            <>
-              {/* Section: Statistics */}
-              <div className="mt-6 mb-4 flex justify-center">
-                <Badge variant="section">Statistics</Badge>
+            {/* Waiting for data state */}
+            {!isLiveError && codebaseIds.length === 0 && isRunning && (
+              <div className="text-muted-foreground py-8 text-center">
+                <p>Waiting for workflow to start...</p>
+                <p className="mt-2 text-sm">
+                  Real-time updates will appear automatically.
+                </p>
               </div>
-              <AgentStatisticsDisplay statistics={parsedSnapshot.statistics} />
-            </>
-          )}
-        </div>
+            )}
 
-        {/* Footer Actions */}
-        <div className="mt-6 flex items-center justify-between gap-3">
-          {/* Left side: Status + Actions based on job state */}
-          {isFailed ? (
-            <ButtonGroup>
-              <Badge
-                variant="failed"
-                className="gap-1 rounded-md border-destructive/30"
-              >
-                <XCircle className="h-3 w-3" />
-                Failed
-              </Badge>
-              {hasAnyReportableError ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleSubmitAggregatedFeedback}
+            {/* Statistics Display (for completed jobs) */}
+            {showStatistics && parsedSnapshot?.statistics && (
+              <>
+                {/* Section: Statistics */}
+                <div className="mt-6 mb-4 flex justify-center">
+                  <Badge variant="section">Statistics</Badge>
+                </div>
+                <AgentStatisticsDisplay
+                  statistics={parsedSnapshot.statistics}
+                />
+              </>
+            )}
+          </div>
+
+          {/* Footer Actions */}
+          <div className="mt-6 flex items-center justify-between gap-3">
+            {/* Left side: Status + Actions based on job state */}
+            {isFailed ? (
+              <ButtonGroup>
+                <Badge
+                  variant="failed"
+                  className="border-destructive/30 gap-1 rounded-md"
                 >
-                  Submit Error
-                </Button>
-              ) : trackedIssueUrl ? (
+                  <XCircle className="h-3 w-3" />
+                  Failed
+                </Badge>
+                {hasAnyReportableError ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSubmitAggregatedFeedback}
+                  >
+                    Submit Error
+                  </Button>
+                ) : trackedIssueUrl ? (
+                  <Button size="sm" variant="outline" asChild>
+                    <a
+                      href={trackedIssueUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="mr-1.5 h-3 w-3" />
+                      Track Error
+                    </a>
+                  </Button>
+                ) : null}
+              </ButtonGroup>
+            ) : isCompleted ? (
+              // Completed state: Show Give Feedback or Track Feedback button
+              // Use actualJob for fresh feedback_issue_url data from cache
+              actualJob?.feedback_issue_url ? (
                 <Button size="sm" variant="outline" asChild>
                   <a
-                    href={trackedIssueUrl}
+                    href={actualJob.feedback_issue_url}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <ExternalLink className="mr-1.5 h-3 w-3" />
-                    Track Error
+                    Track Feedback
                   </a>
                 </Button>
-              ) : null}
-            </ButtonGroup>
-          ) : isCompleted ? (
-            // Completed state: Show Give Feedback or Track Feedback button
-            // Use actualJob for fresh feedback_issue_url data from cache
-            actualJob?.feedback_issue_url ? (
-              <Button size="sm" variant="outline" asChild>
-                <a
-                  href={actualJob.feedback_issue_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setAgentFeedbackSheetOpen(true)}
                 >
-                  <ExternalLink className="mr-1.5 h-3 w-3" />
-                  Track Feedback
-                </a>
-              </Button>
+                  <MessageSquare className="mr-1.5 h-3 w-3" />
+                  Give Feedback
+                </Button>
+              )
             ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setAgentFeedbackSheetOpen(true)}
-              >
-                <MessageSquare className="mr-1.5 h-3 w-3" />
-                Give Feedback
-              </Button>
-            )
-          ) : (
-            <div />
-          )}
+              <div />
+            )}
 
-          {/* Right side: Preview Result */}
-          <Button
-            size="sm"
-            disabled={!hasPreviewContent || isRunning}
-            onClick={() => setIsPreviewOpen(true)}
-          >
-            Preview Result
-          </Button>
-        </div>
+            {/* Right side: Preview Result */}
+            <Button
+              size="sm"
+              disabled={!hasPreviewContent || isRunning}
+              onClick={() => setIsPreviewOpen(true)}
+            >
+              Preview Result
+            </Button>
+          </div>
 
           {/* Preview Dialog */}
           {hasPreviewContent && previewCodebases && (
