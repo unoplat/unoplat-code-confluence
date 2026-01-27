@@ -81,7 +81,6 @@ export function Layout(): React.ReactElement {
       idx,
   );
 
-
   // Find the category for the current path
   let currentCategory: string | null = null;
   for (const category in categoryMap) {
@@ -92,7 +91,6 @@ export function Layout(): React.ReactElement {
       break;
     }
   }
-
 
   return (
     <div className="flex h-screen flex-col">

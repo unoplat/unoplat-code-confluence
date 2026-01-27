@@ -3,10 +3,7 @@ import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import {
-  SENTIMENT_CONFIG,
-  type SentimentRating,
-} from "@/types/agent-feedback";
+import { SENTIMENT_CONFIG, type SentimentRating } from "@/types/agent-feedback";
 
 const RATING_ORDER: SentimentRating[] = ["unhappy", "neutral", "happy"];
 

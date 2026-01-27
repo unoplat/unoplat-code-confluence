@@ -26,6 +26,7 @@ import {
   tablePlugin,
   codeBlockPlugin,
   codeMirrorPlugin,
+  markdownShortcutPlugin,
 } from "@mdxeditor/editor";
 import type { AgentMdCodebaseOutput } from "@/features/repository-agent-snapshots/schema";
 import { agentMdOutputToMarkdown } from "@/lib/agent-md-to-markdown";
@@ -131,8 +132,9 @@ export function GenerateAgentsPreview({
                               toml: "TOML",
                             },
                           }),
+                          markdownShortcutPlugin(),
                         ]}
-                        contentEditableClassName="prose prose-sm max-w-none dark:prose-invert mdx-editor-content"
+                        contentEditableClassName="prose prose-sm max-w-none dark:prose-invert prose-code:before:content-none prose-code:after:content-none mdx-editor-content"
                         className="mdx-editor-wrapper h-full"
                       />
                     </div>

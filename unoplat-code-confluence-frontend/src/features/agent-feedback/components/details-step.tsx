@@ -17,7 +17,11 @@ import {
   FEEDBACK_CATEGORY_LABELS,
 } from "../schema";
 import { useAgentFeedbackStore } from "../store";
-import { getMixedSignalsCount, getSentimentEmoji, getSentimentLabel } from "../utils";
+import {
+  getMixedSignalsCount,
+  getSentimentEmoji,
+  getSentimentLabel,
+} from "../utils";
 
 interface DetailsStepProps {
   /** Parent workflow job data for API submission */

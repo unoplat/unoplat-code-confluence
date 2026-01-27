@@ -56,8 +56,8 @@ export function SuccessStep({
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-8">
       <Card className="w-full max-w-sm border-0 shadow-none">
         <CardHeader className="items-center pb-4 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Check className="h-8 w-8 text-primary" />
+          <div className="bg-primary/10 mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+            <Check className="text-primary h-8 w-8" />
           </div>
           <CardTitle className="text-xl">Feedback Submitted!</CardTitle>
           <CardDescription>
