@@ -11,9 +11,18 @@ export type { AgentGroup } from "@/types/agent-events";
 export const AgentType = {
   PROJECT_CONFIGURATION: "project_configuration_agent",
   DEVELOPMENT_WORKFLOW: "development_workflow_agent",
+  DEPENDENCY_GUIDE: "dependency_guide_agent",
   BUSINESS_LOGIC_DOMAIN: "business_logic_domain_agent",
   // Future agents can be added here
 } as const;
+
+/**
+ * Maps item-level agent names to their canonical parent agent.
+ * Used to consolidate related events into a single display group.
+ */
+const AGENT_ALIASES: Record<string, string> = {
+  dependency_guide_agent_item: "dependency_guide_agent",
+};
 
 export type AgentTypeValue = (typeof AgentType)[keyof typeof AgentType];
 
@@ -33,11 +42,24 @@ export const AGENT_REGISTRY: Record<
     displayName: "Development Workflow",
     order: 2,
   },
-  [AgentType.BUSINESS_LOGIC_DOMAIN]: {
-    displayName: "Business Logic Domain",
+  [AgentType.DEPENDENCY_GUIDE]: {
+    displayName: "Dependency Guide",
     order: 3,
   },
+  [AgentType.BUSINESS_LOGIC_DOMAIN]: {
+    displayName: "Business Logic Domain",
+    order: 4,
+  },
 };
+
+/**
+ * Resolves an agent ID to its canonical form.
+ * If the agent has an alias, returns the canonical agent ID.
+ * Otherwise returns the original agent ID.
+ */
+function resolveAgentId(eventAgentId: string): string {
+  return AGENT_ALIASES[eventAgentId] ?? eventAgentId;
+}
 
 /**
  * Get human-readable display name for an agent.
@@ -67,11 +89,24 @@ function getAgentOrder(agentId: string): number {
 /**
  * Determine if an agent has completed based on its events.
  * An agent is considered complete if it has a "result" phase event.
+ *
+ * For grouped agents (those with aliases), completion is determined by
+ * checking if the canonical agent has emitted a "result" phase event,
+ * not the aliased item-level events.
+ *
+ * @param events - All events in the agent group
+ * @param canonicalAgentId - Optional canonical agent ID for grouped agents
  */
 export function getAgentStatus(
   events: RepositoryAgentEvent[],
+  canonicalAgentId?: string,
 ): "running" | "completed" {
-  const hasResultPhase = events.some((event) => event.phase === "result");
+  const hasResultPhase = events.some(
+    (event) =>
+      event.phase === "result" &&
+      // For grouped agents, only count result from the canonical agent
+      (!canonicalAgentId || event.event === canonicalAgentId),
+  );
   return hasResultPhase ? "completed" : "running";
 }
 
@@ -95,18 +130,21 @@ export function truncateMessage(
 /**
  * Group events by agent name and return sorted agent groups.
  * Only returns groups that have at least one event.
+ *
+ * Events from aliased agents (e.g., "dependency_guide_agent_item") are
+ * consolidated into their canonical parent agent group (e.g., "dependency_guide_agent").
  */
 export function groupEventsByAgent(
   events: RepositoryAgentEvent[],
 ): AgentGroup[] {
-  // Group events by agent ID
+  // Group events by canonical agent ID (resolving aliases)
   const groupsMap = new Map<string, RepositoryAgentEvent[]>();
 
   for (const event of events) {
-    const agentId = event.event;
-    const existingEvents = groupsMap.get(agentId) ?? [];
+    const canonicalAgentId = resolveAgentId(event.event);
+    const existingEvents = groupsMap.get(canonicalAgentId) ?? [];
     existingEvents.push(event);
-    groupsMap.set(agentId, existingEvents);
+    groupsMap.set(canonicalAgentId, existingEvents);
   }
 
   // Convert to AgentGroup array
@@ -117,7 +155,8 @@ export function groupEventsByAgent(
       agentId,
       displayName: getAgentDisplayName(agentId),
       events: agentEvents,
-      status: getAgentStatus(agentEvents),
+      // Pass canonicalAgentId so status checks canonical agent's result event
+      status: getAgentStatus(agentEvents, agentId),
       eventCount: agentEvents.length,
     });
   }
