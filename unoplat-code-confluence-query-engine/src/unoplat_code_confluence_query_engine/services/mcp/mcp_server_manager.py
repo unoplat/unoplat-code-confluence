@@ -13,9 +13,6 @@ from loguru import logger
 from pydantic_ai.toolsets.abstract import AbstractToolset
 from pydantic_ai.toolsets.fastmcp import FastMCPToolset
 
-# NOTE: Standard MCPServer* clients are commented out during FastMCP migration.
-# from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio, MCPServerStreamableHTTP
-
 from unoplat_code_confluence_query_engine.models.config.mcp_config import (
     LocalMCPServerConfig,
     MCPServerProtocol,
@@ -131,17 +128,6 @@ class MCPServerManager:
             if tool_prefix:
                 toolset = toolset.prefixed(tool_prefix)
 
-            # NOTE: Standard MCPServerStdio path kept commented for rollback.
-            # server = MCPServerStdio(
-            #     command=config.command[0],
-            #     args=config.command[1:] + config.args,
-            #     env=config.environment if config.environment else None,
-            #     cwd=config.cwd,
-            #     timeout=config.timeout,
-            #     tool_prefix=tool_prefix,
-            #     id=id_value,
-            # )
-
             logger.info(
                 "Created local MCP toolset '{}' (id='{}') with command: {}",
                 name,
@@ -204,26 +190,6 @@ class MCPServerManager:
             # Apply tool prefix only when explicitly configured.
             if tool_prefix:
                 toolset = toolset.prefixed(tool_prefix)
-
-            # NOTE: Standard MCPServer* path kept commented for rollback.
-            # server: MCPServerSSE | MCPServerStreamableHTTP
-            # match config.protocol:
-            #     case MCPServerProtocol.HTTP:
-            #         server = MCPServerStreamableHTTP(
-            #             url=config.url,
-            #             headers=config.headers if config.headers else None,
-            #             timeout=config.timeout,
-            #             tool_prefix=tool_prefix,
-            #             id=id_value,
-            #         )
-            #     case MCPServerProtocol.SSE:
-            #         server = MCPServerSSE(
-            #             url=config.url,
-            #             headers=config.headers if config.headers else None,
-            #             timeout=config.timeout,
-            #             tool_prefix=tool_prefix,
-            #             id=id_value,
-            #         )
 
             logger.info(
                 "Created remote MCP toolset '{}' (id='{}') at URL: {} (protocol: {})",
