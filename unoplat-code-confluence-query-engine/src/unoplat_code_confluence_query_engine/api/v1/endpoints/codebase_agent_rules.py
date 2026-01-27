@@ -12,10 +12,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy import select
+from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.repo_models import RepositoryAgentMdSnapshot
 
 from unoplat_code_confluence_query_engine.api.deps import trace_dependency
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
+from unoplat_code_confluence_query_engine.services.config.credentials_service import (
+    CredentialsService,
+)
 from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
     fetch_repository_metadata,
 )
@@ -75,6 +79,21 @@ async def start_repository_agent_run(
             status_code=503,
             detail="Temporal worker is not running. Check server configuration.",
         )
+
+    # Check if Exa tool is configured (required for agent workflows)
+    async with get_startup_session() as session:
+        exa_configured = await CredentialsService.tool_credential_exists(
+            session, ProviderKey.EXA
+        )
+        if not exa_configured:
+            bound_logger.error("[codebase_agent_rules] Exa tool not configured")
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Exa MCP tool is not configured. Please configure the Exa API key "
+                    "via /v1/tool-config/exa endpoint first."
+                ),
+            )
 
     # Fetch repository metadata
     try:

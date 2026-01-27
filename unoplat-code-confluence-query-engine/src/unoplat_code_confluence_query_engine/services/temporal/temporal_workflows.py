@@ -20,6 +20,7 @@ with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
     from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
+        DependencyGuideEntry,
         DevelopmentWorkflow,
         ProjectConfiguration,
     )
@@ -34,6 +35,12 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.business_logic_post_process_activity import (
         BusinessLogicPostProcessActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_completion_activity import (
+        DependencyGuideCompletionActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_fetch_activity import (
+        DependencyGuideFetchActivity,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
         RepositoryAgentSnapshotActivity,
@@ -105,6 +112,7 @@ class CodebaseAgentWorkflow:
             },
             "project_configuration": None,
             "development_workflow": None,
+            "dependency_guide": None,
             "business_logic_domain": None,
         }
 
@@ -235,7 +243,106 @@ class CodebaseAgentWorkflow:
             # Disabled agents contribute zero to statistics
             agent_stats.append(create_zero_usage_statistics())
 
-        # Step 3: Business Logic Domain Agent
+        # Step 3: Dependency Guide Agent
+        if "dependency_guide_agent" in temporal_agents:
+            try:
+                # Fetch dependency names from PostgreSQL via activity (deterministic)
+                dependency_names: list[str] = await workflow.execute_activity(
+                    DependencyGuideFetchActivity.fetch_codebase_dependencies,
+                    args=[codebase_metadata.codebase_path],
+                    start_to_close_timeout=timedelta(seconds=30),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
+
+                logger.info(
+                    "[workflow] Found {} dependencies for {}",
+                    len(dependency_names),
+                    codebase_metadata.codebase_name,
+                )
+
+                # Process each dependency sequentially
+                dependency_entries: list[dict[str, Any]] = []
+                dependency_agent_stats: list[UsageStatistics] = []
+
+                for dep_name in dependency_names:
+                    try:
+                        deps = AgentDependencies(
+                            repository_qualified_name=repository_qualified_name,
+                            codebase_metadata=codebase_metadata,
+                            repository_workflow_run_id=repository_workflow_run_id,
+                            agent_name="dependency_guide_agent_item",
+                        )
+                        result = await temporal_agents["dependency_guide_agent"].run(
+                            f"Document the library '{dep_name}' for programming language {codebase_metadata.codebase_programming_language}",
+                            deps=deps,
+                        )
+
+                        entry_dict = (
+                            result.output.model_dump()
+                            if isinstance(result.output, DependencyGuideEntry)
+                            else result.output
+                        )
+                        dependency_entries.append(entry_dict)
+                        dependency_agent_stats.append(
+                            extract_usage_statistics(result.usage())
+                        )
+                    except Exception as dep_error:
+                        logger.warning(
+                            "[workflow] Failed to document dependency '{}': {}",
+                            dep_name,
+                            dep_error,
+                        )
+                        # Continue with other dependencies - don't fail entire agent
+                        dependency_agent_stats.append(create_zero_usage_statistics())
+
+                # Aggregate into DependencyGuide
+                results["dependency_guide"] = {"dependencies": dependency_entries}
+
+                # Emit a single completion event for the dependency guide agent
+                await workflow.execute_activity(
+                    DependencyGuideCompletionActivity.emit_dependency_guide_completion,
+                    args=[
+                        repository_qualified_name,
+                        repository_workflow_run_id,
+                        codebase_metadata.codebase_name,
+                    ],
+                    start_to_close_timeout=timedelta(seconds=30),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
+
+                # Aggregate stats from all dependency runs
+                if dependency_agent_stats:
+                    agent_stats.append(aggregate_usage_statistics(dependency_agent_stats))
+                else:
+                    agent_stats.append(create_zero_usage_statistics())
+
+                logger.info(
+                    "[workflow] dependency_guide_agent completed for {}: {} entries",
+                    codebase_metadata.codebase_name,
+                    len(dependency_entries),
+                )
+            except Exception as e:
+                logger.error(
+                    "[workflow] dependency_guide_agent failed for {}: {}",
+                    codebase_metadata.codebase_name,
+                    e,
+                )
+                logger.exception("[workflow] Full traceback:")
+                agent_errors.append({
+                    "agent": "dependency_guide_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                })
+                agent_stats.append(create_zero_usage_statistics())
+        else:
+            logger.info(
+                "[workflow] dependency_guide_agent is disabled, skipping for {}",
+                codebase_metadata.codebase_name,
+            )
+            agent_stats.append(create_zero_usage_statistics())
+
+        # Step 4: Business Logic Domain Agent
         if "business_logic_domain_agent" in temporal_agents:
             try:
                 logger.info(

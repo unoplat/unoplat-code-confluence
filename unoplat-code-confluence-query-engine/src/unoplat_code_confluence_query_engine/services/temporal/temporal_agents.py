@@ -21,6 +21,7 @@ from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
 )
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
+    DependencyGuideEntry,
     DevelopmentWorkflow,
     ProjectConfiguration,
 )
@@ -33,6 +34,9 @@ from unoplat_code_confluence_query_engine.services.temporal.activity_retry_confi
 from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler import (
     event_stream_handler,
 )
+from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
+    get_mcp_server_manager,
+)
 from unoplat_code_confluence_query_engine.tools.get_content_file import (
     read_file_content,
 )
@@ -42,10 +46,22 @@ from unoplat_code_confluence_query_engine.tools.get_data_model_files import (
 from unoplat_code_confluence_query_engine.tools.get_directory_tree import (
     get_directory_tree,
 )
-from unoplat_code_confluence_query_engine.tools.get_lib_data import get_lib_data
 from unoplat_code_confluence_query_engine.tools.search_across_codebase import (
     search_across_codebase,
 )
+
+EXA_MCP_SERVER_NAME = "exa"
+
+
+def _get_exa_mcp_server(toolset_id: str):
+    mcp_server = get_mcp_server_manager().get_server_by_name(
+        EXA_MCP_SERVER_NAME, id_override=toolset_id
+    )
+    if not mcp_server:
+        raise RuntimeError(
+            f"Exa MCP server '{EXA_MCP_SERVER_NAME}' not configured in MCP servers config"
+        )
+    return mcp_server
 
 
 class AgentType(Enum):
@@ -53,13 +69,23 @@ class AgentType(Enum):
 
     PROJECT_CONFIGURATION = "project_configuration_agent"
     DEVELOPMENT_WORKFLOW = "development_workflow_agent"
+    DEPENDENCY_GUIDE = "dependency_guide_agent"
     BUSINESS_LOGIC_DOMAIN = "business_logic_domain_agent"
+
+
+# Stable, per-agent Exa MCP toolset IDs for Temporal activity naming.
+EXA_TOOLSET_IDS = {
+    AgentType.PROJECT_CONFIGURATION: "exa__project_configuration_agent",
+    AgentType.DEVELOPMENT_WORKFLOW: "exa__development_workflow_agent",
+    AgentType.DEPENDENCY_GUIDE: "exa__dependency_guide_agent",
+}
 
 
 # Toggle agents here - comment/uncomment to enable/disable
 ENABLED_AGENTS: set[AgentType] = {
     AgentType.PROJECT_CONFIGURATION,
     AgentType.DEVELOPMENT_WORKFLOW,
+    AgentType.DEPENDENCY_GUIDE,
     AgentType.BUSINESS_LOGIC_DOMAIN,
 }
 
@@ -123,16 +149,17 @@ def create_project_configuration_agent(
     Returns:
         Project configuration agent instance
     """
+    exa_id = EXA_TOOLSET_IDS[AgentType.PROJECT_CONFIGURATION]
     agent = Agent(
         model,
         name="project_configuration_agent",
         system_prompt="<role> Build/CI/Test/Lint/Type Configuration Locator</role>",
         deps_type=AgentDependencies,
+        toolsets=[_get_exa_mcp_server(exa_id)],
         tools=[
             Tool(get_directory_tree, takes_ctx=True),
             Tool(read_file_content, takes_ctx=True),
             Tool(search_across_codebase, takes_ctx=True),
-            Tool(get_lib_data),
         ],
         output_type=ProjectConfiguration,
         output_retries=2,
@@ -143,6 +170,13 @@ def create_project_configuration_agent(
     # Attach dynamic per-language system prompt (always enabled)
     agent.system_prompt(per_programming_language_configuration_prompt)
     logger.debug("Dynamic system prompt attached to project_configuration_agent")
+
+    # NOTE: Dynamic toolsets can rely on in-memory state across Temporal activities.
+    # Keeping this commented during verification in favor of a static toolset per agent.
+    # @agent.toolset(id="exa")
+    # def exa_toolset(_ctx):
+    #     return _get_exa_mcp_server(exa_id)
+
     return agent
 
 
@@ -159,15 +193,16 @@ def create_development_workflow_agent(
     Returns:
         Development workflow agent instance
     """
+    exa_id = EXA_TOOLSET_IDS[AgentType.DEVELOPMENT_WORKFLOW]
     agent = Agent(
         model,
         name="development_workflow_agent",
         system_prompt="<role> Development Workflow Synthesizer</role>",
         deps_type=AgentDependencies,
+        toolsets=[_get_exa_mcp_server(exa_id)],
         tools=[
             Tool(get_directory_tree, takes_ctx=True),
             Tool(read_file_content, takes_ctx=True),
-            Tool(get_lib_data),
         ],
         output_type=DevelopmentWorkflow,
         output_retries=2,
@@ -178,6 +213,99 @@ def create_development_workflow_agent(
     # Attach dynamic per-language system prompt (always enabled)
     agent.system_prompt(per_language_development_workflow_prompt)
     logger.debug("Dynamic system prompt attached to development_workflow_agent")
+
+    # NOTE: Dynamic toolsets can rely on in-memory state across Temporal activities.
+    # Keeping this commented during verification in favor of a static toolset per agent.
+    # @agent.toolset(id="exa")
+    # def exa_toolset(_ctx):
+    #     return _get_exa_mcp_server(exa_id)
+
+    return agent
+
+
+# Marker for internal/private dependencies that should be skipped
+INTERNAL_DEPENDENCY_SKIP_MARKER = "INTERNAL_DEPENDENCY_SKIP"
+
+
+def create_dependency_guide_agent(
+    model: Model,
+    model_settings: ModelSettings | None = None,
+) -> Agent[AgentDependencies, DependencyGuideEntry]:
+    """Create dependency guide agent.
+
+    This agent documents a single library/package dependency using official docs.
+
+    Args:
+        model: Configured Model instance from ModelFactory
+        model_settings: Optional model settings (temperature, etc.)
+
+    Returns:
+        Dependency guide agent instance
+    """
+    # TODO: Add output validator for DependencyGuideEntry to ensure:
+    # - purpose is 1-2 lines (not empty/too short)
+    # - usage contains exactly 2 sentences
+    # - name matches the input dependency name
+    exa_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY_GUIDE]
+    agent = Agent(
+        model,
+        name="dependency_guide_agent",
+        system_prompt=r"""You are the Dependency Guide Agent.
+
+Goal: Generate a concise documentation entry for a single library/package dependency.
+
+<task>
+Given a library name and programming language, produce a DependencyGuideEntry with:
+1. name: The exact library name provided (do not modify it)
+2. purpose: 1-2 lines describing what this library does (from official docs)
+3. usage: Exactly 2 sentences describing core features and capabilities
+</task>
+
+<workflow>
+1. Use web_search_exa to locate official documentation for the library/tool
+2. If needed, use get_code_context_exa to retrieve authoritative docs snippets
+3. Evaluate results:
+   - If official documentation is found: synthesize purpose and usage from it
+   - If NO official docs found (error message, empty response, or "not found"): mark as internal dependency
+4. Return the DependencyGuideEntry
+</workflow>
+
+<handling_internal_dependencies>
+IMPORTANT: If Exa MCP tools return an error, "not found", or empty/minimal info, this is likely an INTERNAL/PRIVATE dependency.
+
+For internal dependencies, return:
+- name: The exact library name provided
+- purpose: "INTERNAL_DEPENDENCY_SKIP"
+- usage: "INTERNAL_DEPENDENCY_SKIP"
+
+This signals the system to skip this dependency in the final output.
+</handling_internal_dependencies>
+
+<output_requirements>
+For PUBLIC dependencies with documentation:
+- The 'name' field MUST match the provided library name exactly
+- The 'purpose' field should be 1-2 lines (concise, from official docs)
+- The 'usage' field MUST be exactly 2 sentences, each ending with a period
+
+For INTERNAL/PRIVATE dependencies (no docs found):
+- Set both 'purpose' and 'usage' to "INTERNAL_DEPENDENCY_SKIP"
+</output_requirements>
+""",
+        deps_type=AgentDependencies,
+        toolsets=[_get_exa_mcp_server(exa_id)],
+        tools=[],
+        output_type=DependencyGuideEntry,
+        output_retries=2,
+        model_settings=model_settings,
+        event_stream_handler=event_stream_handler,
+    )
+
+    # NOTE: Dynamic toolsets can rely on in-memory state across Temporal activities.
+    # Keeping this commented during verification in favor of a static toolset per agent.
+    # @agent.toolset(id="exa")
+    # def exa_toolset(_ctx):
+    #     return _get_exa_mcp_server(exa_id)
+
     return agent
 
 
@@ -289,45 +417,65 @@ def create_temporal_agents(
 
     # Conditionally create agents based on ENABLED_AGENTS
     if AgentType.PROJECT_CONFIGURATION in ENABLED_AGENTS:
+        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.PROJECT_CONFIGURATION]
         config_agent = create_project_configuration_agent(model, model_settings)
         agents[AgentType.PROJECT_CONFIGURATION.value] = TemporalAgent(
             config_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
-            toolset_activity_config={default_toolset_id: toolset_activity_config},
-            # Disable activity for get_lib_data since it calls Context7 TemporalAgent internally.
-            # This avoids nested activity issues - get_lib_data runs in workflow,
-            # while Context7 TemporalAgent handles its own activity execution.
-            # Other tools use tool_activity_config_base for bounded retries.
+            toolset_activity_config={
+                default_toolset_id: toolset_activity_config,
+                exa_toolset_id: toolset_activity_config,
+            },
             tool_activity_config={
                 default_toolset_id: {
-                    "get_lib_data": tool_activity_config_base,
                     "get_directory_tree": tool_activity_config_base,
                     "read_file_content": tool_activity_config_base,
                     "search_across_codebase": tool_activity_config_base,
-                }
+                },
+                exa_toolset_id: {},
             },
         )
         logger.info("Created project_configuration_agent")
 
     if AgentType.DEVELOPMENT_WORKFLOW in ENABLED_AGENTS:
+        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.DEVELOPMENT_WORKFLOW]
         workflow_agent = create_development_workflow_agent(model, model_settings)
         agents[AgentType.DEVELOPMENT_WORKFLOW.value] = TemporalAgent(
             workflow_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
-            toolset_activity_config={default_toolset_id: toolset_activity_config},
-            # Disable activity for get_lib_data since it calls
-            # Context7 TemporalAgent internally.
+            toolset_activity_config={
+                default_toolset_id: toolset_activity_config,
+                exa_toolset_id: toolset_activity_config,
+            },
             tool_activity_config={
                 default_toolset_id: {
-                    "get_lib_data": tool_activity_config_base,
                     "get_directory_tree": tool_activity_config_base,
                     "read_file_content": tool_activity_config_base,
-                }
+                },
+                exa_toolset_id: {},
             },
         )
         logger.info("Created development_workflow_agent")
+
+    if AgentType.DEPENDENCY_GUIDE in ENABLED_AGENTS:
+        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY_GUIDE]
+        dependency_guide_agent = create_dependency_guide_agent(model, model_settings)
+        agents[AgentType.DEPENDENCY_GUIDE.value] = TemporalAgent(
+            dependency_guide_agent,
+            activity_config=base_activity_config,
+            model_activity_config=model_activity_config,
+            toolset_activity_config={
+                default_toolset_id: toolset_activity_config,
+                exa_toolset_id: toolset_activity_config,
+            },
+            tool_activity_config={
+                default_toolset_id: {},
+                exa_toolset_id: {},
+            },
+        )
+        logger.info("Created dependency_guide_agent")
 
     if AgentType.BUSINESS_LOGIC_DOMAIN in ENABLED_AGENTS:
         domain_agent = create_business_logic_domain_agent(model, model_settings)

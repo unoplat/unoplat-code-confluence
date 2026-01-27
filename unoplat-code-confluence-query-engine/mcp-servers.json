@@ -1,7 +1,7 @@
 {
-  "context7": {
+  "exa": {
     "server_type": "remote",
-    "url": "https://mcp.context7.com/mcp",
+    "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,get_code_context_exa",
     "headers": {},
     "timeout": 120,
     "protocol": "http"
