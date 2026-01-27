@@ -117,9 +117,7 @@ export function parseAgentMdOutputs(
 // Type guard to check if data conforms to AgentMdCodebaseOutput structure
 function isAgentMdCodebaseOutput(data: unknown): data is AgentMdCodebaseOutput {
   return (
-    typeof data === "object" &&
-    data !== null &&
-    "project_configuration" in data
+    typeof data === "object" && data !== null && "project_configuration" in data
   );
 }
 

@@ -78,6 +78,26 @@ export const agentMdBusinessLogicSchema = z.object({
   ),
 });
 
+// Dependency Guide Entry schema
+export const agentMdDependencyGuideEntrySchema = z.object({
+  name: z.string(),
+  purpose: z.string(),
+  usage: z.string(),
+});
+
+export type AgentMdDependencyGuideEntry = z.infer<
+  typeof agentMdDependencyGuideEntrySchema
+>;
+
+// Dependency Guide schema (collection)
+export const agentMdDependencyGuideSchema = z.object({
+  dependencies: z.array(agentMdDependencyGuideEntrySchema).default([]),
+});
+
+export type AgentMdDependencyGuide = z.infer<
+  typeof agentMdDependencyGuideSchema
+>;
+
 export const agentMdProgrammingLanguageMetadataSchema = z.object({
   primary_language: z.string(),
   package_manager: z.string(),
@@ -95,6 +115,7 @@ export const agentMdCodebaseOutputSchema = z.object({
     agentMdProgrammingLanguageMetadataSchema.nullish(),
   project_configuration: agentMdProjectConfigurationSchema.nullish(),
   development_workflow: agentMdDevelopmentWorkflowSchema.nullish(),
+  dependency_guide: agentMdDependencyGuideSchema.nullish(),
   business_logic_domain: agentMdBusinessLogicSchema.nullish(),
 });
 
