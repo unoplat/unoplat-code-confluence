@@ -26,10 +26,18 @@ import {
   FolderKanban,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useThemeStore } from "@/stores/useThemeStore";
 import { NavUser } from "./NavUser";
+import codeConfluenceLogoLight from "@/assets/unoplat-code-confluence-logo-light.svg";
+import codeConfluenceLogoDark from "@/assets/unoplat-code-confluence-logo-dark.svg";
 
 export function AppSidebar(): React.ReactElement {
   const { user } = useAuthStore();
+  const { theme } = useThemeStore();
+
+  const isDarkMode = theme === "dark" ||
+    (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const logo = isDarkMode ? codeConfluenceLogoDark : codeConfluenceLogoLight;
 
   // Show user info when user profile is available
   const showUserInfo = !!user;
@@ -42,11 +50,12 @@ export function AppSidebar(): React.ReactElement {
       className="group w-full max-w-[14rem]"
     >
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-4 py-2">
-          {/* <img src={logoUnoplat} alt="Unoplat Code Confluence" className="h-8 w-8 object-contain" /> */}
-          <h1 className="truncate bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-lg font-semibold text-transparent">
-            Code Confluence
-          </h1>
+        <div className="flex items-center px-4 py-2">
+          <img
+            src={logo}
+            alt="Code Confluence"
+            className="h-auto w-full max-w-[10rem] object-contain"
+          />
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -85,7 +94,10 @@ export function AppSidebar(): React.ReactElement {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Operations Management">
+                      <SidebarMenuButton
+                        asChild
+                        tooltip="Operations Management"
+                      >
                         <Link
                           to="/operationsManagement"
                           className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
@@ -157,6 +169,18 @@ export function AppSidebar(): React.ReactElement {
                         >
                           <span className="text-sm font-medium">
                             Model Providers
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="Tool Configuration">
+                        <Link
+                          to="/settings/tool-config"
+                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                        >
+                          <span className="text-sm font-medium">
+                            Tool Configuration
                           </span>
                         </Link>
                       </SidebarMenuButton>

@@ -53,7 +53,7 @@ class DockerComposeWithCleanup(DockerCompose):
         else:
             # Custom stop without -v flag
             down_cmd = self.docker_compose_command() + ['down']
-            subprocess.call(down_cmd, cwd=self.filepath)
+            subprocess.call(down_cmd, cwd=str(self.context))
 
     def cleanup_volumes(self):
         """Explicitly clean up named volumes from compose file."""
@@ -128,7 +128,7 @@ def docker_compose():
     # Enable pulling in CI environments (GitHub Actions, etc.) where images aren't cached
     is_ci = os.getenv("CI", "false").lower() == "true"
     compose = DockerComposeWithCleanup(
-        filepath=str(COMPOSE_FILE.parent),
+        context=str(COMPOSE_FILE.parent),
         compose_file_name=COMPOSE_FILE.name,
         pull=is_ci,  # Pull images in CI, use local ones in development
     )

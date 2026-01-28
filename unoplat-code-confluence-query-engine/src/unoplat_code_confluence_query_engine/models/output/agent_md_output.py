@@ -248,6 +248,30 @@ class BusinessLogicDomain(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class DependencyGuideEntry(BaseModel):
+    """Documentation entry for a single dependency."""
+
+    name: str = Field(..., description="Library name (exact match to input)")
+    purpose: str = Field(..., description="1-2 lines from official docs describing what this library does")
+    usage: str = Field(
+        ...,
+        description="Exactly 2 sentences describing core features and capabilities",
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class DependencyGuide(BaseModel):
+    """Collection of dependency documentation entries for a codebase."""
+
+    dependencies: List[DependencyGuideEntry] = Field(
+        default_factory=list,
+        description="List of documented dependencies with purpose and usage information",
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+
 # ──────────────────────────────────────────────
 # 🔄 Main Output Models
 # ──────────────────────────────────────────────
@@ -376,6 +400,10 @@ class AgentMdOutput(BaseModel):
     development_workflow: DevelopmentWorkflow = Field(
         ...,
         description="Development workflow configuration including build, test, lint commands ",
+    )
+    dependency_guide: Optional[DependencyGuide] = Field(
+        default=None,
+        description="Documentation entries for codebase dependencies with purpose and usage",
     )
     business_logic: BusinessLogicDomain = Field(
         ..., description="Critical business logic domains"

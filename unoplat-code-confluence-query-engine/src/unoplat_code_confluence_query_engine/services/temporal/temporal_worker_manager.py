@@ -21,6 +21,7 @@ import temporalio.api.workflowservice.v1 as wsv1
 from temporalio.client import Client
 from temporalio.common import VersioningBehavior, WorkerDeploymentVersion
 from temporalio.worker import Interceptor, Worker, WorkerDeploymentConfig
+from unoplat_code_confluence_commons.credential_enums import ProviderKey
 
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
@@ -33,8 +34,17 @@ from unoplat_code_confluence_query_engine.services.config.credentials_service im
 from unoplat_code_confluence_query_engine.services.config.model_factory import (
     ModelFactory,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.business_logic_post_process_activity import (
+    BusinessLogicPostProcessActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_db_activity import (
     CodebaseWorkflowDbActivity,
+)
+from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_completion_activity import (
+    DependencyGuideCompletionActivity,
+)
+from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_fetch_activity import (
+    DependencyGuideFetchActivity,
 )
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
     RepositoryAgentSnapshotActivity,
@@ -42,22 +52,15 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.repositor
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_db_activity import (
     RepositoryWorkflowDbActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.business_logic_post_process_activity import (
-    BusinessLogicPostProcessActivity,
-)
 from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
     DEPLOYMENT_NAME,
     compute_credential_hash,
     generate_build_id,
 )
-from unoplat_code_confluence_query_engine.services.temporal.context7_agents import (
-    create_context7_agent,
-)
 from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
     AgentWorkflowStatusInterceptor,
 )
 from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
-    Context7AgentConfig,
     ServiceRegistry,
 )
 from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
@@ -206,6 +209,28 @@ class TemporalWorkerManager:
             f"[temporal_worker_manager] Service registry initialized with MCP config: {settings.mcp_servers_config_path}"
         )
 
+        # Inject Exa API key into MCP server config (static for worker lifecycle)
+        async with get_startup_session() as session:
+            exa_api_key = await CredentialsService.get_tool_credential(
+                session, ProviderKey.EXA
+            )
+        if exa_api_key:
+            updated = self._registry.mcp_server_manager.set_remote_server_query_param(
+                "exa", "exaApiKey", exa_api_key
+            )
+            if updated:
+                logger.info(
+                    "[temporal_worker_manager] Exa MCP server API key injected into config"
+                )
+            else:
+                logger.warning(
+                    "[temporal_worker_manager] Exa MCP server config not found; key not applied"
+                )
+        else:
+            logger.warning(
+                "[temporal_worker_manager] Exa API key not configured; Exa MCP tools unavailable"
+            )
+
         # Load model configuration (use passed config or load from database)
         if config is not None:
             model_config = config
@@ -257,35 +282,7 @@ class TemporalWorkerManager:
             "[temporal_worker_manager] Temporal agents initialized with database model"
         )
 
-        # Store Context7 agent configuration for request-scoped plain Agent creation.
-        # We use plain Agent (NOT TemporalAgent) for Context7 because:
-        # - TemporalAgent wraps MCP operations (get_tools, call_tool) in separate activities
-        # - MCP's cancel scope gets entered in one activity task and exited in another
-        # - This causes RuntimeError: "cancel scope in different task"
-        # - Plain Agent executes MCP calls directly within the calling activity's async context
-        context7_config = Context7AgentConfig(
-            model=model,
-            mcp_server_name="context7",
-            model_settings=model_settings,
-        )
-        self._registry.context7_agent_config = context7_config
-        logger.info(
-            "[temporal_worker_manager] Stored Context7AgentConfig for request-scoped plain Agent creation"
-        )
-
-        # Create plain Context7 agent for the registry (non-Temporal use cases if any)
-        context7_server = self._registry.mcp_server_manager.get_server_by_name(
-            "context7"
-        )
-        context7_agent = create_context7_agent(model, context7_server, model_settings)
-        self._registry.context7_agent = context7_agent
-        logger.info(
-            "[temporal_worker_manager] Created plain Context7 agent (no AgentPlugin - uses direct execution)"
-        )
-
         # Get temporal agents and create plugins
-        # Note: Context7 is NOT registered as AgentPlugin because we use plain Agent
-        # (not TemporalAgent) to avoid MCP cancel scope conflicts
         temporal_agents = get_temporal_agents()
         agent_plugins: list[AgentPlugin] = [
             AgentPlugin(agent) for agent in temporal_agents.values()
@@ -302,6 +299,8 @@ class TemporalWorkerManager:
         codebase_db_activity = CodebaseWorkflowDbActivity()
         snapshot_activity = RepositoryAgentSnapshotActivity()
         business_logic_post_process_activity = BusinessLogicPostProcessActivity()
+        dependency_guide_completion_activity = DependencyGuideCompletionActivity()
+        dependency_guide_fetch_activity = DependencyGuideFetchActivity()
 
         # Build interceptor list - always include status interceptor
         all_interceptors: list[Interceptor] = [AgentWorkflowStatusInterceptor()]
@@ -341,6 +340,8 @@ class TemporalWorkerManager:
                 codebase_db_activity.update_codebase_workflow_status,
                 snapshot_activity.persist_agent_snapshot_complete,
                 business_logic_post_process_activity.post_process_business_logic,
+                dependency_guide_completion_activity.emit_dependency_guide_completion,
+                dependency_guide_fetch_activity.fetch_codebase_dependencies,
             ],
             plugins=agent_plugins,
             interceptors=all_interceptors,

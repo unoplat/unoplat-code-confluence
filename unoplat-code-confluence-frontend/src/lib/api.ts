@@ -54,6 +54,14 @@ export interface ApiResponse {
   message?: string;
 }
 
+// FastAPI standard error response format
+interface FastApiErrorResponse {
+  detail: string;
+}
+
+// Union type for all possible error response formats
+type ErrorResponseData = FastApiErrorResponse | ApiResponse;
+
 // Error interface for consistent error handling
 export interface ApiError {
   message: string;
@@ -72,12 +80,28 @@ export const handleApiError = (error: unknown): ApiError => {
   console.error("API Error:", error);
 
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<ApiResponse>;
+    const axiosError = error as AxiosError<ErrorResponseData>;
+    const responseData = axiosError.response?.data;
+
+    // Extract message - check 'detail' (FastAPI standard) then 'message' (custom APIs)
+    let errorMessage: string;
+    if (responseData && typeof responseData === "object") {
+      if ("detail" in responseData && typeof responseData.detail === "string") {
+        errorMessage = responseData.detail;
+      } else if (
+        "message" in responseData &&
+        typeof responseData.message === "string"
+      ) {
+        errorMessage = responseData.message;
+      } else {
+        errorMessage = axiosError.message || "Unknown API error";
+      }
+    } else {
+      errorMessage = axiosError.message || "Unknown API error";
+    }
+
     return {
-      message:
-        axiosError.response?.data?.message ||
-        axiosError.message ||
-        "Unknown API error",
+      message: errorMessage,
       statusCode: axiosError.response?.status,
       details: axiosError.response?.data,
       isAxiosError: true,

@@ -6,5 +6,4 @@ This package contains services for:
 - Tool message formatting policies
 - Mock SSE service for testing
 - Post-processing orchestration
-- Library documentation retrieval via Context7
 """

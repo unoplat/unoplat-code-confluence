@@ -31,6 +31,14 @@ async def per_programming_language_configuration_prompt(
         f"- When you find files via search_across_codebase or get_directory_tree, construct absolute paths by combining the codebase root path with relative paths"
         f"- The codebase root path is: {ctx.deps.codebase_metadata.codebase_path}"
         f"</file_path_requirements>"
+        f"<output_contract>"
+        f"Return ONLY JSON with this exact shape:"
+        f'{{"config_files":[{{"path":"<ABSOLUTE_PATH>","purpose":"<10-20 words>"}}]}}'
+        f"Rules:"
+        f"- Use key 'path' ONLY (never use file_path, absolute_path, or name)"
+        f"- Do NOT include extra keys or prose"
+        f"- Always include config_files with all relevant entries"
+        f"</output_contract>"
         f"<context>"
         f" <categories>"
         f"   <list>dev,test,lint,format,type_checking,styling,ui_components,routing,bundler,package,build,deploy,infrastructure</list>"
@@ -38,7 +46,7 @@ async def per_programming_language_configuration_prompt(
         f" </categories>"
         f" <purpose_field_instructions>"
         f"   <rule>The 'purpose' field MUST be a descriptive explanation (10-20 words) of what the configuration file does and its role in the project.</rule>"
-        f"   <rule>Base your descriptions ONLY on official documentation obtained via get_lib_data tool or actual file inspection via read_file_content.</rule>"
+        f"   <rule>Base your descriptions ONLY on official documentation obtained via Exa MCP tools (web_search_exa, get_code_context_exa) or actual file inspection via read_file_content.</rule>"
         f"   <rule>NEVER use generic category labels like 'dev', 'test', 'lint', 'packaging' as the purpose value.</rule>"
         f"   <good_example>TypeScript compiler configuration defining build options, module resolution, and type checking rules</good_example>"
         f"   <bad_example>dev</bad_example>"
@@ -108,8 +116,8 @@ async def per_programming_language_configuration_prompt(
         f"<step>Understand directory structure of the codebase based on path provided and get_directory_tree tool.</step>"
         f"<step>Match paths inside the codebase path provided against language_config_globs for provided languages and general_config_globs using search_across_codebase tool and/or get_directory_tree.</step>"
         f"<step>For each matched configuration file, inspect it using read_file_content tool if needed to understand its contents.</step>"
-        f"<step>For any configuration file whose purpose is unclear or unfamiliar, MUST use get_lib_data tool with the tool/library name and programming language to retrieve official documentation. This ensures accurate descriptions and prevents hallucination.</step>"
-        f"<step>Write a descriptive 'purpose' field (10-20 words) for each config file based on official documentation from get_lib_data or actual file inspection, following the examples in purpose_field_instructions.</step>"
+        f"<step>For any configuration file whose purpose is unclear or unfamiliar, MUST use Exa MCP tools (web_search_exa, get_code_context_exa) with the tool/library name and programming language to retrieve official documentation. This ensures accurate descriptions and prevents hallucination.</step>"
+        f"<step>Write a descriptive 'purpose' field (10-20 words) for each config file based on official documentation from Exa MCP tools or actual file inspection, following the examples in purpose_field_instructions.</step>"
         f"<step>Produce output JSON exactly as requested; include every relevant config file and never omit the config_files key.</step>"
         f"</steps>"
     )
@@ -158,7 +166,7 @@ async def per_language_development_workflow_prompt(
     steps = (
         "Workflow:\n"
         "1. Extract runnable commands for build/dev/test/lint/type_check from scripts or config based on package manager and user provided config files related to development workflow.\n"
-        "2. If a config or the tool be it package manager, linter etc is unclear, call get_lib_data with feature_description like 'build command' 'dev command' 'testing commands' or 'lint commands' to extract precise commands for that particular tool.\n"
+        "2. If a config or the tool be it package manager, linter etc is unclear, use Exa MCP tools (web_search_exa, get_code_context_exa) with feature_description like 'build command' 'dev command' 'testing commands' or 'lint commands' to extract precise commands for that particular tool.\n"
     )
 
     output_contract = (
