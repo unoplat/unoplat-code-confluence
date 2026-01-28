@@ -26,11 +26,18 @@ import {
   FolderKanban,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useThemeStore } from "@/stores/useThemeStore";
 import { NavUser } from "./NavUser";
-import codeConfluenceLogo from "@/assets/unoplat-code-confluence-logo.svg";
+import codeConfluenceLogoLight from "@/assets/unoplat-code-confluence-logo-light.svg";
+import codeConfluenceLogoDark from "@/assets/unoplat-code-confluence-logo-dark.svg";
 
 export function AppSidebar(): React.ReactElement {
   const { user } = useAuthStore();
+  const { theme } = useThemeStore();
+
+  const isDarkMode = theme === "dark" ||
+    (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const logo = isDarkMode ? codeConfluenceLogoDark : codeConfluenceLogoLight;
 
   // Show user info when user profile is available
   const showUserInfo = !!user;
@@ -45,9 +52,9 @@ export function AppSidebar(): React.ReactElement {
       <SidebarHeader>
         <div className="flex items-center px-4 py-2">
           <img
-            src={codeConfluenceLogo}
+            src={logo}
             alt="Code Confluence"
-            className="h-auto w-full max-w-[10rem] object-contain dark:brightness-[1.8] dark:saturate-[1.4]"
+            className="h-auto w-full max-w-[10rem] object-contain"
           />
         </div>
       </SidebarHeader>
