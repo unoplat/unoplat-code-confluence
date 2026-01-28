@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.25.1...unoplat-code-confluence-query-engine-v0.26.0) (2026-01-28)
+
+
+### Features
+
+* **query-engine-agents-md:** introduce dependency guide agent and also removed agent with context as we migrated to exa mcp tool. Also moved to pydantic fastmcp client for mcp servers ([a3e6788](https://github.com/unoplat/unoplat-code-confluence/commit/a3e6788a54cbf5672967eafd142093d077d559a9))
+
+
+### Bug Fixes
+
+* add utility that helps safe logging showing only first/last few chars of sensitive information ([1fdc947](https://github.com/unoplat/unoplat-code-confluence/commit/1fdc947fb78a83ba59c391956e0051f6fbf984a5))
+* **date-time-fixes-backend:** offset fixes ([87165db](https://github.com/unoplat/unoplat-code-confluence/commit/87165dbc25ebda76a48cb1e4ca6cbf3cd1ebaee6))
+* **mcp-migration:** migration from standard fastapi mcp client ([9a87bb9](https://github.com/unoplat/unoplat-code-confluence/commit/9a87bb91d645868fd36397162800ba326af1d283))
+* **query-engine-test:** breaking changes due to test containers v4 api ([d0e401b](https://github.com/unoplat/unoplat-code-confluence/commit/d0e401b760114d5bf739c54283b7885e74e990eb))
+
 ## [0.25.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.25.0...unoplat-code-confluence-query-engine-v0.25.1) (2026-01-20)
 
 
