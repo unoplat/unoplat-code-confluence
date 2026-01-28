@@ -20,7 +20,7 @@ export type ToolProvider = z.infer<typeof toolProviderSchema>;
 export const toolConfigResponseSchema = z.object({
   provider: toolProviderSchema,
   status: toolConfigStatusSchema,
-  configured_at: z.string().datetime().nullish(),
+  configured_at: z.string().datetime({ offset: true }).nullish(),
 });
 
 export type ToolConfigResponse = z.infer<typeof toolConfigResponseSchema>;
