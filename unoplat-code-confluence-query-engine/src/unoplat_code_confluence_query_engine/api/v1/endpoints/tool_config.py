@@ -97,6 +97,7 @@ async def _restart_worker_for_tool_config(
         logger.error("Failed to restart Temporal worker after tool config update: {}", e)
 
 
+# Note: Use mask_sensitive_string from utils.security_utils for safe API key logging
 @router.put("/{provider}", response_model=ToolConfigResponse)
 async def upsert_tool_config(
     provider: ToolProvider,

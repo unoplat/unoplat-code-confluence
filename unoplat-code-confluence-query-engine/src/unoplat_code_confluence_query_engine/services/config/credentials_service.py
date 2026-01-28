@@ -1,7 +1,7 @@
 """Service for managing encrypted credentials via the shared credentials table."""
 
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 from loguru import logger
@@ -75,7 +75,7 @@ class CredentialsService:
 
         if row:
             row.token_hash = encrypted
-            row.updated_at = datetime.now()
+            row.updated_at = datetime.now(UTC)
             logger.debug("Updated model credential")
         else:
             row = Credentials(
@@ -83,8 +83,8 @@ class CredentialsService:
                 provider_key=ProviderKey.MODEL_PROVIDER_AUTH,
                 secret_kind=SecretKind.MODEL_API_KEY,
                 token_hash=encrypted,
-                created_at=datetime.now(),
-                updated_at=datetime.now(),
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             session.add(row)
             logger.debug("Created new model credential")
@@ -212,7 +212,7 @@ class CredentialsService:
         row = await CredentialsService.execute_get_tool_query(session, provider_key)
         if row:
             row.token_hash = encrypted
-            row.updated_at = datetime.now()
+            row.updated_at = datetime.now(UTC)
             logger.debug("Updated tool credential for provider: {}", provider_key.value)
         else:
             row = Credentials(
@@ -220,8 +220,8 @@ class CredentialsService:
                 provider_key=provider_key,
                 secret_kind=SecretKind.TOOL_API_KEY,
                 token_hash=encrypted,
-                created_at=datetime.now(),
-                updated_at=datetime.now(),
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
             )
             session.add(row)
             logger.debug("Created new tool credential for provider: {}", provider_key.value)

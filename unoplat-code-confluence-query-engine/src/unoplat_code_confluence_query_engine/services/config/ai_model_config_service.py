@@ -1,6 +1,6 @@
 """Service for AI model configuration database operations."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 from loguru import logger
@@ -108,7 +108,7 @@ class AiModelConfigService:
             # Check if config exists
             existing_config = await session.get(AiModelConfig, 1)
 
-            current_time = datetime.utcnow()
+            current_time = datetime.now(UTC)
 
             if existing_config:
                 # Update existing config
