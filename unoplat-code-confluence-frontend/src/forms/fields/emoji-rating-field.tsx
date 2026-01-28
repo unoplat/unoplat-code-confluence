@@ -60,7 +60,7 @@ export function EmojiRatingField({
             className={cn(
               "flex h-auto min-w-[100px] flex-1 flex-col items-center gap-3 rounded-xl border border-transparent px-4 py-6",
               "hover:bg-muted/50",
-              "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:ring-2 data-[state=on]:ring-primary",
+              "data-[state=on]:border-primary/30 data-[state=on]:bg-primary/10 data-[state=on]:ring-primary data-[state=on]:ring-2",
             )}
           >
             <span className="text-5xl" aria-hidden="true">
