@@ -100,7 +100,7 @@ export function GenerateAgentsPreview({
                   </div>
 
                   <AccordionContent className="pb-4">
-                    <div className="border-border bg-muted/50 rounded-md border p-4">
+                    <div className="border-border bg-muted/50 dark:bg-muted rounded-md border p-4">
                       <MDXEditor
                         markdown={codebaseMarkdown}
                         readOnly
@@ -134,8 +134,8 @@ export function GenerateAgentsPreview({
                           }),
                           markdownShortcutPlugin(),
                         ]}
-                        contentEditableClassName="prose prose-sm max-w-none dark:prose-invert prose-code:before:content-none prose-code:after:content-none mdx-editor-content"
-                        className="mdx-editor-wrapper h-full"
+                        contentEditableClassName="prose prose-sm max-w-none dark:prose-invert mdx-editor-content"
+                        className="mdx-editor-wrapper mdx-editor-theme h-full"
                       />
                     </div>
                   </AccordionContent>
