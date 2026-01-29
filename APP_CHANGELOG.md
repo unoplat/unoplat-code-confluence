@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.24.1...unoplat-code-confluence-v0.24.2) (2026-01-29)
+
+
+### Bug Fixes
+
+* flow bridge multiprocessor conflict ([91aac69](https://github.com/unoplat/unoplat-code-confluence/commit/91aac690d2f6c27b8c6f241090b1f60e6a56babf))
+
 ## [0.24.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.24.0...unoplat-code-confluence-v0.24.1) (2026-01-29)
 
 
