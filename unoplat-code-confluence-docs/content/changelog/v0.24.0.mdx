@@ -1,0 +1,41 @@
+---
+title: "Release v0.24.0"
+description: "Dependency Guide Agent for smarter coding assistance and MCP tool management enhancements"
+version: "0.24.0"
+releaseDate: "2026-01-29"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.24.0"
+---
+
+## Highlights
+
+This release introduces the Dependency Guide Agent, providing coding agents with contextual knowledge about which dependencies to use for specific tasks. Additionally, comprehensive MCP tool management capabilities have been added.
+
+## What's New
+
+### Dependency Guide Agent (Alpha)
+
+A new agent that generates repo-specific guides explaining what each dependency is for and when to use it, helping coding agents make informed decisions about library usage.
+
+- Frontend integration for dependency guide generation
+- Backend workflow with pydantic fastmcp client for MCP servers
+- Migration from previous agent with context (now using Exa MCP tool)
+
+### MCP Tool Management
+
+- Full CRUD operations for MCP tools via the frontend
+- Schema-based authentication support for MCP tools
+- Dedicated MCP tool section for agent MD operations
+
+### UI Improvements
+
+- Enhanced sidebar logo with improved visual presentation
+
+## Bug Fixes
+
+- Safe logging utility showing only first/last characters of sensitive information
+- Intuitive error display for agent MD operations
+- DateTime offset fixes across backend operations
+- Migration from standard FastAPI MCP client to pydantic fastmcp for async reliability issues while doing mcp operations in temporal activities
+- MDX editor styling fixes removing unnecessary class applications
+- Test container v4 API compatibility fixes for query engine tests
+- Tool configuration timestamp offset corrections

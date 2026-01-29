@@ -130,13 +130,14 @@ services:
     ports:
       - 8081:8080
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.66.3
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.67.2
     environment:
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001,http://localhost:5173,http://127.0.0.1:3000
       - DB_HOST=postgresql
       - TEMPORAL_DEBUG=true
       - LOG_LEVEL=DEBUG
+      - LOG_DIR=/tmp/logs
       - TOKEN_ENCRYPTION_KEY="0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
       - REPOSITORIES_BASE_PATH=/opt/unoplat/repositories
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
@@ -148,6 +149,7 @@ services:
       - "8000:8000"
     volumes:
       - repositories_data:/opt/unoplat/repositories
+      - flow_bridge_logs:/app/logs
     networks:
       - temporal-network
     stdin_open: true
@@ -196,4 +198,6 @@ volumes:
   repositories_data:
     driver: local
   query_engine_logs:
+    driver: local
+  flow_bridge_logs:
     driver: local
