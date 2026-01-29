@@ -9,9 +9,6 @@ with workflow.unsafe.imports_passed_through():
         ProgrammingLanguageMetadata,
     )
 
-    from src.code_confluence_flow_bridge.logging.trace_utils import (
-        seed_and_bind_logger_from_trace_id,
-    )
     from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
         UnoplatPackageManagerMetadata,
     )
@@ -53,19 +50,14 @@ class CodebaseChildWorkflow:
         package_manager_metadata = envelope.package_manager_metadata
         trace_id = envelope.trace_id
 
-        # Seed ContextVar and bind Loguru logger with trace_id
-        info = workflow.info()
-        workflow_id: str = info.workflow_id
-        workflow_run_id: str = info.run_id
-        log = seed_and_bind_logger_from_trace_id(
-            trace_id=trace_id, workflow_id=workflow_id, workflow_run_id=workflow_run_id
+        workflow.logger.info(
+            "Starting codebase workflow for %s", codebase_qualified_name
         )
 
-        log.info(f"Starting codebase workflow for {codebase_qualified_name}")
-
         # 1. Parse package metadata
-        log.info(
-            f"Creating programming language metadata for {package_manager_metadata.programming_language}"
+        workflow.logger.info(
+            "Creating programming language metadata for %s",
+            package_manager_metadata.programming_language,
         )
         programming_language_metadata = ProgrammingLanguageMetadata(
             language=ProgrammingLanguage(
@@ -78,7 +70,7 @@ class CodebaseChildWorkflow:
             manifest_path=package_manager_metadata.manifest_path,
         )
 
-        log.info("Parsing package metadata")
+        workflow.logger.info("Parsing package metadata")
         # Create PackageMetadataActivityEnvelope
         package_metadata_envelope = PackageMetadataActivityEnvelope(
             codebase_path=codebase_path,
@@ -95,7 +87,7 @@ class CodebaseChildWorkflow:
         )
 
         # 2. Ingest package metadata into relational tables
-        log.info("Ingesting package metadata into relational tables")
+        workflow.logger.info("Ingesting package metadata into relational tables")
         # Create PackageManagerMetadataIngestionEnvelope
         package_manager_metadata_envelope = PackageManagerMetadataIngestionEnvelope(
             codebase_qualified_name=codebase_qualified_name,
@@ -114,7 +106,7 @@ class CodebaseChildWorkflow:
         )
 
         # 3. Process codebase with the generic parser (AST generation, parsing)
-        log.info(
+        workflow.logger.info(
             "Processing codebase using generic parser (AST generation and parsing)"
         )
 
@@ -135,6 +127,6 @@ class CodebaseChildWorkflow:
             retry_policy=ActivityRetriesConfig.DEFAULT,
         )
 
-        log.info(
-            f"Codebase workflow completed successfully for {codebase_qualified_name}"
+        workflow.logger.info(
+            "Codebase workflow completed successfully for %s", codebase_qualified_name
         )
