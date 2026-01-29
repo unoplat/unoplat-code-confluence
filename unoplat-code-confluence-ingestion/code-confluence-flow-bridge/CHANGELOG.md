@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.67.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.67.2...code-confluence-flow-bridge-v0.67.3) (2026-01-29)
+
+
+### Bug Fixes
+
+* **loguru-temporal:** Temporal workflow sandbox blocks multiprocessing.current_process(). Loguru calls that when building log records, and enqueue=True adds a multiprocessing queue, so moved to workflow logger instead of loguru for workflow ([5713da9](https://github.com/unoplat/unoplat-code-confluence/commit/5713da9d21f053cf130e1a865c1a2c3c6c029406))
+
 ## [0.67.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.67.1...code-confluence-flow-bridge-v0.67.2) (2026-01-29)
 
 
