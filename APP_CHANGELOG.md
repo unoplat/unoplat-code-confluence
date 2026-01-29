@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.23.0...unoplat-code-confluence-v0.24.0) (2026-01-29)
+
+
+### Features
+
+* **frontend-dependency-guide-agent:** introduce dependency guide to ensure coding agent knows what to use based on task at hand ([68c8be3](https://github.com/unoplat/unoplat-code-confluence/commit/68c8be3f173bde89e22a422eb65d4c39ee862ae3))
+* **frontend-tool-route-page:** mcp tool update/read/delete operations ([4e00dce](https://github.com/unoplat/unoplat-code-confluence/commit/4e00dcec337d755762ad08f735d546c9984c980e))
+* **improve-sidebar-logo:** sidebar logo improvements ([8baece9](https://github.com/unoplat/unoplat-code-confluence/commit/8baece947a4e60783a0a85ca7d238de6048787f8))
+* **mcp-tool-section:** enable mcp tool section for agent md operations ([3303ce3](https://github.com/unoplat/unoplat-code-confluence/commit/3303ce3f14bd24fc21c9cef421941d8e1e8e88d6))
+* **query-engine-agents-md:** introduce dependency guide agent and also removed agent with context as we migrated to exa mcp tool. Also moved to pydantic fastmcp client for mcp servers ([a3e6788](https://github.com/unoplat/unoplat-code-confluence/commit/a3e6788a54cbf5672967eafd142093d077d559a9))
+* **tool-support:** support mcp tools auth through schema ([cdab28a](https://github.com/unoplat/unoplat-code-confluence/commit/cdab28a0446729195b09b39c41527ee1d6e4c4aa))
+* **tool-support:** support mcp tools auth through schema ([bf0b895](https://github.com/unoplat/unoplat-code-confluence/commit/bf0b89590cbe135b0e83c8c9e98fe92fae343708))
+
+
+### Bug Fixes
+
+* add utility that helps safe logging showing only first/last few chars of sensitive information ([1fdc947](https://github.com/unoplat/unoplat-code-confluence/commit/1fdc947fb78a83ba59c391956e0051f6fbf984a5))
+* **app-name-enhancements:** consistent app name aesthetics across light and dark mode ([8a31de4](https://github.com/unoplat/unoplat-code-confluence/commit/8a31de4a55a14eefccfdbee722689b9ea485ccc5))
+* **backend-error:** intutive error display for agent md operations ([4de6423](https://github.com/unoplat/unoplat-code-confluence/commit/4de6423422c5a166b66fc248d3649af8996cf373))
+* **date-time-fixes-backend:** offset fixes ([87165db](https://github.com/unoplat/unoplat-code-confluence/commit/87165dbc25ebda76a48cb1e4ca6cbf3cd1ebaee6))
+* **mcp-migration:** migration from standard fastapi mcp client ([9a87bb9](https://github.com/unoplat/unoplat-code-confluence/commit/9a87bb91d645868fd36397162800ba326af1d283))
+* **mdxeditor-fixes:** removed ai slop for unnecessary applying classes for mdx editor and not following root based styling ([7f87ff3](https://github.com/unoplat/unoplat-code-confluence/commit/7f87ff3cfa3971ba4b8ad5a2130350c907f8605c))
+* **query-engine-test:** breaking changes due to test containers v4 api ([d0e401b](https://github.com/unoplat/unoplat-code-confluence/commit/d0e401b760114d5bf739c54283b7885e74e990eb))
+* **tool-configuration-timestamp:** timestamp fixes with offset ([0df810a](https://github.com/unoplat/unoplat-code-confluence/commit/0df810ae4725154dc7f3a3427f3ba7a9475331c0))
+
 ## [0.23.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.22.0...unoplat-code-confluence-v0.23.0) (2026-01-21)
 
 
