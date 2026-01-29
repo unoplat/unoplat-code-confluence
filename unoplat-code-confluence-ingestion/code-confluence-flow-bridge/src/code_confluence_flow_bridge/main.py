@@ -404,6 +404,9 @@ async def detect_codebases_multi_language(
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.code_confluence_env = EnvironmentSettings()
+    logger.info(
+        "Starting code-confluence-flow-bridge service with PostgreSQL storage backend"
+    )
     app.state.temporal_client = await get_temporal_client()
 
     # Initialize shared PythonRipgrepDetector instance
