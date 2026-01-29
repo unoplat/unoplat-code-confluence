@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.24.0...unoplat-code-confluence-v0.24.1) (2026-01-29)
+
+
+### Bug Fixes
+
+* **docker-ci-cd-trigger:** pushing logging changes to fix docker buil… ([95a45d2](https://github.com/unoplat/unoplat-code-confluence/commit/95a45d22509c46ba9fc9ec8df4de15fd69110ebb))
+* **docker-ci-cd-trigger:** pushing logging changes to fix docker build trigger error ([0d421db](https://github.com/unoplat/unoplat-code-confluence/commit/0d421db894b60dda76fc0bbb96ec8c867ba4eafa))
+
 ## [0.24.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.23.0...unoplat-code-confluence-v0.24.0) (2026-01-29)
 
 
