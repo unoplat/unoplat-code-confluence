@@ -7,9 +7,6 @@ with workflow.unsafe.imports_passed_through():
     import asyncio
     from datetime import timedelta
 
-    from src.code_confluence_flow_bridge.logging.trace_utils import (
-        seed_and_bind_logger_from_trace_id,
-    )
     from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
         CodebaseChildWorkflowEnvelope,
         ConfluenceGitGraphEnvelope,
@@ -60,20 +57,16 @@ class RepoWorkflow:
         repo_request = envelope.repo_request
         github_token = envelope.github_token
         trace_id = envelope.trace_id
-        # Seed the ContextVar and bind a Loguru logger with trace_id
+        # Get workflow run ID for child workflow envelope
         info: workflow.Info = workflow.info()
-        workflow_id: str = info.workflow_id
         workflow_run_id: str = info.run_id
-        log = seed_and_bind_logger_from_trace_id(
-            trace_id=trace_id, workflow_id=workflow_id, workflow_run_id=workflow_run_id
-        )
 
         try:
-            log.info(
-                f"Starting repository workflow for {repo_request.repository_git_url}"
+            workflow.logger.info(
+                "Starting repository workflow for %s", repo_request.repository_git_url
             )
 
-            log.info("Executing git activity to process repository")
+            workflow.logger.info("Executing git activity to process repository")
             # Create GitActivityEnvelope
             git_activity_envelope = GitActivityEnvelope(
                 repo_request=repo_request, github_token=github_token, trace_id=trace_id
@@ -86,7 +79,9 @@ class RepoWorkflow:
             )
 
             # 2. Then insert the git repo into relational tables
-            log.info("Inserting git repository metadata into relational tables")
+            workflow.logger.info(
+                "Inserting git repository metadata into relational tables"
+            )
             # Create ConfluenceGitGraphEnvelope
             git_graph_envelope = ConfluenceGitGraphEnvelope(
                 git_repo=git_repo_metadata, trace_id=trace_id
@@ -101,8 +96,9 @@ class RepoWorkflow:
             )
 
             # 3. Then spawns child workflows for each codebase
-            log.info(
-                f"Starting {len(git_repo_metadata.codebases)} child workflows for codebases"
+            workflow.logger.info(
+                "Starting %s child workflows for codebases",
+                len(git_repo_metadata.codebases),
             )
             # track child handles so we can await them later
             child_handles: list[ChildWorkflowHandle] = []
@@ -111,11 +107,11 @@ class RepoWorkflow:
                 parent_child_clone_metadata.codebase_qualified_names,
                 git_repo_metadata.codebases,
             ):
-                log.info(
-                    f"Starting child workflow for codebase: {codebase_qualified_name}"
+                workflow.logger.info(
+                    "Starting child workflow for codebase: %s", codebase_qualified_name
                 )
-                log.debug(
-                    "Child workflow args: repository_qualified_name='{}', codebase_qualified_name='{}', root_packages='{}', codebase_path='{}', package_manager_metadata={} ",
+                workflow.logger.debug(
+                    "Child workflow args: repository_qualified_name=%s, codebase_qualified_name=%s, root_packages=%s, codebase_path=%s, package_manager_metadata=%s",
                     parent_child_clone_metadata.repository_qualified_name,
                     codebase_qualified_name,
                     unoplat_codebase.root_packages,
@@ -150,8 +146,8 @@ class RepoWorkflow:
                     inner: BaseException = (
                         wf.cause
                     )  # e.g. an ActivityError or ChildWorkflowError
-                    log.error(
-                        "Child workflow failed | failed_entity={} | error_message={} | stack_trace={}",
+                    workflow.logger.error(
+                        "Child workflow failed | failed_entity=%s | error_message=%s | stack_trace=%s",
                         child_workflow_id,
                         str(inner),
                         inner.__traceback__,
@@ -166,20 +162,21 @@ class RepoWorkflow:
 
             any_failed = any(isinstance(r, BaseException) for r in results)
             if any_failed:
-                log.warning(
-                    "One or more codebase child workflows failed for repository {}",
+                workflow.logger.warning(
+                    "One or more codebase child workflows failed for repository %s",
                     repo_request.repository_git_url,
                 )
 
-            log.info(
-                f"Repository workflow completed successfully for {repo_request.repository_git_url}"
+            workflow.logger.info(
+                "Repository workflow completed successfully for %s",
+                repo_request.repository_git_url,
             )
             return git_repo_metadata
         except ActivityError as e:
             if e.cause is not None and isinstance(e.cause, ApplicationError):
                 error_type: ApplicationError = e.cause
-                log.error(
-                    "Parent workflow failed | error_type={} | error_message={} | details={} | non_retryable={} | stack_trace={}",
+                workflow.logger.error(
+                    "Parent workflow failed | error_type=%s | error_message=%s | details=%s | non_retryable=%s | stack_trace=%s",
                     error_type.type,
                     str(error_type),
                     error_type.details,
@@ -188,8 +185,8 @@ class RepoWorkflow:
                 )
                 raise e
             else:
-                log.error(
-                    "Parent workflow failed | error_message={} | stack_trace={}",
+                workflow.logger.error(
+                    "Parent workflow failed | error_message=%s | stack_trace=%s",
                     str(e),
                     e.__traceback__,
                 )
