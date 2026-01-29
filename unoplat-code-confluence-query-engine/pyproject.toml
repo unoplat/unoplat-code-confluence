@@ -1,6 +1,6 @@
 [project]
 name = "unoplat-code-confluence-query-engine"
-version = "0.25.1"
+version = "0.26.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -9,11 +9,10 @@ dependencies = [
     "aiopath>=0.7.7",
     "asyncpg>=0.30.0",
     "fastapi[standard]>=0.116.1",
-    "fastmcp>=2.14.0",
+    #"fastmcp>=2.14.0",
     "logfire[fastapi]>=4.4.0",
     "loguru>=0.7.3",
-    "mcp>=1.24.0",
-    "pydantic-ai>=1.32.0",
+    "pydantic-ai>=1.47.0",
     "pydantic-ai-slim[retries]>=1.0.5",
     "qs-codec>=1.1.1",
     "sqlalchemy[asyncio]>=2.0.0",
@@ -53,7 +52,7 @@ markers = [
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
 #unoplat-code-confluence-commons = { path = "../unoplat-code-confluence-commons" }
-unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.41.1" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.42.0" }
 
 [tool.basedpyright]
 typeCheckingMode = "strict"

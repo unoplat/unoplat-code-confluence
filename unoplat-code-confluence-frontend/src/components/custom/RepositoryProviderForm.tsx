@@ -300,8 +300,7 @@ export function RepositoryProviderForm({
           }
         >
           {([provider_key, url]) => {
-            const isEnterprise =
-              provider_key === ProviderKey.GITHUB_ENTERPRISE;
+            const isEnterprise = provider_key === ProviderKey.GITHUB_ENTERPRISE;
             const isLinkDisabled = isEnterprise && !url?.trim();
 
             const href =

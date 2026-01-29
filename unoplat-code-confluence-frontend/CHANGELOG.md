@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.39.0...unoplat-code-confluence-frontend-v1.40.0) (2026-01-28)
+
+
+### Features
+
+* **frontend-dependency-guide-agent:** introduce dependency guide to ensure coding agent knows what to use based on task at hand ([68c8be3](https://github.com/unoplat/unoplat-code-confluence/commit/68c8be3f173bde89e22a422eb65d4c39ee862ae3))
+* **frontend-tool-route-page:** mcp tool update/read/delete operations ([4e00dce](https://github.com/unoplat/unoplat-code-confluence/commit/4e00dcec337d755762ad08f735d546c9984c980e))
+* **improve-sidebar-logo:** sidebar logo improvements ([8baece9](https://github.com/unoplat/unoplat-code-confluence/commit/8baece947a4e60783a0a85ca7d238de6048787f8))
+* **mcp-tool-section:** enable mcp tool section for agent md operations ([3303ce3](https://github.com/unoplat/unoplat-code-confluence/commit/3303ce3f14bd24fc21c9cef421941d8e1e8e88d6))
+
+
+### Bug Fixes
+
+* **app-name-enhancements:** consistent app name aesthetics across light and dark mode ([8a31de4](https://github.com/unoplat/unoplat-code-confluence/commit/8a31de4a55a14eefccfdbee722689b9ea485ccc5))
+* **backend-error:** intutive error display for agent md operations ([4de6423](https://github.com/unoplat/unoplat-code-confluence/commit/4de6423422c5a166b66fc248d3649af8996cf373))
+* **mdxeditor-fixes:** removed ai slop for unnecessary applying classes for mdx editor and not following root based styling ([7f87ff3](https://github.com/unoplat/unoplat-code-confluence/commit/7f87ff3cfa3971ba4b8ad5a2130350c907f8605c))
+* **tool-configuration-timestamp:** timestamp fixes with offset ([0df810a](https://github.com/unoplat/unoplat-code-confluence/commit/0df810ae4725154dc7f3a3427f3ba7a9475331c0))
+
 ## [1.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.38.0...unoplat-code-confluence-frontend-v1.39.0) (2025-12-22)
 
 

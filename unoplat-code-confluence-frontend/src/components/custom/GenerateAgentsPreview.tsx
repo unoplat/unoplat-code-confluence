@@ -26,6 +26,7 @@ import {
   tablePlugin,
   codeBlockPlugin,
   codeMirrorPlugin,
+  markdownShortcutPlugin,
 } from "@mdxeditor/editor";
 import type { AgentMdCodebaseOutput } from "@/features/repository-agent-snapshots/schema";
 import { agentMdOutputToMarkdown } from "@/lib/agent-md-to-markdown";
@@ -99,7 +100,7 @@ export function GenerateAgentsPreview({
                   </div>
 
                   <AccordionContent className="pb-4">
-                    <div className="border-border bg-muted/50 rounded-md border p-4">
+                    <div className="border-border bg-muted/50 dark:bg-muted rounded-md border p-4">
                       <MDXEditor
                         markdown={codebaseMarkdown}
                         readOnly
@@ -131,9 +132,10 @@ export function GenerateAgentsPreview({
                               toml: "TOML",
                             },
                           }),
+                          markdownShortcutPlugin(),
                         ]}
                         contentEditableClassName="prose prose-sm max-w-none dark:prose-invert mdx-editor-content"
-                        className="mdx-editor-wrapper h-full"
+                        className="mdx-editor-wrapper mdx-editor-theme h-full"
                       />
                     </div>
                   </AccordionContent>

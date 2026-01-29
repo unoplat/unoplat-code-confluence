@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 
 from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql.sqltypes import JSON
+from sqlalchemy.sql.sqltypes import JSON, DateTime
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 
 
@@ -31,5 +31,5 @@ class AiModelConfig(SQLBase):
     temperature: Mapped[Optional[float]] = mapped_column(default=None)
     top_p: Mapped[Optional[float]] = mapped_column(default=None)
     max_tokens: Mapped[Optional[int]] = mapped_column(default=None)
-    created_at: Mapped[datetime] = mapped_column(default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())

@@ -25,9 +25,7 @@ interface RepositoryDataTableProps {
   providerKey: ProviderKey;
 }
 
-export function RepositoryDataTable({
-  providerKey,
-}: RepositoryDataTableProps) {
+export function RepositoryDataTable({ providerKey }: RepositoryDataTableProps) {
   const queryClient = useQueryClient();
 
   const ingestMutation = useMutation({

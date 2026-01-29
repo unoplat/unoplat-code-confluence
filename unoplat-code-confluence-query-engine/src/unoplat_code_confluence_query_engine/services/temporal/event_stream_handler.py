@@ -23,6 +23,7 @@ COMPLETION_NAMESPACES: frozenset[str] = frozenset(
     {
         "project_configuration_agent",
         "development_workflow_agent",
+        "dependency_guide_agent",
         "business_logic_domain_agent",
     }
 )

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as SettingsToolConfigRouteImport } from './routes/settings.tool-config'
 import { Route as SettingsModelProvidersRouteImport } from './routes/settings.model-providers'
 import { Route as SettingsDeveloperRouteImport } from './routes/settings.developer'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
@@ -29,6 +30,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const SettingsToolConfigRoute = SettingsToolConfigRouteImport.update({
+  id: '/settings/tool-config',
+  path: '/settings/tool-config',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsModelProvidersRoute = SettingsModelProvidersRouteImport.update({
   id: '/settings/model-providers',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
+  '/settings/tool-config': typeof SettingsToolConfigRoute
   '/': typeof AppIndexRoute
   '/onboarding/$provider': typeof AppOnboardingProviderRoute
   '/onboarding/': typeof AppOnboardingIndexRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
+  '/settings/tool-config': typeof SettingsToolConfigRoute
   '/': typeof AppIndexRoute
   '/onboarding/$provider': typeof AppOnboardingProviderRoute
   '/onboarding': typeof AppOnboardingIndexRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
+  '/settings/tool-config': typeof SettingsToolConfigRoute
   '/_app/': typeof AppIndexRoute
   '/_app/onboarding/$provider': typeof AppOnboardingProviderRoute
   '/_app/onboarding/': typeof AppOnboardingIndexRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/developer'
     | '/settings/model-providers'
+    | '/settings/tool-config'
     | '/'
     | '/onboarding/$provider'
     | '/onboarding/'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/developer'
     | '/settings/model-providers'
+    | '/settings/tool-config'
     | '/'
     | '/onboarding/$provider'
     | '/onboarding'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/settings/developer'
     | '/settings/model-providers'
+    | '/settings/tool-config'
     | '/_app/'
     | '/_app/onboarding/$provider'
     | '/_app/onboarding/'
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   SettingsDeveloperRoute: typeof SettingsDeveloperRoute
   SettingsModelProvidersRoute: typeof SettingsModelProvidersRoute
+  SettingsToolConfigRoute: typeof SettingsToolConfigRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -173,6 +186,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/settings/tool-config': {
+      id: '/settings/tool-config'
+      path: '/settings/tool-config'
+      fullPath: '/settings/tool-config'
+      preLoaderRoute: typeof SettingsToolConfigRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/settings/model-providers': {
       id: '/settings/model-providers'
@@ -278,6 +298,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   SettingsDeveloperRoute: SettingsDeveloperRoute,
   SettingsModelProvidersRoute: SettingsModelProvidersRoute,
+  SettingsToolConfigRoute: SettingsToolConfigRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

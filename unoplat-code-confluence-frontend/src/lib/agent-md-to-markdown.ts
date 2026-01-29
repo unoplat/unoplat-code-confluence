@@ -58,6 +58,18 @@ export function agentMdOutputToMarkdown(
     });
   }
 
+  // Dependency Guide section
+  entries.push({ h2: "Dependency Guide" });
+  if (agent?.dependency_guide?.dependencies?.length) {
+    entries.push({
+      ul: agent.dependency_guide.dependencies.map(
+        (d) => `**${d.name}** — ${d.purpose}\n\n  ${d.usage}`,
+      ),
+    });
+  } else {
+    entries.push({ p: "No dependency guide entries available." });
+  }
+
   // Business logic domain
   entries.push({ h2: "Business Logic Domain" });
   if (agent?.business_logic_domain?.description) {
@@ -130,6 +142,18 @@ export function codebasesToMarkdown(
           (c) => `${c.command}${c.description ? ` — ${c.description}` : ""}`,
         ),
       });
+    }
+
+    // Dependency Guide section (per codebase)
+    entries.push({ h3: "Dependency Guide" });
+    if (agent?.dependency_guide?.dependencies?.length) {
+      entries.push({
+        ul: agent.dependency_guide.dependencies.map(
+          (d) => `**${d.name}** — ${d.purpose}\n\n  ${d.usage}`,
+        ),
+      });
+    } else {
+      entries.push({ p: "No dependency guide entries available." });
     }
 
     // Business logic domain

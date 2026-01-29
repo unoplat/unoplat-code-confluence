@@ -12,6 +12,7 @@ from unoplat_code_confluence_query_engine.api.v1.endpoints import (
     ai_model_config,
     codebase_agent_rules,
     flags,
+    tool_config,
 )
 from unoplat_code_confluence_query_engine.config.logging_config import setup_logging
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
@@ -73,14 +74,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.mcp_manager = MCPServerManager()
     await app.state.mcp_manager.load_config(app.state.settings.mcp_servers_config_path)
 
-    # Verify Context7 configuration is loaded
-    if app.state.mcp_manager.has_server_config("context7"):
-        logger.info("Context7 MCP server configuration loaded successfully")
-    else:
-        logger.warning(
-            "Context7 MCP server configuration not found. "
-            "Library documentation features will be unavailable."
-        )
+    # Context7-based library docs were removed in favor of Exa MCP.
 
     # Initialize services and store in app state
     app.state.ai_model_config_service = AiModelConfigService()
@@ -182,3 +176,4 @@ app.add_middleware(
 app.include_router(codebase_agent_rules.router)
 app.include_router(ai_model_config.router)
 app.include_router(flags.router)
+app.include_router(tool_config.router)

@@ -1,15 +1,17 @@
 """
 MCP Server Manager Service
 
-Manages the lifecycle of MCP servers using PydanticAI's MCPServerStdio and MCPServerHTTP.
+Manages MCP servers using FastMCPToolset for local/remote transports.
 """
 
 import json
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from loguru import logger
-from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio, MCPServerStreamableHTTP
+from pydantic_ai.toolsets.abstract import AbstractToolset
+from pydantic_ai.toolsets.fastmcp import FastMCPToolset
 
 from unoplat_code_confluence_query_engine.models.config.mcp_config import (
     LocalMCPServerConfig,
@@ -19,6 +21,22 @@ from unoplat_code_confluence_query_engine.models.config.mcp_config import (
     RemoteMCPServerConfig,
     load_mcp_config_from_dict,
 )
+
+_SENSITIVE_QUERY_KEYS = {"exaApiKey", "api_key", "apikey", "token", "key"}
+
+
+def _sanitize_url(url: str) -> str:
+    parsed = urlparse(url)
+    if not parsed.query:
+        return url
+    query = parse_qs(parsed.query, keep_blank_values=True)
+    sanitized: dict[str, list[str]] = {}
+    for key, values in query.items():
+        if key in _SENSITIVE_QUERY_KEYS:
+            sanitized[key] = ["***"]
+        else:
+            sanitized[key] = values
+    return urlunparse(parsed._replace(query=urlencode(sanitized, doseq=True)))
 
 
 class MCPServerManager:
@@ -71,9 +89,13 @@ class MCPServerManager:
             self.config = MCPServersConfig()
 
     def create_local_server_instance(
-        self, name: str, config: LocalMCPServerConfig
-    ) -> MCPServerStdio:
-        """Create a local MCP server instance."""
+        self,
+        name: str,
+        config: LocalMCPServerConfig,
+        *,
+        id_override: str | None = None,
+    ) -> AbstractToolset[Any]:
+        """Create a local MCP server toolset via FastMCPToolset."""
         if not config.command:
             raise ValueError(f"Command is required for local server {name}")
 
@@ -81,85 +103,112 @@ class MCPServerManager:
             "Creating local MCP server '{}' with command: {}", name, config.command
         )
 
-        # Use tool_prefix if provided, otherwise use server name
-        tool_prefix = config.tool_prefix or name
+        # Use tool_prefix only when explicitly configured
+        tool_prefix = config.tool_prefix if config.tool_prefix else None
+        # Temporal requires stable toolset IDs; allow per-agent overrides.
+        id_value = id_override or name
 
         try:
-            server = MCPServerStdio(
-                command=config.command[0],
-                args=config.command[1:] + config.args,
-                env=config.environment if config.environment else None,
-                cwd=config.cwd,
-                timeout=config.timeout,
-                tool_prefix=tool_prefix,
-            )
+            # Build a FastMCP-compatible MCP config.
+            stdio_config: dict[str, Any] = {
+                "command": config.command[0],
+                "args": config.command[1:] + config.args,
+                "transport": "stdio",
+                "timeout": config.timeout,
+            }
+            if config.environment:
+                stdio_config["env"] = config.environment
+            if config.cwd:
+                stdio_config["cwd"] = config.cwd
+
+            mcp_config = {"mcpServers": {name: stdio_config}}
+            toolset: AbstractToolset[Any] = FastMCPToolset(mcp_config, id=id_value)
+
+            # Apply tool prefix only when explicitly configured.
+            if tool_prefix:
+                toolset = toolset.prefixed(tool_prefix)
 
             logger.info(
-                "Successfully created local MCP server '{}' with command: {}",
+                "Created local MCP toolset '{}' (id='{}') with command: {}",
                 name,
-                config.command,
+                id_value,
+                config.command[0],
             )
             logger.debug(
-                "Local MCP server '{}' - timeout: {}s, env: {}, cwd: {}",
+                "Local MCP toolset '{}' - timeout: {}s, env: {}, cwd: {}, tool_prefix: {}",
                 name,
                 config.timeout,
                 config.environment,
                 config.cwd,
+                tool_prefix,
             )
-            return server
+            return toolset
 
         except Exception as e:
-            logger.error("Failed to create local MCP server '{}': {}", name, e)
+            logger.error("Failed to create local MCP toolset '{}': {}", name, e)
             raise
 
     def create_remote_server_instance(
-        self, name: str, config: RemoteMCPServerConfig
-    ) -> MCPServerSSE | MCPServerStreamableHTTP:
-        """Create a remote MCP server instance based on protocol configuration."""
+        self,
+        name: str,
+        config: RemoteMCPServerConfig,
+        *,
+        id_override: str | None = None,
+    ) -> AbstractToolset[Any]:
+        """Create a remote MCP server toolset via FastMCPToolset."""
         logger.debug(
-            "Creating remote MCP server '{}' with URL: {} (protocol: {})",
+            "Creating remote MCP toolset '{}' with URL: {} (protocol: {})",
             name,
-            config.url,
+            _sanitize_url(config.url),
             config.protocol.value,
         )
 
-        # Use tool_prefix if provided, otherwise use server name
-        tool_prefix = config.tool_prefix or name
+        # Use tool_prefix only when explicitly configured
+        tool_prefix = config.tool_prefix if config.tool_prefix else None
+        # Temporal requires stable toolset IDs; allow per-agent overrides.
+        id_value = id_override or name
 
         try:
-            server: MCPServerSSE | MCPServerStreamableHTTP
-            match config.protocol:
-                case MCPServerProtocol.HTTP:
-                    server = MCPServerStreamableHTTP(
-                        url=config.url,
-                        headers=config.headers if config.headers else None,
-                        timeout=config.timeout,
-                        tool_prefix=tool_prefix,
-                    )
-                case MCPServerProtocol.SSE:
-                    server = MCPServerSSE(
-                        url=config.url,
-                        headers=config.headers if config.headers else None,
-                        timeout=config.timeout,
-                        tool_prefix=tool_prefix,
-                    )
+            # Map protocol to FastMCP transport naming.
+            transport = (
+                "streamable-http"
+                if config.protocol == MCPServerProtocol.HTTP
+                else "sse"
+            )
+
+            remote_config: dict[str, Any] = {
+                "url": config.url,
+                "transport": transport,
+                "timeout": config.timeout,
+            }
+            if config.headers:
+                remote_config["headers"] = config.headers
+
+            mcp_config = {"mcpServers": {name: remote_config}}
+            toolset: AbstractToolset[Any] = FastMCPToolset(mcp_config, id=id_value)
+
+            # Apply tool prefix only when explicitly configured.
+            if tool_prefix:
+                toolset = toolset.prefixed(tool_prefix)
 
             logger.info(
-                "Successfully created remote MCP server '{}' at URL: {} (protocol: {})",
+                "Created remote MCP toolset '{}' (id='{}') at URL: {} (protocol: {})",
                 name,
-                config.url,
+                id_value,
+                _sanitize_url(config.url),
                 config.protocol.value,
             )
             logger.debug(
-                "Remote MCP server '{}' - timeout: {}s, headers count: {}",
+                "Remote MCP toolset '{}' - timeout: {}s, headers count: {}, tool_prefix: {}",
                 name,
                 config.timeout,
                 len(config.headers) if config.headers else 0,
+                tool_prefix,
             )
-            return server
+            return toolset
 
         except Exception as e:
-            logger.error("Failed to create remote MCP server '{}': {}", name, e)
+            logger.error("Failed to create remote MCP toolset '{}': {}", name, e)
             raise
 
     def get_server_config(
@@ -188,10 +237,29 @@ class MCPServerManager:
         """
         return bool(self.get_server_config(name))
 
+    def set_remote_server_query_param(
+        self, name: str, param: str, value: str
+    ) -> bool:
+        """Update a remote server URL by setting a query parameter."""
+        config = self.get_server_config(name)
+        if not isinstance(config, RemoteMCPServerConfig):
+            logger.warning(
+                "Remote MCP server config not found for '{}'; cannot set query param",
+                name,
+            )
+            return False
+
+        parsed = urlparse(config.url)
+        query = parse_qs(parsed.query, keep_blank_values=True)
+        query[param] = [value]
+        config.url = urlunparse(parsed._replace(query=urlencode(query, doseq=True)))
+        logger.debug("Updated MCP server '{}' URL query param '{}'", name, param)
+        return True
+
     def get_server_by_name(
-        self, name: str
-    ) -> MCPServerStdio | MCPServerSSE | MCPServerStreamableHTTP | None:
-        """Create a new MCP server instance from configuration.
+        self, name: str, *, id_override: str | None = None
+    ) -> AbstractToolset[Any] | None:
+        """Create a new MCP toolset instance from configuration.
 
         IMPORTANT: Caller is responsible for managing the server lifecycle.
         For agents, the server lifecycle is automatically managed by PydanticAI
@@ -201,7 +269,7 @@ class MCPServerManager:
             name: Name of the MCP server
 
         Returns:
-            New MCP server instance if configuration exists, None otherwise
+            New MCP toolset instance if configuration exists, None otherwise
         """
         config = self.get_server_config(name)
         if not config:
@@ -210,6 +278,10 @@ class MCPServerManager:
 
         match config.server_type:
             case MCPServerType.LOCAL:
-                return self.create_local_server_instance(name, config)
+                return self.create_local_server_instance(
+                    name, config, id_override=id_override
+                )
             case MCPServerType.REMOTE:
-                return self.create_remote_server_instance(name, config)
+                return self.create_remote_server_instance(
+                    name, config, id_override=id_override
+                )

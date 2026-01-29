@@ -37,464 +37,112 @@
   }
 }
 
-/* MDXEditor dark mode fixes */
-@utility dark {
-  & .mdx-editor-wrapper {
-    color: oklch(var(--foreground)) !important;
-  }
-  & .mdx-editor-content {
-    color: oklch(var(--foreground)) !important;
-  }
-  & [data-editor="true"] {
-    color: oklch(var(--foreground)) !important;
+@layer base {
+  .mdxeditor.mdx-editor-theme {
+    --accentBase: oklch(var(--accent)) !important;
+    --accentBgSubtle: oklch(var(--accent)) !important;
+    --accentBg: oklch(var(--accent)) !important;
+    --accentBgHover: oklch(var(--accent)) !important;
+    --accentBgActive: oklch(var(--accent)) !important;
+    --accentLine: oklch(var(--border)) !important;
+    --accentBorder: oklch(var(--border)) !important;
+    --accentBorderHover: oklch(var(--ring)) !important;
+    --accentSolid: oklch(var(--primary)) !important;
+    --accentSolidHover: oklch(var(--primary-hover)) !important;
+    --accentText: oklch(var(--primary)) !important;
+    --accentTextContrast: oklch(var(--primary-foreground)) !important;
+
+    --baseBase: oklch(var(--background)) !important;
+    --baseBgSubtle: oklch(var(--muted)) !important;
+    --baseBg: oklch(var(--background)) !important;
+    --baseBgHover: oklch(var(--muted)) !important;
+    --baseBgActive: oklch(var(--muted)) !important;
+    --baseLine: oklch(var(--border)) !important;
+    --baseBorder: oklch(var(--border)) !important;
+    --baseBorderHover: oklch(var(--ring)) !important;
+    --baseSolid: oklch(var(--primary)) !important;
+    --baseSolidHover: oklch(var(--primary-hover)) !important;
+    --baseText: oklch(var(--foreground)) !important;
+    --baseTextContrast: oklch(var(--foreground)) !important;
+    --basePageBg: oklch(var(--background)) !important;
+
+    --mdx-inline-code-bg: hsl(220 14% 96%);
+    --mdx-inline-code-text: hsl(220 20% 22%);
+    --mdx-inline-code-border: hsl(220 10% 84%);
+    --mdx-inline-code-tick: hsl(220 10% 45%);
+    --mdx-code-block-bg: hsl(220 14% 96%);
+    --mdx-code-block-text: hsl(220 18% 20%);
   }
 
-  & .mdx-editor-wrapper .mdxeditor-rich-text-editor {
-    color: oklch(var(--foreground)) !important;
-  }
+  .dark .mdxeditor.mdx-editor-theme {
+    --baseBase: oklch(var(--background)) !important;
+    --baseBgSubtle: oklch(var(--muted)) !important;
+    --baseBg: oklch(var(--muted)) !important;
+    --baseBgHover: oklch(var(--accent)) !important;
+    --baseBgActive: oklch(var(--accent)) !important;
+    --baseText: oklch(var(--foreground)) !important;
+    --baseTextContrast: oklch(var(--foreground)) !important;
+    --basePageBg: oklch(var(--background)) !important;
 
-  & .mdx-editor-content .mdxeditor-rich-text-editor {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] .mdxeditor-rich-text-editor {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper p {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper h1 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper h2 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper h3 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper h4 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper h5 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper h6 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper li {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper span {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper div {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper strong {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper em {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper a {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content p {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content h1 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content h2 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content h3 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content h4 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content h5 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content h6 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content li {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content span {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content div {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content strong {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content em {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content a {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] p {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] h1 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] h2 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] h3 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] h4 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] h5 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] h6 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] li {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] span {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] div {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] strong {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] em {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] a {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper blockquote {
-    color: oklch(var(--muted-foreground)) !important;
-    border-left-color: oklch(var(--border)) !important;
-  }
-
-  & .mdx-editor-content blockquote {
-    color: oklch(var(--muted-foreground)) !important;
-    border-left-color: oklch(var(--border)) !important;
-  }
-
-  & [data-editor="true"] blockquote {
-    color: oklch(var(--muted-foreground)) !important;
-    border-left-color: oklch(var(--border)) !important;
-  }
-
-  & .mdx-editor-wrapper code {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content code {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] code {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper pre {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content pre {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] pre {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper table {
-    border-color: oklch(var(--border)) !important;
-  }
-
-  & .mdx-editor-content table {
-    border-color: oklch(var(--border)) !important;
-  }
-
-  & [data-editor="true"] table {
-    border-color: oklch(var(--border)) !important;
-  }
-
-  & .mdx-editor-wrapper th {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-wrapper td {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content th {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & .mdx-editor-content td {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] th {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  & [data-editor="true"] td {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
+    --mdx-inline-code-bg: hsl(220 8% 18%);
+    --mdx-inline-code-text: hsl(220 12% 92%);
+    --mdx-inline-code-border: hsl(220 7% 30%);
+    --mdx-inline-code-tick: hsl(220 6% 70%);
+    --mdx-code-block-bg: hsl(220 8% 16%);
+    --mdx-code-block-text: hsl(220 12% 92%);
   }
 }
-@utility mdx-editor-wrapper {
-  .dark & {
-    color: oklch(var(--foreground)) !important;
+
+/* High-contrast dark mode inline code styling for MDXEditor */
+/* These rules ensure readable inline code text in dark mode */
+@layer base {
+  .mdx-editor-theme .mdxeditor-root-contenteditable {
+    --tw-prose-code: var(--mdx-inline-code-text);
+    --tw-prose-pre-bg: var(--mdx-code-block-bg);
+    --tw-prose-pre-code: var(--mdx-code-block-text);
   }
 
-  .dark & .mdxeditor-rich-text-editor {
-    color: oklch(var(--foreground)) !important;
+  .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code {
+    background-color: transparent !important;
   }
 
-  .dark & p {
-    color: oklch(var(--foreground)) !important;
+  .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code > span {
+    background-color: var(--mdx-inline-code-bg) !important;
+    color: var(--mdx-inline-code-text) !important;
+    padding: 0.2rem 0.4rem !important;
+    border-radius: 0.25rem !important;
+    border: 1px solid var(--mdx-inline-code-border) !important;
+    font-weight: 500 !important;
   }
 
-  .dark & h1 {
-    color: oklch(var(--foreground)) !important;
+  .dark .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code:not(pre code),
+  .dark .mdxeditor.mdx-editor-theme .mdx-editor-content code:not(pre code),
+  .dark .mdxeditor.mdx-editor-theme .prose code:not(pre code),
+  .dark .mdxeditor.mdx-editor-theme .prose-sm code:not(pre code) {
+    background-color: var(--mdx-inline-code-bg) !important;
+    color: var(--mdx-inline-code-text) !important;
+    padding: 0.2rem 0.4rem !important;
+    border-radius: 0.25rem !important;
+    font-weight: 500 !important;
+    border: 1px solid var(--mdx-inline-code-border) !important;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
   }
 
-  .dark & h2 {
-    color: oklch(var(--foreground)) !important;
+  /* Style the backticks in dark mode for better visibility */
+  .dark .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code:not(pre code)::before,
+  .dark .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code:not(pre code)::after,
+  .dark .mdxeditor.mdx-editor-theme .mdx-editor-content code:not(pre code)::before,
+  .dark .mdxeditor.mdx-editor-theme .mdx-editor-content code:not(pre code)::after,
+  .dark .mdxeditor.mdx-editor-theme .prose code:not(pre code)::before,
+  .dark .mdxeditor.mdx-editor-theme .prose code:not(pre code)::after,
+  .dark .mdxeditor.mdx-editor-theme .prose-sm code:not(pre code)::before,
+  .dark .mdxeditor.mdx-editor-theme .prose-sm code:not(pre code)::after {
+    color: var(--mdx-inline-code-tick) !important;
   }
 
-  .dark & h3 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h4 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h5 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h6 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & li {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & span {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & div {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & strong {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & em {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & a {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & blockquote {
-    color: oklch(var(--muted-foreground)) !important;
-    border-left-color: oklch(var(--border)) !important;
-  }
-
-  .dark & code {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & pre {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & table {
-    border-color: oklch(var(--border)) !important;
-  }
-
-  .dark & th {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & td {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-}
-@utility mdx-editor-content {
-  .dark & {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & .mdxeditor-rich-text-editor {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & p {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h1 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h2 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h3 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h4 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h5 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & h6 {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & li {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & span {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & div {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & strong {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & em {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & a {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & blockquote {
-    color: oklch(var(--muted-foreground)) !important;
-    border-left-color: oklch(var(--border)) !important;
-  }
-
-  .dark & code {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & pre {
-    background-color: oklch(var(--muted)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & table {
-    border-color: oklch(var(--border)) !important;
-  }
-
-  .dark & th {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark & td {
-    border-color: oklch(var(--border)) !important;
-    color: oklch(var(--foreground)) !important;
-  }
-}
-@utility mdxeditor-rich-text-editor {
-  .dark .mdx-editor-wrapper & {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark .mdx-editor-content & {
-    color: oklch(var(--foreground)) !important;
-  }
-
-  .dark [data-editor="true"] & {
-    color: oklch(var(--foreground)) !important;
+  .dark .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code * {
+    color: var(--mdx-inline-code-text) !important;
+    opacity: 1 !important;
   }
 }
 
