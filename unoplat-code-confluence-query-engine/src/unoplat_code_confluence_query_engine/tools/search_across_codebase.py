@@ -226,32 +226,33 @@ async def search_across_codebase(
     timeout_s: int = 20,
     path: Optional[str] = None,
 ) -> SearchResults:
-    """
-    Search for patterns across the entire codebase using ripgrep.
-    This tool provides fast, powerful code searching capabilities with support for
-    both regex and literal pattern matching, file filtering, and contextual previews.
+    """Search for patterns across the codebase using ripgrep. REQUIRED: You must provide the pattern parameter.
+
+    IMPORTANT: This tool will FAIL if called without the pattern argument or with empty arguments {}.
+    Always provide pattern when calling this tool.
 
     Args:
-        pattern: The search pattern to find
-        mode: Whether to treat pattern as "regex" or "literal" (default: "regex")
-        glob: Optional list of glob patterns to filter files (e.g., ["*.py", "**/*.ts"])
-        case: Case strategy - "smart" (insensitive unless uppercase), "sensitive", or "insensitive"
-        context: Number of lines to include before/after each match (default: 2)
-        max_results: Global maximum number of matches to return (default: 50)
-        timeout_s: Timeout in seconds for the search operation (default: 20)
-        path: Optional search path relative to the codebase root. If provided, search starts in this subdirectory or file; otherwise searches the entire codebase.
+        pattern: REQUIRED - The search pattern to find. You MUST provide this parameter.
+            Do NOT call this tool without pattern or with empty arguments {}. Valid examples:
+            pattern="def main" or pattern="import.*json". INVALID calls: search_across_codebase()
+            or search_across_codebase({}) without pattern.
+        mode: Optional - Whether to treat pattern as "regex" or "literal" (default: "regex").
+        glob: Optional list of glob patterns to filter files (e.g., ["*.py", "**/*.ts"]).
+        case: Optional - Case strategy: "smart" (insensitive unless uppercase), "sensitive", or "insensitive".
+        context: Optional - Number of lines to include before/after each match (default: 2).
+        max_results: Optional - Maximum number of matches to return (default: 50).
+        timeout_s: Optional - Timeout in seconds for the search operation (default: 20).
+        path: Optional - Search path relative to the codebase root. Searches entire codebase if not provided.
 
     Returns:
-        SearchResults containing matches with contextual information
+        SearchResults containing matches with contextual information.
 
     Examples:
         # Search for function definitions
-        results = await search_across_codebase(pattern=r"^def \\w+", mode="regex", glob=["*.py"], context=3
-        )
+        results = await search_across_codebase(pattern=r"^def \\w+", mode="regex", glob=["*.py"], context=3)
 
         # Find TODO comments (case insensitive)
-        results = await search_across_codebase(pattern="TODO", mode="literal", case="insensitive", max_results=20
-        )
+        results = await search_across_codebase(pattern="TODO", mode="literal", case="insensitive", max_results=20)
 
         # Search for specific imports
         results = await search_across_codebase(pattern="from unoplat_code_confluence", mode="literal", glob=["**/*.py"])
