@@ -14,17 +14,21 @@ async def get_directory_tree(
     depth: int,
     path: Optional[str] = None,
 ) -> str:
-    """Get a text-based directory tree for a given directory.
+    """Get a text-based directory tree for a given directory. REQUIRED: You must provide the depth parameter.
+
+    IMPORTANT: This tool will FAIL if called without the depth argument.
+    Always provide depth when calling this tool.
 
     Args:
-        depth: Maximum directory depth to traverse (must be >= 1).
-        path: **ABSOLUTE PATH REQUIRED** - Full filesystem path starting with /.
-              Examples: /opt/unoplat/repositories/my-repo/src, /opt/unoplat/repositories/my-repo/config
-              Do NOT use relative paths like 'src', './config', or '../parent'.
-              Defaults to codebase root if not provided.
+        depth: REQUIRED - Maximum directory depth to traverse (must be >= 1). You MUST provide
+            this parameter. Do NOT call this tool without depth. Valid examples: depth=2 or depth=3.
+            INVALID calls: get_directory_tree() or get_directory_tree({}) without depth.
+        path: Optional absolute filesystem path starting with /. Defaults to codebase root if not
+            provided. Valid examples: /opt/unoplat/repositories/my-repo/src or
+            /opt/unoplat/repositories/my-repo/config. INVALID: relative paths like 'src' or './config'.
 
     Returns:
-        DirectoryTree: The formatted tree structure.
+        The formatted directory tree structure as text.
     """
     # Use the provided path or fall back to codebase root
     target_path = path if path is not None else ctx.deps.codebase_metadata.codebase_path

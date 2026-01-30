@@ -16,17 +16,21 @@ async def read_file_content(
     start_line: Optional[int] = None,
     end_line: Optional[int] = None,
 ) -> str:
-    """Read content from a file with optional line range filtering.
+    """Read content from a file. REQUIRED: You must provide the file_path parameter.
+
+    IMPORTANT: This tool will FAIL if called without arguments or with empty arguments {}.
+    Always provide file_path when calling this tool.
 
     Args:
-        file_path: **ABSOLUTE PATH REQUIRED** - Full filesystem path starting with /.
-                   Examples: /opt/unoplat/repositories/my-repo/src/module.py, /opt/unoplat/repositories/my-repo/package.json
-                   Do NOT use relative paths like 'package.json', 'src/file.py', or './config.json'
-        start_line: Starting line number (1-based, inclusive). If None, starts from beginning
-        end_line: Ending line number (1-based, inclusive). If None, reads to end
+        file_path: REQUIRED - Absolute filesystem path starting with /. You MUST provide
+            this parameter. Do NOT call this tool with empty arguments {}. Valid examples:
+            /opt/unoplat/repositories/my-repo/src/module.py or /opt/unoplat/repositories/my-repo/package.json.
+            INVALID calls: read_file_content() or read_file_content({}) or relative paths like 'src/file.py'.
+        start_line: Optional starting line number (1-based, inclusive). Omit to start from beginning.
+        end_line: Optional ending line number (1-based, inclusive). Omit to read to end.
 
     Returns:
-        The file content as a string, optionally filtered by line range
+        The file content as a string, optionally filtered by line range.
     """
     # Log the file read attempt
     if start_line is not None or end_line is not None:
