@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.24.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.24.2...unoplat-code-confluence-v0.24.3) (2026-01-30)
+
+
+### Bug Fixes
+
+* **tool-retries:** increased tool retries and improved griffe based d… ([b0ebd42](https://github.com/unoplat/unoplat-code-confluence/commit/b0ebd422bededaa12d567f71225cabaa00eef033))
+* **tool-retries:** increased tool retries and improved griffe based description for open source models to make fewer mistakes ([0bb9b0b](https://github.com/unoplat/unoplat-code-confluence/commit/0bb9b0b47ee4ff5be70f9b24f5521b113359caec))
+
 ## [0.24.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.24.1...unoplat-code-confluence-v0.24.2) (2026-01-29)
 
 
