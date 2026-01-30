@@ -3353,7 +3353,7 @@ dependencies = [
 
 [[package]]
 name = "unoplat-code-confluence-query-engine"
-version = "0.25.1"
+version = "0.26.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
