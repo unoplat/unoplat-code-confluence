@@ -26,9 +26,9 @@ export interface BannerConfig {
 
 export const bannerConfig: BannerConfig = {
   enabled: true,
-  id: "v0.20.0",
-  message: "Reliable auditable agents are here. ",
-  linkUrl: "/changelog/v0.20.0",
+  id: "v0.24.0",
+  message: "Your AI agents now know exactly which dependencies to use. ",
+  linkUrl: "/changelog/v0.24.0",
   linkText: " See what's new!",
   variant: "rainbow",
 };
