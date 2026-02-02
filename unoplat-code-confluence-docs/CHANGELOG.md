@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.29.0...unoplat-code-confluence-docs-v0.30.0) (2026-02-02)
+
+
+### Features
+
+* **release-banner-change:** dependency guide is here ([c1a09d8](https://github.com/unoplat/unoplat-code-confluence/commit/c1a09d8f763fe1a983ffcf0b0fe1e85b226e1eb5))
+* **release-banner-change:** dependency guide is here ([40e7585](https://github.com/unoplat/unoplat-code-confluence/commit/40e75856438337648f2779d55270da736b031596))
+
 ## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.28.0...unoplat-code-confluence-docs-v0.29.0) (2026-01-29)
 
 
