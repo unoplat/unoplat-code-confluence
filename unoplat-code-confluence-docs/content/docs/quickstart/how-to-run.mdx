@@ -119,41 +119,74 @@ After ingestion completes, configure your *AI model provider* to enable **code i
 - Navigate to **Settings > Model Providers** in the application
 - **Unoplat Code Confluence** supports *multiple AI model providers* for code analysis and understanding
 
-#### Recommended Configuration: OpenRouter with Grok
+#### Recommended Models
 
-We recommend using **OpenRouter** with the `x-ai/grok-code-fast-1` model, which we've tested extensively for *optimal performance* and *efficiency*.
+We recommend the following models for *optimal performance* and *code understanding*:
+
+| Model | Provider |
+|-------|----------|
+| **Kimi 2.5** | OpenRouter |
+| **Claude Opus** | Anthropic |
+| **Codex** | OpenAI |
+| **MiniMax 2.1** | OpenRouter |
 
 **Setup Steps**:
-1. Select **OpenRouter** from the *Provider* dropdown
-2. Enter your OpenRouter API key in the **API key** field
-3. Set the **Model name** to `x-ai/grok-code-fast-1`
+1. Select your preferred *Provider* from the dropdown
+2. Enter your API key in the **API key** field
+3. Set the **Model name** to your chosen model
 4. Click **Save Configuration**
 
-![Model Provider Configuration - OpenRouter](../../../src/assets/images/model-provider.png)
+![Model Provider Configuration](../../../src/assets/images/model-provider.png)
 
-<Callout type="info" title="Getting an OpenRouter API Key">
-If you don't have an OpenRouter API key:
-1. Visit [OpenRouter](https://openrouter.ai/) and create an account
+<Callout type="info" title="Supported Providers">
+**Unoplat Code Confluence** uses [Pydantic AI](https://ai.pydantic.dev/models/overview/) and supports the following providers:
+
+**Built-in Support**: OpenAI, Anthropic, Gemini, xAI, Bedrock, Cerebras, Cohere, Groq, Hugging Face, Mistral, OpenRouter
+
+**OpenAI-Compatible**: Azure AI Foundry, DeepSeek, Fireworks AI, Ollama, Together AI, and more
+
+OpenRouter is recommended for accessing models like Kimi and MiniMax through a single API.
+</Callout>
+
+<Callout type="warn" title="Tested Configurations">
+We have tested the following model configurations:
+- **Kimi 2.5** (via OpenRouter)
+- **Claude Opus** (Anthropic)
+- **Codex** (OpenAI)
+- **MiniMax 2.1** (via OpenRouter)
+
+Other models may work but have not been fully validated. If you encounter issues with a specific provider or model, please report them on our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page.
+</Callout>
+
+### 6. Configure Exa Search Tool
+
+After configuring your model provider, set up **Exa Search** to enable *documentation search* capabilities for AI agents.
+
+- Navigate to **Settings > Tool Configuration** in the application
+- **Unoplat Code Confluence** uses Exa for *intelligent documentation search* during code analysis
+
+#### Setup Steps
+
+1. Click **Configure** next to **Exa Search**
+2. Enter your Exa API key
+3. Click **Save**
+
+![Tool Configuration - Exa Search](../../../src/assets/images/tool-configuration.png)
+
+<Callout type="info" title="Getting an Exa API Key">
+If you don't have an Exa API key:
+1. Visit [Exa](https://exa.ai/) and create an account
 2. Navigate to your API Keys section
 3. Generate a new API key and copy it
 
-OpenRouter provides access to multiple AI models including Grok with competitive pricing.
+Exa provides AI-powered search capabilities for finding relevant documentation and web content.
 </Callout>
 
-<Callout type="info" title="Other Model Providers">
-While we recommend **OpenRouter with Grok** for the best experience, **Unoplat Code Confluence** supports *other model providers* as well. You can experiment with different providers and models based on your preferences and requirements.
+<Callout type="info" title="Why Exa?">
+**Unoplat Code Confluence** uses Exa for documentation search to help AI agents find relevant external documentation, library references, and best practices during code analysis.
 </Callout>
 
-<Callout type="warn" title="Known Limitations">
-**Provider Support**: Most *standard AI model providers* are supported. We have tested **OpenRouter** with the following models:
-- `moonshotai/kimi-k2` (Kimi K2 Thinking)
-- `x-ai/grok-code-fast-1` (Grok Code Fast 1)
-- `minimax/minimax-m1` (MiniMax M1)
-
-If you encounter issues with a specific provider, please report them on our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page.
-</Callout>
-
-### 6. Repository Operations
+### 7. Repository Operations
 
 After successfully ingesting your repository, you can perform various operations to manage your codebase. Navigate to **Ingestion Management** to access these operations.
 
