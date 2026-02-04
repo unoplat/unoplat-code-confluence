@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.30.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.30.0...unoplat-code-confluence-docs-v0.30.1) (2026-02-02)
+
+
+### Bug Fixes
+
+* **quick-start:** improve quick start ([648d73f](https://github.com/unoplat/unoplat-code-confluence/commit/648d73f4195485239c9ab0ee070c385c74088831))
+* **quick-start:** improve quick start ([8d3a220](https://github.com/unoplat/unoplat-code-confluence/commit/8d3a22005ddf5d36e5536b6388c580bebdca09ea))
+
+## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.29.0...unoplat-code-confluence-docs-v0.30.0) (2026-02-02)
+
+
+### Features
+
+* **release-banner-change:** dependency guide is here ([c1a09d8](https://github.com/unoplat/unoplat-code-confluence/commit/c1a09d8f763fe1a983ffcf0b0fe1e85b226e1eb5))
+* **release-banner-change:** dependency guide is here ([40e7585](https://github.com/unoplat/unoplat-code-confluence/commit/40e75856438337648f2779d55270da736b031596))
+
 ## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.28.0...unoplat-code-confluence-docs-v0.29.0) (2026-01-29)
 
 

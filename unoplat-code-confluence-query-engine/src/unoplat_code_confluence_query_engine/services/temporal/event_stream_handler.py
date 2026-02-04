@@ -19,7 +19,7 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 )
 
 # Agent names that contribute to progress calculation
-COMPLETION_NAMESPACES: frozenset[str] = frozenset(
+BASE_COMPLETION_NAMESPACES: frozenset[str] = frozenset(
     {
         "project_configuration_agent",
         "development_workflow_agent",
@@ -27,6 +27,16 @@ COMPLETION_NAMESPACES: frozenset[str] = frozenset(
         "business_logic_domain_agent",
     }
 )
+
+
+def get_completion_namespaces(
+    codebase_programming_language: str | None,
+) -> frozenset[str]:
+    """Return completion namespaces based on the codebase programming language."""
+    language = (codebase_programming_language or "").lower()
+    if language == "python":
+        return BASE_COMPLETION_NAMESPACES | {"app_interfaces_agent"}
+    return BASE_COMPLETION_NAMESPACES
 
 
 def _map_event_to_phase(event: AgentStreamEvent) -> str | None:
@@ -145,7 +155,11 @@ async def event_stream_handler(
                     agent_name=deps.agent_name,
                     phase=phase,
                     message=message,
-                    completion_namespaces=set(COMPLETION_NAMESPACES),
+                    completion_namespaces=set(
+                        get_completion_namespaces(
+                            deps.codebase_metadata.codebase_programming_language
+                        )
+                    ),
                     repository_workflow_run_id=deps.repository_workflow_run_id,
                 )
             except Exception as e:
