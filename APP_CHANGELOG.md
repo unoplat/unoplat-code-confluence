@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.24.3...unoplat-code-confluence-v0.25.0) (2026-02-04)
+
+
+### Features
+
+* **add-detection-of-inbound-outbound-interfaces:** detect inbound an… ([69d3000](https://github.com/unoplat/unoplat-code-confluence/commit/69d300018c9205e948028368e3c11cec198defc1))
+* **add-detection-of-inbound-outbound-interfaces:** detect inbound and outbound interfaces ([8c36c1d](https://github.com/unoplat/unoplat-code-confluence/commit/8c36c1d2363235e1cfdda4f3c004da8252b9ea88))
+* **release-banner-change:** dependency guide is here ([c1a09d8](https://github.com/unoplat/unoplat-code-confluence/commit/c1a09d8f763fe1a983ffcf0b0fe1e85b226e1eb5))
+* **release-banner-change:** dependency guide is here ([40e7585](https://github.com/unoplat/unoplat-code-confluence/commit/40e75856438337648f2779d55270da736b031596))
+
+
+### Bug Fixes
+
+* **quick-start:** improve quick start ([648d73f](https://github.com/unoplat/unoplat-code-confluence/commit/648d73f4195485239c9ab0ee070c385c74088831))
+* **quick-start:** improve quick start ([8d3a220](https://github.com/unoplat/unoplat-code-confluence/commit/8d3a22005ddf5d36e5536b6388c580bebdca09ea))
+
 ## [0.24.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.24.2...unoplat-code-confluence-v0.24.3) (2026-01-30)
 
 
