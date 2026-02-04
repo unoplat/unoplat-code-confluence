@@ -98,6 +98,32 @@ export type AgentMdDependencyGuide = z.infer<
   typeof agentMdDependencyGuideSchema
 >;
 
+export const agentMdInterfaceMatchPatternSchema = z
+  .record(z.string(), z.array(z.string()).default([]))
+  .default({});
+
+export type AgentMdInterfaceMatchPattern = z.infer<
+  typeof agentMdInterfaceMatchPatternSchema
+>;
+
+export const agentMdInterfaceConstructSchema = z.object({
+  kind: z.string(),
+  library: z.string(),
+  match_pattern: agentMdInterfaceMatchPatternSchema,
+});
+
+export type AgentMdInterfaceConstruct = z.infer<
+  typeof agentMdInterfaceConstructSchema
+>;
+
+export const agentMdAppInterfacesSchema = z.object({
+  inbound_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
+  outbound_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
+  internal_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
+});
+
+export type AgentMdAppInterfaces = z.infer<typeof agentMdAppInterfacesSchema>;
+
 export const agentMdProgrammingLanguageMetadataSchema = z.object({
   primary_language: z.string(),
   package_manager: z.string(),
@@ -117,6 +143,7 @@ export const agentMdCodebaseOutputSchema = z.object({
   development_workflow: agentMdDevelopmentWorkflowSchema.nullish(),
   dependency_guide: agentMdDependencyGuideSchema.nullish(),
   business_logic_domain: agentMdBusinessLogicSchema.nullish(),
+  app_interfaces: agentMdAppInterfacesSchema.nullish(),
 });
 
 export type AgentMdCodebaseOutput = z.infer<typeof agentMdCodebaseOutputSchema>;
