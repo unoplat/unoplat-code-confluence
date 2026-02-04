@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.25.0...unoplat-code-confluence-v0.26.0) (2026-02-04)
+
+
+### Features
+
+* **support-app-interface:** inbound, outbound and internal interface… ([d59a1f3](https://github.com/unoplat/unoplat-code-confluence/commit/d59a1f328fd655c02a25e906e02afd2c83b65921))
+* **support-app-interface:** inbound, outbound and internal interfaces detection ([19967da](https://github.com/unoplat/unoplat-code-confluence/commit/19967daaae020cc9f416013182ea6bf45c5ab3c7))
+
 ## [0.25.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.24.3...unoplat-code-confluence-v0.25.0) (2026-02-04)
 
 
