@@ -1,8 +1,100 @@
 import json2md from "json2md";
-import type { AgentMdCodebaseOutput } from "@/features/repository-agent-snapshots/schema";
+import type {
+  AgentMdAppInterfaces,
+  AgentMdCodebaseOutput,
+  AgentMdInterfaceConstruct,
+} from "@/features/repository-agent-snapshots/schema";
 
 interface AgentMdToMarkdownOptions {
   title?: string;
+}
+
+function buildMatchPatternLines(
+  matchPattern: Record<string, string[]>,
+): string[] {
+  const lines: string[] = [];
+  for (const [filePath, matches] of Object.entries(matchPattern)) {
+    if (!matches.length) {
+      lines.push(filePath);
+      continue;
+    }
+    for (const match of matches) {
+      const trimmed = match.trim();
+      lines.push(trimmed ? `${filePath}: ${trimmed}` : filePath);
+    }
+  }
+  return lines;
+}
+
+function pushInterfacesSectionEntries(
+  entries: unknown[],
+  appInterfaces: AgentMdAppInterfaces | null | undefined,
+  headingLevel: "h2" | "h3",
+  subHeadingLevel: "h3" | "h4",
+): void {
+  entries.push({ [headingLevel]: "App Interfaces" });
+  entries.push({
+    p: "Format: `path: L<line>: <match_text>` where path is codebase-relative.",
+  });
+
+  if (!appInterfaces) {
+    entries.push({ p: "No app interfaces detected." });
+    return;
+  }
+
+  entries.push({ [subHeadingLevel]: "Inbound Constructs" });
+  if (appInterfaces.inbound_constructs.length) {
+    pushInterfaceConstructEntries(
+      entries,
+      appInterfaces.inbound_constructs,
+      subHeadingLevel,
+    );
+  } else {
+    entries.push({ p: "No inbound constructs detected." });
+  }
+
+  entries.push({ [subHeadingLevel]: "Outbound Constructs" });
+  if (appInterfaces.outbound_constructs.length) {
+    pushInterfaceConstructEntries(
+      entries,
+      appInterfaces.outbound_constructs,
+      subHeadingLevel,
+    );
+  } else {
+    entries.push({ p: "No outbound constructs detected." });
+  }
+
+  entries.push({ [subHeadingLevel]: "Internal Constructs" });
+  if (appInterfaces.internal_constructs.length) {
+    pushInterfaceConstructEntries(
+      entries,
+      appInterfaces.internal_constructs,
+      subHeadingLevel,
+    );
+  } else {
+    entries.push({ p: "No internal constructs detected." });
+  }
+}
+
+function pushInterfaceConstructEntries(
+  entries: unknown[],
+  constructs: AgentMdInterfaceConstruct[],
+  subHeadingLevel: "h3" | "h4",
+): void {
+  const constructHeadingLevel = subHeadingLevel === "h3" ? "h4" : "h4";
+  for (const construct of constructs) {
+    const libraryLabel = construct.library || "unknown";
+    entries.push({
+      [constructHeadingLevel]: `${construct.kind} (${libraryLabel})`,
+    });
+
+    const matchLines = buildMatchPatternLines(construct.match_pattern);
+    if (matchLines.length) {
+      entries.push({ ul: matchLines });
+    } else {
+      entries.push({ p: "No matches detected." });
+    }
+  }
 }
 
 export function agentMdOutputToMarkdown(
@@ -83,6 +175,8 @@ export function agentMdOutputToMarkdown(
       ),
     });
   }
+
+  pushInterfacesSectionEntries(entries, agent?.app_interfaces, "h2", "h3");
 
   return json2md(entries as any);
 }
@@ -169,6 +263,8 @@ export function codebasesToMarkdown(
         ),
       });
     }
+
+    pushInterfacesSectionEntries(entries, agent?.app_interfaces, "h3", "h4");
 
     // Add separator between codebases (except for the last one)
     const codebaseNames = Object.keys(codebases);
