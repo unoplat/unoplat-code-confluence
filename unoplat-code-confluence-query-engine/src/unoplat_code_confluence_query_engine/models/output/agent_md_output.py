@@ -357,6 +357,21 @@ class OutboundConstruct(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class InternalConstruct(BaseModel):
+    """Internal framework feature construct (non-inbound/outbound)."""
+
+    kind: str = Field(..., description="Feature key identifying this internal construct")
+    library: Optional[str] = Field(
+        ...,
+        description="Library/Framework used for the internal construct if applicable.",
+    )
+    match_pattern: Dict[str, List[str]] = Field(
+        ...,
+        description="Codebase-relative file path as key with corresponding list of match patterns",
+    )
+    model_config = ConfigDict(extra="forbid")
+
+
 class Interfaces(BaseModel):
     """Interaces used in the codebase"""
 
@@ -376,6 +391,11 @@ class Interfaces(BaseModel):
             "(e.g., HTTP/gRPC clients, message/stream producers, SQL/NoSQL DB operations, cache ops, "
             "object storage, search, email/notifications, telemetry)."
         ),
+    )
+
+    internal_constructs: List[InternalConstruct] = Field(
+        default_factory=list,
+        description="Internal framework features that are neither inbound nor outbound constructs",
     )
 
 
