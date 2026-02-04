@@ -34,6 +34,9 @@ from unoplat_code_confluence_query_engine.services.config.credentials_service im
 from unoplat_code_confluence_query_engine.services.config.model_factory import (
     ModelFactory,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.app_interfaces_activity import (
+    AppInterfacesActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activities.business_logic_post_process_activity import (
     BusinessLogicPostProcessActivity,
 )
@@ -301,6 +304,7 @@ class TemporalWorkerManager:
         business_logic_post_process_activity = BusinessLogicPostProcessActivity()
         dependency_guide_completion_activity = DependencyGuideCompletionActivity()
         dependency_guide_fetch_activity = DependencyGuideFetchActivity()
+        app_interfaces_activity = AppInterfacesActivity()
 
         # Build interceptor list - always include status interceptor
         all_interceptors: list[Interceptor] = [AgentWorkflowStatusInterceptor()]
@@ -342,6 +346,8 @@ class TemporalWorkerManager:
                 business_logic_post_process_activity.post_process_business_logic,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
                 dependency_guide_fetch_activity.fetch_codebase_dependencies,
+                app_interfaces_activity.build_app_interfaces,
+                app_interfaces_activity.emit_app_interfaces_completion,
             ],
             plugins=agent_plugins,
             interceptors=all_interceptors,
