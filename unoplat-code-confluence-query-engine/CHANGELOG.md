@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.26.1...unoplat-code-confluence-query-engine-v0.27.0) (2026-02-04)
+
+
+### Features
+
+* **add-detection-of-inbound-outbound-interfaces:** detect inbound an… ([69d3000](https://github.com/unoplat/unoplat-code-confluence/commit/69d300018c9205e948028368e3c11cec198defc1))
+* **add-detection-of-inbound-outbound-interfaces:** detect inbound and outbound interfaces ([8c36c1d](https://github.com/unoplat/unoplat-code-confluence/commit/8c36c1d2363235e1cfdda4f3c004da8252b9ea88))
+
 ## [0.26.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.26.0...unoplat-code-confluence-query-engine-v0.26.1) (2026-01-30)
 
 
