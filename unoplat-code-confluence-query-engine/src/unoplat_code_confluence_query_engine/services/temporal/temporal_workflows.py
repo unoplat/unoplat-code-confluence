@@ -33,6 +33,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.app_interfaces_activity import (
+        AppInterfacesActivity,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.activities.business_logic_post_process_activity import (
         BusinessLogicPostProcessActivity,
     )
@@ -114,6 +117,7 @@ class CodebaseAgentWorkflow:
             "development_workflow": None,
             "dependency_guide": None,
             "business_logic_domain": None,
+            "app_interfaces": None,
         }
 
         # Track usage statistics from each agent for aggregation
@@ -164,12 +168,14 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append({
-                    "agent": "project_configuration_agent",
-                    "codebase": codebase_metadata.codebase_name,
-                    "error": str(e),
-                    "traceback": traceback.format_exc(),
-                })
+                agent_errors.append(
+                    {
+                        "agent": "project_configuration_agent",
+                        "codebase": codebase_metadata.codebase_name,
+                        "error": str(e),
+                        "traceback": traceback.format_exc(),
+                    }
+                )
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -227,12 +233,14 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append({
-                    "agent": "development_workflow_agent",
-                    "codebase": codebase_metadata.codebase_name,
-                    "error": str(e),
-                    "traceback": traceback.format_exc(),
-                })
+                agent_errors.append(
+                    {
+                        "agent": "development_workflow_agent",
+                        "codebase": codebase_metadata.codebase_name,
+                        "error": str(e),
+                        "traceback": traceback.format_exc(),
+                    }
+                )
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -305,6 +313,7 @@ class CodebaseAgentWorkflow:
                         repository_qualified_name,
                         repository_workflow_run_id,
                         codebase_metadata.codebase_name,
+                        codebase_metadata.codebase_programming_language,
                     ],
                     start_to_close_timeout=timedelta(seconds=30),
                     retry_policy=DB_ACTIVITY_RETRY_POLICY,
@@ -312,7 +321,9 @@ class CodebaseAgentWorkflow:
 
                 # Aggregate stats from all dependency runs
                 if dependency_agent_stats:
-                    agent_stats.append(aggregate_usage_statistics(dependency_agent_stats))
+                    agent_stats.append(
+                        aggregate_usage_statistics(dependency_agent_stats)
+                    )
                 else:
                     agent_stats.append(create_zero_usage_statistics())
 
@@ -328,12 +339,14 @@ class CodebaseAgentWorkflow:
                     e,
                 )
                 logger.exception("[workflow] Full traceback:")
-                agent_errors.append({
-                    "agent": "dependency_guide_agent",
-                    "codebase": codebase_metadata.codebase_name,
-                    "error": str(e),
-                    "traceback": traceback.format_exc(),
-                })
+                agent_errors.append(
+                    {
+                        "agent": "dependency_guide_agent",
+                        "codebase": codebase_metadata.codebase_name,
+                        "error": str(e),
+                        "traceback": traceback.format_exc(),
+                    }
+                )
                 agent_stats.append(create_zero_usage_statistics())
         else:
             logger.info(
@@ -391,12 +404,14 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append({
-                    "agent": "business_logic_domain_agent",
-                    "codebase": codebase_metadata.codebase_name,
-                    "error": str(e),
-                    "traceback": traceback.format_exc(),
-                })
+                agent_errors.append(
+                    {
+                        "agent": "business_logic_domain_agent",
+                        "codebase": codebase_metadata.codebase_name,
+                        "error": str(e),
+                        "traceback": traceback.format_exc(),
+                    }
+                )
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -406,6 +421,63 @@ class CodebaseAgentWorkflow:
             )
             # Disabled agents contribute zero to statistics
             agent_stats.append(create_zero_usage_statistics())
+
+        # Step 5: App Interfaces (Python only - deterministic DB activity, not LLM agent)
+        if codebase_metadata.codebase_programming_language.lower() == "python":
+            try:
+                logger.info(
+                    "[workflow] Running app_interfaces_agent for {}",
+                    codebase_metadata.codebase_name,
+                )
+                app_interfaces_result = await workflow.execute_activity(
+                    AppInterfacesActivity.build_app_interfaces,
+                    args=[
+                        codebase_metadata.codebase_path,
+                        codebase_metadata.codebase_programming_language,
+                    ],
+                    start_to_close_timeout=timedelta(minutes=2),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
+                results["app_interfaces"] = app_interfaces_result.model_dump()
+
+                # Emit completion event for progress tracking
+                await workflow.execute_activity(
+                    AppInterfacesActivity.emit_app_interfaces_completion,
+                    args=[
+                        repository_qualified_name,
+                        repository_workflow_run_id,
+                        codebase_metadata.codebase_name,
+                        codebase_metadata.codebase_programming_language,
+                    ],
+                    start_to_close_timeout=timedelta(seconds=30),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
+
+                logger.info(
+                    "[workflow] app_interfaces_agent completed for {}",
+                    codebase_metadata.codebase_name,
+                )
+            except Exception as e:
+                logger.error(
+                    "[workflow] app_interfaces_agent failed for {}: {}",
+                    codebase_metadata.codebase_name,
+                    e,
+                )
+                logger.exception("[workflow] Full traceback:")
+                # Collect error for aggregation - do NOT store in results
+                agent_errors.append(
+                    {
+                        "agent": "app_interfaces_agent",
+                        "codebase": codebase_metadata.codebase_name,
+                        "error": str(e),
+                        "traceback": traceback.format_exc(),
+                    }
+                )
+        else:
+            logger.info(
+                "[workflow] app_interfaces_agent skipped (language: {})",
+                codebase_metadata.codebase_programming_language,
+            )
 
         # Aggregate statistics from all agents and add to results
         codebase_statistics = aggregate_usage_statistics(agent_stats)
@@ -476,7 +548,9 @@ class RepositoryAgentWorkflow:
 
         # Phase 1: Start all child workflows (non-blocking)
         # Each start_child_workflow returns immediately with a handle
-        child_handles: list[tuple[str, ChildWorkflowHandle[CodebaseAgentWorkflow, dict[str, Any]]]] = []
+        child_handles: list[
+            tuple[str, ChildWorkflowHandle[CodebaseAgentWorkflow, dict[str, Any]]]
+        ] = []
 
         for idx, codebase_dict in enumerate(codebase_metadata_list):
             codebase_name = codebase_dict.get("codebase_name", "unknown")
@@ -525,10 +599,12 @@ class RepositoryAgentWorkflow:
                     result,
                 )
                 # Collect error for aggregation - do NOT store in results
-                child_errors.append({
-                    "codebase": codebase_name,
-                    "error": str(result),
-                })
+                child_errors.append(
+                    {
+                        "codebase": codebase_name,
+                        "error": str(result),
+                    }
+                )
                 codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
             else:
                 logger.debug(
@@ -538,10 +614,14 @@ class RepositoryAgentWorkflow:
 
                 # Extract per-codebase statistics from child workflow result
                 if "statistics" in result and result["statistics"]:
-                    codebase_stats = UsageStatistics.model_validate(result["statistics"])
+                    codebase_stats = UsageStatistics.model_validate(
+                        result["statistics"]
+                    )
                     codebase_statistics_map[codebase_name] = codebase_stats
                 else:
-                    codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
+                    codebase_statistics_map[codebase_name] = (
+                        create_zero_usage_statistics()
+                    )
 
         logger.info(
             f"[workflow] RepositoryAgentWorkflow processed {len(codebase_metadata_list)} codebases for {repository_qualified_name}"
@@ -574,7 +654,9 @@ class RepositoryAgentWorkflow:
         # This triggers ERROR status in DB and populates error_report
         # Raise AFTER persisting snapshot so we don't lose partial results
         if child_errors:
-            error_summary = f"{len(child_errors)} codebase(s) failed during agent execution"
+            error_summary = (
+                f"{len(child_errors)} codebase(s) failed during agent execution"
+            )
             logger.warning(
                 "[workflow] {} - raising ApplicationError to propagate to interceptor",
                 error_summary,
