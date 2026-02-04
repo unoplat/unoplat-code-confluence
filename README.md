@@ -132,9 +132,6 @@ Auto-generates machine-readable `AGENTS.md` files per repo to give coding agents
 ### 3. **Enterprise-Grade Scalability, Reliability and Auditability**
 - Scalable, auditable and reliable processing powered by workflow orchestrator
 
-### 4. **Performance Optimization**
-- Optimized algorithms across all aspects of discovery, detection, ingestion and AI-based insights
-
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- GETTING STARTED SECTION -->
