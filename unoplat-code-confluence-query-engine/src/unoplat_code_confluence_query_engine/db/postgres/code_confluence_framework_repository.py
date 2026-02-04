@@ -119,3 +119,99 @@ async def db_get_framework_with_features(
     )
 
     return {"library": library, "features": features}
+
+
+async def db_get_all_framework_features_for_codebase(
+    codebase_path: str,
+    programming_language: str = "python",
+) -> list[dict[str, object]]:
+    """Fetch all framework features with usage locations for a codebase.
+
+    Args:
+        codebase_path: Path to the codebase for lookup
+        programming_language: Programming language filter (default: python)
+
+    Returns:
+        List of dicts containing library, feature_key, startpoint, file_path,
+        start_line, end_line, and match_text for each feature usage.
+    """
+    if not codebase_path:
+        return []
+
+    async with get_startup_session() as session:
+        stmt = (
+            select(
+                FrameworkFeature.library,
+                FrameworkFeature.feature_key,
+                FrameworkFeature.startpoint,
+                UnoplatCodeConfluenceFileFrameworkFeature.file_path,
+                UnoplatCodeConfluenceFileFrameworkFeature.start_line,
+                UnoplatCodeConfluenceFileFrameworkFeature.end_line,
+                UnoplatCodeConfluenceFileFrameworkFeature.match_text,
+            )
+            .join(
+                UnoplatCodeConfluenceFileFrameworkFeature,
+                (
+                    (
+                        FrameworkFeature.language
+                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_language
+                    )
+                    & (
+                        FrameworkFeature.library
+                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_library
+                    )
+                    & (
+                        FrameworkFeature.feature_key
+                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_key
+                    )
+                ),
+            )
+            .join(
+                UnoplatCodeConfluenceFile,
+                UnoplatCodeConfluenceFile.file_path
+                == UnoplatCodeConfluenceFileFrameworkFeature.file_path,
+            )
+            .join(
+                UnoplatCodeConfluenceCodebase,
+                UnoplatCodeConfluenceCodebase.qualified_name
+                == UnoplatCodeConfluenceFile.codebase_qualified_name,
+            )
+            .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
+            .where(FrameworkFeature.language == programming_language)
+            .where(~FrameworkFeature.feature_key.in_(["data_model", "db_data_model"]))
+        )
+
+        result = await session.execute(stmt)
+        rows = result.all()
+
+    if not rows:
+        logger.debug(
+            "No framework features found for codebase_path={} language={}",
+            codebase_path,
+            programming_language,
+        )
+        return []
+
+    features: list[dict[str, object]] = []
+    for library, feature_key, startpoint, file_path, start_line, end_line, match_text in rows:
+        if file_path is None or start_line is None or end_line is None:
+            continue
+
+        features.append({
+            "library": library,
+            "feature_key": feature_key,
+            "startpoint": bool(startpoint) if startpoint is not None else False,
+            "file_path": file_path,
+            "start_line": int(start_line),
+            "end_line": int(end_line),
+            "match_text": match_text,
+        })
+
+    logger.debug(
+        "Fetched {} framework features for codebase_path={} language={}",
+        len(features),
+        codebase_path,
+        programming_language,
+    )
+
+    return features

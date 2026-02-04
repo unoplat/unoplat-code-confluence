@@ -6,7 +6,7 @@ from loguru import logger
 from temporalio import activity
 
 from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler import (
-    COMPLETION_NAMESPACES,
+    get_completion_namespaces,
 )
 from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
     get_snapshot_writer,
@@ -22,6 +22,7 @@ class DependencyGuideCompletionActivity:
         repository_qualified_name: str,
         repository_workflow_run_id: str,
         codebase_name: str,
+        programming_language: str,
     ) -> None:
         """Append a single completion event for dependency_guide_agent."""
         if "/" not in repository_qualified_name:
@@ -41,7 +42,7 @@ class DependencyGuideCompletionActivity:
             agent_name="dependency_guide_agent",
             phase="result",
             message="Dependency guide completed",
-            completion_namespaces=set(COMPLETION_NAMESPACES),
+            completion_namespaces=set(get_completion_namespaces(programming_language)),
             repository_workflow_run_id=repository_workflow_run_id,
         )
 
