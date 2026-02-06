@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.30.1...unoplat-code-confluence-docs-v0.31.0) (2026-02-06)
+
+
+### Features
+
+* **docs:** updated docs ([ec19d00](https://github.com/unoplat/unoplat-code-confluence/commit/ec19d001a88013a59a1dbd511ac0f0eb2e400893))
+
 ## [0.30.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.30.0...unoplat-code-confluence-docs-v0.30.1) (2026-02-02)
 
 
