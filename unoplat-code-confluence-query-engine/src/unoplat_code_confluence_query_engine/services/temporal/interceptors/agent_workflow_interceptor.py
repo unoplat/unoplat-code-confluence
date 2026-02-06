@@ -44,6 +44,10 @@ with workflow.unsafe.imports_passed_through():
         AgentWorkflowOutboundInterceptor,
         workflow_headers_var,
     )
+    from unoplat_code_confluence_query_engine.utils.agent_error_logger import (
+        extract_model_error_from_details,
+        extract_model_error_from_exception,
+    )
     from unoplat_code_confluence_query_engine.utils.trace_utils import (
         seed_and_bind_logger,
     )
@@ -424,7 +428,8 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         """Build an ErrorReport from an exception.
 
         Handles ActivityError, ChildWorkflowError, and ApplicationError specially
-        to capture rich context from their cause/details.
+        to capture rich context from their cause/details. Also captures model
+        error metadata for ModelHTTPError/ModelAPIError.
 
         Args:
             exc: The exception to build a report from
@@ -439,8 +444,10 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         ):
             root = exc.cause  # type: ignore[assignment]
 
-        # Build metadata for ApplicationError
-        metadata: Optional[dict[str, Any]] = None
+        # Build metadata - always start with dict (AC#4: merge model error details)
+        metadata: dict[str, Any] = {}
+
+        # Capture ApplicationError metadata (preserve existing keys)
         if isinstance(root, ApplicationError):
             metadata = {
                 "type": root.type,
@@ -453,8 +460,16 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 ),
             }
 
+        # Extract and MERGE model error details using shared utility (AC#4)
+        if root is not None:
+            model_error_details = extract_model_error_from_exception(root)
+            if not model_error_details and isinstance(root, ApplicationError):
+                model_error_details = extract_model_error_from_details(root.details)
+            if model_error_details:
+                metadata["model_error"] = model_error_details
+
         return ErrorReport(
             error_message=str(root),
             stack_trace=traceback.format_exc() if root is not None else "",
-            metadata=metadata,
+            metadata=metadata if metadata else None,
         )
