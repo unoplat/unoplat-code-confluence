@@ -63,6 +63,36 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
         AgentSnapshotCompleteEnvelope,
     )
+    from unoplat_code_confluence_query_engine.utils.agent_error_logger import (
+        extract_model_error_from_exception,
+    )
+
+
+def _enrich_agent_error_with_model_details(
+    error_dict: dict[str, object],
+    exception: BaseException,
+    agent_name: str,
+    codebase_name: str,
+) -> dict[str, object]:
+    """Enrich an agent error dict with model error details if present.
+
+    Args:
+        error_dict: Existing error dictionary to enrich
+        exception: The exception that was caught
+        agent_name: Name of the agent that failed
+        codebase_name: Name of the codebase being processed
+
+    Returns:
+        Enriched error dictionary with model_error_details if found
+    """
+    context: dict[str, object] = {
+        "agent_name": agent_name,
+        "codebase": codebase_name,
+    }
+    model_error_details = extract_model_error_from_exception(exception, context=context)
+    if model_error_details:
+        error_dict["model_error_details"] = model_error_details
+    return error_dict
 
 
 @workflow.defn(versioning_behavior=common.VersioningBehavior.AUTO_UPGRADE)
@@ -168,14 +198,19 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append(
-                    {
-                        "agent": "project_configuration_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                project_error: dict[str, object] = {
+                    "agent": "project_configuration_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                project_error = _enrich_agent_error_with_model_details(
+                    project_error,
+                    e,
+                    "project_configuration_agent",
+                    codebase_metadata.codebase_name,
                 )
+                agent_errors.append(project_error)
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -233,14 +268,19 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append(
-                    {
-                        "agent": "development_workflow_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                development_error: dict[str, object] = {
+                    "agent": "development_workflow_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                development_error = _enrich_agent_error_with_model_details(
+                    development_error,
+                    e,
+                    "development_workflow_agent",
+                    codebase_metadata.codebase_name,
                 )
+                agent_errors.append(development_error)
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -339,14 +379,19 @@ class CodebaseAgentWorkflow:
                     e,
                 )
                 logger.exception("[workflow] Full traceback:")
-                agent_errors.append(
-                    {
-                        "agent": "dependency_guide_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                dependency_error: dict[str, object] = {
+                    "agent": "dependency_guide_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                dependency_error = _enrich_agent_error_with_model_details(
+                    dependency_error,
+                    e,
+                    "dependency_guide_agent",
+                    codebase_metadata.codebase_name,
                 )
+                agent_errors.append(dependency_error)
                 agent_stats.append(create_zero_usage_statistics())
         else:
             logger.info(
@@ -404,14 +449,19 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append(
-                    {
-                        "agent": "business_logic_domain_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                business_logic_error: dict[str, object] = {
+                    "agent": "business_logic_domain_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                business_logic_error = _enrich_agent_error_with_model_details(
+                    business_logic_error,
+                    e,
+                    "business_logic_domain_agent",
+                    codebase_metadata.codebase_name,
                 )
+                agent_errors.append(business_logic_error)
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
@@ -465,14 +515,19 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append(
-                    {
-                        "agent": "app_interfaces_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                app_interfaces_error: dict[str, object] = {
+                    "agent": "app_interfaces_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                app_interfaces_error = _enrich_agent_error_with_model_details(
+                    app_interfaces_error,
+                    e,
+                    "app_interfaces_agent",
+                    codebase_metadata.codebase_name,
                 )
+                agent_errors.append(app_interfaces_error)
         else:
             logger.info(
                 "[workflow] app_interfaces_agent skipped (language: {})",
