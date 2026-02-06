@@ -9,8 +9,7 @@ export type { AgentGroup } from "@/types/agent-events";
  * Add new agents here as they are introduced.
  */
 export const AgentType = {
-  PROJECT_CONFIGURATION: "project_configuration_agent",
-  DEVELOPMENT_WORKFLOW: "development_workflow_agent",
+  ENGINEERING_DEVELOPMENT_WORKFLOW: "engineering_development_workflow_agent",
   DEPENDENCY_GUIDE: "dependency_guide_agent",
   BUSINESS_LOGIC_DOMAIN: "business_logic_domain_agent",
   // Future agents can be added here
@@ -34,21 +33,17 @@ export const AGENT_REGISTRY: Record<
   AgentTypeValue,
   { displayName: string; order: number }
 > = {
-  [AgentType.PROJECT_CONFIGURATION]: {
-    displayName: "Project Configuration",
+  [AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW]: {
+    displayName: "Engineering Development Workflow",
     order: 1,
-  },
-  [AgentType.DEVELOPMENT_WORKFLOW]: {
-    displayName: "Development Workflow",
-    order: 2,
   },
   [AgentType.DEPENDENCY_GUIDE]: {
     displayName: "Dependency Guide",
-    order: 3,
+    order: 2,
   },
   [AgentType.BUSINESS_LOGIC_DOMAIN]: {
     displayName: "Business Logic Domain",
-    order: 4,
+    order: 3,
   },
 };
 
