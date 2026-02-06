@@ -111,8 +111,7 @@ Unoplat Code Confluence is the **context engine** for application development, o
 
 Auto-generates machine-readable `AGENTS.md` files per repo to give coding agents a **precise source of truth**:
 
-- **Project Configuration** — Key config files and their responsibilities
-- **Development Workflow** — Dev/build/test commands, infra, and third-party dependencies
+- **Engineering Workflow** — Canonical install/build/dev/test/lint/type_check commands plus key config files and their responsibilities
 - **Business Logic** — Core application logic, domain entities, and database entities
 - **Entry Points & Interfaces** — Main entry points, API endpoints, and external interfaces
 - **External Dependencies** — Roles and responsibilities of external libraries

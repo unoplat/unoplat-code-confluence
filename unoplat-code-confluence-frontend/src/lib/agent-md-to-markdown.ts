@@ -115,11 +115,13 @@ export function agentMdOutputToMarkdown(
     ],
   });
 
-  // Project configuration
-  entries.push({ h2: "Project Configuration" });
-  if (agent?.project_configuration?.config_files?.length) {
+  // disabled during canonical engineering workflow migration
+  // Project configuration + Development workflow replaced by Engineering Workflow
+  entries.push({ h2: "Engineering Workflow" });
+  entries.push({ h3: "Configs" });
+  if (agent?.engineering_workflow?.configs?.length) {
     entries.push({
-      ul: agent.project_configuration.config_files.map(
+      ul: agent.engineering_workflow.configs.map(
         (f) => `${f.path} — ${f.purpose}`,
       ),
     });
@@ -127,24 +129,24 @@ export function agentMdOutputToMarkdown(
     entries.push({ p: "No configuration files detected." });
   }
 
-  // Development workflow (group by kind)
-  entries.push({ h2: "Development Workflow" });
-  const byKind: Record<
+  entries.push({ h3: "Commands" });
+  const byStage: Record<
     string,
     {
-      kind: string;
+      stage: string;
       command: string;
       description?: string | null;
-      config_files: string[];
+      config_refs: string[];
     }[]
   > = {};
-  for (const cmd of agent?.development_workflow?.commands ?? []) {
-    (byKind[cmd.kind] ||= []).push(cmd);
+  for (const cmd of agent?.engineering_workflow?.commands ?? []) {
+    (byStage[cmd.stage] ||= []).push(cmd);
   }
-  for (const kind of Object.keys(byKind)) {
-    entries.push({ h3: kind.replace(/_/g, " ").toUpperCase() });
+  const stageOrder = ["install", "build", "dev", "test", "lint", "type_check"];
+  for (const stage of stageOrder.filter((value) => byStage[value]?.length)) {
+    entries.push({ h3: stage.replace(/_/g, " ").toUpperCase() });
     entries.push({
-      ol: byKind[kind].map(
+      ol: byStage[stage].map(
         (c) => `${c.command}${c.description ? ` — ${c.description}` : ""}`,
       ),
     });
@@ -203,11 +205,12 @@ export function codebasesToMarkdown(
       ],
     });
 
-    // Project configuration
-    entries.push({ h3: "Project Configuration" });
-    if (agent?.project_configuration?.config_files?.length) {
+    // disabled during canonical engineering workflow migration
+    entries.push({ h3: "Engineering Workflow" });
+    entries.push({ h4: "Configs" });
+    if (agent?.engineering_workflow?.configs?.length) {
       entries.push({
-        ul: agent.project_configuration.config_files.map(
+        ul: agent.engineering_workflow.configs.map(
           (f) => `${f.path} — ${f.purpose}`,
         ),
       });
@@ -215,24 +218,24 @@ export function codebasesToMarkdown(
       entries.push({ p: "No configuration files detected." });
     }
 
-    // Development workflow (group by kind)
-    entries.push({ h3: "Development Workflow" });
-    const byKind: Record<
+    entries.push({ h4: "Commands" });
+    const byStage: Record<
       string,
       {
-        kind: string;
+        stage: string;
         command: string;
         description?: string | null;
-        config_files: string[];
+        config_refs: string[];
       }[]
     > = {};
-    for (const cmd of agent?.development_workflow?.commands ?? []) {
-      (byKind[cmd.kind] ||= []).push(cmd);
+    for (const cmd of agent?.engineering_workflow?.commands ?? []) {
+      (byStage[cmd.stage] ||= []).push(cmd);
     }
-    for (const kind of Object.keys(byKind)) {
-      entries.push({ h4: kind.replace(/_/g, " ").toUpperCase() });
+    const stageOrder = ["install", "build", "dev", "test", "lint", "type_check"];
+    for (const stage of stageOrder.filter((value) => byStage[value]?.length)) {
+      entries.push({ h4: stage.replace(/_/g, " ").toUpperCase() });
       entries.push({
-        ol: byKind[kind].map(
+        ol: byStage[stage].map(
           (c) => `${c.command}${c.description ? ` — ${c.description}` : ""}`,
         ),
       });
