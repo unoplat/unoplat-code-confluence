@@ -4,6 +4,9 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    EngineeringWorkflow,
+)
 
 # ──────────────────────────────────────────────
 # 🔄 Extended Enums
@@ -139,15 +142,6 @@ class LocatorStrategy(str, Enum):
 # ──────────────────────────────────────────────
 
 
-class ConfigFile(BaseModel):
-    """Configuration file details."""
-
-    path: str = Field(..., description="Configuration file path")
-    purpose: str = Field(..., description="Purpose of the configuration file")
-
-    model_config = ConfigDict(extra="forbid")
-
-
 class ConstructQueryConfigKey(str, Enum):
     """Typed construct query configuration matching JSON schema structure."""
 
@@ -197,31 +191,6 @@ class FrameworkLibraryOutput(BaseModel):
     version: Optional[str] = None
     documentation_url: Optional[str] = None
     features_used: List[LibraryFeatureSummary]
-
-    model_config = ConfigDict(extra="forbid")
-
-
-class CommandKind(str, Enum):
-    """Category for a development workflow command."""
-
-    BUILD = "build"
-    DEV = "dev"
-    TEST = "test"
-    LINT = "lint"
-    TYPE_CHECK = "type_check"
-
-
-class CommandSpec(BaseModel):
-    """Uniform specification for any development workflow command."""
-
-    kind: CommandKind = Field(..., description="Category of the command")
-    command: str = Field(..., description="Full runnable command string")
-    description: Optional[str] = Field(None, description="Short human-friendly summary")
-
-    config_files: List[str] = Field(
-        default_factory=list,
-        description="Relevant config files with relative path to the codebase root",
-    )
 
     model_config = ConfigDict(extra="forbid")
 
@@ -305,32 +274,6 @@ class ProgrammingLanguageMetadataOutput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class ProjectConfiguration(BaseModel):
-    """Project structure information."""
-
-    config_files: List[ConfigFile] = Field(
-        ...,
-        description=(
-            "Complete list of configuration files (lint, test, package manager, build, deploy, etc). "
-            "Include every relevant config file; do not omit any."
-        ),
-    )
-
-    model_config = ConfigDict(extra="forbid")
-
-
-class DevelopmentWorkflow(BaseModel):
-    """Development workflow configuration with a unified command list."""
-
-    commands: List[CommandSpec] = Field(
-        ...,
-        description=(
-            "Complete list of workflow commands; include all build/dev/test/lint/type_check commands found."
-        ),
-    )
-    model_config = ConfigDict(extra="forbid")
-
-
 class InboundConstruct(BaseModel):
     kind: InboundKind = Field(..., description="Kind of inbound construct")
     library: Optional[str] = Field(
@@ -409,17 +352,14 @@ class AgentMdOutput(BaseModel):
     programming_language_metadata: ProgrammingLanguageMetadataOutput = Field(
         ..., description="Programming language metadata"
     )
-    project_configuration: ProjectConfiguration = Field(
-        ..., description="Project configuration"
+    engineering_workflow: EngineeringWorkflow = Field(
+        default_factory=EngineeringWorkflow,
+        description="Canonical engineering workflow with config and command inventory",
     )
     # TODO: remove optional when ready
     frameworks_and_libraries: Optional[List[FrameworkLibraryOutput]] = Field(
         default=None,
         description="frameworks and libraries used and the overview of the functionality they provide.",
-    )
-    development_workflow: DevelopmentWorkflow = Field(
-        ...,
-        description="Development workflow configuration including build, test, lint commands ",
     )
     dependency_guide: Optional[DependencyGuide] = Field(
         default=None,

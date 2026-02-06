@@ -16,14 +16,14 @@ from pydantic_ai.settings import ModelSettings
 from temporalio.workflow import ActivityConfig
 
 from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
-    per_language_development_workflow_prompt,
-    per_programming_language_configuration_prompt,
+    per_language_engineering_development_workflow_prompt,
 )
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     DependencyGuideEntry,
-    DevelopmentWorkflow,
-    ProjectConfiguration,
+)
+from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    EngineeringWorkflow,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
@@ -67,46 +67,50 @@ def _get_exa_mcp_server(toolset_id: str):
 class AgentType(Enum):
     """Enum for available agent types."""
 
-    PROJECT_CONFIGURATION = "project_configuration_agent"
-    DEVELOPMENT_WORKFLOW = "development_workflow_agent"
+    ENGINEERING_DEVELOPMENT_WORKFLOW = "engineering_development_workflow_agent"
     DEPENDENCY_GUIDE = "dependency_guide_agent"
     BUSINESS_LOGIC_DOMAIN = "business_logic_domain_agent"
 
 
 # Stable, per-agent Exa MCP toolset IDs for Temporal activity naming.
 EXA_TOOLSET_IDS = {
-    AgentType.PROJECT_CONFIGURATION: "exa__project_configuration_agent",
-    AgentType.DEVELOPMENT_WORKFLOW: "exa__development_workflow_agent",
+    # Reuse the existing workflow Exa toolset ID so current MCP routing/credentials remain valid.
+    AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW: "exa__development_workflow_agent",
     AgentType.DEPENDENCY_GUIDE: "exa__dependency_guide_agent",
 }
 
 
 # Toggle agents here - comment/uncomment to enable/disable
 ENABLED_AGENTS: set[AgentType] = {
-    AgentType.PROJECT_CONFIGURATION,
-    AgentType.DEVELOPMENT_WORKFLOW,
+    AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW,
     AgentType.DEPENDENCY_GUIDE,
     AgentType.BUSINESS_LOGIC_DOMAIN,
 }
 
 
-def validate_project_configuration_output(
-    output: ProjectConfiguration,
-) -> ProjectConfiguration:
-    if not output.config_files:
+def validate_engineering_development_workflow_output(
+    output: EngineeringWorkflow,
+) -> EngineeringWorkflow:
+    if not output.configs and not output.commands:
         raise ModelRetry(
-            "config_files is empty. Re-scan and return all configuration files; do not omit any."
+            "engineering_workflow is empty. Return canonical configs and commands."
         )
-    return output
-
-
-def validate_development_workflow_output(
-    output: DevelopmentWorkflow,
-) -> DevelopmentWorkflow:
     if not output.commands:
         raise ModelRetry(
-            "commands is empty. Extract build/dev/test/lint/type_check commands and return all applicable commands."
+            "engineering_workflow.commands is empty. Re-scan command sources "
+            "(Taskfile/Makefile/package scripts/tool configs) and return commands."
         )
+
+    for cfg in output.configs:
+        if cfg.path.startswith("/") or cfg.path.startswith("../"):
+            raise ModelRetry(
+                f"Config path '{cfg.path}' must be repo-relative without leading '/'."
+            )
+    for command in output.commands:
+        if not command.command.strip():
+            raise ModelRetry(
+                "Found command with empty command string. Return non-empty runnable commands."
+            )
     return output
 
 
@@ -136,24 +140,24 @@ def validate_business_logic_domain_output(output: str) -> str:
 # ──────────────────────────────────────────────
 
 
-def create_project_configuration_agent(
+def create_engineering_development_workflow_agent(
     model: Model,
     model_settings: ModelSettings | None = None,
-) -> Agent[AgentDependencies, ProjectConfiguration]:
-    """Create project configuration agent.
+) -> Agent[AgentDependencies, EngineeringWorkflow]:
+    """Create canonical engineering development workflow agent.
 
     Args:
         model: Configured Model instance from ModelFactory
         model_settings: Optional model settings (temperature, etc.)
 
     Returns:
-        Project configuration agent instance
+        Engineering development workflow agent instance
     """
-    exa_id = EXA_TOOLSET_IDS[AgentType.PROJECT_CONFIGURATION]
+    exa_id = EXA_TOOLSET_IDS[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW]
     agent = Agent(
         model,
-        name="project_configuration_agent",
-        system_prompt="<role> Build/CI/Test/Lint/Type Configuration Locator</role>",
+        name="engineering_development_workflow_agent",
+        system_prompt="<role>Engineering Workflow Synthesizer</role>",
         deps_type=AgentDependencies,
         toolsets=[_get_exa_mcp_server(exa_id)],
         tools=[
@@ -161,58 +165,17 @@ def create_project_configuration_agent(
             Tool(read_file_content, takes_ctx=True, max_retries=3),
             Tool(search_across_codebase, takes_ctx=True, max_retries=3),
         ],
-        output_type=ProjectConfiguration,
+        output_type=EngineeringWorkflow,
         output_retries=2,
         model_settings=model_settings,
         event_stream_handler=event_stream_handler,
     )
-    agent.output_validator(validate_project_configuration_output)
+    agent.output_validator(validate_engineering_development_workflow_output)
     # Attach dynamic per-language system prompt (always enabled)
-    agent.system_prompt(per_programming_language_configuration_prompt)
-    logger.debug("Dynamic system prompt attached to project_configuration_agent")
-
-    # NOTE: Dynamic toolsets can rely on in-memory state across Temporal activities.
-    # Keeping this commented during verification in favor of a static toolset per agent.
-    # @agent.toolset(id="exa")
-    # def exa_toolset(_ctx):
-    #     return _get_exa_mcp_server(exa_id)
-
-    return agent
-
-
-def create_development_workflow_agent(
-    model: Model,
-    model_settings: ModelSettings | None = None,
-) -> Agent[AgentDependencies, DevelopmentWorkflow]:
-    """Create development workflow agent.
-
-    Args:
-        model: Configured Model instance from ModelFactory
-        model_settings: Optional model settings (temperature, etc.)
-
-    Returns:
-        Development workflow agent instance
-    """
-    exa_id = EXA_TOOLSET_IDS[AgentType.DEVELOPMENT_WORKFLOW]
-    agent = Agent(
-        model,
-        name="development_workflow_agent",
-        system_prompt="<role> Development Workflow Synthesizer</role>",
-        deps_type=AgentDependencies,
-        toolsets=[_get_exa_mcp_server(exa_id)],
-        tools=[
-            Tool(get_directory_tree, takes_ctx=True, max_retries=3),
-            Tool(read_file_content, takes_ctx=True, max_retries=3),
-        ],
-        output_type=DevelopmentWorkflow,
-        output_retries=2,
-        model_settings=model_settings,
-        event_stream_handler=event_stream_handler,
+    agent.system_prompt(per_language_engineering_development_workflow_prompt)
+    logger.debug(
+        "Dynamic system prompt attached to engineering_development_workflow_agent"
     )
-    agent.output_validator(validate_development_workflow_output)
-    # Attach dynamic per-language system prompt (always enabled)
-    agent.system_prompt(per_language_development_workflow_prompt)
-    logger.debug("Dynamic system prompt attached to development_workflow_agent")
 
     # NOTE: Dynamic toolsets can rely on in-memory state across Temporal activities.
     # Keeping this commented during verification in favor of a static toolset per agent.
@@ -416,11 +379,13 @@ def create_temporal_agents(
     default_toolset_id = "<agent>"
 
     # Conditionally create agents based on ENABLED_AGENTS
-    if AgentType.PROJECT_CONFIGURATION in ENABLED_AGENTS:
-        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.PROJECT_CONFIGURATION]
-        config_agent = create_project_configuration_agent(model, model_settings)
-        agents[AgentType.PROJECT_CONFIGURATION.value] = TemporalAgent(
-            config_agent,
+    if AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW in ENABLED_AGENTS:
+        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW]
+        engineering_agent = create_engineering_development_workflow_agent(
+            model, model_settings
+        )
+        agents[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW.value] = TemporalAgent(
+            engineering_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
             toolset_activity_config={
@@ -436,28 +401,7 @@ def create_temporal_agents(
                 exa_toolset_id: {},
             },
         )
-        logger.info("Created project_configuration_agent")
-
-    if AgentType.DEVELOPMENT_WORKFLOW in ENABLED_AGENTS:
-        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.DEVELOPMENT_WORKFLOW]
-        workflow_agent = create_development_workflow_agent(model, model_settings)
-        agents[AgentType.DEVELOPMENT_WORKFLOW.value] = TemporalAgent(
-            workflow_agent,
-            activity_config=base_activity_config,
-            model_activity_config=model_activity_config,
-            toolset_activity_config={
-                default_toolset_id: toolset_activity_config,
-                exa_toolset_id: toolset_activity_config,
-            },
-            tool_activity_config={
-                default_toolset_id: {
-                    "get_directory_tree": tool_activity_config_base,
-                    "read_file_content": tool_activity_config_base,
-                },
-                exa_toolset_id: {},
-            },
-        )
-        logger.info("Created development_workflow_agent")
+        logger.info("Created engineering_development_workflow_agent")
 
     if AgentType.DEPENDENCY_GUIDE in ENABLED_AGENTS:
         exa_toolset_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY_GUIDE]

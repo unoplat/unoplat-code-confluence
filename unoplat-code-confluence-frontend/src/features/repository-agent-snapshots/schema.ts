@@ -34,38 +34,37 @@ export type RepositoryAgentEventsEnvelope = z.infer<
 >;
 
 // Nested schemas for agent_md_output.codebases structure
-export const agentMdConfigFileSchema = z.object({
+
+export const agentMdEngineeringWorkflowConfigSchema = z.object({
+  id: z.string(),
   path: z.string(),
   purpose: z.string(),
+  required_for: z.array(z.string()).default([]),
 });
 
-export type AgentMdConfigFile = z.infer<typeof agentMdConfigFileSchema>;
-
-export const agentMdProjectConfigurationSchema = z.object({
-  config_files: z.array(agentMdConfigFileSchema).default([]),
-});
-
-export type AgentMdProjectConfiguration = z.infer<
-  typeof agentMdProjectConfigurationSchema
+export type AgentMdEngineeringWorkflowConfig = z.infer<
+  typeof agentMdEngineeringWorkflowConfigSchema
 >;
 
-export const agentMdDevelopmentCommandSchema = z.object({
-  kind: z.string(),
+export const agentMdEngineeringWorkflowCommandSchema = z.object({
+  id: z.string(),
+  stage: z.enum(["install", "build", "dev", "test", "lint", "type_check"]),
   command: z.string(),
-  description: z.string().nullish(), // Accept both null (from Python None) and undefined
-  config_files: z.array(z.string()).default([]),
+  description: z.string().nullish(),
+  config_refs: z.array(z.string()).default([]),
 });
 
-export type AgentMdDevelopmentCommand = z.infer<
-  typeof agentMdDevelopmentCommandSchema
+export type AgentMdEngineeringWorkflowCommand = z.infer<
+  typeof agentMdEngineeringWorkflowCommandSchema
 >;
 
-export const agentMdDevelopmentWorkflowSchema = z.object({
-  commands: z.array(agentMdDevelopmentCommandSchema).default([]),
+export const agentMdEngineeringWorkflowSchema = z.object({
+  configs: z.array(agentMdEngineeringWorkflowConfigSchema).default([]),
+  commands: z.array(agentMdEngineeringWorkflowCommandSchema).default([]),
 });
 
-export type AgentMdDevelopmentWorkflow = z.infer<
-  typeof agentMdDevelopmentWorkflowSchema
+export type AgentMdEngineeringWorkflow = z.infer<
+  typeof agentMdEngineeringWorkflowSchema
 >;
 
 export const agentMdBusinessLogicSchema = z.object({
@@ -139,8 +138,7 @@ export const agentMdCodebaseOutputSchema = z.object({
   statistics: z.lazy(() => usageStatisticsSchema).nullish(),
   programming_language_metadata:
     agentMdProgrammingLanguageMetadataSchema.nullish(),
-  project_configuration: agentMdProjectConfigurationSchema.nullish(),
-  development_workflow: agentMdDevelopmentWorkflowSchema.nullish(),
+  engineering_workflow: agentMdEngineeringWorkflowSchema.nullish(),
   dependency_guide: agentMdDependencyGuideSchema.nullish(),
   business_logic_domain: agentMdBusinessLogicSchema.nullish(),
   app_interfaces: agentMdAppInterfacesSchema.nullish(),
