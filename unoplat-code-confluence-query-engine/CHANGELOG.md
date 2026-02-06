@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.27.0...unoplat-code-confluence-query-engine-v0.27.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* **error-logging-model-provider:** enhance error details for model pr… ([a1633b9](https://github.com/unoplat/unoplat-code-confluence/commit/a1633b94475f1ce7b0f2ac466a294ac8aec5e052))
+* **error-logging-model-provider:** enhance error details for model provider issues ([1c9298b](https://github.com/unoplat/unoplat-code-confluence/commit/1c9298bf65d007308e80b6180f9a50df09474b20))
+
 ## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.26.1...unoplat-code-confluence-query-engine-v0.27.0) (2026-02-04)
 
 
