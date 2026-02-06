@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.41.1...unoplat-code-confluence-frontend-v1.42.0) (2026-02-06)
+
+
+### Features
+
+* **engineering-workflow-section-changes:** ui changes for agent harness changes ([bdbf330](https://github.com/unoplat/unoplat-code-confluence/commit/bdbf330da6af6c9e9418fcb08a524328a7598747))
+
 ## [1.41.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.41.0...unoplat-code-confluence-frontend-v1.41.1) (2026-02-06)
 
 

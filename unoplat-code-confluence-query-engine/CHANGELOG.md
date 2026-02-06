@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.27.1...unoplat-code-confluence-query-engine-v0.28.0) (2026-02-06)
+
+
+### Features
+
+* **improved-development-workflow-agent-harness:** improved development workflow agent harness ([226bcc5](https://github.com/unoplat/unoplat-code-confluence/commit/226bcc5a2ae783cfe3dae7967705ccba97d9e77b))
+
 ## [0.27.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.27.0...unoplat-code-confluence-query-engine-v0.27.1) (2026-02-06)
 
 
