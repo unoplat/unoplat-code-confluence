@@ -7,9 +7,10 @@ from loguru import logger
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     AgentMdOutput,
     BusinessLogicDomain,
-    DevelopmentWorkflow,
     ProgrammingLanguageMetadataOutput,
-    ProjectConfiguration,
+)
+from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    EngineeringWorkflow,
 )
 from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     CodebaseMetadata,
@@ -27,9 +28,8 @@ class AgentMdAggregate:
         """
         self.codebase = codebase
         self.language_metadata: Optional[ProgrammingLanguageMetadataOutput] = None
-        self.project_configuration: Optional[ProjectConfiguration] = None
+        self.engineering_workflow: Optional[EngineeringWorkflow] = None
         # self.frameworks_libraries: Optional[list[FrameworkLibraryOutput]] = None
-        self.development_workflow: Optional[DevelopmentWorkflow] = None
         self.business_logic: Optional[BusinessLogicDomain] = None
 
     def set_language_metadata(
@@ -42,19 +42,6 @@ class AgentMdAggregate:
         """
         self.language_metadata = meta
 
-    def update_from_project_configuration_agent(
-        self, project_structure: ProjectConfiguration
-    ) -> None:
-        """Update project structure from project configuration agent result.
-
-        Args:
-            project_structure: ProjectConfiguration BaseModel from project configuration agent
-        """
-        self.project_configuration = project_structure
-        logger.debug(
-            "Updated project structure for codebase: {}", self.codebase.codebase_name
-        )
-
     # def update_from_framework_explorer(self, frameworks: list[FrameworkLibraryOutput]) -> None:
     #     """Update frameworks and libraries from framework explorer agent result.
 
@@ -64,15 +51,11 @@ class AgentMdAggregate:
     #     self.frameworks_libraries = frameworks
     #     logger.debug("Updated frameworks/libraries for codebase: {}", self.codebase.codebase_name)
 
-    def update_from_development_workflow(self, workflow: DevelopmentWorkflow) -> None:
-        """Update development workflow from development workflow agent result.
-
-        Args:
-            workflow: DevelopmentWorkflow BaseModel from development workflow agent
-        """
-        self.development_workflow = workflow
+    def update_from_engineering_workflow(self, workflow: EngineeringWorkflow) -> None:
+        """Update canonical engineering workflow from single workflow agent result."""
+        self.engineering_workflow = workflow
         logger.debug(
-            "Updated development workflow for codebase: {}", self.codebase.codebase_name
+            "Updated engineering workflow for codebase: {}", self.codebase.codebase_name
         )
 
     def update_from_business_logic(self, business_logic: BusinessLogicDomain) -> None:
@@ -99,10 +82,7 @@ class AgentMdAggregate:
                 primary_language=self.codebase.codebase_programming_language,
                 package_manager="unknown",
             ),
-            project_configuration=self.project_configuration
-            or ProjectConfiguration(config_files=[]),
-            development_workflow=self.development_workflow
-            or DevelopmentWorkflow(commands=[]),
+            engineering_workflow=self.engineering_workflow or EngineeringWorkflow(),
             business_logic=self.business_logic
             or BusinessLogicDomain(
                 description=f"Core business logic for {self.codebase.codebase_name} could not be performed due to an error",

@@ -21,8 +21,7 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 # Agent names that contribute to progress calculation
 BASE_COMPLETION_NAMESPACES: frozenset[str] = frozenset(
     {
-        "project_configuration_agent",
-        "development_workflow_agent",
+        "engineering_development_workflow_agent",
         "dependency_guide_agent",
         "business_logic_domain_agent",
     }
