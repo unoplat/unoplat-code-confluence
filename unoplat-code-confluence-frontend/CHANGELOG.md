@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.41.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.41.0...unoplat-code-confluence-frontend-v1.41.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* **preview-result:** preview result shows up during partial errors ([d3c42ca](https://github.com/unoplat/unoplat-code-confluence/commit/d3c42cad6acecb549973f4bd2c88d76b5ce30de0))
+* **preview-result:** preview result shows up during partial errors ([b2bee94](https://github.com/unoplat/unoplat-code-confluence/commit/b2bee946f680e7300bf2e2b63a5b372a004d5241))
+
 ## [1.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.40.0...unoplat-code-confluence-frontend-v1.41.0) (2026-02-04)
 
 
