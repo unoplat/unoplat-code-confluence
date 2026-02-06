@@ -2,5 +2,10 @@
   "title": "Introduction",
   "icon": "BookOpen",
   "defaultOpen": true,
-  "pages": ["problem-statement", "solution", "roadmap", "how-it-works"]
+  "pages": [
+    "problem-statement",
+    "solution",
+    "how-it-works",
+    "roadmap"
+  ]
 }
