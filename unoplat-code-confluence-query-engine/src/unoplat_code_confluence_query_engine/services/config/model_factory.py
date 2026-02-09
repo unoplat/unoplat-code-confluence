@@ -13,7 +13,11 @@ from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.groq import GroqModel
 from pydantic_ai.models.huggingface import HuggingFaceModel
 from pydantic_ai.models.mistral import MistralModel
-from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.models.openai import (
+    OpenAIChatModel,
+    OpenAIResponsesModel,
+    OpenAIResponsesModelSettings,
+)
 from pydantic_ai.models.xai import XaiModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.azure import AzureProvider
@@ -36,6 +40,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
+from unoplat_code_confluence_query_engine.services.config.codex_openai_client import (
+    create_codex_async_openai_client,
+)
 from unoplat_code_confluence_query_engine.services.config.credentials_service import (
     CredentialsService,
 )
@@ -46,6 +53,7 @@ from unoplat_code_confluence_query_engine.utils.retry_http_client import (
 # Union type for all supported Pydantic AI models
 ModelType = Union[
     OpenAIChatModel,
+    OpenAIResponsesModel,
     AnthropicModel,
     GoogleModel,
     GroqModel,
@@ -117,6 +125,27 @@ class ModelFactory:
                     # Fall back to environment variable OPENAI_API_KEY
                     model = OpenAIChatModel(config.model_name)
                 logger.info(f"Created OpenAI model: {config.model_name}")
+
+            case "codex_openai":
+                codex_client = create_codex_async_openai_client(settings)
+                provider = OpenAIProvider(openai_client=codex_client)
+                # Codex backend requires explicit `store=false` for Responses API requests.
+                codex_model_settings: OpenAIResponsesModelSettings = {"openai_store": False}
+                if params.get("temperature") is not None:
+                    codex_model_settings["temperature"] = params["temperature"]
+                if params.get("top_p") is not None:
+                    codex_model_settings["top_p"] = params["top_p"]
+                if params.get("max_tokens") is not None:
+                    codex_model_settings["max_tokens"] = params["max_tokens"]
+                model_settings = codex_model_settings
+                model = OpenAIResponsesModel(
+                    config.model_name,
+                    provider=provider,
+                    settings=codex_model_settings,
+                )
+                logger.info(
+                    f"Created Codex OpenAI Responses model via OAuth transport: {config.model_name}"
+                )
 
             case "anthropic":
                 if model_api_key:
