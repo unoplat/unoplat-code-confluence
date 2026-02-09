@@ -79,14 +79,18 @@ class ModelFactory:
             ValueError: If provider is unknown or required credentials are missing
         """
 
-        # Build model settings if configured
+        # Build model settings from model_params JSONB
         model_settings = None
-        if config.temperature or config.top_p or config.max_tokens:
-            model_settings = ModelSettings(
-                temperature=config.temperature,
-                top_p=config.top_p,
-                max_tokens=config.max_tokens,
-            )
+        base_model_settings: ModelSettings = {}
+        params = config.model_params or {}
+        if params.get("temperature") is not None:
+            base_model_settings["temperature"] = params["temperature"]
+        if params.get("top_p") is not None:
+            base_model_settings["top_p"] = params["top_p"]
+        if params.get("max_tokens") is not None:
+            base_model_settings["max_tokens"] = params["max_tokens"]
+        if base_model_settings:
+            model_settings = base_model_settings
 
         credentials_service = CredentialsService()
 
