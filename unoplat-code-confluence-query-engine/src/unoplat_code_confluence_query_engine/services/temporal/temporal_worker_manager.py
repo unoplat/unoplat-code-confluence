@@ -49,6 +49,9 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.dependenc
 from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_fetch_activity import (
     DependencyGuideFetchActivity,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.engineering_workflow_completion_activity import (
+    EngineeringWorkflowCompletionActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
     RepositoryAgentSnapshotActivity,
 )
@@ -319,6 +322,7 @@ class TemporalWorkerManager:
         business_logic_post_process_activity = BusinessLogicPostProcessActivity()
         dependency_guide_completion_activity = DependencyGuideCompletionActivity()
         dependency_guide_fetch_activity = DependencyGuideFetchActivity()
+        engineering_workflow_completion_activity = EngineeringWorkflowCompletionActivity()
         app_interfaces_activity = AppInterfacesActivity()
 
         # Build interceptor list - always include status interceptor
@@ -361,6 +365,7 @@ class TemporalWorkerManager:
                 business_logic_post_process_activity.post_process_business_logic,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
                 dependency_guide_fetch_activity.fetch_codebase_dependencies,
+                engineering_workflow_completion_activity.emit_engineering_workflow_completion,
                 app_interfaces_activity.build_app_interfaces,
                 app_interfaces_activity.emit_app_interfaces_completion,
             ],

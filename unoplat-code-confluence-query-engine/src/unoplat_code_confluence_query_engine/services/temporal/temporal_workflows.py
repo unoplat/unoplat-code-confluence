@@ -46,6 +46,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_fetch_activity import (
         DependencyGuideFetchActivity,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.engineering_workflow_completion_activity import (
+        EngineeringWorkflowCompletionActivity,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
         RepositoryAgentSnapshotActivity,
     )
@@ -193,6 +196,19 @@ class CodebaseAgentWorkflow:
                     raw_engineering_workflow
                 )
                 results["engineering_workflow"] = normalized_workflow.model_dump()
+
+                # Emit completion event for deterministic progress tracking.
+                await workflow.execute_activity(
+                    EngineeringWorkflowCompletionActivity.emit_engineering_workflow_completion,
+                    args=[
+                        repository_qualified_name,
+                        repository_workflow_run_id,
+                        codebase_metadata.codebase_name,
+                        codebase_metadata.codebase_programming_language,
+                    ],
+                    start_to_close_timeout=timedelta(seconds=30),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
 
                 logger.info(
                     "[workflow] engineering_development_workflow_agent completed for {}",
