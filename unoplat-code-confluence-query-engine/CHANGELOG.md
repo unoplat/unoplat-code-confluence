@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.28.0...unoplat-code-confluence-query-engine-v0.29.0) (2026-02-09)
+
+
+### Features
+
+* **codex-oauth:** implement ChatGPT OAuth PKCE flow for Codex provider ([9891b8e](https://github.com/unoplat/unoplat-code-confluence/commit/9891b8e7c0bf2bf46c2176d34722f484d22a1d31))
+* **delete-model-config:** add UI to delete active model provider configuration ([81a46f6](https://github.com/unoplat/unoplat-code-confluence/commit/81a46f68189d669bd1718617865bd6b3cd44d413))
+* **dependency-filter:** restrict dependency discovery to runtime-only group ([b54d554](https://github.com/unoplat/unoplat-code-confluence/commit/b54d55459fa782e2e58ea68c659bbdf5cd5014f3))
+* **engineering-workflow:** simplify output schema and improve system prompts ([e8b970e](https://github.com/unoplat/unoplat-code-confluence/commit/e8b970ef7e81fe0000f23306528fc6cc596b9eb9))
+* **observability:** enhance event stream debugging and engineering workflow completion ([595a363](https://github.com/unoplat/unoplat-code-confluence/commit/595a3636c67dc4b6347eb1fc2ed4bd2eab0ab6d0))
+* **web-search:** support built-in web search for providers with native capability ([05814a3](https://github.com/unoplat/unoplat-code-confluence/commit/05814a3ae675f33db50eac35e32a0f397c0582f6))
+
+
+### Bug Fixes
+
+* **binding-address:** change binding address back to 127.0.0.1 ([fc41fe4](https://github.com/unoplat/unoplat-code-confluence/commit/fc41fe4c18038466f5a883e629a6b3048685f8bc))
+* code smells for model factory ([6de23a7](https://github.com/unoplat/unoplat-code-confluence/commit/6de23a7a0ab6b0c13d9e4e487519024ceeed6163))
+
 ## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.27.1...unoplat-code-confluence-query-engine-v0.28.0) (2026-02-06)
 
 
