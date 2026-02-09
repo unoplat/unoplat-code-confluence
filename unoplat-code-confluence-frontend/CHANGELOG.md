@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.42.0...unoplat-code-confluence-frontend-v1.43.0) (2026-02-09)
+
+
+### Features
+
+* **codex-oauth:** implement ChatGPT OAuth PKCE flow for Codex provider ([9891b8e](https://github.com/unoplat/unoplat-code-confluence/commit/9891b8e7c0bf2bf46c2176d34722f484d22a1d31))
+* **delete-model-config:** add UI to delete active model provider configuration ([81a46f6](https://github.com/unoplat/unoplat-code-confluence/commit/81a46f68189d669bd1718617865bd6b3cd44d413))
+* **engineering-workflow:** simplify output schema and improve system prompts ([e8b970e](https://github.com/unoplat/unoplat-code-confluence/commit/e8b970ef7e81fe0000f23306528fc6cc596b9eb9))
+* **web-search:** support built-in web search for providers with native capability ([05814a3](https://github.com/unoplat/unoplat-code-confluence/commit/05814a3ae675f33db50eac35e32a0f397c0582f6))
+
+
+### Bug Fixes
+
+* **frontend:** remove duplicate object property in ModelConfigForm ([a109b23](https://github.com/unoplat/unoplat-code-confluence/commit/a109b233255926a0f88a4ae5b22613f94ff64845))
+
 ## [1.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.41.1...unoplat-code-confluence-frontend-v1.42.0) (2026-02-06)
 
 
