@@ -66,6 +66,17 @@ class ProviderCatalog:
                 )
             ],
         ),
+        "codex_openai": ProviderSchema(
+            provider_key="codex_openai",
+            display_name="OpenAI Codex (ChatGPT OAuth)",
+            kind="native",
+            model_field={
+                "label": "Model name",
+                "placeholder": "gpt-5.2-codex",
+                "required": True,
+            },
+            fields=[],
+        ),
         "anthropic": ProviderSchema(
             provider_key="anthropic",
             display_name="Anthropic",

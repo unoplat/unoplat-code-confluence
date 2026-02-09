@@ -718,6 +718,39 @@ export interface ModelConfigResponse {
   updated_at?: string;
 }
 
+export interface DeleteModelConfigResponse {
+  message: string;
+  deleted: boolean;
+}
+
+export interface CodexOAuthAuthorizeResponse {
+  flow_id: string;
+  authorization_url: string;
+  expires_at: number;
+  poll_interval_ms: number;
+}
+
+export interface CodexOAuthAuthorizeRequest {
+  frontend_origin?: string;
+}
+
+export interface CodexOAuthFlowStatusResponse {
+  status: "pending" | "success" | "failed" | "expired";
+  error?: string | null;
+}
+
+export interface CodexOAuthStatusResponse {
+  connected: boolean;
+  account_id?: string | null;
+  expires_at?: number | null;
+  configured_at?: string | null;
+}
+
+export interface CodexOAuthDeleteResponse {
+  deleted: boolean;
+  message: string;
+}
+
 /**
  * Request body for saving model provider configuration
  */
@@ -793,21 +826,92 @@ export const saveModelProviderConfig = async (
 
     // Sanitize API key: trim whitespace and remove non-ISO-8859-1 characters
     // HTTP headers must only contain ISO-8859-1 characters (0x00-0xFF)
-    const sanitizedApiKey = ((model_api_key as string) || "")
-      .trim()
-      .replace(/[^\u0000-\u00FF]/gu, "");
+    const rawApiKey = ((model_api_key as string) || "").trim();
+    const sanitizedApiKey = Array.from(rawApiKey)
+      .filter((ch) => ch.charCodeAt(0) <= 0xff)
+      .join("");
+
+    const headers =
+      sanitizedApiKey.length > 0
+        ? { "X-Model-API-Key": sanitizedApiKey }
+        : undefined;
 
     const response: AxiosResponse<ApiResponse> = await queryEngineClient.put(
       "/v1/model-config",
       bodyConfig,
-      {
-        headers: {
-          "X-Model-API-Key": sanitizedApiKey,
-        },
-      },
+      { headers },
     );
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);
   }
 };
+
+/**
+ * Delete active model provider configuration from the query engine
+ *
+ * @returns Promise with deletion status
+ */
+export const deleteModelProviderConfig =
+  async (): Promise<DeleteModelConfigResponse> => {
+    try {
+      const response: AxiosResponse<DeleteModelConfigResponse> =
+        await queryEngineClient.delete("/v1/model-config");
+      return response.data;
+    } catch (error: unknown) {
+      throw handleApiError(error);
+    }
+  };
+
+export const authorizeCodexOpenAiOauth = async (
+  payload?: CodexOAuthAuthorizeRequest,
+): Promise<CodexOAuthAuthorizeResponse> => {
+  try {
+    const response: AxiosResponse<CodexOAuthAuthorizeResponse> =
+      await queryEngineClient.post(
+        "/v1/model-config/codex-openai/oauth/authorize",
+        payload,
+      );
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+export const getCodexOpenAiOauthFlowStatus = async (
+  flowId: string,
+): Promise<CodexOAuthFlowStatusResponse> => {
+  try {
+    const response: AxiosResponse<CodexOAuthFlowStatusResponse> =
+      await queryEngineClient.get(
+        `/v1/model-config/codex-openai/oauth/flows/${flowId}`,
+      );
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+};
+
+export const getCodexOpenAiOauthStatus =
+  async (): Promise<CodexOAuthStatusResponse> => {
+    try {
+      const response: AxiosResponse<CodexOAuthStatusResponse> =
+        await queryEngineClient.get(
+          "/v1/model-config/codex-openai/oauth/status",
+        );
+      return response.data;
+    } catch (error: unknown) {
+      throw handleApiError(error);
+    }
+  };
+
+export const disconnectCodexOpenAiOauth =
+  async (): Promise<CodexOAuthDeleteResponse> => {
+    try {
+      const response: AxiosResponse<CodexOAuthDeleteResponse> =
+        await queryEngineClient.delete("/v1/model-config/codex-openai/oauth");
+      return response.data;
+    } catch (error: unknown) {
+      throw handleApiError(error);
+    }
+  };

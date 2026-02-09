@@ -46,9 +46,14 @@ class AiModelConfigService:
                 return None
 
             # Check for stored credentials
-            has_api_key = await self.credentials_service.model_credential_exists(
-                session
-            )
+            if config.provider_key == "codex_openai":
+                has_api_key = await self.credentials_service.model_oauth_connected(
+                    session
+                )
+            else:
+                has_api_key = await self.credentials_service.model_credential_exists(
+                    session
+                )
 
             return AiModelConfigOut(
                 provider_key=config.provider_key,
@@ -182,14 +187,19 @@ class AiModelConfigService:
                     config_in.provider_key,
                 )
 
-            # Store credentials if provided
-            if api_key is not None:
+            # Store model API key only when non-empty
+            if api_key is not None and api_key.strip():
                 await self.credentials_service.upsert_model_credential(api_key, session)
 
             # Check for stored credentials for response
-            has_api_key = await self.credentials_service.model_credential_exists(
-                session
-            )
+            if saved_config.provider_key == "codex_openai":
+                has_api_key = await self.credentials_service.model_oauth_connected(
+                    session
+                )
+            else:
+                has_api_key = await self.credentials_service.model_credential_exists(
+                    session
+                )
             logger.debug(
                 "Upsert complete (pre-commit context exit): has_api_key={}",
                 has_api_key,

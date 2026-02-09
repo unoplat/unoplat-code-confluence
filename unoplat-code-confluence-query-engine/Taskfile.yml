@@ -53,6 +53,8 @@ tasks:
       CODE_CONFLUENCE_BRIDGE_URL: "http://localhost:8000"
       TOKEN_ENCRYPTION_KEY: "0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
       MCP_SERVERS_CONFIG_PATH: "../../mcp-servers.json"
+      CODEX_OPENAI_CALLBACK_PORT: "1455"
+      CODEX_OPENAI_REDIRECT_URI: "http://localhost:1455/auth/callback"
     cmds:
       - uv run fastapi dev --port 8001
 

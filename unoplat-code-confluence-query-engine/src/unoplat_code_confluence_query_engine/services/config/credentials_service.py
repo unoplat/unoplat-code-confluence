@@ -2,7 +2,7 @@
 
 import os
 from datetime import UTC, datetime
-from typing import Optional
+from typing import Any, Optional
 
 from loguru import logger
 from sqlalchemy import select
@@ -20,32 +20,47 @@ class CredentialsService:
     """Read/write encrypted credentials via the shared credentials table."""
 
     @staticmethod
-    async def execute_get_model_query(session: AsyncSession) -> Optional[Credentials]:
+    async def execute_get_model_secret_query(
+        session: AsyncSession, secret_kind: SecretKind
+    ) -> Optional[Credentials]:
         result = await session.execute(
             select(Credentials)
             .where(Credentials.namespace == CredentialNamespace.MODEL)
             .where(Credentials.provider_key == ProviderKey.MODEL_PROVIDER_AUTH)
-            .where(Credentials.secret_kind == SecretKind.MODEL_API_KEY)
+            .where(Credentials.secret_kind == secret_kind)
         )
         return result.scalars().first()
 
     @staticmethod
-    async def get_model_credential(session: AsyncSession) -> Optional[str]:
-        """Get decrypted credential value by key.
+    async def execute_get_model_query(session: AsyncSession) -> Optional[Credentials]:
+        """Backward-compatible getter for model API key row."""
+        return await CredentialsService.execute_get_model_secret_query(
+            session, SecretKind.MODEL_API_KEY
+        )
+
+    @staticmethod
+    async def get_model_secret(
+        session: AsyncSession, secret_kind: SecretKind
+    ) -> Optional[str]:
+        """Get decrypted model secret value for a given secret kind.
 
         Args:
             session: Database session
+            secret_kind: Secret type under MODEL/model_provider_auth
 
         Returns:
             Decrypted credential value or None if not found
         """
-        row = await CredentialsService.execute_get_model_query(session)
+        row = await CredentialsService.execute_get_model_secret_query(
+            session, secret_kind
+        )
 
         if not row:
-            logger.debug(f"No credential found for key: {CredentialNamespace.MODEL}")
+            logger.debug(
+                "No model credential found for secret kind: {}", secret_kind.value
+            )
             return None
 
-        # Set TOKEN_ENCRYPTION_KEY environment variable for decrypt_token
         if not os.getenv("TOKEN_ENCRYPTION_KEY"):
             logger.error("TOKEN_ENCRYPTION_KEY environment variable not set")
             raise ValueError(
@@ -55,14 +70,25 @@ class CredentialsService:
         return decrypt_token(row.token_hash)
 
     @staticmethod
-    async def upsert_model_credential(value: str, session: AsyncSession) -> None:
-        """Update encrypted model credential.
+    async def get_model_credential(session: AsyncSession) -> Optional[str]:
+        """Get decrypted model API key value."""
+        return await CredentialsService.get_model_secret(session, SecretKind.MODEL_API_KEY)
+
+    @staticmethod
+    async def upsert_model_secret(
+        value: str,
+        session: AsyncSession,
+        secret_kind: SecretKind,
+        metadata_json: Optional[dict[str, Any]] = None,
+    ) -> None:
+        """Create or update encrypted model secret.
 
         Args:
-            value: The plaintext credential value to encrypt and store
+            value: The plaintext secret value to encrypt and store
             session: Database session
+            secret_kind: Secret type under MODEL/model_provider_auth
+            metadata_json: Optional metadata payload to persist
         """
-        # Set TOKEN_ENCRYPTION_KEY environment variable for encrypt_token
         if not os.getenv("TOKEN_ENCRYPTION_KEY"):
             logger.error("TOKEN_ENCRYPTION_KEY environment variable not set")
             raise ValueError(
@@ -71,55 +97,169 @@ class CredentialsService:
 
         encrypted = encrypt_token(value)
 
-        row = await CredentialsService.execute_get_model_query(session)
+        row = await CredentialsService.execute_get_model_secret_query(
+            session, secret_kind
+        )
 
         if row:
             row.token_hash = encrypted
             row.updated_at = datetime.now(UTC)
-            logger.debug("Updated model credential")
+            row.metadata_json = metadata_json
+            logger.debug(
+                "Updated model credential for secret kind: {}", secret_kind.value
+            )
         else:
             row = Credentials(
                 namespace=CredentialNamespace.MODEL,
                 provider_key=ProviderKey.MODEL_PROVIDER_AUTH,
-                secret_kind=SecretKind.MODEL_API_KEY,
+                secret_kind=secret_kind,
                 token_hash=encrypted,
+                metadata_json=metadata_json,
                 created_at=datetime.now(UTC),
                 updated_at=datetime.now(UTC),
             )
             session.add(row)
-            logger.debug("Created new model credential")
+            logger.debug(
+                "Created new model credential for secret kind: {}", secret_kind.value
+            )
 
     @staticmethod
-    async def delete_model_credential(session: AsyncSession) -> bool:
-        """Delete model credential.
+    async def upsert_model_credential(value: str, session: AsyncSession) -> None:
+        """Update encrypted model API key."""
+        await CredentialsService.upsert_model_secret(
+            value=value,
+            session=session,
+            secret_kind=SecretKind.MODEL_API_KEY,
+            metadata_json=None,
+        )
+
+    @staticmethod
+    async def delete_model_secret(
+        session: AsyncSession, secret_kind: SecretKind
+    ) -> bool:
+        """Delete model credential for a specific secret kind.
 
         Args:
             session: Database session
+            secret_kind: Secret type under MODEL/model_provider_auth
 
         Returns:
             True if deleted, False if not found
         """
-        row = await CredentialsService.execute_get_model_query(session)
+        row = await CredentialsService.execute_get_model_secret_query(
+            session, secret_kind
+        )
 
         if row:
             await session.delete(row)
-            logger.debug("Deleted model credential")
+            logger.debug(
+                "Deleted model credential for secret kind: {}", secret_kind.value
+            )
             return True
 
-        logger.debug("No model credential found to delete")
+        logger.debug(
+            "No model credential found to delete for secret kind: {}",
+            secret_kind.value,
+        )
         return False
 
     @staticmethod
+    async def delete_model_credential(session: AsyncSession) -> bool:
+        """Delete model API key credential."""
+        return await CredentialsService.delete_model_secret(
+            session, SecretKind.MODEL_API_KEY
+        )
+
+    @staticmethod
     async def model_credential_exists(session: AsyncSession) -> bool:
-        """Check if model credential exists.
+        """Check if model API key exists."""
+        row = await CredentialsService.execute_get_model_secret_query(
+            session, SecretKind.MODEL_API_KEY
+        )
+        return row is not None
 
-        Args:
-            session: Database session
+    @staticmethod
+    async def get_model_oauth_access_metadata(
+        session: AsyncSession,
+    ) -> Optional[dict[str, Any]]:
+        """Get metadata for model OAuth access token row."""
+        row = await CredentialsService.execute_get_model_secret_query(
+            session, SecretKind.OAUTH_ACCESS_TOKEN
+        )
+        if not row:
+            return None
+        metadata = row.metadata_json
+        return metadata if isinstance(metadata, dict) else None
 
-        Returns:
-            True if credential exists, False otherwise
-        """
-        row = await CredentialsService.execute_get_model_query(session)
+    @staticmethod
+    async def get_model_oauth_access_token(session: AsyncSession) -> Optional[str]:
+        """Get decrypted model OAuth access token."""
+        return await CredentialsService.get_model_secret(
+            session, SecretKind.OAUTH_ACCESS_TOKEN
+        )
+
+    @staticmethod
+    async def get_model_oauth_refresh_token(session: AsyncSession) -> Optional[str]:
+        """Get decrypted model OAuth refresh token."""
+        return await CredentialsService.get_model_secret(
+            session, SecretKind.OAUTH_REFRESH_TOKEN
+        )
+
+    @staticmethod
+    async def upsert_model_oauth_credentials(
+        session: AsyncSession,
+        *,
+        access_token: str,
+        refresh_token: str,
+        id_token: Optional[str],
+        expires_at: int,
+        account_id: Optional[str],
+    ) -> None:
+        """Persist model OAuth credentials under MODEL/model_provider_auth."""
+        metadata: dict[str, Any] = {"expires_at": expires_at}
+        if account_id:
+            metadata["account_id"] = account_id
+
+        await CredentialsService.upsert_model_secret(
+            value=access_token,
+            session=session,
+            secret_kind=SecretKind.OAUTH_ACCESS_TOKEN,
+            metadata_json=metadata,
+        )
+        await CredentialsService.upsert_model_secret(
+            value=refresh_token,
+            session=session,
+            secret_kind=SecretKind.OAUTH_REFRESH_TOKEN,
+            metadata_json=None,
+        )
+        if id_token:
+            await CredentialsService.upsert_model_secret(
+                value=id_token,
+                session=session,
+                secret_kind=SecretKind.OAUTH_ID_TOKEN,
+                metadata_json=None,
+            )
+
+    @staticmethod
+    async def delete_model_oauth_credentials(session: AsyncSession) -> bool:
+        """Delete all model OAuth credential rows."""
+        deleted_access = await CredentialsService.delete_model_secret(
+            session, SecretKind.OAUTH_ACCESS_TOKEN
+        )
+        deleted_refresh = await CredentialsService.delete_model_secret(
+            session, SecretKind.OAUTH_REFRESH_TOKEN
+        )
+        deleted_id = await CredentialsService.delete_model_secret(
+            session, SecretKind.OAUTH_ID_TOKEN
+        )
+        return deleted_access or deleted_refresh or deleted_id
+
+    @staticmethod
+    async def model_oauth_connected(session: AsyncSession) -> bool:
+        """Connected when refresh token exists for model OAuth."""
+        row = await CredentialsService.execute_get_model_secret_query(
+            session, SecretKind.OAUTH_REFRESH_TOKEN
+        )
         return row is not None
 
     # ─── Tool Credential Methods ───────────────────────────────────────────────

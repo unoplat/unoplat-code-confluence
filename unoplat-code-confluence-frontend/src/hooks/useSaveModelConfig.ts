@@ -1,9 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { saveModelProviderConfig } from "@/lib/api";
+import {
+  deleteModelProviderConfig,
+  saveModelProviderConfig,
+  type DeleteModelConfigResponse,
+} from "@/lib/api";
 
 interface SaveModelConfigVariables {
   config: Record<string, unknown>;
+  suppressSuccessToast?: boolean;
 }
 
 interface SaveModelConfigResponse {
@@ -21,19 +26,24 @@ export const useSaveModelConfig = () => {
   const queryClient = useQueryClient();
 
   return useMutation<SaveModelConfigResponse, Error, SaveModelConfigVariables>({
+    mutationKey: ["model-config", "save"],
     mutationFn: async ({ config }) => {
       return await saveModelProviderConfig(config);
     },
 
-    onSuccess: (data) => {
+    onSuccess: async (data, variables) => {
       // Invalidate and refetch provider data
-      queryClient.invalidateQueries({ queryKey: ["model-providers"] });
-      queryClient.invalidateQueries({ queryKey: ["model-config"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["model-providers"] }),
+        queryClient.invalidateQueries({ queryKey: ["model-config"] }),
+      ]);
 
       // Show success toast
-      toast.success(
-        data.message || "Provider configuration saved successfully",
-      );
+      if (!variables.suppressSuccessToast) {
+        toast.success(
+          data.message || "Provider configuration saved successfully",
+        );
+      }
     },
 
     onError: (error) => {
@@ -79,6 +89,15 @@ export const useSaveProviderConfig = (providerKey: string) => {
         { config: { ...config, provider_key: providerKey } },
         options,
       );
+    },
+    mutateAsync: (
+      config: Record<string, unknown>,
+      suppressSuccessToast = false,
+    ) => {
+      return saveConfigMutation.mutateAsync({
+        config: { ...config, provider_key: providerKey },
+        suppressSuccessToast,
+      });
     },
   };
 };
