@@ -51,7 +51,7 @@ async def _start_codex_callback_server(app: FastAPI) -> None:
     callback_port = app.state.settings.codex_openai_callback_port
     server_config = uvicorn.Config(
         app,
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=callback_port,
         log_level="warning",
         access_log=False,
