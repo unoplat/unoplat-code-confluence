@@ -707,9 +707,12 @@ export interface ModelConfigResponse {
   base_url?: string | null;
   profile_key?: string | null;
   extra_config?: Record<string, unknown>;
-  temperature?: number | null;
-  top_p?: number | null;
-  max_tokens?: number | null;
+  model_params?: {
+    temperature?: number | null;
+    top_p?: number | null;
+    max_tokens?: number | null;
+    request_limit?: number | null;
+  } | null;
   has_api_key: boolean;
   created_at?: string;
   updated_at?: string;
