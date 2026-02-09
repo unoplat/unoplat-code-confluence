@@ -70,6 +70,48 @@ export const useSaveModelConfig = () => {
 };
 
 /**
+ * TanStack Mutation hook for deleting active model configuration
+ * Uses mutation key + awaited invalidations for deterministic cache refresh.
+ */
+export const useDeleteModelConfig = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<DeleteModelConfigResponse, Error>({
+    mutationKey: ["model-config", "delete"],
+    mutationFn: async () => {
+      return await deleteModelProviderConfig();
+    },
+    onSuccess: async (data) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["model-providers"] }),
+        queryClient.invalidateQueries({ queryKey: ["model-config"] }),
+      ]);
+
+      const message = data.deleted
+        ? data.message || "Model configuration deleted successfully"
+        : data.message || "No model configuration found to delete";
+      toast.success(message);
+    },
+    onError: (error) => {
+      toast.error("Failed to delete configuration", {
+        description: error.message || "An unexpected error occurred",
+      });
+    },
+    retry: (failureCount, error) => {
+      if (
+        error.message.includes("validation") ||
+        error.message.includes("400") ||
+        error.message.includes("404")
+      ) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+};
+
+/**
  * Hook for saving configuration for a specific provider
  * Provides a more convenient interface for single provider updates
  *
