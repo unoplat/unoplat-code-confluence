@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -7,6 +8,7 @@ from loguru import logger
 from sqlalchemy import select
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 from unoplat_code_confluence_commons.flags import Flag
+import uvicorn
 
 from unoplat_code_confluence_query_engine.api.v1.endpoints import (
     ai_model_config,
@@ -28,6 +30,9 @@ from unoplat_code_confluence_query_engine.db.postgres.db import (
 from unoplat_code_confluence_query_engine.services.config.ai_model_config_service import (
     AiModelConfigService,
 )
+from unoplat_code_confluence_query_engine.services.config.codex_oauth_service import (
+    CodexOAuthService,
+)
 from unoplat_code_confluence_query_engine.services.config.config_hot_reload import (
     register_orm_events,
     unregister_orm_events,
@@ -39,6 +44,55 @@ from unoplat_code_confluence_query_engine.services.mcp.mcp_server_manager import
 from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
     get_worker_manager,
 )
+
+
+async def _start_codex_callback_server(app: FastAPI) -> None:
+    """Start lightweight callback listener on localhost:<callback_port>."""
+    callback_port = app.state.settings.codex_openai_callback_port
+    server_config = uvicorn.Config(
+        app,
+        host="127.0.0.1",
+        port=callback_port,
+        log_level="warning",
+        access_log=False,
+        lifespan="off",
+    )
+    server = uvicorn.Server(server_config)
+    server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
+    task = asyncio.create_task(server.serve(), name="codex-oauth-callback-server")
+    app.state.codex_callback_server = server
+    app.state.codex_callback_server_task = task
+
+    await asyncio.sleep(0.2)
+    if task.done():
+        app.state.codex_callback_server_ready = False
+        logger.error(
+            "Failed to start Codex OAuth callback listener on localhost:{}; "
+            "port may be in use by another process",
+            callback_port,
+        )
+    else:
+        app.state.codex_callback_server_ready = True
+        logger.info(
+            "Codex OAuth callback listener started on localhost:{}",
+            callback_port,
+        )
+
+
+async def _stop_codex_callback_server(app: FastAPI) -> None:
+    """Stop callback listener if running."""
+    server = getattr(app.state, "codex_callback_server", None)
+    task = getattr(app.state, "codex_callback_server_task", None)
+    app.state.codex_callback_server_ready = False
+    if not server or not task:
+        return
+    server.should_exit = True
+    try:
+        await asyncio.wait_for(task, timeout=5.0)
+    except TimeoutError:
+        server.force_exit = True
+        await task
+    logger.info("Codex OAuth callback listener stopped")
 
 
 @asynccontextmanager
@@ -78,8 +132,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Initialize services and store in app state
     app.state.ai_model_config_service = AiModelConfigService()
+    app.state.codex_oauth_service = CodexOAuthService(app.state.settings)
     app.state.flag_service = FlagService()
+    app.state.codex_callback_server = None
+    app.state.codex_callback_server_task = None
+    app.state.codex_callback_server_ready = False
     logger.info("Services initialized and stored in app state")
+
+    # Start dedicated localhost callback listener for Codex OAuth redirect_uri parity.
+    await _start_codex_callback_server(app)
 
     # Check if AI model configuration exists and update flag
     async with get_startup_session() as session:
@@ -145,6 +206,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as e:
             logger.error("Error stopping Temporal worker: {}", e)
 
+    try:
+        await _stop_codex_callback_server(app)
+    except Exception as e:
+        logger.warning("Error stopping Codex callback listener: {}", e)
+
     # Unregister ORM events
     try:
         unregister_orm_events()
@@ -175,5 +241,6 @@ app.add_middleware(
 # Include API routers
 app.include_router(codebase_agent_rules.router)
 app.include_router(ai_model_config.router)
+app.include_router(ai_model_config.callback_router)
 app.include_router(flags.router)
 app.include_router(tool_config.router)

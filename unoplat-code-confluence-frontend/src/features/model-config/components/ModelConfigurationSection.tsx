@@ -70,6 +70,11 @@ export function ModelConfigurationSection(): React.ReactElement {
     refetch(); // Refresh providers list to update configuration status
   };
 
+  const handleFormDeleted = () => {
+    setSelectedProviderKey(undefined);
+    refetch();
+  };
+
   const handleRetry = () => {
     refetch();
   };
@@ -141,6 +146,7 @@ export function ModelConfigurationSection(): React.ReactElement {
                 existingConfig={existingConfig}
                 onCancel={handleFormCancel}
                 onSuccess={handleFormSuccess}
+                onDeleted={handleFormDeleted}
                 className="border-0 bg-transparent p-0 shadow-none"
               />
             </CardContent>

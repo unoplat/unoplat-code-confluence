@@ -13,6 +13,7 @@ from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
 from unoplat_code_confluence_query_engine.models.config.ai_model_config import (
     AiModelConfigIn,
     AiModelConfigOut,
+    ModelParams,
     ProviderKind,
 )
 from unoplat_code_confluence_query_engine.services.config.credentials_service import (
@@ -45,9 +46,14 @@ class AiModelConfigService:
                 return None
 
             # Check for stored credentials
-            has_api_key = await self.credentials_service.model_credential_exists(
-                session
-            )
+            if config.provider_key == "codex_openai":
+                has_api_key = await self.credentials_service.model_oauth_connected(
+                    session
+                )
+            else:
+                has_api_key = await self.credentials_service.model_credential_exists(
+                    session
+                )
 
             return AiModelConfigOut(
                 provider_key=config.provider_key,
@@ -59,9 +65,7 @@ class AiModelConfigService:
                 base_url=config.base_url,
                 profile_key=config.profile_key,
                 extra_config=config.extra_config,
-                temperature=config.temperature,
-                top_p=config.top_p,
-                max_tokens=config.max_tokens,
+                model_params=ModelParams(**config.model_params) if config.model_params else None,
                 has_api_key=has_api_key,
                 created_at=config.created_at,
                 updated_at=config.updated_at,
@@ -138,9 +142,7 @@ class AiModelConfigService:
                     k: v for k, v in incoming_extra.items() if k in allowed_keys
                 }
                 existing_config.extra_config = filtered_extra
-                existing_config.temperature = config_in.temperature
-                existing_config.top_p = config_in.top_p
-                existing_config.max_tokens = config_in.max_tokens
+                existing_config.model_params = config_in.model_params.model_dump(exclude_none=True) if config_in.model_params else {}
                 existing_config.updated_at = current_time
 
                 saved_config = existing_config
@@ -174,9 +176,7 @@ class AiModelConfigService:
                     base_url=config_in.base_url,
                     profile_key=config_in.profile_key,
                     extra_config=merged_extra,
-                    temperature=config_in.temperature,
-                    top_p=config_in.top_p,
-                    max_tokens=config_in.max_tokens,
+                    model_params=config_in.model_params.model_dump(exclude_none=True) if config_in.model_params else {},
                     created_at=current_time,
                     updated_at=current_time,
                 )
@@ -187,14 +187,19 @@ class AiModelConfigService:
                     config_in.provider_key,
                 )
 
-            # Store credentials if provided
-            if api_key is not None:
+            # Store model API key only when non-empty
+            if api_key is not None and api_key.strip():
                 await self.credentials_service.upsert_model_credential(api_key, session)
 
             # Check for stored credentials for response
-            has_api_key = await self.credentials_service.model_credential_exists(
-                session
-            )
+            if saved_config.provider_key == "codex_openai":
+                has_api_key = await self.credentials_service.model_oauth_connected(
+                    session
+                )
+            else:
+                has_api_key = await self.credentials_service.model_credential_exists(
+                    session
+                )
             logger.debug(
                 "Upsert complete (pre-commit context exit): has_api_key={}",
                 has_api_key,
@@ -210,9 +215,7 @@ class AiModelConfigService:
                 base_url=saved_config.base_url,
                 profile_key=saved_config.profile_key,
                 extra_config=saved_config.extra_config,
-                temperature=saved_config.temperature,
-                top_p=saved_config.top_p,
-                max_tokens=saved_config.max_tokens,
+                model_params=ModelParams(**saved_config.model_params) if saved_config.model_params else None,
                 has_api_key=has_api_key,
                 created_at=saved_config.created_at,
                 updated_at=saved_config.updated_at,
@@ -240,6 +243,7 @@ class AiModelConfigService:
                 await session.delete(config)
                 # Also delete stored credentials
                 await self.credentials_service.delete_model_credential(session)
+                await self.credentials_service.delete_model_oauth_credentials(session)
                 logger.info("Deleted AI model configuration and credentials")
                 return True
             else:

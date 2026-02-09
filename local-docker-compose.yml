@@ -178,8 +178,11 @@ services:
       - DB_PASSWORD=postgres
       - DB_NAME=code_confluence
       - TOKEN_ENCRYPTION_KEY=0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ=
+      - CODEX_OPENAI_CALLBACK_PORT=1455
+      - CODEX_OPENAI_REDIRECT_URI=http://localhost:1455/auth/callback
     ports:
       - "8001:8000"
+      - "1455:1455"
     volumes:
       - query_engine_logs:/app/logs
       - repositories_data:/opt/unoplat/repositories
