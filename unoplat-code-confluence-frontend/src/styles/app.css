@@ -115,7 +115,10 @@
     font-weight: 500 !important;
   }
 
-  .dark .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code:not(pre code),
+  .dark
+    .mdxeditor.mdx-editor-theme
+    .mdxeditor-root-contenteditable
+    code:not(pre code),
   .dark .mdxeditor.mdx-editor-theme .mdx-editor-content code:not(pre code),
   .dark .mdxeditor.mdx-editor-theme .prose code:not(pre code),
   .dark .mdxeditor.mdx-editor-theme .prose-sm code:not(pre code) {
@@ -129,10 +132,22 @@
   }
 
   /* Style the backticks in dark mode for better visibility */
-  .dark .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code:not(pre code)::before,
-  .dark .mdxeditor.mdx-editor-theme .mdxeditor-root-contenteditable code:not(pre code)::after,
-  .dark .mdxeditor.mdx-editor-theme .mdx-editor-content code:not(pre code)::before,
-  .dark .mdxeditor.mdx-editor-theme .mdx-editor-content code:not(pre code)::after,
+  .dark
+    .mdxeditor.mdx-editor-theme
+    .mdxeditor-root-contenteditable
+    code:not(pre code)::before,
+  .dark
+    .mdxeditor.mdx-editor-theme
+    .mdxeditor-root-contenteditable
+    code:not(pre code)::after,
+  .dark
+    .mdxeditor.mdx-editor-theme
+    .mdx-editor-content
+    code:not(pre code)::before,
+  .dark
+    .mdxeditor.mdx-editor-theme
+    .mdx-editor-content
+    code:not(pre code)::after,
   .dark .mdxeditor.mdx-editor-theme .prose code:not(pre code)::before,
   .dark .mdxeditor.mdx-editor-theme .prose code:not(pre code)::after,
   .dark .mdxeditor.mdx-editor-theme .prose-sm code:not(pre code)::before,
