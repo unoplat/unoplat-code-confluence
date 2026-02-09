@@ -21,7 +21,6 @@ with workflow.unsafe.imports_passed_through():
 
     from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
         DependencyGuideEntry,
-        EngineeringWorkflow,
     )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
@@ -31,6 +30,9 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
+    )
+    from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
+        normalize_engineering_workflow,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.app_interfaces_activity import (
         AppInterfacesActivity,
@@ -43,6 +45,9 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_fetch_activity import (
         DependencyGuideFetchActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.engineering_workflow_completion_activity import (
+        EngineeringWorkflowCompletionActivity,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
         RepositoryAgentSnapshotActivity,
@@ -57,10 +62,8 @@ with workflow.unsafe.imports_passed_through():
         extract_usage_statistics,
     )
     from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
+        get_cached_usage_limits,
         get_temporal_agents,
-    )
-    from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
-        normalize_engineering_workflow,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
         AgentSnapshotCompleteEnvelope,
@@ -182,20 +185,30 @@ class CodebaseAgentWorkflow:
                         f"and package manager {codebase_metadata.codebase_package_manager}"
                     ),
                     deps=engineering_workflow_deps,
+                    usage_limits=get_cached_usage_limits(),
                 )
                 logger.debug(
                     "[workflow] engineering_development_workflow_agent.run() returned"
                 )
 
-                raw_engineering_workflow = (
-                    workflow_result.output.model_dump(mode="json")
-                    if isinstance(workflow_result.output, EngineeringWorkflow)
-                    else workflow_result.output
-                )
+                raw_engineering_workflow = workflow_result.output.model_dump(mode="json")
                 normalized_workflow = normalize_engineering_workflow(
                     raw_engineering_workflow
                 )
                 results["engineering_workflow"] = normalized_workflow.model_dump()
+
+                # Emit completion event for deterministic progress tracking.
+                await workflow.execute_activity(
+                    EngineeringWorkflowCompletionActivity.emit_engineering_workflow_completion,
+                    args=[
+                        repository_qualified_name,
+                        repository_workflow_run_id,
+                        codebase_metadata.codebase_name,
+                        codebase_metadata.codebase_programming_language,
+                    ],
+                    start_to_close_timeout=timedelta(seconds=30),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
 
                 logger.info(
                     "[workflow] engineering_development_workflow_agent completed for {}",
@@ -262,6 +275,7 @@ class CodebaseAgentWorkflow:
                         result = await temporal_agents["dependency_guide_agent"].run(
                             f"Document the library '{dep_name}' for programming language {codebase_metadata.codebase_programming_language}",
                             deps=deps,
+                            usage_limits=get_cached_usage_limits(),
                         )
 
                         entry_dict = (
@@ -360,6 +374,7 @@ class CodebaseAgentWorkflow:
                 ].run(
                     f"Analyze business logic domain for {codebase_metadata.codebase_path}",
                     deps=business_logic_deps,
+                    usage_limits=get_cached_usage_limits(),
                 )
                 logger.debug("[workflow] business_logic_domain_agent.run() returned")
                 # Post-process to enrich with data model files from PostgreSQL

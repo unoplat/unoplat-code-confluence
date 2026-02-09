@@ -14,6 +14,15 @@ class ProviderKind(str, Enum):
     OPENAI_COMPAT = "openai_compat"
 
 
+class ModelParams(BaseModel):
+    """Validated inference parameters stored in the JSONB model_params column."""
+
+    temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
+    top_p: Optional[float] = Field(None, ge=0.0, le=1.0)
+    max_tokens: Optional[int] = Field(None, gt=0)
+    request_limit: Optional[int] = Field(None, gt=0, le=1000)
+
+
 class AiModelConfigBase(BaseModel):
     """Base model with common AI configuration fields."""
 
@@ -26,9 +35,7 @@ class AiModelConfigBase(BaseModel):
     base_url: Optional[str] = None
     profile_key: Optional[str] = None
     extra_config: Dict[str, Any] = Field(default_factory=dict)
-    temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
-    top_p: Optional[float] = Field(None, ge=0.0, le=1.0)
-    max_tokens: Optional[int] = Field(None, gt=0)
+    model_params: Optional[ModelParams] = None
 
 
 class AiModelConfigIn(AiModelConfigBase):

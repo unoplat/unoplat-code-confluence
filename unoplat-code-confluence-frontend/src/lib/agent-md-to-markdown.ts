@@ -115,28 +115,16 @@ export function agentMdOutputToMarkdown(
     ],
   });
 
-  // disabled during canonical engineering workflow migration
-  // Project configuration + Development workflow replaced by Engineering Workflow
+  // Engineering Workflow
   entries.push({ h2: "Engineering Workflow" });
-  entries.push({ h3: "Configs" });
-  if (agent?.engineering_workflow?.configs?.length) {
-    entries.push({
-      ul: agent.engineering_workflow.configs.map(
-        (f) => `${f.path} — ${f.purpose}`,
-      ),
-    });
-  } else {
-    entries.push({ p: "No configuration files detected." });
-  }
-
   entries.push({ h3: "Commands" });
   const byStage: Record<
     string,
     {
       stage: string;
       command: string;
-      description?: string | null;
-      config_refs: string[];
+      config_file: string;
+      confidence: number;
     }[]
   > = {};
   for (const cmd of agent?.engineering_workflow?.commands ?? []) {
@@ -147,7 +135,8 @@ export function agentMdOutputToMarkdown(
     entries.push({ h3: stage.replace(/_/g, " ").toUpperCase() });
     entries.push({
       ol: byStage[stage].map(
-        (c) => `${c.command}${c.description ? ` — ${c.description}` : ""}`,
+        (c) =>
+          `\`${c.command}\` (${c.config_file}, confidence: ${Math.round(c.confidence * 100)}%)`,
       ),
     });
   }
@@ -205,38 +194,35 @@ export function codebasesToMarkdown(
       ],
     });
 
-    // disabled during canonical engineering workflow migration
+    // Engineering Workflow
     entries.push({ h3: "Engineering Workflow" });
-    entries.push({ h4: "Configs" });
-    if (agent?.engineering_workflow?.configs?.length) {
-      entries.push({
-        ul: agent.engineering_workflow.configs.map(
-          (f) => `${f.path} — ${f.purpose}`,
-        ),
-      });
-    } else {
-      entries.push({ p: "No configuration files detected." });
-    }
-
     entries.push({ h4: "Commands" });
     const byStage: Record<
       string,
       {
         stage: string;
         command: string;
-        description?: string | null;
-        config_refs: string[];
+        config_file: string;
+        confidence: number;
       }[]
     > = {};
     for (const cmd of agent?.engineering_workflow?.commands ?? []) {
       (byStage[cmd.stage] ||= []).push(cmd);
     }
-    const stageOrder = ["install", "build", "dev", "test", "lint", "type_check"];
+    const stageOrder = [
+      "install",
+      "build",
+      "dev",
+      "test",
+      "lint",
+      "type_check",
+    ];
     for (const stage of stageOrder.filter((value) => byStage[value]?.length)) {
       entries.push({ h4: stage.replace(/_/g, " ").toUpperCase() });
       entries.push({
         ol: byStage[stage].map(
-          (c) => `${c.command}${c.description ? ` — ${c.description}` : ""}`,
+          (c) =>
+            `\`${c.command}\` (${c.config_file}, confidence: ${Math.round(c.confidence * 100)}%)`,
         ),
       });
     }

@@ -16,6 +16,9 @@ from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.repo_models import RepositoryAgentMdSnapshot
 
 from unoplat_code_confluence_query_engine.api.deps import trace_dependency
+from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
+    AiModelConfig,
+)
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.services.config.credentials_service import (
     CredentialsService,
@@ -34,6 +37,11 @@ if TYPE_CHECKING:
     from loguru import Logger
 
 router = APIRouter(prefix="/v1", tags=["codebase-rules"])
+
+# Providers where PydanticAI built-in web search is enabled in this codebase.
+_BUILTIN_WEB_SEARCH_PROVIDER_KEYS = frozenset(
+    {"codex_openai", "anthropic", "grok", "groq"}
+)
 
 
 class RepositoryWorkflowRunResponse(BaseModel):
@@ -71,29 +79,52 @@ async def start_repository_agent_run(
         trace_id,
     )
 
-    # Check if Temporal worker is running
     worker_manager = get_worker_manager()
+
+    # Check provider/tool prerequisites first so errors are user-actionable.
+    async with get_startup_session() as session:
+        model_config = await session.get(AiModelConfig, 1)
+        if not model_config:
+            bound_logger.error("[codebase_agent_rules] AI model config not found")
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "AI model config not found. Please configure a model first via "
+                    "/v1/model-config endpoint."
+                ),
+            )
+
+        provider_key = model_config.provider_key
+        requires_exa_tool = provider_key not in _BUILTIN_WEB_SEARCH_PROVIDER_KEYS
+
+        if requires_exa_tool:
+            exa_configured = await CredentialsService.tool_credential_exists(
+                session, ProviderKey.EXA
+            )
+            if not exa_configured:
+                bound_logger.error(
+                    "[codebase_agent_rules] Exa tool not configured for provider={}",
+                    provider_key,
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        "Exa MCP tool is required for the currently configured model "
+                        f"provider '{provider_key}'. Please configure the Exa API key "
+                        "via /v1/tool-config/exa endpoint first."
+                    ),
+                )
+
+    # Check if Temporal worker is running after validating prerequisites.
     if not worker_manager.is_running:
         bound_logger.error("[codebase_agent_rules] Temporal worker not running")
         raise HTTPException(
             status_code=503,
-            detail="Temporal worker is not running. Check server configuration.",
+            detail=(
+                "Agent runtime is unavailable. Please verify model/tool configuration "
+                "and retry."
+            ),
         )
-
-    # Check if Exa tool is configured (required for agent workflows)
-    async with get_startup_session() as session:
-        exa_configured = await CredentialsService.tool_credential_exists(
-            session, ProviderKey.EXA
-        )
-        if not exa_configured:
-            bound_logger.error("[codebase_agent_rules] Exa tool not configured")
-            raise HTTPException(
-                status_code=503,
-                detail=(
-                    "Exa MCP tool is not configured. Please configure the Exa API key "
-                    "via /v1/tool-config/exa endpoint first."
-                ),
-            )
 
     # Fetch repository metadata
     try:

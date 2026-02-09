@@ -26,6 +26,7 @@ import {
   getModelConfig,
   startRepositoryAgentRun,
 } from "@/lib/api";
+import { useNavigate } from "@tanstack/react-router";
 
 interface RowAction {
   row: import("@tanstack/react-table").Row<IngestedRepository>;
@@ -35,6 +36,7 @@ interface RowAction {
 export function IngestedRepositoriesDataTable(): React.ReactElement {
   const [rowAction, setRowAction] = useState<RowAction | null>(null);
 
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const modelConfigQuery = useModelConfig();
 
@@ -108,6 +110,22 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
         typeof error.message === "string"
           ? error.message
           : `Failed to start Agent MD generation for ${repository.repository_owner_name}/${repository.repository_name}. Please try again.`;
+
+      const needsExaConfiguration =
+        errorMessage.includes("Exa MCP tool is required") ||
+        errorMessage.includes("configure the Exa API key");
+
+      if (needsExaConfiguration) {
+        toast.error("External search setup required to run Agent MD.", {
+          description:
+            "Configure the Exa API key in Settings > Tool Config, then retry.",
+          action: {
+            label: "Open Tool Config",
+            onClick: () => navigate({ to: "/settings/tool-config" }),
+          },
+        });
+        return;
+      }
 
       toast.error(errorMessage);
     },

@@ -1,14 +1,30 @@
 import React from "react";
 import { useForm } from "@tanstack/react-form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Save, X } from "lucide-react";
+import { Loader2, Save, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 import { ConfigField } from "./ConfigField";
 import {
   generateProviderConfigSchema,
   getProviderConfigDefaults,
 } from "../schema-generator";
-import { useSaveProviderConfig } from "@/hooks/useSaveModelConfig";
+import {
+  useDeleteModelConfig,
+  useSaveProviderConfig,
+} from "@/hooks/useSaveModelConfig";
+import { useCodexOauth } from "@/hooks/useCodexOauth";
 import type { ModelProviderDefinition } from "../types";
 import type { ModelConfigResponse } from "@/lib/api";
 import { MODEL_NAME_FIELD } from "../constants";
@@ -18,6 +34,7 @@ interface ModelConfigFormProps {
   existingConfig?: ModelConfigResponse | null;
   onCancel: () => void;
   onSuccess?: () => void;
+  onDeleted?: () => void;
   className?: string;
 }
 
@@ -30,9 +47,16 @@ export function ModelConfigForm({
   existingConfig,
   onCancel,
   onSuccess,
+  onDeleted,
   className,
 }: ModelConfigFormProps): React.ReactElement {
-  const saveConfigMutation = useSaveProviderConfig(provider.provider_key!);
+  const providerKey = provider.provider_key!;
+  const saveConfigMutation = useSaveProviderConfig(providerKey);
+  const deleteConfigMutation = useDeleteModelConfig();
+  const isCodexProvider = provider.provider_key === "codex_openai";
+  const codexOauth = useCodexOauth(isCodexProvider);
+  const isActiveProviderConfig =
+    existingConfig?.provider_key === provider.provider_key;
 
   // Generate schema and defaults for this provider
   const schema = React.useMemo(
@@ -91,6 +115,100 @@ export function ModelConfigForm({
     onCancel();
   };
 
+  const handleConnectChatGpt = async () => {
+    const popup = window.open(
+      "about:blank",
+      "codex-oauth-login",
+      "popup=yes,width=560,height=760",
+    );
+    if (!popup) {
+      toast.error("Popup blocked", {
+        description: "Please allow popups and retry ChatGPT login.",
+      });
+      return;
+    }
+
+    let oauthConnected = false;
+
+    try {
+      const auth = await codexOauth.authorizeMutation.mutateAsync({
+        frontend_origin: window.location.origin,
+      });
+      const authorizeUrl = new URL(auth.authorization_url);
+      const redirectUri = authorizeUrl.searchParams.get("redirect_uri");
+      const expectedOrigin = redirectUri
+        ? new URL(redirectUri).origin
+        : "http://localhost:1455";
+
+      popup.location.href = auth.authorization_url;
+      const result = await codexOauth.waitForPopupResult(popup, expectedOrigin);
+
+      if (result.status === "success") {
+        oauthConnected = true;
+        const formValue = form.state.values;
+
+        // Fall back to provider placeholder if model name is empty
+        const modelName =
+          formValue[MODEL_NAME_FIELD] ||
+          provider.model_field?.placeholder ||
+          "";
+
+        const configData = {
+          provider_key: providerKey,
+          ...formValue,
+          [MODEL_NAME_FIELD]: modelName,
+        };
+
+        // Update the form field so it reflects the chosen model
+        form.setFieldValue(MODEL_NAME_FIELD, modelName);
+
+        await saveConfigMutation.mutateAsync(configData, true);
+        form.reset(form.state.values);
+        codexOauth.invalidateModelQueries();
+        toast.success("ChatGPT connected and configuration saved");
+        onSuccess?.();
+      } else {
+        toast.error("ChatGPT connection failed", {
+          description: result.error || "OAuth flow failed.",
+        });
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unexpected OAuth error";
+      toast.error(
+        oauthConnected
+          ? "ChatGPT connected but failed to save configuration"
+          : "Failed to connect ChatGPT",
+        { description: message },
+      );
+    } finally {
+      if (!popup.closed) {
+        popup.close();
+      }
+    }
+  };
+
+  const handleDisconnectChatGpt = async () => {
+    await codexOauth.disconnectMutation.mutateAsync();
+    onSuccess?.();
+  };
+
+  const handleDeleteConfiguration = () => {
+    deleteConfigMutation.mutate(undefined, {
+      onSuccess: () => {
+        form.reset();
+        onDeleted?.();
+      },
+    });
+  };
+
+  const isCodexConnected =
+    isCodexProvider &&
+    (codexOauth.statusQuery.data?.connected ??
+      (existingConfig?.provider_key === "codex_openai"
+        ? existingConfig.has_api_key
+        : false));
+
   return (
     <div className={className}>
       <div className="mb-6">
@@ -109,7 +227,9 @@ export function ModelConfigForm({
             variant="outline"
             size="sm"
             onClick={handleCancel}
-            disabled={saveConfigMutation.isPending}
+            disabled={
+              saveConfigMutation.isPending || deleteConfigMutation.isPending
+            }
           >
             <X className="h-4 w-4" />
           </Button>
@@ -210,6 +330,74 @@ export function ModelConfigForm({
             </>
           )}
 
+          {isCodexProvider && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">ChatGPT OAuth</h3>
+                <div className="rounded-md border p-4">
+                  <div className="mb-3 flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">
+                        Status:{" "}
+                        {isCodexConnected ? "Connected" : "Not connected"}
+                      </p>
+                      {codexOauth.statusQuery.data?.account_id && (
+                        <p className="text-muted-foreground text-xs">
+                          Account: {codexOauth.statusQuery.data.account_id}
+                        </p>
+                      )}
+                    </div>
+                    {codexOauth.statusQuery.isFetching && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={handleConnectChatGpt}
+                      disabled={
+                        codexOauth.authorizeMutation.isPending ||
+                        saveConfigMutation.isPending
+                      }
+                    >
+                      {codexOauth.authorizeMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Starting OAuth...
+                        </>
+                      ) : isCodexConnected ? (
+                        "Reconnect ChatGPT"
+                      ) : (
+                        "Connect ChatGPT"
+                      )}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleDisconnectChatGpt}
+                      disabled={
+                        !isCodexConnected ||
+                        codexOauth.disconnectMutation.isPending
+                      }
+                    >
+                      {codexOauth.disconnectMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Disconnecting...
+                        </>
+                      ) : (
+                        "Disconnect"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
           <Separator />
 
           {/* Form Actions */}
@@ -230,7 +418,9 @@ export function ModelConfigForm({
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                disabled={saveConfigMutation.isPending}
+                disabled={
+                  saveConfigMutation.isPending || deleteConfigMutation.isPending
+                }
               >
                 Cancel
               </Button>
@@ -244,17 +434,21 @@ export function ModelConfigForm({
                 {({ canSubmit, isSubmitting }) => (
                   <Button
                     type="submit"
-                    disabled={!canSubmit || saveConfigMutation.isPending}
+                    disabled={
+                      !canSubmit ||
+                      saveConfigMutation.isPending ||
+                      deleteConfigMutation.isPending
+                    }
                   >
                     {saveConfigMutation.isPending || isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {existingConfig ? "Updating..." : "Saving..."}
+                        {isActiveProviderConfig ? "Updating..." : "Saving..."}
                       </>
                     ) : (
                       <>
                         <Save className="mr-2 h-4 w-4" />
-                        {existingConfig
+                        {isActiveProviderConfig
                           ? "Update Configuration"
                           : "Save Configuration"}
                       </>
@@ -262,6 +456,59 @@ export function ModelConfigForm({
                   </Button>
                 )}
               </form.Subscribe>
+
+              {isActiveProviderConfig && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      disabled={
+                        saveConfigMutation.isPending ||
+                        deleteConfigMutation.isPending
+                      }
+                    >
+                      {deleteConfigMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Configuration
+                        </>
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Delete model configuration?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete the active model provider
+                        configuration and stored model credentials.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel
+                        disabled={deleteConfigMutation.isPending}
+                      >
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteConfiguration}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        disabled={deleteConfigMutation.isPending}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           </div>
         </form>

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import PurePosixPath
+import re
 from typing import Iterable
 
 from loguru import logger
@@ -11,7 +11,6 @@ from loguru import logger
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
     EngineeringWorkflowCommand,
-    EngineeringWorkflowConfig,
     EngineeringWorkflowStage,
 )
 
@@ -34,6 +33,8 @@ _STAGE_ALIASES: dict[str, str] = {
     "type-check": "type_check",
     "typing": "type_check",
 }
+
+CONFIDENCE_THRESHOLD: float = 0.35
 
 
 def _normalize_path(path: str) -> str:
@@ -61,50 +62,7 @@ def _normalize_path(path: str) -> str:
     return normalized
 
 
-def _slug(text: str) -> str:
-    value = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
-    return value or "item"
-
-
-def build_config_id(path: str) -> str:
-    return f"cfg-{_slug(path)}"
-
-
-def build_command_id(stage: EngineeringWorkflowStage, command: str) -> str:
-    return f"cmd-{stage.value}-{_slug(command)}"
-
-
-def normalize_configs(configs: Iterable[dict]) -> list[EngineeringWorkflowConfig]:
-    dedup: dict[str, EngineeringWorkflowConfig] = {}
-
-    for raw in configs:
-        raw_path = str(raw.get("path", ""))
-        try:
-            path = _normalize_path(raw_path)
-        except ValueError as exc:
-            logger.warning("Skipping config with invalid path '{}': {}", raw_path, exc)
-            continue
-
-        purpose = str(raw.get("purpose", "")).strip()
-        required_for = raw.get("required_for") or []
-        if not isinstance(required_for, list):
-            required_for = []
-
-        existing = dedup.get(path)
-        merged_required_for = sorted(
-            set((existing.required_for if existing else []) + [str(x) for x in required_for if str(x).strip()])
-        )
-        dedup[path] = EngineeringWorkflowConfig(
-            id=build_config_id(path),
-            path=path,
-            purpose=purpose or (existing.purpose if existing else "Configuration for engineering workflow"),
-            required_for=merged_required_for,
-        )
-
-    return sorted(dedup.values(), key=lambda item: (item.path, item.id))
-
-
-def normalize_commands(commands: Iterable[dict]) -> list[EngineeringWorkflowCommand]:
+def normalize_commands(commands: Iterable[dict[str, object]]) -> list[EngineeringWorkflowCommand]:
     dedup: dict[tuple[EngineeringWorkflowStage, str], EngineeringWorkflowCommand] = {}
 
     for raw in commands:
@@ -125,71 +83,61 @@ def normalize_commands(commands: Iterable[dict]) -> list[EngineeringWorkflowComm
             logger.warning("Skipping command with unsupported stage '{}'", stage_raw)
             continue
 
-        config_refs_raw = raw.get("config_refs") or []
-        if not isinstance(config_refs_raw, list):
-            config_refs_raw = []
+        # Normalize config_file: fallback to "unknown" on ValueError or empty
+        raw_config_file = str(raw.get("config_file", "")).strip()
+        if raw_config_file:
+            try:
+                config_file = _normalize_path(raw_config_file)
+            except ValueError:
+                logger.warning(
+                    "Invalid config_file '{}' for command '{}', falling back to 'unknown'",
+                    raw_config_file,
+                    command,
+                )
+                config_file = "unknown"
+        else:
+            config_file = "unknown"
+
+        # Parse confidence as float, clamp to [0.0, 1.0]
+        raw_confidence = raw.get("confidence", 0.0)
+        try:
+            confidence = float(str(raw_confidence))
+        except (TypeError, ValueError):
+            confidence = 0.0
+        confidence = max(0.0, min(1.0, confidence))
 
         key = (stage, command)
         existing = dedup.get(key)
-        merged_refs = sorted(
-            set((existing.config_refs if existing else []) + [str(x) for x in config_refs_raw if str(x).strip()])
-        )
+        # Dedupe on (stage, command) retaining highest confidence
+        if existing is None or confidence > existing.confidence:
+            dedup[key] = EngineeringWorkflowCommand(
+                command=command,
+                stage=stage,
+                config_file=config_file,
+                confidence=confidence,
+            )
 
-        dedup[key] = EngineeringWorkflowCommand(
-            id=build_command_id(stage, command),
-            stage=stage,
-            command=command,
-            description=(
-                str(raw.get("description")).strip()
-                if raw.get("description") is not None and str(raw.get("description")).strip()
-                else (existing.description if existing else None)
-            ),
-            config_refs=merged_refs,
-        )
+    # Filter by confidence threshold
+    filtered = [cmd for cmd in dedup.values() if cmd.confidence >= CONFIDENCE_THRESHOLD]
 
     return sorted(
-        dedup.values(),
-        key=lambda item: (_STAGE_ORDER[item.stage], item.command.lower(), item.id),
+        filtered,
+        key=lambda item: (_STAGE_ORDER[item.stage], item.command.lower()),
     )
 
 
-def resolve_config_refs(
-    commands: list[EngineeringWorkflowCommand], configs: list[EngineeringWorkflowConfig]
-) -> list[EngineeringWorkflowCommand]:
-    valid_ids = {cfg.id for cfg in configs}
-    path_to_id = {cfg.path: cfg.id for cfg in configs}
-
-    resolved: list[EngineeringWorkflowCommand] = []
-    for cmd in commands:
-        mapped: list[str] = []
-        for ref in cmd.config_refs:
-            if ref in valid_ids:
-                mapped.append(ref)
-                continue
-
-            try:
-                normalized_ref = _normalize_path(ref)
-            except ValueError:
-                logger.warning("Dropping invalid config_ref '{}' in command '{}'.", ref, cmd.command)
-                continue
-
-            mapped_id = path_to_id.get(normalized_ref)
-            if mapped_id:
-                mapped.append(mapped_id)
-            else:
-                logger.warning(
-                    "Dropping unresolved config_ref '{}' in command '{}'.", ref, cmd.command
-                )
-
-        resolved.append(
-            cmd.model_copy(update={"config_refs": sorted(set(mapped))})
-        )
-
-    return resolved
+def _extract_command_dicts(payload: dict[str, object]) -> list[dict[str, object]]:
+    """Extract command dicts from a raw JSON payload with type narrowing."""
+    raw_commands = payload.get("commands")
+    if not isinstance(raw_commands, list):
+        return []
+    result: list[dict[str, object]] = []
+    for entry in raw_commands:
+        if isinstance(entry, dict):
+            result.append(entry)
+    return result
 
 
-def normalize_engineering_workflow(payload: dict) -> EngineeringWorkflow:
-    configs = normalize_configs(payload.get("configs") or [])
-    commands = normalize_commands(payload.get("commands") or [])
-    commands = resolve_config_refs(commands, configs)
-    return EngineeringWorkflow(configs=configs, commands=commands)
+def normalize_engineering_workflow(payload: dict[str, object]) -> EngineeringWorkflow:
+    commands = normalize_commands(_extract_command_dicts(payload))
+    return EngineeringWorkflow(commands=commands)

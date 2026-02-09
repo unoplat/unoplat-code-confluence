@@ -1,7 +1,7 @@
 """Canonical engineering workflow output models."""
 
 from enum import Enum
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,36 +17,16 @@ class EngineeringWorkflowStage(str, Enum):
     TYPE_CHECK = "type_check"
 
 
-class EngineeringWorkflowConfig(BaseModel):
-    """Canonical configuration inventory entry."""
-
-    id: str = Field(
-        default="",
-        description="Deterministic config identifier (optional in agent output, populated in normalization)",
-    )
-    path: str = Field(..., description="Repo-relative path to the config file")
-    purpose: str = Field(..., description="Purpose of this config file")
-    required_for: List[str] = Field(
-        default_factory=list,
-        description="Workflows this config is required for",
-    )
-
-    model_config = ConfigDict(extra="forbid")
-
-
 class EngineeringWorkflowCommand(BaseModel):
-    """Canonical workflow command entry."""
+    """Canonical workflow command entry with citation-validated confidence."""
 
-    id: str = Field(
-        default="",
-        description="Deterministic command identifier (optional in agent output, populated in normalization)",
-    )
-    stage: EngineeringWorkflowStage = Field(..., description="Execution stage")
     command: str = Field(..., description="Runnable command")
-    description: Optional[str] = Field(None, description="Short command description")
-    config_refs: List[str] = Field(
-        default_factory=list,
-        description="Referenced config IDs from engineering_workflow.configs",
+    stage: EngineeringWorkflowStage = Field(..., description="Execution stage")
+    config_file: str = Field(
+        ..., description="Repo-relative path to the most relevant config file, or 'unknown'"
+    )
+    confidence: float = Field(
+        ..., ge=0.0, le=1.0, description="Citation-validated confidence score"
     )
 
     model_config = ConfigDict(extra="forbid")
@@ -55,10 +35,6 @@ class EngineeringWorkflowCommand(BaseModel):
 class EngineeringWorkflow(BaseModel):
     """Canonical engineering workflow contract."""
 
-    configs: List[EngineeringWorkflowConfig] = Field(
-        default_factory=list,
-        description="Canonical list of engineering configuration files",
-    )
     commands: List[EngineeringWorkflowCommand] = Field(
         default_factory=list,
         description="Canonical list of engineering commands",
