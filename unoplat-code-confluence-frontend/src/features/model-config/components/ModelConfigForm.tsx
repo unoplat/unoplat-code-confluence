@@ -154,7 +154,6 @@ export function ModelConfigForm({
           "";
 
         const configData = {
-          [MODEL_NAME_FIELD]: modelName,
           provider_key: providerKey,
           ...formValue,
           [MODEL_NAME_FIELD]: modelName,
