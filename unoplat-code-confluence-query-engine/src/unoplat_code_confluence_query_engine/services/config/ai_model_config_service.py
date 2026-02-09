@@ -243,6 +243,7 @@ class AiModelConfigService:
                 await session.delete(config)
                 # Also delete stored credentials
                 await self.credentials_service.delete_model_credential(session)
+                await self.credentials_service.delete_model_oauth_credentials(session)
                 logger.info("Deleted AI model configuration and credentials")
                 return True
             else:
