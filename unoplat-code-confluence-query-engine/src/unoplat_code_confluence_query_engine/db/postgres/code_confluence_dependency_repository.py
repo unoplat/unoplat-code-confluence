@@ -19,20 +19,26 @@ DependenciesJsonb = dict[str, dict[str, object]]
 
 
 async def fetch_codebase_dependencies(codebase_path: str) -> list[str]:
-    """Fetch unique dependency names for a codebase from PostgreSQL.
+    """Fetch unique runtime dependency names for a codebase from PostgreSQL.
 
     Queries the UnoplatCodeConfluencePackageManagerMetadata table for dependencies
     associated with the given codebase path. The dependencies JSONB column has
     the structure: Dict[group_name, Dict[package_name, UnoplatProjectDependency]].
 
+    Only the "default" group (runtime dependencies) is extracted. Dev, peer,
+    optional, bundled, and override groups are excluded because they represent
+    build-tooling concerns and are not useful for understanding the project's
+    runtime functionality.
+
     Args:
         codebase_path: Absolute path to the codebase (e.g., /opt/unoplat/repositories/owner/repo/src)
 
     Returns:
-        List of unique package names. Returns empty list if:
+        List of unique runtime package names. Returns empty list if:
         - codebase_path is empty
         - No metadata found for the codebase
         - Dependencies field is empty or None
+        - No "default" group exists in the dependencies
     """
     if not codebase_path:
         logger.debug("[fetch_codebase_dependencies] Empty codebase_path provided")
@@ -59,12 +65,11 @@ async def fetch_codebase_dependencies(codebase_path: str) -> list[str]:
         )
         return []
 
-    # Flatten Dict[group_name, Dict[package_name, ...]] to unique package names
-    dependency_names: set[str] = set()
+    # Extract only "default" (runtime) dependency names — dev/peer/optional/bundled/override
+    # dependencies are build-tooling concerns and not useful for project understanding
     dependencies_dict: DependenciesJsonb = row  # type: ignore[assignment]
-
-    for group_packages in dependencies_dict.values():
-        dependency_names.update(group_packages.keys())
+    default_group: dict[str, object] = dependencies_dict.get("default", {})
+    dependency_names: set[str] = set(default_group.keys())
 
     logger.info(
         "[fetch_codebase_dependencies] Found {} dependencies for codebase_path={}",
