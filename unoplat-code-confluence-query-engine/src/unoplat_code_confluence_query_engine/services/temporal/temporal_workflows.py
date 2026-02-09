@@ -57,10 +57,8 @@ with workflow.unsafe.imports_passed_through():
         extract_usage_statistics,
     )
     from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
+        get_cached_usage_limits,
         get_temporal_agents,
-    )
-    from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
-        normalize_engineering_workflow,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
         AgentSnapshotCompleteEnvelope,
@@ -182,6 +180,7 @@ class CodebaseAgentWorkflow:
                         f"and package manager {codebase_metadata.codebase_package_manager}"
                     ),
                     deps=engineering_workflow_deps,
+                    usage_limits=get_cached_usage_limits(),
                 )
                 logger.debug(
                     "[workflow] engineering_development_workflow_agent.run() returned"
@@ -262,6 +261,7 @@ class CodebaseAgentWorkflow:
                         result = await temporal_agents["dependency_guide_agent"].run(
                             f"Document the library '{dep_name}' for programming language {codebase_metadata.codebase_programming_language}",
                             deps=deps,
+                            usage_limits=get_cached_usage_limits(),
                         )
 
                         entry_dict = (
@@ -360,6 +360,7 @@ class CodebaseAgentWorkflow:
                 ].run(
                     f"Analyze business logic domain for {codebase_metadata.codebase_path}",
                     deps=business_logic_deps,
+                    usage_limits=get_cached_usage_limits(),
                 )
                 logger.debug("[workflow] business_logic_domain_agent.run() returned")
                 # Post-process to enrich with data model files from PostgreSQL
