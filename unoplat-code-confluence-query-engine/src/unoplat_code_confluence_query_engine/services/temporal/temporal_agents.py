@@ -10,12 +10,17 @@ from typing import Any
 
 from loguru import logger
 from pydantic_ai import Agent, ModelRetry, Tool
+from pydantic_ai.builtin_tools import AbstractBuiltinTool, WebSearchTool
 from pydantic_ai.durable_exec.temporal import TemporalAgent
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
+from pydantic_ai.usage import UsageLimits
 from temporalio.workflow import ActivityConfig
 
 from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
+    SEARCH_MODE_BUILTIN_WEB_SEARCH,
+    SEARCH_MODE_EXA,
+    get_engineering_citation_instructions,
     per_language_engineering_development_workflow_prompt,
 )
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
@@ -27,6 +32,9 @@ from unoplat_code_confluence_query_engine.models.output.engineering_workflow_out
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
+)
+from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
+    CONFIDENCE_THRESHOLD,
 )
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
@@ -51,6 +59,10 @@ from unoplat_code_confluence_query_engine.tools.search_across_codebase import (
 )
 
 EXA_MCP_SERVER_NAME = "exa"
+WEB_SEARCH_BUILTIN_PROVIDER_KEYS = frozenset(
+    {"codex_openai", "anthropic", "grok", "groq"}
+)
+SEARCH_MODE_NONE = "none"
 
 
 def _get_exa_mcp_server(toolset_id: str):
@@ -72,6 +84,86 @@ class AgentType(Enum):
     BUSINESS_LOGIC_DOMAIN = "business_logic_domain_agent"
 
 
+def _get_web_search_builtin_tools(
+    provider_key: str | None,
+) -> list[AbstractBuiltinTool]:
+    """Build provider-compatible built-in web-search tools."""
+    if provider_key in WEB_SEARCH_BUILTIN_PROVIDER_KEYS:
+        return [WebSearchTool()]
+    return []
+
+
+def _supports_builtin_web_search_with_function_tools(provider_key: str | None) -> bool:
+    """Return whether provider can mix built-in web search with function tools."""
+    return provider_key in WEB_SEARCH_BUILTIN_PROVIDER_KEYS
+
+
+def _resolve_search_mode(provider_key: str | None, exa_configured: bool) -> str:
+    """Resolve external search mode for agent prompts/tooling."""
+    if exa_configured:
+        return SEARCH_MODE_EXA
+    if provider_key in WEB_SEARCH_BUILTIN_PROVIDER_KEYS:
+        return SEARCH_MODE_BUILTIN_WEB_SEARCH
+    return SEARCH_MODE_NONE
+
+
+def _get_dependency_guide_instructions(search_mode: str) -> str:
+    """Build dependency-guide instructions based on available web-search mode."""
+    if search_mode == SEARCH_MODE_EXA:
+        workflow_steps = """1. Use Exa MCP tools (web_search_exa/get_code_context_exa) to locate official documentation for the library/tool
+2. Evaluate results:
+   - If official documentation is found: synthesize purpose and usage from it
+   - If NO official docs found (error message, empty response, or "not found"): mark as internal dependency
+3. Return the DependencyGuideEntry"""
+    elif search_mode == SEARCH_MODE_BUILTIN_WEB_SEARCH:
+        workflow_steps = """1. Use built-in `web_search` to locate official documentation for the library/tool
+2. Evaluate results:
+   - If official documentation is found: synthesize purpose and usage from it
+   - If NO official docs found (error message, empty response, or "not found"): mark as internal dependency
+3. Return the DependencyGuideEntry"""
+    else:
+        workflow_steps = """1. Use available repository context to infer whether this is likely internal/private
+2. If no official documentation source is available, mark as internal dependency
+3. Return the DependencyGuideEntry"""
+
+    return f"""You are the Dependency Guide Agent.
+
+Goal: Generate a concise documentation entry for a single library/package dependency.
+
+<task>
+Given a library name and programming language, produce a DependencyGuideEntry with:
+1. name: The exact library name provided (do not modify it)
+2. purpose: 1-2 lines describing what this library does (from official docs)
+3. usage: Exactly 2 sentences describing core features and capabilities
+</task>
+
+<workflow>
+{workflow_steps}
+</workflow>
+
+<handling_internal_dependencies>
+IMPORTANT: If available search/documentation tools return an error, "not found", or empty/minimal info, this is likely an INTERNAL/PRIVATE dependency.
+
+For internal dependencies, return:
+- name: The exact library name provided
+- purpose: "INTERNAL_DEPENDENCY_SKIP"
+- usage: "INTERNAL_DEPENDENCY_SKIP"
+
+This signals the system to skip this dependency in the final output.
+</handling_internal_dependencies>
+
+<output_requirements>
+For PUBLIC dependencies with documentation:
+- The 'name' field MUST match the provided library name exactly
+- The 'purpose' field should be 1-2 lines (concise, from official docs)
+- The 'usage' field MUST be exactly 2 sentences, each ending with a period
+
+For INTERNAL/PRIVATE dependencies (no docs found):
+- Set both 'purpose' and 'usage' to "INTERNAL_DEPENDENCY_SKIP"
+</output_requirements>
+"""
+
+
 # Stable, per-agent Exa MCP toolset IDs for Temporal activity naming.
 EXA_TOOLSET_IDS = {
     # Reuse the existing workflow Exa toolset ID so current MCP routing/credentials remain valid.
@@ -91,26 +183,31 @@ ENABLED_AGENTS: set[AgentType] = {
 def validate_engineering_development_workflow_output(
     output: EngineeringWorkflow,
 ) -> EngineeringWorkflow:
-    if not output.configs and not output.commands:
-        raise ModelRetry(
-            "engineering_workflow is empty. Return canonical configs and commands."
-        )
     if not output.commands:
         raise ModelRetry(
             "engineering_workflow.commands is empty. Re-scan command sources "
             "(Taskfile/Makefile/package scripts/tool configs) and return commands."
         )
 
-    for cfg in output.configs:
-        if cfg.path.startswith("/") or cfg.path.startswith("../"):
-            raise ModelRetry(
-                f"Config path '{cfg.path}' must be repo-relative without leading '/'."
-            )
     for command in output.commands:
         if not command.command.strip():
             raise ModelRetry(
                 "Found command with empty command string. Return non-empty runnable commands."
             )
+        if command.config_file.startswith("/") or command.config_file.startswith("../"):
+            raise ModelRetry(
+                f"config_file '{command.config_file}' must be repo-relative without leading '/' or '../'. "
+                "Use 'unknown' if no config file applies."
+            )
+        if command.confidence < 0.0 or command.confidence > 1.0:
+            raise ModelRetry(
+                f"confidence {command.confidence} for command '{command.command}' must be between 0.0 and 1.0."
+            )
+    if not any(command.confidence >= CONFIDENCE_THRESHOLD for command in output.commands):
+        raise ModelRetry(
+            "All engineering workflow commands are below confidence threshold "
+            f"({CONFIDENCE_THRESHOLD}). Re-validate against official citations and return at least one command >= threshold."
+        )
     return output
 
 
@@ -143,45 +240,48 @@ def validate_business_logic_domain_output(output: str) -> str:
 def create_engineering_development_workflow_agent(
     model: Model,
     model_settings: ModelSettings | None = None,
+    builtin_tools: list[AbstractBuiltinTool] | None = None,
+    include_exa_toolset: bool = True,
+    search_mode: str = SEARCH_MODE_EXA,
 ) -> Agent[AgentDependencies, EngineeringWorkflow]:
     """Create canonical engineering development workflow agent.
 
     Args:
         model: Configured Model instance from ModelFactory
         model_settings: Optional model settings (temperature, etc.)
+        builtin_tools: Optional built-in tools (e.g. WebSearchTool)
+        include_exa_toolset: Whether to include Exa MCP toolset
+        search_mode: Resolved search mode ('exa' or 'builtin_web_search')
 
     Returns:
         Engineering development workflow agent instance
     """
+    citation_instructions = get_engineering_citation_instructions(search_mode)
     exa_id = EXA_TOOLSET_IDS[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW]
+    tools = [
+        Tool(get_directory_tree, takes_ctx=True, max_retries=3),
+        Tool(read_file_content, takes_ctx=True, max_retries=3),
+        Tool(search_across_codebase, takes_ctx=True, max_retries=3),
+    ]
+
     agent = Agent(
         model,
         name="engineering_development_workflow_agent",
-        system_prompt="<role>Engineering Workflow Synthesizer</role>",
+        instructions=f"<role>Engineering Workflow Synthesizer</role>\n{citation_instructions}",
         deps_type=AgentDependencies,
-        toolsets=[_get_exa_mcp_server(exa_id)],
-        tools=[
-            Tool(get_directory_tree, takes_ctx=True, max_retries=3),
-            Tool(read_file_content, takes_ctx=True, max_retries=3),
-            Tool(search_across_codebase, takes_ctx=True, max_retries=3),
-        ],
+        toolsets=[_get_exa_mcp_server(exa_id)] if include_exa_toolset else [],
+        tools=tools,
+        builtin_tools=builtin_tools or [],
         output_type=EngineeringWorkflow,
         output_retries=2,
         model_settings=model_settings,
         event_stream_handler=event_stream_handler,
     )
     agent.output_validator(validate_engineering_development_workflow_output)
-    # Attach dynamic per-language system prompt (always enabled)
-    agent.system_prompt(per_language_engineering_development_workflow_prompt)
-    logger.debug(
-        "Dynamic system prompt attached to engineering_development_workflow_agent"
-    )
+    # Attach dynamic per-language instructions (always enabled)
+    agent.instructions(per_language_engineering_development_workflow_prompt)
 
-    # NOTE: Dynamic toolsets can rely on in-memory state across Temporal activities.
-    # Keeping this commented during verification in favor of a static toolset per agent.
-    # @agent.toolset(id="exa")
-    # def exa_toolset(_ctx):
-    #     return _get_exa_mcp_server(exa_id)
+    logger.debug("Dynamic instructions attached to engineering_development_workflow_agent")
 
     return agent
 
@@ -193,6 +293,9 @@ INTERNAL_DEPENDENCY_SKIP_MARKER = "INTERNAL_DEPENDENCY_SKIP"
 def create_dependency_guide_agent(
     model: Model,
     model_settings: ModelSettings | None = None,
+    builtin_tools: list[AbstractBuiltinTool] | None = None,
+    include_exa_toolset: bool = True,
+    search_mode: str = SEARCH_MODE_EXA,
 ) -> Agent[AgentDependencies, DependencyGuideEntry]:
     """Create dependency guide agent.
 
@@ -210,64 +313,20 @@ def create_dependency_guide_agent(
     # - usage contains exactly 2 sentences
     # - name matches the input dependency name
     exa_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY_GUIDE]
+    dependency_toolsets = [_get_exa_mcp_server(exa_id)] if include_exa_toolset else []
     agent = Agent(
         model,
         name="dependency_guide_agent",
-        system_prompt=r"""You are the Dependency Guide Agent.
-
-Goal: Generate a concise documentation entry for a single library/package dependency.
-
-<task>
-Given a library name and programming language, produce a DependencyGuideEntry with:
-1. name: The exact library name provided (do not modify it)
-2. purpose: 1-2 lines describing what this library does (from official docs)
-3. usage: Exactly 2 sentences describing core features and capabilities
-</task>
-
-<workflow>
-1. Use web_search_exa to locate official documentation for the library/tool
-2. If needed, use get_code_context_exa to retrieve authoritative docs snippets
-3. Evaluate results:
-   - If official documentation is found: synthesize purpose and usage from it
-   - If NO official docs found (error message, empty response, or "not found"): mark as internal dependency
-4. Return the DependencyGuideEntry
-</workflow>
-
-<handling_internal_dependencies>
-IMPORTANT: If Exa MCP tools return an error, "not found", or empty/minimal info, this is likely an INTERNAL/PRIVATE dependency.
-
-For internal dependencies, return:
-- name: The exact library name provided
-- purpose: "INTERNAL_DEPENDENCY_SKIP"
-- usage: "INTERNAL_DEPENDENCY_SKIP"
-
-This signals the system to skip this dependency in the final output.
-</handling_internal_dependencies>
-
-<output_requirements>
-For PUBLIC dependencies with documentation:
-- The 'name' field MUST match the provided library name exactly
-- The 'purpose' field should be 1-2 lines (concise, from official docs)
-- The 'usage' field MUST be exactly 2 sentences, each ending with a period
-
-For INTERNAL/PRIVATE dependencies (no docs found):
-- Set both 'purpose' and 'usage' to "INTERNAL_DEPENDENCY_SKIP"
-</output_requirements>
-""",
+        instructions=_get_dependency_guide_instructions(search_mode),
         deps_type=AgentDependencies,
-        toolsets=[_get_exa_mcp_server(exa_id)],
+        toolsets=dependency_toolsets,
         tools=[],
+        builtin_tools=builtin_tools or [],
         output_type=DependencyGuideEntry,
         output_retries=2,
         model_settings=model_settings,
         event_stream_handler=event_stream_handler,
     )
-
-    # NOTE: Dynamic toolsets can rely on in-memory state across Temporal activities.
-    # Keeping this commented during verification in favor of a static toolset per agent.
-    # @agent.toolset(id="exa")
-    # def exa_toolset(_ctx):
-    #     return _get_exa_mcp_server(exa_id)
 
     return agent
 
@@ -275,6 +334,7 @@ For INTERNAL/PRIVATE dependencies (no docs found):
 def create_business_logic_domain_agent(
     model: Model,
     model_settings: ModelSettings | None = None,
+    builtin_tools: list[AbstractBuiltinTool] | None = None,
 ) -> Agent[AgentDependencies, str]:
     """Create business logic domain agent.
 
@@ -288,7 +348,7 @@ def create_business_logic_domain_agent(
     agent = Agent(
         model,
         name="business_logic_domain_agent",
-        system_prompt=r"""You are the Business Logic Domain Agent.
+        instructions=r"""You are the Business Logic Domain Agent.
 
 Goal: Analyze data models across this codebase and return a 2-4 sentence description of the dominant business logic domain.
 
@@ -317,6 +377,7 @@ IMPORTANT: Your final output must be PLAIN TEXT only (2-4 sentences).
             Tool(get_data_model_files, takes_ctx=True, max_retries=3),
             Tool(read_file_content, takes_ctx=True, max_retries=3),
         ],
+        builtin_tools=builtin_tools or [],
         output_type=str,
         output_retries=3,
         model_settings=model_settings,
@@ -335,6 +396,8 @@ def create_temporal_agents(
     model: Model,
     retry_config: TemporalAgentRetryConfig,
     model_settings: ModelSettings | None = None,
+    provider_key: str | None = None,
+    exa_configured: bool = False,
 ) -> dict[str, TemporalAgent[AgentDependencies, Any]]:
     """Create enabled agents wrapped with TemporalAgent for durable execution.
 
@@ -344,6 +407,8 @@ def create_temporal_agents(
         model: Configured Model instance from ModelFactory
         retry_config: Retry policy configuration for activities
         model_settings: Optional model settings (temperature, etc.)
+        provider_key: Provider identifier for built-in web-search compatibility
+        exa_configured: Whether Exa tool credentials are configured for this worker
 
     Returns:
         Dictionary mapping agent names to TemporalAgent instances
@@ -377,52 +442,85 @@ def create_temporal_agents(
     # Pydantic AI names the default function toolset as "<agent>".
     # Use that exact ID when configuring activity overrides.
     default_toolset_id = "<agent>"
+    search_mode = _resolve_search_mode(provider_key, exa_configured)
+    supports_builtin_web_search = _supports_builtin_web_search_with_function_tools(
+        provider_key
+    )
+    use_exa_tools = search_mode == SEARCH_MODE_EXA
+    use_builtin_web_search = search_mode == SEARCH_MODE_BUILTIN_WEB_SEARCH
+    builtin_web_search_tools = (
+        _get_web_search_builtin_tools(provider_key) if use_builtin_web_search else []
+    )
+    logger.info(
+        "Agent external search mode resolved: provider_key={}, exa_configured={}, supports_builtin_web_search={}, selected_search_mode={}",
+        provider_key,
+        exa_configured,
+        supports_builtin_web_search,
+        search_mode,
+    )
 
     # Conditionally create agents based on ENABLED_AGENTS
     if AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW in ENABLED_AGENTS:
         exa_toolset_id = EXA_TOOLSET_IDS[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW]
         engineering_agent = create_engineering_development_workflow_agent(
-            model, model_settings
+            model,
+            model_settings,
+            builtin_tools=builtin_web_search_tools if use_builtin_web_search else None,
+            include_exa_toolset=use_exa_tools,
+            search_mode=search_mode,
         )
+        engineering_tool_activity_config = {
+            "get_directory_tree": tool_activity_config_base,
+            "read_file_content": tool_activity_config_base,
+            "search_across_codebase": tool_activity_config_base,
+        }
+        engineering_toolset_activity_config = {default_toolset_id: toolset_activity_config}
+        engineering_toolset_tool_activity_config = {
+            default_toolset_id: engineering_tool_activity_config
+        }
+        if use_exa_tools:
+            engineering_toolset_activity_config[exa_toolset_id] = toolset_activity_config
+            engineering_toolset_tool_activity_config[exa_toolset_id] = {}
         agents[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW.value] = TemporalAgent(
             engineering_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
-            toolset_activity_config={
-                default_toolset_id: toolset_activity_config,
-                exa_toolset_id: toolset_activity_config,
-            },
-            tool_activity_config={
-                default_toolset_id: {
-                    "get_directory_tree": tool_activity_config_base,
-                    "read_file_content": tool_activity_config_base,
-                    "search_across_codebase": tool_activity_config_base,
-                },
-                exa_toolset_id: {},
-            },
+            toolset_activity_config=engineering_toolset_activity_config,
+            tool_activity_config=engineering_toolset_tool_activity_config,
         )
         logger.info("Created engineering_development_workflow_agent")
 
     if AgentType.DEPENDENCY_GUIDE in ENABLED_AGENTS:
         exa_toolset_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY_GUIDE]
-        dependency_guide_agent = create_dependency_guide_agent(model, model_settings)
+        include_exa_dependency_toolset = use_exa_tools
+        dependency_guide_agent = create_dependency_guide_agent(
+            model,
+            model_settings,
+            builtin_tools=builtin_web_search_tools if use_builtin_web_search else None,
+            include_exa_toolset=include_exa_dependency_toolset,
+            search_mode=search_mode,
+        )
+        dependency_toolset_activity_config = {default_toolset_id: toolset_activity_config}
+        dependency_tool_activity_config = {default_toolset_id: {}}
+        if include_exa_dependency_toolset:
+            dependency_toolset_activity_config[exa_toolset_id] = toolset_activity_config
+            dependency_tool_activity_config[exa_toolset_id] = {}
+
         agents[AgentType.DEPENDENCY_GUIDE.value] = TemporalAgent(
             dependency_guide_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
-            toolset_activity_config={
-                default_toolset_id: toolset_activity_config,
-                exa_toolset_id: toolset_activity_config,
-            },
-            tool_activity_config={
-                default_toolset_id: {},
-                exa_toolset_id: {},
-            },
+            toolset_activity_config=dependency_toolset_activity_config,
+            tool_activity_config=dependency_tool_activity_config,
         )
         logger.info("Created dependency_guide_agent")
 
     if AgentType.BUSINESS_LOGIC_DOMAIN in ENABLED_AGENTS:
-        domain_agent = create_business_logic_domain_agent(model, model_settings)
+        domain_agent = create_business_logic_domain_agent(
+            model,
+            model_settings,
+            builtin_tools=builtin_web_search_tools if use_builtin_web_search else None,
+        )
         agents[AgentType.BUSINESS_LOGIC_DOMAIN.value] = TemporalAgent(
             domain_agent,
             activity_config=base_activity_config,
@@ -441,10 +539,15 @@ def create_temporal_agents(
     return agents
 
 
+# Default request_limit when user hasn't configured one explicitly.
+# pydantic_ai's built-in default is 50, which is too low for larger codebases.
+DEFAULT_REQUEST_LIMIT: int = 200
+
 # Module-level cache for temporal agents singleton
 _temporal_agents: dict[str, TemporalAgent[AgentDependencies, Any]] | None = None
 _cached_model: Model | None = None
 _cached_model_settings: ModelSettings | None = None
+_cached_usage_limits: UsageLimits | None = None
 
 
 def get_temporal_agents() -> dict[str, TemporalAgent[AgentDependencies, Any]]:
@@ -468,6 +571,9 @@ def initialize_temporal_agents(
     model: Model,
     settings: EnvironmentSettings,
     model_settings: ModelSettings | None = None,
+    provider_key: str | None = None,
+    exa_configured: bool = False,
+    request_limit: int | None = None,
 ) -> dict[str, TemporalAgent[AgentDependencies, Any]]:
     """Initialize temporal agents with the given model.
 
@@ -477,19 +583,35 @@ def initialize_temporal_agents(
         model: Configured Model instance from ModelFactory
         settings: Environment settings for retry configuration
         model_settings: Optional model settings (temperature, etc.)
+        provider_key: Provider identifier for web search compatibility
+        exa_configured: Whether Exa tool credentials are configured for this worker
+        request_limit: Max LLM round-trips per Agent.run() call (None = DEFAULT_REQUEST_LIMIT)
 
     Returns:
         Dictionary of temporal agent instances
     """
-    global _temporal_agents, _cached_model, _cached_model_settings
+    global _temporal_agents, _cached_model, _cached_model_settings, _cached_usage_limits
 
     retry_config = TemporalAgentRetryConfig(settings)
 
+    effective_limit = request_limit if request_limit is not None else DEFAULT_REQUEST_LIMIT
     _cached_model = model
     _cached_model_settings = model_settings
-    _temporal_agents = create_temporal_agents(model, retry_config, model_settings)
+    _cached_usage_limits = UsageLimits(request_limit=effective_limit)
 
-    logger.info(f"Temporal agents initialized with {len(_temporal_agents)} agents")
+    _temporal_agents = create_temporal_agents(
+        model,
+        retry_config,
+        model_settings,
+        provider_key=provider_key,
+        exa_configured=exa_configured,
+    )
+
+    logger.info(
+        "Temporal agents initialized with {} agents (request_limit={})",
+        len(_temporal_agents),
+        effective_limit,
+    )
     return _temporal_agents
 
 
@@ -516,3 +638,12 @@ def get_cached_model_settings() -> ModelSettings | None:
         Cached ModelSettings or None
     """
     return _cached_model_settings
+
+
+def get_cached_usage_limits() -> UsageLimits | None:
+    """Get the cached usage limits.
+
+    Returns:
+        Cached UsageLimits (always set after initialization, defaults to 200)
+    """
+    return _cached_usage_limits
