@@ -35,23 +35,11 @@ export type RepositoryAgentEventsEnvelope = z.infer<
 
 // Nested schemas for agent_md_output.codebases structure
 
-export const agentMdEngineeringWorkflowConfigSchema = z.object({
-  id: z.string(),
-  path: z.string(),
-  purpose: z.string(),
-  required_for: z.array(z.string()).default([]),
-});
-
-export type AgentMdEngineeringWorkflowConfig = z.infer<
-  typeof agentMdEngineeringWorkflowConfigSchema
->;
-
 export const agentMdEngineeringWorkflowCommandSchema = z.object({
-  id: z.string(),
-  stage: z.enum(["install", "build", "dev", "test", "lint", "type_check"]),
   command: z.string(),
-  description: z.string().nullish(),
-  config_refs: z.array(z.string()).default([]),
+  stage: z.enum(["install", "build", "dev", "test", "lint", "type_check"]),
+  config_file: z.string(),
+  confidence: z.number().min(0).max(1),
 });
 
 export type AgentMdEngineeringWorkflowCommand = z.infer<
@@ -59,7 +47,6 @@ export type AgentMdEngineeringWorkflowCommand = z.infer<
 >;
 
 export const agentMdEngineeringWorkflowSchema = z.object({
-  configs: z.array(agentMdEngineeringWorkflowConfigSchema).default([]),
   commands: z.array(agentMdEngineeringWorkflowCommandSchema).default([]),
 });
 

@@ -6,6 +6,44 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
     AgentDependencies,
 )
 
+SEARCH_MODE_EXA = "exa"
+SEARCH_MODE_BUILTIN_WEB_SEARCH = "builtin_web_search"
+
+
+def get_engineering_citation_instructions(search_mode: str) -> str:
+    """Return mode-specific citation validation instructions for the engineering workflow agent."""
+    if search_mode == SEARCH_MODE_EXA:
+        return (
+            "<citation_validation>\n"
+            "For EVERY command you emit, you MUST verify it against official documentation "
+            "using the Exa MCP tools (web_search_exa / get_code_context_exa).\n"
+            "Search for the official docs of the tool or framework behind each command and confirm "
+            "the command syntax, flags, and usage are correct before emitting it.\n\n"
+            "Confidence scoring guidance:\n"
+            "- 0.8-1.0: Exact match with official documentation or config file evidence\n"
+            "- 0.5-0.79: Reasonable variant confirmed by documentation patterns\n"
+            "- 0.35-0.49: Inferred from file structure and common conventions\n"
+            "- Below 0.35: Speculative — do NOT emit these commands\n"
+            "Only emit commands with confidence >= 0.35.\n"
+            "</citation_validation>\n"
+        )
+    if search_mode == SEARCH_MODE_BUILTIN_WEB_SEARCH:
+        return (
+            "<citation_validation>\n"
+            "For EVERY command you emit, you MUST verify it against official documentation "
+            "using the built-in web_search tool.\n"
+            "Search for the official docs of the tool or framework behind each command and confirm "
+            "the command syntax, flags, and usage are correct before emitting it.\n\n"
+            "Confidence scoring guidance:\n"
+            "- 0.8-1.0: Exact match with official documentation or config file evidence\n"
+            "- 0.5-0.79: Reasonable variant confirmed by documentation patterns\n"
+            "- 0.35-0.49: Inferred from file structure and common conventions\n"
+            "- Below 0.35: Speculative — do NOT emit these commands\n"
+            "Only emit commands with confidence >= 0.35.\n"
+            "</citation_validation>\n"
+        )
+    raise ValueError(f"Unsupported search_mode '{search_mode}': either Exa or built-in web search must be available")
+
 
 async def per_language_engineering_development_workflow_prompt(
     ctx: RunContext[AgentDependencies],
@@ -20,19 +58,17 @@ async def per_language_engineering_development_workflow_prompt(
         f"Package manager: {package_manager}\n\n"
         "<task>\n"
         "Analyze the codebase and return a canonical engineering_workflow JSON object only.\n"
-        "You must include configs and commands in one response.\n"
         "commands MUST NOT be empty.\n"
         "</task>\n\n"
         "<file_path_requirements>\n"
         "When using tools, pass ABSOLUTE paths rooted at the codebase path.\n"
         f"The codebase root path is: {codebase_path}\n"
-        "In FINAL OUTPUT, every config path MUST be repo-relative (never absolute).\n"
+        "In FINAL OUTPUT, every config_file path MUST be repo-relative (never absolute).\n"
         "</file_path_requirements>\n\n"
         "<output_contract>\n"
         "Return ONLY JSON with this exact top-level shape:\n"
-        '{"configs":[{"id":"<optional>","path":"<repo-relative>","purpose":"<10-20 words>","required_for":["<stage>"]}],'
-        '"commands":[{"id":"<optional>","stage":"install|build|dev|test|lint|type_check","command":"<command>",'
-        '"description":"<optional>","config_refs":["<config id or repo-relative path>"]}]}\n'
+        '{"commands":[{"command":"<runnable command>","stage":"install|build|dev|test|lint|type_check",'
+        '"config_file":"<repo-relative path or unknown>","confidence":0.0}]}\n'
         "Do not include markdown, prose, or extra keys.\n"
         "</output_contract>\n\n"
         "<command_discovery_requirements>\n"
@@ -44,35 +80,28 @@ async def per_language_engineering_development_workflow_prompt(
         "If install/bootstrap/setup commands exist, include them with stage=install.\n"
         "If build/test/lint/type_check commands exist, include them too.\n"
         "</command_discovery_requirements>\n\n"
-        "<documentation_requirements>\n"
-        "Use Exa MCP tools when purpose/usage is unclear:\n"
-        "- web_search_exa for official docs and command references\n"
-        "- get_code_context_exa for concrete command/config examples\n"
-        "For each config purpose and command description, prefer file inspection first;\n"
-        "and validate with Exa before final output always.\n"
-        "</documentation_requirements>\n\n"
         "<rules>\n"
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"
         "- Emit only the keys defined in output_contract and nothing else.\n"
-        "- config_refs may contain config IDs or repo-relative config paths.\n"
-        "- Include all relevant configs and commands you find.\n"
+        "- config_file is the single most relevant configuration file for this command (repo-relative path or 'unknown').\n"
+        "- confidence is a float between 0.0 and 1.0.\n"
+        "- Commands below 0.35 confidence will be filtered out.\n"
         "</rules>\n"
         "<examples>\n"
         "Example (Python + uv):\n"
-        '{"configs":[{"path":"pyproject.toml","purpose":"Project metadata, dependencies and tool configuration","required_for":["install","test","lint","type_check"]},'
-        '{"path":"Taskfile.yml","purpose":"Task runner commands for local development workflows","required_for":["install","dev","test"]}],'
-        '"commands":[{"stage":"install","command":"uv sync --group dev --group test","description":"Install runtime and development dependencies","config_refs":["pyproject.toml"]},'
-        '{"stage":"dev","command":"uv run fastapi dev --port 8001","description":"Run local API server","config_refs":["pyproject.toml"]},'
-        '{"stage":"test","command":"uv run --group test pytest -v","description":"Run automated tests","config_refs":["pyproject.toml"]},'
-        '{"stage":"lint","command":"uv run --group dev ruff check src/","description":"Run Ruff lint checks","config_refs":["ruff.toml"]},'
-        '{"stage":"type_check","command":"uv run --group dev basedpyright src/","description":"Run static type checking","config_refs":["pyproject.toml"]}]}\n'
+        '{"commands":['
+        '{"command":"uv sync --group dev --group test","stage":"install","config_file":"pyproject.toml","confidence":0.95},'
+        '{"command":"uv run fastapi dev --port 8001","stage":"dev","config_file":"pyproject.toml","confidence":0.85},'
+        '{"command":"uv run --group test pytest -v","stage":"test","config_file":"pyproject.toml","confidence":0.90},'
+        '{"command":"uv run --group dev ruff check src/","stage":"lint","config_file":"ruff.toml","confidence":0.90},'
+        '{"command":"uv run --group dev basedpyright src/","stage":"type_check","config_file":"pyproject.toml","confidence":0.85}]}\n'
         "Example (TypeScript):\n"
-        '{"configs":[{"path":"package.json","purpose":"Node package manifest and scripts","required_for":["install","build","dev","test","lint"]}],'
-        '"commands":[{"stage":"install","command":"npm ci","description":"Install exact locked dependencies","config_refs":["package.json"]},'
-        '{"stage":"dev","command":"npm run dev","description":"Run development server","config_refs":["package.json"]},'
-        '{"stage":"build","command":"npm run build","description":"Create production build","config_refs":["package.json"]},'
-        '{"stage":"test","command":"npm run test","description":"Run tests","config_refs":["package.json"]},'
-        '{"stage":"lint","command":"npm run lint","description":"Run lint checks","config_refs":["package.json"]}]}\n'
+        '{"commands":['
+        '{"command":"npm ci","stage":"install","config_file":"package.json","confidence":0.95},'
+        '{"command":"npm run dev","stage":"dev","config_file":"package.json","confidence":0.90},'
+        '{"command":"npm run build","stage":"build","config_file":"package.json","confidence":0.90},'
+        '{"command":"npm run test","stage":"test","config_file":"package.json","confidence":0.85},'
+        '{"command":"npm run lint","stage":"lint","config_file":"package.json","confidence":0.85}]}\n'
         "</examples>\n"
     )

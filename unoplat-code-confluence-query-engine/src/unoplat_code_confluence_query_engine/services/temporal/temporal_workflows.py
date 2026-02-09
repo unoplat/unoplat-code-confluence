@@ -21,7 +21,6 @@ with workflow.unsafe.imports_passed_through():
 
     from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
         DependencyGuideEntry,
-        EngineeringWorkflow,
     )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
@@ -31,6 +30,9 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
+    )
+    from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
+        normalize_engineering_workflow,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.app_interfaces_activity import (
         AppInterfacesActivity,
@@ -186,11 +188,7 @@ class CodebaseAgentWorkflow:
                     "[workflow] engineering_development_workflow_agent.run() returned"
                 )
 
-                raw_engineering_workflow = (
-                    workflow_result.output.model_dump(mode="json")
-                    if isinstance(workflow_result.output, EngineeringWorkflow)
-                    else workflow_result.output
-                )
+                raw_engineering_workflow = workflow_result.output.model_dump(mode="json")
                 normalized_workflow = normalize_engineering_workflow(
                     raw_engineering_workflow
                 )
