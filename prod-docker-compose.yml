@@ -122,7 +122,7 @@ services:
       - temporal
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
       - TEMPORAL_CSRF_COOKIE_INSECURE=True
     image: docker.io/temporalio/ui:2.43.3
     networks:
@@ -155,7 +155,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.26.1
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.29.0
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - DB_HOST=postgresql
@@ -165,10 +165,11 @@ services:
       - DB_NAME=code_confluence
       - TOKEN_ENCRYPTION_KEY=0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ=
       - CODEX_OPENAI_CALLBACK_PORT=1455
+      - CODEX_OPENAI_CALLBACK_HOSTS=0.0.0.0
       - CODEX_OPENAI_REDIRECT_URI=http://localhost:1455/auth/callback
     ports:
-      - "8001:8000"
-      - "1455:1455"
+      - "127.0.0.1:8001:8000"
+      - "127.0.0.1:1455:1455"
     volumes:
       - query_engine_logs:/app/logs
       - repositories_data:/opt/unoplat/repositories
@@ -181,7 +182,7 @@ services:
         condition: service_healthy
 
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.40.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.43.0
     depends_on:
       - code-confluence-flow-bridge
     ports:

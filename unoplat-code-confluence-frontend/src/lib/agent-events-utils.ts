@@ -9,9 +9,9 @@ export type { AgentGroup } from "@/types/agent-events";
  * Add new agents here as they are introduced.
  */
 export const AgentType = {
-  ENGINEERING_DEVELOPMENT_WORKFLOW: "engineering_development_workflow_agent",
-  DEPENDENCY_GUIDE: "dependency_guide_agent",
-  BUSINESS_LOGIC_DOMAIN: "business_logic_domain_agent",
+  DEVELOPMENT_WORKFLOW: "development_workflow_guide",
+  DEPENDENCY: "dependency_guide",
+  BUSINESS_DOMAIN: "business_domain_guide",
   // Future agents can be added here
 } as const;
 
@@ -20,7 +20,7 @@ export const AgentType = {
  * Used to consolidate related events into a single display group.
  */
 const AGENT_ALIASES: Record<string, string> = {
-  dependency_guide_agent_item: "dependency_guide_agent",
+  dependency_guide_item: "dependency_guide",
 };
 
 export type AgentTypeValue = (typeof AgentType)[keyof typeof AgentType];
@@ -33,16 +33,16 @@ export const AGENT_REGISTRY: Record<
   AgentTypeValue,
   { displayName: string; order: number }
 > = {
-  [AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW]: {
-    displayName: "Engineering Development Workflow",
+  [AgentType.DEVELOPMENT_WORKFLOW]: {
+    displayName: "Development Workflow Guide",
     order: 1,
   },
-  [AgentType.DEPENDENCY_GUIDE]: {
+  [AgentType.DEPENDENCY]: {
     displayName: "Dependency Guide",
     order: 2,
   },
-  [AgentType.BUSINESS_LOGIC_DOMAIN]: {
-    displayName: "Business Logic Domain",
+  [AgentType.BUSINESS_DOMAIN]: {
+    displayName: "Business Domain Guide",
     order: 3,
   },
 };
@@ -126,8 +126,8 @@ export function truncateMessage(
  * Group events by agent name and return sorted agent groups.
  * Only returns groups that have at least one event.
  *
- * Events from aliased agents (e.g., "dependency_guide_agent_item") are
- * consolidated into their canonical parent agent group (e.g., "dependency_guide_agent").
+ * Events from aliased agents (e.g., "dependency_guide_item") are
+ * consolidated into their canonical parent agent group (e.g., "dependency_guide").
  */
 export function groupEventsByAgent(
   events: RepositoryAgentEvent[],

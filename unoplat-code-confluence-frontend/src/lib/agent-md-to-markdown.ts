@@ -115,8 +115,8 @@ export function agentMdOutputToMarkdown(
     ],
   });
 
-  // Engineering Workflow
-  entries.push({ h2: "Engineering Workflow" });
+  // Development Workflow Guide
+  entries.push({ h2: "Development Workflow Guide" });
   entries.push({ h3: "Commands" });
   const byStage: Record<
     string,
@@ -153,8 +153,8 @@ export function agentMdOutputToMarkdown(
     entries.push({ p: "No dependency guide entries available." });
   }
 
-  // Business logic domain
-  entries.push({ h2: "Business Logic Domain" });
+  // Business Domain Guide
+  entries.push({ h2: "Business Domain Guide" });
   if (agent?.business_logic_domain?.description) {
     entries.push({ p: agent.business_logic_domain.description });
   }
@@ -194,8 +194,8 @@ export function codebasesToMarkdown(
       ],
     });
 
-    // Engineering Workflow
-    entries.push({ h3: "Engineering Workflow" });
+    // Development Workflow Guide
+    entries.push({ h3: "Development Workflow Guide" });
     entries.push({ h4: "Commands" });
     const byStage: Record<
       string,
@@ -239,8 +239,8 @@ export function codebasesToMarkdown(
       entries.push({ p: "No dependency guide entries available." });
     }
 
-    // Business logic domain
-    entries.push({ h3: "Business Logic Domain" });
+    // Business Domain Guide
+    entries.push({ h3: "Business Domain Guide" });
     if (agent?.business_logic_domain?.description) {
       entries.push({ p: agent.business_logic_domain.description });
     }

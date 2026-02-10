@@ -45,7 +45,7 @@ def get_engineering_citation_instructions(search_mode: str) -> str:
     raise ValueError(f"Unsupported search_mode '{search_mode}': either Exa or built-in web search must be available")
 
 
-async def per_language_engineering_development_workflow_prompt(
+async def per_language_development_workflow_prompt(
     ctx: RunContext[AgentDependencies],
 ) -> str:
     """Generate single-agent prompt for canonical engineering workflow extraction."""
@@ -54,7 +54,7 @@ async def per_language_engineering_development_workflow_prompt(
     codebase_path = ctx.deps.codebase_metadata.codebase_path
 
     return (
-        f"You are the Engineering Development Workflow Agent for {lang} projects.\n"
+        f"You are the Development Workflow Guide for {lang} projects.\n"
         f"Package manager: {package_manager}\n\n"
         "<task>\n"
         "Analyze the codebase and return a canonical engineering_workflow JSON object only.\n"

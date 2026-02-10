@@ -1,6 +1,5 @@
 import contextvars
 
-from loguru import logger
 from temporalio import workflow
 from temporalio.worker._interceptor import (
     StartActivityInput,
@@ -33,8 +32,8 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
             }
 
             # Log the forwarding for debugging
-            logger.debug(
-                f"Forwarding headers from workflow to activity: {list(headers.keys())}"
+            workflow.logger.debug(
+                "Forwarding headers from workflow to activity: %s", list(headers.keys())
             )
 
         return super().start_activity(input)
@@ -55,12 +54,12 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
                     **headers,  # Add headers from workflow
                 }
 
-                logger.debug(
-                    "Forwarding headers from workflow to child workflow: {}",
+                workflow.logger.debug(
+                    "Forwarding headers from workflow to child workflow: %s",
                     list(headers.keys()),
                 )
         except Exception as e:
-            logger.error("Error forwarding headers to child workflow: {}", str(e))
+            workflow.logger.error("Error forwarding headers to child workflow: %s", str(e))
             # Continue execution even if header forwarding fails
 
         return await self.next.start_child_workflow(input)

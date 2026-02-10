@@ -102,7 +102,12 @@ def setup_logging(
             "rotation": "50 MB",  # Rotate when file reaches 50 MB
             "retention": "10 days",  # Keep logs for 10 days
             "compression": "gz",  # Compress rotated files with gzip
-            "enqueue": True,  # Thread-safe async writing
+            # NOTE: enqueue=True uses multiprocessing.SimpleQueue internally.
+            # This is safe for non-workflow code (activities, API handlers), but
+            # loguru must NOT be imported in Temporal workflow-sandbox modules
+            # (workflows, workflow interceptors) — the sandbox restricts
+            # multiprocessing. Those modules must use workflow.logger instead.
+            "enqueue": True,  # Thread-safe async writing (see NOTE above)
             "encoding": "utf-8",
             "diagnose": False,  # Don't expose sensitive data in production
             "backtrace": True,  # Include stack traces

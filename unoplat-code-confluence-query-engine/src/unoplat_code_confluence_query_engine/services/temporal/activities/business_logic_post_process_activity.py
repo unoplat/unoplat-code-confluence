@@ -28,7 +28,7 @@ class BusinessLogicPostProcessActivity:
         """Enrich business logic description with data model files from PostgreSQL.
 
         Args:
-            agent_output: Plain text description from business_logic_domain_agent
+            agent_output: Plain text description from business_domain_guide
             codebase_path: Path to the codebase for Postgres lookup
             programming_language: Programming language of the codebase
 
