@@ -47,52 +47,95 @@ from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_mana
 
 
 async def _start_codex_callback_server(app: FastAPI) -> None:
-    """Start lightweight callback listener on localhost:<callback_port>."""
-    callback_port = app.state.settings.codex_openai_callback_port
-    server_config = uvicorn.Config(
-        app,
-        host="127.0.0.1",
-        port=callback_port,
-        log_level="warning",
-        access_log=False,
-        lifespan="off",
-    )
-    server = uvicorn.Server(server_config)
-    server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
-    task = asyncio.create_task(server.serve(), name="codex-oauth-callback-server")
-    app.state.codex_callback_server = server
-    app.state.codex_callback_server_task = task
+    """Start lightweight callback listeners on configured callback hosts."""
+    callback_port: int = app.state.settings.codex_openai_callback_port
+    configured_hosts = app.state.settings.codex_openai_callback_hosts
+    bind_addresses: list[tuple[str, str]] = []
+    for host in (part.strip() for part in configured_hosts.split(",")):
+        if not host:
+            continue
+        label = "IPv6" if ":" in host else "IPv4"
+        bind_addresses.append((host, label))
 
-    await asyncio.sleep(0.2)
-    if task.done():
-        app.state.codex_callback_server_ready = False
-        logger.error(
-            "Failed to start Codex OAuth callback listener on localhost:{}; "
-            "port may be in use by another process",
-            callback_port,
+    if not bind_addresses:
+        bind_addresses = [("127.0.0.1", "IPv4"), ("::1", "IPv6")]
+
+    servers: list[uvicorn.Server] = []
+    tasks: list[asyncio.Task[None]] = []
+
+    for host, label in bind_addresses:
+        config = uvicorn.Config(
+            app,
+            host=host,
+            port=callback_port,
+            log_level="warning",
+            access_log=False,
+            lifespan="off",
         )
-    else:
-        app.state.codex_callback_server_ready = True
-        logger.info(
-            "Codex OAuth callback listener started on localhost:{}",
+        server = uvicorn.Server(config)
+        server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
+        task = asyncio.create_task(
+            server.serve(),
+            name=f"codex-oauth-callback-server-{label.lower()}",
+        )
+
+        await asyncio.sleep(0.2)
+        if task.done():
+            # Drain the task so Python doesn't emit
+            # "Task exception was never retrieved".
+            bind_exc: BaseException | None = None
+            if not task.cancelled():
+                bind_exc = task.exception()
+            logger.warning(
+                "Could not bind Codex OAuth callback listener on {} ({}) port {}: {}",
+                host,
+                label,
+                callback_port,
+                bind_exc or "task finished unexpectedly",
+            )
+        else:
+            servers.append(server)
+            tasks.append(task)
+            logger.info(
+                "Codex OAuth callback listener started on {}:{} ({})",
+                host,
+                callback_port,
+                label,
+            )
+
+    app.state.codex_callback_servers = servers
+    app.state.codex_callback_server_tasks = tasks
+    app.state.codex_callback_server_ready = len(servers) > 0
+
+    if not app.state.codex_callback_server_ready:
+        logger.error(
+            "Failed to start any Codex OAuth callback listener on port {}; "
+            "port may be in use by another process",
             callback_port,
         )
 
 
 async def _stop_codex_callback_server(app: FastAPI) -> None:
-    """Stop callback listener if running."""
-    server = getattr(app.state, "codex_callback_server", None)
-    task = getattr(app.state, "codex_callback_server_task", None)
+    """Stop all callback listeners if running."""
+    servers: list[uvicorn.Server] = getattr(app.state, "codex_callback_servers", [])
+    tasks: list[asyncio.Task[None]] = getattr(app.state, "codex_callback_server_tasks", [])
     app.state.codex_callback_server_ready = False
-    if not server or not task:
+    if not servers:
         return
-    server.should_exit = True
-    try:
-        await asyncio.wait_for(task, timeout=5.0)
-    except TimeoutError:
-        server.force_exit = True
-        await task
-    logger.info("Codex OAuth callback listener stopped")
+    for server in servers:
+        server.should_exit = True
+    for task in tasks:
+        try:
+            await asyncio.wait_for(task, timeout=5.0)
+        except TimeoutError:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+    app.state.codex_callback_servers = []
+    app.state.codex_callback_server_tasks = []
+    logger.info("Codex OAuth callback listener(s) stopped")
 
 
 @asynccontextmanager
@@ -134,12 +177,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.ai_model_config_service = AiModelConfigService()
     app.state.codex_oauth_service = CodexOAuthService(app.state.settings)
     app.state.flag_service = FlagService()
-    app.state.codex_callback_server = None
-    app.state.codex_callback_server_task = None
+    app.state.codex_callback_servers = []
+    app.state.codex_callback_server_tasks = []
     app.state.codex_callback_server_ready = False
     logger.info("Services initialized and stored in app state")
 
-    # Start dedicated localhost callback listener for Codex OAuth redirect_uri parity.
+    # Start dedicated callback listener for Codex OAuth redirect_uri parity.
     await _start_codex_callback_server(app)
 
     # Check if AI model configuration exists and update flag
