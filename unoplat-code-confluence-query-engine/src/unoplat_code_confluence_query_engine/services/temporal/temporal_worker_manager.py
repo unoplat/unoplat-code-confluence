@@ -49,6 +49,9 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.dependenc
 from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_fetch_activity import (
     DependencyGuideFetchActivity,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.engineering_workflow_completion_activity import (
+    EngineeringWorkflowCompletionActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
     RepositoryAgentSnapshotActivity,
 )
@@ -266,7 +269,12 @@ class TemporalWorkerManager:
         # Load credential and compute hash for build ID
         credential_hash: str | None = None
         async with get_startup_session() as session:
-            credential = await CredentialsService.get_model_credential(session)
+            if model_config.provider_key == "codex_openai":
+                credential = await CredentialsService.get_model_oauth_refresh_token(
+                    session
+                )
+            else:
+                credential = await CredentialsService.get_model_credential(session)
             if credential:
                 credential_hash = compute_credential_hash(credential)
 
@@ -278,9 +286,19 @@ class TemporalWorkerManager:
             credential_hash is not None,
         )
 
+        # Extract request_limit from model_params JSONB for UsageLimits
+        request_limit = (model_config.model_params or {}).get("request_limit")
+
         # Initialize temporal agents with model from database
         # Note: initialize_temporal_agents creates its own TemporalAgentRetryConfig internally
-        initialize_temporal_agents(model, settings, model_settings)
+        initialize_temporal_agents(
+            model,
+            settings,
+            model_settings,
+            provider_key=model_config.provider_key,
+            exa_configured=bool(exa_api_key),
+            request_limit=request_limit,
+        )
         logger.info(
             "[temporal_worker_manager] Temporal agents initialized with database model"
         )
@@ -304,6 +322,7 @@ class TemporalWorkerManager:
         business_logic_post_process_activity = BusinessLogicPostProcessActivity()
         dependency_guide_completion_activity = DependencyGuideCompletionActivity()
         dependency_guide_fetch_activity = DependencyGuideFetchActivity()
+        engineering_workflow_completion_activity = EngineeringWorkflowCompletionActivity()
         app_interfaces_activity = AppInterfacesActivity()
 
         # Build interceptor list - always include status interceptor
@@ -346,6 +365,7 @@ class TemporalWorkerManager:
                 business_logic_post_process_activity.post_process_business_logic,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
                 dependency_guide_fetch_activity.fetch_codebase_dependencies,
+                engineering_workflow_completion_activity.emit_engineering_workflow_completion,
                 app_interfaces_activity.build_app_interfaces,
                 app_interfaces_activity.emit_app_interfaces_completion,
             ],

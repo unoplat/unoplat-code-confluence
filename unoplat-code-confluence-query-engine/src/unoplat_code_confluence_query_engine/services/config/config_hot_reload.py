@@ -84,9 +84,7 @@ def _mark_if_config_changed(
                 "base_url",
                 "profile_key",
                 "extra_config",
-                "temperature",
-                "top_p",
-                "max_tokens",
+                "model_params",
             ]
 
             # Check if any configuration field has actual changes

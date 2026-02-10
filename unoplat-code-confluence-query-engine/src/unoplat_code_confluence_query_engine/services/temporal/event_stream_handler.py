@@ -4,6 +4,7 @@ Handles streaming events from PydanticAI agents with DB-first stateless tracking
 Persists events to PostgreSQL via atomic CTEs for progress tracking.
 """
 
+import os
 from collections.abc import AsyncIterable
 
 from loguru import logger
@@ -21,12 +22,18 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 # Agent names that contribute to progress calculation
 BASE_COMPLETION_NAMESPACES: frozenset[str] = frozenset(
     {
-        "project_configuration_agent",
-        "development_workflow_agent",
-        "dependency_guide_agent",
-        "business_logic_domain_agent",
+        "development_workflow_guide",
+        "dependency_guide",
+        "business_domain_guide",
     }
 )
+
+_DEBUG_EVENT_TRACE = os.getenv("TEMPORAL_EVENT_DEBUG", "true").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 
 def get_completion_namespaces(
@@ -54,6 +61,24 @@ def _map_event_to_phase(event: AgentStreamEvent) -> str | None:
         return "tool.result"
     if isinstance(event, FinalResultEvent):
         return "result"
+    return None
+
+
+def _extract_tool_call_id(event: AgentStreamEvent) -> str | None:
+    """Extract tool call identifier when present."""
+    if isinstance(event, FunctionToolCallEvent):
+        return event.part.tool_call_id
+    if isinstance(event, FunctionToolResultEvent):
+        return event.tool_call_id
+    return None
+
+
+def _extract_tool_name(event: AgentStreamEvent) -> str | None:
+    """Extract tool name when present."""
+    if isinstance(event, FunctionToolCallEvent):
+        return event.part.tool_name
+    if isinstance(event, FinalResultEvent):
+        return event.tool_name
     return None
 
 
@@ -127,6 +152,9 @@ async def event_stream_handler(
             continue
 
         message = _extract_event_message(event)
+        tool_call_id = _extract_tool_call_id(event)
+        tool_name = _extract_tool_name(event)
+        event_kind = type(event).__name__
 
         # Always log for observability
         if isinstance(event, FunctionToolCallEvent):
@@ -144,11 +172,23 @@ async def event_stream_handler(
         elif isinstance(event, FinalResultEvent):
             logger.info(f"[{codebase}] FINAL RESULT: tool_name={event.tool_name}")
 
+        if _DEBUG_EVENT_TRACE:
+            logger.debug(
+                "[{}] EVENT TRACE: agent={} phase={} event_kind={} tool_name={} tool_call_id={} run_id={}",
+                codebase,
+                deps.agent_name if deps else None,
+                phase,
+                event_kind,
+                tool_name,
+                tool_call_id,
+                deps.repository_workflow_run_id if deps else None,
+            )
+
         # Persist to DB if tracking is enabled
         if db_tracking_enabled and deps and owner_name and repo_name:
             try:
                 writer = get_snapshot_writer()
-                await writer.append_event_atomic(
+                event_id = await writer.append_event_atomic(
                     owner_name=owner_name,
                     repo_name=repo_name,
                     codebase_name=codebase,
@@ -162,11 +202,29 @@ async def event_stream_handler(
                     ),
                     repository_workflow_run_id=deps.repository_workflow_run_id,
                 )
+                if _DEBUG_EVENT_TRACE:
+                    logger.debug(
+                        "[{}] EVENT PERSISTED: agent={} phase={} event_kind={} tool_name={} tool_call_id={} event_id={} run_id={}",
+                        codebase,
+                        deps.agent_name,
+                        phase,
+                        event_kind,
+                        tool_name,
+                        tool_call_id,
+                        event_id,
+                        deps.repository_workflow_run_id,
+                    )
             except Exception as e:
                 # Log but don't crash - event tracking is non-critical
                 logger.error(
-                    "[{}] Failed to persist event to DB: {} - {}",
+                    "[{}] Failed to persist event to DB: {} - {} (agent={}, phase={}, event_kind={}, tool_name={}, tool_call_id={}, run_id={})",
                     codebase,
                     type(e).__name__,
                     str(e),
+                    deps.agent_name,
+                    phase,
+                    event_kind,
+                    tool_name,
+                    tool_call_id,
+                    deps.repository_workflow_run_id,
                 )

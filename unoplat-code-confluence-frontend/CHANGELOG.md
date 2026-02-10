@@ -1,5 +1,44 @@
 # Changelog
 
+## [1.43.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.43.0...unoplat-code-confluence-frontend-v1.43.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **assets:** new brand assets ([bafcf43](https://github.com/unoplat/unoplat-code-confluence/commit/bafcf4368c206dc17e2fd6e6e841bf356250e1ea))
+* **frontend:** update sidebar logo imports and add "Made with love from India" footer ([d0dd6d4](https://github.com/unoplat/unoplat-code-confluence/commit/d0dd6d40a46bd9202e20ae6e69da3e621d8d2dc8))
+* **timeout:** increase axios client timeout from 10s to 120s ([938b354](https://github.com/unoplat/unoplat-code-confluence/commit/938b354f4c9b88e1a8061b32f7aa0355eebbbd1b))
+
+## [1.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.42.0...unoplat-code-confluence-frontend-v1.43.0) (2026-02-09)
+
+
+### Features
+
+* **codex-oauth:** implement ChatGPT OAuth PKCE flow for Codex provider ([9891b8e](https://github.com/unoplat/unoplat-code-confluence/commit/9891b8e7c0bf2bf46c2176d34722f484d22a1d31))
+* **delete-model-config:** add UI to delete active model provider configuration ([81a46f6](https://github.com/unoplat/unoplat-code-confluence/commit/81a46f68189d669bd1718617865bd6b3cd44d413))
+* **engineering-workflow:** simplify output schema and improve system prompts ([e8b970e](https://github.com/unoplat/unoplat-code-confluence/commit/e8b970ef7e81fe0000f23306528fc6cc596b9eb9))
+* **web-search:** support built-in web search for providers with native capability ([05814a3](https://github.com/unoplat/unoplat-code-confluence/commit/05814a3ae675f33db50eac35e32a0f397c0582f6))
+
+
+### Bug Fixes
+
+* **frontend:** remove duplicate object property in ModelConfigForm ([a109b23](https://github.com/unoplat/unoplat-code-confluence/commit/a109b233255926a0f88a4ae5b22613f94ff64845))
+
+## [1.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.41.1...unoplat-code-confluence-frontend-v1.42.0) (2026-02-06)
+
+
+### Features
+
+* **engineering-workflow-section-changes:** ui changes for agent harness changes ([bdbf330](https://github.com/unoplat/unoplat-code-confluence/commit/bdbf330da6af6c9e9418fcb08a524328a7598747))
+
+## [1.41.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.41.0...unoplat-code-confluence-frontend-v1.41.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* **preview-result:** preview result shows up during partial errors ([d3c42ca](https://github.com/unoplat/unoplat-code-confluence/commit/d3c42cad6acecb549973f4bd2c88d76b5ce30de0))
+* **preview-result:** preview result shows up during partial errors ([b2bee94](https://github.com/unoplat/unoplat-code-confluence/commit/b2bee946f680e7300bf2e2b63a5b372a004d5241))
+
 ## [1.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.40.0...unoplat-code-confluence-frontend-v1.41.0) (2026-02-04)
 
 

@@ -1,9 +1,14 @@
 """AI model configuration API endpoints."""
 
-from typing import Any, Dict
+from datetime import datetime
+import json
+from typing import Any, Dict, Optional
+from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from fastapi.responses import HTMLResponse, Response
 from loguru import logger
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
@@ -19,6 +24,9 @@ from unoplat_code_confluence_query_engine.models.config.ai_model_config import (
 )
 from unoplat_code_confluence_query_engine.services.config.ai_model_config_service import (
     AiModelConfigService,
+)
+from unoplat_code_confluence_query_engine.services.config.codex_oauth_service import (
+    CodexOAuthService,
 )
 from unoplat_code_confluence_query_engine.services.config.config_hot_reload import (
     update_app_agents,
@@ -41,6 +49,135 @@ from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_mana
 )
 
 router = APIRouter(prefix="/v1", tags=["ai-model-config"])
+callback_router = APIRouter(tags=["ai-model-config"])
+
+
+class CodexOAuthAuthorizeResponse(BaseModel):
+    """Response payload for OAuth authorize flow initialization."""
+
+    flow_id: str
+    authorization_url: str
+    expires_at: int
+    poll_interval_ms: int
+
+
+class CodexOAuthAuthorizeRequest(BaseModel):
+    """Optional payload for OAuth authorize URL generation."""
+
+    frontend_origin: Optional[str] = None
+
+
+class CodexOAuthFlowStatusResponse(BaseModel):
+    """Polling response for OAuth flow state."""
+
+    status: str
+    error: Optional[str] = None
+
+
+class CodexOAuthConnectionStatusResponse(BaseModel):
+    """Current stored OAuth connection state for codex_openai."""
+
+    connected: bool
+    account_id: Optional[str] = None
+    expires_at: Optional[int] = None
+    configured_at: Optional[datetime] = None
+
+
+class CodexOAuthDeleteResponse(BaseModel):
+    """Response payload for OAuth disconnect endpoint."""
+
+    deleted: bool
+    message: str
+
+
+def _oauth_success_html() -> str:
+    return """
+<!doctype html>
+<html>
+  <head><title>Authorization Successful</title></head>
+  <body style="font-family: Arial, sans-serif; padding: 24px;">
+    <h2>ChatGPT Authorization Successful</h2>
+    <p>You can close this window and return to the app.</p>
+    <script>setTimeout(() => window.close(), 800);</script>
+  </body>
+</html>
+"""
+
+
+def _oauth_error_html(message: str) -> str:
+    safe_message = message.replace("<", "&lt;").replace(">", "&gt;")
+    return f"""
+<!doctype html>
+<html>
+  <head><title>Authorization Failed</title></head>
+  <body style="font-family: Arial, sans-serif; padding: 24px;">
+    <h2>ChatGPT Authorization Failed</h2>
+    <p>{safe_message}</p>
+    <p>You can close this window and retry from the app.</p>
+  </body>
+</html>
+"""
+
+
+def _normalize_frontend_origin(frontend_origin: Optional[str]) -> Optional[str]:
+    if not frontend_origin:
+        return None
+    parsed = urlparse(frontend_origin.strip())
+    if parsed.scheme not in {"http", "https"}:
+        return None
+    if not parsed.netloc:
+        return None
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def _oauth_popup_result_html(
+    *, frontend_origin: str, success: bool, message: str
+) -> str:
+    payload: dict[str, str] = {
+        "type": "codex-oauth-callback",
+        "status": "success" if success else "failed",
+    }
+    if not success:
+        payload["error"] = message
+    payload_json = json.dumps(payload)
+    target_origin_json = json.dumps(frontend_origin)
+    text_title = "ChatGPT Authorization Successful" if success else "ChatGPT Authorization Failed"
+    text_body = (
+        "Authorization complete. This window should close automatically."
+        if success
+        else message.replace("<", "&lt;").replace(">", "&gt;")
+    )
+    return f"""
+<!doctype html>
+<html>
+  <head><title>{text_title}</title></head>
+  <body style="font-family: Arial, sans-serif; padding: 24px;">
+    <h2>{text_title}</h2>
+    <p>{text_body}</p>
+    <script>
+      (() => {{
+        const payload = {payload_json};
+        const targetOrigin = {target_origin_json};
+        if (window.opener && targetOrigin) {{
+          window.opener.postMessage(payload, targetOrigin);
+          window.close();
+          return;
+        }}
+      }})();
+    </script>
+  </body>
+</html>
+"""
+
+
+async def _get_worker_credential_hash(
+    session: AsyncSession, config: AiModelConfig
+) -> str | None:
+    if config.provider_key == "codex_openai":
+        credential = await CredentialsService.get_model_oauth_refresh_token(session)
+    else:
+        credential = await CredentialsService.get_model_credential(session)
+    return compute_credential_hash(credential) if credential else None
 
 
 async def _handle_worker_versioning(
@@ -71,9 +208,10 @@ async def _handle_worker_versioning(
         logger.warning("No AI model config found after upsert, cannot start worker")
         return
 
-    # Load current credential and compute hash for build ID
-    credential = await CredentialsService.get_model_credential(session)
-    credential_hash = compute_credential_hash(credential) if credential else None
+    # Build-id credential source is provider-aware:
+    # - codex_openai: refresh token
+    # - all others: model API key
+    credential_hash = await _get_worker_credential_hash(session, config)
 
     new_build_id = generate_build_id(config, credential_hash)
 
@@ -310,3 +448,184 @@ async def get_provider_schema(provider_key: str) -> ProviderSchema:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve provider schema",
         )
+
+
+@router.post(
+    "/model-config/codex-openai/oauth/authorize",
+    response_model=CodexOAuthAuthorizeResponse,
+)
+async def codex_oauth_authorize(
+    request: Request,
+    payload: CodexOAuthAuthorizeRequest | None = None,
+) -> CodexOAuthAuthorizeResponse:
+    """Start Codex OAuth PKCE flow and return authorization URL."""
+    callback_ready = getattr(request.app.state, "codex_callback_server_ready", False)
+    if not callback_ready:
+        callback_port = request.app.state.settings.codex_openai_callback_port
+        callback_hosts = request.app.state.settings.codex_openai_callback_hosts
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                f"Codex OAuth callback listener is unavailable on {callback_hosts}:{callback_port}. "
+                "Ensure port is free and restart query-engine."
+            ),
+        )
+
+    service: CodexOAuthService = request.app.state.codex_oauth_service
+    raw_frontend_origin = payload.frontend_origin if payload else None
+    frontend_origin = _normalize_frontend_origin(
+        raw_frontend_origin
+    )
+    if raw_frontend_origin and not frontend_origin:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid frontend_origin. Expected origin format like http://localhost:3000",
+        )
+    payload = await service.create_authorization_flow(frontend_origin=frontend_origin)
+    return CodexOAuthAuthorizeResponse(**payload)
+
+
+@router.get(
+    "/model-config/codex-openai/oauth/flows/{flow_id}",
+    response_model=CodexOAuthFlowStatusResponse,
+)
+async def codex_oauth_flow_status(
+    request: Request, flow_id: str
+) -> CodexOAuthFlowStatusResponse:
+    """Poll OAuth flow status."""
+    service: CodexOAuthService = request.app.state.codex_oauth_service
+    payload = await service.get_flow_status(flow_id)
+    return CodexOAuthFlowStatusResponse(
+        status=payload["status"] or "failed",
+        error=payload.get("error"),
+    )
+
+
+async def _process_codex_oauth_callback(
+    request: Request,
+    code: Optional[str] = Query(default=None),
+    state: Optional[str] = Query(default=None),
+    error: Optional[str] = Query(default=None),
+    error_description: Optional[str] = Query(default=None),
+) -> Response:
+    service: CodexOAuthService = request.app.state.codex_oauth_service
+    frontend_origin = await service.get_flow_frontend_origin(state)
+    success = False
+    message = "Authorization failed"
+
+    worker_manager = get_worker_manager()
+    old_build_id = worker_manager.current_build_id
+
+    async with get_startup_session() as session:
+        success, message = await service.complete_authorization_callback(
+            session,
+            state=state,
+            code=code,
+            error=error,
+            error_description=error_description,
+        )
+
+    if success:
+        async with get_startup_session() as session:
+            await _handle_worker_versioning(
+                request, session, worker_manager, old_build_id
+            )
+        if frontend_origin:
+            return HTMLResponse(
+                content=_oauth_popup_result_html(
+                    frontend_origin=frontend_origin,
+                    success=True,
+                    message=message,
+                ),
+                status_code=200,
+            )
+        return HTMLResponse(content=_oauth_success_html(), status_code=200)
+    if frontend_origin:
+        return HTMLResponse(
+            content=_oauth_popup_result_html(
+                frontend_origin=frontend_origin,
+                success=False,
+                message=message,
+            ),
+            status_code=400,
+        )
+    return HTMLResponse(content=_oauth_error_html(message), status_code=400)
+
+
+@router.get("/model-config/codex-openai/oauth/callback", response_class=HTMLResponse)
+async def codex_oauth_callback(
+    request: Request,
+    code: Optional[str] = Query(default=None),
+    state: Optional[str] = Query(default=None),
+    error: Optional[str] = Query(default=None),
+    error_description: Optional[str] = Query(default=None),
+) -> Response:
+    """OAuth callback endpoint for browser authorization flow."""
+    return await _process_codex_oauth_callback(
+        request=request,
+        code=code,
+        state=state,
+        error=error,
+        error_description=error_description,
+    )
+
+
+@callback_router.get("/auth/callback", response_class=HTMLResponse)
+async def codex_oauth_callback_alias(
+    request: Request,
+    code: Optional[str] = Query(default=None),
+    state: Optional[str] = Query(default=None),
+    error: Optional[str] = Query(default=None),
+    error_description: Optional[str] = Query(default=None),
+) -> Response:
+    """OpenCode-compatible callback alias path for Codex OAuth."""
+    return await _process_codex_oauth_callback(
+        request=request,
+        code=code,
+        state=state,
+        error=error,
+        error_description=error_description,
+    )
+
+
+@router.get(
+    "/model-config/codex-openai/oauth/status",
+    response_model=CodexOAuthConnectionStatusResponse,
+)
+async def codex_oauth_status(
+    request: Request,
+    session: AsyncSession = Depends(get_db_session),
+) -> CodexOAuthConnectionStatusResponse:
+    """Get persisted Codex OAuth connection status."""
+    service: CodexOAuthService = request.app.state.codex_oauth_service
+    status_payload = await service.get_oauth_status(session)
+    return CodexOAuthConnectionStatusResponse(
+        connected=status_payload.connected,
+        account_id=status_payload.account_id,
+        expires_at=status_payload.expires_at,
+        configured_at=status_payload.configured_at,
+    )
+
+
+@router.delete(
+    "/model-config/codex-openai/oauth",
+    response_model=CodexOAuthDeleteResponse,
+)
+async def codex_oauth_delete(request: Request) -> CodexOAuthDeleteResponse:
+    """Disconnect Codex OAuth credentials and refresh worker versioning."""
+    service: CodexOAuthService = request.app.state.codex_oauth_service
+    worker_manager = get_worker_manager()
+    old_build_id = worker_manager.current_build_id
+
+    async with get_startup_session() as session:
+        deleted = await service.disconnect(session)
+
+    async with get_startup_session() as session:
+        await _handle_worker_versioning(request, session, worker_manager, old_build_id)
+
+    message = (
+        "Codex OAuth credentials deleted"
+        if deleted
+        else "No Codex OAuth credentials found"
+    )
+    return CodexOAuthDeleteResponse(deleted=deleted, message=message)

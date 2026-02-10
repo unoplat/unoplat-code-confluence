@@ -1,4 +1,4 @@
-"""Dependency guide completion activity for Temporal workflows."""
+"""Engineering workflow completion activity for Temporal workflows."""
 
 from __future__ import annotations
 
@@ -13,21 +13,21 @@ from unoplat_code_confluence_query_engine.services.temporal.service_registry imp
 )
 
 
-class DependencyGuideCompletionActivity:
-    """Activity for emitting a single dependency_guide completion event."""
+class EngineeringWorkflowCompletionActivity:
+    """Activity for emitting a single engineering workflow completion event."""
 
     @activity.defn
-    async def emit_dependency_guide_completion(
+    async def emit_engineering_workflow_completion(
         self,
         repository_qualified_name: str,
         repository_workflow_run_id: str,
         codebase_name: str,
         programming_language: str,
     ) -> None:
-        """Append a single completion event for dependency_guide."""
+        """Append a single completion event for development_workflow_guide."""
         if "/" not in repository_qualified_name:
             logger.warning(
-                "[dependency_guide_completion] Invalid repository_qualified_name: {}",
+                "[engineering_workflow_completion] Invalid repository_qualified_name: {}",
                 repository_qualified_name,
             )
             return
@@ -39,15 +39,15 @@ class DependencyGuideCompletionActivity:
             owner_name=owner_name,
             repo_name=repo_name,
             codebase_name=codebase_name,
-            agent_name="dependency_guide",
+            agent_name="development_workflow_guide",
             phase="result",
-            message="Dependency guide completed",
+            message="Development workflow guide completed",
             completion_namespaces=set(get_completion_namespaces(programming_language)),
             repository_workflow_run_id=repository_workflow_run_id,
         )
 
         logger.info(
-            "[dependency_guide_completion] Emitted completion event for {}/{} codebase={}",
+            "[engineering_workflow_completion] Emitted completion event for {}/{} codebase={}",
             owner_name,
             repo_name,
             codebase_name,

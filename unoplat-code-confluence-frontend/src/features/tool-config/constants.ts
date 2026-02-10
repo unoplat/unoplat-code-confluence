@@ -20,3 +20,34 @@ export const TOOL_PROVIDER_HELP_URLS: Record<ToolProvider, string> = {
 export const TOOL_PROVIDER_DESCRIPTIONS: Record<ToolProvider, string> = {
   exa: "AI-powered search engine for finding relevant web content and documentation",
 } as const;
+
+/**
+ * Provider groups where Exa is currently required for agent execution.
+ * These labels are shown in the Exa info popover in Tool Configuration.
+ */
+export const EXA_REQUIRED_PROVIDER_GROUPS = [
+  {
+    label: "Native providers",
+    providers: [
+      "Google GenAI",
+      "AWS Bedrock (when enabled)",
+      "Mistral",
+      "Cohere",
+      "Hugging Face Inference",
+    ],
+  },
+  {
+    label: "OpenAI chat-completions endpoint providers",
+    providers: [
+      "OpenAI",
+      "Azure OpenAI",
+      "DeepSeek",
+      "OpenRouter",
+      "Fireworks",
+      "Together AI",
+      "GitHub Models",
+      "Vercel AI Gateway",
+      "Ollama / OpenAI",
+    ],
+  },
+] as const;

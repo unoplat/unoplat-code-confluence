@@ -115,37 +115,28 @@ export function agentMdOutputToMarkdown(
     ],
   });
 
-  // Project configuration
-  entries.push({ h2: "Project Configuration" });
-  if (agent?.project_configuration?.config_files?.length) {
-    entries.push({
-      ul: agent.project_configuration.config_files.map(
-        (f) => `${f.path} — ${f.purpose}`,
-      ),
-    });
-  } else {
-    entries.push({ p: "No configuration files detected." });
-  }
-
-  // Development workflow (group by kind)
-  entries.push({ h2: "Development Workflow" });
-  const byKind: Record<
+  // Development Workflow Guide
+  entries.push({ h2: "Development Workflow Guide" });
+  entries.push({ h3: "Commands" });
+  const byStage: Record<
     string,
     {
-      kind: string;
+      stage: string;
       command: string;
-      description?: string | null;
-      config_files: string[];
+      config_file: string;
+      confidence: number;
     }[]
   > = {};
-  for (const cmd of agent?.development_workflow?.commands ?? []) {
-    (byKind[cmd.kind] ||= []).push(cmd);
+  for (const cmd of agent?.engineering_workflow?.commands ?? []) {
+    (byStage[cmd.stage] ||= []).push(cmd);
   }
-  for (const kind of Object.keys(byKind)) {
-    entries.push({ h3: kind.replace(/_/g, " ").toUpperCase() });
+  const stageOrder = ["install", "build", "dev", "test", "lint", "type_check"];
+  for (const stage of stageOrder.filter((value) => byStage[value]?.length)) {
+    entries.push({ h3: stage.replace(/_/g, " ").toUpperCase() });
     entries.push({
-      ol: byKind[kind].map(
-        (c) => `${c.command}${c.description ? ` — ${c.description}` : ""}`,
+      ol: byStage[stage].map(
+        (c) =>
+          `\`${c.command}\` (${c.config_file}, confidence: ${Math.round(c.confidence * 100)}%)`,
       ),
     });
   }
@@ -162,8 +153,8 @@ export function agentMdOutputToMarkdown(
     entries.push({ p: "No dependency guide entries available." });
   }
 
-  // Business logic domain
-  entries.push({ h2: "Business Logic Domain" });
+  // Business Domain Guide
+  entries.push({ h2: "Business Domain Guide" });
   if (agent?.business_logic_domain?.description) {
     entries.push({ p: agent.business_logic_domain.description });
   }
@@ -203,37 +194,35 @@ export function codebasesToMarkdown(
       ],
     });
 
-    // Project configuration
-    entries.push({ h3: "Project Configuration" });
-    if (agent?.project_configuration?.config_files?.length) {
-      entries.push({
-        ul: agent.project_configuration.config_files.map(
-          (f) => `${f.path} — ${f.purpose}`,
-        ),
-      });
-    } else {
-      entries.push({ p: "No configuration files detected." });
-    }
-
-    // Development workflow (group by kind)
-    entries.push({ h3: "Development Workflow" });
-    const byKind: Record<
+    // Development Workflow Guide
+    entries.push({ h3: "Development Workflow Guide" });
+    entries.push({ h4: "Commands" });
+    const byStage: Record<
       string,
       {
-        kind: string;
+        stage: string;
         command: string;
-        description?: string | null;
-        config_files: string[];
+        config_file: string;
+        confidence: number;
       }[]
     > = {};
-    for (const cmd of agent?.development_workflow?.commands ?? []) {
-      (byKind[cmd.kind] ||= []).push(cmd);
+    for (const cmd of agent?.engineering_workflow?.commands ?? []) {
+      (byStage[cmd.stage] ||= []).push(cmd);
     }
-    for (const kind of Object.keys(byKind)) {
-      entries.push({ h4: kind.replace(/_/g, " ").toUpperCase() });
+    const stageOrder = [
+      "install",
+      "build",
+      "dev",
+      "test",
+      "lint",
+      "type_check",
+    ];
+    for (const stage of stageOrder.filter((value) => byStage[value]?.length)) {
+      entries.push({ h4: stage.replace(/_/g, " ").toUpperCase() });
       entries.push({
-        ol: byKind[kind].map(
-          (c) => `${c.command}${c.description ? ` — ${c.description}` : ""}`,
+        ol: byStage[stage].map(
+          (c) =>
+            `\`${c.command}\` (${c.config_file}, confidence: ${Math.round(c.confidence * 100)}%)`,
         ),
       });
     }
@@ -250,8 +239,8 @@ export function codebasesToMarkdown(
       entries.push({ p: "No dependency guide entries available." });
     }
 
-    // Business logic domain
-    entries.push({ h3: "Business Logic Domain" });
+    // Business Domain Guide
+    entries.push({ h3: "Business Domain Guide" });
     if (agent?.business_logic_domain?.description) {
       entries.push({ p: agent.business_logic_domain.description });
     }

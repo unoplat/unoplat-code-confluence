@@ -7,7 +7,7 @@ import { env } from "@/lib/env";
  */
 export const apiClient: AxiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
-  timeout: 10000,
+  timeout: 120000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -19,7 +19,7 @@ export const apiClient: AxiosInstance = axios.create({
  */
 export const queryEngineClient: AxiosInstance = axios.create({
   baseURL: env.queryEngineUrl,
-  timeout: 10000,
+  timeout: 120000,
   headers: {
     "Content-Type": "application/json",
   },

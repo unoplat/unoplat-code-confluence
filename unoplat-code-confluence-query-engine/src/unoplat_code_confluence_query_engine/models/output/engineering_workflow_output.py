@@ -1,0 +1,43 @@
+"""Canonical engineering workflow output models."""
+
+from enum import Enum
+from typing import List
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class EngineeringWorkflowStage(str, Enum):
+    """Execution stage for engineering commands."""
+
+    INSTALL = "install"
+    BUILD = "build"
+    DEV = "dev"
+    TEST = "test"
+    LINT = "lint"
+    TYPE_CHECK = "type_check"
+
+
+class EngineeringWorkflowCommand(BaseModel):
+    """Canonical workflow command entry with citation-validated confidence."""
+
+    command: str = Field(..., description="Runnable command")
+    stage: EngineeringWorkflowStage = Field(..., description="Execution stage")
+    config_file: str = Field(
+        ..., description="Repo-relative path to the most relevant config file, or 'unknown'"
+    )
+    confidence: float = Field(
+        ..., ge=0.0, le=1.0, description="Citation-validated confidence score"
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class EngineeringWorkflow(BaseModel):
+    """Canonical engineering workflow contract."""
+
+    commands: List[EngineeringWorkflowCommand] = Field(
+        default_factory=list,
+        description="Canonical list of engineering commands",
+    )
+
+    model_config = ConfigDict(extra="forbid")

@@ -36,11 +36,16 @@ def validate_response(response: Response, retry_status_codes: Sequence[int]) -> 
         HTTPStatusError: For HTTP status codes that should trigger retry.
         ValueError: For empty/null responses that should trigger retry.
     """
+    # Log all HTTP error responses for debugging
+    if response.status_code >= 400:
+        logger.error(
+            "[model_http_error] status={}, body={}",
+            response.status_code,
+            response.text if response.text else "empty",
+        )
+
     # Check HTTP status codes that should trigger retry
     if response.status_code in retry_status_codes:
-        logger.warning(
-            f"Provider HTTP error {response.status_code}: {response.text[:200]}"
-        )
         response.raise_for_status()
 
     # Check for completely empty response content

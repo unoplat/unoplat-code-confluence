@@ -47,6 +47,69 @@ class EnvironmentSettings(BaseSettings):
         description="32-byte Fernet encryption key for credentials (must match ingestion project)",
     )
 
+    # Codex OAuth Settings (ChatGPT subscription flow)
+    codex_openai_client_id: str = Field(
+        default="app_EMoamEEZ73f0CkXaXp7hrann",
+        alias="CODEX_OPENAI_CLIENT_ID",
+        description="OAuth client_id used for Codex ChatGPT flow",
+    )
+    codex_openai_issuer: str = Field(
+        default="https://auth.openai.com",
+        alias="CODEX_OPENAI_ISSUER",
+        description="OpenAI OAuth issuer base URL",
+    )
+    codex_openai_originator: str = Field(
+        default="opencode",
+        alias="CODEX_OPENAI_ORIGINATOR",
+        description="Originator query parameter for OAuth authorize URL",
+    )
+    codex_openai_api_endpoint: str = Field(
+        default="https://chatgpt.com/backend-api/codex/responses",
+        alias="CODEX_OPENAI_API_ENDPOINT",
+        description="Codex backend endpoint receiving rewritten chat/responses calls",
+    )
+    codex_openai_callback_port: int = Field(
+        default=1455,
+        alias="CODEX_OPENAI_CALLBACK_PORT",
+        description="Port for local Codex OAuth callback listener",
+        ge=1,
+        le=65535,
+    )
+    codex_openai_callback_hosts: str = Field(
+        default="127.0.0.1,::1",
+        alias="CODEX_OPENAI_CALLBACK_HOSTS",
+        description=(
+            "Comma-separated host addresses to bind for Codex OAuth callback listener "
+            "(use 0.0.0.0 when running in Docker with published ports)"
+        ),
+    )
+    codex_openai_redirect_uri: str = Field(
+        default="http://localhost:1455/auth/callback",
+        alias="CODEX_OPENAI_REDIRECT_URI",
+        description="Exact redirect_uri used for Codex OAuth authorization code flow",
+    )
+    codex_openai_flow_ttl_seconds: int = Field(
+        default=300,
+        alias="CODEX_OPENAI_FLOW_TTL_SECONDS",
+        description="OAuth flow expiration TTL in seconds",
+        ge=60,
+        le=1800,
+    )
+    codex_openai_poll_interval_ms: int = Field(
+        default=1200,
+        alias="CODEX_OPENAI_POLL_INTERVAL_MS",
+        description="Suggested flow status polling interval in milliseconds",
+        ge=250,
+        le=10000,
+    )
+    codex_openai_token_refresh_safety_margin_seconds: int = Field(
+        default=30,
+        alias="CODEX_OPENAI_TOKEN_REFRESH_SAFETY_MARGIN_SECONDS",
+        description="Refresh access token this many seconds before expiry",
+        ge=0,
+        le=300,
+    )
+
     # Logging Settings
     log_level: str = Field(default="DEBUG", alias="LOG_LEVEL")
     log_rotation_size: str = Field(default="10 MB", alias="LOG_ROTATION_SIZE")

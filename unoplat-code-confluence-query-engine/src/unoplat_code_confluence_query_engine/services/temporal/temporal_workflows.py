@@ -21,8 +21,6 @@ with workflow.unsafe.imports_passed_through():
 
     from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
         DependencyGuideEntry,
-        DevelopmentWorkflow,
-        ProjectConfiguration,
     )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
@@ -32,6 +30,9 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
+    )
+    from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
+        normalize_engineering_workflow,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.app_interfaces_activity import (
         AppInterfacesActivity,
@@ -44,6 +45,9 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_fetch_activity import (
         DependencyGuideFetchActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.engineering_workflow_completion_activity import (
+        EngineeringWorkflowCompletionActivity,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
         RepositoryAgentSnapshotActivity,
@@ -58,11 +62,42 @@ with workflow.unsafe.imports_passed_through():
         extract_usage_statistics,
     )
     from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
+        get_cached_usage_limits,
         get_temporal_agents,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
         AgentSnapshotCompleteEnvelope,
     )
+    from unoplat_code_confluence_query_engine.utils.agent_error_logger import (
+        extract_model_error_from_exception,
+    )
+
+
+def _enrich_agent_error_with_model_details(
+    error_dict: dict[str, object],
+    exception: BaseException,
+    agent_name: str,
+    codebase_name: str,
+) -> dict[str, object]:
+    """Enrich an agent error dict with model error details if present.
+
+    Args:
+        error_dict: Existing error dictionary to enrich
+        exception: The exception that was caught
+        agent_name: Name of the agent that failed
+        codebase_name: Name of the codebase being processed
+
+    Returns:
+        Enriched error dictionary with model_error_details if found
+    """
+    context: dict[str, object] = {
+        "agent_name": agent_name,
+        "codebase": codebase_name,
+    }
+    model_error_details = extract_model_error_from_exception(exception, context=context)
+    if model_error_details:
+        error_dict["model_error_details"] = model_error_details
+    return error_dict
 
 
 @workflow.defn(versioning_behavior=common.VersioningBehavior.AUTO_UPGRADE)
@@ -113,8 +148,7 @@ class CodebaseAgentWorkflow:
                 "primary_language": codebase_metadata.codebase_programming_language,
                 "package_manager": codebase_metadata.codebase_package_manager,
             },
-            "project_configuration": None,
-            "development_workflow": None,
+            "engineering_workflow": None,
             "dependency_guide": None,
             "business_logic_domain": None,
             "app_interfaces": None,
@@ -126,133 +160,91 @@ class CodebaseAgentWorkflow:
         # Track errors from agent execution (continue & collect all strategy)
         agent_errors: list[dict[str, Any]] = []
 
-        # Step 1: Project Configuration Agent
-        if "project_configuration_agent" in temporal_agents:
+        # Step 1: Development Workflow Guide
+        if "development_workflow_guide" in temporal_agents:
             try:
                 logger.info(
-                    f"[workflow] Running project_configuration_agent for {codebase_metadata.codebase_name}"
+                    "[workflow] Running development_workflow_guide for {}",
+                    codebase_metadata.codebase_name,
                 )
-                project_config_deps = AgentDependencies(
+                engineering_workflow_deps = AgentDependencies(
                     repository_qualified_name=repository_qualified_name,
                     codebase_metadata=codebase_metadata,
                     repository_workflow_run_id=repository_workflow_run_id,
-                    agent_name="project_configuration_agent",
+                    agent_name="development_workflow_guide",
                 )
                 logger.debug(
-                    "[workflow] Calling temporal_agents['project_configuration_agent'].run()..."
-                )
-                config_result = await temporal_agents[
-                    "project_configuration_agent"
-                ].run(
-                    f"Analyze the codebase at {codebase_metadata.codebase_path} "
-                    f"for programming language {codebase_metadata.codebase_programming_language}",
-                    deps=project_config_deps,
-                )
-                logger.debug("[workflow] project_configuration_agent.run() returned")
-                results["project_configuration"] = (
-                    config_result.output.model_dump()
-                    if isinstance(config_result.output, ProjectConfiguration)
-                    else config_result.output
-                )
-                logger.info(
-                    "[workflow] project_configuration_agent completed for {}",
-                    codebase_metadata.codebase_name,
-                )
-                # Extract usage statistics from successful agent run
-                agent_stats.append(extract_usage_statistics(config_result.usage()))
-            except Exception as e:
-                logger.error(
-                    "[workflow] project_configuration_agent failed for {}: {}",
-                    codebase_metadata.codebase_name,
-                    e,
-                )
-                logger.exception("[workflow] Full traceback:")
-                # Collect error for aggregation - do NOT store in results
-                agent_errors.append(
-                    {
-                        "agent": "project_configuration_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
-                )
-                # Failed agents contribute zero to statistics
-                agent_stats.append(create_zero_usage_statistics())
-        else:
-            logger.info(
-                "[workflow] project_configuration_agent is disabled, skipping for {}",
-                codebase_metadata.codebase_name,
-            )
-            # Disabled agents contribute zero to statistics
-            agent_stats.append(create_zero_usage_statistics())
-
-        # Step 2: Development Workflow Agent (depends on Step 1)
-        if "development_workflow_agent" in temporal_agents:
-            try:
-                logger.info(
-                    "[workflow] Running development_workflow_agent for {}",
-                    codebase_metadata.codebase_name,
-                )
-                config_context = (
-                    f"Project configuration: {results['project_configuration']}"
-                    if results["project_configuration"]
-                    else ""
-                )
-                dev_workflow_deps = AgentDependencies(
-                    repository_qualified_name=repository_qualified_name,
-                    codebase_metadata=codebase_metadata,
-                    repository_workflow_run_id=repository_workflow_run_id,
-                    agent_name="development_workflow_agent",
-                )
-                logger.debug(
-                    "[workflow] Calling temporal_agents['development_workflow_agent'].run()..."
+                    "[workflow] Calling temporal_agents['development_workflow_guide'].run()..."
                 )
                 workflow_result = await temporal_agents[
-                    "development_workflow_agent"
+                    "development_workflow_guide"
                 ].run(
-                    f"Analyze development workflow for {codebase_metadata.codebase_path}. {config_context}",
-                    deps=dev_workflow_deps,
+                    (
+                        f"Analyze engineering workflow for {codebase_metadata.codebase_path} "
+                        f"using language {codebase_metadata.codebase_programming_language} "
+                        f"and package manager {codebase_metadata.codebase_package_manager}"
+                    ),
+                    deps=engineering_workflow_deps,
+                    usage_limits=get_cached_usage_limits(),
                 )
-                logger.debug("[workflow] development_workflow_agent.run() returned")
-                results["development_workflow"] = (
-                    workflow_result.output.model_dump()
-                    if isinstance(workflow_result.output, DevelopmentWorkflow)
-                    else workflow_result.output
+                logger.debug(
+                    "[workflow] development_workflow_guide.run() returned"
                 )
+
+                raw_engineering_workflow = workflow_result.output.model_dump(mode="json")
+                normalized_workflow = normalize_engineering_workflow(
+                    raw_engineering_workflow
+                )
+                results["engineering_workflow"] = normalized_workflow.model_dump()
+
+                # Emit completion event for deterministic progress tracking.
+                await workflow.execute_activity(
+                    EngineeringWorkflowCompletionActivity.emit_engineering_workflow_completion,
+                    args=[
+                        repository_qualified_name,
+                        repository_workflow_run_id,
+                        codebase_metadata.codebase_name,
+                        codebase_metadata.codebase_programming_language,
+                    ],
+                    start_to_close_timeout=timedelta(seconds=30),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
+
                 logger.info(
-                    "[workflow] development_workflow_agent completed for {}",
+                    "[workflow] development_workflow_guide completed for {}",
                     codebase_metadata.codebase_name,
                 )
-                # Extract usage statistics from successful agent run
                 agent_stats.append(extract_usage_statistics(workflow_result.usage()))
             except Exception as e:
                 logger.error(
-                    "[workflow] development_workflow_agent failed for {}: {}",
+                    "[workflow] development_workflow_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
                     e,
                 )
                 logger.exception("[workflow] Full traceback:")
-                # Collect error for aggregation - do NOT store in results
-                agent_errors.append(
-                    {
-                        "agent": "development_workflow_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                engineering_error: dict[str, object] = {
+                    "agent": "development_workflow_guide",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                engineering_error = _enrich_agent_error_with_model_details(
+                    engineering_error,
+                    e,
+                    "development_workflow_guide",
+                    codebase_metadata.codebase_name,
                 )
-                # Failed agents contribute zero to statistics
+                agent_errors.append(engineering_error)
                 agent_stats.append(create_zero_usage_statistics())
         else:
             logger.info(
-                "[workflow] development_workflow_agent is disabled, skipping for {}",
+                "[workflow] development_workflow_guide is disabled, skipping for {}",
                 codebase_metadata.codebase_name,
             )
-            # Disabled agents contribute zero to statistics
             agent_stats.append(create_zero_usage_statistics())
 
-        # Step 3: Dependency Guide Agent
-        if "dependency_guide_agent" in temporal_agents:
+        # Step 2: Dependency Guide
+        if "dependency_guide" in temporal_agents:
             try:
                 # Fetch dependency names from PostgreSQL via activity (deterministic)
                 dependency_names: list[str] = await workflow.execute_activity(
@@ -278,11 +270,12 @@ class CodebaseAgentWorkflow:
                             repository_qualified_name=repository_qualified_name,
                             codebase_metadata=codebase_metadata,
                             repository_workflow_run_id=repository_workflow_run_id,
-                            agent_name="dependency_guide_agent_item",
+                            agent_name="dependency_guide_item",
                         )
-                        result = await temporal_agents["dependency_guide_agent"].run(
+                        result = await temporal_agents["dependency_guide"].run(
                             f"Document the library '{dep_name}' for programming language {codebase_metadata.codebase_programming_language}",
                             deps=deps,
+                            usage_limits=get_cached_usage_limits(),
                         )
 
                         entry_dict = (
@@ -328,56 +321,62 @@ class CodebaseAgentWorkflow:
                     agent_stats.append(create_zero_usage_statistics())
 
                 logger.info(
-                    "[workflow] dependency_guide_agent completed for {}: {} entries",
+                    "[workflow] dependency_guide completed for {}: {} entries",
                     codebase_metadata.codebase_name,
                     len(dependency_entries),
                 )
             except Exception as e:
                 logger.error(
-                    "[workflow] dependency_guide_agent failed for {}: {}",
+                    "[workflow] dependency_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
                     e,
                 )
                 logger.exception("[workflow] Full traceback:")
-                agent_errors.append(
-                    {
-                        "agent": "dependency_guide_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                dependency_error: dict[str, object] = {
+                    "agent": "dependency_guide",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                dependency_error = _enrich_agent_error_with_model_details(
+                    dependency_error,
+                    e,
+                    "dependency_guide",
+                    codebase_metadata.codebase_name,
                 )
+                agent_errors.append(dependency_error)
                 agent_stats.append(create_zero_usage_statistics())
         else:
             logger.info(
-                "[workflow] dependency_guide_agent is disabled, skipping for {}",
+                "[workflow] dependency_guide is disabled, skipping for {}",
                 codebase_metadata.codebase_name,
             )
             agent_stats.append(create_zero_usage_statistics())
 
-        # Step 4: Business Logic Domain Agent
-        if "business_logic_domain_agent" in temporal_agents:
+        # Step 4: Business Domain Guide
+        if "business_domain_guide" in temporal_agents:
             try:
                 logger.info(
-                    "[workflow] Running business_logic_domain_agent for {}",
+                    "[workflow] Running business_domain_guide for {}",
                     codebase_metadata.codebase_name,
                 )
                 business_logic_deps = AgentDependencies(
                     repository_qualified_name=repository_qualified_name,
                     codebase_metadata=codebase_metadata,
                     repository_workflow_run_id=repository_workflow_run_id,
-                    agent_name="business_logic_domain_agent",
+                    agent_name="business_domain_guide",
                 )
                 logger.debug(
-                    "[workflow] Calling temporal_agents['business_logic_domain_agent'].run()..."
+                    "[workflow] Calling temporal_agents['business_domain_guide'].run()..."
                 )
                 domain_result = await temporal_agents[
-                    "business_logic_domain_agent"
+                    "business_domain_guide"
                 ].run(
                     f"Analyze business logic domain for {codebase_metadata.codebase_path}",
                     deps=business_logic_deps,
+                    usage_limits=get_cached_usage_limits(),
                 )
-                logger.debug("[workflow] business_logic_domain_agent.run() returned")
+                logger.debug("[workflow] business_domain_guide.run() returned")
                 # Post-process to enrich with data model files from PostgreSQL
                 business_logic_result = await workflow.execute_activity(
                     BusinessLogicPostProcessActivity.post_process_business_logic,
@@ -391,32 +390,37 @@ class CodebaseAgentWorkflow:
                 )
                 results["business_logic_domain"] = business_logic_result
                 logger.info(
-                    "[workflow] business_logic_domain_agent completed for {}",
+                    "[workflow] business_domain_guide completed for {}",
                     codebase_metadata.codebase_name,
                 )
                 # Extract usage statistics from successful agent run
                 agent_stats.append(extract_usage_statistics(domain_result.usage()))
             except Exception as e:
                 logger.error(
-                    "[workflow] business_logic_domain_agent failed for {}: {}",
+                    "[workflow] business_domain_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
                     e,
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append(
-                    {
-                        "agent": "business_logic_domain_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                business_logic_error: dict[str, object] = {
+                    "agent": "business_domain_guide",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                business_logic_error = _enrich_agent_error_with_model_details(
+                    business_logic_error,
+                    e,
+                    "business_domain_guide",
+                    codebase_metadata.codebase_name,
                 )
+                agent_errors.append(business_logic_error)
                 # Failed agents contribute zero to statistics
                 agent_stats.append(create_zero_usage_statistics())
         else:
             logger.info(
-                "[workflow] business_logic_domain_agent is disabled, skipping for {}",
+                "[workflow] business_domain_guide is disabled, skipping for {}",
                 codebase_metadata.codebase_name,
             )
             # Disabled agents contribute zero to statistics
@@ -465,14 +469,19 @@ class CodebaseAgentWorkflow:
                 )
                 logger.exception("[workflow] Full traceback:")
                 # Collect error for aggregation - do NOT store in results
-                agent_errors.append(
-                    {
-                        "agent": "app_interfaces_agent",
-                        "codebase": codebase_metadata.codebase_name,
-                        "error": str(e),
-                        "traceback": traceback.format_exc(),
-                    }
+                app_interfaces_error: dict[str, object] = {
+                    "agent": "app_interfaces_agent",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+                app_interfaces_error = _enrich_agent_error_with_model_details(
+                    app_interfaces_error,
+                    e,
+                    "app_interfaces_agent",
+                    codebase_metadata.codebase_name,
                 )
+                agent_errors.append(app_interfaces_error)
         else:
             logger.info(
                 "[workflow] app_interfaces_agent skipped (language: {})",
