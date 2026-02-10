@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.67.4](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.67.3...code-confluence-flow-bridge-v0.67.4) (2026-02-10)
+
+
+### Bug Fixes
+
+* **flow-bridge:** replace loguru with workflow.logger in workflow outbound interceptor ([3c9fa9e](https://github.com/unoplat/unoplat-code-confluence/commit/3c9fa9e20cc04bba4e011bf32b4f10f0e67c97ee))
+
 ## [0.67.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.67.2...code-confluence-flow-bridge-v0.67.3) (2026-01-29)
 
 
