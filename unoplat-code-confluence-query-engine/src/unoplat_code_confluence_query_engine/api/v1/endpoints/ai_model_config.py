@@ -462,10 +462,11 @@ async def codex_oauth_authorize(
     callback_ready = getattr(request.app.state, "codex_callback_server_ready", False)
     if not callback_ready:
         callback_port = request.app.state.settings.codex_openai_callback_port
+        callback_hosts = request.app.state.settings.codex_openai_callback_hosts
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
-                f"Codex OAuth callback listener is unavailable on localhost:{callback_port}. "
+                f"Codex OAuth callback listener is unavailable on {callback_hosts}:{callback_port}. "
                 "Ensure port is free and restart query-engine."
             ),
         )
