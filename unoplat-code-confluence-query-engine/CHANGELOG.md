@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.29.0...unoplat-code-confluence-query-engine-v0.29.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **agent-names:** simplify agent names ([0197723](https://github.com/unoplat/unoplat-code-confluence/commit/0197723b49549067ad930bf3a74cf9adc3da800f))
+* **networking:** networking fixes for callback listener ([4edec57](https://github.com/unoplat/unoplat-code-confluence/commit/4edec57361e84da54b09aa4d1066467d65361dc9))
+
 ## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.28.0...unoplat-code-confluence-query-engine-v0.29.0) (2026-02-09)
 
 
