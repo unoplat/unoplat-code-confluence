@@ -24,7 +24,7 @@ class EngineeringWorkflowCompletionActivity:
         codebase_name: str,
         programming_language: str,
     ) -> None:
-        """Append a single completion event for engineering_development_workflow_agent."""
+        """Append a single completion event for development_workflow_guide."""
         if "/" not in repository_qualified_name:
             logger.warning(
                 "[engineering_workflow_completion] Invalid repository_qualified_name: {}",
@@ -39,9 +39,9 @@ class EngineeringWorkflowCompletionActivity:
             owner_name=owner_name,
             repo_name=repo_name,
             codebase_name=codebase_name,
-            agent_name="engineering_development_workflow_agent",
+            agent_name="development_workflow_guide",
             phase="result",
-            message="Engineering workflow completed",
+            message="Development workflow guide completed",
             completion_namespaces=set(get_completion_namespaces(programming_language)),
             repository_workflow_run_id=repository_workflow_run_id,
         )

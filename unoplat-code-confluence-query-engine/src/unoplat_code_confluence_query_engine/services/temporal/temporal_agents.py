@@ -21,7 +21,7 @@ from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
     SEARCH_MODE_BUILTIN_WEB_SEARCH,
     SEARCH_MODE_EXA,
     get_engineering_citation_instructions,
-    per_language_engineering_development_workflow_prompt,
+    per_language_development_workflow_prompt,
 )
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
@@ -79,9 +79,9 @@ def _get_exa_mcp_server(toolset_id: str):
 class AgentType(Enum):
     """Enum for available agent types."""
 
-    ENGINEERING_DEVELOPMENT_WORKFLOW = "engineering_development_workflow_agent"
-    DEPENDENCY_GUIDE = "dependency_guide_agent"
-    BUSINESS_LOGIC_DOMAIN = "business_logic_domain_agent"
+    DEVELOPMENT_WORKFLOW = "development_workflow_guide"
+    DEPENDENCY = "dependency_guide"
+    BUSINESS_DOMAIN = "business_domain_guide"
 
 
 def _get_web_search_builtin_tools(
@@ -126,7 +126,7 @@ def _get_dependency_guide_instructions(search_mode: str) -> str:
 2. If no official documentation source is available, mark as internal dependency
 3. Return the DependencyGuideEntry"""
 
-    return f"""You are the Dependency Guide Agent.
+    return f"""You are the Dependency Guide.
 
 Goal: Generate a concise documentation entry for a single library/package dependency.
 
@@ -167,16 +167,16 @@ For INTERNAL/PRIVATE dependencies (no docs found):
 # Stable, per-agent Exa MCP toolset IDs for Temporal activity naming.
 EXA_TOOLSET_IDS = {
     # Reuse the existing workflow Exa toolset ID so current MCP routing/credentials remain valid.
-    AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW: "exa__development_workflow_agent",
-    AgentType.DEPENDENCY_GUIDE: "exa__dependency_guide_agent",
+    AgentType.DEVELOPMENT_WORKFLOW: "exa__development_workflow_guide",
+    AgentType.DEPENDENCY: "exa__dependency_guide",
 }
 
 
 # Toggle agents here - comment/uncomment to enable/disable
 ENABLED_AGENTS: set[AgentType] = {
-    AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW,
-    AgentType.DEPENDENCY_GUIDE,
-    AgentType.BUSINESS_LOGIC_DOMAIN,
+    AgentType.DEVELOPMENT_WORKFLOW,
+    AgentType.DEPENDENCY,
+    AgentType.BUSINESS_DOMAIN,
 }
 
 
@@ -257,7 +257,7 @@ def create_engineering_development_workflow_agent(
         Engineering development workflow agent instance
     """
     citation_instructions = get_engineering_citation_instructions(search_mode)
-    exa_id = EXA_TOOLSET_IDS[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW]
+    exa_id = EXA_TOOLSET_IDS[AgentType.DEVELOPMENT_WORKFLOW]
     tools = [
         Tool(get_directory_tree, takes_ctx=True, max_retries=3),
         Tool(read_file_content, takes_ctx=True, max_retries=3),
@@ -266,7 +266,7 @@ def create_engineering_development_workflow_agent(
 
     agent = Agent(
         model,
-        name="engineering_development_workflow_agent",
+        name="development_workflow_guide",
         instructions=f"<role>Engineering Workflow Synthesizer</role>\n{citation_instructions}",
         deps_type=AgentDependencies,
         toolsets=[_get_exa_mcp_server(exa_id)] if include_exa_toolset else [],
@@ -279,9 +279,9 @@ def create_engineering_development_workflow_agent(
     )
     agent.output_validator(validate_engineering_development_workflow_output)
     # Attach dynamic per-language instructions (always enabled)
-    agent.instructions(per_language_engineering_development_workflow_prompt)
+    agent.instructions(per_language_development_workflow_prompt)
 
-    logger.debug("Dynamic instructions attached to engineering_development_workflow_agent")
+    logger.debug("Dynamic instructions attached to development_workflow_guide")
 
     return agent
 
@@ -312,11 +312,11 @@ def create_dependency_guide_agent(
     # - purpose is 1-2 lines (not empty/too short)
     # - usage contains exactly 2 sentences
     # - name matches the input dependency name
-    exa_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY_GUIDE]
+    exa_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY]
     dependency_toolsets = [_get_exa_mcp_server(exa_id)] if include_exa_toolset else []
     agent = Agent(
         model,
-        name="dependency_guide_agent",
+        name="dependency_guide",
         instructions=_get_dependency_guide_instructions(search_mode),
         deps_type=AgentDependencies,
         toolsets=dependency_toolsets,
@@ -347,8 +347,8 @@ def create_business_logic_domain_agent(
     """
     agent = Agent(
         model,
-        name="business_logic_domain_agent",
-        instructions=r"""You are the Business Logic Domain Agent.
+        name="business_domain_guide",
+        instructions=r"""You are the Business Domain Guide.
 
 Goal: Analyze data models across this codebase and return a 2-4 sentence description of the dominant business logic domain.
 
@@ -460,8 +460,8 @@ def create_temporal_agents(
     )
 
     # Conditionally create agents based on ENABLED_AGENTS
-    if AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW in ENABLED_AGENTS:
-        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW]
+    if AgentType.DEVELOPMENT_WORKFLOW in ENABLED_AGENTS:
+        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.DEVELOPMENT_WORKFLOW]
         engineering_agent = create_engineering_development_workflow_agent(
             model,
             model_settings,
@@ -481,17 +481,17 @@ def create_temporal_agents(
         if use_exa_tools:
             engineering_toolset_activity_config[exa_toolset_id] = toolset_activity_config
             engineering_toolset_tool_activity_config[exa_toolset_id] = {}
-        agents[AgentType.ENGINEERING_DEVELOPMENT_WORKFLOW.value] = TemporalAgent(
+        agents[AgentType.DEVELOPMENT_WORKFLOW.value] = TemporalAgent(
             engineering_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
             toolset_activity_config=engineering_toolset_activity_config,
             tool_activity_config=engineering_toolset_tool_activity_config,
         )
-        logger.info("Created engineering_development_workflow_agent")
+        logger.info("Created development_workflow_guide")
 
-    if AgentType.DEPENDENCY_GUIDE in ENABLED_AGENTS:
-        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY_GUIDE]
+    if AgentType.DEPENDENCY in ENABLED_AGENTS:
+        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY]
         include_exa_dependency_toolset = use_exa_tools
         dependency_guide_agent = create_dependency_guide_agent(
             model,
@@ -506,22 +506,22 @@ def create_temporal_agents(
             dependency_toolset_activity_config[exa_toolset_id] = toolset_activity_config
             dependency_tool_activity_config[exa_toolset_id] = {}
 
-        agents[AgentType.DEPENDENCY_GUIDE.value] = TemporalAgent(
+        agents[AgentType.DEPENDENCY.value] = TemporalAgent(
             dependency_guide_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
             toolset_activity_config=dependency_toolset_activity_config,
             tool_activity_config=dependency_tool_activity_config,
         )
-        logger.info("Created dependency_guide_agent")
+        logger.info("Created dependency_guide")
 
-    if AgentType.BUSINESS_LOGIC_DOMAIN in ENABLED_AGENTS:
+    if AgentType.BUSINESS_DOMAIN in ENABLED_AGENTS:
         domain_agent = create_business_logic_domain_agent(
             model,
             model_settings,
             builtin_tools=builtin_web_search_tools if use_builtin_web_search else None,
         )
-        agents[AgentType.BUSINESS_LOGIC_DOMAIN.value] = TemporalAgent(
+        agents[AgentType.BUSINESS_DOMAIN.value] = TemporalAgent(
             domain_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
@@ -533,7 +533,7 @@ def create_temporal_agents(
                 }
             },
         )
-        logger.info("Created business_logic_domain_agent")
+        logger.info("Created business_domain_guide")
 
     logger.info("Enabled agents: {}", list(agents.keys()))
     return agents
