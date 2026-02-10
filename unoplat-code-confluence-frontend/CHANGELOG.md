@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.43.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.43.0...unoplat-code-confluence-frontend-v1.43.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **assets:** new brand assets ([bafcf43](https://github.com/unoplat/unoplat-code-confluence/commit/bafcf4368c206dc17e2fd6e6e841bf356250e1ea))
+* **frontend:** update sidebar logo imports and add "Made with love from India" footer ([d0dd6d4](https://github.com/unoplat/unoplat-code-confluence/commit/d0dd6d40a46bd9202e20ae6e69da3e621d8d2dc8))
+* **timeout:** increase axios client timeout from 10s to 120s ([938b354](https://github.com/unoplat/unoplat-code-confluence/commit/938b354f4c9b88e1a8061b32f7aa0355eebbbd1b))
+
 ## [1.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.42.0...unoplat-code-confluence-frontend-v1.43.0) (2026-02-09)
 
 
