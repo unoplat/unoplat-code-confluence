@@ -12,7 +12,8 @@ import {
   BreadcrumbSeparator,
 } from "../ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import { Home, Github, BookOpen } from "lucide-react";
+import { Home, Github, BookOpen, Heart } from "lucide-react";
+import indiaIcon from "@/assets/india-icon.png";
 import { ModeToggle } from "./ModeToggle";
 import { useAuthData } from "@/hooks/use-auth-data";
 
@@ -178,6 +179,21 @@ export function Layout(): React.ReactElement {
                 <Outlet />
               </NuqsAdapter>
             </div>
+            <Separator className="bg-transparent" />
+            <footer className="flex shrink-0 items-center justify-center gap-1.5 px-4 py-3">
+              <span className="text-muted-foreground font-serif text-sm tracking-wide">
+                Made with
+              </span>
+              <Heart
+                size={14}
+                className="fill-red-500 text-red-500"
+                aria-label="love"
+              />
+              <span className="text-muted-foreground font-serif text-sm tracking-wide">
+                from India
+              </span>
+              <img src={indiaIcon} alt="India" className="h-4 w-auto" />
+            </footer>
           </SidebarInset>
         </div>
       </SidebarProvider>

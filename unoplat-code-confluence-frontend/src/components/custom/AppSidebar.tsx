@@ -28,8 +28,8 @@ import {
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { NavUser } from "./NavUser";
-import codeConfluenceLogoLight from "@/assets/unoplat-code-confluence-logo-light.svg";
-import codeConfluenceLogoDark from "@/assets/unoplat-code-confluence-logo-dark.svg";
+import codeConfluenceLogoLight from "@/assets/code-confluence-logo-light.svg";
+import codeConfluenceLogoDark from "@/assets/code-confluence-logo-dark.svg";
 
 export function AppSidebar(): React.ReactElement {
   const { user } = useAuthStore();

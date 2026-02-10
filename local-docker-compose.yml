@@ -127,7 +127,7 @@ services:
       - temporal
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
       - TEMPORAL_CSRF_COOKIE_INSECURE=True
     image: docker.io/temporalio/ui:2.43.3
     networks:
@@ -148,6 +148,7 @@ services:
       - TOKEN_ENCRYPTION_KEY="0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
       - REPOSITORIES_BASE_PATH=/opt/unoplat/repositories
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
+      - LOG_DIR=/tmp/logs
       - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
       - GITHUB_APP_MANIFEST_TEMPLATE_PATH=/opt/unoplat/github-app-config/manifest-template.json
       - GITHUB_APP_NAME=Unoplat Code Confluence
@@ -161,6 +162,7 @@ services:
       - "8000:8000"
     volumes:
       - repositories_data:/opt/unoplat/repositories
+      - flow_bridge_logs:/app/logs
       - ./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/config/github-app:/opt/unoplat/github-app-config:ro
     networks:
       - temporal-network
@@ -172,6 +174,7 @@ services:
       context: ./unoplat-code-confluence-query-engine
       dockerfile: Dockerfile
     environment:
+      - TEMPORAL_ADDRESS=temporal:7233
       - DB_HOST=postgresql
       - DB_PORT=5432
       - DB_USER=postgres
@@ -179,16 +182,19 @@ services:
       - DB_NAME=code_confluence
       - TOKEN_ENCRYPTION_KEY=0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ=
       - CODEX_OPENAI_CALLBACK_PORT=1455
+      - CODEX_OPENAI_CALLBACK_HOSTS=0.0.0.0
       - CODEX_OPENAI_REDIRECT_URI=http://localhost:1455/auth/callback
     ports:
-      - "8001:8000"
-      - "1455:1455"
+      - "127.0.0.1:8001:8000"
+      - "127.0.0.1:1455:1455"
     volumes:
       - query_engine_logs:/app/logs
       - repositories_data:/opt/unoplat/repositories
     networks:
       - temporal-network
     depends_on:
+      temporal:
+        condition: service_healthy
       postgresql:
         condition: service_healthy
 
@@ -219,4 +225,6 @@ volumes:
   repositories_data:
     driver: local
   query_engine_logs:
+    driver: local
+  flow_bridge_logs:
     driver: local

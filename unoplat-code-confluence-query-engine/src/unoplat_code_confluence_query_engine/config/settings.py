@@ -75,6 +75,14 @@ class EnvironmentSettings(BaseSettings):
         ge=1,
         le=65535,
     )
+    codex_openai_callback_hosts: str = Field(
+        default="127.0.0.1,::1",
+        alias="CODEX_OPENAI_CALLBACK_HOSTS",
+        description=(
+            "Comma-separated host addresses to bind for Codex OAuth callback listener "
+            "(use 0.0.0.0 when running in Docker with published ports)"
+        ),
+    )
     codex_openai_redirect_uri: str = Field(
         default="http://localhost:1455/auth/callback",
         alias="CODEX_OPENAI_REDIRECT_URI",

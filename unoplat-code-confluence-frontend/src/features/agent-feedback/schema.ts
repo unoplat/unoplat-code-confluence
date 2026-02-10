@@ -40,9 +40,9 @@ export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
  * These correspond to the three agents generated in the AGENTS.md workflow
  */
 export const AGENT_IDS = [
-  "project-configuration",
-  "development-workflow",
-  "business-logic",
+  "development-workflow-guide",
+  "dependency-guide",
+  "business-domain-guide",
 ] as const;
 
 export type AgentId = (typeof AGENT_IDS)[number];
@@ -51,9 +51,9 @@ export type AgentId = (typeof AGENT_IDS)[number];
  * Display labels for agent IDs
  */
 export const AGENT_ID_LABELS: Record<AgentId, string> = {
-  "project-configuration": "Project Configuration",
-  "development-workflow": "Development Workflow",
-  "business-logic": "Business Logic",
+  "development-workflow-guide": "Development Workflow Guide",
+  "dependency-guide": "Dependency Guide",
+  "business-domain-guide": "Business Domain Guide",
 };
 
 /**

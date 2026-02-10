@@ -14,7 +14,7 @@ from unoplat_code_confluence_query_engine.services.temporal.service_registry imp
 
 
 class DependencyGuideCompletionActivity:
-    """Activity for emitting a single dependency_guide_agent completion event."""
+    """Activity for emitting a single dependency_guide completion event."""
 
     @activity.defn
     async def emit_dependency_guide_completion(
@@ -24,7 +24,7 @@ class DependencyGuideCompletionActivity:
         codebase_name: str,
         programming_language: str,
     ) -> None:
-        """Append a single completion event for dependency_guide_agent."""
+        """Append a single completion event for dependency_guide."""
         if "/" not in repository_qualified_name:
             logger.warning(
                 "[dependency_guide_completion] Invalid repository_qualified_name: {}",
@@ -39,7 +39,7 @@ class DependencyGuideCompletionActivity:
             owner_name=owner_name,
             repo_name=repo_name,
             codebase_name=codebase_name,
-            agent_name="dependency_guide_agent",
+            agent_name="dependency_guide",
             phase="result",
             message="Dependency guide completed",
             completion_namespaces=set(get_completion_namespaces(programming_language)),
