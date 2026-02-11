@@ -14,7 +14,6 @@ import defaultMdxComponents from "fumadocs-ui/mdx";
 import { baseOptions } from "@/lib/layout.shared";
 import { RoadmapCard } from "@/components/roadmap-card";
 import { RoadmapSection } from "@/components/roadmap-section";
-import { BrainCircuit } from "lucide-react";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 import { staticFunctionMiddleware } from "@tanstack/start-static-server-functions";
@@ -47,7 +46,7 @@ export const Route = createFileRoute("/docs/$")({
   },
 });
 
-const clientLoader = browserCollections.docs.createClientLoader({
+const clientLoader = browserCollections.docs.createClientLoader<Record<string, never>>({
   id: "docs",
   component({ toc, frontmatter, default: MDX }) {
     return (
@@ -93,17 +92,11 @@ function Page() {
           <Link
             to="/docs/$"
             params={{ _splat: "" }}
-            className="flex items-center gap-2 p-3 mb-2 bg-fd-accent/50 hover:bg-fd-accent rounded-lg border border-fd-border transition-colors"
+            className="flex items-center gap-2 p-3 mb-2 hover:bg-fd-accent/50 rounded-lg transition-colors"
           >
-            <BrainCircuit className="h-5 w-5 text-fd-primary" />
-            <div>
-              <div className="font-semibold text-fd-foreground">
-                Unoplat Code Confluence
-              </div>
-              <div className="text-xs text-fd-muted-foreground">
-                Universal Code Context Engine
-              </div>
-            </div>
+            <span className="font-semibold text-fd-foreground">
+              Unoplat Code Confluence
+            </span>
           </Link>
         ),
         tabs: false,
