@@ -2,11 +2,12 @@ import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import { Linkedin } from "lucide-react";
 import DiscordIcon from "@/assets/brands/discord-icon-svgrepo-com.svg?react";
 import XIcon from "@/assets/brands/x-icon.svg?react";
+import { BrandLogo } from "@/components/brand-logo";
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: "Unoplat Code Confluence",
+      title: <BrandLogo className="h-6 w-auto" />,
     },
     githubUrl: "https://github.com/unoplat/unoplat-code-confluence",
     links: [
