@@ -12,7 +12,9 @@
 export interface BannerConfig {
   /** Whether to show the banner */
   enabled: boolean;
-  /** Unique ID - change this to reset dismissed state for all users */
+  /** Unique ID - change this to reset dismissed state for all users.
+   *  IMPORTANT: Use dashes, not dots (e.g., "v0-24-0" not "v0.24.0").
+   *  Dots create invalid CSS class selectors that break sidebar layout. */
   id: string;
   /** The message to display in the banner */
   message: string;
@@ -26,7 +28,7 @@ export interface BannerConfig {
 
 export const bannerConfig: BannerConfig = {
   enabled: true,
-  id: "v0.24.0",
+  id: "v0-24-0",
   message: "Your AI agents now know exactly which dependencies to use. ",
   linkUrl: "/changelog/v0.24.0",
   linkText: " See what's new!",

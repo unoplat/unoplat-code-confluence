@@ -1,0 +1,19 @@
+---
+title: "Release v0.19.1"
+description: "Bug fixes for provider state management, shared axios clients, Neo4j merge conflicts, and GitHub Enterprise support"
+version: "0.19.1"
+releaseDate: "2025-11-25"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.19.1"
+---
+
+## Highlights
+
+This patch release addresses several important stability issues across the frontend and backend, including a major migration from Zustand to TanStack Query for provider state management and fixes for Neo4j graph merge conflicts.
+
+## Bug Fixes
+
+- **Provider state management overhaul** — Migrated from Zustand store to custom hooks based on TanStack Query for managing provider server state across all related sections, replacing hardcoded child paths with dynamic TanStack Router params
+- **Shared axios client extraction** — Extracted axios clients to a shared module and reduced stale time and fetch-on-mount behavior for the job status dialog
+- **Neo4j merge conflict fix** — Updated `CodeConfluenceGitRepository` node creation to avoid Cypher merge conflicts in the graph database
+- **Provider-based user details** — User details are now fetched based on the active repository provider state, improving reliability
+- **GitHub Enterprise and data residency** — Updated support for GitHub Enterprise Server and data residency configurations
