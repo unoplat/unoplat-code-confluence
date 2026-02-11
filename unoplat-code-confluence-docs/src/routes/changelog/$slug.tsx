@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
+import { ImageZoom } from "fumadocs-ui/components/image-zoom";
 
 import { formatReleaseDate } from "@/lib/changelog-utils";
 import { baseOptions } from "@/lib/layout.shared";
@@ -99,7 +100,19 @@ const clientLoader = browserCollections.changelog.createClientLoader<Record<stri
           </section>
         )}
         <section className="prose prose-fd max-w-none">
-          <MDX components={defaultMdxComponents} />
+          <MDX
+            components={{
+              ...defaultMdxComponents,
+              img: (props) => (
+                <ImageZoom
+                  {...props}
+                  loading="lazy"
+                  decoding="async"
+                  className="rounded-lg border border-fd-border my-4"
+                />
+              ),
+            }}
+          />
         </section>
       </>
     );
