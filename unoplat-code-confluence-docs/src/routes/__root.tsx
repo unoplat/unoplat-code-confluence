@@ -14,19 +14,13 @@ import DefaultSearchDialog from "@/components/search-dialog";
 import { bannerConfig } from "@/lib/banner-config";
 
 // Minimal skeleton CSS to prevent FOUC (Flash of Unstyled Content)
-// Matches fumadocs 3-column grid layout with correct colors and dimensions
+// Only html/body rules are kept — layout-specific rules (#nd-docs-layout, #nd-sidebar, etc.)
+// are omitted to avoid ID-level specificity conflicts with Fumadocs hydrated styles.
 const SKELETON_STYLES = `
-html,body{margin:0;min-height:100%;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:hsl(0,0%,96%);color:hsl(0,0%,3.9%)}
+html,body{margin:0;min-height:100%;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,sans-serif}
 body{display:flex;flex-direction:column;min-height:100vh}
-#nd-docs-layout{display:grid;min-height:100dvh;grid-template:"sidebar header toc" "sidebar toc-popover toc" "sidebar main toc" 1fr/268px 1fr 268px}
-#nd-sidebar{grid-area:sidebar;background:hsl(0,0%,94.7%);border-right:1px solid hsla(0,0%,80%,50%)}
-#nd-page{grid-area:main;padding:56px 32px 24px;max-width:900px;margin:0 auto;line-height:1.6}
-#nd-toc{grid-area:toc;padding-top:48px}
-@media(max-width:1280px){#nd-docs-layout{grid-template-columns:268px 1fr 0}#nd-toc{display:none}}
-@media(max-width:768px){#nd-docs-layout{grid-template-columns:0 1fr 0}#nd-sidebar{display:none}}
-@media(prefers-color-scheme:dark){html:not(.light),html:not(.light) body{background:hsl(0,0%,7.04%);color:hsl(0,0%,92%)}html:not(.light) #nd-sidebar{background:hsl(0,0%,9.8%);border-right-color:hsla(0,0%,40%,20%)}}
+@media(prefers-color-scheme:dark){html:not(.light),html:not(.light) body{background:hsl(0,0%,7.04%);color:hsl(0,0%,92%)}}
 html.dark,html.dark body{background:hsl(0,0%,7.04%);color:hsl(0,0%,92%)}
-html.dark #nd-sidebar{background:hsl(0,0%,9.8%);border-right-color:hsla(0,0%,40%,20%)}
 `;
 
 // Static file extensions that should bypass TanStack Router
