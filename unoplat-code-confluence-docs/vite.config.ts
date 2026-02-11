@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import mdx from "fumadocs-mdx/vite";
 import svgr from "vite-plugin-svgr";
+import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 export default defineConfig({
   server: {
@@ -86,5 +87,30 @@ export default defineConfig({
       },
     }),
     react(),
+    ViteImageOptimizer({
+      test: /\.(jpe?g|png|tiff|webp|avif)$/i,
+      includePublic: true,
+      logStats: true,
+      cache: true,
+      // SVGs excluded from test regex — already optimized by vite-plugin-svgr
+      png: {
+        quality: 82,
+        compressionLevel: 9,
+      },
+      jpeg: {
+        quality: 82,
+        progressive: true,
+        mozjpeg: true,
+      },
+      webp: {
+        lossless: false,
+        quality: 82,
+        smartSubsample: true,
+      },
+      avif: {
+        lossless: false,
+        quality: 75,
+      },
+    }),
   ],
 });
