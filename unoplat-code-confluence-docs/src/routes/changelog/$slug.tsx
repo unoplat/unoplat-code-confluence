@@ -88,7 +88,7 @@ export const Route = createFileRoute("/changelog/$slug")({
   },
 });
 
-const clientLoader = browserCollections.changelog.createClientLoader({
+const clientLoader = browserCollections.changelog.createClientLoader<Record<string, never>>({
   id: "changelog",
   component({ toc = [], default: MDX }) {
     return (
