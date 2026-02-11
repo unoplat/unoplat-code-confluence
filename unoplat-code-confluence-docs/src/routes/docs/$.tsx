@@ -60,6 +60,8 @@ const clientLoader = browserCollections.docs.createClientLoader<Record<string, n
               img: (props) => (
                 <ImageZoom
                   {...props}
+                  loading="lazy"
+                  decoding="async"
                   className="rounded-lg border border-fd-border my-4"
                 />
               ),
