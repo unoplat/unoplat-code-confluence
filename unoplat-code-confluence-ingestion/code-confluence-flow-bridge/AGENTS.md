@@ -3,20 +3,21 @@
 ## Build/Lint/Test Commands
 
 ```bash
+# Install
+uv sync
+
 # Development
-task dev                          # Start dependencies + run FastAPI
-task sync                         # Install dependencies with uv
+uv run fastapi dev
 
 # Testing
-task test                         # Run all tests with coverage
+uv run --python 3.13 --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v
 uv run --group test pytest tests/path/to/test_file.py::test_function_name  # Single test
 
-# Code Quality
-task lint                         # Run ruff linter
-task lint-fix                     # Auto-fix lint issues
-task typecheck                    # Run basedpyright type checker
-task format                       # Format code with ruff
-task code-quality                 # Run all checks (lint + typecheck + schema validation)
+# Lint
+uv run ruff check src/
+
+# Type check
+uv run --group dev basedpyright src/
 ```
 
 ## Code Style Guidelines
@@ -38,6 +39,36 @@ task code-quality                 # Run all checks (lint + typecheck + schema va
 **Testing**: Use `uv run --group test pytest` for tests. Mark integration tests with `@pytest.mark.integration`. Session-scoped fixtures for async.
 
 **Dependencies**: Use `uv` commands exclusively. Test dependencies in `[dependency-groups]` section. Activate shell: `uv run python`.
+
+## Business Domain Context
+
+This service ingests and analyzes GitHub repositories and codebases, capturing file-level structural signatures, dependency metadata, and package manager details to build a consolidated “code confluence” representation. It models repository and codebase workflows, tracking ingestion and agent-processing runs with statuses, error reports, and issue feedback, alongside GitHub App manifest registration flows.
+
+Key models live under:
+- `src/code_confluence_flow_bridge/models/code_confluence_parsing_models/`
+- `src/code_confluence_flow_bridge/models/github/`
+- `src/code_confluence_flow_bridge/models/workflow/`
+- `src/code_confluence_flow_bridge/github_app/models.py`
+- `src/code_confluence_flow_bridge/models/configuration/settings.py`
+- `src/code_confluence_flow_bridge/engine/programming_language/python/python_source_context.py`
+- `src/code_confluence_flow_bridge/parser/`
+
+## Inbound Interfaces
+
+FastAPI endpoints are defined in:
+- `src/code_confluence_flow_bridge/main.py` (ingestion, repository data, flags, metadata)
+- `src/code_confluence_flow_bridge/github_app/router.py` (GitHub App manifest + webhook)
+- `src/code_confluence_flow_bridge/routers/github_issues/router.py` (issue tracking/feedback)
+
+## Key Dependencies
+
+- OpenTelemetry: `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp`, `opentelemetry-instrumentation-logging`
+- Temporal workflows: `temporalio`
+- API framework: `fastapi`
+- Data validation/settings: `pydantic`, `pydantic-settings`
+- Database: `sqlalchemy`, `sqlmodel`, `asyncpg`, `psycopg2-binary`
+- Logging: `loguru`
+- Parsing/tooling: `tree-sitter-language-pack`, `pyyaml`, `tomlkit`, `requirements-parser`
 
 ## Implementation Workflow
 
