@@ -1,12 +1,12 @@
 # Agent Guidelines
 
 ## Commands
-- **Test all**: `task test` (starts deps, runs tests with coverage, stops deps)
+- **Install**: `uv sync`
+- **Dev server**: `uv run fastapi dev --port 8001`
+- **Test**: `uv run --python 3.13 --group test pytest --cov=src/unoplat_code_confluence_query_engine --cov-report=html:coverage_reports tests/ -v`
+- **Lint**: `uv run ruff check src/`
+- **Type check**: `uv run basedpyright src/`
 - **Test single**: `uv run --group test pytest tests/path/to/test_file.py::test_function_name -v`
-- **Lint**: `task lint` (check) or `task lint-fix` (auto-fix)
-- **Format**: `task format` (ruff formatter)
-- **Type check**: `task typecheck` (basedpyright strict mode)
-- **Dev server**: `task run-query-engine-backend-dev` (port 8001)
 
 ## Code Style
 - **Imports**: Absolute only (no relative), use ruff for ordering (`task lint-fix`)
