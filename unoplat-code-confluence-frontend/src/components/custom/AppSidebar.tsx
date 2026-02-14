@@ -228,7 +228,7 @@ export function AppSidebar(): React.ReactElement {
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild tooltip="Discord Community">
                         <a
-                          href="https://discord.com/channels/1131597983058755675/1169968780953260106"
+                          href="https://discord.gg/qe2nbQMnWB"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
