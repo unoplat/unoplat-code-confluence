@@ -31,14 +31,41 @@ const DEFAULT_PHASE_CONFIG: PhaseConfig = {
 };
 
 export function AgentEventItem({
-  event,
+  item,
 }: AgentEventItemProps): React.ReactElement {
-  const phase = event.phase as PhaseType | null;
+  if (item.type === "tool-pair") {
+    const callConfig = PHASE_CONFIG["tool.call"];
+    const CallIcon = callConfig.icon;
+    const callMessage = item.callEvent.message ?? item.callEvent.event;
+    const resultMessage = item.resultEvent?.message ?? item.resultEvent?.event;
+
+    return (
+      <article className="space-y-1.5 text-xs">
+        <div className="flex items-start gap-2">
+          <CallIcon
+            className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${callConfig.iconClassName}`}
+          />
+          <span className="text-muted-foreground break-all whitespace-pre-wrap">
+            {callMessage}
+          </span>
+        </div>
+        <div className="ml-5">
+          {resultMessage ? (
+            <ToolResultExpander message={resultMessage} />
+          ) : (
+            <span className="text-muted-foreground">Waiting for tool result...</span>
+          )}
+        </div>
+      </article>
+    );
+  }
+
+  const phase = item.event.phase as PhaseType | null;
   const config = phase
     ? (PHASE_CONFIG[phase] ?? DEFAULT_PHASE_CONFIG)
     : DEFAULT_PHASE_CONFIG;
   const Icon = config.icon;
-  const message = event.message ?? event.event;
+  const message = item.event.message ?? item.event.event;
 
   const isToolResult = phase === "tool.result";
 

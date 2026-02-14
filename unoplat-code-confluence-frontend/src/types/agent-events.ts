@@ -27,10 +27,27 @@ export interface ToolResultExpanderProps {
 }
 
 /**
+ * Display model for event timeline rows.
+ * Tool calls/results can be rendered as a single paired item.
+ */
+export type AgentEventDisplayItem =
+  | {
+      type: "single";
+      key: string;
+      event: RepositoryAgentEvent;
+    }
+  | {
+      type: "tool-pair";
+      key: string;
+      callEvent: RepositoryAgentEvent;
+      resultEvent?: RepositoryAgentEvent;
+    };
+
+/**
  * Props for the AgentEventItem component.
  */
 export interface AgentEventItemProps {
-  event: RepositoryAgentEvent;
+  item: AgentEventDisplayItem;
 }
 
 /**
