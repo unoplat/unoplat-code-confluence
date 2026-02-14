@@ -1,3 +1,6 @@
+## Agent Context
+
+Also read `AGENTS.md` in this directory for auto-generated dependency guide, business logic domain map, and app interface inventory. Companion files `business_logic_references.md` and `app_interfaces.md` provide detailed module and endpoint references.
 
 <!-- BACKLOG.MD MCP GUIDELINES START -->
 

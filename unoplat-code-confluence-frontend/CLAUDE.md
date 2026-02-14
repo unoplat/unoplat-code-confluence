@@ -2,30 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Agent Context
 
-## Commands
+Also read `AGENTS.md` in this directory for auto-generated development workflow, Important interfaces,dependency guide, business logic domain map, and code style conventions. Companion file `business_logic_references.md` provides a detailed module-by-module reference.
 
-```bash
-# Install dependencies
-bun install
-
-# Development
-vite              # Start dev server at http://localhost:5173
-
-# Build & Deploy
-vite build        # TypeScript check + production build
-yarn preview      # Preview production build
-
-# Code Quality
-bun eslint .                    # Run ESLint on all files
-bun eslint src/path/to/file.tsx # Run ESLint on individual file
-
-# Task Runner (alternative)
-task dev          # Start development environment
-task build        # Build with dependency tracking
-task docker       # Build and run Docker container
-task outdated     # Review outdated packages (uses bun outdated)
-```
 
 ## Architecture Overview
 
