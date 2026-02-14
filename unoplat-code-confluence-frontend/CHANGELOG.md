@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.43.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.43.1...unoplat-code-confluence-frontend-v1.43.2) (2026-02-14)
+
+
+### Bug Fixes
+
+* **discord-links:** discord links were broken across docs/app/readme ([ad29fa5](https://github.com/unoplat/unoplat-code-confluence/commit/ad29fa5577d2b0f1555304f294896e7a9fd5fcc4))
+* **discord-links:** discord links were broken across docs/app/readme ([43fd793](https://github.com/unoplat/unoplat-code-confluence/commit/43fd7936dd1940b6a4dfe4a2838d252e6ec205ad))
+
 ## [1.43.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.43.0...unoplat-code-confluence-frontend-v1.43.1) (2026-02-10)
 
 
