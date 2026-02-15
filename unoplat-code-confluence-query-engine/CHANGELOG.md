@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.29.1...unoplat-code-confluence-query-engine-v0.30.0) (2026-02-15)
+
+
+### Features
+
+* **query-engine:** add agents-md updater agent with section-scoped tools and tests ([a493c50](https://github.com/unoplat/unoplat-code-confluence/commit/a493c5044474385cffb0eea1e7c77a88c61c33fa))
+* **query-engine:** add POST/GET repository-agent-md-pr endpoints with one-shot semantics ([d4945c3](https://github.com/unoplat/unoplat-code-confluence/commit/d4945c382ab87b955aa4a84924578624478b3de9))
+
 ## [0.29.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.29.0...unoplat-code-confluence-query-engine-v0.29.1) (2026-02-10)
 
 

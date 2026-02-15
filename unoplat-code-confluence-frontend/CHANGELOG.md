@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.43.2...unoplat-code-confluence-frontend-v1.44.0) (2026-02-15)
+
+
+### Features
+
+* **frontend:** add PR creation UI with persisted status ([fc21532](https://github.com/unoplat/unoplat-code-confluence/commit/fc21532b30662a1817e5efabf67775e974b5059e))
+* **frontend:** add tool call/result pairing in agent event display ([1e60ec2](https://github.com/unoplat/unoplat-code-confluence/commit/1e60ec21e06e98f0357128d893a3c2ce643a8c41))
+
 ## [1.43.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.43.1...unoplat-code-confluence-frontend-v1.43.2) (2026-02-14)
 
 
