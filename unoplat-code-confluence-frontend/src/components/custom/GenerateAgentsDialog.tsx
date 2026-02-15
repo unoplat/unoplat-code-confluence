@@ -1,6 +1,7 @@
 import React from "react";
 import {
   keepPreviousData,
+  useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -28,7 +29,13 @@ import { GenerateAgentsPreview } from "@/components/custom/GenerateAgentsPreview
 import { AgentStatisticsDisplay } from "@/components/custom/AgentStatisticsDisplay";
 import { codebasesToMarkdown } from "@/lib/agent-md-to-markdown";
 import { useRepositoryAgentSnapshot } from "@/features/repository-agent-snapshots/hooks";
-import { getRepositoryStatus } from "@/lib/api";
+import type { RepositoryAgentMdPrStatusResponse } from "@/lib/api";
+import {
+  createRepositoryAgentMdPr,
+  getParentWorkflowJobs,
+  getRepositoryAgentMdPrStatus,
+  getRepositoryStatus,
+} from "@/lib/api";
 import { apiToUiErrorReport } from "@/lib/error-utils";
 import { FeedbackDialog } from "@/components/custom/FeedbackDialog";
 import { AgentFeedbackSheet } from "@/features/agent-feedback";
@@ -54,6 +61,21 @@ interface GenerateAgentsDialogProps {
   job: ParentWorkflowJobResponse | null;
 }
 
+function getUnknownErrorMessage(error: unknown): string {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "Failed to publish PR";
+}
+
 /**
  * Dialog for viewing Agent MD generation/update progress and results.
  * This is a view-only component - it does not trigger runs.
@@ -76,6 +98,20 @@ export function GenerateAgentsDialog({
     React.useState<boolean>(false);
   const queryClient = useQueryClient();
 
+  const createPrMutation = useMutation({
+    mutationFn: createRepositoryAgentMdPr,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "repositoryAgentMdPrStatus",
+          job?.repository_owner_name,
+          job?.repository_name,
+          job?.repository_workflow_run_id,
+        ],
+      });
+    },
+  });
+
   // Fresh job lookup from query cache - prevents stale prop issues
   // The job prop is a snapshot from row click; this gets the latest data after invalidation/refetch
   const { data: freshJob } = useQuery<
@@ -84,6 +120,10 @@ export function GenerateAgentsDialog({
     ParentWorkflowJobResponse | undefined
   >({
     queryKey: ["parentWorkflowJobs"],
+    queryFn: async (): Promise<ParentWorkflowJobResponse[]> => {
+      const response = await getParentWorkflowJobs();
+      return response.jobs;
+    },
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 1, // Match the source query's stale time
     select: (jobs) =>
@@ -142,6 +182,32 @@ export function GenerateAgentsDialog({
   const isCompleted = jobStatus === "COMPLETED";
   // ERROR = partial failure (some agents succeeded, some failed)
   const isFailed = jobStatus === "FAILED" || jobStatus === "ERROR";
+
+  // Persisted PR status — query when dialog open + job completed
+  const { data: persistedPrStatus } = useQuery<RepositoryAgentMdPrStatusResponse>({
+    queryKey: [
+      "repositoryAgentMdPrStatus",
+      job?.repository_owner_name,
+      job?.repository_name,
+      job?.repository_workflow_run_id,
+    ],
+    queryFn: () => {
+      if (!job) {
+        return { exists: false, pr_metadata: null };
+      }
+      return getRepositoryAgentMdPrStatus(
+        job.repository_owner_name,
+        job.repository_name,
+        job.repository_workflow_run_id,
+      );
+    },
+    enabled: open && isCompleted && !!job,
+    staleTime: 30_000,
+  });
+
+  const persistedPrResult = persistedPrStatus?.exists
+    ? persistedPrStatus.pr_metadata
+    : null;
 
   // Fetch repository status ONLY when job has failed (to get error details)
   // Electric SQL snapshot does NOT contain error data - must fetch via REST API
@@ -312,13 +378,37 @@ export function GenerateAgentsDialog({
     URL.revokeObjectURL(url);
   };
 
+  const handleCreateOrUpdatePr = (): void => {
+    if (!actualJob || createPrMutation.isPending || persistedPrResult) {
+      return;
+    }
+
+    createPrMutation.mutate({
+      owner_name: actualJob.repository_owner_name,
+      repo_name: actualJob.repository_name,
+      repository_workflow_run_id: actualJob.repository_workflow_run_id,
+    });
+  };
+
+  const handleDialogOpenChange = (nextOpen: boolean): void => {
+    if (!nextOpen) {
+      createPrMutation.reset();
+    }
+    onOpenChange(nextOpen);
+  };
+
+  const prResult = createPrMutation.data ?? persistedPrResult;
+  const prErrorMessage = createPrMutation.isError
+    ? getUnknownErrorMessage(createPrMutation.error)
+    : null;
+
   if (!job) {
     return null;
   }
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="flex max-h-[85vh] flex-col p-6 sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>AGENTS.md</DialogTitle>
@@ -466,29 +556,67 @@ export function GenerateAgentsDialog({
                 ) : null}
               </ButtonGroup>
             ) : isCompleted ? (
-              // Completed state: Show Give Feedback or Track Feedback button
-              // Use actualJob for fresh feedback_issue_url data from cache
-              actualJob?.feedback_issue_url ? (
-                <Button size="sm" variant="outline" asChild>
-                  <a
-                    href={actualJob.feedback_issue_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <ExternalLink className="mr-1.5 h-3 w-3" />
-                    Track Feedback
-                  </a>
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setAgentFeedbackSheetOpen(true)}
-                >
-                  <MessageSquare className="mr-1.5 h-3 w-3" />
-                  Give Feedback
-                </Button>
-              )
+              <div className="flex flex-col gap-2">
+                <ButtonGroup>
+                  {/* Completed state: Show Give Feedback or Track Feedback button */}
+                  {/* Use actualJob for fresh feedback_issue_url data from cache */}
+                  {actualJob?.feedback_issue_url ? (
+                    <Button size="sm" variant="outline" asChild>
+                      <a
+                        href={actualJob.feedback_issue_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="mr-1.5 h-3 w-3" />
+                        Track Feedback
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setAgentFeedbackSheetOpen(true)}
+                    >
+                      <MessageSquare className="mr-1.5 h-3 w-3" />
+                      Give Feedback
+                    </Button>
+                  )}
+
+                  {prResult?.pr_url ? (
+                    <Button size="sm" variant="outline" asChild>
+                      <a
+                        href={prResult.pr_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="mr-1.5 h-3 w-3" />
+                        Open PR
+                      </a>
+                    </Button>
+                  ) : prResult ? (
+                    <Button size="sm" variant="outline" disabled>
+                      No Changes
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCreateOrUpdatePr}
+                      disabled={createPrMutation.isPending}
+                    >
+                      {createPrMutation.isPending
+                        ? "Publishing PR..."
+                        : "Publish PR"}
+                    </Button>
+                  )}
+                </ButtonGroup>
+
+                {(createPrMutation.isError || prResult) && (
+                  <div className="text-muted-foreground text-xs">
+                    {prErrorMessage ?? prResult?.message}
+                  </div>
+                )}
+              </div>
             ) : (
               <div />
             )}

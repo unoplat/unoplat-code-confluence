@@ -1,5 +1,9 @@
 # Code Confluence Flow Bridge - Claude Code Integration Guide
 
+## Agent Context
+
+Also read `AGENTS.md` in this directory for auto-generated dependency guide, business logic domain map, and app interface inventory. Companion files `business_logic_references.md` and `app_interfaces.md` provide detailed module and endpoint references.
+
 ## Project Overview
 
 Code Confluence Flow Bridge is the backend ingestion service for the Unoplat Code Confluence system. It orchestrates repository processing workflows using Temporal, parses code structures using Tree-sitter, and stores results in Neo4j graph and PostgreSQL relational databases.

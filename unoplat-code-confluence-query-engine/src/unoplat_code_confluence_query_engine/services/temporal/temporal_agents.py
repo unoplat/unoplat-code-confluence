@@ -6,7 +6,7 @@ Uses ModelFactory to build models dynamically from database configuration.
 
 from datetime import timedelta
 from enum import Enum
-from typing import Any
+from typing import Literal, TypeAlias, TypedDict
 
 from loguru import logger
 from pydantic_ai import Agent, ModelRetry, Tool
@@ -27,6 +27,10 @@ from unoplat_code_confluence_query_engine.config.settings import EnvironmentSett
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     DependencyGuideEntry,
 )
+from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
+    AgentsMdUpdaterOutput,
+    SectionId,
+)
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
 )
@@ -44,6 +48,11 @@ from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler
 )
 from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
     get_mcp_server_manager,
+)
+from unoplat_code_confluence_query_engine.tools.agents_md_updater_tools import (
+    updater_apply_patch,
+    updater_edit_file,
+    updater_read_file,
 )
 from unoplat_code_confluence_query_engine.tools.get_content_file import (
     read_file_content,
@@ -64,6 +73,20 @@ WEB_SEARCH_BUILTIN_PROVIDER_KEYS = frozenset(
 )
 SEARCH_MODE_NONE = "none"
 
+ToolActivityOverride: TypeAlias = ActivityConfig | Literal[False]
+ToolActivityConfigMap: TypeAlias = dict[str, ToolActivityOverride]
+ToolsetActivityConfigMap: TypeAlias = dict[str, ActivityConfig]
+ToolsetToolActivityConfigMap: TypeAlias = dict[str, ToolActivityConfigMap]
+
+
+class TemporalAgentRegistry(TypedDict, total=False):
+    """Precise registry type for enabled Temporal agents."""
+
+    development_workflow_guide: TemporalAgent[AgentDependencies, EngineeringWorkflow]
+    dependency_guide: TemporalAgent[AgentDependencies, DependencyGuideEntry]
+    business_domain_guide: TemporalAgent[AgentDependencies, str]
+    agents_md_updater: TemporalAgent[AgentDependencies, AgentsMdUpdaterOutput]
+
 
 def _get_exa_mcp_server(toolset_id: str):
     mcp_server = get_mcp_server_manager().get_server_by_name(
@@ -82,6 +105,7 @@ class AgentType(Enum):
     DEVELOPMENT_WORKFLOW = "development_workflow_guide"
     DEPENDENCY = "dependency_guide"
     BUSINESS_DOMAIN = "business_domain_guide"
+    AGENTS_MD_UPDATER = "agents_md_updater"
 
 
 def _get_web_search_builtin_tools(
@@ -105,6 +129,56 @@ def _resolve_search_mode(provider_key: str | None, exa_configured: bool) -> str:
     if provider_key in WEB_SEARCH_BUILTIN_PROVIDER_KEYS:
         return SEARCH_MODE_BUILTIN_WEB_SEARCH
     return SEARCH_MODE_NONE
+
+
+SECTION_UPDATER_AGENT_NAMES: dict[SectionId, str] = {
+    SectionId.ENGINEERING_WORKFLOW: "development_workflow_agents_md_updater",
+    SectionId.DEPENDENCY_GUIDE: "dependency_guide_agents_md_updater",
+    SectionId.BUSINESS_DOMAIN: "business_domain_agents_md_updater",
+    SectionId.APP_INTERFACES: "app_interfaces_agents_md_updater",
+}
+
+SECTION_HEADINGS: dict[SectionId, str] = {
+    SectionId.ENGINEERING_WORKFLOW: "## Engineering Workflow",
+    SectionId.DEPENDENCY_GUIDE: "## Dependency Guide",
+    SectionId.BUSINESS_DOMAIN: "## Business Logic Domain",
+    SectionId.APP_INTERFACES: "## App Interfaces",
+}
+
+SECTION_ARTIFACTS: dict[SectionId, list[str]] = {
+    SectionId.ENGINEERING_WORKFLOW: ["AGENTS.md"],
+    SectionId.DEPENDENCY_GUIDE: ["AGENTS.md"],
+    SectionId.BUSINESS_DOMAIN: ["AGENTS.md", "business_logic_references.md"],
+    SectionId.APP_INTERFACES: ["AGENTS.md", "app_interfaces.md"],
+}
+
+
+def build_section_updater_prompt(
+    section_id: SectionId,
+    codebase_path: str,
+    programming_language_metadata: dict[str, object],
+    section_data: object,
+) -> str:
+    """Build the prompt for a section-scoped AGENTS.md updater run."""
+    heading = SECTION_HEADINGS[section_id]
+    artifacts = SECTION_ARTIFACTS[section_id]
+    artifacts_instruction = "\n".join(f"- {a}" for a in artifacts)
+
+    return (
+        f"Update the '{heading}' section in codebase-local AGENTS.md.\n"
+        f"If the section heading does not exist yet, CREATE it.\n"
+        f"Do NOT modify content outside the '{heading}' section.\n\n"
+        f"Section order in AGENTS.md (for positioning):\n"
+        "1. ## Engineering Workflow\n"
+        "2. ## Dependency Guide\n"
+        "3. ## Business Logic Domain\n"
+        "4. ## App Interfaces\n\n"
+        f"Expected managed files:\n{artifacts_instruction}\n\n"
+        f"Codebase path: {codebase_path}\n"
+        f"Programming language metadata: {programming_language_metadata}\n"
+        f"Section data:\n{section_data}\n\n"
+        "Return summary metadata only (no raw file content)."
+    )
 
 
 def _get_dependency_guide_instructions(search_mode: str) -> str:
@@ -177,6 +251,7 @@ ENABLED_AGENTS: set[AgentType] = {
     AgentType.DEVELOPMENT_WORKFLOW,
     AgentType.DEPENDENCY,
     AgentType.BUSINESS_DOMAIN,
+    AgentType.AGENTS_MD_UPDATER,
 }
 
 
@@ -203,7 +278,9 @@ def validate_engineering_development_workflow_output(
             raise ModelRetry(
                 f"confidence {command.confidence} for command '{command.command}' must be between 0.0 and 1.0."
             )
-    if not any(command.confidence >= CONFIDENCE_THRESHOLD for command in output.commands):
+    if not any(
+        command.confidence >= CONFIDENCE_THRESHOLD for command in output.commands
+    ):
         raise ModelRetry(
             "All engineering workflow commands are below confidence threshold "
             f"({CONFIDENCE_THRESHOLD}). Re-validate against official citations and return at least one command >= threshold."
@@ -229,6 +306,17 @@ def validate_business_logic_domain_output(output: str) -> str:
             "Return ONLY plain text (2-4 sentences), NOT JSON or structured data. "
             "Summarize the business logic domain in natural language."
         )
+    return output
+
+
+def validate_agents_md_updater_output(
+    output: AgentsMdUpdaterOutput,
+) -> AgentsMdUpdaterOutput:
+    """Validate updater output contract."""
+    if not output.touched_file_paths:
+        raise ModelRetry("touched_file_paths cannot be empty")
+    if not output.file_changes:
+        raise ModelRetry("file_changes cannot be empty")
     return output
 
 
@@ -387,6 +475,62 @@ IMPORTANT: Your final output must be PLAIN TEXT only (2-4 sentences).
     return agent
 
 
+def create_agents_md_updater_agent(
+    model: Model,
+    model_settings: ModelSettings | None = None,
+) -> Agent[AgentDependencies, AgentsMdUpdaterOutput]:
+    """Create AGENTS.md updater agent.
+
+    Optionally create or update business_logic_references.md.
+    """
+    agent = Agent(
+        model,
+        name="agents_md_updater",
+        instructions=r"""You are the AGENTS.md section updater.
+
+Goal:
+- Create or update a SPECIFIC SECTION of codebase-local AGENTS.md using safe and minimal edits.
+- Create/update companion artifact files when instructed (business_logic_references.md, app_interfaces.md).
+
+Section scoping:
+- You will be told which section heading you own (e.g., "## Engineering Workflow").
+- Create the heading if it doesn't exist. Update content under it if it does.
+- NEVER modify content outside your assigned section boundary.
+- Sections are delimited by ## level headings.
+
+Root-scope safety (hard invariant):
+- ALL file operations MUST use absolute paths within the current codebase root.
+- NEVER read, write, or reference files outside the codebase root directory.
+- Relative paths are rejected. Paths escaping the root are rejected.
+- This is enforced at the tool level — violations raise out_of_scope errors.
+
+Tooling constraints:
+- Use only updater_read_file, updater_edit_file, updater_apply_patch.
+- Always pass absolute file paths.
+- Operate only within the current codebase root.
+- Prefer updater_apply_patch for creates and structured updates.
+
+Output constraints:
+- Return summary metadata only.
+- Do not include raw file content in the output.
+- Include touched_file_paths for all files involved in final update decisions.
+- Include file_changes with changed flag, change_type, concise change_summary, and optional content_sha256.
+""",
+        deps_type=AgentDependencies,
+        tools=[
+            Tool(updater_read_file, takes_ctx=True, max_retries=2),
+            Tool(updater_edit_file, takes_ctx=True, max_retries=2),
+            Tool(updater_apply_patch, takes_ctx=True, max_retries=2),
+        ],
+        output_type=AgentsMdUpdaterOutput,
+        output_retries=2,
+        model_settings=model_settings,
+        event_stream_handler=event_stream_handler,
+    )
+    agent.output_validator(validate_agents_md_updater_output)
+    return agent
+
+
 # ──────────────────────────────────────────────
 # TemporalAgent Wrappers
 # ──────────────────────────────────────────────
@@ -398,7 +542,7 @@ def create_temporal_agents(
     model_settings: ModelSettings | None = None,
     provider_key: str | None = None,
     exa_configured: bool = False,
-) -> dict[str, TemporalAgent[AgentDependencies, Any]]:
+) -> TemporalAgentRegistry:
     """Create enabled agents wrapped with TemporalAgent for durable execution.
 
     Only creates agents that are listed in ENABLED_AGENTS.
@@ -413,7 +557,7 @@ def create_temporal_agents(
     Returns:
         Dictionary mapping agent names to TemporalAgent instances
     """
-    agents: dict[str, TemporalAgent[AgentDependencies, Any]] = {}
+    agents: TemporalAgentRegistry = {}
 
     # Base activity configuration with bounded retry policy
     base_activity_config = ActivityConfig(
@@ -469,17 +613,21 @@ def create_temporal_agents(
             include_exa_toolset=use_exa_tools,
             search_mode=search_mode,
         )
-        engineering_tool_activity_config = {
+        engineering_tool_activity_config: ToolActivityConfigMap = {
             "get_directory_tree": tool_activity_config_base,
             "read_file_content": tool_activity_config_base,
             "search_across_codebase": tool_activity_config_base,
         }
-        engineering_toolset_activity_config = {default_toolset_id: toolset_activity_config}
-        engineering_toolset_tool_activity_config = {
+        engineering_toolset_activity_config: ToolsetActivityConfigMap = {
+            default_toolset_id: toolset_activity_config
+        }
+        engineering_toolset_tool_activity_config: ToolsetToolActivityConfigMap = {
             default_toolset_id: engineering_tool_activity_config
         }
         if use_exa_tools:
-            engineering_toolset_activity_config[exa_toolset_id] = toolset_activity_config
+            engineering_toolset_activity_config[exa_toolset_id] = (
+                toolset_activity_config
+            )
             engineering_toolset_tool_activity_config[exa_toolset_id] = {}
         agents[AgentType.DEVELOPMENT_WORKFLOW.value] = TemporalAgent(
             engineering_agent,
@@ -500,8 +648,12 @@ def create_temporal_agents(
             include_exa_toolset=include_exa_dependency_toolset,
             search_mode=search_mode,
         )
-        dependency_toolset_activity_config = {default_toolset_id: toolset_activity_config}
-        dependency_tool_activity_config = {default_toolset_id: {}}
+        dependency_toolset_activity_config: ToolsetActivityConfigMap = {
+            default_toolset_id: toolset_activity_config
+        }
+        dependency_tool_activity_config: ToolsetToolActivityConfigMap = {
+            default_toolset_id: {}
+        }
         if include_exa_dependency_toolset:
             dependency_toolset_activity_config[exa_toolset_id] = toolset_activity_config
             dependency_tool_activity_config[exa_toolset_id] = {}
@@ -521,19 +673,36 @@ def create_temporal_agents(
             model_settings,
             builtin_tools=builtin_web_search_tools if use_builtin_web_search else None,
         )
+        business_domain_tool_activity_config: ToolActivityConfigMap = {
+            "get_data_model_files": tool_activity_config_base,
+            "read_file_content": tool_activity_config_base,
+        }
         agents[AgentType.BUSINESS_DOMAIN.value] = TemporalAgent(
             domain_agent,
             activity_config=base_activity_config,
             model_activity_config=model_activity_config,
             toolset_activity_config={default_toolset_id: toolset_activity_config},
             tool_activity_config={
-                default_toolset_id: {
-                    "get_data_model_files": tool_activity_config_base,
-                    "read_file_content": tool_activity_config_base,
-                }
+                default_toolset_id: business_domain_tool_activity_config
             },
         )
         logger.info("Created business_domain_guide")
+
+    if AgentType.AGENTS_MD_UPDATER in ENABLED_AGENTS:
+        updater_agent = create_agents_md_updater_agent(model, model_settings)
+        updater_tool_activity_config: ToolActivityConfigMap = {
+            "updater_read_file": tool_activity_config_base,
+            "updater_edit_file": tool_activity_config_base,
+            "updater_apply_patch": tool_activity_config_base,
+        }
+        agents[AgentType.AGENTS_MD_UPDATER.value] = TemporalAgent(
+            updater_agent,
+            activity_config=base_activity_config,
+            model_activity_config=model_activity_config,
+            toolset_activity_config={default_toolset_id: toolset_activity_config},
+            tool_activity_config={default_toolset_id: updater_tool_activity_config},
+        )
+        logger.info("Created agents_md_updater")
 
     logger.info("Enabled agents: {}", list(agents.keys()))
     return agents
@@ -544,13 +713,13 @@ def create_temporal_agents(
 DEFAULT_REQUEST_LIMIT: int = 200
 
 # Module-level cache for temporal agents singleton
-_temporal_agents: dict[str, TemporalAgent[AgentDependencies, Any]] | None = None
+_temporal_agents: TemporalAgentRegistry | None = None
 _cached_model: Model | None = None
 _cached_model_settings: ModelSettings | None = None
 _cached_usage_limits: UsageLimits | None = None
 
 
-def get_temporal_agents() -> dict[str, TemporalAgent[AgentDependencies, Any]]:
+def get_temporal_agents() -> TemporalAgentRegistry:
     """Get cached temporal agents singleton.
 
     Returns:
@@ -574,7 +743,7 @@ def initialize_temporal_agents(
     provider_key: str | None = None,
     exa_configured: bool = False,
     request_limit: int | None = None,
-) -> dict[str, TemporalAgent[AgentDependencies, Any]]:
+) -> TemporalAgentRegistry:
     """Initialize temporal agents with the given model.
 
     This should be called once at worker startup after loading model from DB.
@@ -594,7 +763,9 @@ def initialize_temporal_agents(
 
     retry_config = TemporalAgentRetryConfig(settings)
 
-    effective_limit = request_limit if request_limit is not None else DEFAULT_REQUEST_LIMIT
+    effective_limit = (
+        request_limit if request_limit is not None else DEFAULT_REQUEST_LIMIT
+    )
     _cached_model = model
     _cached_model_settings = model_settings
     _cached_usage_limits = UsageLimits(request_limit=effective_limit)

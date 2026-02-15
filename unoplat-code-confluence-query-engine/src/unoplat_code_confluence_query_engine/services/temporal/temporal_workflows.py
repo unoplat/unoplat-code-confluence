@@ -19,8 +19,8 @@ with workflow.unsafe.imports_passed_through():
 
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
-        DependencyGuideEntry,
+    from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
+        SectionId,
     )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
@@ -62,6 +62,9 @@ with workflow.unsafe.imports_passed_through():
         extract_usage_statistics,
     )
     from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
+        SECTION_UPDATER_AGENT_NAMES,
+        TemporalAgentRegistry,
+        build_section_updater_prompt,
         get_cached_usage_limits,
         get_temporal_agents,
     )
@@ -98,6 +101,67 @@ def _enrich_agent_error_with_model_details(
     if model_error_details:
         error_dict["model_error_details"] = model_error_details
     return error_dict
+
+
+async def _run_section_updater(
+    temporal_agents: TemporalAgentRegistry,
+    section_id: SectionId,
+    codebase_metadata: CodebaseMetadata,
+    repository_qualified_name: str,
+    repository_workflow_run_id: str,
+    programming_language_metadata: dict[str, object],
+    section_data: object,
+    agent_stats: list[UsageStatistics],
+    agent_errors: list[dict[str, object]],
+    updater_runs: list[dict[str, object]],
+) -> None:
+    """Run agents_md_updater for a specific section after its guide completes."""
+    if "agents_md_updater" not in temporal_agents:
+        agent_stats.append(create_zero_usage_statistics())
+        return
+
+    updater_agent_name = SECTION_UPDATER_AGENT_NAMES[section_id]
+    try:
+        logger.info("[workflow] Running {} for {}", updater_agent_name, codebase_metadata.codebase_name)
+        updater_deps = AgentDependencies(
+            repository_qualified_name=repository_qualified_name,
+            codebase_metadata=codebase_metadata,
+            repository_workflow_run_id=repository_workflow_run_id,
+            agent_name=updater_agent_name,
+        )
+        updater_prompt = build_section_updater_prompt(
+            section_id=section_id,
+            codebase_path=codebase_metadata.codebase_path,
+            programming_language_metadata=programming_language_metadata,
+            section_data=section_data,
+        )
+        updater_result = await temporal_agents["agents_md_updater"].run(
+            updater_prompt,
+            deps=updater_deps,
+            usage_limits=get_cached_usage_limits(),
+        )
+        output_dict = updater_result.output.model_dump(mode="json")
+        updater_runs.append({
+            "section_id": section_id.value,
+            "agent_name": updater_agent_name,
+            "output": output_dict,
+        })
+        agent_stats.append(extract_usage_statistics(updater_result.usage()))
+        logger.info("[workflow] {} completed for {}", updater_agent_name, codebase_metadata.codebase_name)
+    except Exception as e:
+        logger.error("[workflow] {} failed for {}: {}", updater_agent_name, codebase_metadata.codebase_name, e)
+        logger.exception("[workflow] Full traceback:")
+        error_entry: dict[str, object] = {
+            "agent": updater_agent_name,
+            "codebase": codebase_metadata.codebase_name,
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        error_entry = _enrich_agent_error_with_model_details(
+            error_entry, e, updater_agent_name, codebase_metadata.codebase_name,
+        )
+        agent_errors.append(error_entry)
+        agent_stats.append(create_zero_usage_statistics())
 
 
 @workflow.defn(versioning_behavior=common.VersioningBehavior.AUTO_UPGRADE)
@@ -152,6 +216,7 @@ class CodebaseAgentWorkflow:
             "dependency_guide": None,
             "business_logic_domain": None,
             "app_interfaces": None,
+            "agents_md_updater_runs": [],
         }
 
         # Track usage statistics from each agent for aggregation
@@ -187,11 +252,11 @@ class CodebaseAgentWorkflow:
                     deps=engineering_workflow_deps,
                     usage_limits=get_cached_usage_limits(),
                 )
-                logger.debug(
-                    "[workflow] development_workflow_guide.run() returned"
-                )
+                logger.debug("[workflow] development_workflow_guide.run() returned")
 
-                raw_engineering_workflow = workflow_result.output.model_dump(mode="json")
+                raw_engineering_workflow = workflow_result.output.model_dump(
+                    mode="json"
+                )
                 normalized_workflow = normalize_engineering_workflow(
                     raw_engineering_workflow
                 )
@@ -215,6 +280,20 @@ class CodebaseAgentWorkflow:
                     codebase_metadata.codebase_name,
                 )
                 agent_stats.append(extract_usage_statistics(workflow_result.usage()))
+
+                # Run section-scoped updater for engineering workflow
+                await _run_section_updater(
+                    temporal_agents=temporal_agents,
+                    section_id=SectionId.ENGINEERING_WORKFLOW,
+                    codebase_metadata=codebase_metadata,
+                    repository_qualified_name=repository_qualified_name,
+                    repository_workflow_run_id=repository_workflow_run_id,
+                    programming_language_metadata=results["programming_language_metadata"],
+                    section_data=results["engineering_workflow"],
+                    agent_stats=agent_stats,
+                    agent_errors=agent_errors,
+                    updater_runs=results["agents_md_updater_runs"],
+                )
             except Exception as e:
                 logger.error(
                     "[workflow] development_workflow_guide failed for {}: {}",
@@ -278,11 +357,7 @@ class CodebaseAgentWorkflow:
                             usage_limits=get_cached_usage_limits(),
                         )
 
-                        entry_dict = (
-                            result.output.model_dump()
-                            if isinstance(result.output, DependencyGuideEntry)
-                            else result.output
-                        )
+                        entry_dict = result.output.model_dump()
                         dependency_entries.append(entry_dict)
                         dependency_agent_stats.append(
                             extract_usage_statistics(result.usage())
@@ -324,6 +399,20 @@ class CodebaseAgentWorkflow:
                     "[workflow] dependency_guide completed for {}: {} entries",
                     codebase_metadata.codebase_name,
                     len(dependency_entries),
+                )
+
+                # Run section-scoped updater for dependency guide
+                await _run_section_updater(
+                    temporal_agents=temporal_agents,
+                    section_id=SectionId.DEPENDENCY_GUIDE,
+                    codebase_metadata=codebase_metadata,
+                    repository_qualified_name=repository_qualified_name,
+                    repository_workflow_run_id=repository_workflow_run_id,
+                    programming_language_metadata=results["programming_language_metadata"],
+                    section_data=results["dependency_guide"],
+                    agent_stats=agent_stats,
+                    agent_errors=agent_errors,
+                    updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
                 logger.error(
@@ -369,9 +458,7 @@ class CodebaseAgentWorkflow:
                 logger.debug(
                     "[workflow] Calling temporal_agents['business_domain_guide'].run()..."
                 )
-                domain_result = await temporal_agents[
-                    "business_domain_guide"
-                ].run(
+                domain_result = await temporal_agents["business_domain_guide"].run(
                     f"Analyze business logic domain for {codebase_metadata.codebase_path}",
                     deps=business_logic_deps,
                     usage_limits=get_cached_usage_limits(),
@@ -395,6 +482,20 @@ class CodebaseAgentWorkflow:
                 )
                 # Extract usage statistics from successful agent run
                 agent_stats.append(extract_usage_statistics(domain_result.usage()))
+
+                # Run section-scoped updater for business domain
+                await _run_section_updater(
+                    temporal_agents=temporal_agents,
+                    section_id=SectionId.BUSINESS_DOMAIN,
+                    codebase_metadata=codebase_metadata,
+                    repository_qualified_name=repository_qualified_name,
+                    repository_workflow_run_id=repository_workflow_run_id,
+                    programming_language_metadata=results["programming_language_metadata"],
+                    section_data=results["business_logic_domain"],
+                    agent_stats=agent_stats,
+                    agent_errors=agent_errors,
+                    updater_runs=results["agents_md_updater_runs"],
+                )
             except Exception as e:
                 logger.error(
                     "[workflow] business_domain_guide failed for {}: {}",
@@ -460,6 +561,20 @@ class CodebaseAgentWorkflow:
                 logger.info(
                     "[workflow] app_interfaces_agent completed for {}",
                     codebase_metadata.codebase_name,
+                )
+
+                # Run section-scoped updater for app interfaces
+                await _run_section_updater(
+                    temporal_agents=temporal_agents,
+                    section_id=SectionId.APP_INTERFACES,
+                    codebase_metadata=codebase_metadata,
+                    repository_qualified_name=repository_qualified_name,
+                    repository_workflow_run_id=repository_workflow_run_id,
+                    programming_language_metadata=results["programming_language_metadata"],
+                    section_data=results["app_interfaces"],
+                    agent_stats=agent_stats,
+                    agent_errors=agent_errors,
+                    updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
                 logger.error(
