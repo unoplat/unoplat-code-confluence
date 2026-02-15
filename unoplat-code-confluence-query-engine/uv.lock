@@ -870,6 +870,15 @@ wheels = [
 ]
 
 [[package]]
+name = "fastcore"
+version = "1.12.12"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/da/4e/b45883ffd4f1843286279f972262108a6a1c43d5c1237f231a77f3d0670e/fastcore-1.12.12.tar.gz", hash = "sha256:a113d70630e7aa4e28ceebc4311f1c7c2dc0b748cc138ab7f5c53e475ff438bc", size = 92042, upload-time = "2026-02-11T00:24:05.783Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ea/d6/bb13c44b5863c0be7a27ef02982eca88f50d717549df1979e85942292239/fastcore-1.12.12-py3-none-any.whl", hash = "sha256:bb1a3a3accd62a72bad56af974e0617af078316be5bb5dcc8763b8244c197fa8", size = 96240, upload-time = "2026-02-11T00:24:03.658Z" },
+]
+
+[[package]]
 name = "fastmcp"
 version = "2.14.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1000,6 +1009,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3d/22/427934ef8e7ed29c35afc274666b87fe01a3a27ec7ff102f5839ce4723c0/genai_prices-0.0.51.tar.gz", hash = "sha256:003da98172641c94d7516b0fd8cec5ecf2dbab64a884996c26cc194c5e0b592e", size = 58071, upload-time = "2026-01-13T12:49:11.872Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4a/af/b11b80d02aaefc2fc6bfaabb3ae873439c90dc464b3a29eda51b969842b0/genai_prices-0.0.51-py3-none-any.whl", hash = "sha256:4e0f5892a7ec757d59f343c5dbf9675b0f9e8ed65f4fe26ac7df600e34788ca0", size = 60656, upload-time = "2026-01-13T12:49:12.867Z" },
+]
+
+[[package]]
+name = "ghapi"
+version = "1.0.10"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastcore" },
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/97/b8/aa96c699dbdf99f1f9d2cceba7f75280d4ed3cfe873de2cb220fcde29567/ghapi-1.0.10.tar.gz", hash = "sha256:3a4d35e2da90a861c9b257f2ae509a8c103fd46ca5b3ed6bab8e72c9a519386c", size = 74732, upload-time = "2026-01-20T03:45:23.399Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f4/23/68c1fef6552274f5cecda56667c473bb1eefb62f385f4515df44546c3f50/ghapi-1.0.10-py3-none-any.whl", hash = "sha256:3feeda6b174dbe9320912956b0e0e2b306d85245ca9dd961fe8d3ea9b157d01d", size = 71542, upload-time = "2026-01-20T03:45:21.459Z" },
 ]
 
 [[package]]
@@ -3353,13 +3375,14 @@ dependencies = [
 
 [[package]]
 name = "unoplat-code-confluence-query-engine"
-version = "0.29.0"
+version = "0.29.1"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
     { name = "aiopath" },
     { name = "asyncpg" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "ghapi" },
     { name = "logfire", extra = ["fastapi"] },
     { name = "loguru" },
     { name = "pydantic-ai" },
@@ -3398,6 +3421,7 @@ requires-dist = [
     { name = "aiopath", specifier = ">=0.7.7" },
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.116.1" },
+    { name = "ghapi", specifier = ">=1.0.10" },
     { name = "logfire", extras = ["fastapi"], specifier = ">=4.4.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pydantic-ai", specifier = ">=1.47.0" },

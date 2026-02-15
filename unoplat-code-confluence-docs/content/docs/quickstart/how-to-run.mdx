@@ -74,10 +74,21 @@ For **Enterprise Server (self-hosted)** or **Enterprise Cloud with data residenc
 ![Connect GitHub Enterprise Provider](../../../src/assets/images/github-enterprise.png)
 
 <Callout type="info" title="Getting a GitHub PAT">
-If you don't have a GitHub PAT:
-1. Click "Generate token on GitHub" (or "Generate token on GitHub Enterprise") to create a new token
+Unoplat Code Confluence requires a **classic** Personal Access Token with these scopes:
+
+| Scope | Purpose |
+|-------|---------|
+| `repo` | Full read/write access to repositories — **required for PR creation**, branch creation, and file operations |
+| `security_events` | Read/write access to Code Scanning and Dependabot alerts |
+| `user` | Read and update your GitHub profile and email addresses |
+| `user:follow` | Ability to follow and unfollow users |
+
+**To create a token with the correct scopes:**
+1. Click **"Generate token on GitHub"** (or **"Generate token on GitHub Enterprise"**) — the link pre-fills all required scopes automatically
 2. Copy the generated token and paste it in the Personal Access Token field
 3. Click **Connect** to add the provider
+
+If you already have a PAT, ensure it includes at least the `repo` scope to use PR features.
 </Callout>
 
 <Callout type="warn" title="GitHub Enterprise Testing Status">

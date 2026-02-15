@@ -5,7 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { groupEventsByAgent } from "@/lib/agent-events-utils";
+import { buildEventDisplayItems, groupEventsByAgent } from "@/lib/agent-events-utils";
 import { AgentGroupHeader } from "./AgentGroupHeader";
 import { AgentEventItem } from "./AgentEventItem";
 import type { AgentEventsAccordionProps } from "@/types/agent-events";
@@ -34,8 +34,8 @@ export function AgentEventsAccordion({
           </AccordionTrigger>
           <AccordionContent className="px-3 pb-3">
             <section className="space-y-1.5 pl-6">
-              {group.events.map((event) => (
-                <AgentEventItem key={event.id} event={event} />
+              {buildEventDisplayItems(group.events).map((item) => (
+                <AgentEventItem key={item.key} item={item} />
               ))}
             </section>
           </AccordionContent>

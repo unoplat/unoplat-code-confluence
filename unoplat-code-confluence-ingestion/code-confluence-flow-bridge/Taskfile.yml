@@ -113,6 +113,7 @@ tasks:
       FRAMEWORK_DEFINITIONS_PATH: "../../framework-definitions"
       TEMPORAL_MAX_CONCURRENT_ACTIVITIES: "3"
       REPOSITORIES_BASE_PATH: "/opt/unoplat/repositories"
+      TOKEN_ENCRYPTION_KEY: "0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
       GITHUB_APP_OWNER_TYPE: "organisation"
       GITHUB_APP_OWNER: "unoplat"
     cmds:
@@ -136,6 +137,7 @@ tasks:
       FRAMEWORK_DEFINITIONS_PATH: "../../framework-definitions"
       TEMPORAL_MAX_CONCURRENT_ACTIVITIES: "3"
       REPOSITORIES_BASE_PATH: "/opt/unoplat/repositories"
+      TOKEN_ENCRYPTION_KEY: "0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
     cmds:
       - uv run fastapi dev
 

@@ -621,6 +621,26 @@ export interface RepositoryWorkflowRunResponse {
   repository_workflow_run_id: string;
 }
 
+export interface RepositoryAgentMdPrRequest {
+  owner_name: string;
+  repo_name: string;
+  repository_workflow_run_id: string;
+}
+
+export interface RepositoryAgentMdPrResponse {
+  status: "modified" | "no_changes";
+  pr_url?: string | null;
+  pr_number?: number | null;
+  branch_name?: string | null;
+  changed_files: string[];
+  message: string;
+}
+
+export interface RepositoryAgentMdPrStatusResponse {
+  exists: boolean;
+  pr_metadata: RepositoryAgentMdPrResponse | null;
+}
+
 export async function startRepositoryAgentRun(
   ownerName: string,
   repoName: string,
@@ -636,6 +656,37 @@ export async function startRepositoryAgentRun(
         params,
       });
 
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+}
+
+export async function createRepositoryAgentMdPr(
+  payload: RepositoryAgentMdPrRequest,
+): Promise<RepositoryAgentMdPrResponse> {
+  try {
+    const response: AxiosResponse<RepositoryAgentMdPrResponse> =
+      await queryEngineClient.post("/v1/repository-agent-md-pr", payload);
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+}
+
+export async function getRepositoryAgentMdPrStatus(
+  ownerName: string,
+  repoName: string,
+  repositoryWorkflowRunId: string,
+): Promise<RepositoryAgentMdPrStatusResponse> {
+  try {
+    const params = {
+      owner_name: ownerName,
+      repo_name: repoName,
+      repository_workflow_run_id: repositoryWorkflowRunId,
+    };
+    const response: AxiosResponse<RepositoryAgentMdPrStatusResponse> =
+      await queryEngineClient.get("/v1/repository-agent-md-pr", { params });
     return response.data;
   } catch (error: unknown) {
     throw handleApiError(error);

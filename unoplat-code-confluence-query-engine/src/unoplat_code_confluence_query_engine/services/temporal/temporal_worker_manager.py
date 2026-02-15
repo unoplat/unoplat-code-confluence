@@ -305,9 +305,17 @@ class TemporalWorkerManager:
 
         # Get temporal agents and create plugins
         temporal_agents = get_temporal_agents()
-        agent_plugins: list[AgentPlugin] = [
-            AgentPlugin(agent) for agent in temporal_agents.values()
-        ]
+        agent_plugins: list[AgentPlugin] = []
+        if "development_workflow_guide" in temporal_agents:
+            agent_plugins.append(
+                AgentPlugin(temporal_agents["development_workflow_guide"])
+            )
+        if "dependency_guide" in temporal_agents:
+            agent_plugins.append(AgentPlugin(temporal_agents["dependency_guide"]))
+        if "business_domain_guide" in temporal_agents:
+            agent_plugins.append(AgentPlugin(temporal_agents["business_domain_guide"]))
+        if "agents_md_updater" in temporal_agents:
+            agent_plugins.append(AgentPlugin(temporal_agents["agents_md_updater"]))
 
         logger.info(
             "[temporal_worker_manager] Created {} agent plugins: {}",
@@ -322,7 +330,9 @@ class TemporalWorkerManager:
         business_logic_post_process_activity = BusinessLogicPostProcessActivity()
         dependency_guide_completion_activity = DependencyGuideCompletionActivity()
         dependency_guide_fetch_activity = DependencyGuideFetchActivity()
-        engineering_workflow_completion_activity = EngineeringWorkflowCompletionActivity()
+        engineering_workflow_completion_activity = (
+            EngineeringWorkflowCompletionActivity()
+        )
         app_interfaces_activity = AppInterfacesActivity()
 
         # Build interceptor list - always include status interceptor

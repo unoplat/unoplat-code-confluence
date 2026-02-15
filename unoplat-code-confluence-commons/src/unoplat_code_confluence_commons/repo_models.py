@@ -373,6 +373,12 @@ class RepositoryAgentMdSnapshot(SQLBase):
         nullable=False,
         comment="Timestamp when the latest overwrite occurred",
     )
+    pr_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=None,
+        comment="Persisted PR metadata from manual AGENTS.md PR creation/update",
+    )
 
     # Relationships
     repository: Mapped["Repository"] = relationship(back_populates="agent_md_snapshot")
