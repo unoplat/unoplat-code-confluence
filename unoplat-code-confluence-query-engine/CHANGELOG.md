@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.30.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.30.0...unoplat-code-confluence-query-engine-v0.30.1) (2026-02-17)
+
+
+### Bug Fixes
+
+* **wrong-version-commons:** upgrade commons version across flow bridg… ([40c994a](https://github.com/unoplat/unoplat-code-confluence/commit/40c994a8172c766bdddeb3f6f8a6021fbdf426c4))
+* **wrong-version-commons:** upgrade commons version across flow bridge and query engine components to enable pr related functionality ([207c29e](https://github.com/unoplat/unoplat-code-confluence/commit/207c29e1c9cb719489d955df7757764b2894c7b5))
+
 ## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.29.1...unoplat-code-confluence-query-engine-v0.30.0) (2026-02-15)
 
 
