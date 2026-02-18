@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.27.0...unoplat-code-confluence-v0.28.0) (2026-02-18)
+
+
+### Features
+
+* **commons:** add PrMetadata model and pr_metadata column to snapshot ([db42e95](https://github.com/unoplat/unoplat-code-confluence/commit/db42e9535da93d2ede33da3f3fe5123abd6b7df0))
+* **docs:** add brand logo to nav header and fix 404 page branding ([6c938d3](https://github.com/unoplat/unoplat-code-confluence/commit/6c938d3ce3b514b4022866d144b796752e81a73e))
+* **frontend:** add PR creation UI with persisted status ([fc21532](https://github.com/unoplat/unoplat-code-confluence/commit/fc21532b30662a1817e5efabf67775e974b5059e))
+* **frontend:** add tool call/result pairing in agent event display ([1e60ec2](https://github.com/unoplat/unoplat-code-confluence/commit/1e60ec21e06e98f0357128d893a3c2ce643a8c41))
+* **perf:** add build-time image optimization and lazy loading ([795e95a](https://github.com/unoplat/unoplat-code-confluence/commit/795e95af4c497b71e37c030001dfd241f0ff7af5))
+* **query-engine:** add agents-md updater agent with section-scoped tools and tests ([a493c50](https://github.com/unoplat/unoplat-code-confluence/commit/a493c5044474385cffb0eea1e7c77a88c61c33fa))
+* **query-engine:** add POST/GET repository-agent-md-pr endpoints with one-shot semantics ([d4945c3](https://github.com/unoplat/unoplat-code-confluence/commit/d4945c382ab87b955aa4a84924578624478b3de9))
+
+
+### Bug Fixes
+
+* **changelog:** sort by version number instead of release date ([9abeac8](https://github.com/unoplat/unoplat-code-confluence/commit/9abeac8267db46d0380aa0399806525163136caa))
+* **discord-links:** discord links were broken across docs/app/readme ([ad29fa5](https://github.com/unoplat/unoplat-code-confluence/commit/ad29fa5577d2b0f1555304f294896e7a9fd5fcc4))
+* **discord-links:** discord links were broken across docs/app/readme ([43fd793](https://github.com/unoplat/unoplat-code-confluence/commit/43fd7936dd1940b6a4dfe4a2838d252e6ec205ad))
+* **sidebar-scroll:** use dashes in banner ID to prevent invalid CSS selector ([8531cf8](https://github.com/unoplat/unoplat-code-confluence/commit/8531cf81d3b882ce442246b2086cd58ff51da618))
+* wrong link for roadmap cards ([af2d64c](https://github.com/unoplat/unoplat-code-confluence/commit/af2d64cd642c15f42a6f1f1a726707cc6c19b21a))
+* **wrong-version-commons:** upgrade commons version across flow bridg… ([40c994a](https://github.com/unoplat/unoplat-code-confluence/commit/40c994a8172c766bdddeb3f6f8a6021fbdf426c4))
+* **wrong-version-commons:** upgrade commons version across flow bridge and query engine components to enable pr related functionality ([207c29e](https://github.com/unoplat/unoplat-code-confluence/commit/207c29e1c9cb719489d955df7757764b2894c7b5))
+
 ## [0.27.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.26.0...unoplat-code-confluence-v0.27.0) (2026-02-10)
 
 
