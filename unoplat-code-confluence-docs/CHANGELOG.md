@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.32.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.32.0...unoplat-code-confluence-docs-v0.32.1) (2026-02-14)
+
+
+### Bug Fixes
+
+* **discord-links:** discord links were broken across docs/app/readme ([ad29fa5](https://github.com/unoplat/unoplat-code-confluence/commit/ad29fa5577d2b0f1555304f294896e7a9fd5fcc4))
+* **discord-links:** discord links were broken across docs/app/readme ([43fd793](https://github.com/unoplat/unoplat-code-confluence/commit/43fd7936dd1940b6a4dfe4a2838d252e6ec205ad))
+
+## [0.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.31.0...unoplat-code-confluence-docs-v0.32.0) (2026-02-11)
+
+
+### Features
+
+* **docs:** add brand logo to nav header and fix 404 page branding ([6c938d3](https://github.com/unoplat/unoplat-code-confluence/commit/6c938d3ce3b514b4022866d144b796752e81a73e))
+* **perf:** add build-time image optimization and lazy loading ([795e95a](https://github.com/unoplat/unoplat-code-confluence/commit/795e95af4c497b71e37c030001dfd241f0ff7af5))
+
+
+### Bug Fixes
+
+* **changelog:** sort by version number instead of release date ([9abeac8](https://github.com/unoplat/unoplat-code-confluence/commit/9abeac8267db46d0380aa0399806525163136caa))
+* **sidebar-scroll:** use dashes in banner ID to prevent invalid CSS selector ([8531cf8](https://github.com/unoplat/unoplat-code-confluence/commit/8531cf81d3b882ce442246b2086cd58ff51da618))
+* wrong link for roadmap cards ([af2d64c](https://github.com/unoplat/unoplat-code-confluence/commit/af2d64cd642c15f42a6f1f1a726707cc6c19b21a))
+
 ## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.30.1...unoplat-code-confluence-docs-v0.31.0) (2026-02-06)
 
 

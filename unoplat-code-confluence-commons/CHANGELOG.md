@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.42.0...unoplat-code-confluence-commons-v0.43.0) (2026-02-15)
+
+
+### Features
+
+* **commons:** add PrMetadata model and pr_metadata column to snapshot ([db42e95](https://github.com/unoplat/unoplat-code-confluence/commit/db42e9535da93d2ede33da3f3fe5123abd6b7df0))
+
 ## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.41.1...unoplat-code-confluence-commons-v0.42.0) (2026-01-27)
 
 

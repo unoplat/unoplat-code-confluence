@@ -1,0 +1,58 @@
+---
+title: "Release v0.27.0"
+description: "Major release with Codex OAuth PKCE, built-in web search, dependency filtering, engineering workflow improvements, and model config deletion"
+version: "0.27.0"
+releaseDate: "2026-02-10"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.27.0"
+---
+
+## Highlights
+
+A major feature release introducing Codex as a new provider via OAuth PKCE authentication, built-in web search support for capable providers, smarter dependency filtering, and significant improvements to the engineering workflow agent. This release also refreshes brand assets across the platform.
+
+## What's New
+
+### Codex OAuth PKCE Integration
+
+Added Codex as a new model provider with a full OAuth PKCE authentication flow:
+
+- Secure browser-based OAuth flow with PKCE for Codex provider
+- Seamless callback handling and token management
+- Full integration with the existing model configuration system
+
+### Built-in Web Search
+
+- Providers with native web search capability can now use it directly within agent workflows, enabling real-time information retrieval during code analysis
+
+### Dependency Filtering
+
+- Restricted dependency discovery to runtime-only dependencies, filtering out development and test dependencies for cleaner and more relevant dependency guides
+
+### Engineering Workflow Agent Improvements
+
+- Simplified output schema for clearer and more predictable results
+- Improved system prompts for better agent accuracy
+- Enhanced event stream debugging and workflow completion observability
+- Redesigned frontend UI for engineering workflow operations
+
+### Delete Model Configuration
+
+- Added a UI control to delete active model provider configurations, giving users full lifecycle management of their provider setups
+
+### Documentation Updates
+
+- Updated project documentation to reflect new features and workflows
+
+## Bug Fixes
+
+- Simplified agent names for better readability across the UI
+- Refreshed brand assets with new logo and visual identity
+- Reverted binding address to `127.0.0.1` for local development stability
+- Cleaned up code smells in the model factory
+- Enhanced error detail logging for model provider issues
+- Replaced loguru with `workflow.logger` in the workflow outbound interceptor for consistency
+- Removed duplicate object property in `ModelConfigForm`
+- Updated sidebar logo imports and added "Made with love from India" footer
+- Fixed networking issues for the OAuth callback listener
+- Preview results now display correctly during partial errors
+- Increased axios client timeout from 10s to 120s to prevent premature request failures

@@ -39,7 +39,7 @@
 
   <!-- SOCIAL SHIELDS -->
   <p align="center">
-    <a href="https://discord.com/channels/1131597983058755675/1169968780953260106">
+    <a href="https://discord.gg/qe2nbQMnWB">
       <img src="https://img.shields.io/badge/Discord-Join_Us-7289DA?style=flat&logo=discord&logoColor=white" alt="Discord" />
     </a>
     <a href="https://x.com/unoplatio">
@@ -123,7 +123,7 @@ Auto-generates machine-readable `AGENTS.md` files per repo to give coding agents
 
 ### 1. **Precision First**
 - **[Extensible Language Support](https://github.com/unoplat/unoplat-code-confluence/tree/main/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/parser/queries)**: Modular Tree-sitter based grammar extraction delivers consistent, accurate code context across all programming languages
-- **[Extensible Framework-Aware Parsing](https://docs.unoplat.io/contribution/custom-framework-schema)**: Specialized grammar engines recognize framework and library-specific patterns based on project dependencies
+- **[Extensible Framework-Aware Parsing](https://docs.unoplat.io/docs/contribution/custom-framework-schema)**: Specialized grammar engines recognize framework and library-specific patterns based on project dependencies
 
 ### 2. **Context Engineering**
 - All important metadata about application—dependencies, inbound/outbound interfaces, domain models, and data store models—are identified and their relationships preserved
@@ -177,7 +177,7 @@ For detailed roadmap, language support status, and planned features, see our **[
 
 Unoplat Code Confluence is in alpha. We’re building for our own daily use first, prioritizing stability and bug fixes. We’re collecting feedback now and will act on it once the core is solid. Early adopters welcome. Expect rapid changes and rough edges.
 
-- **Discord**: Join our [community channel](https://discord.com/channels/1131597983058755675/1169968780953260106)
+- **Discord**: Join our [community channel](https://discord.gg/qe2nbQMnWB)
 - **GitHub Issues**: [Create an issue](https://github.com/unoplat/unoplat-code-confluence/issues) for bug reports or feature requests
 - **GitHub Discussions**: [Start a discussion](https://github.com/unoplat/unoplat-code-confluence/discussions) for broader conversations
 
