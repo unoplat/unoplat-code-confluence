@@ -117,7 +117,7 @@ bun eslint src/path/file.tsx    # Lint single file
 - **State**: Zustand (client state), TanStack Query (server state, 5min stale), URL state via `useDataTableWithRouter`
 - **UI**: shadcn/ui components use CVA variants as props (`variant="outline"` NOT `variant={{ outline: true }}`)
 - **API**: Axios client in `src/lib/api.ts`, wrap all calls in TanStack Query hooks, dual error handling system
-- **Forms**: React Hook Form + Zod validation, **NOT** TanStack Form
+- **Forms**: Tanstack Form
 - **Tables**: DiceUI + TanStack Table v8 with URL state sync via TanStack Router (NOT nuqs)
 
 ## File Structure

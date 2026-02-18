@@ -20,7 +20,7 @@ export function baseOptions(): BaseLayoutProps {
         type: "icon",
         text: "Discord",
         label: "Discord Community",
-        url: "https://discord.com/channels/1131597983058755675/1169968780953260106",
+        url: "https://discord.gg/qe2nbQMnWB",
         icon: <DiscordIcon className="size-5" />,
         external: true,
       },

@@ -4,6 +4,7 @@ import os
 from datetime import UTC, datetime
 from typing import Any, Optional
 
+from cryptography.fernet import InvalidToken
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +19,82 @@ from unoplat_code_confluence_commons.security import decrypt_token, encrypt_toke
 
 class CredentialsService:
     """Read/write encrypted credentials via the shared credentials table."""
+
+    @staticmethod
+    def decrypt_credential_value(
+        encrypted_value: str,
+        *,
+        namespace_label: str,
+        provider_label: str,
+        secret_kind_label: str,
+    ) -> str:
+        """Decrypt a stored credential with consistent invalid-key handling."""
+        try:
+            return decrypt_token(encrypted_value)
+        except InvalidToken as decrypt_error:
+            logger.error(
+                "Credential decrypt failed (namespace='{}', provider='{}', kind='{}'): invalid token/key mismatch",
+                namespace_label,
+                provider_label,
+                secret_kind_label,
+            )
+            raise ValueError(
+                "Stored credential could not be decrypted. TOKEN_ENCRYPTION_KEY does "
+                "not match the key used when this credential was saved."
+            ) from decrypt_error
+
+    @staticmethod
+    async def execute_get_repository_pat_query(
+        session: AsyncSession, provider_key: ProviderKey
+    ) -> Optional[Credentials]:
+        """Get repository PAT credential row for a provider."""
+        result = await session.execute(
+            select(Credentials)
+            .where(Credentials.namespace == CredentialNamespace.REPOSITORY)
+            .where(Credentials.provider_key == provider_key)
+            .where(Credentials.secret_kind == SecretKind.PAT)
+        )
+        return result.scalars().first()
+
+    @staticmethod
+    async def get_repository_pat(
+        session: AsyncSession, provider_key: ProviderKey
+    ) -> Optional[str]:
+        """Get decrypted repository PAT value for a provider."""
+        row = await CredentialsService.execute_get_repository_pat_query(
+            session, provider_key
+        )
+
+        if not row:
+            logger.debug("No repository PAT found for provider: {}", provider_key.value)
+            return None
+
+        if not os.getenv("TOKEN_ENCRYPTION_KEY"):
+            logger.error("TOKEN_ENCRYPTION_KEY environment variable not set")
+            raise ValueError(
+                "TOKEN_ENCRYPTION_KEY is required for credential decryption"
+            )
+
+        return CredentialsService.decrypt_credential_value(
+            row.token_hash,
+            namespace_label=CredentialNamespace.REPOSITORY.value,
+            provider_label=provider_key.value,
+            secret_kind_label=SecretKind.PAT.value,
+        )
+
+    @staticmethod
+    async def get_repository_credential_metadata(
+        session: AsyncSession, provider_key: ProviderKey
+    ) -> Optional[dict[str, object]]:
+        """Get metadata JSON for repository PAT credential."""
+        row = await CredentialsService.execute_get_repository_pat_query(
+            session, provider_key
+        )
+        if not row:
+            return None
+
+        metadata = row.metadata_json
+        return metadata if isinstance(metadata, dict) else None
 
     @staticmethod
     async def execute_get_model_secret_query(
@@ -67,12 +144,19 @@ class CredentialsService:
                 "TOKEN_ENCRYPTION_KEY is required for credential decryption"
             )
 
-        return decrypt_token(row.token_hash)
+        return CredentialsService.decrypt_credential_value(
+            row.token_hash,
+            namespace_label=CredentialNamespace.MODEL.value,
+            provider_label=ProviderKey.MODEL_PROVIDER_AUTH.value,
+            secret_kind_label=secret_kind.value,
+        )
 
     @staticmethod
     async def get_model_credential(session: AsyncSession) -> Optional[str]:
         """Get decrypted model API key value."""
-        return await CredentialsService.get_model_secret(session, SecretKind.MODEL_API_KEY)
+        return await CredentialsService.get_model_secret(
+            session, SecretKind.MODEL_API_KEY
+        )
 
     @staticmethod
     async def upsert_model_secret(
@@ -312,7 +396,12 @@ class CredentialsService:
                 "TOKEN_ENCRYPTION_KEY is required for credential decryption"
             )
 
-        return decrypt_token(row.token_hash)
+        return CredentialsService.decrypt_credential_value(
+            row.token_hash,
+            namespace_label=CredentialNamespace.TOOL.value,
+            provider_label=provider_key.value,
+            secret_kind_label=SecretKind.TOOL_API_KEY.value,
+        )
 
     @staticmethod
     async def tool_credential_exists(
@@ -364,7 +453,9 @@ class CredentialsService:
                 updated_at=datetime.now(UTC),
             )
             session.add(row)
-            logger.debug("Created new tool credential for provider: {}", provider_key.value)
+            logger.debug(
+                "Created new tool credential for provider: {}", provider_key.value
+            )
 
     @staticmethod
     async def delete_tool_credential(

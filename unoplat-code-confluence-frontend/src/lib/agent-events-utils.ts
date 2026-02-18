@@ -1,5 +1,5 @@
 import type { RepositoryAgentEvent } from "@/features/repository-agent-snapshots/schema";
-import type { AgentGroup } from "@/types/agent-events";
+import type { AgentEventDisplayItem, AgentGroup } from "@/types/agent-events";
 
 // Re-export AgentGroup for convenience
 export type { AgentGroup } from "@/types/agent-events";
@@ -12,7 +12,7 @@ export const AgentType = {
   DEVELOPMENT_WORKFLOW: "development_workflow_guide",
   DEPENDENCY: "dependency_guide",
   BUSINESS_DOMAIN: "business_domain_guide",
-  // Future agents can be added here
+  APP_INTERFACES: "app_interfaces_agent",
 } as const;
 
 /**
@@ -21,6 +21,11 @@ export const AgentType = {
  */
 const AGENT_ALIASES: Record<string, string> = {
   dependency_guide_item: "dependency_guide",
+  // Section-scoped updater events merge into parent guide sections
+  development_workflow_agents_md_updater: "development_workflow_guide",
+  dependency_guide_agents_md_updater: "dependency_guide",
+  business_domain_agents_md_updater: "business_domain_guide",
+  app_interfaces_agents_md_updater: "app_interfaces_agent",
 };
 
 export type AgentTypeValue = (typeof AgentType)[keyof typeof AgentType];
@@ -44,6 +49,10 @@ export const AGENT_REGISTRY: Record<
   [AgentType.BUSINESS_DOMAIN]: {
     displayName: "Business Domain Guide",
     order: 3,
+  },
+  [AgentType.APP_INTERFACES]: {
+    displayName: "App Interfaces",
+    order: 4,
   },
 };
 
@@ -120,6 +129,53 @@ export function truncateMessage(
     text: message.slice(0, maxLength) + "...",
     isTruncated: true,
   };
+}
+
+/**
+ * Build display items by pairing tool calls with tool results.
+ * Pairing uses FIFO matching in event order and preserves tool call position.
+ */
+export function buildEventDisplayItems(
+  events: RepositoryAgentEvent[],
+): AgentEventDisplayItem[] {
+  const sortedEvents = [...events].sort((a, b) => a.id - b.id);
+  const items: AgentEventDisplayItem[] = [];
+  const pendingPairIndexes: number[] = [];
+
+  for (const event of sortedEvents) {
+    if (event.phase === "tool.call") {
+      items.push({
+        type: "tool-pair",
+        key: `tool-pair-${event.id}`,
+        callEvent: event,
+      });
+      pendingPairIndexes.push(items.length - 1);
+      continue;
+    }
+
+    if (event.phase === "tool.result") {
+      const pendingIndex = pendingPairIndexes.shift();
+      if (pendingIndex !== undefined) {
+        const pendingItem = items[pendingIndex];
+        if (pendingItem?.type === "tool-pair") {
+          items[pendingIndex] = {
+            ...pendingItem,
+            key: `tool-pair-${pendingItem.callEvent.id}-${event.id}`,
+            resultEvent: event,
+          };
+          continue;
+        }
+      }
+    }
+
+    items.push({
+      type: "single",
+      key: `event-${event.id}`,
+      event,
+    });
+  }
+
+  return items;
 }
 
 /**
