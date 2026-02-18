@@ -62,6 +62,9 @@ from unoplat_code_confluence_commons.credential_enums import (
     ProviderKey,
     SecretKind,
 )
+from unoplat_code_confluence_commons.pr_metadata_model import (
+    PrMetadata,
+)
 from unoplat_code_confluence_commons.repo_models import (
     RepositoryAgentMdSnapshot,
 )
@@ -136,6 +139,7 @@ __all__ = [
     'ProgrammingLanguage',
     'PackageManagerType',
     'RepositoryAgentMdSnapshot',
+    'PrMetadata',
     # Credentials and related enums
     'Credentials',
     'CredentialNamespace',

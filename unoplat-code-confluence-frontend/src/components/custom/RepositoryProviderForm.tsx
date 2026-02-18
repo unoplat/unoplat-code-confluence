@@ -19,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Info } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import {
   CredentialNamespace,
@@ -29,7 +34,11 @@ import {
 import { getProviderDisplayName } from "@/lib/utils/provider-utils";
 import { useProviderMutations } from "@/hooks/use-provider-mutations";
 import { DEFAULT_REPOSITORY_CREDENTIAL_PARAMS } from "@/lib/constants/credentials";
-import { buildGitHubPatLink } from "@/lib/github-token-utils";
+import {
+  buildGitHubPatLink,
+  GITHUB_CLASSIC_SCOPES,
+  SCOPE_DESCRIPTIONS,
+} from "@/lib/github-token-utils";
 import { z } from "zod";
 
 function buildGitHubPatLinkForHost(host: string): string {
@@ -245,51 +254,80 @@ export function RepositoryProviderForm({
 
       <form.Field name="patToken">
         {(field) => (
-          <div className="space-y-2 text-left">
-            <Label htmlFor="patToken" className="block text-left">
-              Personal Access Token
-            </Label>
-            <div className="relative">
-              <Input
-                id="patToken"
-                type={showToken ? "text" : "password"}
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute top-0 right-0 h-full px-3 hover:bg-transparent"
-                onClick={() => setShowToken((v) => !v)}
-              >
-                {showToken ? (
-                  <EyeOff className="text-muted-foreground h-4 w-4" />
-                ) : (
-                  <Eye className="text-muted-foreground h-4 w-4" />
+          <Collapsible>
+            <div className="space-y-2 text-left">
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="patToken">Personal Access Token</Label>
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground inline-flex cursor-pointer transition-colors"
+                    aria-label="Show required PAT scopes"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                </CollapsibleTrigger>
+              </div>
+              <div className="relative">
+                <Input
+                  id="patToken"
+                  type={showToken ? "text" : "password"}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-0 right-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowToken((v) => !v)}
+                >
+                  {showToken ? (
+                    <EyeOff className="text-muted-foreground h-4 w-4" />
+                  ) : (
+                    <Eye className="text-muted-foreground h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <CollapsibleContent>
+                <div className="bg-muted/50 rounded-md border px-3 py-2">
+                  <p className="text-muted-foreground mb-1 text-xs font-medium">
+                    Required classic PAT scopes
+                  </p>
+                  <ul className="text-muted-foreground list-inside list-disc space-y-0.5 text-xs">
+                    {GITHUB_CLASSIC_SCOPES.map((scope) => (
+                      <li key={scope}>
+                        <code className="font-semibold">{scope}</code>
+                        {" — "}
+                        {SCOPE_DESCRIPTIONS[scope]}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-muted-foreground mt-1.5 text-xs">
+                    The &quot;Generate token&quot; link below pre-fills these
+                    scopes. The <code className="font-semibold">repo</code>{" "}
+                    scope is required for PR creation.
+                  </p>
+                </div>
+              </CollapsibleContent>
+              {field.state.meta.isTouched &&
+                field.state.meta.errors.length > 0 && (
+                  <p className="text-destructive text-sm">
+                    {(() => {
+                      const error = field.state.meta.errors[0] as
+                        | string
+                        | { message: string }
+                        | undefined;
+                      return typeof error === "string"
+                        ? error
+                        : (error?.message ?? "");
+                    })()}
+                  </p>
                 )}
-              </Button>
             </div>
-            <p className="text-muted-foreground text-xs">
-              Personal Access Token for the selected provider.
-            </p>
-            {field.state.meta.isTouched &&
-              field.state.meta.errors.length > 0 && (
-                <p className="text-destructive text-sm">
-                  {(() => {
-                    const error = field.state.meta.errors[0] as
-                      | string
-                      | { message: string }
-                      | undefined;
-                    return typeof error === "string"
-                      ? error
-                      : (error?.message ?? "");
-                  })()}
-                </p>
-              )}
-          </div>
+          </Collapsible>
         )}
       </form.Field>
 
