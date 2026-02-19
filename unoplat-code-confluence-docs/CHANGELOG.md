@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.33.0...unoplat-code-confluence-docs-v0.34.0) (2026-02-19)
+
+
+### Features
+
+* **ux-changelog:** add v0.28.0 changelog entry ([42b7054](https://github.com/unoplat/unoplat-code-confluence/commit/42b70541842f88bf05c4a5c5cd33bc188e340477))
+
 ## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.32.1...unoplat-code-confluence-docs-v0.33.0) (2026-02-19)
 
 
