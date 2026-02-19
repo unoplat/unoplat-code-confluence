@@ -1,5 +1,5 @@
 export const SITE_URL =
-  process.env.PUBLIC_SITE_URL ?? "https://docs.unoplat.io";
+  import.meta.env.PUBLIC_SITE_URL ?? "https://docs.unoplat.io";
 
 export const SITE_NAME = "Unoplat Code Confluence";
 
