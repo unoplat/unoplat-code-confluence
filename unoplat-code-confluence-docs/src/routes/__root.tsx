@@ -12,6 +12,12 @@ import { RootProvider } from "fumadocs-ui/provider/tanstack";
 import { Banner } from "fumadocs-ui/components/banner";
 import DefaultSearchDialog from "@/components/search-dialog";
 import { bannerConfig } from "@/lib/banner-config";
+import {
+  seo,
+  DEFAULT_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/seo";
 
 // Minimal skeleton CSS to prevent FOUC (Flash of Unstyled Content)
 // Only html/body rules are kept — layout-specific rules (#nd-docs-layout, #nd-sidebar, etc.)
@@ -67,11 +73,21 @@ export const Route = createRootRoute({
         name: "viewport",
         content: "width=device-width, initial-scale=1",
       },
-      {
-        title: "Unoplat Code Confluence Docs",
-      },
+      ...seo({ title: SITE_NAME, description: DEFAULT_DESCRIPTION }),
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: SITE_NAME,
+          url: SITE_URL,
+          description: DEFAULT_DESCRIPTION,
+        }),
+      },
+    ],
   }),
   component: RootComponent,
 });
@@ -86,7 +102,7 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <style
           data-crit="docs-skeleton"
