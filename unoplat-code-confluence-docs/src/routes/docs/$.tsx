@@ -19,6 +19,7 @@ import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 import { staticFunctionMiddleware } from "@tanstack/start-static-server-functions";
 import { TypeTable } from "fumadocs-ui/components/type-table";
 import { ImageZoom } from "fumadocs-ui/components/image-zoom";
+import { seo, canonicalLink } from "@/lib/seo";
 
 // Server function to load page data - runs on server during dev, pre-rendered for static build if static middleware present
 const serverLoader = createServerFn({
@@ -29,14 +30,28 @@ const serverLoader = createServerFn({
   .handler(async ({ data: slugs }) => {
     const page = source.getPage(slugs);
     if (!page) throw notFound();
+    const url = slugs.length > 0 ? `/docs/${slugs.join("/")}` : "/docs";
     return {
       pageTree: await source.serializePageTree(source.getPageTree()),
       path: page.path,
+      url,
+      title: page.data.title as string,
+      description: (page.data.description as string) ?? "",
     };
   });
 
 export const Route = createFileRoute("/docs/$")({
   component: Page,
+  head: ({ loaderData }) => ({
+    meta: loaderData
+      ? seo({
+          title: loaderData.title,
+          description: loaderData.description,
+          path: loaderData.url,
+        })
+      : [],
+    links: loaderData ? [canonicalLink(loaderData.url)] : [],
+  }),
   loader: async ({ params }) => {
     const raw = params._splat;
     const slugs = raw && raw.length > 0 ? raw.split("/") : [];
