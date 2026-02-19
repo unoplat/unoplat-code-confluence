@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-const SITE_URL = process.env.PUBLIC_SITE_URL ?? "https://docs.unoplat.io";
+import { SITE_URL } from "@/lib/seo";
 
 async function generateFeed(): Promise<string> {
   // Dynamic imports to keep server-only code out of client bundle
