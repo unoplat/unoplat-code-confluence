@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.32.1...unoplat-code-confluence-docs-v0.33.0) (2026-02-19)
+
+
+### Features
+
+* **ux-changelog:** transform changelog into Commit theme single-page timeline ([80cdbdc](https://github.com/unoplat/unoplat-code-confluence/commit/80cdbdc460c2af035d6cedc6675b550b786bae89))
+* **ux-changelog:** transform changelog into Commit theme single-page… ([a8aba6b](https://github.com/unoplat/unoplat-code-confluence/commit/a8aba6b7e6a6f65f95cace73a72fdc5a35b5f036))
+
 ## [0.32.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.32.0...unoplat-code-confluence-docs-v0.32.1) (2026-02-14)
 
 
