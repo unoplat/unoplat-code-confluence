@@ -1,0 +1,42 @@
+---
+title: "Release v0.28.0"
+description: "AGENTS.md PR creation with one-shot semantics, tool call pairing in agent events, and build-time image optimization"
+version: "0.28.0"
+releaseDate: "2026-02-18"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.28.0"
+---
+
+## Highlights
+
+This release introduces AGENTS.md PR creation, giving you the ability to create pull requests that keep your AI agent guides in sync with the codebase. It also adds tool call and result pairing in agent events for better observability, and build-time image optimization for faster page loads.
+
+## What's New
+
+### AGENTS.md PR Creation
+
+A complete workflow for creating pull requests to update AGENTS.md files:
+
+- New updater agent that generates AGENTS.md content and creates PRs via one-shot endpoints
+- One-shot PR creation endpoints with `PrMetadata` model for structured PR metadata
+- Frontend UI for triggering and monitoring AGENTS.md PR creation workflows
+- One-shot semantics ensure the entire generate-and-PR flow runs as a single atomic operation
+
+### Tool Call and Result Pairing in Agent Events
+
+- Agent event streams now pair each tool call with its corresponding result, making it easier to trace and debug agent workflows in real time
+
+### Performance: Build-time Image Optimization
+
+- Images are now optimized at build time with lazy loading, reducing initial page load size and improving Core Web Vitals
+
+### Documentation Branding
+
+- Added brand logo to the navigation header and updated 404 page branding for a consistent visual identity
+
+## Bug Fixes
+
+- Fixed changelog sorting to use version number instead of release date for correct ordering
+- Fixed broken Discord links across docs, app, and README
+- Fixed sidebar scroll issue caused by dots in banner ID creating invalid CSS selectors
+- Fixed incorrect roadmap card links
+- Aligned commons version dependencies across packages
