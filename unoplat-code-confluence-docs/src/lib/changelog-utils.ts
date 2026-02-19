@@ -5,6 +5,7 @@
 
 export interface ChangelogEntry {
   slug: string;
+  path: string;
   title: string;
   description: string;
   version: string;
