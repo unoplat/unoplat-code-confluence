@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.28.0...unoplat-code-confluence-v0.29.0) (2026-02-20)
+
+
+### Features
+
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD … ([9d38b4a](https://github.com/unoplat/unoplat-code-confluence/commit/9d38b4a392319bd9fec92a521c8d6e9ac82e66d6))
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD schema, and robots.txt ([a9b630a](https://github.com/unoplat/unoplat-code-confluence/commit/a9b630ae7bb39252cc604c72acf1b915922159a7))
+* **ux-changelog:** add v0.28.0 changelog entry ([42b7054](https://github.com/unoplat/unoplat-code-confluence/commit/42b70541842f88bf05c4a5c5cd33bc188e340477))
+* **ux-changelog:** add v0.28.0 changelog entry ([6875384](https://github.com/unoplat/unoplat-code-confluence/commit/6875384a4a92889e77ca2b2fe0a759f65ba4e4b1))
+* **ux-changelog:** transform changelog into Commit theme single-page timeline ([80cdbdc](https://github.com/unoplat/unoplat-code-confluence/commit/80cdbdc460c2af035d6cedc6675b550b786bae89))
+* **ux-changelog:** transform changelog into Commit theme single-page… ([a8aba6b](https://github.com/unoplat/unoplat-code-confluence/commit/a8aba6b7e6a6f65f95cace73a72fdc5a35b5f036))
+
+
+### Bug Fixes
+
+* **design:** align design-system tokens and primitives ([250f1e6](https://github.com/unoplat/unoplat-code-confluence/commit/250f1e6af10ad5258200c88ddcafe5931215860b))
+* **design:** align design-system tokens and primitives with tweakcn ([c5e6e7d](https://github.com/unoplat/unoplat-code-confluence/commit/c5e6e7da2bf4d9b9fec929fe1b74e4d22e221fd2))
+* **read-tool-call-pagination-issue:** align updater read clamp and no-op semantics ([e108880](https://github.com/unoplat/unoplat-code-confluence/commit/e108880d340ef26dd89e4cdc5be872e319e7c9ab))
+* **read-tool-call-pagination-issue:** align updater read clamp and no… ([b6574a0](https://github.com/unoplat/unoplat-code-confluence/commit/b6574a0f826f44dfe3f9f1cf59d1543e053e21b8))
+* **seo:** use import.meta.env for SITE_URL ([c157bba](https://github.com/unoplat/unoplat-code-confluence/commit/c157bbab345bd9fb551af964fe367372fa0ffb3b))
+
 ## [0.28.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.27.0...unoplat-code-confluence-v0.28.0) (2026-02-18)
 
 
