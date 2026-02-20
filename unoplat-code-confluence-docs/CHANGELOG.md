@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.34.0...unoplat-code-confluence-docs-v0.35.0) (2026-02-20)
+
+
+### Features
+
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD … ([9d38b4a](https://github.com/unoplat/unoplat-code-confluence/commit/9d38b4a392319bd9fec92a521c8d6e9ac82e66d6))
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD schema, and robots.txt ([a9b630a](https://github.com/unoplat/unoplat-code-confluence/commit/a9b630ae7bb39252cc604c72acf1b915922159a7))
+
+
+### Bug Fixes
+
+* **seo:** use import.meta.env for SITE_URL ([c157bba](https://github.com/unoplat/unoplat-code-confluence/commit/c157bbab345bd9fb551af964fe367372fa0ffb3b))
+
 ## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.33.0...unoplat-code-confluence-docs-v0.34.0) (2026-02-19)
 
 
