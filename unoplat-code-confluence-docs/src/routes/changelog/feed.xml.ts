@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-const SITE_URL = process.env.PUBLIC_SITE_URL ?? "https://docs.unoplat.io";
+import { SITE_URL } from "@/lib/seo";
 
 async function generateFeed(): Promise<string> {
   // Dynamic imports to keep server-only code out of client bundle
@@ -33,8 +32,8 @@ async function generateFeed(): Promise<string> {
     if (!releaseDate) continue;
     feed.addItem({
       title: page.data.title as string,
-      id: `${SITE_URL}/changelog/${slug}`,
-      link: `${SITE_URL}/changelog/${slug}`,
+      id: `${SITE_URL}/changelog#${slug}`,
+      link: `${SITE_URL}/changelog#${slug}`,
       description: page.data.description as string,
       date: releaseDate,
     });

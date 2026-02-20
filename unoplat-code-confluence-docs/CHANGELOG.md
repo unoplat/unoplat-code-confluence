@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.34.0...unoplat-code-confluence-docs-v0.35.0) (2026-02-20)
+
+
+### Features
+
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD … ([9d38b4a](https://github.com/unoplat/unoplat-code-confluence/commit/9d38b4a392319bd9fec92a521c8d6e9ac82e66d6))
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD schema, and robots.txt ([a9b630a](https://github.com/unoplat/unoplat-code-confluence/commit/a9b630ae7bb39252cc604c72acf1b915922159a7))
+
+
+### Bug Fixes
+
+* **seo:** use import.meta.env for SITE_URL ([c157bba](https://github.com/unoplat/unoplat-code-confluence/commit/c157bbab345bd9fb551af964fe367372fa0ffb3b))
+
+## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.33.0...unoplat-code-confluence-docs-v0.34.0) (2026-02-19)
+
+
+### Features
+
+* **ux-changelog:** add v0.28.0 changelog entry ([42b7054](https://github.com/unoplat/unoplat-code-confluence/commit/42b70541842f88bf05c4a5c5cd33bc188e340477))
+
+## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.32.1...unoplat-code-confluence-docs-v0.33.0) (2026-02-19)
+
+
+### Features
+
+* **ux-changelog:** transform changelog into Commit theme single-page timeline ([80cdbdc](https://github.com/unoplat/unoplat-code-confluence/commit/80cdbdc460c2af035d6cedc6675b550b786bae89))
+* **ux-changelog:** transform changelog into Commit theme single-page… ([a8aba6b](https://github.com/unoplat/unoplat-code-confluence/commit/a8aba6b7e6a6f65f95cace73a72fdc5a35b5f036))
+
 ## [0.32.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.32.0...unoplat-code-confluence-docs-v0.32.1) (2026-02-14)
 
 

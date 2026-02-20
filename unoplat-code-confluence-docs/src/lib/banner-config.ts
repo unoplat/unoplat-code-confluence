@@ -28,9 +28,9 @@ export interface BannerConfig {
 
 export const bannerConfig: BannerConfig = {
   enabled: true,
-  id: "v0-24-0",
-  message: "Your AI agents now know exactly which dependencies to use. ",
-  linkUrl: "/changelog/v0.24.0",
+  id: "v0-28-0",
+  message: "AGENTS.md now has PR creation. Keep your AI agent guides always in sync. ",
+  linkUrl: "/changelog#v0.28.0",
   linkText: " See what's new!",
   variant: "rainbow",
 };

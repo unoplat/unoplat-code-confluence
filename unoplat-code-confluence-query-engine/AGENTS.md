@@ -1,37 +1,38 @@
 # Agent Guidelines
 
 ## Engineering Workflow
-- **Install**: `uv sync` (from `pyproject.toml`)
-- **Install (tests)**: `uv sync --group test` (from `pyproject.toml`)
-- **Dev**: `uv run fastapi dev --port 8001` (from `Taskfile.yml`)
-- **Test**: `uv run --python 3.13 --group test pytest --cov=src/unoplat_code_confluence_query_engine --cov-report=html:coverage_reports tests/ -v` (from `Taskfile.yml`)
-- **Lint**: `uv run --group dev ruff check src/` (from `ruff.toml`)
-- **Type check**: `uv run --group dev basedpyright src/` (from `pyproject.toml`)
+- **Install**: `task sync` (from `Taskfile.yml`)
+- **Dev**: `task run-query-engine-backend-dev` (from `Taskfile.yml`)
+- **Test**: `task test` (from `Taskfile.yml`)
+- **Lint**: `task lint` (from `Taskfile.yml`)
+- **Type check**: `task typecheck` (from `Taskfile.yml`)
 
 ## Dependency Guide
 - **Package management**: Use `uv` with `pyproject.toml` for installing and syncing dependencies.
-- **sqlmodel**: SQLModel is a library for interacting with SQL (relational) databases from Python code using Python objects, designed to be intuitive, easy to use, highly compatible, and robust. Usage: define ORM models that combine SQLAlchemy-style mappings with Pydantic-style validation via type annotations.
-- **sse-starlette**: Production-ready Server-Sent Events implementation for Starlette and FastAPI following the W3C SSE specification. Usage: stream async generator output with `EventSourceResponse` and `ServerSentEvent` helpers, including graceful disconnect handling.
-- **sqlalchemy**: Python SQL toolkit and ORM for comprehensive database integration. Usage: use Core for composable SQL expressions/transactions and ORM for mapping Python objects and relationships.
-- **aiofiles**: Async file I/O library for asyncio applications. Usage: use async file APIs that mirror standard file objects to avoid blocking the event loop.
-- **pydantic-ai**: Pydantic AI framework for production-grade agent workflows. Usage: build model-agnostic agents with Pydantic-validated outputs and dependency-injected tools, plus streaming and orchestration support.
-- **fastapi**: High-performance web framework built on type hints. Usage: define API routes with automatic OpenAPI docs, validation, and dependency injection.
-- **loguru**: Simplified logging with a preconfigured global logger. Usage: emit logs via `logger` and add sinks with `logger.add()` for custom formats and levels.
-- **asyncpg**: Async PostgreSQL client for asyncio. Usage: use native protocol features like prepared statements, cursors, and pools for high-performance access.
-- **pydantic-ai-slim**: Pydantic AI core logic with minimal dependencies. Usage: install slim core and add provider-specific extras (openai, anthropic, google) as needed.
-- **logfire**: Observability SDK built on OpenTelemetry. Usage: configure Logfire and instrument services to emit traces, metrics, and logs.
-- **qs-codec**: Query string encoder/decoder for nested data. Usage: serialize/parse nested dict/list structures with configurable formats and decoding options.
-- **aiopath**: Async `pathlib` compatible with asyncio. Usage: use awaitable filesystem operations, async globbing, and async iterators for path traversal.
+- **aiopath**: Async pathlib for Python: a complete reimplementation of Python’s pathlib that is compatible with asyncio, trio, and async/await, with all I/O performed asynchronously and awaitably. Usage: use `AsyncPath`/`AsyncPurePath` with familiar pathlib APIs, and await I/O methods like read/write/open or async globbing that return async-friendly results.
+- **qs-codec**: Query string encoding and decoding library for Python, ported from qs for JavaScript. Usage: encode/decode nested dict/list structures with list formats (indices, brackets, repeat, comma), dot-notation, charset options, hooks, and null/safety handling.
+- **sqlalchemy**: SQL toolkit and ORM for Python providing comprehensive database tools. Usage: rely on Core for composable SQL expressions and the ORM for object mappings, unit-of-work persistence, and object-centric querying.
+- **asyncpg**: Async PostgreSQL client designed for asyncio. Usage: use the native protocol API for connections, transactions, prepared statements, cursors, pooling, and rich PostgreSQL type conversions.
+- **loguru**: Pre-instanced logger that simplifies Python logging. Usage: emit logs with the global `logger`, add sinks via `logger.add()`, and configure levels or formatting as needed.
+- **sse-starlette**: Server-Sent Events implementation for Starlette/FastAPI following the W3C SSE spec. Usage: stream async event generators with `EventSourceResponse`, using helpers like `ServerSentEvent`/`JSONServerSentEvent` and disconnect handling.
+- **ghapi**: Pythonic interface to GitHub’s OpenAPI spec with always-updated coverage. Usage: call GitHub endpoints as standard Python methods with docs/autocomplete, or use the CLI for scripting.
+- **sqlmodel**: SQLModel for relational database access with Python objects. Usage: define models with modern type annotations that serve as ORM mappings and Pydantic validation, while accessing underlying SQLAlchemy features.
+- **fastapi**: High-performance API framework built on type hints. Usage: declare routes with automatic validation/OpenAPI docs and dependency injection for rapid API development.
+- **logfire**: Observability platform built on OpenTelemetry with strong Python support. Usage: initialize with `logfire.configure()` and use instrumentation helpers like `logfire.instrument_<package>()` for traces, logs, and metrics.
+- **pydantic-ai-slim**: Minimal core for Pydantic AI. Usage: install the slim core and add only the provider/tool extras you need to keep dependencies lightweight.
+- **aiofiles**: Async file I/O library for asyncio. Usage: use async file APIs mirroring standard file objects while delegating blocking work to a thread pool.
+- **pydantic-ai**: Python agent framework for production-grade generative AI workflows. Usage: build type-safe, model-agnostic agents with structured outputs, tool calls, and streaming/observability support.
 
 ## Business Logic Domain
-- **Overview**: AI-driven codebase analysis/query engine that orchestrates repository workflows, captures agent progress and outputs, and persists snapshots plus usage statistics.
-- **Core data focus**: Configuration of LLM providers (including OAuth flows), tool/MCP integrations, repository rulesets, and runtime dependencies for agent execution.
-- **Structured outputs**: Business logic domains, interfaces, and engineering workflow results are modeled for downstream reporting.
+- **Overview**: AI-driven codebase analysis service that orchestrates repository workflows to generate structured documentation outputs and track execution across codebases.
+- **Core data focus**: Provider configuration (including OAuth flows), model parameters/catalogs, tool/MCP server setup, repository rulesets/metadata, and agent runtime dependencies.
+- **Workflow telemetry**: Agent events, workflow envelopes, and usage/cost statistics capture lifecycle and execution monitoring.
+- **Structured outputs**: Typed schemas for agent markdown responses, AGENTS.md updates, engineering workflows, and business logic summaries.
 - **Primary references**: See `business_logic_references.md` for the source-of-truth module map.
 
 ## App Interfaces
 - **Protocol**: FastAPI HTTP endpoints under `src/unoplat_code_confluence_query_engine/api/v1/endpoints`.
-- **Surface area**: Model configuration + provider/OAuth flows, feature flag CRUD, repository agent rule snapshots, and tool configuration management.
+- **Surface area**: Model configuration + provider/OAuth flows, feature flag CRUD, repository agent rules/snapshots/markdown PR endpoints, and tool configuration management.
 - **Reference map**: See `app_interfaces.md` for endpoint-to-module details.
 
 ## Commands

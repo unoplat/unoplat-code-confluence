@@ -1,5 +1,7 @@
 # Business Logic References
 
+Catalog of domain models supporting repository ingestion, parsing metadata, workflow/run tracking, GitHub App onboarding, and issue feedback.
+
 ## Ingestion + Parsing Pipeline
 - `src/code_confluence_flow_bridge/engine/programming_language/python/python_source_context.py`: Python parsing context and extracted module metadata.
 - `src/code_confluence_flow_bridge/parser/language_processors/language_processor_context.py`: Shared context passed through language processors during parsing.
