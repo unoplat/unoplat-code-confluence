@@ -66,13 +66,12 @@ def _normalize_scoped_path(
     return normalized
 
 
-def _validate_read_bounds(offset: int, limit: int) -> None:
+def _validate_read_bounds(offset: int, limit: int) -> int:
     if offset < 0:
         raise ModelRetry("invalid_patch: offset must be >= 0")
     if limit < 1:
         raise ModelRetry("invalid_patch: limit must be >= 1")
-    if limit > READ_MAX_LIMIT:
-        raise ModelRetry(f"invalid_patch: limit must be <= {READ_MAX_LIMIT}")
+    return min(limit, READ_MAX_LIMIT)
 
 
 def _format_numbered_line(line_number: int, content: str) -> str:
@@ -229,7 +228,7 @@ async def updater_read_file(
     limit: int = READ_MAX_LIMIT,
 ) -> str:
     """Read file content with absolute path guard and truncation."""
-    _validate_read_bounds(offset, limit)
+    effective_limit = _validate_read_bounds(offset, limit)
     target = _normalize_scoped_path(ctx, file_path=file_path, allow_missing=False)
     if target.is_dir():
         raise ModelRetry(f"not_found: path is a directory '{target.as_posix()}'")
@@ -241,7 +240,7 @@ async def updater_read_file(
             total_lines += 1
             if total_lines <= offset:
                 continue
-            if len(output_lines) >= limit:
+            if len(output_lines) >= effective_limit:
                 break
             output_lines.append(
                 _format_numbered_line(total_lines, raw_line.rstrip("\r\n"))
@@ -294,15 +293,17 @@ async def updater_edit_file(
 
     replace_count = expected_replacements if expected_replacements is not None else 1
     updated_content = existing_content.replace(old_string, new_string, replace_count)
+    changed = updated_content != existing_content
 
-    async with aiofiles.open(target, mode="w", encoding="utf-8") as handle:
-        await handle.write(updated_content)
+    if changed:
+        async with aiofiles.open(target, mode="w", encoding="utf-8") as handle:
+            await handle.write(updated_content)
 
     return {
         "file_path": target.as_posix(),
-        "changed": updated_content != existing_content,
+        "changed": changed,
         "replacements": replace_count,
-        "status": "updated",
+        "status": "updated" if changed else "unchanged",
     }
 
 
@@ -314,6 +315,7 @@ async def updater_apply_patch(
     operations = _parse_patch_operations(patch_text)
 
     planned_writes: dict[Path, str | None] = {}
+    skipped_noop_files = 0
     for operation in operations:
         scoped = _normalize_scoped_path(
             ctx,
@@ -330,6 +332,16 @@ async def updater_apply_patch(
             continue
 
         if operation.operation_type == "add":
+            if scoped.exists() and scoped.is_dir():
+                raise ModelRetry(
+                    f"not_found: add target is a directory '{scoped.as_posix()}'"
+                )
+            if scoped.exists():
+                async with aiofiles.open(scoped, mode="r", encoding="utf-8") as handle:
+                    existing_content = await handle.read()
+                if existing_content == operation.add_content:
+                    skipped_noop_files += 1
+                    continue
             planned_writes[scoped] = operation.add_content
             continue
 
@@ -344,6 +356,9 @@ async def updater_apply_patch(
                 existing_content,
                 chunks=operation.chunks,
             )
+            if updated_content == existing_content:
+                skipped_noop_files += 1
+                continue
             planned_writes[scoped] = updated_content
             continue
 
@@ -364,4 +379,5 @@ async def updater_apply_patch(
         "status": "applied",
         "operations": len(operations),
         "changed_files": changed_files,
+        "skipped_noop_files": skipped_noop_files,
     }
