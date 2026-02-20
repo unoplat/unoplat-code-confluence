@@ -1,9 +1,9 @@
 # Business Logic References
 
 ## Platform scope
-- Connects source code repositories (GitHub/enterprise providers), ingests metadata, and tracks workflow runs plus multi-codebase analysis status.
+- Connects source code repositories (GitHub/GitLab providers), ingests metadata, and tracks workflow runs plus codebase analysis status.
 - Surfaces AI agent outputs (engineering workflow, dependency guide, business logic, app interfaces) with snapshot storage and feedback/issue submission flows.
-- Supports credential/token management, provider onboarding, model/LLM configuration (including OAuth), tool configuration, and artifact formatting.
+- Supports credential/token management, provider onboarding, model/LLM configuration (including OAuth), tool configuration, and artifact formatting for UI display.
 
 ## Core feature areas and artifacts
 
