@@ -22,3 +22,6 @@
 - `src/unoplat_code_confluence_commons/credentials.py`
 - `src/unoplat_code_confluence_commons/flags.py`
 - `src/unoplat_code_confluence_commons/programming_language_metadata.py`
+
+## Publication and PR Metadata
+- `src/unoplat_code_confluence_commons/pr_metadata_model.py`
