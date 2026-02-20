@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.30.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.30.1...unoplat-code-confluence-query-engine-v0.30.2) (2026-02-20)
+
+
+### Bug Fixes
+
+* **read-tool-call-pagination-issue:** align updater read clamp and no-op semantics ([e108880](https://github.com/unoplat/unoplat-code-confluence/commit/e108880d340ef26dd89e4cdc5be872e319e7c9ab))
+* **read-tool-call-pagination-issue:** align updater read clamp and no… ([b6574a0](https://github.com/unoplat/unoplat-code-confluence/commit/b6574a0f826f44dfe3f9f1cf59d1543e053e21b8))
+
 ## [0.30.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.30.0...unoplat-code-confluence-query-engine-v0.30.1) (2026-02-17)
 
 

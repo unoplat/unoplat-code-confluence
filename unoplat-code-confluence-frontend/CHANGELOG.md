@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.44.0...unoplat-code-confluence-frontend-v1.45.0) (2026-02-20)
+
+
+### Features
+
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD … ([9d38b4a](https://github.com/unoplat/unoplat-code-confluence/commit/9d38b4a392319bd9fec92a521c8d6e9ac82e66d6))
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD schema, and robots.txt ([a9b630a](https://github.com/unoplat/unoplat-code-confluence/commit/a9b630ae7bb39252cc604c72acf1b915922159a7))
+
+
+### Bug Fixes
+
+* **design:** align design-system tokens and primitives ([250f1e6](https://github.com/unoplat/unoplat-code-confluence/commit/250f1e6af10ad5258200c88ddcafe5931215860b))
+* **design:** align design-system tokens and primitives with tweakcn ([c5e6e7d](https://github.com/unoplat/unoplat-code-confluence/commit/c5e6e7da2bf4d9b9fec929fe1b74e4d22e221fd2))
+
 ## [1.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.43.2...unoplat-code-confluence-frontend-v1.44.0) (2026-02-15)
 
 
