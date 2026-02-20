@@ -177,6 +177,12 @@ def build_section_updater_prompt(
         f"Codebase path: {codebase_path}\n"
         f"Programming language metadata: {programming_language_metadata}\n"
         f"Section data:\n{section_data}\n\n"
+        "Deterministic update workflow:\n"
+        "- Read the target section first (and only within scope).\n"
+        "- Compute expected section content from section_data.\n"
+        "- Compare current vs expected content before writing.\n"
+        "- If equivalent, do NOT call write tools and return status='no_changes'.\n"
+        "- Use updater_apply_patch/updater_edit_file only when a real diff exists.\n\n"
         "Return summary metadata only (no raw file content)."
     )
 
@@ -317,6 +323,36 @@ def validate_agents_md_updater_output(
         raise ModelRetry("touched_file_paths cannot be empty")
     if not output.file_changes:
         raise ModelRetry("file_changes cannot be empty")
+
+    if output.status == "no_changes":
+        for file_change in output.file_changes:
+            if file_change.changed:
+                raise ModelRetry(
+                    "status no_changes requires file_changes[].changed to be false"
+                )
+            if file_change.change_type != "unchanged":
+                raise ModelRetry(
+                    "status no_changes requires file_changes[].change_type to be 'unchanged'"
+                )
+
+    if output.status == "updated":
+        has_changed_file = any(
+            file_change.changed for file_change in output.file_changes
+        )
+        if not has_changed_file:
+            raise ModelRetry(
+                "status updated requires at least one file_changes[].changed to be true"
+            )
+
+        has_mutation_change_type = any(
+            file_change.change_type in {"created", "updated"}
+            for file_change in output.file_changes
+        )
+        if not has_mutation_change_type:
+            raise ModelRetry(
+                "status updated requires at least one file_changes[].change_type in {'created','updated'}"
+            )
+
     return output
 
 
@@ -509,6 +545,9 @@ Tooling constraints:
 - Always pass absolute file paths.
 - Operate only within the current codebase root.
 - Prefer updater_apply_patch for creates and structured updates.
+- Read the target section first, then compute the expected section body from section_data.
+- Compare before write: if content is already equivalent, do not call write tools and return status="no_changes".
+- Call updater_apply_patch/updater_edit_file only when an actual diff exists.
 
 Output constraints:
 - Return summary metadata only.

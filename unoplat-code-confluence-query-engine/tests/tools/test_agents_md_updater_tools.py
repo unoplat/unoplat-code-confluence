@@ -22,6 +22,7 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
     AgentDependencies,
 )
 from unoplat_code_confluence_query_engine.tools.agents_md_updater_tools import (
+    READ_MAX_LIMIT,
     _apply_replacement_chunks,
     _parse_patch_operations,
     updater_apply_patch,
@@ -487,7 +488,9 @@ class TestRootScopeEnforcement:
     """Regression tests for codebase-root-only file operation enforcement."""
 
     @pytest.mark.asyncio
-    async def test_relative_path_rejected_with_out_of_scope(self, tmp_path: Path) -> None:
+    async def test_relative_path_rejected_with_out_of_scope(
+        self, tmp_path: Path
+    ) -> None:
         """Relative paths must raise ModelRetry with 'out_of_scope' prefix."""
         ctx = _make_run_context(str(tmp_path))
         patch = _build_patch(
@@ -578,3 +581,94 @@ class TestRootScopeEnforcement:
         result = await updater_apply_patch(ctx, patch)
         assert result["status"] == "applied"
         assert agents_md.read_text() == "# Title\nnew line\n"
+
+
+class TestUpdaterReadFileLimits:
+    """Validate read bound handling for updater_read_file."""
+
+    @pytest.mark.asyncio
+    async def test_limit_above_max_is_clamped(self, tmp_path: Path) -> None:
+        """Oversized limit must clamp to READ_MAX_LIMIT instead of failing."""
+        target = tmp_path / "AGENTS.md"
+        target.write_text("\n".join(f"line-{index}" for index in range(1, 2105)) + "\n")
+        ctx = _make_run_context(str(tmp_path))
+
+        result = await updater_read_file(ctx, str(target), offset=0, limit=4000)
+        numbered_lines = [
+            line for line in result.splitlines() if len(line) > 7 and line[5:7] == "| "
+        ]
+
+        assert len(numbered_lines) == READ_MAX_LIMIT
+        assert "[truncated]" in result
+
+    @pytest.mark.asyncio
+    async def test_limit_below_one_still_rejected(self, tmp_path: Path) -> None:
+        """Limit less than one must still fail with invalid_patch."""
+        target = tmp_path / "AGENTS.md"
+        target.write_text("content\n")
+        ctx = _make_run_context(str(tmp_path))
+
+        with pytest.raises(ModelRetry, match="limit must be >= 1"):
+            await updater_read_file(ctx, str(target), limit=0)
+
+
+class TestUpdaterApplyPatchNoopSemantics:
+    """Ensure no-op updates do not write or count as changed files."""
+
+    @pytest.mark.asyncio
+    async def test_update_noop_does_not_count_as_change(self, tmp_path: Path) -> None:
+        """Update patch yielding identical content should be treated as no-op."""
+        target = tmp_path / "AGENTS.md"
+        target.write_text("line one\nline two\n")
+        ctx = _make_run_context(str(tmp_path))
+
+        patch = _build_patch(
+            f"*** Update File: {target}",
+            "@@",
+            "-line two",
+            "+line two",
+        )
+
+        result = await updater_apply_patch(ctx, patch)
+
+        assert result["operations"] == 1
+        assert result["changed_files"] == 0
+        assert result["skipped_noop_files"] == 1
+        assert target.read_text() == "line one\nline two\n"
+
+    @pytest.mark.asyncio
+    async def test_mixed_operations_track_requested_vs_actual_changes(
+        self, tmp_path: Path
+    ) -> None:
+        """Operations count should include no-op intents; changed_files should not."""
+        update_target = tmp_path / "AGENTS.md"
+        update_target.write_text("alpha\nbeta\n")
+
+        noop_target = tmp_path / "README.md"
+        noop_target.write_text("same\n")
+
+        add_target = tmp_path / "business_logic_references.md"
+        ctx = _make_run_context(str(tmp_path))
+
+        patch = _build_patch(
+            f"*** Update File: {update_target}",
+            "@@",
+            "-beta",
+            "+BETA",
+            f"*** Update File: {noop_target}",
+            "@@",
+            "-same",
+            "+same",
+            f"*** Add File: {add_target}",
+            "+# Business Logic",
+            "+artifact content",
+        )
+
+        result = await updater_apply_patch(ctx, patch)
+
+        assert result["operations"] == 3
+        assert result["changed_files"] == 2
+        assert result["skipped_noop_files"] == 1
+        assert update_target.read_text() == "alpha\nBETA\n"
+        assert noop_target.read_text() == "same\n"
+        assert add_target.read_text() == "# Business Logic\nartifact content"
