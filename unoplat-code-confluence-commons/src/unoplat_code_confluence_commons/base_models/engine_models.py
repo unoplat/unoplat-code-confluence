@@ -109,6 +109,38 @@ class FeatureSpec(BaseModel):
     )
 
 
+class FrameworkFeaturePayload(BaseModel):
+    """JSONB payload shape for framework_feature.feature_definition."""
+
+    description: Optional[str] = Field(None, description="Human-readable description")
+    absolute_paths: List[str] = Field(
+        default_factory=list,
+        description="Fully qualified import paths",
+    )
+    target_level: TargetLevel = Field(
+        default=TargetLevel.FUNCTION,
+        description="function or class",
+    )
+    concept: Concept = Field(
+        default=Concept.ANNOTATION_LIKE,
+        description="Semantic concept",
+    )
+    locator_strategy: LocatorStrategy = Field(
+        default=LocatorStrategy.VARIABLE_BOUND,
+        description="VariableBound or Direct",
+    )
+    construct_query: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Language-specific tweaks for ConceptQuery construction",
+    )
+    startpoint: bool = Field(
+        default=False,
+        description="Feature is a starting point",
+    )
+
+    model_config = ConfigDict(extra="allow", use_enum_values=True)
+
+
 class Detection(BaseModel):
     """Result of feature detection in source code."""
 
