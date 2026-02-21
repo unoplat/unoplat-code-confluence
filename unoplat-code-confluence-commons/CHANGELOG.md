@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.43.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.43.0...unoplat-code-confluence-commons-v0.43.1) (2026-02-21)
+
+
+### Bug Fixes
+
+* **optimise-framework-schema:** move framework feature fields to JSON… ([ccf65ec](https://github.com/unoplat/unoplat-code-confluence/commit/ccf65ecf93e861fd0b537e1145fcef4bcf831590))
+* **optimise-framework-schema:** move framework feature fields to JSONB payload ([de6f144](https://github.com/unoplat/unoplat-code-confluence/commit/de6f1445d175acabc44f88d6832bb960b18f9981))
+
 ## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.42.0...unoplat-code-confluence-commons-v0.43.0) (2026-02-15)
 
 
