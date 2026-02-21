@@ -2,11 +2,11 @@
 Service for querying framework features from PostgreSQL database.
 """
 
-from typing import List
+from typing import cast
 
 from loguru import logger
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_scoped_session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from unoplat_code_confluence_commons.base_models import (
     FeatureAbsolutePath,
@@ -16,8 +16,8 @@ from unoplat_code_confluence_commons.base_models import (
 
 
 async def get_framework_features_for_imports(
-    session: async_scoped_session, language: str, imports: List[str]
-) -> List[FeatureSpec]:
+    session: AsyncSession, language: str, imports: list[str]
+) -> list[FeatureSpec]:
     """
     Query framework features that match the given imports for a specific language.
 
@@ -57,10 +57,12 @@ async def get_framework_features_for_imports(
         # connection while the first one is still being iterated over.
 
         result = await session.execute(query)
-        framework_features = result.scalars().unique().all()
+        framework_features = cast(
+            list[FrameworkFeature], result.scalars().unique().all()
+        )
 
         # Convert to FeatureSpec objects
-        feature_specs = []
+        feature_specs: list[FeatureSpec] = []
         for feature in framework_features:
             # Extract absolute paths from the loaded relationship
             absolute_paths = [path.absolute_path for path in feature.absolute_paths]
@@ -74,6 +76,7 @@ async def get_framework_features_for_imports(
                 locator_strategy=feature.locator_strategy,
                 construct_query=feature.construct_query,
                 description=feature.description,
+                startpoint=feature.startpoint,
             )
             feature_specs.append(feature_spec)
 
@@ -90,8 +93,8 @@ async def get_framework_features_for_imports(
 
 
 async def get_all_framework_features_for_language(
-    session: async_scoped_session, language: str
-) -> List[FeatureSpec]:
+    session: AsyncSession, language: str
+) -> list[FeatureSpec]:
     """
     Query all framework features for a specific language.
 
@@ -113,10 +116,12 @@ async def get_all_framework_features_for_language(
         # here as well when eager-loading relationships via selectinload().
 
         result = await session.execute(query)
-        framework_features = result.scalars().unique().all()
+        framework_features = cast(
+            list[FrameworkFeature], result.scalars().unique().all()
+        )
 
         # Convert to FeatureSpec objects
-        feature_specs = []
+        feature_specs: list[FeatureSpec] = []
         for feature in framework_features:
             absolute_paths = [path.absolute_path for path in feature.absolute_paths]
 
@@ -129,6 +134,7 @@ async def get_all_framework_features_for_language(
                 locator_strategy=feature.locator_strategy,
                 construct_query=feature.construct_query,
                 description=feature.description,
+                startpoint=feature.startpoint,
             )
             feature_specs.append(feature_spec)
 
