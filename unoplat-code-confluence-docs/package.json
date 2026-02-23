@@ -9,6 +9,8 @@
     "build": "NODE_ENV=production vite build",
     "preview": "vite preview",
     "start": "vite preview",
+    "sync:framework-definitions": "node ./scripts/sync-framework-definitions.mjs",
+    "check:framework-definitions": "bun run sync:framework-definitions && [ -z \"$(git status --porcelain -- public/framework-definitions)\" ]",
     "types:check": "fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },
