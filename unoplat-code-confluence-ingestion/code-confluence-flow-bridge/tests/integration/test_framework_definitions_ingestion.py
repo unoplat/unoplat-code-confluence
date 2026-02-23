@@ -17,10 +17,18 @@ from fastapi.testclient import TestClient
 import pytest
 from sqlalchemy import func, select, text
 from sqlmodel import delete
+from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
+    get_framework_features_for_imports,
+)
 from unoplat_code_confluence_commons.base_models import (
+    Concept,
     FeatureAbsolutePath,
     Framework,
     FrameworkFeature,
+    FrameworkFeaturePayload,
+    LocatorStrategy,
+    TargetLevel,
 )
 
 from tests.utils.sync_db_utils import get_sync_postgres_session
@@ -62,25 +70,23 @@ def parse_json_data(
             # Process features
             features_data = library_data.get("features", {})
             for feature_key, feature_data in features_data.items():
+                normalized_payload = normalize_feature_payload(feature_data)
+                feature_definition = normalized_payload.model_dump(
+                    mode="json", exclude_none=False
+                )
+
                 # Create FrameworkFeature record with new schema fields
                 features.append(
                     FrameworkFeature(
                         language=language,
                         library=library_name,
                         feature_key=feature_key,
-                        description=feature_data.get("description"),
-                        target_level=feature_data.get("target_level", "function"),
-                        concept=feature_data.get("concept", "AnnotationLike"),
-                        locator_strategy=feature_data.get(
-                            "locator_strategy", "VariableBound"
-                        ),
-                        construct_query=feature_data.get("construct_query"),
-                        startpoint=feature_data.get("startpoint", False),
+                        feature_definition=feature_definition,
                     )
                 )
 
                 # Create FeatureAbsolutePath records for each absolute path
-                absolute_paths_data = feature_data.get("absolute_paths", [])
+                absolute_paths_data = normalized_payload.absolute_paths
                 for absolute_path in absolute_paths_data:
                     absolute_paths.append(
                         FeatureAbsolutePath(
@@ -92,6 +98,41 @@ def parse_json_data(
                     )
 
     return frameworks, features, absolute_paths
+
+
+def normalize_feature_payload(feature_data: Dict[str, Any]) -> FrameworkFeaturePayload:
+    payload_data = dict(feature_data)
+
+    if not isinstance(payload_data.get("absolute_paths"), list):
+        payload_data["absolute_paths"] = []
+    else:
+        payload_data["absolute_paths"] = [
+            value for value in payload_data["absolute_paths"] if isinstance(value, str)
+        ]
+
+    if not isinstance(payload_data.get("construct_query"), dict):
+        payload_data["construct_query"] = None
+
+    if payload_data.get("target_level") not in {"function", "class"}:
+        payload_data["target_level"] = "function"
+
+    if payload_data.get("concept") not in {
+        "AnnotationLike",
+        "CallExpression",
+        "Inheritance",
+    }:
+        payload_data["concept"] = "AnnotationLike"
+
+    if payload_data.get("locator_strategy") not in {
+        "VariableBound",
+        "Direct",
+    }:
+        payload_data["locator_strategy"] = "VariableBound"
+
+    if not isinstance(payload_data.get("startpoint"), bool):
+        payload_data["startpoint"] = False
+
+    return FrameworkFeaturePayload.model_validate(payload_data)
 
 
 def load_framework_definitions() -> Dict[str, Any]:
@@ -212,6 +253,19 @@ class TestFrameworkDefinitionsIngestion:
             assert len(foreign_keys) >= 2, (
                 f"Expected at least 2 foreign keys, got {len(foreign_keys)}"
             )
+
+            # Verify JSONB payload column exists
+            column_result = session.execute(
+                text("""
+                SELECT data_type
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'framework_feature'
+                  AND column_name = 'feature_definition'
+            """)
+            )
+            data_type = column_result.scalar_one()
+            assert data_type == "jsonb"
 
     @pytest.mark.asyncio(loop_scope="session")
     async def test_framework_definitions_loading(self):
@@ -361,13 +415,16 @@ class TestFrameworkDefinitionsIngestion:
             seed_framework_definitions(framework_data, session)
 
             # Test different concept types
+            concept_expression = FrameworkFeature.concept_sql_expression()
             concepts_query = session.execute(
-                select(
-                    FrameworkFeature.concept, func.count(FrameworkFeature.concept)
-                ).group_by(FrameworkFeature.concept)
+                select(concept_expression, func.count(concept_expression)).group_by(
+                    concept_expression
+                )
             )
-            # Use .value to get the enum string value (e.g., "AnnotationLike")
-            concepts = {row[0].value: row[1] for row in concepts_query.fetchall()}
+            concepts = {
+                row[0].value if hasattr(row[0], "value") else row[0]: row[1]
+                for row in concepts_query.fetchall()
+            }
 
             # Should have all three concept types
             assert "AnnotationLike" in concepts
@@ -377,7 +434,7 @@ class TestFrameworkDefinitionsIngestion:
     def test_construct_query_jsonb_storage(
         self, test_client: TestClient, service_ports
     ):
-        """Test that construct_query JSONB field is stored and retrieved correctly."""
+        """Test that feature_definition JSONB stores construct_query correctly."""
         with get_sync_postgres_session(service_ports["postgresql"]) as session:
             framework_data = load_framework_definitions()
 
@@ -392,6 +449,7 @@ class TestFrameworkDefinitionsIngestion:
             )
             feature = feature_result.scalar_one()
 
+            assert "construct_query" in feature.feature_definition
             assert feature.construct_query is not None
             assert "method_regex" in feature.construct_query
             assert (
@@ -474,9 +532,9 @@ class TestFrameworkDefinitionsIngestion:
             http_endpoint.description
             == "HTTP verb decorator that registers a route handler"
         )
-        assert http_endpoint.target_level == "function"
-        assert http_endpoint.concept == "AnnotationLike"
-        assert http_endpoint.locator_strategy == "VariableBound"
+        assert http_endpoint.target_level == TargetLevel.FUNCTION
+        assert http_endpoint.concept == Concept.ANNOTATION_LIKE
+        assert http_endpoint.locator_strategy == LocatorStrategy.VARIABLE_BOUND
         assert http_endpoint.startpoint is True, (
             "http_endpoint should be marked as startpoint"
         )
@@ -502,14 +560,17 @@ class TestFrameworkDefinitionsIngestion:
             assert feature.library is not None
             assert feature.feature_key is not None
             assert feature.description is not None
-            assert feature.target_level in ["function", "class"]
+            assert feature.target_level in [
+                TargetLevel.FUNCTION,
+                TargetLevel.CLASS,
+            ]
             assert feature.concept in [
-                "AnnotationLike",
-                "CallExpression",
-                "Inheritance",
+                Concept.ANNOTATION_LIKE,
+                Concept.CALL_EXPRESSION,
+                Concept.INHERITANCE,
             ]
             # locator_strategy defaults to "VariableBound" (schema v3 removed this field)
-            assert feature.locator_strategy == "VariableBound"
+            assert feature.locator_strategy == LocatorStrategy.VARIABLE_BOUND
             assert isinstance(feature.startpoint, bool)
 
         # Validate all absolute paths have required fields
@@ -519,3 +580,98 @@ class TestFrameworkDefinitionsIngestion:
             assert ap.feature_key is not None
             assert ap.absolute_path is not None
             assert "." in ap.absolute_path  # Should be fully qualified
+
+    def test_unknown_keys_are_preserved_in_feature_definition(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test unknown feature keys are preserved through JSONB ingestion."""
+        framework_data = load_framework_definitions()
+        framework_data["python"]["fastapi"]["features"]["http_endpoint"][
+            "synthetic_extra_field"
+        ] = {"enabled": True, "note": "preserve"}
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            seed_framework_definitions(framework_data, session)
+
+            feature = session.execute(
+                select(FrameworkFeature).where(
+                    FrameworkFeature.library == "fastapi",
+                    FrameworkFeature.feature_key == "http_endpoint",
+                )
+            ).scalar_one()
+
+            assert "synthetic_extra_field" in feature.feature_definition
+            assert feature.feature_definition["synthetic_extra_field"] == {
+                "enabled": True,
+                "note": "preserve",
+            }
+
+    def test_payload_defaults_are_applied_during_ingestion(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test locator_strategy and startpoint defaults are applied in ingestion."""
+        framework_data = {
+            "python": {
+                "customlib": {
+                    "docs_url": "https://example.com/docs",
+                    "description": "Custom framework",
+                    "features": {
+                        "custom_feature": {
+                            "description": "Custom feature",
+                            "absolute_paths": ["customlib.feature"],
+                            "target_level": "function",
+                            "concept": "AnnotationLike",
+                        }
+                    },
+                }
+            }
+        }
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            seed_framework_definitions(framework_data, session)
+
+            feature = session.execute(select(FrameworkFeature)).scalar_one()
+
+            assert feature.locator_strategy == LocatorStrategy.VARIABLE_BOUND
+            assert feature.startpoint is False
+            assert feature.feature_definition["locator_strategy"] == "VariableBound"
+            assert feature.feature_definition["startpoint"] is False
+
+    @pytest.mark.asyncio(loop_scope="session")
+    async def test_query_parity_for_import_lookup(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test import lookup returns expected FeatureSpec set after JSONB cutover."""
+        framework_data = load_framework_definitions()
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            seed_framework_definitions(framework_data, session)
+
+            imports = [
+                "fastapi.FastAPI",
+                "sqlmodel.SQLModel",
+                "pydantic.BaseModel",
+            ]
+            expected_rows = session.execute(
+                select(FrameworkFeature.feature_key, FrameworkFeature.library)
+                .join(FeatureAbsolutePath)
+                .where(
+                    FrameworkFeature.language == "python",
+                    FeatureAbsolutePath.absolute_path.in_(imports),
+                )
+                .distinct()
+            ).all()
+
+        expected_set = {(row[0], row[1]) for row in expected_rows}
+
+        async with get_session_cm() as async_session:
+            feature_specs = await get_framework_features_for_imports(
+                async_session,
+                "python",
+                imports,
+            )
+
+        actual_set = {
+            (feature.feature_key, feature.library) for feature in feature_specs
+        }
+        assert actual_set == expected_set

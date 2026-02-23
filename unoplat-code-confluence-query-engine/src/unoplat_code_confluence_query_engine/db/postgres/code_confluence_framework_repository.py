@@ -34,7 +34,7 @@ async def db_get_framework_with_features(
         stmt = (
             select(
                 FrameworkFeature.feature_key,
-                FrameworkFeature.startpoint,
+                FrameworkFeature.startpoint_sql_expression().label("startpoint"),
                 UnoplatCodeConfluenceFileFrameworkFeature.file_path,
                 UnoplatCodeConfluenceFileFrameworkFeature.start_line,
                 UnoplatCodeConfluenceFileFrameworkFeature.end_line,
@@ -84,11 +84,16 @@ async def db_get_framework_with_features(
     usage_seen: Dict[str, Set[tuple[str, int, int]]] = defaultdict(set)
 
     for feature_key, startpoint, file_path, start_line, end_line in rows:
+        if not isinstance(startpoint, bool):
+            raise TypeError(
+                f"Invalid startpoint value for feature '{feature_key}': {startpoint!r}"
+            )
+
         feature_entry = feature_map.setdefault(
             feature_key,
             {
                 "feature_key": feature_key,
-                "startpoint": bool(startpoint),
+                "startpoint": startpoint,
                 "usages": [],
             },
         )
@@ -143,7 +148,7 @@ async def db_get_all_framework_features_for_codebase(
             select(
                 FrameworkFeature.library,
                 FrameworkFeature.feature_key,
-                FrameworkFeature.startpoint,
+                FrameworkFeature.startpoint_sql_expression().label("startpoint"),
                 UnoplatCodeConfluenceFileFrameworkFeature.file_path,
                 UnoplatCodeConfluenceFileFrameworkFeature.start_line,
                 UnoplatCodeConfluenceFileFrameworkFeature.end_line,
@@ -193,19 +198,34 @@ async def db_get_all_framework_features_for_codebase(
         return []
 
     features: list[dict[str, object]] = []
-    for library, feature_key, startpoint, file_path, start_line, end_line, match_text in rows:
+    for (
+        library,
+        feature_key,
+        startpoint,
+        file_path,
+        start_line,
+        end_line,
+        match_text,
+    ) in rows:
+        if not isinstance(startpoint, bool):
+            raise TypeError(
+                f"Invalid startpoint value for feature '{feature_key}': {startpoint!r}"
+            )
+
         if file_path is None or start_line is None or end_line is None:
             continue
 
-        features.append({
-            "library": library,
-            "feature_key": feature_key,
-            "startpoint": bool(startpoint) if startpoint is not None else False,
-            "file_path": file_path,
-            "start_line": int(start_line),
-            "end_line": int(end_line),
-            "match_text": match_text,
-        })
+        features.append(
+            {
+                "library": library,
+                "feature_key": feature_key,
+                "startpoint": startpoint,
+                "file_path": file_path,
+                "start_line": int(start_line),
+                "end_line": int(end_line),
+                "match_text": match_text,
+            }
+        )
 
     logger.debug(
         "Fetched {} framework features for codebase_path={} language={}",

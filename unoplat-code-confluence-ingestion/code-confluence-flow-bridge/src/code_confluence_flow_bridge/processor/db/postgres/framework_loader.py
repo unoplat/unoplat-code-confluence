@@ -3,7 +3,7 @@ import json
 import logging
 import pathlib
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, cast
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,7 @@ from unoplat_code_confluence_commons.base_models import (
     FeatureAbsolutePath,
     Framework,
     FrameworkFeature,
+    FrameworkFeaturePayload,
 )
 
 from src.code_confluence_flow_bridge.models.configuration.settings import (
@@ -89,19 +90,20 @@ class FrameworkDefinitionLoader:
 
     def parse_json_data(
         self, data: Dict[str, Any]
-    ) -> Tuple[List[Framework], List[FrameworkFeature], List[FeatureAbsolutePath]]:
+    ) -> tuple[list[Framework], list[FrameworkFeature], list[FeatureAbsolutePath]]:
         """Parse JSON data into normalized database records."""
-        frameworks = []
-        features = []
-        absolute_paths = []
+        frameworks: list[Framework] = []
+        features: list[FrameworkFeature] = []
+        absolute_paths: list[FeatureAbsolutePath] = []
 
         # Track unique frameworks to avoid duplicates
-        seen_frameworks = set()
+        seen_frameworks: set[tuple[str, str]] = set()
 
         logger.debug("Parsing framework definitions into SQLModel objects")
 
         # Parse new schema structure: language -> library -> features
-        for language, language_data in data.items():
+        for language, language_data_raw in data.items():
+            language_data = cast(dict[str, dict[str, Any]], language_data_raw)
             for library_name, library_data in language_data.items():
                 docs_url = library_data.get("docs_url")
                 description = library_data.get("description")
@@ -120,27 +122,28 @@ class FrameworkDefinitionLoader:
                     seen_frameworks.add(framework_key)
 
                 # Process features
-                features_data = library_data.get("features", {})
+                features_data = cast(
+                    dict[str, dict[str, Any]],
+                    library_data.get("features", {}),
+                )
                 for feature_key, feature_data in features_data.items():
+                    normalized_payload = self._normalize_feature_payload(feature_data)
+                    feature_definition: dict[str, object] = (
+                        normalized_payload.model_dump(mode="json", exclude_none=False)
+                    )
+
                     # Create FrameworkFeature record with new schema fields
                     features.append(
                         FrameworkFeature(
                             language=language,
                             library=library_name,
                             feature_key=feature_key,
-                            description=feature_data.get("description"),
-                            target_level=feature_data.get("target_level", "function"),
-                            concept=feature_data.get("concept", "AnnotationLike"),
-                            locator_strategy=feature_data.get(
-                                "locator_strategy", "VariableBound"
-                            ),
-                            construct_query=feature_data.get("construct_query"),
-                            startpoint=feature_data.get("startpoint", False),
+                            feature_definition=feature_definition,
                         )
                     )
 
                     # Create FeatureAbsolutePath records for each absolute path
-                    absolute_paths_data = feature_data.get("absolute_paths", [])
+                    absolute_paths_data = normalized_payload.absolute_paths
                     for absolute_path in absolute_paths_data:
                         absolute_paths.append(
                             FeatureAbsolutePath(
@@ -155,6 +158,44 @@ class FrameworkDefinitionLoader:
             f"Parsed {len(frameworks)} frameworks, {len(features)} features, {len(absolute_paths)} absolute paths"
         )
         return frameworks, features, absolute_paths
+
+    def _normalize_feature_payload(
+        self, feature_data: Dict[str, Any]
+    ) -> FrameworkFeaturePayload:
+        payload_data = dict(feature_data)
+
+        if not isinstance(payload_data.get("absolute_paths"), list):
+            payload_data["absolute_paths"] = []
+        else:
+            payload_data["absolute_paths"] = [
+                value
+                for value in payload_data["absolute_paths"]
+                if isinstance(value, str)
+            ]
+
+        if not isinstance(payload_data.get("construct_query"), dict):
+            payload_data["construct_query"] = None
+
+        if payload_data.get("target_level") not in {"function", "class"}:
+            payload_data["target_level"] = "function"
+
+        if payload_data.get("concept") not in {
+            "AnnotationLike",
+            "CallExpression",
+            "Inheritance",
+        }:
+            payload_data["concept"] = "AnnotationLike"
+
+        if payload_data.get("locator_strategy") not in {
+            "VariableBound",
+            "Direct",
+        }:
+            payload_data["locator_strategy"] = "VariableBound"
+
+        if not isinstance(payload_data.get("startpoint"), bool):
+            payload_data["startpoint"] = False
+
+        return FrameworkFeaturePayload.model_validate(payload_data)
 
     async def load_framework_definitions_at_startup(
         self, session: AsyncSession
