@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.31.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.31.0...unoplat-code-confluence-query-engine-v0.31.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* **optimise-framework-schema:** switch ingestion and query paths to J… ([be0462c](https://github.com/unoplat/unoplat-code-confluence/commit/be0462c8bc0df22458dfff7026288b145370a38c))
+* **optimise-framework-schema:** switch ingestion and query paths to JSONB feature payload ([c2f6c15](https://github.com/unoplat/unoplat-code-confluence/commit/c2f6c153a6694666806fadb867652d56ab616472))
+
 ## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.30.2...unoplat-code-confluence-query-engine-v0.31.0) (2026-02-20)
 
 
