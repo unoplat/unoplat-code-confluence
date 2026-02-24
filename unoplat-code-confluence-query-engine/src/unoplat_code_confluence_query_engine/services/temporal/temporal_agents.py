@@ -145,11 +145,22 @@ SECTION_HEADINGS: dict[SectionId, str] = {
     SectionId.APP_INTERFACES: "## App Interfaces",
 }
 
+DEPENDENCY_OVERVIEW_ARTIFACT = "dependencies_overview.md"
+
 SECTION_ARTIFACTS: dict[SectionId, list[str]] = {
     SectionId.ENGINEERING_WORKFLOW: ["AGENTS.md"],
-    SectionId.DEPENDENCY_GUIDE: ["AGENTS.md"],
+    SectionId.DEPENDENCY_GUIDE: ["AGENTS.md", DEPENDENCY_OVERVIEW_ARTIFACT],
     SectionId.BUSINESS_DOMAIN: ["AGENTS.md", "business_logic_references.md"],
     SectionId.APP_INTERFACES: ["AGENTS.md", "app_interfaces.md"],
+}
+
+SECTION_EXTRA_REQUIREMENTS: dict[SectionId, str] = {
+    SectionId.DEPENDENCY_GUIDE: (
+        "- Keep AGENTS.md dependency content concise and reference "
+        f"`{DEPENDENCY_OVERVIEW_ARTIFACT}`.\n"
+        f"- Write full dependency purpose/usage entries in `{DEPENDENCY_OVERVIEW_ARTIFACT}`.\n"
+        f"- Treat `{DEPENDENCY_OVERVIEW_ARTIFACT}` as the source-of-truth dependency catalog."
+    )
 }
 
 
@@ -163,6 +174,12 @@ def build_section_updater_prompt(
     heading = SECTION_HEADINGS[section_id]
     artifacts = SECTION_ARTIFACTS[section_id]
     artifacts_instruction = "\n".join(f"- {a}" for a in artifacts)
+    section_specific_requirements = SECTION_EXTRA_REQUIREMENTS.get(section_id, "")
+    section_specific_instruction = ""
+    if section_specific_requirements:
+        section_specific_instruction = (
+            f"Section-specific requirements:\n{section_specific_requirements}\n\n"
+        )
 
     return (
         f"Update the '{heading}' section in codebase-local AGENTS.md.\n"
@@ -174,6 +191,7 @@ def build_section_updater_prompt(
         "3. ## Business Logic Domain\n"
         "4. ## App Interfaces\n\n"
         f"Expected managed files:\n{artifacts_instruction}\n\n"
+        f"{section_specific_instruction}"
         f"Codebase path: {codebase_path}\n"
         f"Programming language metadata: {programming_language_metadata}\n"
         f"Section data:\n{section_data}\n\n"
@@ -517,7 +535,7 @@ def create_agents_md_updater_agent(
 ) -> Agent[AgentDependencies, AgentsMdUpdaterOutput]:
     """Create AGENTS.md updater agent.
 
-    Optionally create or update business_logic_references.md.
+    Optionally create or update companion artifacts.
     """
     agent = Agent(
         model,
@@ -526,7 +544,7 @@ def create_agents_md_updater_agent(
 
 Goal:
 - Create or update a SPECIFIC SECTION of codebase-local AGENTS.md using safe and minimal edits.
-- Create/update companion artifact files when instructed (business_logic_references.md, app_interfaces.md).
+- Create/update companion artifact files when instructed (dependencies_overview.md, business_logic_references.md, app_interfaces.md).
 
 Section scoping:
 - You will be told which section heading you own (e.g., "## Engineering Workflow").
