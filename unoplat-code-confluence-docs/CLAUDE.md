@@ -1,6 +1,6 @@
 ## Agent Context
 
-Also read `AGENTS.md` in this directory for auto-generated dependency guide, business logic domain map, and code conventions. Companion file `business_logic_references.md` provides a detailed module-by-module reference.
+Also read `AGENTS.md` in this directory for business logic domain map and code conventions. Dependency details live in `dependencies_overview.md`, and companion file `business_logic_references.md` provides a detailed module-by-module reference.
 
 <!-- BACKLOG.MD MCP GUIDELINES START -->
 
