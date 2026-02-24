@@ -17,7 +17,6 @@ interface LanguageRow {
 }
 
 const LANGUAGE_INDEX_PATH = "/framework-definitions/language-index.json";
-const PYTHON_CATALOG_PAGES = new Set(["fastapi", "pydantic", "sqlalchemy", "sqlmodel"]);
 
 export function FrameworkCatalogSummary() {
   const [languageIndex, setLanguageIndex] = useState<LanguageIndex | null>(null);
@@ -112,16 +111,13 @@ export function FrameworkCatalogSummary() {
                 <td className="px-3 py-3">
                   <div className="flex flex-wrap gap-2">
                     {row.libraries.map((library) => {
-                      const definitionPath = `/framework-definitions/${row.language}/${library}.json`;
-                      const hasCatalogPage =
-                        row.language === "python" && PYTHON_CATALOG_PAGES.has(library);
                       const docsCatalogPath =
                         `/docs/contribution/custom-framework-schema/catalog/${row.language}/${library}`;
 
                       return (
                         <a
                           className="inline-flex items-center rounded-full border border-fd-border bg-fd-card px-2.5 py-1 font-mono text-xs hover:bg-fd-accent"
-                          href={hasCatalogPage ? docsCatalogPath : definitionPath}
+                          href={docsCatalogPath}
                           key={`${row.language}-${library}`}
                         >
                           {library}
