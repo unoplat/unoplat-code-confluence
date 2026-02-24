@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.36.0...unoplat-code-confluence-docs-v0.36.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* **irrelevant-link:** remove FastAPI Catalog link from DIDS quick ref… ([0f93bfb](https://github.com/unoplat/unoplat-code-confluence/commit/0f93bfb3fa7b23b084312ad8abf4030a170f4ee8))
+* **irrelevant-link:** remove FastAPI Catalog link from DIDS quick reference ([8130af0](https://github.com/unoplat/unoplat-code-confluence/commit/8130af0195a373af4aa96d40e265d5b093bbbbca))
+
 ## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.35.0...unoplat-code-confluence-docs-v0.36.0) (2026-02-24)
 
 
