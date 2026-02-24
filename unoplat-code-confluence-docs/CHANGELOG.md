@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.35.0...unoplat-code-confluence-docs-v0.36.0) (2026-02-24)
+
+
+### Features
+
+* **better-navigation-structure:** add language-first DIDS catalog hi… ([93b094a](https://github.com/unoplat/unoplat-code-confluence/commit/93b094a213cfb8d636f29053420e560206c4c317))
+* **better-navigation-structure:** add language-first DIDS catalog hierarchy ([bc74675](https://github.com/unoplat/unoplat-code-confluence/commit/bc74675e9f51bd35c94ff15d0edd87ee897ac333))
+
+
+### Bug Fixes
+
+* **dids-catalog:** route summary links to generated docs pages ([3bad458](https://github.com/unoplat/unoplat-code-confluence/commit/3bad458e71f3993bc126352f1cd252ebe21e3c03))
+
 ## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.34.0...unoplat-code-confluence-docs-v0.35.0) (2026-02-20)
 
 
