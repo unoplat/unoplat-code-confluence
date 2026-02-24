@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v3.json",
-  "title": "Unoplat Code Confluence Multi-Language Framework/Library Schema v3",
+  "title": "Unoplat Code Confluence Deterministic Interface Discovery Schema (DIDS) v3",
   "description": "Framework / library feature signatures grouped by programming language.",
   "type": "object",
   "propertyNames": {
