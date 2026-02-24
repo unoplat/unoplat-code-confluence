@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-01-20T17:52:25+05:30",
+  "schema_version": "v3",
+  "languages": [
+    {
+      "language": "python",
+      "libraries": [
+        "fastapi",
+        "pydantic",
+        "sqlalchemy",
+        "sqlmodel"
+      ]
+    }
+  ]
+}
