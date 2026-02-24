@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "start": "vite preview",
     "sync:framework-definitions": "node ./scripts/sync-framework-definitions.mjs",
-    "check:framework-definitions": "bun run sync:framework-definitions && [ -z \"$(git status --porcelain -- public/framework-definitions)\" ]",
+    "check:framework-definitions": "bun run sync:framework-definitions && [ -z \"$(git status --porcelain -- public/framework-definitions content/docs/contribution/custom-framework-schema/catalog)\" ]",
     "types:check": "fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },
