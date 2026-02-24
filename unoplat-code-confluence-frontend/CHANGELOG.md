@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.45.0...unoplat-code-confluence-frontend-v1.45.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* **dependencies:** split dependency guides into dedicated overview files ([77ee463](https://github.com/unoplat/unoplat-code-confluence/commit/77ee463fb1566ff4e96b337dab808371a57ed4dd))
+
 ## [1.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.44.0...unoplat-code-confluence-frontend-v1.45.0) (2026-02-20)
 
 
