@@ -1,6 +1,3 @@
-## Agent Context
-
-Also read `AGENTS.md` in this directory for engineering workflow, business logic domain map, and app interface inventory. Dependency details live in `dependencies_overview.md`, and companion files `business_logic_references.md` and `app_interfaces.md` provide detailed module and endpoint references.
 
 <!-- BACKLOG.MD MCP GUIDELINES START -->
 
@@ -22,7 +19,7 @@ This project uses Backlog.md MCP for all task and project management activities.
 These guides cover:
 - Decision framework for when to create tasks
 - Search-first workflow to avoid duplicates
-- Links to detailed guides for task creation, execution, and completion
+- Links to detailed guides for task creation, execution, and finalization
 - MCP tools reference
 
 You MUST read the overview resource to understand the complete workflow. The information is NOT summarized here.

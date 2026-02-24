@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Agent Context
 
-Also read `AGENTS.md` in this directory for auto-generated development workflow, Important interfaces,dependency guide, business logic domain map, and code style conventions. Companion file `business_logic_references.md` provides a detailed module-by-module reference.
+Also read `AGENTS.md` in this directory for auto-generated development workflow, important interfaces, business logic domain map, and code style conventions. Dependency details live in `dependencies_overview.md`, and companion file `business_logic_references.md` provides a detailed module-by-module reference.
 
 
 ## Architecture Overview
