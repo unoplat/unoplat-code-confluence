@@ -1,5 +1,3 @@
-import { Link } from "@tanstack/react-router";
-
 import logoDark from "@/assets/code-confluence-logo-dark.svg";
 import { IconLink } from "@/components/commit-layout/icon-link";
 
@@ -51,13 +49,13 @@ export function ChangelogIntro() {
   return (
     <>
       <div>
-        <Link to="/">
+        <a href="https://www.unoplat.io" target="_blank" rel="noopener noreferrer">
           <img
             src={logoDark}
             alt="Unoplat Code Confluence"
             className="inline-block h-8 w-auto"
           />
-        </Link>
+        </a>
       </div>
       <h1 className="mt-14 font-display text-4xl/tight font-light text-white">
         Code Confluence{" "}
