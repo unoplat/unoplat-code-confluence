@@ -16,9 +16,11 @@ from unoplat_code_confluence_commons.base_models.engine_models import (
     DetectionResult,
     FeatureSpec,
     FrameworkFeaturePayload,
+    FeatureUsagePayload,
     InheritanceInfo,
     LocatorStrategy,
     TargetLevel,
+    ValidationStatus,
 )
 
 # Framework SQLModel models
@@ -128,11 +130,13 @@ __all__ = [
     "ConstructQueryConfig",
     "FeatureSpec",
     "FrameworkFeaturePayload",
+    "FeatureUsagePayload",
     "Detection",
     "DetectionResult",
     "AnnotationLikeInfo",
     "CallExpressionInfo",
     "InheritanceInfo",
+    "ValidationStatus",
     # Framework SQLModel models
     "Framework",
     "FrameworkFeature",

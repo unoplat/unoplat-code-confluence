@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from unoplat_code_confluence_commons.base_models import (
     Framework,
     FrameworkFeature,
@@ -93,9 +92,7 @@ class CodeConfluenceRelationalIngestion:
         self.session = session
 
     async def upsert_repository(self, git_repo: UnoplatGitRepository) -> str:
-        qualified_name = (
-            f"{git_repo.github_organization}_{git_repo.repository_name}"
-        )
+        qualified_name = f"{git_repo.github_organization}_{git_repo.repository_name}"
         payload = {
             "qualified_name": qualified_name,
             "repository_url": git_repo.repository_url,
@@ -224,6 +221,9 @@ class CodeConfluenceRelationalIngestion:
                 "start_line": feature_row["start_line"],
                 "end_line": feature_row["end_line"],
                 "match_text": feature_row.get("match_text"),
+                "match_confidence": feature_row.get("match_confidence", 1.0),
+                "validation_status": feature_row.get("validation_status", "pending"),
+                "evidence_json": feature_row.get("evidence_json"),
             }
             stmt = insert(UnoplatCodeConfluenceFileFrameworkFeature).values(**payload)
             stmt = stmt.on_conflict_do_nothing(
@@ -238,9 +238,7 @@ class CodeConfluenceRelationalIngestion:
             )
             await self.session.execute(stmt)
 
-    async def get_framework_libraries_for_language(
-        self, language: str
-    ) -> List[str]:
+    async def get_framework_libraries_for_language(self, language: str) -> List[str]:
         stmt = select(Framework.library).where(Framework.language == language)
         result = await self.session.execute(stmt)
         return [row[0] for row in result.all()]
@@ -248,8 +246,8 @@ class CodeConfluenceRelationalIngestion:
     async def get_framework_features_for_language(
         self, language: str
     ) -> List[tuple[str, str]]:
-        stmt = select(
-            FrameworkFeature.library, FrameworkFeature.feature_key
-        ).where(FrameworkFeature.language == language)
+        stmt = select(FrameworkFeature.library, FrameworkFeature.feature_key).where(
+            FrameworkFeature.language == language
+        )
         result = await self.session.execute(stmt)
         return [(row[0], row[1]) for row in result.all()]

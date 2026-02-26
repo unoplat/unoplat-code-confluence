@@ -90,7 +90,7 @@
           "description": "Fully-qualified symbols identifying the constructor / base class / annotation provider.",
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$"
+            "pattern": "^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$"
           }
         },
         "target_level": {
@@ -101,6 +101,13 @@
         },
         "construct_query": {
           "$ref": "#/$defs/constructQueryDef"
+        },
+        "base_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.85,
+          "description": "Baseline confidence for this feature definition; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
         },
         "startpoint": {
           "type": "boolean",
@@ -145,6 +152,22 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "FunctionDefinition"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_level": {
+                "const": "function"
+              }
+            }
+          }
         }
       ]
     },
@@ -161,7 +184,8 @@
       "enum": [
         "AnnotationLike",
         "CallExpression",
-        "Inheritance"
+        "Inheritance",
+        "FunctionDefinition"
       ],
       "description": "Language-agnostic construct category."
     },
@@ -182,6 +206,12 @@
           "type": "string"
         },
         "superclass_regex": {
+          "type": "string"
+        },
+        "function_name_regex": {
+          "type": "string"
+        },
+        "export_name_regex": {
           "type": "string"
         }
       },

@@ -113,6 +113,18 @@ def normalize_feature_payload(feature_data: Dict[str, Any]) -> FrameworkFeatureP
     if not isinstance(payload_data.get("construct_query"), dict):
         payload_data["construct_query"] = None
 
+    base_confidence = payload_data.get("base_confidence")
+    if isinstance(base_confidence, (int, float)) and not isinstance(
+        base_confidence, bool
+    ):
+        numeric_confidence = float(base_confidence)
+        if 0.0 <= numeric_confidence <= 1.0:
+            payload_data["base_confidence"] = numeric_confidence
+        else:
+            payload_data["base_confidence"] = 0.85
+    else:
+        payload_data["base_confidence"] = 0.85
+
     if payload_data.get("target_level") not in {"function", "class"}:
         payload_data["target_level"] = "function"
 
@@ -120,6 +132,7 @@ def normalize_feature_payload(feature_data: Dict[str, Any]) -> FrameworkFeatureP
         "AnnotationLike",
         "CallExpression",
         "Inheritance",
+        "FunctionDefinition",
     }:
         payload_data["concept"] = "AnnotationLike"
 
@@ -133,6 +146,16 @@ def normalize_feature_payload(feature_data: Dict[str, Any]) -> FrameworkFeatureP
         payload_data["startpoint"] = False
 
     return FrameworkFeaturePayload.model_validate(payload_data)
+
+
+def resolve_base_confidence(feature: FrameworkFeature) -> float:
+    """Resolve normalized base_confidence from feature_definition payload."""
+    raw_value = feature.feature_definition.get("base_confidence", 0.85)
+    if isinstance(raw_value, (int, float)) and not isinstance(raw_value, bool):
+        numeric_value = float(raw_value)
+        if 0.0 <= numeric_value <= 1.0:
+            return numeric_value
+    return 0.85
 
 
 def load_framework_definitions() -> Dict[str, Any]:
@@ -540,6 +563,7 @@ class TestFrameworkDefinitionsIngestion:
         )
         assert http_endpoint.construct_query is not None
         assert "method_regex" in http_endpoint.construct_query
+        assert resolve_base_confidence(http_endpoint) == 0.85
 
         # Test absolute paths for http_endpoint
         http_endpoint_paths = [
@@ -569,6 +593,7 @@ class TestFrameworkDefinitionsIngestion:
                 Concept.CALL_EXPRESSION,
                 Concept.INHERITANCE,
             ]
+            assert 0.0 <= resolve_base_confidence(feature) <= 1.0
             # locator_strategy defaults to "VariableBound" (schema v3 removed this field)
             assert feature.locator_strategy == LocatorStrategy.VARIABLE_BOUND
             assert isinstance(feature.startpoint, bool)
@@ -609,7 +634,7 @@ class TestFrameworkDefinitionsIngestion:
     def test_payload_defaults_are_applied_during_ingestion(
         self, test_client: TestClient, service_ports
     ):
-        """Test locator_strategy and startpoint defaults are applied in ingestion."""
+        """Test locator_strategy, base_confidence and startpoint defaults are applied in ingestion."""
         framework_data = {
             "python": {
                 "customlib": {
@@ -633,9 +658,57 @@ class TestFrameworkDefinitionsIngestion:
             feature = session.execute(select(FrameworkFeature)).scalar_one()
 
             assert feature.locator_strategy == LocatorStrategy.VARIABLE_BOUND
+            assert resolve_base_confidence(feature) == 0.85
             assert feature.startpoint is False
             assert feature.feature_definition["locator_strategy"] == "VariableBound"
+            assert feature.feature_definition["base_confidence"] == 0.85
             assert feature.feature_definition["startpoint"] is False
+
+    def test_base_confidence_is_normalized_during_ingestion(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test base_confidence value is normalized to valid bounds during ingestion."""
+        framework_data = {
+            "python": {
+                "customlib": {
+                    "docs_url": "https://example.com/docs",
+                    "description": "Custom framework",
+                    "features": {
+                        "valid_confidence": {
+                            "description": "Valid confidence",
+                            "absolute_paths": ["customlib.valid"],
+                            "target_level": "function",
+                            "concept": "CallExpression",
+                            "base_confidence": 0.62,
+                        },
+                        "invalid_confidence": {
+                            "description": "Invalid confidence",
+                            "absolute_paths": ["customlib.invalid"],
+                            "target_level": "function",
+                            "concept": "CallExpression",
+                            "base_confidence": 1.4,
+                        },
+                    },
+                }
+            }
+        }
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            seed_framework_definitions(framework_data, session)
+
+            valid_feature = session.execute(
+                select(FrameworkFeature).where(
+                    FrameworkFeature.feature_key == "valid_confidence"
+                )
+            ).scalar_one()
+            invalid_feature = session.execute(
+                select(FrameworkFeature).where(
+                    FrameworkFeature.feature_key == "invalid_confidence"
+                )
+            ).scalar_one()
+
+            assert resolve_base_confidence(valid_feature) == 0.62
+            assert resolve_base_confidence(invalid_feature) == 0.85
 
     @pytest.mark.asyncio(loop_scope="session")
     async def test_query_parity_for_import_lookup(
