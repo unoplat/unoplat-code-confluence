@@ -35,6 +35,14 @@ class Concept(str, Enum):
     FUNCTION_DEFINITION = "FunctionDefinition"
 
 
+class ValidationStatus(str, Enum):
+    """Validation lifecycle status for detected feature usage rows."""
+
+    PENDING = "pending"
+    COMPLETED = "completed"
+    NEEDS_REVIEW = "needs_review"
+
+
 # ──────────────────────────────────────────────
 # 🔄 Typed models for construct_query structure
 # ──────────────────────────────────────────────
@@ -110,6 +118,12 @@ class FeatureSpec(BaseModel):
             self.construct_query = value.model_dump(exclude_none=True)
 
     description: Optional[str] = Field(None, description="Human-readable description")
+    base_confidence: float = Field(
+        default=0.85,
+        ge=0.0,
+        le=1.0,
+        description="Baseline confidence for this feature definition",
+    )
     startpoint: bool = Field(
         default=False,
         description="Indicates whether this feature represents a starting point or entry point in the application",
@@ -140,12 +154,39 @@ class FrameworkFeaturePayload(BaseModel):
         default=None,
         description="Language-specific tweaks for ConceptQuery construction",
     )
+    base_confidence: float = Field(
+        default=0.85,
+        ge=0.0,
+        le=1.0,
+        description="Baseline confidence for this feature definition",
+    )
     startpoint: bool = Field(
         default=False,
         description="Feature is a starting point",
     )
 
     model_config = ConfigDict(extra="allow", use_enum_values=True)
+
+
+class FeatureUsagePayload(BaseModel):
+    """Typed payload for detected feature usage confidence metadata."""
+
+    match_confidence: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Confidence score for a single detected usage",
+    )
+    validation_status: ValidationStatus = Field(
+        default=ValidationStatus.PENDING,
+        description="Validation lifecycle state for the usage row",
+    )
+    evidence_json: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Structured evidence payload supporting usage classification",
+    )
+
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class Detection(BaseModel):

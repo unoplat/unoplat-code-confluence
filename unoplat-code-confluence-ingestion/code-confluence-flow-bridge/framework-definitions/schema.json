@@ -84,6 +84,14 @@
 
         "construct_query": { "$ref": "#/$defs/constructQueryDef" },
 
+        "base_confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.85,
+          "description": "Baseline confidence for this feature definition; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
+        },
+
         "startpoint": {
           "type": "boolean",
           "description": "Indicates whether this feature represents a starting point or entry point in the application, such as API endpoints (e.g., FastAPI routes) or message consumers (e.g., Kafka listeners).",
@@ -121,7 +129,12 @@
 
     "conceptEnum": {
       "type": "string",
-      "enum": ["AnnotationLike", "CallExpression", "Inheritance"],
+      "enum": [
+        "AnnotationLike",
+        "CallExpression",
+        "Inheritance",
+        "FunctionDefinition"
+      ],
       "description": "Language-agnostic construct category."
     },
 
@@ -135,7 +148,9 @@
 
         "callee_regex": { "type": "string" },
 
-        "superclass_regex": { "type": "string" }
+        "superclass_regex": { "type": "string" },
+        "function_name_regex": { "type": "string" },
+        "export_name_regex": { "type": "string" }
       },
       "additionalProperties": false
     }

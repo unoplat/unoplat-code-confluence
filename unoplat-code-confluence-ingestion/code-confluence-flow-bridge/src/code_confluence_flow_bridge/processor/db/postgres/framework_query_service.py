@@ -15,6 +15,36 @@ from unoplat_code_confluence_commons.base_models import (
 )
 
 
+def _resolve_base_confidence(feature: FrameworkFeature) -> float:
+    raw_value = feature.feature_definition.get("base_confidence", 0.85)
+    if isinstance(raw_value, (int, float)) and not isinstance(raw_value, bool):
+        numeric_value = float(raw_value)
+        if 0.0 <= numeric_value <= 1.0:
+            return numeric_value
+    return 0.85
+
+
+def _build_feature_spec(
+    feature: FrameworkFeature,
+    absolute_paths: list[str],
+    base_confidence: float,
+) -> FeatureSpec:
+    payload: dict[str, object] = {
+        "feature_key": feature.feature_key,
+        "library": feature.library,
+        "absolute_paths": absolute_paths,
+        "target_level": feature.target_level,
+        "concept": feature.concept,
+        "locator_strategy": feature.locator_strategy,
+        "construct_query": feature.construct_query,
+        "description": feature.description,
+        "startpoint": feature.startpoint,
+    }
+    if "base_confidence" in FeatureSpec.model_fields:
+        payload["base_confidence"] = base_confidence
+    return FeatureSpec.model_validate(payload)
+
+
 async def get_framework_features_for_imports(
     session: AsyncSession, language: str, imports: list[str]
 ) -> list[FeatureSpec]:
@@ -66,17 +96,12 @@ async def get_framework_features_for_imports(
         for feature in framework_features:
             # Extract absolute paths from the loaded relationship
             absolute_paths = [path.absolute_path for path in feature.absolute_paths]
+            base_confidence = _resolve_base_confidence(feature)
 
-            feature_spec = FeatureSpec(
-                feature_key=feature.feature_key,
-                library=feature.library,
-                absolute_paths=absolute_paths,
-                target_level=feature.target_level,
-                concept=feature.concept,
-                locator_strategy=feature.locator_strategy,
-                construct_query=feature.construct_query,
-                description=feature.description,
-                startpoint=feature.startpoint,
+            feature_spec = _build_feature_spec(
+                feature,
+                absolute_paths,
+                base_confidence,
             )
             feature_specs.append(feature_spec)
 
@@ -124,17 +149,12 @@ async def get_all_framework_features_for_language(
         feature_specs: list[FeatureSpec] = []
         for feature in framework_features:
             absolute_paths = [path.absolute_path for path in feature.absolute_paths]
+            base_confidence = _resolve_base_confidence(feature)
 
-            feature_spec = FeatureSpec(
-                feature_key=feature.feature_key,
-                library=feature.library,
-                absolute_paths=absolute_paths,
-                target_level=feature.target_level,
-                concept=feature.concept,
-                locator_strategy=feature.locator_strategy,
-                construct_query=feature.construct_query,
-                description=feature.description,
-                startpoint=feature.startpoint,
+            feature_spec = _build_feature_spec(
+                feature,
+                absolute_paths,
+                base_confidence,
             )
             feature_specs.append(feature_spec)
 

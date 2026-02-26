@@ -45,10 +45,7 @@ class FrameworkDefinitionLoader:
 
     def load_framework_definitions(self) -> Dict[str, Any]:
         """Load and combine all framework definition JSON files."""
-        python_dir = self.definitions_path / "python"
-
         logger.info(f"Loading framework definitions from: {self.definitions_path}")
-        logger.debug(f"Python directory path: {python_dir.resolve()}")
 
         if not self.definitions_path.exists():
             raise FileNotFoundError(
@@ -182,6 +179,18 @@ class FrameworkDefinitionLoader:
 
         if not isinstance(payload_data.get("construct_query"), dict):
             payload_data["construct_query"] = None
+
+        base_confidence = payload_data.get("base_confidence")
+        if isinstance(base_confidence, (int, float)) and not isinstance(
+            base_confidence, bool
+        ):
+            numeric_confidence = float(base_confidence)
+            if 0.0 <= numeric_confidence <= 1.0:
+                payload_data["base_confidence"] = numeric_confidence
+            else:
+                payload_data["base_confidence"] = 0.85
+        else:
+            payload_data["base_confidence"] = 0.85
 
         if payload_data.get("target_level") not in {"function", "class"}:
             payload_data["target_level"] = "function"
