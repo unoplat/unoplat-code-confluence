@@ -13,7 +13,7 @@ framework-definitions/
 │   ├── sqlalchemy.json
 │   └── sqlmodel.json
 ├── typescript/
-│   └── nextjs.json
+│   └── (future framework definitions)
 └── README.md
 ```
 
@@ -32,6 +32,7 @@ Each JSON file follows the `schema.json` schema with the structure:
           "absolute_paths": ["fully.qualified.symbol"],
           "target_level": "function|class",
           "concept": "AnnotationLike|CallExpression|Inheritance|FunctionDefinition",
+          "base_confidence": 0.85,
           "construct_query": {
             "method_regex": "pattern",
             "function_name_regex": "pattern",
@@ -49,8 +50,11 @@ Each JSON file follows the `schema.json` schema with the structure:
 Detection is **import-gated** and **regex-based**:
 - `absolute_paths` must be present in the file imports for a match to occur
 - `construct_query` refines tree-sitter regex patterns for decorators, calls, inheritance, and exported function handlers
+- `base_confidence` sets a default feature-level confidence (`0.0..1.0`, default `0.85`)
 - `CallExpression` definitions are heuristic; low-confidence cases are validated downstream by the app-interfaces validator agent
 - `FunctionDefinition` is used for exported handler declarations (for example Next.js route handlers such as `export async function GET(...)`)
+
+When `base_confidence` is below `0.70`, include disambiguation guidance in feature `notes` so downstream validation can apply framework-specific checks consistently.
 
 ## Validation
 

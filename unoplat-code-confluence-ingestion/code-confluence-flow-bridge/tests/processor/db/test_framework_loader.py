@@ -93,15 +93,15 @@ def test_parse_json_data_preserves_function_export_regexes(tmp_path: Path) -> No
                 "docs_url": "https://nextjs.org/docs",
                 "description": "Next.js",
                 "features": {
-                        "route_handler_export": {
-                            "description": "Route handler",
-                            "absolute_paths": ["next/server.NextResponse"],
-                            "target_level": "function",
-                            "concept": "AnnotationLike",
-                            "construct_query": {
-                                "function_name_regex": "^(GET|POST)$",
-                                "export_name_regex": "^(GET|POST)$",
-                            },
+                    "route_handler_export": {
+                        "description": "Route handler",
+                        "absolute_paths": ["next/server.NextResponse"],
+                        "target_level": "function",
+                        "concept": "AnnotationLike",
+                        "construct_query": {
+                            "function_name_regex": "^(GET|POST)$",
+                            "export_name_regex": "^(GET|POST)$",
+                        },
                     }
                 },
             }
@@ -117,3 +117,43 @@ def test_parse_json_data_preserves_function_export_regexes(tmp_path: Path) -> No
     assert feature.construct_query is not None
     assert feature.construct_query["function_name_regex"] == "^(GET|POST)$"
     assert feature.construct_query["export_name_regex"] == "^(GET|POST)$"
+    assert feature.feature_definition["base_confidence"] == 0.85
+
+
+def test_parse_json_data_normalizes_base_confidence(tmp_path: Path) -> None:
+    loader = _build_loader(tmp_path)
+
+    framework_data = {
+        "python": {
+            "customlib": {
+                "docs_url": "https://example.com/docs",
+                "features": {
+                    "valid_confidence": {
+                        "description": "Valid confidence",
+                        "absolute_paths": ["customlib.valid"],
+                        "target_level": "function",
+                        "concept": "CallExpression",
+                        "base_confidence": 0.41,
+                    },
+                    "invalid_confidence": {
+                        "description": "Invalid confidence",
+                        "absolute_paths": ["customlib.invalid"],
+                        "target_level": "function",
+                        "concept": "CallExpression",
+                        "base_confidence": 3.2,
+                    },
+                },
+            }
+        }
+    }
+
+    _frameworks, features, _absolute_paths = loader.parse_json_data(framework_data)
+
+    feature_by_key = {feature.feature_key: feature for feature in features}
+    assert (
+        feature_by_key["valid_confidence"].feature_definition["base_confidence"] == 0.41
+    )
+    assert (
+        feature_by_key["invalid_confidence"].feature_definition["base_confidence"]
+        == 0.85
+    )

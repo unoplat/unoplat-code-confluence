@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, cast
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from unoplat_code_confluence_commons.base_models import (
+    CallExpressionInfo,
     ProgrammingLanguageMetadata,
 )
 
@@ -35,6 +36,42 @@ from src.code_confluence_flow_bridge.parser.language_processors.typescript_proce
 from src.code_confluence_flow_bridge.processor.db.postgres.code_confluence_relational_ingestion import (
     CodeConfluenceRelationalIngestion,
 )
+
+
+def _resolve_match_confidence(detection: object) -> float:
+    metadata = getattr(detection, "metadata", None)
+    if not isinstance(metadata, dict):
+        return 1.0
+
+    metadata_map = cast(dict[str, object], metadata)
+
+    raw_confidence = metadata_map.get("match_confidence")
+    if isinstance(raw_confidence, (int, float)) and not isinstance(
+        raw_confidence, bool
+    ):
+        numeric_confidence = float(raw_confidence)
+        if 0.0 <= numeric_confidence <= 1.0:
+            return numeric_confidence
+
+    return 1.0
+
+
+def _build_evidence_json(detection: object) -> Optional[dict[str, object]]:
+    evidence: dict[str, object] = {}
+    metadata = getattr(detection, "metadata", None)
+    if isinstance(metadata, dict):
+        metadata_map = cast(dict[str, object], metadata)
+        for key, value in metadata_map.items():
+            evidence[key] = value
+
+    if isinstance(detection, CallExpressionInfo):
+        evidence["callee"] = detection.callee
+        evidence["args_text"] = detection.args_text
+
+    if not evidence:
+        return None
+
+    return evidence
 
 
 class CodeConfluenceCodebaseParser:
@@ -218,7 +255,7 @@ class CodeConfluenceCodebaseParser:
                 lambda: len(self._known_features),
             )
             if detections:
-                feature_rows = []
+                feature_rows: list[dict[str, object]] = []
                 for detection in detections:
                     library = detection.library
                     feature_key = detection.feature_key
@@ -257,6 +294,9 @@ class CodeConfluenceCodebaseParser:
                             "start_line": detection.start_line,
                             "end_line": detection.end_line,
                             "match_text": detection.match_text,
+                            "match_confidence": _resolve_match_confidence(detection),
+                            "validation_status": "pending",
+                            "evidence_json": _build_evidence_json(detection),
                         }
                     )
                     frameworks_used.add((language, library))

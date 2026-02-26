@@ -1,10 +1,7 @@
 """PostgreSQL ORM models for Code Confluence relational storage."""
 
-from __future__ import annotations
-
+from unoplat_code_confluence_commons.base_models.engine_models import ValidationStatus
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
-
-
 
 from typing import Any, Dict, List, Optional
 
@@ -205,6 +202,14 @@ class UnoplatCodeConfluenceFileFrameworkFeature(SQLBase):
     start_line: Mapped[int] = mapped_column(primary_key=True)
     end_line: Mapped[int] = mapped_column(primary_key=True)
     match_text: Mapped[Optional[str]] = mapped_column(Text, default=None)
+    match_confidence: Mapped[float] = mapped_column(default=1.0)
+    validation_status: Mapped[str] = mapped_column(
+        default=ValidationStatus.PENDING.value,
+    )
+    evidence_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
+        default=None,
+    )
 
     file: Mapped[UnoplatCodeConfluenceFile] = relationship(
         back_populates="framework_features"

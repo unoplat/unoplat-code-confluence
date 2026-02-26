@@ -174,7 +174,7 @@ Each **feature** within a library describes a specific pattern that **Unoplat Co
     },
     concept: {
       description: 'Language-agnostic construct category for pattern matching',
-      type: '"AnnotationLike" | "CallExpression" | "Inheritance"',
+      type: '"AnnotationLike" | "CallExpression" | "Inheritance" | "FunctionDefinition"',
     },
   }}
 />
@@ -252,8 +252,17 @@ Detection is import-gated and regex-based. `absolute_paths` must be present in t
       type: 'ConstructQuery',
       default: 'undefined',
     },
+    base_confidence: {
+      description: 'Baseline confidence score for this feature definition; use lower values for ambiguous call patterns',
+      type: 'number (0.0 - 1.0)',
+      default: '0.85',
+    },
   }}
 />
+
+<Callout type="info" title="Low-Confidence Guidance">
+  If a feature uses `base_confidence < 0.70`, include disambiguation instructions in `notes` so downstream validation can reliably confirm or reject ambiguous matches.
+</Callout>
 
 ### `construct_query` Properties
 
