@@ -76,7 +76,7 @@
           "description": "Fully-qualified symbols identifying the constructor / base class / annotation provider.",
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$"
+            "pattern": "^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$"
           }
         },
         "target_level": { "$ref": "#/$defs/targetLevelEnum" },
@@ -105,6 +105,10 @@
         {
           "if": { "properties": { "concept": { "const": "Inheritance" } } },
           "then": { "properties": { "target_level": { "const": "class" } } }
+        },
+        {
+          "if": { "properties": { "concept": { "const": "FunctionDefinition" } } },
+          "then": { "properties": { "target_level": { "const": "function" } } }
         }
       ]
     },

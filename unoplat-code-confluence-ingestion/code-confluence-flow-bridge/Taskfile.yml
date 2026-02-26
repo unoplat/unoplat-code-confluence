@@ -218,10 +218,10 @@ tasks:
     desc: Validate all framework definition JSON files against schema
     dir: .
     cmds:
-      - uv run --group dev check-jsonschema --schemafile framework-definitions/schema.json framework-definitions/python/*.json
+      - uv run --group dev check-jsonschema --schemafile framework-definitions/schema.json framework-definitions/*/*.json
 
   validate-single-framework:
-    desc: Validate a specific framework definition (usage - task validate-single-framework FILE=framework-definitions/python/fastapi.json)
+    desc: Validate a specific framework definition (usage - task validate-single-framework FILE=framework-definitions/typescript/nextjs.json)
     vars:
       FILE: "{{.FILE}}"
     requires:

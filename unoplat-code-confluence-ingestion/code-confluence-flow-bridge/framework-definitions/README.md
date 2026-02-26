@@ -12,8 +12,8 @@ framework-definitions/
 │   ├── pydantic.json
 │   ├── sqlalchemy.json
 │   └── sqlmodel.json
-├── javascript/
-│   └── (future framework definitions)
+├── typescript/
+│   └── nextjs.json
 └── README.md
 ```
 
@@ -31,9 +31,11 @@ Each JSON file follows the `schema.json` schema with the structure:
           "description": "Human-readable description",
           "absolute_paths": ["fully.qualified.symbol"],
           "target_level": "function|class",
-          "concept": "AnnotationLike|CallExpression|Inheritance",
+          "concept": "AnnotationLike|CallExpression|Inheritance|FunctionDefinition",
           "construct_query": {
-            "method_regex": "pattern"
+            "method_regex": "pattern",
+            "function_name_regex": "pattern",
+            "export_name_regex": "pattern"
           }
         }
       }
@@ -46,7 +48,9 @@ Each JSON file follows the `schema.json` schema with the structure:
 
 Detection is **import-gated** and **regex-based**:
 - `absolute_paths` must be present in the file imports for a match to occur
-- `construct_query` refines tree-sitter regex patterns for decorators, calls, and inheritance
+- `construct_query` refines tree-sitter regex patterns for decorators, calls, inheritance, and exported function handlers
+- `CallExpression` definitions are heuristic; low-confidence cases are validated downstream by the app-interfaces validator agent
+- `FunctionDefinition` is used for exported handler declarations (for example Next.js route handlers such as `export async function GET(...)`)
 
 ## Validation
 
@@ -67,7 +71,7 @@ task code-quality
 
 ### Direct uv Command
 ```bash
-uv run --group dev check-jsonschema --schemafile framework-definitions/schema.json framework-definitions/python/*.json
+uv run --group dev check-jsonschema --schemafile framework-definitions/schema.json framework-definitions/*/*.json
 ```
 
 ## Contributing
@@ -84,3 +88,4 @@ uv run --group dev check-jsonschema --schemafile framework-definitions/schema.js
 - **AnnotationLike**: Decorators, annotations (@app.get, @field_validator)
 - **CallExpression**: Function calls (Field(), Depends(), Column())
 - **Inheritance**: Class inheritance (BaseModel, SQLModel, declarative_base)
+- **FunctionDefinition**: Exported function declarations (`export async function GET(...)`)
