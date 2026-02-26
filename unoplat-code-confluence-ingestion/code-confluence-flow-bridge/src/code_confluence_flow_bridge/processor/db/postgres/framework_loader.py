@@ -50,20 +50,27 @@ class FrameworkDefinitionLoader:
         logger.info(f"Loading framework definitions from: {self.definitions_path}")
         logger.debug(f"Python directory path: {python_dir.resolve()}")
 
-        if not python_dir.exists():
+        if not self.definitions_path.exists():
             raise FileNotFoundError(
-                f"Framework definitions python directory not found: {python_dir.resolve()}"
+                "Framework definitions directory not found: "
+                f"{self.definitions_path.resolve()}"
             )
 
         combined_data: Dict[str, Dict[str, Any]] = {}
-        json_files = list(python_dir.glob("*.json"))
+        json_files = sorted(
+            file_path
+            for file_path in self.definitions_path.glob("*/*.json")
+            if file_path.is_file()
+        )
 
         if not json_files:
-            logger.warning(f"No JSON files found in {python_dir}")
+            logger.warning("No framework definition JSON files found in language dirs")
             return combined_data
 
+        language_dirs = sorted({json_file.parent.name for json_file in json_files})
         logger.info(
-            f"Loading framework definitions from {len(json_files)} files in {python_dir}"
+            f"Loading framework definitions from {len(json_files)} files across languages: "
+            f"{', '.join(language_dirs)}"
         )
 
         for json_file in json_files:
@@ -183,6 +190,7 @@ class FrameworkDefinitionLoader:
             "AnnotationLike",
             "CallExpression",
             "Inheritance",
+            "FunctionDefinition",
         }:
             payload_data["concept"] = "AnnotationLike"
 

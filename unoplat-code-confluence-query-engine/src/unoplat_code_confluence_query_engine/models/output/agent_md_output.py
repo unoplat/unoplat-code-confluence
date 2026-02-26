@@ -145,11 +145,13 @@ class LocatorStrategy(str, Enum):
 class ConstructQueryConfigKey(str, Enum):
     """Typed construct query configuration matching JSON schema structure."""
 
-    method_regex = "MethodRegex"
-    annotation_name_regex = "AnnotationNameRegex"
-    attribute_regex = "AttributeRegex"
-    callee_regex = "CalleeRegex"
-    superclass_regex = "SuperclassRegex"
+    method_regex = "method_regex"
+    annotation_name_regex = "annotation_name_regex"
+    attribute_regex = "attribute_regex"
+    callee_regex = "callee_regex"
+    superclass_regex = "superclass_regex"
+    function_name_regex = "function_name_regex"
+    export_name_regex = "export_name_regex"
 
     model_config = ConfigDict(extra="forbid")
 

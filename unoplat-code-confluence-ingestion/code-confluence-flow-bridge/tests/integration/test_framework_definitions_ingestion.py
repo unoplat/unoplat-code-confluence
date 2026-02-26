@@ -120,6 +120,7 @@ def normalize_feature_payload(feature_data: Dict[str, Any]) -> FrameworkFeatureP
         "AnnotationLike",
         "CallExpression",
         "Inheritance",
+        "FunctionDefinition",
     }:
         payload_data["concept"] = "AnnotationLike"
 
@@ -636,6 +637,7 @@ class TestFrameworkDefinitionsIngestion:
             assert feature.startpoint is False
             assert feature.feature_definition["locator_strategy"] == "VariableBound"
             assert feature.feature_definition["startpoint"] is False
+
 
     @pytest.mark.asyncio(loop_scope="session")
     async def test_query_parity_for_import_lookup(

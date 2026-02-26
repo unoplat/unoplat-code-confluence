@@ -32,6 +32,7 @@ class Concept(str, Enum):
     ANNOTATION_LIKE = "AnnotationLike"
     CALL_EXPRESSION = "CallExpression"
     INHERITANCE = "Inheritance"
+    FUNCTION_DEFINITION = "FunctionDefinition"
 
 
 # ──────────────────────────────────────────────
@@ -56,6 +57,12 @@ class ConstructQueryConfig(BaseModel):
     )
     superclass_regex: Optional[str] = Field(
         None, description="Regex for superclass names (Inheritance)"
+    )
+    function_name_regex: Optional[str] = Field(
+        None, description="Regex for function declaration names (FunctionDefinition)"
+    )
+    export_name_regex: Optional[str] = Field(
+        None, description="Regex for exported symbol names (FunctionDefinition)"
     )
 
     model_config = ConfigDict(extra="forbid")
