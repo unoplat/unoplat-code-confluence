@@ -76,13 +76,21 @@
           "description": "Fully-qualified symbols identifying the constructor / base class / annotation provider.",
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$"
+            "pattern": "^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$"
           }
         },
         "target_level": { "$ref": "#/$defs/targetLevelEnum" },
         "concept": { "$ref": "#/$defs/conceptEnum" },
 
         "construct_query": { "$ref": "#/$defs/constructQueryDef" },
+
+        "base_confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.85,
+          "description": "Baseline confidence for this feature definition; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
+        },
 
         "startpoint": {
           "type": "boolean",
@@ -105,6 +113,10 @@
         {
           "if": { "properties": { "concept": { "const": "Inheritance" } } },
           "then": { "properties": { "target_level": { "const": "class" } } }
+        },
+        {
+          "if": { "properties": { "concept": { "const": "FunctionDefinition" } } },
+          "then": { "properties": { "target_level": { "const": "function" } } }
         }
       ]
     },
@@ -117,7 +129,12 @@
 
     "conceptEnum": {
       "type": "string",
-      "enum": ["AnnotationLike", "CallExpression", "Inheritance"],
+      "enum": [
+        "AnnotationLike",
+        "CallExpression",
+        "Inheritance",
+        "FunctionDefinition"
+      ],
       "description": "Language-agnostic construct category."
     },
 
@@ -131,7 +148,9 @@
 
         "callee_regex": { "type": "string" },
 
-        "superclass_regex": { "type": "string" }
+        "superclass_regex": { "type": "string" },
+        "function_name_regex": { "type": "string" },
+        "export_name_regex": { "type": "string" }
       },
       "additionalProperties": false
     }

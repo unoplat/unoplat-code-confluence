@@ -45,25 +45,29 @@ class FrameworkDefinitionLoader:
 
     def load_framework_definitions(self) -> Dict[str, Any]:
         """Load and combine all framework definition JSON files."""
-        python_dir = self.definitions_path / "python"
-
         logger.info(f"Loading framework definitions from: {self.definitions_path}")
-        logger.debug(f"Python directory path: {python_dir.resolve()}")
 
-        if not python_dir.exists():
+        if not self.definitions_path.exists():
             raise FileNotFoundError(
-                f"Framework definitions python directory not found: {python_dir.resolve()}"
+                "Framework definitions directory not found: "
+                f"{self.definitions_path.resolve()}"
             )
 
         combined_data: Dict[str, Dict[str, Any]] = {}
-        json_files = list(python_dir.glob("*.json"))
+        json_files = sorted(
+            file_path
+            for file_path in self.definitions_path.glob("*/*.json")
+            if file_path.is_file()
+        )
 
         if not json_files:
-            logger.warning(f"No JSON files found in {python_dir}")
+            logger.warning("No framework definition JSON files found in language dirs")
             return combined_data
 
+        language_dirs = sorted({json_file.parent.name for json_file in json_files})
         logger.info(
-            f"Loading framework definitions from {len(json_files)} files in {python_dir}"
+            f"Loading framework definitions from {len(json_files)} files across languages: "
+            f"{', '.join(language_dirs)}"
         )
 
         for json_file in json_files:
@@ -176,6 +180,18 @@ class FrameworkDefinitionLoader:
         if not isinstance(payload_data.get("construct_query"), dict):
             payload_data["construct_query"] = None
 
+        base_confidence = payload_data.get("base_confidence")
+        if isinstance(base_confidence, (int, float)) and not isinstance(
+            base_confidence, bool
+        ):
+            numeric_confidence = float(base_confidence)
+            if 0.0 <= numeric_confidence <= 1.0:
+                payload_data["base_confidence"] = numeric_confidence
+            else:
+                payload_data["base_confidence"] = 0.85
+        else:
+            payload_data["base_confidence"] = 0.85
+
         if payload_data.get("target_level") not in {"function", "class"}:
             payload_data["target_level"] = "function"
 
@@ -183,6 +199,7 @@ class FrameworkDefinitionLoader:
             "AnnotationLike",
             "CallExpression",
             "Inheritance",
+            "FunctionDefinition",
         }:
             payload_data["concept"] = "AnnotationLike"
 

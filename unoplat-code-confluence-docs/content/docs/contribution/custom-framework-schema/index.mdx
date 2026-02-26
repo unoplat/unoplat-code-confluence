@@ -174,7 +174,7 @@ Each **feature** within a library describes a specific pattern that **Unoplat Co
     },
     concept: {
       description: 'Language-agnostic construct category for pattern matching',
-      type: '"AnnotationLike" | "CallExpression" | "Inheritance"',
+      type: '"AnnotationLike" | "CallExpression" | "Inheritance" | "FunctionDefinition"',
     },
   }}
 />
@@ -210,6 +210,10 @@ Each **feature** within a library describes a specific pattern that **Unoplat Co
       description: 'Class inheritance patterns where a class extends a base class',
       type: 'enum',
     },
+    FunctionDefinition: {
+      description: 'Exported function declarations used as framework entrypoints (for example route handlers)',
+      type: 'enum',
+    },
   }}
 />
 
@@ -217,11 +221,12 @@ Each **feature** within a library describes a specific pattern that **Unoplat Co
   - **AnnotationLike**: `@app.get("/")`, `@Component`, `[HttpGet]`, `@dataclass`
   - **CallExpression**: `mapped_column()`, `Field()`, `relationship()`, `useState()`
   - **Inheritance**: `class User(BaseModel)`, `class MyView(APIView)`, `class App extends Component`
+  - **FunctionDefinition**: `export async function GET(request: Request) { ... }`
 </Callout>
 
 ### Detection Heuristics (v3)
 
-Detection is import-gated and regex-based. `absolute_paths` must be present in the file imports, and `construct_query` refines the tree-sitter regex patterns used to match decorators, calls, and inheritance.
+Detection is import-gated and regex-based. `absolute_paths` must be present in the file imports, and `construct_query` refines the tree-sitter regex patterns used to match decorators, calls, inheritance, and exported function declarations.
 
 ### Optional Fields
 
@@ -247,8 +252,17 @@ Detection is import-gated and regex-based. `absolute_paths` must be present in t
       type: 'ConstructQuery',
       default: 'undefined',
     },
+    base_confidence: {
+      description: 'Baseline confidence score for this feature definition; use lower values for ambiguous call patterns',
+      type: 'number (0.0 - 1.0)',
+      default: '0.85',
+    },
   }}
 />
+
+<Callout type="info" title="Low-Confidence Guidance">
+  If a feature uses `base_confidence < 0.70`, include disambiguation instructions in `notes` so downstream validation can reliably confirm or reject ambiguous matches.
+</Callout>
 
 ### `construct_query` Properties
 
@@ -280,6 +294,16 @@ Detection is import-gated and regex-based. `absolute_paths` must be present in t
     },
     superclass_regex: {
       description: 'Regular expression for superclass names. Best used with Inheritance concept.',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+    function_name_regex: {
+      description: 'Regular expression for function declaration names. Best used with FunctionDefinition concept.',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+    export_name_regex: {
+      description: 'Regular expression for exported symbol names. Best used with FunctionDefinition concept.',
       type: 'string (regex)',
       default: 'undefined',
     },
