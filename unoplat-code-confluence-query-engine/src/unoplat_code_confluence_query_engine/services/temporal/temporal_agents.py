@@ -20,7 +20,10 @@ from temporalio.workflow import ActivityConfig
 from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
     SEARCH_MODE_BUILTIN_WEB_SEARCH,
     SEARCH_MODE_EXA,
+    SEARCH_MODE_NONE,
     get_engineering_citation_instructions,
+    get_official_docs_search_instruction,
+    get_official_docs_workflow_steps,
     per_language_development_workflow_prompt,
 )
 from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
@@ -33,6 +36,9 @@ from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output
 )
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
+)
+from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
+    CallExpressionValidationAgentOutput,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
@@ -54,6 +60,10 @@ from unoplat_code_confluence_query_engine.tools.agents_md_updater_tools import (
     updater_edit_file,
     updater_read_file,
 )
+from unoplat_code_confluence_query_engine.tools.framework_feature_validation_tools import (
+    set_framework_feature_validation_status,
+    upsert_framework_feature_validation_evidence,
+)
 from unoplat_code_confluence_query_engine.tools.get_content_file import (
     read_file_content,
 )
@@ -71,7 +81,6 @@ EXA_MCP_SERVER_NAME = "exa"
 WEB_SEARCH_BUILTIN_PROVIDER_KEYS = frozenset(
     {"codex_openai", "anthropic", "grok", "groq"}
 )
-SEARCH_MODE_NONE = "none"
 
 ToolActivityOverride: TypeAlias = ActivityConfig | Literal[False]
 ToolActivityConfigMap: TypeAlias = dict[str, ToolActivityOverride]
@@ -86,6 +95,9 @@ class TemporalAgentRegistry(TypedDict, total=False):
     dependency_guide: TemporalAgent[AgentDependencies, DependencyGuideEntry]
     business_domain_guide: TemporalAgent[AgentDependencies, str]
     agents_md_updater: TemporalAgent[AgentDependencies, AgentsMdUpdaterOutput]
+    call_expression_validator: TemporalAgent[
+        AgentDependencies, CallExpressionValidationAgentOutput
+    ]
 
 
 def _get_exa_mcp_server(toolset_id: str):
@@ -106,6 +118,7 @@ class AgentType(Enum):
     DEPENDENCY = "dependency_guide"
     BUSINESS_DOMAIN = "business_domain_guide"
     AGENTS_MD_UPDATER = "agents_md_updater"
+    CALL_EXPRESSION_VALIDATOR = "call_expression_validator"
 
 
 def _get_web_search_builtin_tools(
@@ -207,22 +220,11 @@ def build_section_updater_prompt(
 
 def _get_dependency_guide_instructions(search_mode: str) -> str:
     """Build dependency-guide instructions based on available web-search mode."""
-    if search_mode == SEARCH_MODE_EXA:
-        workflow_steps = """1. Use Exa MCP tools (web_search_exa/get_code_context_exa) to locate official documentation for the library/tool
-2. Evaluate results:
-   - If official documentation is found: synthesize purpose and usage from it
-   - If NO official docs found (error message, empty response, or "not found"): mark as internal dependency
-3. Return the DependencyGuideEntry"""
-    elif search_mode == SEARCH_MODE_BUILTIN_WEB_SEARCH:
-        workflow_steps = """1. Use built-in `web_search` to locate official documentation for the library/tool
-2. Evaluate results:
-   - If official documentation is found: synthesize purpose and usage from it
-   - If NO official docs found (error message, empty response, or "not found"): mark as internal dependency
-3. Return the DependencyGuideEntry"""
-    else:
-        workflow_steps = """1. Use available repository context to infer whether this is likely internal/private
-2. If no official documentation source is available, mark as internal dependency
-3. Return the DependencyGuideEntry"""
+    workflow_steps = get_official_docs_workflow_steps(
+        search_mode,
+        target="the library/tool",
+        unresolved_outcome="mark as internal dependency",
+    )
 
     return f"""You are the Dependency Guide.
 
@@ -267,6 +269,7 @@ EXA_TOOLSET_IDS = {
     # Reuse the existing workflow Exa toolset ID so current MCP routing/credentials remain valid.
     AgentType.DEVELOPMENT_WORKFLOW: "exa__development_workflow_guide",
     AgentType.DEPENDENCY: "exa__dependency_guide",
+    AgentType.CALL_EXPRESSION_VALIDATOR: "exa__call_expression_validator",
 }
 
 
@@ -276,6 +279,7 @@ ENABLED_AGENTS: set[AgentType] = {
     AgentType.DEPENDENCY,
     AgentType.BUSINESS_DOMAIN,
     AgentType.AGENTS_MD_UPDATER,
+    AgentType.CALL_EXPRESSION_VALIDATOR,
 }
 
 
@@ -529,6 +533,93 @@ IMPORTANT: Your final output must be PLAIN TEXT only (2-4 sentences).
     return agent
 
 
+def create_call_expression_validator_agent(
+    model: Model,
+    model_settings: ModelSettings | None = None,
+    builtin_tools: list[AbstractBuiltinTool] | None = None,
+    include_exa_toolset: bool = True,
+    search_mode: str = SEARCH_MODE_EXA,
+) -> Agent[AgentDependencies, CallExpressionValidationAgentOutput]:
+    """Create low-confidence CallExpression validator agent.
+
+    Args:
+        model: Configured Model instance from ModelFactory.
+        model_settings: Optional model settings (temperature, etc.).
+        builtin_tools: Optional built-in provider tools.
+        include_exa_toolset: Whether Exa MCP toolset should be enabled.
+        search_mode: Resolved external search mode.
+
+    Returns:
+        Configured CallExpression validator agent.
+    """
+    exa_id = EXA_TOOLSET_IDS[AgentType.CALL_EXPRESSION_VALIDATOR]
+    docs_instruction = get_official_docs_search_instruction(
+        search_mode,
+        target="framework API usage for the candidate call",
+    )
+    docs_workflow = get_official_docs_workflow_steps(
+        search_mode,
+        target="the claimed framework method/API for the candidate call",
+        unresolved_outcome="set decision=needs_review and target_status=needs_review",
+    )
+
+    agent = Agent(
+        model,
+        name="call_expression_validator",
+        instructions=(
+            "You validate one low-confidence CallExpression usage candidate at a time.\n"
+            "Return a strict structured decision with auditable evidence.\n\n"
+            "Required process:\n"
+            "1. Read local file context around the candidate span using read_file_content.\n"
+            "2. Expand nearby symbol/object evidence using search_across_codebase.\n"
+            f"3. {docs_instruction}\n"
+            "4. Persist evidence/confidence with upsert_framework_feature_validation_evidence.\n"
+            "5. Persist status transition with set_framework_feature_validation_status.\n"
+            "6. Return output contract only after write operations complete.\n\n"
+            "External docs verification workflow:\n"
+            f"{docs_workflow}\n\n"
+            "Tool workflow example (confirm path):\n"
+            "- Call upsert_framework_feature_validation_evidence with request {identity, decision='confirm', final_confidence, evidence_json}.\n"
+            "- Then call set_framework_feature_validation_status with request {identity, target_status='completed'}.\n"
+            "- Return CallExpressionValidationAgentOutput for the same identity.\n\n"
+            "Tool workflow example (needs_review path):\n"
+            "- Call upsert_framework_feature_validation_evidence with request {identity, decision='needs_review', final_confidence, evidence_json}.\n"
+            "- Then call set_framework_feature_validation_status with request {identity, target_status='needs_review'}.\n"
+            "- Return CallExpressionValidationAgentOutput for the same identity.\n\n"
+            "Decision policy:\n"
+            "- confirm/reject/correct => target_status must be completed\n"
+            "- needs_review => target_status must be needs_review\n"
+            "- correct requires updated_feature_key different from source feature_key"
+        ),
+        deps_type=AgentDependencies,
+        toolsets=[_get_exa_mcp_server(exa_id)] if include_exa_toolset else [],
+        tools=[
+            Tool(read_file_content, takes_ctx=True, max_retries=3),
+            Tool(search_across_codebase, takes_ctx=True, max_retries=3),
+            Tool(
+                upsert_framework_feature_validation_evidence,
+                takes_ctx=True,
+                max_retries=3,
+                docstring_format="google",
+                require_parameter_descriptions=True,
+            ),
+            Tool(
+                set_framework_feature_validation_status,
+                takes_ctx=True,
+                max_retries=3,
+                docstring_format="google",
+                require_parameter_descriptions=True,
+            ),
+        ],
+        builtin_tools=builtin_tools or [],
+        output_type=CallExpressionValidationAgentOutput,
+        output_retries=2,
+        model_settings=model_settings,
+        event_stream_handler=event_stream_handler,
+    )
+    return agent
+
+
 def create_agents_md_updater_agent(
     model: Model,
     model_settings: ModelSettings | None = None,
@@ -723,6 +814,42 @@ def create_temporal_agents(
             tool_activity_config=dependency_tool_activity_config,
         )
         logger.info("Created dependency_guide")
+
+    if AgentType.CALL_EXPRESSION_VALIDATOR in ENABLED_AGENTS:
+        exa_toolset_id = EXA_TOOLSET_IDS[AgentType.CALL_EXPRESSION_VALIDATOR]
+        call_expression_validator_agent = create_call_expression_validator_agent(
+            model,
+            model_settings,
+            builtin_tools=builtin_web_search_tools if use_builtin_web_search else None,
+            include_exa_toolset=use_exa_tools,
+            search_mode=search_mode,
+        )
+        call_expression_tool_activity_config: ToolActivityConfigMap = {
+            "read_file_content": tool_activity_config_base,
+            "search_across_codebase": tool_activity_config_base,
+            "upsert_framework_feature_validation_evidence": tool_activity_config_base,
+            "set_framework_feature_validation_status": tool_activity_config_base,
+        }
+        call_expression_toolset_activity_config: ToolsetActivityConfigMap = {
+            default_toolset_id: toolset_activity_config
+        }
+        call_expression_toolset_tool_activity_config: ToolsetToolActivityConfigMap = {
+            default_toolset_id: call_expression_tool_activity_config
+        }
+        if use_exa_tools:
+            call_expression_toolset_activity_config[exa_toolset_id] = (
+                toolset_activity_config
+            )
+            call_expression_toolset_tool_activity_config[exa_toolset_id] = {}
+
+        agents[AgentType.CALL_EXPRESSION_VALIDATOR.value] = TemporalAgent(
+            call_expression_validator_agent,
+            activity_config=base_activity_config,
+            model_activity_config=model_activity_config,
+            toolset_activity_config=call_expression_toolset_activity_config,
+            tool_activity_config=call_expression_toolset_tool_activity_config,
+        )
+        logger.info("Created call_expression_validator")
 
     if AgentType.BUSINESS_DOMAIN in ENABLED_AGENTS:
         domain_agent = create_business_logic_domain_agent(

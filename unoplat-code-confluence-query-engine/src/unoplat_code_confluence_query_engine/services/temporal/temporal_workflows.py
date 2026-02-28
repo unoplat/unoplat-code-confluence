@@ -22,6 +22,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
         SectionId,
     )
+    from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
+        FrameworkFeatureValidationCandidate,
+    )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
     )
@@ -122,7 +125,11 @@ async def _run_section_updater(
 
     updater_agent_name = SECTION_UPDATER_AGENT_NAMES[section_id]
     try:
-        logger.info("[workflow] Running {} for {}", updater_agent_name, codebase_metadata.codebase_name)
+        logger.info(
+            "[workflow] Running {} for {}",
+            updater_agent_name,
+            codebase_metadata.codebase_name,
+        )
         updater_deps = AgentDependencies(
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
@@ -141,15 +148,26 @@ async def _run_section_updater(
             usage_limits=get_cached_usage_limits(),
         )
         output_dict = updater_result.output.model_dump(mode="json")
-        updater_runs.append({
-            "section_id": section_id.value,
-            "agent_name": updater_agent_name,
-            "output": output_dict,
-        })
+        updater_runs.append(
+            {
+                "section_id": section_id.value,
+                "agent_name": updater_agent_name,
+                "output": output_dict,
+            }
+        )
         agent_stats.append(extract_usage_statistics(updater_result.usage()))
-        logger.info("[workflow] {} completed for {}", updater_agent_name, codebase_metadata.codebase_name)
+        logger.info(
+            "[workflow] {} completed for {}",
+            updater_agent_name,
+            codebase_metadata.codebase_name,
+        )
     except Exception as e:
-        logger.error("[workflow] {} failed for {}: {}", updater_agent_name, codebase_metadata.codebase_name, e)
+        logger.error(
+            "[workflow] {} failed for {}: {}",
+            updater_agent_name,
+            codebase_metadata.codebase_name,
+            e,
+        )
         logger.exception("[workflow] Full traceback:")
         error_entry: dict[str, object] = {
             "agent": updater_agent_name,
@@ -158,10 +176,127 @@ async def _run_section_updater(
             "traceback": traceback.format_exc(),
         }
         error_entry = _enrich_agent_error_with_model_details(
-            error_entry, e, updater_agent_name, codebase_metadata.codebase_name,
+            error_entry,
+            e,
+            updater_agent_name,
+            codebase_metadata.codebase_name,
         )
         agent_errors.append(error_entry)
         agent_stats.append(create_zero_usage_statistics())
+
+
+def _build_call_expression_validator_prompt(
+    candidate: FrameworkFeatureValidationCandidate,
+) -> str:
+    """Build validator prompt for a single low-confidence CallExpression candidate.
+
+    Args:
+        candidate: Candidate payload selected from low-confidence CallExpression rows.
+
+    Returns:
+        Prompt text instructing a strict tool-execution sequence.
+    """
+    return (
+        "Validate this low-confidence CallExpression candidate for app-interface mapping.\n"
+        "Use local code evidence and official docs validation before deciding.\n"
+        "You MUST persist writes using both validator write tools in order.\n\n"
+        "Required write sequence:\n"
+        "1) upsert_framework_feature_validation_evidence(request=...)\n"
+        "2) set_framework_feature_validation_status(request=...)\n"
+        "3) return output for the same identity\n\n"
+        "Candidate payload JSON:\n"
+        f"{candidate.model_dump_json(indent=2)}"
+    )
+
+
+async def _run_call_expression_validation(
+    temporal_agents: TemporalAgentRegistry,
+    codebase_metadata: CodebaseMetadata,
+    repository_qualified_name: str,
+    repository_workflow_run_id: str,
+    candidate_payloads: list[dict[str, object]],
+    agent_stats: list[UsageStatistics],
+    agent_errors: list[dict[str, object]],
+) -> None:
+    """Execute call_expression_validator for low-confidence candidates.
+
+    Args:
+        temporal_agents: Initialized temporal agent registry.
+        codebase_metadata: Current codebase metadata.
+        repository_qualified_name: Repository qualified name.
+        repository_workflow_run_id: Workflow run identifier.
+        candidate_payloads: Serialized low-confidence candidate payloads.
+        agent_stats: Mutable list for usage-stat aggregation.
+        agent_errors: Mutable list for workflow error aggregation.
+    """
+    if not candidate_payloads:
+        logger.info(
+            "[workflow] No low-confidence CallExpression candidates found for {}",
+            codebase_metadata.codebase_name,
+        )
+        return
+
+    if "call_expression_validator" not in temporal_agents:
+        logger.info(
+            "[workflow] call_expression_validator is disabled; skipping {} candidates for {}",
+            len(candidate_payloads),
+            codebase_metadata.codebase_name,
+        )
+        agent_stats.append(create_zero_usage_statistics())
+        return
+
+    logger.info(
+        "[workflow] Running call_expression_validator for {} candidates in {}",
+        len(candidate_payloads),
+        codebase_metadata.codebase_name,
+    )
+
+    for candidate_payload in candidate_payloads:
+        candidate = FrameworkFeatureValidationCandidate.model_validate(
+            candidate_payload
+        )
+        validator_deps = AgentDependencies(
+            repository_qualified_name=repository_qualified_name,
+            codebase_metadata=codebase_metadata,
+            repository_workflow_run_id=repository_workflow_run_id,
+            agent_name="call_expression_validator",
+        )
+        validator_prompt = _build_call_expression_validator_prompt(candidate)
+
+        try:
+            validator_result = await temporal_agents["call_expression_validator"].run(
+                validator_prompt,
+                deps=validator_deps,
+                usage_limits=get_cached_usage_limits(),
+            )
+            agent_stats.append(extract_usage_statistics(validator_result.usage()))
+        except Exception as validator_error:
+            logger.error(
+                "[workflow] call_expression_validator failed for {}:{}:{}:{}:{}-{}: {}",
+                candidate.identity.feature_language,
+                candidate.identity.feature_library,
+                candidate.identity.feature_key,
+                candidate.identity.file_path,
+                candidate.identity.start_line,
+                candidate.identity.end_line,
+                validator_error,
+            )
+            logger.exception("[workflow] Full traceback:")
+            validator_error_entry: dict[str, object] = {
+                "agent": "call_expression_validator",
+                "codebase": codebase_metadata.codebase_name,
+                "error": str(validator_error),
+                "traceback": traceback.format_exc(),
+                "candidate_identity": candidate.identity.model_dump(mode="json"),
+            }
+            validator_error_entry = _enrich_agent_error_with_model_details(
+                validator_error_entry,
+                validator_error,
+                "call_expression_validator",
+                codebase_metadata.codebase_name,
+            )
+            agent_errors.append(validator_error_entry)
+            agent_stats.append(create_zero_usage_statistics())
 
 
 @workflow.defn(versioning_behavior=common.VersioningBehavior.AUTO_UPGRADE)
@@ -288,7 +423,9 @@ class CodebaseAgentWorkflow:
                     codebase_metadata=codebase_metadata,
                     repository_qualified_name=repository_qualified_name,
                     repository_workflow_run_id=repository_workflow_run_id,
-                    programming_language_metadata=results["programming_language_metadata"],
+                    programming_language_metadata=results[
+                        "programming_language_metadata"
+                    ],
                     section_data=results["engineering_workflow"],
                     agent_stats=agent_stats,
                     agent_errors=agent_errors,
@@ -408,7 +545,9 @@ class CodebaseAgentWorkflow:
                     codebase_metadata=codebase_metadata,
                     repository_qualified_name=repository_qualified_name,
                     repository_workflow_run_id=repository_workflow_run_id,
-                    programming_language_metadata=results["programming_language_metadata"],
+                    programming_language_metadata=results[
+                        "programming_language_metadata"
+                    ],
                     section_data=results["dependency_guide"],
                     agent_stats=agent_stats,
                     agent_errors=agent_errors,
@@ -490,7 +629,9 @@ class CodebaseAgentWorkflow:
                     codebase_metadata=codebase_metadata,
                     repository_qualified_name=repository_qualified_name,
                     repository_workflow_run_id=repository_workflow_run_id,
-                    programming_language_metadata=results["programming_language_metadata"],
+                    programming_language_metadata=results[
+                        "programming_language_metadata"
+                    ],
                     section_data=results["business_logic_domain"],
                     agent_stats=agent_stats,
                     agent_errors=agent_errors,
@@ -530,6 +671,26 @@ class CodebaseAgentWorkflow:
         # Step 5: App Interfaces (Python only - deterministic DB activity, not LLM agent)
         if codebase_metadata.codebase_programming_language.lower() == "python":
             try:
+                candidate_payloads = await workflow.execute_activity(
+                    AppInterfacesActivity.fetch_low_confidence_call_expression_candidates,
+                    args=[
+                        codebase_metadata.codebase_path,
+                        codebase_metadata.codebase_programming_language,
+                    ],
+                    start_to_close_timeout=timedelta(minutes=2),
+                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
+                )
+
+                await _run_call_expression_validation(
+                    temporal_agents=temporal_agents,
+                    codebase_metadata=codebase_metadata,
+                    repository_qualified_name=repository_qualified_name,
+                    repository_workflow_run_id=repository_workflow_run_id,
+                    candidate_payloads=candidate_payloads,
+                    agent_stats=agent_stats,
+                    agent_errors=agent_errors,
+                )
+
                 logger.info(
                     "[workflow] Running app_interfaces_agent for {}",
                     codebase_metadata.codebase_name,
@@ -570,7 +731,9 @@ class CodebaseAgentWorkflow:
                     codebase_metadata=codebase_metadata,
                     repository_qualified_name=repository_qualified_name,
                     repository_workflow_run_id=repository_workflow_run_id,
-                    programming_language_metadata=results["programming_language_metadata"],
+                    programming_language_metadata=results[
+                        "programming_language_metadata"
+                    ],
                     section_data=results["app_interfaces"],
                     agent_stats=agent_stats,
                     agent_errors=agent_errors,
