@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.32.0...unoplat-code-confluence-query-engine-v0.33.0) (2026-02-28)
+
+
+### Features
+
+* **validation-spec-implementation:** introducing llm based validator for low confidence matches to ensure defects introduced through dids are rectified ([05c1bb9](https://github.com/unoplat/unoplat-code-confluence/commit/05c1bb95481bf32e27fac39bad106ecbb84d8ba4))
+* **validation-spec-implementation:** introducing llm based validator… ([ffddafb](https://github.com/unoplat/unoplat-code-confluence/commit/ffddafb41dd10abff0429470f45064a25e3a1d36))
+
 ## [0.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.31.2...unoplat-code-confluence-query-engine-v0.32.0) (2026-02-28)
 
 
