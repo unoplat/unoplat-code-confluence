@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.43.2...unoplat-code-confluence-commons-v0.44.0) (2026-02-28)
+
+
+### Features
+
+* **confidence:** add schema and ingestion contracts for usage confidence metadata ([f71b085](https://github.com/unoplat/unoplat-code-confluence/commit/f71b085d653de9c339f0ffb615a4d07863fadd98))
+
+
+### Bug Fixes
+
+* **typescript:** add concept enum in schema to support more typescript ([4195eb2](https://github.com/unoplat/unoplat-code-confluence/commit/4195eb21f5fd080f3e923cb53162136ff57f7a1b))
+* **typescript:** add concept enum in schema to support more typescript ([7cfe956](https://github.com/unoplat/unoplat-code-confluence/commit/7cfe9566ee97c4e3e2d016c72942ea4c0749bd43))
+
 ## [0.43.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.43.1...unoplat-code-confluence-commons-v0.43.2) (2026-02-24)
 
 
