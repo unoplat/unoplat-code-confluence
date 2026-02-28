@@ -148,7 +148,13 @@ Run only when:
 
 1. `concept == CallExpression`
 2. `match_confidence < GLOBAL_CALL_EXPRESSION_VALIDATION_THRESHOLD` (`0.70`)
-3. Feature is relevant to interface mapping stage (inbound/outbound/internal classification paths)
+3. `validation_status in {pending, needs_review}`
+4. Feature is relevant to interface mapping stage (inbound/outbound/internal classification paths)
+
+Phase-3 simplification:
+
+1. Validator triggering is intentionally limited to the single predicate above.
+2. All rows that do not match this predicate bypass validator in this phase.
 
 ## 2. Validator inputs
 
@@ -169,6 +175,28 @@ Use existing query-engine tools:
 2. `search_across_codebase` for related symbol/object usage
 3. Optional narrow context expansion around assignment/constructor points
 
+Add two write tools for validator persistence (tailored to current query-engine tool pattern):
+
+4. `upsert_framework_feature_validation_evidence`
+   - Purpose: persist validator evidence payload and confidence updates, and upsert corrected feature usage row when `decision = correct`.
+   - Placement: `src/unoplat_code_confluence_query_engine/tools/framework_feature_validation_tools.py`
+   - Pattern: async function tool with `RunContext[AgentDependencies]`, strict Pydantic input model, `ModelRetry` on invalid args.
+   - DB routing: call repository helper(s) under `db/postgres` via `get_startup_session()`; do not embed raw SQL in prompt/tool text.
+   - Writes:
+     - update original row `match_confidence` + `evidence_json`
+     - for `correct`, insert/update corrected row keyed by `updated_feature_key` with copied file/span identity and corrected evidence
+
+5. `set_framework_feature_validation_status`
+   - Purpose: perform explicit status transition only.
+   - Placement: same tool module as above.
+   - Pattern: async function tool with strict enum validation and transition guards.
+   - Allowed transitions (Phase 3):
+     - `pending -> completed`
+     - `pending -> needs_review`
+     - `needs_review -> completed`
+     - `needs_review -> needs_review` (idempotent)
+   - Reject direct transition from `completed` to another state unless no-op idempotent replay.
+
 ## 4. Validator outputs
 
 Structured result per candidate:
@@ -180,10 +208,23 @@ Structured result per candidate:
 
 ## 5. Write-back behavior
 
-1. Update usage row fields (`validation_status`, `match_confidence`, `evidence_json`).
-2. Set `validation_status = completed` when validator output is written; set `validation_status = needs_review` when validator cannot produce a reliable decision.
-3. Rows with `evidence_json.decision in {confirm, correct}` proceed to interface mapper.
+1. First call `upsert_framework_feature_validation_evidence` to persist `match_confidence` + `evidence_json` and corrected row upsert (if needed).
+2. Then call `set_framework_feature_validation_status` to move status to `completed` or `needs_review`.
+3. Rows with `evidence_json.decision in {confirm, correct}` and `validation_status = completed` proceed to interface mapper.
 4. Rows with `evidence_json.decision = reject` are excluded from final interfaces and can be logged for audit.
+5. If evidence upsert succeeds but status transition fails, row must be marked `needs_review` on retry path to avoid silent acceptance.
+
+Tool workflow example (confirm):
+
+1. Call `upsert_framework_feature_validation_evidence` with `{identity, decision=confirm, final_confidence, evidence_json}`.
+2. Call `set_framework_feature_validation_status` with `{identity, target_status=completed}`.
+3. Return validator output for the same identity.
+
+Tool workflow example (needs_review):
+
+1. Call `upsert_framework_feature_validation_evidence` with `{identity, decision=needs_review, final_confidence, evidence_json}`.
+2. Call `set_framework_feature_validation_status` with `{identity, target_status=needs_review}`.
+3. Return validator output for the same identity.
 
 ---
 
@@ -198,12 +239,65 @@ Structured result per candidate:
 
 1. Fetch feature usage rows.
 2. Partition into:
-   - high-confidence accepted
-   - low-confidence validation-required
+   - validation candidates: `concept == CallExpression` AND `match_confidence < 0.70` AND `validation_status in {pending, needs_review}`
+   - bypass set: all remaining rows
 3. Run validator on low-confidence partition.
-4. Merge accepted + validator-`completed` rows with decision `confirm`/`correct`.
+4. Merge bypass set + validator-`completed` rows with decision `confirm`/`correct`.
 5. Build interfaces from merged set.
 6. Persist validator outcomes for observability/debuggability.
+
+---
+
+## Phase-3 Validation Algorithm (Deterministic + LLM)
+
+1. Select validator candidates using only this predicate:
+   - `concept == CallExpression`
+   - `match_confidence < 0.70`
+   - `validation_status in {pending, needs_review}`
+2. For each candidate, gather local evidence:
+   - read targeted file window around `start_line`/`end_line`
+   - search nearby symbol/object usage in codebase
+3. Validate framework claim against official docs using configured external search capability:
+   - Exa MCP when configured
+   - otherwise provider-native built-in web search when supported
+   - otherwise set candidate to `needs_review`
+4. Produce one decision per candidate: `confirm | reject | correct | needs_review`.
+5. Persist write-back in two explicit operations:
+   - tool A (`upsert_framework_feature_validation_evidence`) for `match_confidence` + `evidence_json` + corrected-row upsert
+   - tool B (`set_framework_feature_validation_status`) for status transition
+6. Mapper input policy:
+   - include bypass rows (not validator candidates)
+   - include validator rows with `validation_status = completed` and `decision in {confirm, correct}`
+   - exclude `decision = reject` and `validation_status = needs_review`
+
+Implementation note:
+
+1. Keep status transition as a separate operation to preserve explicit workflow state and make retries/idempotency easier to reason about.
+2. Both tools should use the same identity tuple (`file_path`, `feature_language`, `feature_library`, `feature_key`, `start_line`, `end_line`) used by `code_confluence_file_framework_feature`.
+
+Pseudo-rule:
+
+```
+should_validate = (
+  concept == CallExpression
+  and match_confidence < 0.70
+  and validation_status in {pending, needs_review}
+)
+```
+
+---
+
+## Important Gaps (Current State)
+
+1. `match_confidence` scoring is persisted but not yet effectively populated from detector-specific scoring signals; current fallback behavior weakens `< 0.70` gating.
+2. Query-engine framework-usage fetch path still centers on `match_text` + line spans and does not yet fully consume confidence/validation/evidence fields for app-interfaces mapping.
+3. No dedicated validator TemporalAgent/plugin is wired yet into the app-interfaces execution path.
+4. No dedicated query-engine persistence tools exist yet for:
+   - evidence/confidence upsert (`match_confidence`, `evidence_json`, corrected-row upsert)
+   - status-only transition (`validation_status`)
+5. Runtime schema creation relies on `create_all`; existing DBs may require explicit migration/backfill handling for new columns.
+
+These gaps must be closed in Phase 3 implementation to make low-confidence validator gating operational and auditable.
 
 ---
 

@@ -316,6 +316,10 @@ class TemporalWorkerManager:
             agent_plugins.append(AgentPlugin(temporal_agents["business_domain_guide"]))
         if "agents_md_updater" in temporal_agents:
             agent_plugins.append(AgentPlugin(temporal_agents["agents_md_updater"]))
+        if "call_expression_validator" in temporal_agents:
+            agent_plugins.append(
+                AgentPlugin(temporal_agents["call_expression_validator"])
+            )
 
         logger.info(
             "[temporal_worker_manager] Created {} agent plugins: {}",
@@ -376,6 +380,7 @@ class TemporalWorkerManager:
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
                 dependency_guide_fetch_activity.fetch_codebase_dependencies,
                 engineering_workflow_completion_activity.emit_engineering_workflow_completion,
+                app_interfaces_activity.fetch_low_confidence_call_expression_candidates,
                 app_interfaces_activity.build_app_interfaces,
                 app_interfaces_activity.emit_app_interfaces_completion,
             ],

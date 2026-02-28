@@ -7,6 +7,7 @@ from temporalio import activity
 
 from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_repository import (
     db_get_all_framework_features_for_codebase,
+    db_get_low_confidence_call_expression_candidates,
 )
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     Interfaces,
@@ -71,6 +72,32 @@ class AppInterfacesActivity:
         )
 
         return interfaces
+
+    @activity.defn
+    async def fetch_low_confidence_call_expression_candidates(
+        self,
+        codebase_path: str,
+        programming_language: str,
+    ) -> list[dict[str, object]]:
+        """Fetch low-confidence CallExpression candidates for validator processing.
+
+        Args:
+            codebase_path: Path to the codebase for PostgreSQL lookup.
+            programming_language: Programming language of the codebase.
+
+        Returns:
+            Serialized candidate payloads for validator-agent execution.
+        """
+        candidates = await db_get_low_confidence_call_expression_candidates(
+            codebase_path=codebase_path,
+            programming_language=programming_language,
+        )
+        logger.info(
+            "[app_interfaces_activity] Found {} low-confidence CallExpression candidates for codebase: {}",
+            len(candidates),
+            codebase_path,
+        )
+        return [candidate.model_dump(mode="json") for candidate in candidates]
 
     @activity.defn
     async def emit_app_interfaces_completion(
