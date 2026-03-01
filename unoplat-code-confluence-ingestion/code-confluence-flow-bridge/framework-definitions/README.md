@@ -56,6 +56,39 @@ Detection is **import-gated** and **regex-based**:
 
 When `base_confidence` is below `0.70`, include disambiguation guidance in feature `notes` so downstream validation can apply framework-specific checks consistently.
 
+## Import Style For Detection Accuracy
+
+Framework matching depends on imports. Use explicit import style to improve recall and reduce false positives.
+
+- Python (enforced with Ruff):
+  - Prefer explicit imports (`from package import Symbol`) over wildcard imports.
+  - Keep absolute imports only (no relative imports).
+  - Relevant Ruff rules in this repo: `F403`, `F405`, `F406`, `TID`, `I`.
+
+- TypeScript/JavaScript (recommended with ESLint):
+  - Prefer named imports for framework entry modules (for example `next/server`).
+  - Avoid namespace imports for detection-critical modules.
+  - Avoid `require(...)` in ESM-first TypeScript codebases.
+  - Suggested rules: `import/no-namespace`, `@typescript-eslint/no-require-imports`, `import/no-commonjs`.
+
+Examples:
+
+```python
+# preferred
+from fastapi import APIRouter, FastAPI
+
+# avoid
+from fastapi import *
+```
+
+```typescript
+// preferred
+import { NextRequest, NextResponse } from "next/server"
+
+// avoid for detection-critical imports
+import * as nextServer from "next/server"
+```
+
 ## Validation
 
 ### Validate All Framework Definitions

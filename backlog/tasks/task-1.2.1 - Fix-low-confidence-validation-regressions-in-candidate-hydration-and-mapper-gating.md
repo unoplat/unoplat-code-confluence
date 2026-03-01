@@ -3,10 +3,10 @@ id: TASK-1.2.1
 title: >-
   Fix low-confidence validation regressions in candidate hydration and mapper
   gating
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-02-27 13:12'
-updated_date: '2026-02-28 05:09'
+updated_date: '2026-02-28 06:04'
 labels:
   - query-engine
   - validator
@@ -32,6 +32,7 @@ documentation:
     CallExpression-Confidence-Scoring-and-Validation-Agent.md
 parent_task_id: TASK-1.2
 priority: high
+ordinal: 4000
 ---
 
 ## Description

@@ -3,10 +3,10 @@ id: TASK-1.2
 title: >-
   Integrate low-confidence CallExpression validator agent into query-engine
   workflow
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-02-26 10:41'
-updated_date: '2026-02-27 12:43'
+updated_date: '2026-02-28 06:04'
 labels:
   - query-engine
   - validator
@@ -46,6 +46,7 @@ documentation:
   - 'backlog://workflow/overview'
 parent_task_id: TASK-1
 priority: high
+ordinal: 3000
 ---
 
 ## Description
