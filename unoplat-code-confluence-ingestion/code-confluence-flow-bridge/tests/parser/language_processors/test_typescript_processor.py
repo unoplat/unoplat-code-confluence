@@ -98,5 +98,7 @@ async def test_extract_file_data_detects_data_models(
     assert positions.get("ApiResponse") == (70, 73)
     assert positions.get("ApiError") == (75, 80)
 
-    # Imports are intentionally skipped in v1
-    assert file_data.imports is None
+    # Imports are extracted in v1 for framework detection gating
+    assert file_data.imports is not None
+    assert len(file_data.imports) > 0
+    assert any("from 'axios'" in import_stmt for import_stmt in file_data.imports)

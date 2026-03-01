@@ -3,10 +3,10 @@ id: TASK-1.1
 title: >-
   Add CallExpression confidence fields to schema + ingestion docs/contracts (no
   validator integration)
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-02-26 05:53'
-updated_date: '2026-02-26 07:39'
+updated_date: '2026-02-28 06:04'
 labels:
   - schema
   - ingestion
@@ -40,6 +40,7 @@ documentation:
     unoplat-code-confluence-ingestion/code-confluence-flow-bridge/prisma-call-expression-simplification-failure-cases.md
 parent_task_id: TASK-1
 priority: high
+ordinal: 2000
 ---
 
 ## Description
