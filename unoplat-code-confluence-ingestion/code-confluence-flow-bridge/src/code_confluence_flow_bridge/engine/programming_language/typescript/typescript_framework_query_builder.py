@@ -18,6 +18,9 @@ from unoplat_code_confluence_commons.base_models import (
 _TEMPLATE_DIR = Path(__file__).resolve().parent / "queries"
 _TEMPLATE_PATHS = {
     "function_definition": _TEMPLATE_DIR / "function_definition.scm",
+    "call_expression": _TEMPLATE_DIR / "call_expression.scm",
+    "inheritance": _TEMPLATE_DIR / "inheritance.scm",
+    "annotation_like": _TEMPLATE_DIR / "annotation_function_like.scm",
 }
 
 _QUERY_CACHE: Dict[str, tree_sitter.Query] = {}
@@ -66,16 +69,11 @@ class TypeScriptFrameworkQueryBuilder:
         self._language = get_language("typescript")  # type: ignore[arg-type]
 
     def build_query(self, feature_spec: FeatureSpec) -> tree_sitter.Query:
-        if feature_spec.concept != Concept.FUNCTION_DEFINITION:
-            raise ValueError(
-                f"TypeScriptFrameworkQueryBuilder only supports FunctionDefinition concept, "
-                f"got: {feature_spec.concept}"
-            )
-
-        template_path = _TEMPLATE_PATHS["function_definition"]
+        template_key = self._resolve_template_key(feature_spec.concept)
+        template_path = _TEMPLATE_PATHS[template_key]
         template = _load_template(template_path)
         query_source = self._render_query(template, feature_spec)
-        cache_key = f"function_definition:{_definition_hash(feature_spec)}"
+        cache_key = f"{template_key}:{_definition_hash(feature_spec)}"
 
         if cache_key not in _QUERY_CACHE:
             _QUERY_CACHE[cache_key] = tree_sitter.Query(self._language, query_source)
@@ -99,10 +97,40 @@ class TypeScriptFrameworkQueryBuilder:
         function_name_predicate = _render_predicate(
             "@function_name", construct_query.function_name_regex
         )
+        callee_predicate = _render_predicate("@callee", construct_query.callee_regex)
+        superclass_predicate = _render_predicate(
+            "@superclass", construct_query.superclass_regex
+        )
+        annotation_regex = (
+            construct_query.annotation_name_regex or construct_query.method_regex
+        )
+        annotation_name_predicate = _render_predicate(
+            "@decorator_name", annotation_regex
+        )
+        annotation_method_predicate = _render_predicate(
+            "@decorator_method", annotation_regex
+        )
 
         replacements = {
             "EXPORT_NAME_PREDICATE": export_name_predicate,
             "FUNCTION_NAME_PREDICATE": function_name_predicate,
+            "CALLEE_PREDICATE": callee_predicate,
+            "SUPERCLASS_PREDICATE": superclass_predicate,
+            "ANNOTATION_NAME_PREDICATE": annotation_name_predicate,
+            "ANNOTATION_METHOD_PREDICATE": annotation_method_predicate,
         }
 
         return _render_template(template, replacements)
+
+    def _resolve_template_key(self, concept: Concept) -> str:
+        if concept == Concept.FUNCTION_DEFINITION:
+            return "function_definition"
+        if concept == Concept.CALL_EXPRESSION:
+            return "call_expression"
+        if concept == Concept.INHERITANCE:
+            return "inheritance"
+        if concept == Concept.ANNOTATION_LIKE:
+            return "annotation_like"
+        raise ValueError(
+            f"TypeScriptFrameworkQueryBuilder does not support concept: {concept.value}"
+        )

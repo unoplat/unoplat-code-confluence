@@ -302,7 +302,15 @@ class TestFrameworkDefinitionsIngestion:
         )
         python_frameworks = framework_data["python"]
 
-        expected_frameworks = {"fastapi", "pydantic", "sqlalchemy", "sqlmodel"}
+        expected_frameworks = {
+            "celery",
+            "fastapi",
+            "fastmcp",
+            "litellm",
+            "pydantic",
+            "sqlalchemy",
+            "sqlmodel",
+        }
         actual_frameworks = set(python_frameworks.keys())
         assert actual_frameworks == expected_frameworks, (
             f"Expected {expected_frameworks}, got {actual_frameworks}"
@@ -350,15 +358,15 @@ class TestFrameworkDefinitionsIngestion:
                 f"Database operations took {metrics['db_time']:.3f}s, expected < 3.0s"
             )
 
-            # Validate expected data counts (schema v3: 7 features, 11 paths)
-            assert metrics["frameworks_count"] == 4, (
-                f"Expected 4 frameworks, got {metrics['frameworks_count']}"
+            # Validate expected data counts for python framework definitions
+            assert metrics["frameworks_count"] == 7, (
+                f"Expected 7 frameworks, got {metrics['frameworks_count']}"
             )
-            assert metrics["features_count"] == 7, (
-                f"Expected 7 features, got {metrics['features_count']}"
+            assert metrics["features_count"] == 13, (
+                f"Expected 13 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 11, (
-                f"Expected 11 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 29, (
+                f"Expected 29 absolute paths, got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -370,9 +378,9 @@ class TestFrameworkDefinitionsIngestion:
                 select(func.count(FeatureAbsolutePath.language))
             )  # type: ignore
 
-            assert framework_count == 4
-            assert feature_count == 7
-            assert path_count == 11
+            assert framework_count == 7
+            assert feature_count == 13
+            assert path_count == 29
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -504,8 +512,8 @@ class TestFrameworkDefinitionsIngestion:
                 }
                 results.append(state)
 
-            # All results should be identical (schema v3: 7 features, 11 paths)
-            expected_state = {"frameworks": 4, "features": 7, "paths": 11}
+            # All results should be identical for python framework definitions
+            expected_state = {"frameworks": 7, "features": 13, "paths": 29}
             for result in results:
                 assert result == expected_state
 
@@ -526,11 +534,11 @@ class TestFrameworkDefinitionsIngestion:
         # Parse data using the same logic as production
         frameworks, features, absolute_paths = parse_json_data(framework_data)
 
-        # Validate parsing results match expected production data (schema v3)
-        assert len(frameworks) == 4, f"Expected 4 frameworks, got {len(frameworks)}"
-        assert len(features) == 7, f"Expected 7 features, got {len(features)}"
-        assert len(absolute_paths) == 11, (
-            f"Expected 11 absolute paths, got {len(absolute_paths)}"
+        # Validate parsing results match expected production data for python definitions
+        assert len(frameworks) == 7, f"Expected 7 frameworks, got {len(frameworks)}"
+        assert len(features) == 13, f"Expected 13 features, got {len(features)}"
+        assert len(absolute_paths) == 29, (
+            f"Expected 29 absolute paths, got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI

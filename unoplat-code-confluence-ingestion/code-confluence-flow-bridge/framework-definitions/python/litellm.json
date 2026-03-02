@@ -1,0 +1,32 @@
+{
+  "python": {
+    "litellm": {
+      "docs_url": "https://docs.litellm.ai/docs/",
+      "description": "LiteLLM unified provider interface for chat/completion and embedding API calls.",
+      "features": {
+        "llm_completion": {
+          "description": "Sync/async LiteLLM text completion calls.",
+          "absolute_paths": [
+            "litellm.completion",
+            "litellm.main.completion",
+            "litellm.acompletion",
+            "litellm.main.acompletion"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression"
+        },
+        "llm_embedding": {
+          "description": "Sync/async LiteLLM embedding generation calls.",
+          "absolute_paths": [
+            "litellm.embedding",
+            "litellm.main.embedding",
+            "litellm.aembedding",
+            "litellm.main.aembedding"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression"
+        }
+      }
+    }
+  }
+}

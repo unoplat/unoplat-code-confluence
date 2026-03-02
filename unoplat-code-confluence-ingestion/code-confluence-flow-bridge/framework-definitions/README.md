@@ -8,12 +8,19 @@ This directory contains JSON definitions for programming language frameworks and
 framework-definitions/
 ├── schema.json (JSON Schema v3 for validation)
 ├── python/
+│   ├── celery.json
 │   ├── fastapi.json
+│   ├── fastmcp.json
+│   ├── litellm.json
 │   ├── pydantic.json
 │   ├── sqlalchemy.json
 │   └── sqlmodel.json
 ├── typescript/
-│   └── (future framework definitions)
+│   ├── litellm.json
+│   ├── nextjs.json
+│   ├── react.json
+│   ├── swr.json
+│   └── zustand.json
 └── README.md
 ```
 
