@@ -293,9 +293,6 @@ class ModelFactory:
                     extra_config, "profile_name"
                 )
 
-                if not region_name:
-                    raise ValueError("Bedrock requires region_name in extra_config")
-
                 if aws_access_key_id and not model_api_key:
                     raise ValueError(
                         "Bedrock requires model_api_key when aws_access_key_id is configured"
