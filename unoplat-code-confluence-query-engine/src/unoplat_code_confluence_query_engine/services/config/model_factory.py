@@ -1,13 +1,14 @@
 """Factory for creating Pydantic AI models from configuration."""
 
 import os
-from typing import TYPE_CHECKING, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Mapping, Optional, Tuple, Union
 
 if TYPE_CHECKING:
     from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 
 from loguru import logger
 from pydantic_ai.models.anthropic import AnthropicModel
+from pydantic_ai.models.bedrock import BedrockConverseModel, BedrockModelSettings
 from pydantic_ai.models.cohere import CohereModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.groq import GroqModel
@@ -21,6 +22,7 @@ from pydantic_ai.models.openai import (
 from pydantic_ai.models.xai import XaiModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.azure import AzureProvider
+from pydantic_ai.providers.bedrock import BedrockProvider
 from pydantic_ai.providers.cohere import CohereProvider
 from pydantic_ai.providers.deepseek import DeepSeekProvider
 from pydantic_ai.providers.fireworks import FireworksProvider
@@ -55,6 +57,7 @@ ModelType = Union[
     OpenAIChatModel,
     OpenAIResponsesModel,
     AnthropicModel,
+    BedrockConverseModel,
     GoogleModel,
     GroqModel,
     MistralModel,
@@ -62,6 +65,25 @@ ModelType = Union[
     HuggingFaceModel,
     XaiModel,
 ]
+
+
+def _get_optional_extra_config_string(
+    extra_config: Mapping[str, object], key: str
+) -> str | None:
+    """Get an optional trimmed string from provider extra_config."""
+    value = extra_config.get(key)
+    if value is None:
+        return None
+    if isinstance(value, str):
+        normalized_value = value.strip()
+        return normalized_value if normalized_value else None
+    raise ValueError(f"{key} in extra_config must be a string")
+
+
+def _is_anthropic_bedrock_model(model_name: str) -> bool:
+    """Return whether model ID targets Anthropic via Bedrock."""
+    normalized_name = model_name.strip().lower()
+    return normalized_name.startswith("anthropic.") or ".anthropic." in normalized_name
 
 
 class ModelFactory:
@@ -130,7 +152,9 @@ class ModelFactory:
                 codex_client = create_codex_async_openai_client(settings)
                 provider = OpenAIProvider(openai_client=codex_client)
                 # Codex backend requires explicit `store=false` for Responses API requests.
-                codex_model_settings: OpenAIResponsesModelSettings = {"openai_store": False}
+                codex_model_settings: OpenAIResponsesModelSettings = {
+                    "openai_store": False
+                }
                 if params.get("temperature") is not None:
                     codex_model_settings["temperature"] = params["temperature"]
                 if params.get("top_p") is not None:
@@ -256,6 +280,73 @@ class ModelFactory:
                         logger.info(
                             f"Created HuggingFace model with default provider: {config.model_name}"
                         )
+
+            case "bedrock":
+                extra_config = config.extra_config or {}
+                region_name = _get_optional_extra_config_string(
+                    extra_config, "region_name"
+                )
+                aws_access_key_id = _get_optional_extra_config_string(
+                    extra_config, "aws_access_key_id"
+                )
+                profile_name = _get_optional_extra_config_string(
+                    extra_config, "profile_name"
+                )
+
+                if not region_name:
+                    raise ValueError("Bedrock requires region_name in extra_config")
+
+                if aws_access_key_id and not model_api_key:
+                    raise ValueError(
+                        "Bedrock requires model_api_key when aws_access_key_id is configured"
+                    )
+
+                if aws_access_key_id:
+                    assert model_api_key is not None
+                    provider = BedrockProvider(
+                        region_name=region_name,
+                        aws_access_key_id=aws_access_key_id,
+                        aws_secret_access_key=model_api_key,
+                        profile_name=profile_name,
+                        base_url=config.base_url,
+                    )
+                else:
+                    if model_api_key:
+                        provider = BedrockProvider(
+                            region_name=region_name,
+                            profile_name=profile_name,
+                            api_key=model_api_key,
+                            base_url=config.base_url,
+                        )
+                    else:
+                        provider = BedrockProvider(
+                            region_name=region_name,
+                            profile_name=profile_name,
+                            base_url=config.base_url,
+                        )
+
+                bedrock_model_settings: BedrockModelSettings = {}
+                if params.get("temperature") is not None:
+                    bedrock_model_settings["temperature"] = params["temperature"]
+                if params.get("top_p") is not None:
+                    bedrock_model_settings["top_p"] = params["top_p"]
+                if params.get("max_tokens") is not None:
+                    bedrock_model_settings["max_tokens"] = params["max_tokens"]
+
+                if _is_anthropic_bedrock_model(config.model_name):
+                    bedrock_model_settings["bedrock_cache_instructions"] = True
+                    bedrock_model_settings["bedrock_cache_tool_definitions"] = True
+                    bedrock_model_settings["bedrock_cache_messages"] = True
+
+                model_settings = (
+                    bedrock_model_settings if bedrock_model_settings else None
+                )
+                model = BedrockConverseModel(
+                    config.model_name,
+                    provider=provider,
+                    settings=bedrock_model_settings if bedrock_model_settings else None,
+                )
+                logger.info(f"Created Bedrock model: {config.model_name}")
 
             # OpenAI-compatible providers
             case "deepseek":
