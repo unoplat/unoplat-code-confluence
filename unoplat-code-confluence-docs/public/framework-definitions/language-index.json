@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-01T13:56:42+05:30",
+  "generated_at": "2026-03-02T17:32:56+05:30",
   "schema_version": "v3",
   "languages": [
     {
@@ -19,7 +19,6 @@
       "libraries": [
         "litellm",
         "nextjs",
-        "react",
         "swr",
         "zustand"
       ]

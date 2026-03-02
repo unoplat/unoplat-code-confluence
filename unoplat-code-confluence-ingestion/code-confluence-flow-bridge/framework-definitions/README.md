@@ -18,7 +18,6 @@ framework-definitions/
 ├── typescript/
 │   ├── litellm.json
 │   ├── nextjs.json
-│   ├── react.json
 │   ├── swr.json
 │   └── zustand.json
 └── README.md

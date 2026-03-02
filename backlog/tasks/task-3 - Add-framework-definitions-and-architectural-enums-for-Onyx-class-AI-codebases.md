@@ -68,21 +68,11 @@ All files must follow the schema at:
   - annotation_name_regex: `"^resource$"`
   - Description: MCP resource exposed via Model Context Protocol server
 
-### TypeScript Frameworks (4 new files)
-
-#### `framework-definitions/typescript/react.json`
-- **Feature `context_provider`** — `FunctionDefinition`, `function`
-  - absolute_paths: `["react.createContext", "react.useContext"]`
-- **Feature `state_hook`** — `CallExpression`, `function`
-  - absolute_paths: `["react.useState", "react.useReducer"]`
-- **Feature `effect_hook`** — `CallExpression`, `function`
-  - absolute_paths: `["react.useEffect", "react.useLayoutEffect"]`
-- **Feature `memo_hook`** — `CallExpression`, `function`
-  - absolute_paths: `["react.useMemo", "react.useCallback", "react.memo"]`
+### TypeScript Frameworks (3 new files)
 
 #### `framework-definitions/typescript/zustand.json`
 - **Feature `store_definition`** — `CallExpression`, `function`
-  - absolute_paths: `["zustand.create", "zustand/vanilla.create", "zustand.createStore"]`
+  - absolute_paths: `["zustand.create", "zustand.createStore", "zustand/vanilla.createStore"]`
   - Description: Zustand store creation — global client-side state container
 - **Feature `immer_store`** — `CallExpression`, `function`
   - absolute_paths: `["zustand/middleware/immer.immer"]`
@@ -90,10 +80,10 @@ All files must follow the schema at:
 
 #### `framework-definitions/typescript/swr.json`
 - **Feature `data_fetch`** — `CallExpression`, `function`
-  - absolute_paths: `["swr.default", "swr.useSWR"]`
+  - absolute_paths: `["swr.default"]`
   - Description: SWR data fetching hook with stale-while-revalidate caching
 - **Feature `mutation`** — `CallExpression`, `function`
-  - absolute_paths: `["swr/mutation.default", "swr/mutation.useSWRMutation"]`
+  - absolute_paths: `["swr/mutation.default"]`
   - Description: SWR mutation hook for data write operations
 
 #### `framework-definitions/typescript/litellm.json`
@@ -101,7 +91,7 @@ All files must follow the schema at:
   - absolute_paths: `["lit.LitElement", "lit-element.LitElement"]`
   - Description: Lit Web Component base class — custom HTML element
 - **Feature `reactive_property`** — `AnnotationLike`, `function`
-  - absolute_paths: `["lit.property", "lit-element.property", "lit.state", "lit-element.state"]`
+  - absolute_paths: `["lit/decorators.js.property", "lit/decorators.js.state"]`
   - annotation_name_regex: `"^(property|state)$"`
   - Description: Lit reactive property/state decorators
 
@@ -144,7 +134,6 @@ AI_AGENT = "ai_agent"
 | `framework-definitions/python/celery.json` | CREATE |
 | `framework-definitions/python/litellm.json` | CREATE |
 | `framework-definitions/python/fastmcp.json` | CREATE |
-| `framework-definitions/typescript/react.json` | CREATE |
 | `framework-definitions/typescript/zustand.json` | CREATE |
 | `framework-definitions/typescript/swr.json` | CREATE |
 | `framework-definitions/typescript/litellm.json` | CREATE |
@@ -158,7 +147,7 @@ AI_AGENT = "ai_agent"
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 7 new framework definition JSON files created (3 Python: celery, litellm, fastmcp; 4 TypeScript: react, zustand, swr, lit)
+- [ ] #1 6 new framework definition JSON files created (3 Python: celery, litellm, fastmcp; 3 TypeScript: zustand, swr, litellm)
 - [ ] #2 Each JSON file validates against schema.json — all required fields present (docs_url, features with description/absolute_paths/target_level/concept)
 - [ ] #3 agent_md_output.py has LLM_INFERENCE added to OutboundKind enum
 - [ ] #4 agent_md_output.py has MCP_SERVER added to InboundKind enum
@@ -175,7 +164,7 @@ AI_AGENT = "ai_agent"
 User approved execution on 2026-03-02 with scope expansion to close detector/runtime gaps.
 
 Implementation plan:
-1) Create 7 framework definition JSON files under framework-definitions/python and framework-definitions/typescript with schema-compliant fields (docs_url, features, descriptions, absolute_paths, target_level, concept, construct_query/startpoint where required).
+1) Create 6 framework definition JSON files under framework-definitions/python and framework-definitions/typescript with schema-compliant fields (docs_url, features, descriptions, absolute_paths, target_level, concept, construct_query/startpoint where required).
 2) Add query-engine enum values in agent_md_output.py: OutboundKind.LLM_INFERENCE, InboundKind.MCP_SERVER, BackendArchitecturalType.RAG_PIPELINE and BackendArchitecturalType.AI_AGENT.
 3) Wire new feature keys into app interface mapping so celery/fastmcp/litellm features classify correctly (inbound/outbound instead of internal).
 4) Expand TypeScript tree-sitter framework detection beyond FunctionDefinition to support CallExpression, Inheritance, and AnnotationLike by updating TypeScript query builder, adding concept query templates, and extending detector matching logic.
@@ -191,7 +180,7 @@ Implementation plan:
 
 Implemented TypeScript detector support for `CallExpression`, `Inheritance`, and `AnnotationLike` concepts by adding query templates (`call_expression.scm`, `inheritance.scm`, `annotation_function_like.scm`) and extending query builder + detector logic for concept-specific extraction/matching.
 
-Added framework definitions: python (`celery.json`, `litellm.json`, `fastmcp.json`) and typescript (`react.json`, `zustand.json`, `swr.json`, `litellm.json` per requester rename of lit definition).
+Added framework definitions: python (`celery.json`, `litellm.json`, `fastmcp.json`) and typescript (`zustand.json`, `swr.json`, `litellm.json` per requester rename of lit definition).
 
 Updated query-engine enums/mappings: added `InboundKind.MCP_SERVER`, `OutboundKind.LLM_INFERENCE`, `BackendArchitecturalType.RAG_PIPELINE`, `BackendArchitecturalType.AI_AGENT`; mapped `task_definition`, `mcp_tool`, `mcp_resource`, `llm_completion`, `llm_embedding`.
 
