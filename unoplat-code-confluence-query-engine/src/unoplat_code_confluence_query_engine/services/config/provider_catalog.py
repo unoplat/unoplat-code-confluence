@@ -213,8 +213,8 @@ class ProviderCatalog:
                     label="AWS region",
                     type="text",
                     placeholder="us-east-1",
-                    required=True,
-                    help="Required unless AWS_DEFAULT_REGION is set for query-engine runtime.",
+                    required=False,
+                    help="Optional. If empty, Bedrock falls back to AWS_DEFAULT_REGION/runtime AWS config.",
                 ),
                 ProviderField(
                     key="aws_access_key_id",
