@@ -1,0 +1,32 @@
+---
+title: React
+description: "Static React feature catalog powered by DIDS framework definitions"
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { FrameworkFeatureCatalog } from '../../../../../../src/components/framework-feature-catalog';
+
+# React Feature Catalog (Typescript)
+
+This page provides a static, contributor-friendly view of React features currently covered by the Deterministic Interface Discovery Schema (DIDS).
+
+<Callout type="info" title="Source of Truth">
+  - Canonical definitions live in ingestion: [framework-definitions directory](https://github.com/unoplat/unoplat-code-confluence/tree/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions)
+  - Canonical React file: [framework-definitions/typescript/react.json](https://github.com/unoplat/unoplat-code-confluence/blob/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions/typescript/react.json)
+  - Docs consume generated static assets from: `/framework-definitions`
+  - Current file shown here: [`/framework-definitions/typescript/react.json`](/framework-definitions/typescript/react.json)
+</Callout>
+
+## Why this catalog exists
+
+This catalog makes deterministic feature coverage visible so contributors can evolve discovery rules safely.
+
+## Current React coverage
+
+<FrameworkFeatureCatalog displayName="React" language="typescript" library="react" />
+
+## How to update this page's data
+
+1. Update React definitions in ingestion source.
+2. Run `bun run sync:framework-definitions` from `unoplat-code-confluence-docs`.
+3. Commit both source definition changes and generated docs artifacts.

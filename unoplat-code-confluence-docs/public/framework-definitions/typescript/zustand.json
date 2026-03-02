@@ -1,0 +1,28 @@
+{
+  "typescript": {
+    "zustand": {
+      "docs_url": "https://zustand.docs.pmnd.rs/",
+      "description": "Zustand lightweight client state container and vanilla store APIs.",
+      "features": {
+        "store_definition": {
+          "description": "Zustand store creation using create/createStore APIs.",
+          "absolute_paths": [
+            "zustand.create",
+            "zustand.createStore",
+            "zustand/vanilla.createStore"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression"
+        },
+        "immer_store": {
+          "description": "Zustand store mutators configured with Immer middleware.",
+          "absolute_paths": [
+            "zustand/middleware/immer.immer"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression"
+        }
+      }
+    }
+  }
+}

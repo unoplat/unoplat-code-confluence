@@ -1,0 +1,47 @@
+{
+  "typescript": {
+    "react": {
+      "docs_url": "https://react.dev/reference/react",
+      "description": "React hooks and context patterns for component state and render lifecycle.",
+      "features": {
+        "context_provider": {
+          "description": "React context provider/consumer declaration pattern.",
+          "absolute_paths": [
+            "react.createContext",
+            "react.useContext"
+          ],
+          "target_level": "function",
+          "concept": "FunctionDefinition"
+        },
+        "state_hook": {
+          "description": "React state hooks for local component state.",
+          "absolute_paths": [
+            "react.useState",
+            "react.useReducer"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression"
+        },
+        "effect_hook": {
+          "description": "React effect hooks for side-effect lifecycle handling.",
+          "absolute_paths": [
+            "react.useEffect",
+            "react.useLayoutEffect"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression"
+        },
+        "memo_hook": {
+          "description": "React memoization hooks/components for render optimization.",
+          "absolute_paths": [
+            "react.useMemo",
+            "react.useCallback",
+            "react.memo"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression"
+        }
+      }
+    }
+  }
+}
