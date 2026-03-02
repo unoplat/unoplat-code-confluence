@@ -65,7 +65,9 @@ class AiModelConfigService:
                 base_url=config.base_url,
                 profile_key=config.profile_key,
                 extra_config=config.extra_config,
-                model_params=ModelParams(**config.model_params) if config.model_params else None,
+                model_params=ModelParams(**config.model_params)
+                if config.model_params
+                else None,
                 has_api_key=has_api_key,
                 created_at=config.created_at,
                 updated_at=config.updated_at,
@@ -98,6 +100,7 @@ class AiModelConfigService:
         provider_schema = ProviderCatalog.get_provider(config_in.provider_key)
         if not provider_schema:
             raise ValueError(f"Unknown provider: {config_in.provider_key}")
+        assert provider_schema is not None
 
         # Infer provider_kind if not provided
         provider_kind = config_in.provider_kind or ProviderCatalog.get_provider_kind(
@@ -123,9 +126,7 @@ class AiModelConfigService:
                 existing_config.profile_key = config_in.profile_key
                 # Build a fresh extra_config and FILTER unsupported keys for the provider.
                 # This ensures stale keys (e.g., provider_name from a previous provider) do not persist.
-                provider_schema_fields = ProviderCatalog.get_provider(
-                    config_in.provider_key
-                ).fields  # type: ignore[union-attr]
+                provider_schema_fields = provider_schema.fields
                 allowed_keys = {f.key for f in provider_schema_fields}
                 # Start from input extra_config only (no merge with existing)
                 incoming_extra = dict(config_in.extra_config or {})
@@ -142,7 +143,11 @@ class AiModelConfigService:
                     k: v for k, v in incoming_extra.items() if k in allowed_keys
                 }
                 existing_config.extra_config = filtered_extra
-                existing_config.model_params = config_in.model_params.model_dump(exclude_none=True) if config_in.model_params else {}
+                existing_config.model_params = (
+                    config_in.model_params.model_dump(exclude_none=True)
+                    if config_in.model_params
+                    else {}
+                )
                 existing_config.updated_at = current_time
 
                 saved_config = existing_config
@@ -153,9 +158,7 @@ class AiModelConfigService:
             else:
                 # Create new config
                 # Build fresh extra_config and filter keys to provider schema
-                provider_schema_fields = ProviderCatalog.get_provider(
-                    config_in.provider_key
-                ).fields  # type: ignore[union-attr]
+                provider_schema_fields = provider_schema.fields
                 allowed_keys = {f.key for f in provider_schema_fields}
                 incoming_extra = dict(config_in.extra_config or {})
                 incoming_extra.pop("model_api_key", None)
@@ -176,7 +179,9 @@ class AiModelConfigService:
                     base_url=config_in.base_url,
                     profile_key=config_in.profile_key,
                     extra_config=merged_extra,
-                    model_params=config_in.model_params.model_dump(exclude_none=True) if config_in.model_params else {},
+                    model_params=config_in.model_params.model_dump(exclude_none=True)
+                    if config_in.model_params
+                    else {},
                     created_at=current_time,
                     updated_at=current_time,
                 )
@@ -189,7 +194,11 @@ class AiModelConfigService:
 
             # Store model API key only when non-empty
             if api_key is not None and api_key.strip():
-                await self.credentials_service.upsert_model_credential(api_key, session)
+                await self.credentials_service.upsert_model_credential(
+                    api_key,
+                    session,
+                    metadata_json={"provider_key": config_in.provider_key},
+                )
 
             # Check for stored credentials for response
             if saved_config.provider_key == "codex_openai":
@@ -215,7 +224,9 @@ class AiModelConfigService:
                 base_url=saved_config.base_url,
                 profile_key=saved_config.profile_key,
                 extra_config=saved_config.extra_config,
-                model_params=ModelParams(**saved_config.model_params) if saved_config.model_params else None,
+                model_params=ModelParams(**saved_config.model_params)
+                if saved_config.model_params
+                else None,
                 has_api_key=has_api_key,
                 created_at=saved_config.created_at,
                 updated_at=saved_config.updated_at,
