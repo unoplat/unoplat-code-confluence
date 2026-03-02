@@ -18,6 +18,9 @@ from src.code_confluence_flow_bridge.engine.framework_detection_service import (
 from src.code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
 )
+from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_framework_detection_service import (
+    TypeScriptFrameworkDetectionService,
+)
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
@@ -128,6 +131,9 @@ class CodeConfluenceCodebaseParser:
             if self.programming_language_metadata.language.value == "python":
                 self.framework_detection_service = PythonFrameworkDetectionService()
                 logger.debug("Initialized Python framework detection service")
+            elif self.programming_language_metadata.language.value == "typescript":
+                self.framework_detection_service = TypeScriptFrameworkDetectionService()
+                logger.debug("Initialized TypeScript framework detection service")
             else:
                 logger.debug(
                     "No framework detection service available for language: {}",

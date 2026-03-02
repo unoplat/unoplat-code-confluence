@@ -16,7 +16,6 @@ from unoplat_code_confluence_commons.base_models import (
     TargetLevel,
 )
 
-
 _TEMPLATE_DIR = Path(__file__).resolve().parent / "queries"
 _TEMPLATE_PATHS = {
     "annotation_function": _TEMPLATE_DIR / "annotation_function_like.scm",
@@ -113,11 +112,13 @@ class PythonFrameworkQueryBuilder:
 
         return _render_template(template, replacements)
 
-    def _construct_query_config(self, feature_spec: FeatureSpec) -> ConstructQueryConfig:
+    def _construct_query_config(
+        self, feature_spec: FeatureSpec
+    ) -> ConstructQueryConfig:
         construct_query = feature_spec.construct_query_typed
         if construct_query is not None:
             return construct_query
-        return ConstructQueryConfig()
+        return ConstructQueryConfig.model_validate({})
 
     def _build_annotation_call_block(self, method_regex: Optional[str]) -> str:
         predicate = _render_predicate("@decorator_method", method_regex)
