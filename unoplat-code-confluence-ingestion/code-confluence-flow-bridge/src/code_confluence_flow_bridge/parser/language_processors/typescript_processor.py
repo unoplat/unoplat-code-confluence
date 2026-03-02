@@ -1,15 +1,19 @@
 # Standard Library
 import asyncio
 import hashlib
-from typing import Optional, Set
+from typing import List, Optional, Set
 
 # Third Party
 from aiofile import async_open
 from loguru import logger
+from unoplat_code_confluence_commons.base_models import Detection
 
 # First Party
 from src.code_confluence_flow_bridge.engine.detector.data_model_detector import (
     detect_data_model,
+)
+from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
+    TypeScriptSourceContext,
 )
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
     UnoplatFile,
@@ -25,10 +29,9 @@ from src.code_confluence_flow_bridge.parser.language_processors.language_process
 class TypeScriptLanguageProcessor(LanguageCodebaseProcessor):
     """Language processor responsible for parsing TypeScript source files.
 
-    Version 1 deliberately focuses on data-model detection only. Structural
-    signatures and import extraction will be wired once the dedicated
-    Tree-sitter extractor is ready. `.tsx` support is deferred because it
-    requires loading a distinct grammar and query set.
+    Version 1 focuses on data-model detection and framework feature detection via
+    tree-sitter. `.tsx` support is deferred because it requires loading a distinct
+    grammar and query set.
     """
 
     _SUPPORTED_EXTENSIONS: Set[str] = {".ts"}
@@ -57,7 +60,7 @@ class TypeScriptLanguageProcessor(LanguageCodebaseProcessor):
             return ""
 
     async def extract_file_data(self, file_path: str) -> Optional[UnoplatFile]:
-        """Read a TypeScript file and emit an `UnoplatFile` with data-model metadata."""
+        """Read a TypeScript file and emit an `UnoplatFile` with data-model and framework metadata."""
         metadata = self.context.programming_language_metadata
 
         try:
@@ -70,8 +73,11 @@ class TypeScriptLanguageProcessor(LanguageCodebaseProcessor):
 
             content_text = content_bytes.decode("utf-8", errors="ignore")
 
-            # Imports intentionally omitted in v1. Field is optional, so set None.
-            imports = None
+            # Parse once with tree-sitter and reuse the context for all detection paths
+            ts_context = TypeScriptSourceContext.from_source(content_text)
+
+            # Populate imports from parsed context
+            imports: Optional[List[str]] = ts_context.imports if ts_context.imports else None
 
             has_data_model, data_model_positions = detect_data_model(
                 source_code=content_text,
@@ -80,12 +86,23 @@ class TypeScriptLanguageProcessor(LanguageCodebaseProcessor):
                 structural_signature=None,
             )
 
+            custom_features_list: Optional[List[Detection]] = None
+            if self.context.framework_detection_service is not None:
+                detections = await self.context.framework_detection_service.detect_features(
+                    source_code=content_text,
+                    imports=imports or [],
+                    structural_signature=None,
+                    programming_language=metadata.language.value,
+                    source_context=ts_context,
+                )
+                custom_features_list = detections or None
+
             return UnoplatFile(
                 file_path=file_path,
                 checksum=checksum,
                 imports=imports,
                 structural_signature=None,
-                custom_features_list=None,
+                custom_features_list=custom_features_list,
                 has_data_model=has_data_model,
                 data_model_positions=data_model_positions,
             )
