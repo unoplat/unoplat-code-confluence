@@ -3,10 +3,10 @@ id: TASK-1
 title: >-
   Implement TypeScript schema extension with FunctionDefinition + export-name
   filtering
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-02-25 06:16'
-updated_date: '2026-02-28 07:01'
+updated_date: '2026-03-02 06:38'
 labels:
   - typescript
   - schema
@@ -28,7 +28,7 @@ documentation:
   - >-
     https://tree-sitter.github.io/py-tree-sitter/classes/tree_sitter.QueryCursor.html
 priority: high
-ordinal: 1000
+ordinal: 5000
 ---
 
 ## Description
