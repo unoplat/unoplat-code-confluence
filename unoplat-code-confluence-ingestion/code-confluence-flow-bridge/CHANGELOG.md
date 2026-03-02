@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.69.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.68.0...code-confluence-flow-bridge-v0.69.0) (2026-03-02)
+
+
+### Features
+
+* **typescript-beta:** strengthen typescript grammar detection and in… ([2a673ec](https://github.com/unoplat/unoplat-code-confluence/commit/2a673ec26aafd42c5a625f501af2242c41286e39))
+* **typescript-beta:** strengthen typescript grammar detection and include next js endpoint detection as a starting example ([0489d94](https://github.com/unoplat/unoplat-code-confluence/commit/0489d94e0d4f3b72c3ac43859f7d97b54a3cc7c4))
+
 ## [0.68.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.67.6...code-confluence-flow-bridge-v0.68.0) (2026-02-28)
 
 
