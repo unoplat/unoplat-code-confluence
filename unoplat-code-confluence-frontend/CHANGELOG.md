@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.45.1...unoplat-code-confluence-frontend-v1.46.0) (2026-03-02)
+
+
+### Features
+
+* **command-palette:** control centre for easier navigation ([c5edbe8](https://github.com/unoplat/unoplat-code-confluence/commit/c5edbe88cc68344e0e0d6b8019ab9cd94b88201b))
+* **command-palette:** control centre for easier navigation ([5cd76d2](https://github.com/unoplat/unoplat-code-confluence/commit/5cd76d2c47f91352b82ebac6c54d6cbfb1299161))
+
 ## [1.45.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.45.0...unoplat-code-confluence-frontend-v1.45.1) (2026-02-24)
 
 
