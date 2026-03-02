@@ -3375,7 +3375,7 @@ dependencies = [
 
 [[package]]
 name = "unoplat-code-confluence-query-engine"
-version = "0.33.0"
+version = "0.34.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
@@ -3386,7 +3386,7 @@ dependencies = [
     { name = "logfire", extra = ["fastapi"] },
     { name = "loguru" },
     { name = "pydantic-ai" },
-    { name = "pydantic-ai-slim", extra = ["retries"] },
+    { name = "pydantic-ai-slim", extra = ["bedrock", "retries"] },
     { name = "qs-codec" },
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "sqlmodel" },
@@ -3425,7 +3425,7 @@ requires-dist = [
     { name = "logfire", extras = ["fastapi"], specifier = ">=4.4.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pydantic-ai", specifier = ">=1.47.0" },
-    { name = "pydantic-ai-slim", extras = ["retries"], specifier = ">=1.0.5" },
+    { name = "pydantic-ai-slim", extras = ["bedrock", "retries"], specifier = ">=1.0.5" },
     { name = "qs-codec", specifier = ">=1.1.1" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.0" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
