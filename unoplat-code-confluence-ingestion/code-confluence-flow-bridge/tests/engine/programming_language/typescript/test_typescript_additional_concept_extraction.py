@@ -1,5 +1,7 @@
 """Unit tests for non-FunctionDefinition TypeScript feature extraction."""
 
+from typing import cast
+
 from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
     TypeScriptSourceContext,
 )
@@ -7,17 +9,22 @@ from src.code_confluence_flow_bridge.engine.programming_language.typescript.type
     TypeScriptTreeSitterFrameworkDetector,
 )
 from unoplat_code_confluence_commons.base_models import (
+    AnnotationLikeInfo,
+    CallExpressionInfo,
     Concept,
     FeatureSpec,
+    InheritanceInfo,
     LocatorStrategy,
     TargetLevel,
 )
 
 
-def _build_call_spec(*, feature_key: str, absolute_paths: list[str]) -> FeatureSpec:
+def _build_call_spec(
+    *, feature_key: str, absolute_paths: list[str], library: str = "zustand"
+) -> FeatureSpec:
     return FeatureSpec(
         feature_key=feature_key,
-        library="react",
+        library=library,
         description="Test call-expression feature",
         absolute_paths=absolute_paths,
         target_level=TargetLevel.FUNCTION,
@@ -29,9 +36,9 @@ def _build_call_spec(*, feature_key: str, absolute_paths: list[str]) -> FeatureS
 
 def test_detector_detects_named_import_call_expression() -> None:
     source_code = """
-import { useState } from "react"
+import { createStore } from "zustand/vanilla"
 
-const value = useState(0)
+const store = createStore(() => ({}))
 """
 
     context = TypeScriptSourceContext.from_source(source_code)
@@ -39,21 +46,27 @@ const value = useState(0)
 
     detections = detector.detect(
         context,
-        [_build_call_spec(feature_key="state_hook", absolute_paths=["react.useState"])],
+        [
+            _build_call_spec(
+                feature_key="store_definition",
+                absolute_paths=["zustand/vanilla.createStore"],
+            )
+        ],
     )
 
     assert len(detections) == 1
     detection = detections[0]
-    assert detection.feature_key == "state_hook"
+    call_detection = cast(CallExpressionInfo, detection)
+    assert detection.feature_key == "store_definition"
     assert detection.metadata["concept"] == "CallExpression"
-    assert detection.callee == "useState"
+    assert call_detection.callee == "createStore"
 
 
 def test_detector_detects_default_import_member_call_expression() -> None:
     source_code = """
-import React from "react"
+import zustand from "zustand"
 
-const memoized = React.useMemo(() => 1, [])
+const store = zustand.create(() => ({}))
 """
 
     context = TypeScriptSourceContext.from_source(source_code)
@@ -61,11 +74,17 @@ const memoized = React.useMemo(() => 1, [])
 
     detections = detector.detect(
         context,
-        [_build_call_spec(feature_key="memo_hook", absolute_paths=["react.useMemo"])],
+        [
+            _build_call_spec(
+                feature_key="store_definition",
+                absolute_paths=["zustand.create"],
+            )
+        ],
     )
 
     assert len(detections) == 1
-    assert detections[0].callee == "React.useMemo"
+    call_detection = cast(CallExpressionInfo, detections[0])
+    assert call_detection.callee == "zustand.create"
 
 
 def test_detector_detects_default_export_call_expression() -> None:
@@ -91,7 +110,8 @@ const result = useSWR("/api/search", fetcher)
     detections = detector.detect(context, [spec])
 
     assert len(detections) == 1
-    assert detections[0].callee == "useSWR"
+    call_detection = cast(CallExpressionInfo, detections[0])
+    assert call_detection.callee == "useSWR"
 
 
 def test_detector_detects_inheritance_for_lit_element() -> None:
@@ -117,9 +137,9 @@ class SearchWidget extends LitElement {}
     detections = detector.detect(context, [spec])
 
     assert len(detections) == 1
-    detection = detections[0]
-    assert detection.subclass == "SearchWidget"
-    assert detection.superclass == "LitElement"
+    inheritance_detection = cast(InheritanceInfo, detections[0])
+    assert inheritance_detection.subclass == "SearchWidget"
+    assert inheritance_detection.superclass == "LitElement"
 
 
 def test_detector_detects_lit_reactive_property_decorators() -> None:
@@ -149,5 +169,10 @@ class SearchWidget {
     detections = detector.detect(context, [spec])
 
     assert len(detections) == 2
-    detected_names = sorted(d.annotation_name for d in detections)
+    annotation_detections = [
+        cast(AnnotationLikeInfo, detection) for detection in detections
+    ]
+    detected_names = sorted(
+        detection.annotation_name for detection in annotation_detections
+    )
     assert detected_names == ["property", "state"]

@@ -3,7 +3,6 @@
   "pages": [
     "litellm",
     "nextjs",
-    "react",
     "swr",
     "zustand"
   ]
