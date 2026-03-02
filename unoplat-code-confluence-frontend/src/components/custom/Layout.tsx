@@ -12,9 +12,12 @@ import {
   BreadcrumbSeparator,
 } from "../ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { Home, Github, BookOpen, Heart } from "lucide-react";
 import indiaIcon from "@/assets/india-icon.png";
 import { ModeToggle } from "./ModeToggle";
+import { CommandPalette } from "@/components/custom/CommandPalette";
+import { useCommandPaletteStore } from "@/stores/useCommandPaletteStore";
 import { useAuthData } from "@/hooks/use-auth-data";
 
 /**
@@ -57,6 +60,7 @@ function hasGetTitle(context: unknown): context is { getTitle: () => string } {
 export function Layout(): React.ReactElement {
   // Initialize auth data (token status and user details) for the entire app
   useAuthData();
+  const { open: openCommandPalette } = useCommandPaletteStore();
 
   const { matches, pathname } = useRouterState({
     select: (s) => ({ matches: s.matches, pathname: s.location.pathname }),
@@ -170,6 +174,17 @@ export function Layout(): React.ReactElement {
                     <BookOpen size={18} />
                     <span>Docs</span>
                   </a>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-muted-foreground hidden gap-2 text-xs md:flex"
+                    onClick={openCommandPalette}
+                  >
+                    <span>Search...</span>
+                    <kbd className="bg-muted pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none">
+                      <span className="text-xs">⌘</span>K
+                    </kbd>
+                  </Button>
                   <ModeToggle />
                 </div>
               </div>
@@ -197,6 +212,7 @@ export function Layout(): React.ReactElement {
           </SidebarInset>
         </div>
       </SidebarProvider>
+      <CommandPalette />
       <Toaster />
     </div>
   );
