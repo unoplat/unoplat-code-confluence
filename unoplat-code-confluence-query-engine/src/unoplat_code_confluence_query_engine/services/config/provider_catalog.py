@@ -234,7 +234,7 @@ class ProviderCatalog:
                     label="API key / secret access key",
                     type="password",
                     required=False,
-                    help="Used as AWS_BEARER_TOKEN_BEDROCK when access key ID is empty; otherwise used as AWS secret access key.",
+                    help="Used as AWS_BEARER_TOKEN_BEDROCK when access key ID is empty; otherwise used as AWS secret access key. Keys saved for other providers are ignored.",
                 ),
             ],
         ),

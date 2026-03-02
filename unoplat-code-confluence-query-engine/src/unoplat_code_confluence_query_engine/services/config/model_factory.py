@@ -80,6 +80,23 @@ def _get_optional_extra_config_string(
     raise ValueError(f"{key} in extra_config must be a string")
 
 
+def _get_model_api_key_provider_key(
+    metadata: Mapping[str, object] | None,
+) -> str | None:
+    """Return provider key associated with stored model API key."""
+    if metadata is None:
+        return None
+
+    provider_key_value = metadata.get("provider_key")
+    if provider_key_value is None:
+        return None
+    if isinstance(provider_key_value, str):
+        normalized_provider_key = provider_key_value.strip()
+        return normalized_provider_key if normalized_provider_key else None
+
+    raise ValueError("provider_key in model credential metadata must be a string")
+
+
 def _is_anthropic_bedrock_model(model_name: str) -> bool:
     """Return whether model ID targets Anthropic via Bedrock."""
     normalized_name = model_name.strip().lower()
@@ -292,6 +309,16 @@ class ModelFactory:
                 profile_name = _get_optional_extra_config_string(
                     extra_config, "profile_name"
                 )
+                model_api_key_metadata = (
+                    await credentials_service.get_model_credential_metadata(session)
+                )
+                model_api_key_provider_key = _get_model_api_key_provider_key(
+                    model_api_key_metadata
+                )
+                model_api_key_scoped_to_bedrock = (
+                    model_api_key is not None
+                    and model_api_key_provider_key == "bedrock"
+                )
 
                 if aws_access_key_id and not model_api_key:
                     raise ValueError(
@@ -299,6 +326,10 @@ class ModelFactory:
                     )
 
                 if aws_access_key_id:
+                    if not model_api_key_scoped_to_bedrock:
+                        raise ValueError(
+                            "Bedrock requires a Bedrock-scoped secret access key when aws_access_key_id is configured"
+                        )
                     assert model_api_key is not None
                     provider = BedrockProvider(
                         region_name=region_name,
@@ -308,7 +339,8 @@ class ModelFactory:
                         base_url=config.base_url,
                     )
                 else:
-                    if model_api_key:
+                    if model_api_key_scoped_to_bedrock:
+                        assert model_api_key is not None
                         provider = BedrockProvider(
                             region_name=region_name,
                             profile_name=profile_name,
@@ -316,6 +348,13 @@ class ModelFactory:
                             base_url=config.base_url,
                         )
                     else:
+                        if model_api_key:
+                            logger.info(
+                                "Ignoring persisted model_api_key scoped to provider '{}' while building Bedrock model",
+                                model_api_key_provider_key
+                                if model_api_key_provider_key
+                                else "unknown",
+                            )
                         provider = BedrockProvider(
                             region_name=region_name,
                             profile_name=profile_name,
