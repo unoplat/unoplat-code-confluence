@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.2...unoplat-code-confluence-frontend-v1.47.0) (2026-03-03)
+
+
+### Features
+
+* **add-model-provider:** add aws bedrock model provider (manually tested) and added native web search for all providers who do not support native web search or user has not configured exa ([80336ed](https://github.com/unoplat/unoplat-code-confluence/commit/80336edfb27dc9e63049dba9e7d5efdf39123067))
+* **Add-model-provider:** aws bedrock support and enhanced cache for … ([c7841bf](https://github.com/unoplat/unoplat-code-confluence/commit/c7841bff3b2e9de07a2ed042b98761ca6bfdaeaa))
+
 ## [1.46.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.1...unoplat-code-confluence-frontend-v1.46.2) (2026-03-03)
 
 
