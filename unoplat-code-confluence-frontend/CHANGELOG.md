@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.46.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.0...unoplat-code-confluence-frontend-v1.46.1) (2026-03-03)
+
+
+### Bug Fixes
+
+* **overhaul-events-view:** make it intuitve and store upto 100k of to… ([0092204](https://github.com/unoplat/unoplat-code-confluence/commit/00922043a7145963859d0f3df8cb6f1f0d5f4206))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([844b782](https://github.com/unoplat/unoplat-code-confluence/commit/844b782f8ffba60fefa2a2aeb40b486659df1ecd))
+* **tool-call-result-ui-ux:** change colors according to design system ([20fe6a8](https://github.com/unoplat/unoplat-code-confluence/commit/20fe6a80ba68a1b28cd5dd73fe8e458e0185eb36))
+
 ## [1.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.45.1...unoplat-code-confluence-frontend-v1.46.0) (2026-03-02)
 
 
