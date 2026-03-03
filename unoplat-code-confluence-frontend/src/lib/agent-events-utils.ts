@@ -131,41 +131,82 @@ export function truncateMessage(
   };
 }
 
+function getToolCallId(event: RepositoryAgentEvent): string | null {
+  const toolCallId = event.tool_call_id;
+  if (typeof toolCallId !== "string" || toolCallId.trim().length === 0) {
+    return null;
+  }
+  return toolCallId;
+}
+
 /**
  * Build display items by pairing tool calls with tool results.
- * Pairing uses FIFO matching in event order and preserves tool call position.
+ * Pairing uses strict tool_call_id matching and preserves event order.
  */
 export function buildEventDisplayItems(
   events: RepositoryAgentEvent[],
 ): AgentEventDisplayItem[] {
   const sortedEvents = [...events].sort((a, b) => a.id - b.id);
   const items: AgentEventDisplayItem[] = [];
-  const pendingPairIndexes: number[] = [];
 
+  const resultEventsByToolCallId = new Map<string, RepositoryAgentEvent[]>();
   for (const event of sortedEvents) {
-    if (event.phase === "tool.call") {
-      items.push({
-        type: "tool-pair",
-        key: `tool-pair-${event.id}`,
-        callEvent: event,
-      });
-      pendingPairIndexes.push(items.length - 1);
+    if (event.phase !== "tool.result") {
       continue;
     }
 
-    if (event.phase === "tool.result") {
-      const pendingIndex = pendingPairIndexes.shift();
-      if (pendingIndex !== undefined) {
-        const pendingItem = items[pendingIndex];
-        if (pendingItem?.type === "tool-pair") {
-          items[pendingIndex] = {
-            ...pendingItem,
-            key: `tool-pair-${pendingItem.callEvent.id}-${event.id}`,
-            resultEvent: event,
-          };
+    const toolCallId = getToolCallId(event);
+    if (!toolCallId) {
+      continue;
+    }
+
+    const existingResults = resultEventsByToolCallId.get(toolCallId) ?? [];
+    existingResults.push(event);
+    resultEventsByToolCallId.set(toolCallId, existingResults);
+  }
+
+  const consumedResultIds = new Set<number>();
+
+  for (const event of sortedEvents) {
+    if (event.phase === "tool.call") {
+      const toolCallId = getToolCallId(event);
+      if (!toolCallId) {
+        items.push({
+          type: "single",
+          key: `event-${event.id}`,
+          event,
+        });
+        continue;
+      }
+
+      const candidateResults = resultEventsByToolCallId.get(toolCallId) ?? [];
+      let matchedResultEvent: RepositoryAgentEvent | undefined;
+
+      for (const candidate of candidateResults) {
+        if (consumedResultIds.has(candidate.id)) {
           continue;
         }
+
+        if (candidate.id > event.id) {
+          matchedResultEvent = candidate;
+          consumedResultIds.add(candidate.id);
+          break;
+        }
       }
+
+      items.push({
+        type: "tool-pair",
+        key: matchedResultEvent
+          ? `tool-pair-${event.id}-${matchedResultEvent.id}`
+          : `tool-pair-${event.id}`,
+        callEvent: event,
+        resultEvent: matchedResultEvent,
+      });
+      continue;
+    }
+
+    if (event.phase === "tool.result" && consumedResultIds.has(event.id)) {
+      continue;
     }
 
     items.push({
