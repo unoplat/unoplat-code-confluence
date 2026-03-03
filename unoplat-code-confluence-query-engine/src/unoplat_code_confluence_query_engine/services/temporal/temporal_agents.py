@@ -6,11 +6,14 @@ Uses ModelFactory to build models dynamically from database configuration.
 
 from datetime import timedelta
 from enum import Enum
-from typing import Literal, TypeAlias, TypedDict
+from typing import Literal, TypeAlias, TypedDict, cast
 
 from loguru import logger
 from pydantic_ai import Agent, ModelRetry, Tool
 from pydantic_ai.builtin_tools import AbstractBuiltinTool, WebSearchTool
+from pydantic_ai.common_tools.duckduckgo import (
+    duckduckgo_search_tool,  # pyright: ignore[reportUnknownVariableType]
+)
 from pydantic_ai.durable_exec.temporal import TemporalAgent
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
@@ -19,8 +22,8 @@ from temporalio.workflow import ActivityConfig
 
 from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
     SEARCH_MODE_BUILTIN_WEB_SEARCH,
+    SEARCH_MODE_DUCKDUCKGO,
     SEARCH_MODE_EXA,
-    SEARCH_MODE_NONE,
     get_engineering_citation_instructions,
     get_official_docs_search_instruction,
     get_official_docs_workflow_steps,
@@ -135,13 +138,18 @@ def _supports_builtin_web_search_with_function_tools(provider_key: str | None) -
     return provider_key in WEB_SEARCH_BUILTIN_PROVIDER_KEYS
 
 
+def _get_duckduckgo_search_tool() -> Tool[AgentDependencies]:
+    """Build DuckDuckGo common-tool fallback for official-doc lookups."""
+    return cast(Tool[AgentDependencies], duckduckgo_search_tool(max_results=5))
+
+
 def _resolve_search_mode(provider_key: str | None, exa_configured: bool) -> str:
     """Resolve external search mode for agent prompts/tooling."""
     if exa_configured:
         return SEARCH_MODE_EXA
     if provider_key in WEB_SEARCH_BUILTIN_PROVIDER_KEYS:
         return SEARCH_MODE_BUILTIN_WEB_SEARCH
-    return SEARCH_MODE_NONE
+    return SEARCH_MODE_DUCKDUCKGO
 
 
 SECTION_UPDATER_AGENT_NAMES: dict[SectionId, str] = {
@@ -397,7 +405,7 @@ def create_engineering_development_workflow_agent(
         model_settings: Optional model settings (temperature, etc.)
         builtin_tools: Optional built-in tools (e.g. WebSearchTool)
         include_exa_toolset: Whether to include Exa MCP toolset
-        search_mode: Resolved search mode ('exa' or 'builtin_web_search')
+        search_mode: Resolved search mode ('exa', 'builtin_web_search', 'duckduckgo', or 'none')
 
     Returns:
         Engineering development workflow agent instance
@@ -409,6 +417,8 @@ def create_engineering_development_workflow_agent(
         Tool(read_file_content, takes_ctx=True, max_retries=3),
         Tool(search_across_codebase, takes_ctx=True, max_retries=3),
     ]
+    if search_mode == SEARCH_MODE_DUCKDUCKGO:
+        tools.append(_get_duckduckgo_search_tool())
 
     agent = Agent(
         model,
@@ -460,13 +470,16 @@ def create_dependency_guide_agent(
     # - name matches the input dependency name
     exa_id = EXA_TOOLSET_IDS[AgentType.DEPENDENCY]
     dependency_toolsets = [_get_exa_mcp_server(exa_id)] if include_exa_toolset else []
+    dependency_tools: list[Tool[AgentDependencies]] = []
+    if search_mode == SEARCH_MODE_DUCKDUCKGO:
+        dependency_tools.append(_get_duckduckgo_search_tool())
     agent = Agent(
         model,
         name="dependency_guide",
         instructions=_get_dependency_guide_instructions(search_mode),
         deps_type=AgentDependencies,
         toolsets=dependency_toolsets,
-        tools=[],
+        tools=dependency_tools,
         builtin_tools=builtin_tools or [],
         output_type=DependencyGuideEntry,
         output_retries=2,
@@ -562,6 +575,26 @@ def create_call_expression_validator_agent(
         target="the claimed framework method/API for the candidate call",
         unresolved_outcome="set decision=needs_review and target_status=needs_review",
     )
+    validator_tools = [
+        Tool(read_file_content, takes_ctx=True, max_retries=3),
+        Tool(search_across_codebase, takes_ctx=True, max_retries=3),
+        Tool(
+            upsert_framework_feature_validation_evidence,
+            takes_ctx=True,
+            max_retries=3,
+            docstring_format="google",
+            require_parameter_descriptions=True,
+        ),
+        Tool(
+            set_framework_feature_validation_status,
+            takes_ctx=True,
+            max_retries=3,
+            docstring_format="google",
+            require_parameter_descriptions=True,
+        ),
+    ]
+    if search_mode == SEARCH_MODE_DUCKDUCKGO:
+        validator_tools.append(_get_duckduckgo_search_tool())
 
     agent = Agent(
         model,
@@ -593,24 +626,7 @@ def create_call_expression_validator_agent(
         ),
         deps_type=AgentDependencies,
         toolsets=[_get_exa_mcp_server(exa_id)] if include_exa_toolset else [],
-        tools=[
-            Tool(read_file_content, takes_ctx=True, max_retries=3),
-            Tool(search_across_codebase, takes_ctx=True, max_retries=3),
-            Tool(
-                upsert_framework_feature_validation_evidence,
-                takes_ctx=True,
-                max_retries=3,
-                docstring_format="google",
-                require_parameter_descriptions=True,
-            ),
-            Tool(
-                set_framework_feature_validation_status,
-                takes_ctx=True,
-                max_retries=3,
-                docstring_format="google",
-                require_parameter_descriptions=True,
-            ),
-        ],
+        tools=validator_tools,
         builtin_tools=builtin_tools or [],
         output_type=CallExpressionValidationAgentOutput,
         output_retries=2,
@@ -740,6 +756,7 @@ def create_temporal_agents(
     )
     use_exa_tools = search_mode == SEARCH_MODE_EXA
     use_builtin_web_search = search_mode == SEARCH_MODE_BUILTIN_WEB_SEARCH
+    use_duckduckgo_search = search_mode == SEARCH_MODE_DUCKDUCKGO
     builtin_web_search_tools = (
         _get_web_search_builtin_tools(provider_key) if use_builtin_web_search else []
     )
@@ -766,6 +783,10 @@ def create_temporal_agents(
             "read_file_content": tool_activity_config_base,
             "search_across_codebase": tool_activity_config_base,
         }
+        if use_duckduckgo_search:
+            engineering_tool_activity_config["duckduckgo_search"] = (
+                tool_activity_config_base
+            )
         engineering_toolset_activity_config: ToolsetActivityConfigMap = {
             default_toolset_id: toolset_activity_config
         }
@@ -799,8 +820,13 @@ def create_temporal_agents(
         dependency_toolset_activity_config: ToolsetActivityConfigMap = {
             default_toolset_id: toolset_activity_config
         }
+        dependency_tool_activity_config_for_agent: ToolActivityConfigMap = {}
+        if use_duckduckgo_search:
+            dependency_tool_activity_config_for_agent["duckduckgo_search"] = (
+                tool_activity_config_base
+            )
         dependency_tool_activity_config: ToolsetToolActivityConfigMap = {
-            default_toolset_id: {}
+            default_toolset_id: dependency_tool_activity_config_for_agent
         }
         if include_exa_dependency_toolset:
             dependency_toolset_activity_config[exa_toolset_id] = toolset_activity_config
@@ -830,6 +856,10 @@ def create_temporal_agents(
             "upsert_framework_feature_validation_evidence": tool_activity_config_base,
             "set_framework_feature_validation_status": tool_activity_config_base,
         }
+        if use_duckduckgo_search:
+            call_expression_tool_activity_config["duckduckgo_search"] = (
+                tool_activity_config_base
+            )
         call_expression_toolset_activity_config: ToolsetActivityConfigMap = {
             default_toolset_id: toolset_activity_config
         }

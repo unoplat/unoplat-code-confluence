@@ -159,6 +159,20 @@ class CredentialsService:
         )
 
     @staticmethod
+    async def get_model_credential_metadata(
+        session: AsyncSession,
+    ) -> Optional[dict[str, Any]]:
+        """Get metadata JSON for model API key credential."""
+        row = await CredentialsService.execute_get_model_secret_query(
+            session, SecretKind.MODEL_API_KEY
+        )
+        if not row:
+            return None
+
+        metadata = row.metadata_json
+        return metadata if isinstance(metadata, dict) else None
+
+    @staticmethod
     async def upsert_model_secret(
         value: str,
         session: AsyncSession,
@@ -208,13 +222,17 @@ class CredentialsService:
             )
 
     @staticmethod
-    async def upsert_model_credential(value: str, session: AsyncSession) -> None:
+    async def upsert_model_credential(
+        value: str,
+        session: AsyncSession,
+        metadata_json: Optional[dict[str, Any]] = None,
+    ) -> None:
         """Update encrypted model API key."""
         await CredentialsService.upsert_model_secret(
             value=value,
             session=session,
             secret_kind=SecretKind.MODEL_API_KEY,
-            metadata_json=None,
+            metadata_json=metadata_json,
         )
 
     @staticmethod

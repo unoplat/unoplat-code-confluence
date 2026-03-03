@@ -2,9 +2,9 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ProviderKind(str, Enum):
@@ -41,7 +41,35 @@ class AiModelConfigBase(BaseModel):
 class AiModelConfigIn(AiModelConfigBase):
     """Input model for creating/updating AI configuration."""
 
-    pass
+    model_config = ConfigDict(extra="allow")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _fold_unknown_top_level_fields_into_extra_config(cls, data: object) -> object:
+        """Preserve provider-specific top-level fields by moving them to extra_config."""
+        if not isinstance(data, dict):
+            return data
+
+        payload = cast(dict[str, object], data)
+        normalized_payload: dict[str, object] = dict(payload)
+        raw_extra_config = normalized_payload.get("extra_config")
+        if isinstance(raw_extra_config, dict):
+            typed_extra_config = cast(dict[object, object], raw_extra_config)
+            extra_config = {
+                str(key): value for key, value in typed_extra_config.items()
+            }
+        else:
+            extra_config = {}
+
+        known_top_level_keys = set(cls.model_fields.keys())
+        extra_keys = [
+            key for key in normalized_payload if key not in known_top_level_keys
+        ]
+        for key in extra_keys:
+            extra_config[key] = normalized_payload.pop(key)
+
+        normalized_payload["extra_config"] = extra_config
+        return normalized_payload
 
 
 class AiModelConfigOut(AiModelConfigBase):
