@@ -144,7 +144,7 @@ export function RepositoryDataTable({ providerKey }: RepositoryDataTableProps) {
         pageSize: 10,
       },
     },
-    getRowId: (row) => row.name,
+    getRowId: (row) => row.git_url,
     clearOnDefault: true,
   });
 
