@@ -8,8 +8,8 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from loguru import logger
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from unoplat_code_confluence_commons.credential_enums import ProviderKey
+
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )

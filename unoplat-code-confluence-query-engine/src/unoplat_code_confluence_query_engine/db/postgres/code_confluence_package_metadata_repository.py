@@ -5,11 +5,11 @@ from __future__ import annotations
 from typing import Optional
 
 from sqlalchemy import select
-
 from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluenceCodebase,
     UnoplatCodeConfluencePackageManagerMetadata,
 )
+
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     ProgrammingLanguageMetadataOutput,

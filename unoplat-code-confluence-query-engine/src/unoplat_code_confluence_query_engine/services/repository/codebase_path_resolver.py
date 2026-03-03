@@ -3,6 +3,7 @@
 from typing import Dict, List, Optional
 
 from loguru import logger
+
 from unoplat_code_confluence_query_engine.db.postgres.code_confluence_repo_repository import (
     resolve_codebase_paths,
 )

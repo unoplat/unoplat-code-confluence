@@ -19,11 +19,20 @@ export interface AgentEventsAccordionProps {
 }
 
 /**
- * Props for the ToolResultExpander component.
+ * Tool detail item payload used by Flow 2 detail modal.
  */
-export interface ToolResultExpanderProps {
-  message: string;
-  maxLength?: number;
+export interface ToolDetailItem {
+  callEvent?: RepositoryAgentEvent;
+  resultEvent?: RepositoryAgentEvent;
+}
+
+/**
+ * Props for the Flow 2 ToolDetailModal component.
+ */
+export interface ToolDetailModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  item: ToolDetailItem | null;
 }
 
 /**
@@ -48,6 +57,7 @@ export type AgentEventDisplayItem =
  */
 export interface AgentEventItemProps {
   item: AgentEventDisplayItem;
+  onViewDetails?: (item: ToolDetailItem) => void;
 }
 
 /**

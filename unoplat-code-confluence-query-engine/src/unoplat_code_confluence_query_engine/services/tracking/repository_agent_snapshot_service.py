@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from decimal import Decimal
+import json
 from typing import Any, Sequence
 
 from loguru import logger
-from sqlalchemy import func, select, text, update
+from sqlalchemy import func, text, update
 from sqlalchemy.dialects.postgresql import insert
 from unoplat_code_confluence_commons.repo_models import RepositoryAgentMdSnapshot
 
@@ -172,6 +173,10 @@ class RepositoryAgentSnapshotWriter:
         agent_name: str,
         phase: str,
         message: str | None,
+        tool_name: str | None = None,
+        tool_call_id: str | None = None,
+        tool_args: dict[str, Any] | None = None,
+        tool_result_content: str | None = None,
         completion_namespaces: set[str],
         repository_workflow_run_id: str,
     ) -> int:
@@ -256,12 +261,16 @@ class RepositoryAgentSnapshotWriter:
                 GROUP BY pc.allocated_id, pc.next_id, pc.new_completed, pc.new_codebase_progress
             ),
             new_event_obj AS (
-                SELECT jsonb_build_object(
+                SELECT jsonb_strip_nulls(jsonb_build_object(
                     'id', opc.allocated_id,
                     'event', :agent_name,
                     'phase', :phase,
-                    'message', CAST(:message AS text)
-                ) AS event_obj,
+                    'message', CAST(:message AS text),
+                    'tool_name', CAST(:tool_name AS text),
+                    'tool_call_id', CAST(:tool_call_id AS text),
+                    'tool_args', CAST(:tool_args AS jsonb),
+                    'tool_result_content', CAST(:tool_result_content AS text)
+                )) AS event_obj,
                 opc.allocated_id,
                 opc.next_id,
                 opc.new_completed,
@@ -329,6 +338,10 @@ class RepositoryAgentSnapshotWriter:
             "agent_name": agent_name,
             "phase": phase,
             "message": message,
+            "tool_name": tool_name,
+            "tool_call_id": tool_call_id,
+            "tool_args": json.dumps(tool_args) if tool_args is not None else None,
+            "tool_result_content": tool_result_content,
             "completion_namespaces_arr": completion_namespaces_list,
             "total_namespaces": total_namespaces,
         }

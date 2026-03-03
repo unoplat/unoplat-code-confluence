@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
 )
