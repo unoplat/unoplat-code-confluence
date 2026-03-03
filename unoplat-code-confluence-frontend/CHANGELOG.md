@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.46.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.1...unoplat-code-confluence-frontend-v1.46.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* **duplicate-row-key:** github repos rows were using name now they use git url so no state corruption while filtering ([0109e98](https://github.com/unoplat/unoplat-code-confluence/commit/0109e98c64a36cbe74b7d947e16f23bccd6bd564))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([0b08bbd](https://github.com/unoplat/unoplat-code-confluence/commit/0b08bbdd301bd9f00284a76f93ecea2fe83dc860))
+* **tool-call-result-ui-ux:** change colors according to design system ([7ef7e1e](https://github.com/unoplat/unoplat-code-confluence/commit/7ef7e1e1f5aef508694acedef0c54b599df6c2b3))
+
 ## [1.46.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.0...unoplat-code-confluence-frontend-v1.46.1) (2026-03-03)
 
 
