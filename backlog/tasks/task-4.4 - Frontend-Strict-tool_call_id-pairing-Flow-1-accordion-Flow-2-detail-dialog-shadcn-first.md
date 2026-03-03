@@ -7,7 +7,7 @@ status: In Progress
 assignee:
   - OpenCode
 created_date: '2026-03-03 05:24'
-updated_date: '2026-03-03 06:31'
+updated_date: '2026-03-03 06:41'
 labels:
   - frontend
   - typescript
@@ -153,6 +153,12 @@ Addressed post-feedback UI issues from dark-mode screenshot: converted Flow 1 ro
 Adjusted timeline rail vertical alignment in `AgentEventItem.tsx` (top/bottom dot spacing + connector segment) so CALL/RESULT dots align with their rows more consistently.
 
 Re-validated changed files with scoped eslint and re-ran `bun run build` successfully.
+
+Refined Flow 1 layout again after screenshot review: switched tool-pair rows to a 2-row grid with a dedicated timeline column so CALL/RESULT dots anchor to row centers.
+
+Reduced perceived row stretch by compacting call hint values (including path compaction), using fixed row heights, and reducing accordion content horizontal offset (`px-1` instead of left-heavy padding).
+
+Re-ran scoped eslint for touched files and `bun run build`; both pass for modified scope.
 <!-- SECTION:NOTES:END -->
 
 ## Definition of Done

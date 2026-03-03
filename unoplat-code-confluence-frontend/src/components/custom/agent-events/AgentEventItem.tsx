@@ -134,59 +134,65 @@ export function AgentEventItem({
     return (
       <article className="grid grid-cols-[20px_minmax(0,1fr)] gap-x-2 gap-y-1 text-xs">
         <div className="relative row-span-2">
-          <span className="absolute top-3 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-indigo-500" />
+          <span className="bg-primary absolute top-3 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full" />
           <span
             className={cn(
               "absolute top-4 bottom-4 left-1/2 -translate-x-1/2",
               hasResult
-                ? "w-0.5 bg-emerald-400/70 dark:bg-emerald-400/60"
+                ? "bg-success/60 w-0.5"
                 : "w-0 border-l border-dashed border-border/90",
             )}
           />
           <span
             className={cn(
               "absolute bottom-3 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full",
-              hasResult ? "bg-emerald-500" : "bg-border",
+              hasResult ? "bg-success" : "bg-border",
             )}
           />
         </div>
 
-        <div className="col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border border-indigo-200/90 bg-indigo-50/70 px-2.5 dark:border-indigo-500/30 dark:bg-indigo-500/10">
-            <Badge className="h-[14px] shrink-0 rounded-sm border-0 bg-indigo-100 px-1.5 text-[10px] font-medium tracking-wide text-indigo-700 uppercase dark:bg-indigo-500/20 dark:text-indigo-200">
-              CALL
-            </Badge>
-            <span className="min-w-0 flex-1 truncate text-[11px] text-foreground">
-              {getToolName(item.callEvent)}
+        <div className="border-secondary/70 bg-secondary/40 col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border px-2.5">
+          <Badge
+            variant="secondary"
+            className="h-[14px] shrink-0 rounded-sm border-0 px-1.5 text-[10px] font-medium tracking-wide uppercase"
+          >
+            CALL
+          </Badge>
+          <span className="min-w-0 flex-1 truncate text-[11px] text-foreground">
+            {getToolName(item.callEvent)}
+          </span>
+          {callHint ? (
+            <span className="max-w-[160px] shrink-0 truncate rounded bg-background/60 px-1.5 py-px text-[10px] text-muted-foreground dark:bg-background/20">
+              {callHint}
             </span>
-            {callHint ? (
-              <span className="max-w-[160px] shrink-0 truncate rounded bg-background/60 px-1.5 py-px text-[10px] text-muted-foreground dark:bg-background/20">
-                {callHint}
-              </span>
-            ) : null}
+          ) : null}
         </div>
 
         {item.resultEvent ? (
-          <div className="col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border border-emerald-200 bg-emerald-50/80 px-2.5 dark:border-emerald-500/30 dark:bg-emerald-500/10">
-              <Badge className="h-[14px] shrink-0 rounded-sm border-0 bg-emerald-100 px-1.5 text-[10px] font-medium tracking-wide text-emerald-700 uppercase dark:bg-emerald-500/20 dark:text-emerald-200">
-                RESULT
-              </Badge>
-              <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
-                {resultPreview || "-"}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-4 shrink-0 px-1 text-[10px] text-indigo-700 hover:bg-transparent hover:text-indigo-600 dark:text-indigo-300 dark:hover:text-indigo-200"
-                onClick={() => {
-                  onViewDetails?.({
-                    callEvent: item.callEvent,
-                    resultEvent: item.resultEvent,
-                  });
-                }}
-              >
-                View details -&gt;
-              </Button>
+          <div className="border-success/30 bg-success/10 col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border px-2.5">
+            <Badge
+              variant="completed"
+              className="h-[14px] shrink-0 rounded-sm border-0 px-1.5 text-[10px] font-medium tracking-wide uppercase"
+            >
+              RESULT
+            </Badge>
+            <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+              {resultPreview || "-"}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-primary h-4 shrink-0 px-1 text-[10px] hover:bg-transparent hover:text-primary/80"
+              onClick={() => {
+                onViewDetails?.({
+                  callEvent: item.callEvent,
+                  resultEvent: item.resultEvent,
+                });
+              }}
+            >
+              View details -&gt;
+            </Button>
           </div>
         ) : (
           <div className="col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border border-dashed border-border bg-muted/40 px-2.5 dark:bg-muted/30">
