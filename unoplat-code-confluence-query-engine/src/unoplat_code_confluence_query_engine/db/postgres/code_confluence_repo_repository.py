@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import Dict, List, Optional
 
 from sqlalchemy import select
-
 from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluenceCodebase,
 )
+
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 
 
