@@ -194,6 +194,50 @@ class ProviderCatalog:
                 ),
             ],
         ),
+        "bedrock": ProviderSchema(
+            provider_key="bedrock",
+            display_name="AWS Bedrock",
+            kind="native",
+            model_field={
+                "label": "Model name",
+                "placeholder": "anthropic.claude-sonnet-4-6",
+                "required": True,
+                "help": (
+                    "Use a Bedrock model ID. For Anthropic Bedrock model IDs, the backend "
+                    "automatically enables comprehensive prompt caching."
+                ),
+            },
+            fields=[
+                ProviderField(
+                    key="region_name",
+                    label="AWS region",
+                    type="text",
+                    placeholder="us-east-1",
+                    required=False,
+                    help="Optional. If empty, Bedrock falls back to AWS_DEFAULT_REGION/runtime AWS config.",
+                ),
+                ProviderField(
+                    key="aws_access_key_id",
+                    label="AWS access key ID (optional)",
+                    type="text",
+                    placeholder="AKIA...",
+                    help="If set, API key field is treated as AWS secret access key.",
+                ),
+                ProviderField(
+                    key="profile_name",
+                    label="AWS profile name (optional)",
+                    type="text",
+                    placeholder="default",
+                ),
+                ProviderField(
+                    key="model_api_key",
+                    label="API key / secret access key",
+                    type="password",
+                    required=False,
+                    help="Used as AWS_BEARER_TOKEN_BEDROCK when access key ID is empty; otherwise used as AWS secret access key. Keys saved for other providers are ignored.",
+                ),
+            ],
+        ),
         "deepseek": ProviderSchema(
             provider_key="deepseek",
             display_name="DeepSeek ",
