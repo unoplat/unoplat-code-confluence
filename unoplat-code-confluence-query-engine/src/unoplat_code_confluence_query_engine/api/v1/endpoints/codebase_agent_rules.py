@@ -47,11 +47,6 @@ if TYPE_CHECKING:
 
 router = APIRouter(prefix="/v1", tags=["codebase-rules"])
 
-# Providers where PydanticAI built-in web search is enabled in this codebase.
-_BUILTIN_WEB_SEARCH_PROVIDER_KEYS = frozenset(
-    {"codex_openai", "anthropic", "grok", "groq"}
-)
-
 
 class RepositoryWorkflowRunResponse(BaseModel):
     """Response returned when a repository Temporal workflow is launched."""
@@ -354,27 +349,6 @@ async def start_repository_agent_run(
                     "/v1/model-config endpoint."
                 ),
             )
-
-        provider_key = model_config.provider_key
-        requires_exa_tool = provider_key not in _BUILTIN_WEB_SEARCH_PROVIDER_KEYS
-
-        if requires_exa_tool:
-            exa_configured = await CredentialsService.tool_credential_exists(
-                session, ProviderKey.EXA
-            )
-            if not exa_configured:
-                bound_logger.error(
-                    "[codebase_agent_rules] Exa tool not configured for provider={}",
-                    provider_key,
-                )
-                raise HTTPException(
-                    status_code=503,
-                    detail=(
-                        "Exa MCP tool is required for the currently configured model "
-                        f"provider '{provider_key}'. Please configure the Exa API key "
-                        "via /v1/tool-config/exa endpoint first."
-                    ),
-                )
 
     # Check if Temporal worker is running after validating prerequisites.
     if not worker_manager.is_running:

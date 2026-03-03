@@ -1,8 +1,10 @@
 """Service for AI model configuration database operations."""
 
+import os
 from datetime import UTC, datetime
-from typing import Optional
+from typing import Optional, cast
 
+import boto3  # pyright: ignore[reportMissingTypeStubs, reportUnknownVariableType]
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +24,69 @@ from unoplat_code_confluence_query_engine.services.config.credentials_service im
 from unoplat_code_confluence_query_engine.services.config.provider_catalog import (
     ProviderCatalog,
 )
+
+
+def _get_optional_string_config_value(value: object, key: str) -> str | None:
+    """Normalize optional string config values from provider extra_config."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError(f"{key} must be a string")
+    trimmed_value = value.strip()
+    return trimmed_value if trimmed_value else None
+
+
+def _resolve_runtime_aws_region(profile_name: str | None) -> str | None:
+    """Resolve AWS region from environment/profile runtime configuration."""
+    aws_region = os.getenv("AWS_REGION")
+    if aws_region and aws_region.strip():
+        return aws_region.strip()
+
+    aws_default_region = os.getenv("AWS_DEFAULT_REGION")
+    if aws_default_region and aws_default_region.strip():
+        return aws_default_region.strip()
+
+    try:
+        session = (
+            boto3.Session(profile_name=profile_name)
+            if profile_name
+            else boto3.Session()
+        )
+        region_name = cast(object, session.region_name)
+        if isinstance(region_name, str):
+            trimmed_region_name = region_name.strip()
+            return trimmed_region_name if trimmed_region_name else None
+        return None
+    except Exception as exc:
+        logger.debug("Failed to resolve runtime AWS region via boto3: {}", exc)
+        return None
+
+
+def _validate_bedrock_region_configuration(extra_config: dict[str, object]) -> None:
+    """Validate Bedrock region presence before worker startup.
+
+    Region can come from:
+    - explicit extra_config.region_name
+    - runtime AWS configuration (AWS_REGION/AWS_DEFAULT_REGION/profile config)
+    """
+    configured_region_name = _get_optional_string_config_value(
+        extra_config.get("region_name"), "region_name"
+    )
+    if configured_region_name:
+        return
+
+    profile_name = _get_optional_string_config_value(
+        extra_config.get("profile_name"), "profile_name"
+    )
+    runtime_region_name = _resolve_runtime_aws_region(profile_name)
+    if runtime_region_name:
+        return
+
+    raise ValueError(
+        "Bedrock requires an AWS region. Set 'region_name' in provider configuration "
+        "(for example 'us-east-1') or configure AWS_REGION/AWS_DEFAULT_REGION/runtime "
+        "AWS profile region before saving model config."
+    )
 
 
 class AiModelConfigService:
@@ -142,6 +207,8 @@ class AiModelConfigService:
                 filtered_extra = {
                     k: v for k, v in incoming_extra.items() if k in allowed_keys
                 }
+                if config_in.provider_key == "bedrock":
+                    _validate_bedrock_region_configuration(filtered_extra)
                 existing_config.extra_config = filtered_extra
                 existing_config.model_params = (
                     config_in.model_params.model_dump(exclude_none=True)
@@ -170,6 +237,8 @@ class AiModelConfigService:
                 merged_extra = {
                     k: v for k, v in incoming_extra.items() if k in allowed_keys
                 }
+                if config_in.provider_key == "bedrock":
+                    _validate_bedrock_region_configuration(merged_extra)
 
                 new_config = AiModelConfig(
                     id=1,  # Always use id=1 for single-record approach
