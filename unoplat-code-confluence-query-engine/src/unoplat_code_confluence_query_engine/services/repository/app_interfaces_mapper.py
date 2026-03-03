@@ -8,8 +8,8 @@ from typing import Optional
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     InboundConstruct,
     InboundKind,
-    InternalConstruct,
     Interfaces,
+    InternalConstruct,
     OutboundConstruct,
     OutboundKind,
 )
