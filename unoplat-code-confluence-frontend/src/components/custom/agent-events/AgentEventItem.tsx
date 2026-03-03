@@ -1,6 +1,9 @@
 import React from "react";
-import { Wrench, FileText, CheckCircle, Circle } from "lucide-react";
-import { ToolResultExpander } from "./ToolResultExpander";
+import { Wrench, FileText, CheckCircle, Circle, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { RepositoryAgentEvent } from "@/features/repository-agent-snapshots/schema";
 import type { AgentEventItemProps } from "@/types/agent-events";
 
 type PhaseType = "tool.call" | "tool.result" | "result";
@@ -30,32 +33,173 @@ const DEFAULT_PHASE_CONFIG: PhaseConfig = {
   iconClassName: "text-muted-foreground",
 };
 
+function stripToolResultPrefix(value: string): string {
+  return value.replace(/^Tool result:\s*/, "");
+}
+
+function getToolName(callEvent: RepositoryAgentEvent): string {
+  if (typeof callEvent.tool_name === "string" && callEvent.tool_name.trim().length > 0) {
+    return callEvent.tool_name;
+  }
+
+  if (typeof callEvent.message === "string" && callEvent.message.trim().length > 0) {
+    return callEvent.message.replace(/^Calling\s+/, "");
+  }
+
+  return callEvent.event;
+}
+
+function stringifyUnknown(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (value === null) {
+    return "null";
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function compactHintValue(value: string, maxLength: number = 28): string {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  const pathSegments = value.split("/").filter((segment) => segment.length > 0);
+  if (pathSegments.length >= 2) {
+    const tailHint = `.../${pathSegments.slice(-2).join("/")}`;
+    if (tailHint.length <= maxLength) {
+      return tailHint;
+    }
+  }
+
+  return `${value.slice(0, maxLength - 3)}...`;
+}
+
+function getCallHint(callEvent: RepositoryAgentEvent): string | null {
+  const toolArgs = callEvent.tool_args;
+  if (!toolArgs) {
+    return null;
+  }
+
+  const firstEntry = Object.entries(toolArgs)[0];
+  if (!firstEntry) {
+    return null;
+  }
+
+  const [key, firstValue] = firstEntry;
+  const compactValue = compactHintValue(stringifyUnknown(firstValue));
+
+  if (key === "path" || key === "file_path" || key === "filepath") {
+    return `path: ${compactValue}`;
+  }
+
+  return compactValue;
+}
+
+function getResultPreview(resultEvent: RepositoryAgentEvent): string {
+  const rawContent =
+    (typeof resultEvent.tool_result_content === "string" &&
+    resultEvent.tool_result_content.length > 0
+      ? resultEvent.tool_result_content
+      : typeof resultEvent.message === "string"
+        ? stripToolResultPrefix(resultEvent.message)
+        : resultEvent.event) ?? "";
+
+  if (rawContent.length <= 50) {
+    return rawContent;
+  }
+
+  return `${rawContent.slice(0, 50)}...`;
+}
+
 export function AgentEventItem({
   item,
+  onViewDetails,
 }: AgentEventItemProps): React.ReactElement {
   if (item.type === "tool-pair") {
-    const callConfig = PHASE_CONFIG["tool.call"];
-    const CallIcon = callConfig.icon;
-    const callMessage = item.callEvent.message ?? item.callEvent.event;
-    const resultMessage = item.resultEvent?.message ?? item.resultEvent?.event;
+    const hasResult = Boolean(item.resultEvent);
+    const callHint = getCallHint(item.callEvent);
+    const resultPreview = item.resultEvent ? getResultPreview(item.resultEvent) : null;
 
     return (
-      <article className="space-y-1.5 text-xs">
-        <div className="flex items-start gap-2">
-          <CallIcon
-            className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${callConfig.iconClassName}`}
+      <article className="grid grid-cols-[20px_minmax(0,1fr)] gap-x-2 gap-y-1 text-xs">
+        <div className="relative row-span-2">
+          <span className="bg-primary absolute top-3 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full" />
+          <span
+            className={cn(
+              "absolute top-4 bottom-4 left-1/2 -translate-x-1/2",
+              hasResult
+                ? "bg-success/60 w-0.5"
+                : "w-0 border-l border-dashed border-border/90",
+            )}
           />
-          <span className="text-muted-foreground break-all whitespace-pre-wrap">
-            {callMessage}
+          <span
+            className={cn(
+              "absolute bottom-3 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full",
+              hasResult ? "bg-success" : "bg-border",
+            )}
+          />
+        </div>
+
+        <div className="border-secondary/70 bg-secondary/40 col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border px-2.5">
+          <Badge
+            variant="secondary"
+            className="h-[14px] shrink-0 rounded-sm border-0 px-1.5 text-[10px] font-medium tracking-wide uppercase"
+          >
+            CALL
+          </Badge>
+          <span className="min-w-0 flex-1 truncate text-[11px] text-foreground">
+            {getToolName(item.callEvent)}
           </span>
+          {callHint ? (
+            <span className="max-w-[160px] shrink-0 truncate rounded bg-background/60 px-1.5 py-px text-[10px] text-muted-foreground dark:bg-background/20">
+              {callHint}
+            </span>
+          ) : null}
         </div>
-        <div className="ml-5">
-          {resultMessage ? (
-            <ToolResultExpander message={resultMessage} />
-          ) : (
-            <span className="text-muted-foreground">Waiting for tool result...</span>
-          )}
-        </div>
+
+        {item.resultEvent ? (
+          <div className="border-success/30 bg-success/10 col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border px-2.5">
+            <Badge
+              variant="completed"
+              className="h-[14px] shrink-0 rounded-sm border-0 px-1.5 text-[10px] font-medium tracking-wide uppercase"
+            >
+              RESULT
+            </Badge>
+            <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+              {resultPreview || "-"}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-primary h-4 shrink-0 px-1 text-[10px] hover:bg-transparent hover:text-primary/80"
+              onClick={() => {
+                onViewDetails?.({
+                  callEvent: item.callEvent,
+                  resultEvent: item.resultEvent,
+                });
+              }}
+            >
+              View details -&gt;
+            </Button>
+          </div>
+        ) : (
+          <div className="col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border border-dashed border-border bg-muted/40 px-2.5 dark:bg-muted/30">
+            <Loader2 className="text-muted-foreground h-3 w-3 shrink-0 animate-spin" />
+            <span className="text-muted-foreground text-[11px]">Awaiting result...</span>
+          </div>
+        )}
       </article>
     );
   }
@@ -67,18 +211,12 @@ export function AgentEventItem({
   const Icon = config.icon;
   const message = item.event.message ?? item.event.event;
 
-  const isToolResult = phase === "tool.result";
-
   return (
     <article className="flex items-start gap-2 text-xs">
       <Icon className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${config.iconClassName}`} />
-      {isToolResult ? (
-        <ToolResultExpander message={message} />
-      ) : (
-        <span className="text-muted-foreground break-all whitespace-pre-wrap">
-          {message}
-        </span>
-      )}
+      <span className="text-muted-foreground break-all whitespace-pre-wrap">
+        {message}
+      </span>
     </article>
   );
 }
