@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.69.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.69.1...code-confluence-flow-bridge-v0.69.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([0b08bbd](https://github.com/unoplat/unoplat-code-confluence/commit/0b08bbdd301bd9f00284a76f93ecea2fe83dc860))
+
 ## [0.69.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.69.0...code-confluence-flow-bridge-v0.69.1) (2026-03-03)
 
 
