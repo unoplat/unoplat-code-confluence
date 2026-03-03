@@ -112,7 +112,10 @@ export function ToolDetailModal({
       <DialogContent className="max-w-[560px] gap-0 p-0">
         <DialogHeader className="border-border border-b px-5 py-4">
           <div className="flex items-center gap-3 pr-8">
-            <Badge className="h-5 rounded-sm border-0 bg-indigo-100 px-2 text-[10px] tracking-wide text-indigo-700 uppercase">
+            <Badge
+              variant="secondary"
+              className="h-5 rounded-sm border-0 px-2 text-[10px] tracking-wide uppercase"
+            >
               <Wrench className="h-3 w-3" />
               Tool Call
             </Badge>
@@ -153,7 +156,7 @@ export function ToolDetailModal({
           <section className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="bg-success h-1.5 w-1.5 rounded-full" />
                 <span className="text-muted-foreground text-xs tracking-wide uppercase">
                   Result
                 </span>
