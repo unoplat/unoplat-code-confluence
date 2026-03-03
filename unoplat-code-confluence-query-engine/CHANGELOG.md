@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.34.1...unoplat-code-confluence-query-engine-v0.34.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([0b08bbd](https://github.com/unoplat/unoplat-code-confluence/commit/0b08bbdd301bd9f00284a76f93ecea2fe83dc860))
+
 ## [0.34.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.34.0...unoplat-code-confluence-query-engine-v0.34.1) (2026-03-03)
 
 
