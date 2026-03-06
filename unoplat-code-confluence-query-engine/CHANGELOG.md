@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.35.0...unoplat-code-confluence-query-engine-v0.36.0) (2026-03-06)
+
+
+### Features
+
+* **backend-app-feedback:** endpoint for app feedback ([3db4b77](https://github.com/unoplat/unoplat-code-confluence/commit/3db4b776f6e953e20d5fd69ea92c7d9d94443856))
+
 ## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.34.2...unoplat-code-confluence-query-engine-v0.35.0) (2026-03-03)
 
 
