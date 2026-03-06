@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.48.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.47.0...unoplat-code-confluence-frontend-v1.48.0) (2026-03-06)
+
+
+### Features
+
+* **app-feedback:** allow user to submit feedback for feature/bug/general ([86e994f](https://github.com/unoplat/unoplat-code-confluence/commit/86e994f54862155d8cc1b96755cc35311420d380))
+
+
+### Bug Fixes
+
+* **command-palette:** move to right position in top bar's right section ([0af3da1](https://github.com/unoplat/unoplat-code-confluence/commit/0af3da16657c56ab18b108749289a170558b19d9))
+
 ## [1.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.2...unoplat-code-confluence-frontend-v1.47.0) (2026-03-03)
 
 
