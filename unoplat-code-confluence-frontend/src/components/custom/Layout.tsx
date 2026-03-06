@@ -17,6 +17,7 @@ import { Home, Github, BookOpen, Heart } from "lucide-react";
 import indiaIcon from "@/assets/india-icon.png";
 import { ModeToggle } from "./ModeToggle";
 import { CommandPalette } from "@/components/custom/CommandPalette";
+import { AppFeedbackSheet } from "@/features/app-feedback";
 import { useCommandPaletteStore } from "@/stores/useCommandPaletteStore";
 import { useAuthData } from "@/hooks/use-auth-data";
 
@@ -213,6 +214,7 @@ export function Layout(): React.ReactElement {
         </div>
       </SidebarProvider>
       <CommandPalette />
+      <AppFeedbackSheet />
       <Toaster />
     </div>
   );
