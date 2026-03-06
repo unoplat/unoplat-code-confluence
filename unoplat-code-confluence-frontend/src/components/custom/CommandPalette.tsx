@@ -5,6 +5,7 @@ import {
   Code2,
   Cpu,
   Home,
+  MessageSquarePlus,
   Monitor,
   Moon,
   Settings,
@@ -21,11 +22,13 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import { useAppFeedbackSheetStore } from "@/features/app-feedback";
 import { useCommandPaletteStore } from "@/stores/useCommandPaletteStore";
 import { useThemeStore } from "@/stores/useThemeStore";
 
 export function CommandPalette() {
   const { isOpen, close, toggle } = useCommandPaletteStore();
+  const { open: openFeedback } = useAppFeedbackSheetStore();
   const { setTheme } = useThemeStore();
   const navigate = useNavigate();
 
@@ -167,6 +170,29 @@ export function CommandPalette() {
           >
             <Monitor />
             System Theme
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Help">
+          <CommandItem
+            value="Send Feedback"
+            keywords={[
+              "feedback",
+              "bug",
+              "report",
+              "feature",
+              "request",
+              "help",
+            ]}
+            onSelect={() => {
+              openFeedback();
+              close();
+            }}
+          >
+            <MessageSquarePlus />
+            Send Feedback
           </CommandItem>
         </CommandGroup>
       </CommandList>

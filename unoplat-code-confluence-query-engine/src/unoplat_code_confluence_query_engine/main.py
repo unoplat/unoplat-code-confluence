@@ -12,6 +12,7 @@ import uvicorn
 
 from unoplat_code_confluence_query_engine.api.v1.endpoints import (
     ai_model_config,
+    app_feedback,
     codebase_agent_rules,
     flags,
     tool_config,
@@ -287,3 +288,4 @@ app.include_router(ai_model_config.router)
 app.include_router(ai_model_config.callback_router)
 app.include_router(flags.router)
 app.include_router(tool_config.router)
+app.include_router(app_feedback.router)

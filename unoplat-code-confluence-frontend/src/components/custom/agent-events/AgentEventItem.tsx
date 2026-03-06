@@ -38,11 +38,17 @@ function stripToolResultPrefix(value: string): string {
 }
 
 function getToolName(callEvent: RepositoryAgentEvent): string {
-  if (typeof callEvent.tool_name === "string" && callEvent.tool_name.trim().length > 0) {
+  if (
+    typeof callEvent.tool_name === "string" &&
+    callEvent.tool_name.trim().length > 0
+  ) {
     return callEvent.tool_name;
   }
 
-  if (typeof callEvent.message === "string" && callEvent.message.trim().length > 0) {
+  if (
+    typeof callEvent.message === "string" &&
+    callEvent.message.trim().length > 0
+  ) {
     return callEvent.message.replace(/^Calling\s+/, "");
   }
 
@@ -129,7 +135,9 @@ export function AgentEventItem({
   if (item.type === "tool-pair") {
     const hasResult = Boolean(item.resultEvent);
     const callHint = getCallHint(item.callEvent);
-    const resultPreview = item.resultEvent ? getResultPreview(item.resultEvent) : null;
+    const resultPreview = item.resultEvent
+      ? getResultPreview(item.resultEvent)
+      : null;
 
     return (
       <article className="grid grid-cols-[20px_minmax(0,1fr)] gap-x-2 gap-y-1 text-xs">
@@ -140,7 +148,7 @@ export function AgentEventItem({
               "absolute top-4 bottom-4 left-1/2 -translate-x-1/2",
               hasResult
                 ? "bg-success/60 w-0.5"
-                : "w-0 border-l border-dashed border-border/90",
+                : "border-border/90 w-0 border-l border-dashed",
             )}
           />
           <span
@@ -158,11 +166,11 @@ export function AgentEventItem({
           >
             CALL
           </Badge>
-          <span className="min-w-0 flex-1 truncate text-[11px] text-foreground">
+          <span className="text-foreground min-w-0 flex-1 truncate text-[11px]">
             {getToolName(item.callEvent)}
           </span>
           {callHint ? (
-            <span className="max-w-[160px] shrink-0 truncate rounded bg-background/60 px-1.5 py-px text-[10px] text-muted-foreground dark:bg-background/20">
+            <span className="bg-background/60 text-muted-foreground dark:bg-background/20 max-w-[160px] shrink-0 truncate rounded px-1.5 py-px text-[10px]">
               {callHint}
             </span>
           ) : null}
@@ -176,14 +184,14 @@ export function AgentEventItem({
             >
               RESULT
             </Badge>
-            <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+            <span className="text-muted-foreground min-w-0 flex-1 truncate text-[11px]">
               {resultPreview || "-"}
             </span>
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="text-primary h-4 shrink-0 px-1 text-[10px] hover:bg-transparent hover:text-primary/80"
+              className="text-primary hover:text-primary/80 h-4 shrink-0 px-1 text-[10px] hover:bg-transparent"
               onClick={() => {
                 onViewDetails?.({
                   callEvent: item.callEvent,
@@ -195,9 +203,11 @@ export function AgentEventItem({
             </Button>
           </div>
         ) : (
-          <div className="col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border border-dashed border-border bg-muted/40 px-2.5 dark:bg-muted/30">
+          <div className="border-border bg-muted/40 dark:bg-muted/30 col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border border-dashed px-2.5">
             <Loader2 className="text-muted-foreground h-3 w-3 shrink-0 animate-spin" />
-            <span className="text-muted-foreground text-[11px]">Awaiting result...</span>
+            <span className="text-muted-foreground text-[11px]">
+              Awaiting result...
+            </span>
           </div>
         )}
       </article>
