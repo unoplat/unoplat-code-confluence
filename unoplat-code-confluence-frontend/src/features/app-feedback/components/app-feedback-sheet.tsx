@@ -208,10 +208,7 @@ export function AppFeedbackSheet(): React.ReactElement {
                     )}
                     <div className="flex flex-col gap-3 sm:flex-row">
                       {submittedIssueRef.current?.issue_url && (
-                        <Button
-                          variant="default"
-                          onClick={handleTrackFeedback}
-                        >
+                        <Button variant="default" onClick={handleTrackFeedback}>
                           <ExternalLink className="mr-2 h-4 w-4" />
                           Track Feedback
                         </Button>
@@ -279,10 +276,7 @@ export function AppFeedbackSheet(): React.ReactElement {
                     Cancel
                   </Button>
                   <form.Subscribe
-                    selector={(state) => [
-                      state.canSubmit,
-                      state.isSubmitting,
-                    ]}
+                    selector={(state) => [state.canSubmit, state.isSubmitting]}
                   >
                     {([canSubmit, isSubmitting]) => (
                       <Button

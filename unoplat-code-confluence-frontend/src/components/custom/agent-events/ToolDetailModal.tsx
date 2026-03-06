@@ -13,11 +13,17 @@ import type { RepositoryAgentEvent } from "@/features/repository-agent-snapshots
 import type { ToolDetailModalProps } from "@/types/agent-events";
 
 function getToolName(callEvent?: RepositoryAgentEvent): string {
-  if (typeof callEvent?.tool_name === "string" && callEvent.tool_name.trim().length > 0) {
+  if (
+    typeof callEvent?.tool_name === "string" &&
+    callEvent.tool_name.trim().length > 0
+  ) {
     return callEvent.tool_name;
   }
 
-  if (typeof callEvent?.message === "string" && callEvent.message.trim().length > 0) {
+  if (
+    typeof callEvent?.message === "string" &&
+    callEvent.message.trim().length > 0
+  ) {
     return callEvent.message.replace(/^Calling\s+/, "");
   }
 
@@ -33,7 +39,10 @@ function formatToolArgs(callEvent?: RepositoryAgentEvent): string {
     return JSON.stringify(callEvent.tool_args, null, 2);
   }
 
-  if (typeof callEvent?.message === "string" && callEvent.message.trim().length > 0) {
+  if (
+    typeof callEvent?.message === "string" &&
+    callEvent.message.trim().length > 0
+  ) {
     return callEvent.message;
   }
 
@@ -52,7 +61,10 @@ function getResultContent(resultEvent?: RepositoryAgentEvent): string {
     return resultEvent.tool_result_content;
   }
 
-  if (typeof resultEvent?.message === "string" && resultEvent.message.length > 0) {
+  if (
+    typeof resultEvent?.message === "string" &&
+    resultEvent.message.length > 0
+  ) {
     return stripToolResultPrefix(resultEvent.message);
   }
 
@@ -146,7 +158,7 @@ export function ToolDetailModal({
               </Button>
             </div>
 
-            <ScrollArea className="h-[106px] rounded-md border bg-muted/40 p-3">
+            <ScrollArea className="bg-muted/40 h-[106px] rounded-md border p-3">
               <pre className="font-mono text-xs whitespace-pre-wrap">
                 {formattedArgs}
               </pre>
@@ -182,7 +194,7 @@ export function ToolDetailModal({
             </div>
 
             <ScrollArea className="h-[200px] rounded-md bg-zinc-950 p-3">
-              <pre className="font-mono text-xs text-zinc-100 whitespace-pre-wrap">
+              <pre className="font-mono text-xs whitespace-pre-wrap text-zinc-100">
                 {fullResult}
               </pre>
             </ScrollArea>

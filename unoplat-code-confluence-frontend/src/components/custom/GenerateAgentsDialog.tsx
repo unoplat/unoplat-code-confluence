@@ -184,26 +184,27 @@ export function GenerateAgentsDialog({
   const isFailed = jobStatus === "FAILED" || jobStatus === "ERROR";
 
   // Persisted PR status — query when dialog open + job completed
-  const { data: persistedPrStatus } = useQuery<RepositoryAgentMdPrStatusResponse>({
-    queryKey: [
-      "repositoryAgentMdPrStatus",
-      job?.repository_owner_name,
-      job?.repository_name,
-      job?.repository_workflow_run_id,
-    ],
-    queryFn: () => {
-      if (!job) {
-        return { exists: false, pr_metadata: null };
-      }
-      return getRepositoryAgentMdPrStatus(
-        job.repository_owner_name,
-        job.repository_name,
-        job.repository_workflow_run_id,
-      );
-    },
-    enabled: open && isCompleted && !!job,
-    staleTime: 30_000,
-  });
+  const { data: persistedPrStatus } =
+    useQuery<RepositoryAgentMdPrStatusResponse>({
+      queryKey: [
+        "repositoryAgentMdPrStatus",
+        job?.repository_owner_name,
+        job?.repository_name,
+        job?.repository_workflow_run_id,
+      ],
+      queryFn: () => {
+        if (!job) {
+          return { exists: false, pr_metadata: null };
+        }
+        return getRepositoryAgentMdPrStatus(
+          job.repository_owner_name,
+          job.repository_name,
+          job.repository_workflow_run_id,
+        );
+      },
+      enabled: open && isCompleted && !!job,
+      staleTime: 30_000,
+    });
 
   const persistedPrResult = persistedPrStatus?.exists
     ? persistedPrStatus.pr_metadata
