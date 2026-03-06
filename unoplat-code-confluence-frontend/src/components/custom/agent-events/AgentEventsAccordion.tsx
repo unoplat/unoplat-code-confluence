@@ -8,8 +8,14 @@ import {
 import { AgentEventItem } from "@/components/custom/agent-events/AgentEventItem";
 import { AgentGroupHeader } from "@/components/custom/agent-events/AgentGroupHeader";
 import { ToolDetailModal } from "@/components/custom/agent-events/ToolDetailModal";
-import { buildEventDisplayItems, groupEventsByAgent } from "@/lib/agent-events-utils";
-import type { AgentEventsAccordionProps, ToolDetailItem } from "@/types/agent-events";
+import {
+  buildEventDisplayItems,
+  groupEventsByAgent,
+} from "@/lib/agent-events-utils";
+import type {
+  AgentEventsAccordionProps,
+  ToolDetailItem,
+} from "@/types/agent-events";
 
 export function AgentEventsAccordion({
   events,

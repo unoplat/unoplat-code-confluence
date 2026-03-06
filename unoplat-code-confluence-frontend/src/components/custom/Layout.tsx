@@ -157,6 +157,17 @@ export function Layout(): React.ReactElement {
                   </Breadcrumb>
                 </div>
                 <div className="flex items-center space-x-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-muted-foreground hidden gap-2 text-xs md:flex"
+                    onClick={openCommandPalette}
+                  >
+                    <span>Search...</span>
+                    <kbd className="bg-muted pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none">
+                      <span className="text-xs">⌘</span>K
+                    </kbd>
+                  </Button>
                   <a
                     href="https://github.com/unoplat/unoplat-code-confluence"
                     target="_blank"
@@ -175,17 +186,6 @@ export function Layout(): React.ReactElement {
                     <BookOpen size={18} />
                     <span>Docs</span>
                   </a>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-muted-foreground hidden gap-2 text-xs md:flex"
-                    onClick={openCommandPalette}
-                  >
-                    <span>Search...</span>
-                    <kbd className="bg-muted pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none">
-                      <span className="text-xs">⌘</span>K
-                    </kbd>
-                  </Button>
                   <ModeToggle />
                 </div>
               </div>
