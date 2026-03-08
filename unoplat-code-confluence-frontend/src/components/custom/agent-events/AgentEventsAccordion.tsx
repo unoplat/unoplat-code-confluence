@@ -12,10 +12,6 @@ import {
 import { buildEventDisplayItems, groupEventsByAgent } from "@/lib/agent-events-utils";
 import type { AgentEventsAccordionProps, ToolDetailItem } from "@/types/agent-events";
 
-function getDefaultExpandedGroups(groupIds: string[]): string[] {
-  return groupIds.length > 0 ? [groupIds[0]] : [];
-}
-
 export function AgentEventsAccordion({
   events,
   completedNamespaces,
@@ -25,24 +21,14 @@ export function AgentEventsAccordion({
     [events, completedNamespaces],
   );
   const [detailItem, setDetailItem] = React.useState<ToolDetailItem | null>(null);
-  const [expandedGroups, setExpandedGroups] = React.useState<string[]>(
-    getDefaultExpandedGroups(agentGroups.map((group) => group.agentId)),
-  );
+  const [expandedGroups, setExpandedGroups] = React.useState<string[]>([]);
 
   React.useEffect(() => {
     const nextGroupIds = agentGroups.map((group) => group.agentId);
 
-    setExpandedGroups((currentExpandedGroups) => {
-      const filteredExpandedGroups = currentExpandedGroups.filter((groupId) =>
-        nextGroupIds.includes(groupId),
-      );
-
-      if (filteredExpandedGroups.length > 0) {
-        return filteredExpandedGroups;
-      }
-
-      return getDefaultExpandedGroups(nextGroupIds);
-    });
+    setExpandedGroups((currentExpandedGroups) =>
+      currentExpandedGroups.filter((groupId) => nextGroupIds.includes(groupId)),
+    );
   }, [agentGroups]);
 
   if (agentGroups.length === 0) {
