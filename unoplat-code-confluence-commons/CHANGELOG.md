@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.45.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.45.0...unoplat-code-confluence-commons-v0.45.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* **perf:** virtual list and 3-phase schema for realtime sync using electric sql ([5748960](https://github.com/unoplat/unoplat-code-confluence/commit/5748960ac9a2b98792cee3ff715c412a3c1dfb3b))
+* **ui-dependencies:** reduce dependency token churn by introducing fa… ([5473831](https://github.com/unoplat/unoplat-code-confluence/commit/5473831a81739551d76eeea2bee906cab8ea5edf))
+
 ## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.44.0...unoplat-code-confluence-commons-v0.45.0) (2026-03-08)
 
 
