@@ -2,6 +2,7 @@ from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 from unoplat_code_confluence_commons.credential_enums import ProviderKey
 
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -10,6 +11,8 @@ from sqlalchemy import (
     DateTime,
     Enum as SQLEnum,
     ForeignKeyConstraint,
+    Index,
+    Integer,
     Numeric,
     String,
     func,
@@ -274,6 +277,217 @@ class CodebaseWorkflowRun(SQLBase):
     )
 
 
+class RepositoryAgentCodebaseProgress(SQLBase):
+    """Live per-codebase progress row for repository agent execution."""
+
+    __tablename__ = "repository_agent_codebase_progress"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["repository_name", "repository_owner_name"],
+            ["repository.repository_name", "repository.repository_owner_name"],
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            [
+                "repository_name",
+                "repository_owner_name",
+                "repository_workflow_run_id",
+            ],
+            [
+                "repository_workflow_run.repository_name",
+                "repository_workflow_run.repository_owner_name",
+                "repository_workflow_run.repository_workflow_run_id",
+            ],
+            ondelete="CASCADE",
+        ),
+        Index(
+            "ix_repository_agent_codebase_progress_run",
+            "repository_owner_name",
+            "repository_name",
+            "repository_workflow_run_id",
+        ),
+    )
+
+    repository_name: Mapped[str] = mapped_column(
+        primary_key=True, comment="The name of the repository"
+    )
+    repository_owner_name: Mapped[str] = mapped_column(
+        primary_key=True, comment="The name of the repository owner"
+    )
+    repository_workflow_run_id: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="The run ID of the repository workflow this progress row belongs to",
+    )
+    codebase_name: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="Codebase identifier/path relative to the repository root",
+    )
+    next_event_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1,
+        comment="Next monotonic event ID to allocate for this codebase stream",
+    )
+    latest_event_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True,
+        default=None,
+        comment="Most recently allocated event ID for this codebase stream",
+    )
+    event_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        comment="Number of persisted events for this codebase stream",
+    )
+    progress: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2),
+        nullable=False,
+        default=0,
+        comment="Progress percentage for this codebase stream",
+    )
+    completed_namespaces: Mapped[List[str]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=list,
+        comment="Sorted list of completion namespaces already finished for this codebase",
+    )
+    latest_event_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        comment="Timestamp of the most recent persisted event for this codebase",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
+        nullable=False,
+        comment="Timestamp when the row was first inserted",
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+        comment="Timestamp when the row was last updated",
+    )
+
+
+class RepositoryAgentEvent(SQLBase):
+    """Durable append-only repository agent event history row."""
+
+    __tablename__ = "repository_agent_event"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["repository_name", "repository_owner_name"],
+            ["repository.repository_name", "repository.repository_owner_name"],
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            [
+                "repository_name",
+                "repository_owner_name",
+                "repository_workflow_run_id",
+            ],
+            [
+                "repository_workflow_run.repository_name",
+                "repository_workflow_run.repository_owner_name",
+                "repository_workflow_run.repository_workflow_run_id",
+            ],
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            [
+                "repository_name",
+                "repository_owner_name",
+                "repository_workflow_run_id",
+                "codebase_name",
+            ],
+            [
+                "repository_agent_codebase_progress.repository_name",
+                "repository_agent_codebase_progress.repository_owner_name",
+                "repository_agent_codebase_progress.repository_workflow_run_id",
+                "repository_agent_codebase_progress.codebase_name",
+            ],
+            ondelete="CASCADE",
+        ),
+        Index(
+            "ix_repository_agent_event_run_codebase_order",
+            "repository_owner_name",
+            "repository_name",
+            "repository_workflow_run_id",
+            "codebase_name",
+            "event_id",
+        ),
+    )
+
+    repository_name: Mapped[str] = mapped_column(
+        primary_key=True, comment="The name of the repository"
+    )
+    repository_owner_name: Mapped[str] = mapped_column(
+        primary_key=True, comment="The name of the repository owner"
+    )
+    repository_workflow_run_id: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="The run ID of the repository workflow this event belongs to",
+    )
+    codebase_name: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="Codebase identifier/path relative to the repository root",
+    )
+    event_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        comment="Monotonic event ID within a repository workflow run and codebase",
+    )
+    event: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        comment="Event namespace or agent name that emitted this row",
+    )
+    phase: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        comment="Lifecycle phase for the event (tool.call, tool.result, result)",
+    )
+    message: Mapped[Optional[str]] = mapped_column(
+        String,
+        nullable=True,
+        default=None,
+        comment="Human-readable event message when present",
+    )
+    tool_name: Mapped[Optional[str]] = mapped_column(
+        String,
+        nullable=True,
+        default=None,
+        comment="Tool name for tool-related events when present",
+    )
+    tool_call_id: Mapped[Optional[str]] = mapped_column(
+        String,
+        nullable=True,
+        default=None,
+        comment="Tool call identifier when present",
+    )
+    tool_args: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=None,
+        comment="Structured tool arguments when available",
+    )
+    tool_result_content: Mapped[Optional[str]] = mapped_column(
+        String,
+        nullable=True,
+        default=None,
+        comment="Captured tool result content when available",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
+        nullable=False,
+        comment="Timestamp when the event row was inserted",
+    )
+
+
 class RepositoryAgentMdSnapshot(SQLBase):
     """SQLModel for repository_agent_md_snapshot table in code_confluence schema."""
 
@@ -309,34 +523,6 @@ class RepositoryAgentMdSnapshot(SQLBase):
         primary_key=True,
         comment="The run ID of the repository workflow this snapshot belongs to",
     )
-    events: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
-        nullable=False,
-        default=dict,
-        comment="Events and progress captured during agent execution",
-    )
-
-    event_counters: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
-        nullable=False,
-        default=dict,
-        comment=(
-            "Per-codebase event ID seeds to ensure monotonic append across workers,"
-            ' e.g., {"codebase": {"next_id": 7}}.sequence number for this codebase’s event stream'
-        ),
-    )
-
-    codebase_progress: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
-        nullable=False,
-        default=dict,
-        comment=(
-            "Per-codebase progress state persisted in the DB:"
-            ' {"codebase": {"progress": 66.67,'
-            ' "completed_namespaces": ["project_configuration_agent"]}}'
-        ),
-    )
-
     agent_md_output: Mapped[Dict[str, Any]] = mapped_column(
         JSONB,
         nullable=False,
@@ -348,7 +534,7 @@ class RepositoryAgentMdSnapshot(SQLBase):
         default=None,
         comment="Aggregated usage and pricing statistics for the latest agent workflow",
     )
-    overall_progress: Mapped[Optional[float]] = mapped_column(
+    overall_progress: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(5, 2),
         nullable=True,
         default=None,

@@ -63,3 +63,30 @@ bun eslint src/path/file.tsx    # Lint single file
 ## Operating Instructions
 1. Use Context7 docs for dependency versions | Check existing code before changes | Structure: exported component → subcomponents → helpers → types
 2. When in read mode always remember to raise access from user for any command that you want to execute.
+
+<!-- intent-skills:start -->
+# Skill mappings — when working in these areas, load the linked skill file into context.
+skills:
+  - task: "Using TanStack DB React hooks (useLiveQuery, useLiveSuspenseQuery, useLiveInfiniteQuery, usePacedMutations) for live collections and optimistic updates"
+    load: "node_modules/@tanstack/react-db/skills/react-db/SKILL.md"
+  - task: "Configuring Electric ShapeStream options for syncing Postgres tables"
+    load: "node_modules/@electric-sql/client/skills/electric-shapes/SKILL.md"
+  - task: "Designing Postgres schemas and Electric shape WHERE clauses for new synced features"
+    load: "node_modules/@electric-sql/client/skills/electric-schema-shapes/SKILL.md"
+  - task: "Adding a new real-time synced feature end-to-end with Electric and TanStack DB"
+    load: "node_modules/@electric-sql/client/skills/electric-new-feature/SKILL.md"
+  - task: "Debugging Electric sync issues (shapes not updating, stale cache, proxy buffering)"
+    load: "node_modules/@electric-sql/client/skills/electric-debugging/SKILL.md"
+  - task: "Deploying or configuring Electric SQL via Docker or Docker Compose"
+    load: "node_modules/@electric-sql/client/skills/electric-deployment/SKILL.md"
+  - task: "Setting up server-side Electric proxy routes, CORS headers, or auth for shapes"
+    load: "node_modules/@electric-sql/client/skills/electric-proxy-auth/SKILL.md"
+  - task: "Securing Postgres for Electric deployment (replication roles, SELECT grants, REPLICA IDENTITY, publication config)"
+    load: "node_modules/@electric-sql/client/skills/electric-postgres-security/SKILL.md"
+  - task: "Creating or modifying TanStack DB collections with Electric adapter options"
+    load: "node_modules/@tanstack/db/skills/db-core/collection-setup/SKILL.md"
+  - task: "Writing TanStack DB live queries with the query builder (from, where, join, select, orderBy)"
+    load: "node_modules/@tanstack/db/skills/db-core/live-queries/SKILL.md"
+  - task: "Adding optimistic mutations to TanStack DB collections (insert, update, delete, transactions)"
+    load: "node_modules/@tanstack/db/skills/db-core/mutations-optimistic/SKILL.md"
+<!-- intent-skills:end -->

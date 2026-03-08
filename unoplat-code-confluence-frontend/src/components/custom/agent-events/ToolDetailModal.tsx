@@ -121,9 +121,14 @@ export function ToolDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[560px] gap-0 p-0">
-        <DialogHeader className="border-border border-b px-5 py-4">
-          <div className="flex items-center gap-3 pr-8">
+      <DialogContent
+        size="md"
+        padding="none"
+        gap="none"
+        className="max-h-[85vh]"
+      >
+        <DialogHeader className="border-border border-b px-3 py-3 sm:px-5 sm:py-4">
+          <div className="flex items-center gap-2 pr-8 sm:gap-3">
             <Badge
               variant="secondary"
               className="h-5 rounded-sm border-0 px-2 text-[10px] tracking-wide uppercase"
@@ -137,7 +142,7 @@ export function ToolDetailModal({
           </div>
         </DialogHeader>
 
-        <div className="space-y-5 px-5 py-4">
+        <div className="space-y-3 overflow-y-auto px-3 py-3 sm:space-y-5 sm:px-5 sm:py-4">
           <section className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-xs tracking-wide uppercase">
@@ -158,8 +163,8 @@ export function ToolDetailModal({
               </Button>
             </div>
 
-            <ScrollArea className="bg-muted/40 h-[106px] rounded-md border p-3">
-              <pre className="font-mono text-xs whitespace-pre-wrap">
+            <ScrollArea className="bg-muted/40 h-[80px] rounded-md border p-2 sm:h-[106px] sm:p-3">
+              <pre className="font-mono text-[11px] break-all whitespace-pre-wrap sm:text-xs sm:break-normal">
                 {formattedArgs}
               </pre>
             </ScrollArea>
@@ -175,7 +180,7 @@ export function ToolDetailModal({
               </div>
               <div className="bg-border h-px flex-1" />
               {sourceHint ? (
-                <span className="text-muted-foreground max-w-[140px] truncate text-[11px]">
+                <span className="text-muted-foreground max-w-[100px] truncate text-[10px] sm:max-w-[140px] sm:text-[11px]">
                   {sourceHint}
                 </span>
               ) : null}
@@ -193,8 +198,8 @@ export function ToolDetailModal({
               </Button>
             </div>
 
-            <ScrollArea className="h-[200px] rounded-md bg-zinc-950 p-3">
-              <pre className="font-mono text-xs whitespace-pre-wrap text-zinc-100">
+            <ScrollArea className="h-[140px] rounded-md bg-zinc-950 p-2 sm:h-[200px] sm:p-3">
+              <pre className="font-mono text-[11px] break-all whitespace-pre-wrap text-zinc-100 sm:text-xs sm:break-normal">
                 {fullResult}
               </pre>
             </ScrollArea>

@@ -753,7 +753,7 @@ Output constraints:
         tools=[
             Tool(updater_read_file, takes_ctx=True, max_retries=2),
             Tool(updater_edit_file, takes_ctx=True, max_retries=2),
-            Tool(updater_apply_patch, takes_ctx=True, max_retries=2),
+            Tool(updater_apply_patch, takes_ctx=True, max_retries=4, docstring_format='google'),
         ],
         output_type=AgentsMdUpdaterOutput,
         output_retries=2,
