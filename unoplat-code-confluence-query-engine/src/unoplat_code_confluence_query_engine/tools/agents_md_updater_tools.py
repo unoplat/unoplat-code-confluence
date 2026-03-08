@@ -92,7 +92,7 @@ def _parse_patch_operations(patch_text: str) -> list[PatchOperation]:
     index = 1
     while index < len(lines) - 1:
         header = lines[index]
-        if header.startswith("*** Add File: "):
+        if header.startswith("*** Add File: ") or header.startswith("*** Create File: "):
             operation, index = _parse_add_operation(lines, index)
             operations.append(operation)
             continue
@@ -109,7 +109,7 @@ def _parse_patch_operations(patch_text: str) -> list[PatchOperation]:
             operation, index = _parse_update_operation(lines, index)
             operations.append(operation)
             continue
-        if header == "*** End of File":
+        if header.lower() == "*** end of file":
             index += 1
             continue
         raise ModelRetry(f"invalid_patch: unknown operation header '{header}'")
@@ -121,7 +121,10 @@ def _parse_patch_operations(patch_text: str) -> list[PatchOperation]:
 
 def _parse_add_operation(lines: list[str], index: int) -> tuple[PatchOperation, int]:
     header = lines[index]
-    file_path = header.removeprefix("*** Add File: ").strip()
+    if header.startswith("*** Create File: "):
+        file_path = header.removeprefix("*** Create File: ").strip()
+    else:
+        file_path = header.removeprefix("*** Add File: ").strip()
     if not file_path:
         raise ModelRetry("invalid_patch: add operation missing file path")
 
@@ -311,7 +314,53 @@ async def updater_apply_patch(
     ctx: RunContext[AgentDependencies],
     patch_text: str,
 ) -> dict[str, str | int]:
-    """Apply OpenCode-style patch with full validation before writes."""
+    """Apply a patch to edit files.
+
+    The patch language is a stripped-down, file-oriented diff format.
+    The high-level envelope is:
+
+    *** Begin Patch
+    [ one or more file sections ]
+    *** End Patch
+
+    Within that envelope, you get a sequence of file operations.
+    You MUST include a header to specify the action you are taking.
+    Each operation starts with one of three headers:
+
+    *** Add File: <absolute_path> — create a new file. Every following line is a + line (the initial contents).
+    *** Delete File: <absolute_path> — remove an existing file. Nothing follows.
+    *** Update File: <absolute_path> — patch an existing file in place.
+
+    Update file chunks start with '@@' (optional hint after it) followed by diff lines:
+    - Lines starting with ' ' (space) are context (anchoring, appear in both old and new text).
+    - Lines starting with '-' are removed from old text.
+    - Lines starting with '+' are added to new text.
+    - Empty lines are treated as blank context.
+
+    Example patch:
+
+    *** Begin Patch
+    *** Add File: /opt/repo/new_file.md
+    +# New File
+    +Content here.
+    *** Update File: /opt/repo/AGENTS.md
+    @@ ## Business Logic Domain
+     ## Business Logic Domain
+    -Old description line
+    +New description line
+     Unchanged context line
+    *** Delete File: /opt/repo/obsolete.md
+    *** End Patch
+
+    It is important to remember:
+    - You must include a header with your intended action (Add/Delete/Update).
+    - You must prefix new lines with '+' even when creating a new file.
+    - All file paths MUST be absolute and within the current codebase root.
+
+    Args:
+        patch_text: The full patch string in the format described above,
+            wrapped in '*** Begin Patch' / '*** End Patch' envelope.
+    """
     operations = _parse_patch_operations(patch_text)
 
     planned_writes: dict[Path, str | None] = {}
