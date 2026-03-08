@@ -1,11 +1,13 @@
 # Changelog
 
-## [0.72.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.71.0...code-confluence-flow-bridge-v0.72.0) (2026-03-06)
+## [0.72.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.71.0...code-confluence-flow-bridge-v0.72.0) (2026-03-08)
 
 
 ### Features
 
 * **add-model-provider:** add aws bedrock model provider (manually tested) and added native web search for all providers who do not support native web search or user has not configured exa ([80336ed](https://github.com/unoplat/unoplat-code-confluence/commit/80336edfb27dc9e63049dba9e7d5efdf39123067))
+* **add-more-python-typescript-frameworks:** libs/frameworks added ([92f7175](https://github.com/unoplat/unoplat-code-confluence/commit/92f717566b731966b177ce6e9adb515b7685379a))
+* **call-expression-validation:** trust definition confidence and validate TS app interfaces ([febc30f](https://github.com/unoplat/unoplat-code-confluence/commit/febc30fdaba1727a1b55dc08964fcb258b12fe87))
 * **confidence:** add schema and ingestion contracts for usage confidence metadata ([f71b085](https://github.com/unoplat/unoplat-code-confluence/commit/f71b085d653de9c339f0ffb615a4d07863fadd98))
 * **create-feedback-github-issue-url:** support operation in a separate router ([96b0aec](https://github.com/unoplat/unoplat-code-confluence/commit/96b0aeca2eb5e8b65d3513edcb830840c17e05f5))
 * **create-feedback-github-issue-url:** support operation in a separate router ([d5056d3](https://github.com/unoplat/unoplat-code-confluence/commit/d5056d370f3c8d6bd8aacc525df1948602854005))
@@ -46,6 +48,7 @@
 * **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([844b782](https://github.com/unoplat/unoplat-code-confluence/commit/844b782f8ffba60fefa2a2aeb40b486659df1ecd))
 * **refactor:** move from structural signature based detection of fram… ([e44d26f](https://github.com/unoplat/unoplat-code-confluence/commit/e44d26f3fb281f2ee5d569209215d0813d8d4d41))
 * **refactor:** move from structural signature based detection of framework/libs to direct source code and import based and also remove variable bound strategy from schema as it is brittle and can easily break. ([059e8da](https://github.com/unoplat/unoplat-code-confluence/commit/059e8daec3c3d08405df757019bb31262329fb84))
+* **remove-react:** react react feature detection as of now ([1f79e53](https://github.com/unoplat/unoplat-code-confluence/commit/1f79e5374498c75903c7ff84402b2f1f7db8fe0c))
 * **standardise-github-issue:** error collection ,creation and submission ([36124e2](https://github.com/unoplat/unoplat-code-confluence/commit/36124e255a9d70366085ed5075867e50ab70ad09))
 * **standardise-github-issue:** error collection ,creation and submission ([79d0cab](https://github.com/unoplat/unoplat-code-confluence/commit/79d0cabfbea89ba6aaeaadf5202c606b536c6850))
 * tests and docs ([728c897](https://github.com/unoplat/unoplat-code-confluence/commit/728c897bb75bd78d1cb70e657d879c773b2282a3))

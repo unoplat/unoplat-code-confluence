@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.37.0...unoplat-code-confluence-docs-v0.38.0) (2026-03-08)
+
+
+### Features
+
+* **add-more-python-typescript-frameworks:** libs/frameworks added ([92f7175](https://github.com/unoplat/unoplat-code-confluence/commit/92f717566b731966b177ce6e9adb515b7685379a))
+* **call-expression-validation:** trust definition confidence and validate TS app interfaces ([febc30f](https://github.com/unoplat/unoplat-code-confluence/commit/febc30fdaba1727a1b55dc08964fcb258b12fe87))
+
+
+### Bug Fixes
+
+* **remove-react:** react react feature detection as of now ([1f79e53](https://github.com/unoplat/unoplat-code-confluence/commit/1f79e5374498c75903c7ff84402b2f1f7db8fe0c))
+
 ## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.36.1...unoplat-code-confluence-docs-v0.37.0) (2026-02-28)
 
 
