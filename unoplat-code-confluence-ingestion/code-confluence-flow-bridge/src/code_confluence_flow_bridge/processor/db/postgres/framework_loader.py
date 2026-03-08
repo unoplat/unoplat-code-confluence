@@ -21,6 +21,41 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
 logger = logging.getLogger(__name__)
 
 
+def _normalize_concept_name(raw_concept: object) -> str:
+    if raw_concept in {
+        "AnnotationLike",
+        "CallExpression",
+        "Inheritance",
+        "FunctionDefinition",
+    }:
+        return cast(str, raw_concept)
+    return "AnnotationLike"
+
+
+def _normalize_base_confidence(payload_data: Dict[str, Any]) -> None:
+    concept_name = cast(str, payload_data["concept"])
+    if concept_name != "CallExpression":
+        if "base_confidence" in payload_data:
+            raise ValueError(
+                "base_confidence is supported only for CallExpression features"
+            )
+        return
+
+    base_confidence = payload_data.get("base_confidence")
+    if not isinstance(base_confidence, (int, float)) or isinstance(
+        base_confidence, bool
+    ):
+        raise ValueError(
+            "CallExpression features must define explicit numeric base_confidence"
+        )
+
+    numeric_confidence = float(base_confidence)
+    if not 0.0 <= numeric_confidence <= 1.0:
+        raise ValueError("CallExpression base_confidence must be between 0.0 and 1.0")
+
+    payload_data["base_confidence"] = numeric_confidence
+
+
 class FrameworkDefinitionLoader:
     """Handles bulk loading of framework definitions at application startup."""
 
@@ -135,6 +170,10 @@ class FrameworkDefinitionLoader:
                     feature_definition: dict[str, object] = (
                         normalized_payload.model_dump(mode="json", exclude_none=False)
                     )
+                    if feature_definition.get("concept") != "CallExpression":
+                        feature_definition.pop("base_confidence", None)
+                    elif feature_definition.get("base_confidence") is None:
+                        feature_definition.pop("base_confidence", None)
 
                     # Create FrameworkFeature record with new schema fields
                     features.append(
@@ -180,28 +219,11 @@ class FrameworkDefinitionLoader:
         if not isinstance(payload_data.get("construct_query"), dict):
             payload_data["construct_query"] = None
 
-        base_confidence = payload_data.get("base_confidence")
-        if isinstance(base_confidence, (int, float)) and not isinstance(
-            base_confidence, bool
-        ):
-            numeric_confidence = float(base_confidence)
-            if 0.0 <= numeric_confidence <= 1.0:
-                payload_data["base_confidence"] = numeric_confidence
-            else:
-                payload_data["base_confidence"] = 0.85
-        else:
-            payload_data["base_confidence"] = 0.85
+        payload_data["concept"] = _normalize_concept_name(payload_data.get("concept"))
+        _normalize_base_confidence(payload_data)
 
         if payload_data.get("target_level") not in {"function", "class"}:
             payload_data["target_level"] = "function"
-
-        if payload_data.get("concept") not in {
-            "AnnotationLike",
-            "CallExpression",
-            "Inheritance",
-            "FunctionDefinition",
-        }:
-            payload_data["concept"] = "AnnotationLike"
 
         if payload_data.get("locator_strategy") not in {
             "VariableBound",

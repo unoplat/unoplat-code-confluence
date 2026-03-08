@@ -13,7 +13,9 @@
             "litellm.main.acompletion"
           ],
           "target_level": "function",
-          "concept": "CallExpression"
+          "concept": "CallExpression",
+          "base_confidence": 0.69,
+          "notes": "Validator should confirm the call resolves to LiteLLM imports or aliases from the current file. Generic names like `completion(...)` should be rejected unless the import provenance clearly points to LiteLLM and the arguments resemble an LLM request payload."
         },
         "llm_embedding": {
           "description": "Sync/async LiteLLM embedding generation calls.",
@@ -24,7 +26,9 @@
             "litellm.main.aembedding"
           ],
           "target_level": "function",
-          "concept": "CallExpression"
+          "concept": "CallExpression",
+          "base_confidence": 0.69,
+          "notes": "Validator should confirm the embedding helper is imported from LiteLLM or a bound alias. Reject local `embedding(...)` helpers unless import provenance and call arguments clearly match LiteLLM embedding usage."
         }
       }
     }

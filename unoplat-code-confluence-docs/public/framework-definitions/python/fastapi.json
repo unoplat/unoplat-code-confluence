@@ -23,7 +23,8 @@
             "fastapi.BackgroundTasks"
           ],
           "target_level": "function",
-          "concept": "CallExpression"
+          "concept": "CallExpression",
+          "base_confidence": 0.88
         },
         "api_router": {
           "description": "Route organization using APIRouter",

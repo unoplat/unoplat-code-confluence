@@ -106,8 +106,7 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "default": 0.85,
-          "description": "Baseline confidence for this feature definition; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
+          "description": "Contributor-authored confidence for CallExpression feature definitions only; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
         },
         "startpoint": {
           "type": "boolean",
@@ -134,6 +133,58 @@
               "target_level": {
                 "const": "function"
               }
+            },
+            "required": [
+              "base_confidence"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "CallExpression"
+              },
+              "base_confidence": {
+                "type": "number",
+                "exclusiveMaximum": 0.7
+              }
+            },
+            "required": [
+              "concept",
+              "base_confidence"
+            ]
+          },
+          "then": {
+            "required": [
+              "notes"
+            ],
+            "properties": {
+              "notes": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "not": {
+                  "const": "CallExpression"
+                }
+              }
+            },
+            "required": [
+              "concept"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "base_confidence"
+              ]
             }
           }
         },

@@ -14,7 +14,8 @@
           "description": "Relationship definition between SQLModel models",
           "absolute_paths": ["sqlmodel.Relationship"],
           "target_level": "function",
-          "concept": "CallExpression"
+          "concept": "CallExpression",
+          "base_confidence": 0.86
         }
       }
     }

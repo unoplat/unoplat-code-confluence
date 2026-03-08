@@ -13,7 +13,6 @@
             "function_name_regex": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS)$",
             "export_name_regex": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS)$"
           },
-          "base_confidence": 0.95,
           "startpoint": true
         }
       }

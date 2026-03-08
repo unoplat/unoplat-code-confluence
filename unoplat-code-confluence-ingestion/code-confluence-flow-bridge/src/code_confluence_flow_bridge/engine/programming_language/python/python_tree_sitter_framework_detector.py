@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from dataclasses import dataclass
+from typing import Dict, List, Literal, Optional
 
-import tree_sitter
 from loguru import logger
+import tree_sitter
 from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
@@ -43,45 +44,116 @@ def _is_feature_imported(
     return False
 
 
+CallMatchKind = Literal[
+    "no_match",
+    "symbol_exact",
+    "import_alias_exact",
+    "module_member_exact",
+    "root_module_member_exact",
+]
+
+
+@dataclass(frozen=True)
+class CallMatchEvidence:
+    matched: bool
+    match_kind: CallMatchKind
+    matched_absolute_path: str
+    matched_alias: str | None
+
+
+NO_CALL_MATCH_EVIDENCE = CallMatchEvidence(
+    matched=False,
+    match_kind="no_match",
+    matched_absolute_path="",
+    matched_alias=None,
+)
+
+CALL_EXPRESSION_MATCH_POLICY_VERSION = "v1_import_bound"
+
+
+def _resolve_call_expression_confidence(spec: FeatureSpec) -> float:
+    return float(spec.base_confidence)
+
+
+def _build_call_expression_metadata(
+    *,
+    spec: FeatureSpec,
+    call_match_evidence: CallMatchEvidence,
+) -> dict[str, object]:
+    metadata: dict[str, object] = {
+        "concept": "CallExpression",
+        "source": "tree_sitter",
+        "match_confidence": _resolve_call_expression_confidence(spec),
+        "call_match_kind": call_match_evidence.match_kind,
+        "matched_absolute_path": call_match_evidence.matched_absolute_path,
+        "call_match_policy_version": CALL_EXPRESSION_MATCH_POLICY_VERSION,
+    }
+    if call_match_evidence.matched_alias is not None:
+        metadata["matched_alias"] = call_match_evidence.matched_alias
+    return metadata
+
+
 def _matches_callee(
     callee_text: str, absolute_paths: List[str], import_aliases: Dict[str, str]
-) -> bool:
+) -> CallMatchEvidence:
     for abs_path in absolute_paths:
-        short_name = abs_path.split(".")[-1]
-        if callee_text == short_name:
-            return True
-        if callee_text.endswith(f".{short_name}"):
-            return True
+        path_parts = abs_path.split(".")
+        short_name = path_parts[-1]
+        module_path = ".".join(path_parts[:-1])
+
         if abs_path in import_aliases:
             alias = import_aliases[abs_path]
-            if callee_text == alias or callee_text.endswith(f".{alias}"):
-                return True
-        module_parts = abs_path.split(".")
-        if len(module_parts) >= 2:
-            module_name = module_parts[0]
-            if module_name in import_aliases:
-                module_alias = import_aliases[module_name]
-                if callee_text == f"{module_alias}.{short_name}":
-                    return True
-    return False
+            if callee_text == alias:
+                match_kind: CallMatchKind = (
+                    "symbol_exact" if alias == short_name else "import_alias_exact"
+                )
+                return CallMatchEvidence(
+                    matched=True,
+                    match_kind=match_kind,
+                    matched_absolute_path=abs_path,
+                    matched_alias=alias,
+                )
+
+        if module_path and module_path in import_aliases:
+            module_alias = import_aliases[module_path]
+            if callee_text == f"{module_alias}.{short_name}":
+                return CallMatchEvidence(
+                    matched=True,
+                    match_kind="module_member_exact",
+                    matched_absolute_path=abs_path,
+                    matched_alias=module_alias,
+                )
+
+        root_module = path_parts[0]
+        if root_module in import_aliases:
+            root_module_alias = import_aliases[root_module]
+            if callee_text == f"{root_module_alias}.{short_name}":
+                return CallMatchEvidence(
+                    matched=True,
+                    match_kind="root_module_member_exact",
+                    matched_absolute_path=abs_path,
+                    matched_alias=root_module_alias,
+                )
+
+    return NO_CALL_MATCH_EVIDENCE
 
 
 def _matches_superclass(
     superclass_text: str, absolute_paths: List[str], import_aliases: Dict[str, str]
 ) -> bool:
     for abs_path in absolute_paths:
-        short_name = abs_path.split(".")[-1]
-        if superclass_text == short_name or superclass_text.endswith(f".{short_name}"):
-            return True
+        path_parts = abs_path.split(".")
+        short_name = path_parts[-1]
+        module_path = ".".join(path_parts[:-1])
+
         if abs_path in import_aliases and superclass_text == import_aliases[abs_path]:
             return True
-        module_parts = abs_path.split(".")
-        if len(module_parts) >= 2:
-            module_name = module_parts[0]
-            if module_name in import_aliases:
-                module_alias = import_aliases[module_name]
-                if superclass_text == f"{module_alias}.{short_name}":
-                    return True
+
+        if module_path and module_path in import_aliases:
+            module_alias = import_aliases[module_path]
+            if superclass_text == f"{module_alias}.{short_name}":
+                return True
+
     return False
 
 
@@ -220,9 +292,10 @@ class PythonTreeSitterFrameworkDetector:
                 continue
 
             callee_text = _extract_node_text(context.source_bytes, callee)
-            if not _matches_callee(
+            call_match_evidence = _matches_callee(
                 callee_text, spec.absolute_paths, context.import_aliases
-            ):
+            )
+            if not call_match_evidence.matched:
                 continue
 
             match_text = _extract_node_text(context.source_bytes, call_expression)
@@ -241,10 +314,10 @@ class PythonTreeSitterFrameworkDetector:
                     end_line=call_expression.end_point[0] + 1,
                     callee=callee_text,
                     args_text=args_text,
-                    metadata={
-                        "concept": "CallExpression",
-                        "source": "tree_sitter",
-                    },
+                    metadata=_build_call_expression_metadata(
+                        spec=spec,
+                        call_match_evidence=call_match_evidence,
+                    ),
                 )
             )
 
