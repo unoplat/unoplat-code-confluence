@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.72.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.0...code-confluence-flow-bridge-v0.72.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* **ingestion-test:** include base confidence for call-expression specs ([6db3341](https://github.com/unoplat/unoplat-code-confluence/commit/6db33410ef22dafafdbb9883f1e56dc0ef4e9227))
+* **perf:** virtual list and 3-phase schema for realtime sync using electric sql ([5748960](https://github.com/unoplat/unoplat-code-confluence/commit/5748960ac9a2b98792cee3ff715c412a3c1dfb3b))
+* **ui-dependencies:** reduce dependency token churn by introducing fa… ([5473831](https://github.com/unoplat/unoplat-code-confluence/commit/5473831a81739551d76eeea2bee906cab8ea5edf))
+
 ## [0.72.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.71.0...code-confluence-flow-bridge-v0.72.0) (2026-03-08)
 
 

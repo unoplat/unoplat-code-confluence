@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.37.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.0...unoplat-code-confluence-query-engine-v0.37.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* **file-update-tool:** enrich updater_apply_patch docstring with full patch format spec and add parser resilience ([30e72ea](https://github.com/unoplat/unoplat-code-confluence/commit/30e72ea5bff9c21da0f85b6a8eb245af72a6556d))
+* **perf:** virtual list and 3-phase schema for realtime sync using electric sql ([5748960](https://github.com/unoplat/unoplat-code-confluence/commit/5748960ac9a2b98792cee3ff715c412a3c1dfb3b))
+* **query-engine-test:** align snapshot tests with normalized event schema ([7d27081](https://github.com/unoplat/unoplat-code-confluence/commit/7d270816929bd0ae778ddd4636718f3fd4ffdfff))
+* **ui-dependencies:** reduce dependency token churn by introducing fa… ([5473831](https://github.com/unoplat/unoplat-code-confluence/commit/5473831a81739551d76eeea2bee906cab8ea5edf))
+* **ui-dependencies:** reduce dependency token churn by introducing family level filter for ui components' libs ([1722e08](https://github.com/unoplat/unoplat-code-confluence/commit/1722e089775a339a23fccc64c1b166ecb0d070f9))
+
 ## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.36.0...unoplat-code-confluence-query-engine-v0.37.0) (2026-03-08)
 
 
