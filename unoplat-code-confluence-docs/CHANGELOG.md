@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.38.0...unoplat-code-confluence-docs-v0.39.0) (2026-03-08)
+
+
+### Features
+
+* **docs:** roadmap added for skills and blueprint generation ([c98c269](https://github.com/unoplat/unoplat-code-confluence/commit/c98c2695044d42eeb75093be3bab75c89a9bd617))
+* **docs:** roadmap added for skills and blueprint generation ([8fe9921](https://github.com/unoplat/unoplat-code-confluence/commit/8fe9921f764179e064cc0e092f1877d742946643))
+
 ## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.37.0...unoplat-code-confluence-docs-v0.38.0) (2026-03-08)
 
 
