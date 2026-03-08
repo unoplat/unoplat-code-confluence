@@ -1,15 +1,27 @@
-import { useLiveQuery } from "@tanstack/react-db";
+import { useLiveInfiniteQuery, useLiveQuery } from "@tanstack/react-db";
 
 import {
+  getRepositoryAgentCodebaseProgressCollection,
+  getRepositoryAgentEventCollection,
   getRepositoryAgentSnapshotCollection,
-  type RepositoryAgentSnapshotScope,
+  type RepositoryAgentCodebaseProgressCollection,
+  type RepositoryAgentEventCollection,
   type RepositoryAgentSnapshotCollection,
+  type RepositoryAgentSnapshotScope,
 } from "./collection";
 import {
+  parseCodebaseProgressRows,
+  parseSnapshotRow,
   type ParsedRepositoryAgentSnapshot,
-  useParsedSnapshot,
+  type RepositoryAgentCodebaseState,
 } from "./transformers";
-import type { RepositoryAgentSnapshotRow } from "./schema";
+import type {
+  RepositoryAgentCodebaseProgressRow,
+  RepositoryAgentEvent,
+  RepositoryAgentSnapshotRow,
+} from "./schema";
+
+const defaultHistoryPageSize = 50;
 
 export interface UseRepositoryAgentSnapshotResult {
   snapshotRow: RepositoryAgentSnapshotRow | undefined;
@@ -21,31 +33,40 @@ export interface UseRepositoryAgentSnapshotResult {
   collection: RepositoryAgentSnapshotCollection | undefined;
 }
 
-/**
- * Hook to query repository agent snapshot by composite primary key (owner + repository + runId).
- *
- * Uses TanStack DB's useLiveQuery for automatic reactivity - no external memoization needed.
- * Collection instances are cached in a singleton Map (see collection.ts), so retrieval is stable.
- *
- * @param scope - Composite key (owner + repository + runId). Pass null/undefined to skip querying.
- */
+export interface UseRepositoryAgentCodebaseProgressResult {
+  progressRows: RepositoryAgentCodebaseProgressRow[];
+  codebases: RepositoryAgentCodebaseState[];
+  status: string;
+  isLoading: boolean;
+  isReady: boolean;
+  isError: boolean;
+  collection: RepositoryAgentCodebaseProgressCollection | undefined;
+}
+
+export interface UseRepositoryAgentEventHistoryResult {
+  events: RepositoryAgentEvent[];
+  status: string;
+  isLoading: boolean;
+  isReady: boolean;
+  isError: boolean;
+  hasOlderHistory: boolean;
+  isFetchingOlderHistory: boolean;
+  loadOlderHistory: () => void;
+  collection: RepositoryAgentEventCollection;
+}
+
 export function useRepositoryAgentSnapshot(
   scope: RepositoryAgentSnapshotScope | null | undefined,
 ): UseRepositoryAgentSnapshotResult {
-  // Get or create collection from singleton cache
-  // No memoization needed - getRepositoryAgentSnapshotCollection handles caching internally
   const collection = scope
     ? getRepositoryAgentSnapshotCollection(scope)
     : undefined;
-
-  // Lifecycle is handled by the collection itself (startSync/gcTime).
-  // Sync starts when the first live query subscribes and GC runs after gcTime.
-
-  // useLiveQuery handles all reactivity internally via D2S (differential dataflow)
-  // Collection reference is stable from singleton cache
   const liveQueryResult = useLiveQuery(
     (q) => {
-      if (!collection) return undefined;
+      if (!collection) {
+        return undefined;
+      }
+
       return q.from({ snapshots: collection });
     },
     [collection],
@@ -54,15 +75,82 @@ export function useRepositoryAgentSnapshot(
   const snapshotRow = liveQueryResult?.data?.[0] as
     | RepositoryAgentSnapshotRow
     | undefined;
-  const parsedSnapshot = useParsedSnapshot(snapshotRow);
 
   return {
     snapshotRow,
-    parsedSnapshot,
+    parsedSnapshot: snapshotRow ? parseSnapshotRow(snapshotRow) : null,
     status: liveQueryResult?.status || "idle",
     isLoading: liveQueryResult?.isLoading || false,
     isReady: liveQueryResult?.isReady || false,
     isError: liveQueryResult?.isError || false,
+    collection,
+  };
+}
+
+export function useRepositoryAgentCodebaseProgress(
+  scope: RepositoryAgentSnapshotScope | null | undefined,
+): UseRepositoryAgentCodebaseProgressResult {
+  const collection = scope
+    ? getRepositoryAgentCodebaseProgressCollection(scope)
+    : undefined;
+  const liveQueryResult = useLiveQuery(
+    (q) => {
+      if (!collection) {
+        return undefined;
+      }
+
+      return q
+        .from({ progress: collection })
+        .orderBy(({ progress }) => progress.codebase_name, "asc");
+    },
+    [collection],
+  );
+
+  const progressRows = (liveQueryResult?.data ?? []) as Array<RepositoryAgentCodebaseProgressRow>;
+
+  return {
+    progressRows,
+    codebases: parseCodebaseProgressRows(progressRows),
+    status: liveQueryResult?.status || "idle",
+    isLoading: liveQueryResult?.isLoading || false,
+    isReady: liveQueryResult?.isReady || false,
+    isError: liveQueryResult?.isError || false,
+    collection,
+  };
+}
+
+export function useRepositoryAgentEventHistory(
+  scope: RepositoryAgentSnapshotScope,
+  codebaseName: string,
+  pageSize: number = defaultHistoryPageSize,
+): UseRepositoryAgentEventHistoryResult {
+  const normalizedCodebaseName =
+    codebaseName.trim().length > 0 ? codebaseName : "__empty__";
+  const collection = getRepositoryAgentEventCollection({
+    ...scope,
+    codebaseName: normalizedCodebaseName,
+  });
+  const liveQueryResult = useLiveInfiniteQuery(
+    (q) =>
+      q
+        .from({ events: collection })
+        .orderBy(({ events }) => events.event_id, "desc"),
+    {
+      pageSize,
+    },
+    [scope.owner, scope.repository, scope.runId, normalizedCodebaseName, pageSize],
+  );
+  const eventsDescending = (liveQueryResult.data ?? []) as Array<RepositoryAgentEvent>;
+
+  return {
+    events: [...eventsDescending].reverse(),
+    status: liveQueryResult.status,
+    isLoading: liveQueryResult.isLoading,
+    isReady: liveQueryResult.isReady,
+    isError: liveQueryResult.isError,
+    hasOlderHistory: liveQueryResult.hasNextPage,
+    isFetchingOlderHistory: liveQueryResult.isFetchingNextPage,
+    loadOlderHistory: liveQueryResult.fetchNextPage,
     collection,
   };
 }

@@ -1,61 +1,96 @@
 import React from "react";
+
+import { AgentEventItem } from "@/components/custom/agent-events/AgentEventItem";
+import { AgentGroupHeader } from "@/components/custom/agent-events/AgentGroupHeader";
+import { ToolDetailModal } from "@/components/custom/agent-events/ToolDetailModal";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { AgentEventItem } from "@/components/custom/agent-events/AgentEventItem";
-import { AgentGroupHeader } from "@/components/custom/agent-events/AgentGroupHeader";
-import { ToolDetailModal } from "@/components/custom/agent-events/ToolDetailModal";
-import {
-  buildEventDisplayItems,
-  groupEventsByAgent,
-} from "@/lib/agent-events-utils";
-import type {
-  AgentEventsAccordionProps,
-  ToolDetailItem,
-} from "@/types/agent-events";
+import { buildEventDisplayItems, groupEventsByAgent } from "@/lib/agent-events-utils";
+import type { AgentEventsAccordionProps, ToolDetailItem } from "@/types/agent-events";
+
+function getDefaultExpandedGroups(groupIds: string[]): string[] {
+  return groupIds.length > 0 ? [groupIds[0]] : [];
+}
 
 export function AgentEventsAccordion({
   events,
+  completedNamespaces,
 }: AgentEventsAccordionProps): React.ReactElement {
-  const agentGroups = React.useMemo(() => groupEventsByAgent(events), [events]);
-  const [detailItem, setDetailItem] = React.useState<ToolDetailItem | null>(
-    null,
+  const agentGroups = React.useMemo(
+    () => groupEventsByAgent(events, completedNamespaces),
+    [events, completedNamespaces],
   );
+  const [detailItem, setDetailItem] = React.useState<ToolDetailItem | null>(null);
+  const [expandedGroups, setExpandedGroups] = React.useState<string[]>(
+    getDefaultExpandedGroups(agentGroups.map((group) => group.agentId)),
+  );
+
+  React.useEffect(() => {
+    const nextGroupIds = agentGroups.map((group) => group.agentId);
+
+    setExpandedGroups((currentExpandedGroups) => {
+      const filteredExpandedGroups = currentExpandedGroups.filter((groupId) =>
+        nextGroupIds.includes(groupId),
+      );
+
+      if (filteredExpandedGroups.length > 0) {
+        return filteredExpandedGroups;
+      }
+
+      return getDefaultExpandedGroups(nextGroupIds);
+    });
+  }, [agentGroups]);
 
   if (agentGroups.length === 0) {
     return (
-      <p className="text-muted-foreground text-sm">No events available yet.</p>
+      <p className="text-muted-foreground px-3 py-3 text-sm">
+        No events available yet.
+      </p>
     );
   }
 
   return (
     <>
-      <Accordion type="single" collapsible className="w-full space-y-2">
-        {agentGroups.map((group) => (
-          <AccordionItem
-            key={group.agentId}
-            value={group.agentId}
-            className="border-border rounded-md border"
-          >
-            <AccordionTrigger className="px-3 py-2 hover:no-underline">
-              <AgentGroupHeader group={group} />
-            </AccordionTrigger>
-            <AccordionContent className="px-3 pb-3">
-              <section className="space-y-1.5 px-1">
-                {buildEventDisplayItems(group.events).map((item) => (
-                  <AgentEventItem
-                    key={item.key}
-                    item={item}
-                    onViewDetails={setDetailItem}
-                  />
-                ))}
-              </section>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
+      <Accordion
+        type="multiple"
+        value={expandedGroups}
+        onValueChange={setExpandedGroups}
+        className="w-full"
+      >
+        {agentGroups.map((group) => {
+          if (group.eventCount === 0) {
+            return null;
+          }
+
+          const items = buildEventDisplayItems(group.events);
+
+          return (
+            <AccordionItem
+              key={group.agentId}
+              value={group.agentId}
+              className="border-border border-b last:border-b-0"
+            >
+              <AccordionTrigger className="px-4 py-2.5 hover:no-underline">
+                <AgentGroupHeader group={group} />
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-3 pt-1">
+                <section className="space-y-2">
+                  {items.map((item) => (
+                    <AgentEventItem
+                      key={item.key}
+                      item={item}
+                      onViewDetails={setDetailItem}
+                    />
+                  ))}
+                </section>
+              </AccordionContent>
+            </AccordionItem>
+          );
+        })}
       </Accordion>
 
       <ToolDetailModal
