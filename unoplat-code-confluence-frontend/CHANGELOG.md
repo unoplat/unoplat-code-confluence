@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.48.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.48.0...unoplat-code-confluence-frontend-v1.48.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* **frontend-progress:** label validator before app interfaces ([723553e](https://github.com/unoplat/unoplat-code-confluence/commit/723553e6a905a060e6161fcefa2e89af0e830b42))
+
 ## [1.48.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.47.0...unoplat-code-confluence-frontend-v1.48.0) (2026-03-06)
 
 
