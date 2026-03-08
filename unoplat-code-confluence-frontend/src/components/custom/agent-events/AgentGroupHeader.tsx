@@ -53,7 +53,7 @@ export function AgentGroupHeader({
       </span>
       <Badge
         variant={getStatusVariant(group.status)}
-        className="h-5 shrink-0 rounded-sm px-1.5 text-[10px] font-semibold uppercase tracking-wide"
+        className="h-5 shrink-0 rounded-sm px-1.5 text-[11px] font-semibold uppercase tracking-wide"
       >
         {getStatusLabel(group.status)}
       </Badge>
