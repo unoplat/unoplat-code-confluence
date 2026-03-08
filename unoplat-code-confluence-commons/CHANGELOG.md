@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.44.0...unoplat-code-confluence-commons-v0.45.0) (2026-03-08)
+
+
+### Features
+
+* **call-expression-validation:** trust definition confidence and validate TS app interfaces ([febc30f](https://github.com/unoplat/unoplat-code-confluence/commit/febc30fdaba1727a1b55dc08964fcb258b12fe87))
+
 ## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.43.2...unoplat-code-confluence-commons-v0.44.0) (2026-02-28)
 
 

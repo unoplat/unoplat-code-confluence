@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.36.0...unoplat-code-confluence-query-engine-v0.37.0) (2026-03-08)
+
+
+### Features
+
+* **call-expression-validation:** trust definition confidence and validate TS app interfaces ([febc30f](https://github.com/unoplat/unoplat-code-confluence/commit/febc30fdaba1727a1b55dc08964fcb258b12fe87))
+
 ## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.35.0...unoplat-code-confluence-query-engine-v0.36.0) (2026-03-06)
 
 
