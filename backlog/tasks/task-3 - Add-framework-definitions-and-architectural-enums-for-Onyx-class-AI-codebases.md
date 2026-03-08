@@ -4,7 +4,7 @@ title: Add framework definitions and architectural enums for Onyx-class AI codeb
 status: In Progress
 assignee: []
 created_date: '2026-03-02 06:36'
-updated_date: '2026-03-02 11:52'
+updated_date: '2026-03-04 10:57'
 labels:
   - framework-definitions
   - schema
@@ -171,6 +171,16 @@ Implementation plan:
 5) Add/extend tests for TypeScript detector concepts and query-engine retrieval path for db_get_all_framework_features_for_codebase(..., programming_language="typescript").
 6) Update ingestion integration tests that hardcode framework counts/sets to reflect new definitions (or compute expected dynamically from loaded definitions), and update framework-definitions README TypeScript section.
 7) Verify: schema validation for framework JSON files, then Python typecheck first and lint second in each affected project, then run targeted tests for changed behavior.
+
+2026-03-04 approved follow-up breakdown for CallExpression confidence + validator expansion:
+
+- TASK-3.2 (first): implement deterministic CallExpression confidence/evidence policy in Python + TypeScript detectors and ensure ingestion persistence.
+
+- TASK-3.3 (second, depends on TASK-3.2): expand low-confidence validator + app-interfaces workflow from Python-only to python/typescript/javascript-normalized paths in query-engine.
+
+- TASK-3.4 (after TASK-3.2, can run in parallel with TASK-3.3 if needed): calibrate explicit base_confidence + ambiguity notes across current Python/TypeScript CallExpression framework definitions and update contributor docs.
+
+Execution order for safest rollout: 3.2 -> 3.4 -> 3.3, with 3.3 unblocked once 3.2 lands.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes

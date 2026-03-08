@@ -117,7 +117,7 @@ def test_parse_json_data_preserves_function_export_regexes(tmp_path: Path) -> No
     assert feature.construct_query is not None
     assert feature.construct_query["function_name_regex"] == "^(GET|POST)$"
     assert feature.construct_query["export_name_regex"] == "^(GET|POST)$"
-    assert feature.feature_definition["base_confidence"] == 0.85
+    assert "base_confidence" not in feature.feature_definition
 
 
 def test_parse_json_data_normalizes_base_confidence(tmp_path: Path) -> None:
@@ -135,13 +135,6 @@ def test_parse_json_data_normalizes_base_confidence(tmp_path: Path) -> None:
                         "concept": "CallExpression",
                         "base_confidence": 0.41,
                     },
-                    "invalid_confidence": {
-                        "description": "Invalid confidence",
-                        "absolute_paths": ["customlib.invalid"],
-                        "target_level": "function",
-                        "concept": "CallExpression",
-                        "base_confidence": 3.2,
-                    },
                 },
             }
         }
@@ -153,7 +146,57 @@ def test_parse_json_data_normalizes_base_confidence(tmp_path: Path) -> None:
     assert (
         feature_by_key["valid_confidence"].feature_definition["base_confidence"] == 0.41
     )
-    assert (
-        feature_by_key["invalid_confidence"].feature_definition["base_confidence"]
-        == 0.85
-    )
+
+    invalid_framework_data = {
+        "python": {
+            "customlib": {
+                "docs_url": "https://example.com/docs",
+                "features": {
+                    "invalid_confidence": {
+                        "description": "Invalid confidence",
+                        "absolute_paths": ["customlib.invalid"],
+                        "target_level": "function",
+                        "concept": "CallExpression",
+                        "base_confidence": 3.2,
+                    }
+                },
+            }
+        }
+    }
+
+    try:
+        loader.parse_json_data(invalid_framework_data)
+    except ValueError as exc:
+        assert "CallExpression base_confidence" in str(exc)
+    else:
+        raise AssertionError("Expected invalid CallExpression confidence to raise")
+
+
+def test_parse_json_data_rejects_base_confidence_for_non_call_expression(
+    tmp_path: Path,
+) -> None:
+    loader = _build_loader(tmp_path)
+
+    framework_data = {
+        "python": {
+            "customlib": {
+                "docs_url": "https://example.com/docs",
+                "features": {
+                    "http_endpoint": {
+                        "description": "HTTP endpoint",
+                        "absolute_paths": ["customlib.Endpoint"],
+                        "target_level": "function",
+                        "concept": "AnnotationLike",
+                        "base_confidence": 0.92,
+                    }
+                },
+            }
+        }
+    }
+
+    try:
+        loader.parse_json_data(framework_data)
+    except ValueError as exc:
+        assert "only for CallExpression" in str(exc)
+    else:
+        raise AssertionError("Expected non-CallExpression confidence to raise")

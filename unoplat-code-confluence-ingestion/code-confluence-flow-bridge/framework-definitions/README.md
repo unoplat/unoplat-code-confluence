@@ -56,11 +56,18 @@ Each JSON file follows the `schema.json` schema with the structure:
 Detection is **import-gated** and **regex-based**:
 - `absolute_paths` must be present in the file imports for a match to occur
 - `construct_query` refines tree-sitter regex patterns for decorators, calls, inheritance, and exported function handlers
-- `base_confidence` sets a default feature-level confidence (`0.0..1.0`, default `0.85`)
-- `CallExpression` definitions are heuristic; low-confidence cases are validated downstream by the app-interfaces validator agent
+- `base_confidence` is a contributor-authored confidence field used only for `CallExpression` definitions
+- `Inheritance` matching is import-bound (symbol alias or module alias + symbol) and does not use suffix fallback
+- `CallExpression` matching is import-bound (symbol alias, module alias + symbol, or default-import alias) and does not use suffix/member fallback matching
+- `CallExpression` detections emit deterministic metadata for downstream validation: `match_confidence`, `call_match_kind`, `matched_absolute_path`, optional `matched_alias`, and `call_match_policy_version`
 - `FunctionDefinition` is used for exported handler declarations (for example Next.js route handlers such as `export async function GET(...)`)
 
-When `base_confidence` is below `0.70`, include disambiguation guidance in feature `notes` so downstream validation can apply framework-specific checks consistently.
+Under current query-engine gating, only `CallExpression` rows with `base_confidence < 0.70` are routed to the validator agent. When a `CallExpression` definition uses a value below `0.70`, include disambiguation guidance in feature `notes` so downstream validation can apply framework-specific checks consistently.
+
+For `CallExpression` contributors:
+- Set explicit `base_confidence`; schema validation requires it for `CallExpression` and rejects it for other concepts.
+- For low-confidence features (`< 0.70`), include concrete `notes` describing import/object provenance checks the validator should confirm.
+- Prefer specific API symbol paths in `absolute_paths` over generic verb-like entries to reduce ambiguous matches.
 
 ## Import Style For Detection Accuracy
 

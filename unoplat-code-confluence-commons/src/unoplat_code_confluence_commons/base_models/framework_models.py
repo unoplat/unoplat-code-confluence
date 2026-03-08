@@ -159,9 +159,11 @@ class FrameworkFeature(SQLBase):
         raise TypeError("feature_definition.startpoint must be a boolean")
 
     @property
-    def base_confidence(self) -> float:
-        """Return base confidence from feature_definition."""
-        value = self.feature_definition.get("base_confidence", 0.85)
+    def base_confidence(self) -> float | None:
+        """Return base confidence from feature_definition when present."""
+        value = self.feature_definition.get("base_confidence")
+        if value is None:
+            return None
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             return float(value)
         raise TypeError("feature_definition.base_confidence must be a number")

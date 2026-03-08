@@ -27,7 +27,9 @@
             "celery.schedules.solar"
           ],
           "target_level": "function",
-          "concept": "CallExpression"
+          "concept": "CallExpression",
+          "base_confidence": 0.69,
+          "notes": "Validator should confirm the call target is imported from `celery.schedules` (or an alias bound to it). Treat generic local helpers like `schedule(...)` as non-matches unless the import provenance clearly resolves to Celery's scheduling APIs."
         }
       }
     }

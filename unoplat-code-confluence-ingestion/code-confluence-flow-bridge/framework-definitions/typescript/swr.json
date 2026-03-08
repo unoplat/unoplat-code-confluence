@@ -10,7 +10,8 @@
             "swr.default"
           ],
           "target_level": "function",
-          "concept": "CallExpression"
+          "concept": "CallExpression",
+          "base_confidence": 0.91
         },
         "mutation": {
           "description": "SWR mutation hook usage via default useSWRMutation export.",
@@ -18,7 +19,8 @@
             "swr/mutation.default"
           ],
           "target_level": "function",
-          "concept": "CallExpression"
+          "concept": "CallExpression",
+          "base_confidence": 0.91
         }
       }
     }

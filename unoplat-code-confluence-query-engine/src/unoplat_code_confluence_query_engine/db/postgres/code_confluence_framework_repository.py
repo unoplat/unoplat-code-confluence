@@ -97,6 +97,10 @@ def _coerce_validation_status_or_pending(value: object) -> ValidationStatus:
     return ValidationStatus.PENDING
 
 
+def _require_call_expression_base_confidence(feature: FrameworkFeature) -> float:
+    return float(feature.base_confidence)
+
+
 def _should_include_in_app_interface_mapping(
     *,
     concept: str,
@@ -558,7 +562,7 @@ async def db_get_low_confidence_call_expression_candidates(
                     ),
                     match_text=usage.match_text,
                     evidence_json=evidence_json,
-                    base_confidence=feature.base_confidence,
+                    base_confidence=_require_call_expression_base_confidence(feature),
                     notes=notes,
                     construct_query=construct_query,
                     absolute_paths=absolute_paths,

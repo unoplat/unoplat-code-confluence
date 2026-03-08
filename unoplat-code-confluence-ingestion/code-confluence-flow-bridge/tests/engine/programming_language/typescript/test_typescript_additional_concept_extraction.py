@@ -43,6 +43,39 @@ const store = createStore(() => ({}))
 
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
+    spec = _build_call_spec(
+        feature_key="store_definition",
+        absolute_paths=["zustand/vanilla.createStore"],
+    )
+
+    detections = detector.detect(context, [spec])
+
+    assert len(detections) == 1
+    detection = detections[0]
+    call_detection = cast(CallExpressionInfo, detection)
+    assert detection.feature_key == "store_definition"
+    assert detection.metadata["concept"] == "CallExpression"
+    assert call_detection.callee == "createStore"
+    assert detection.metadata["match_confidence"] == spec.base_confidence
+    assert detection.metadata["call_match_kind"] == "symbol_exact"
+    assert detection.metadata["matched_absolute_path"] == "zustand/vanilla.createStore"
+    assert detection.metadata["matched_alias"] == "createStore"
+    assert detection.metadata["call_match_policy_version"] == "v1_import_bound"
+
+
+def test_detector_rejects_unbound_member_collision_for_named_import() -> None:
+    source_code = """
+import { createStore } from "zustand/vanilla"
+
+const api = {
+  createStore: () => ({})
+}
+
+const store = api.createStore(() => ({}))
+"""
+
+    context = TypeScriptSourceContext.from_source(source_code)
+    detector = TypeScriptTreeSitterFrameworkDetector()
 
     detections = detector.detect(
         context,
@@ -54,12 +87,7 @@ const store = createStore(() => ({}))
         ],
     )
 
-    assert len(detections) == 1
-    detection = detections[0]
-    call_detection = cast(CallExpressionInfo, detection)
-    assert detection.feature_key == "store_definition"
-    assert detection.metadata["concept"] == "CallExpression"
-    assert call_detection.callee == "createStore"
+    assert detections == []
 
 
 def test_detector_detects_default_import_member_call_expression() -> None:
@@ -112,6 +140,11 @@ const result = useSWR("/api/search", fetcher)
     assert len(detections) == 1
     call_detection = cast(CallExpressionInfo, detections[0])
     assert call_detection.callee == "useSWR"
+    assert call_detection.metadata["match_confidence"] == spec.base_confidence
+    assert call_detection.metadata["call_match_kind"] == "default_import_exact"
+    assert call_detection.metadata["matched_absolute_path"] == "swr.default"
+    assert call_detection.metadata["matched_alias"] == "useSWR"
+    assert call_detection.metadata["call_match_policy_version"] == "v1_import_bound"
 
 
 def test_detector_detects_inheritance_for_lit_element() -> None:
@@ -131,7 +164,6 @@ class SearchWidget extends LitElement {}
         target_level=TargetLevel.CLASS,
         concept=Concept.INHERITANCE,
         locator_strategy=LocatorStrategy.VARIABLE_BOUND,
-        base_confidence=0.9,
     )
 
     detections = detector.detect(context, [spec])
@@ -140,6 +172,57 @@ class SearchWidget extends LitElement {}
     inheritance_detection = cast(InheritanceInfo, detections[0])
     assert inheritance_detection.subclass == "SearchWidget"
     assert inheritance_detection.superclass == "LitElement"
+
+
+def test_detector_rejects_unbound_member_inheritance_for_lit_element() -> None:
+    source_code = """
+import { LitElement } from "lit"
+
+class SearchWidget extends foo.LitElement {}
+"""
+
+    context = TypeScriptSourceContext.from_source(source_code)
+    detector = TypeScriptTreeSitterFrameworkDetector()
+    spec = FeatureSpec(
+        feature_key="web_component",
+        library="litellm",
+        description="LitElement inheritance",
+        absolute_paths=["lit.LitElement"],
+        target_level=TargetLevel.CLASS,
+        concept=Concept.INHERITANCE,
+        locator_strategy=LocatorStrategy.VARIABLE_BOUND,
+    )
+
+    detections = detector.detect(context, [spec])
+
+    assert detections == []
+
+
+def test_detector_detects_inheritance_for_lit_element_import_alias() -> None:
+    source_code = """
+import { LitElement as BaseElement } from "lit"
+
+class SearchWidget extends BaseElement {}
+"""
+
+    context = TypeScriptSourceContext.from_source(source_code)
+    detector = TypeScriptTreeSitterFrameworkDetector()
+    spec = FeatureSpec(
+        feature_key="web_component",
+        library="litellm",
+        description="LitElement inheritance",
+        absolute_paths=["lit.LitElement"],
+        target_level=TargetLevel.CLASS,
+        concept=Concept.INHERITANCE,
+        locator_strategy=LocatorStrategy.VARIABLE_BOUND,
+    )
+
+    detections = detector.detect(context, [spec])
+
+    assert len(detections) == 1
+    inheritance_detection = cast(InheritanceInfo, detections[0])
+    assert inheritance_detection.subclass == "SearchWidget"
+    assert inheritance_detection.superclass == "BaseElement"
 
 
 def test_detector_detects_lit_reactive_property_decorators() -> None:
@@ -163,7 +246,6 @@ class SearchWidget {
         concept=Concept.ANNOTATION_LIKE,
         locator_strategy=LocatorStrategy.VARIABLE_BOUND,
         construct_query={"annotation_name_regex": "^(property|state)$"},
-        base_confidence=0.9,
     )
 
     detections = detector.detect(context, [spec])
