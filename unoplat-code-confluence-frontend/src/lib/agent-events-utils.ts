@@ -12,6 +12,7 @@ export const AgentType = {
   DEVELOPMENT_WORKFLOW: "development_workflow_guide",
   DEPENDENCY: "dependency_guide",
   BUSINESS_DOMAIN: "business_domain_guide",
+  APP_INTERFACE_VALIDATOR: "call_expression_validator",
   APP_INTERFACES: "app_interfaces_agent",
 } as const;
 
@@ -20,6 +21,7 @@ export const AgentType = {
  * Used to consolidate related events into a single display group.
  */
 const AGENT_ALIASES: Record<string, string> = {
+  app_interface_validator: "call_expression_validator",
   dependency_guide_item: "dependency_guide",
   // Section-scoped updater events merge into parent guide sections
   development_workflow_agents_md_updater: "development_workflow_guide",
@@ -50,9 +52,13 @@ export const AGENT_REGISTRY: Record<
     displayName: "Business Domain Guide",
     order: 3,
   },
+  [AgentType.APP_INTERFACE_VALIDATOR]: {
+    displayName: "App Interface Validator",
+    order: 4,
+  },
   [AgentType.APP_INTERFACES]: {
     displayName: "App Interfaces",
-    order: 4,
+    order: 5,
   },
 };
 
