@@ -1,5 +1,60 @@
 # Changelog
 
+## [0.72.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.71.0...code-confluence-flow-bridge-v0.72.0) (2026-03-06)
+
+
+### Features
+
+* **add-model-provider:** add aws bedrock model provider (manually tested) and added native web search for all providers who do not support native web search or user has not configured exa ([80336ed](https://github.com/unoplat/unoplat-code-confluence/commit/80336edfb27dc9e63049dba9e7d5efdf39123067))
+* **confidence:** add schema and ingestion contracts for usage confidence metadata ([f71b085](https://github.com/unoplat/unoplat-code-confluence/commit/f71b085d653de9c339f0ffb615a4d07863fadd98))
+* **create-feedback-github-issue-url:** support operation in a separate router ([96b0aec](https://github.com/unoplat/unoplat-code-confluence/commit/96b0aeca2eb5e8b65d3513edcb830840c17e05f5))
+* **create-feedback-github-issue-url:** support operation in a separate router ([d5056d3](https://github.com/unoplat/unoplat-code-confluence/commit/d5056d370f3c8d6bd8aacc525df1948602854005))
+* enable operations as part of ingestion process to track/audit ([90dea8c](https://github.com/unoplat/unoplat-code-confluence/commit/90dea8c3e3ea0d406ee7923b95a8201778263c4e))
+* enable operations as part of ingestion process to track/audit ([95cb0a1](https://github.com/unoplat/unoplat-code-confluence/commit/95cb0a144066c763d31256a6301ed7db03a87f35))
+* **error-submission-ai-workflows:** components and data implemented needed for github issue submission ([c1567f0](https://github.com/unoplat/unoplat-code-confluence/commit/c1567f044f713db973bfd20e71a4aa6386f282cf))
+* **error-submission-ai-workflows:** components and data implemented needed for github issue submission ([06b36b8](https://github.com/unoplat/unoplat-code-confluence/commit/06b36b8f1e9f7b7dd366a33770495cb9d65d2f36))
+* **migrate-postgres:** ingestion and query engine services ([06edb7f](https://github.com/unoplat/unoplat-code-confluence/commit/06edb7fb05997754e73f5ba2104b8a764cba5e79))
+* move to common envelope models for workflow ([1105fb2](https://github.com/unoplat/unoplat-code-confluence/commit/1105fb2cde010d866b7ceb597f359ffc8b0cc206))
+* move to common envelope models for workflow ([c0ba37a](https://github.com/unoplat/unoplat-code-confluence/commit/c0ba37a9d4ea7ae2faa9ef1b9751666071fbca8d))
+* **typescript-beta:** strengthen typescript grammar detection and in… ([2a673ec](https://github.com/unoplat/unoplat-code-confluence/commit/2a673ec26aafd42c5a625f501af2242c41286e39))
+* **typescript-beta:** strengthen typescript grammar detection and include next js endpoint detection as a starting example ([0489d94](https://github.com/unoplat/unoplat-code-confluence/commit/0489d94e0d4f3b72c3ac43859f7d97b54a3cc7c4))
+
+
+### Bug Fixes
+
+* automatic error capture post exhausion of retries during ai work… ([415de05](https://github.com/unoplat/unoplat-code-confluence/commit/415de05f4c9785afe22264d5439f20f2819a19e8))
+* **backend-github-issue-feedback-error:** fixes around endpoints and grouping them in separate router ([31da659](https://github.com/unoplat/unoplat-code-confluence/commit/31da65942a3e75fda0bc6428e668b09499d0f760))
+* **connection-pool-recommendation-settings:** reuse stale connections and increase connection pool for postgres ([2935799](https://github.com/unoplat/unoplat-code-confluence/commit/2935799a5a1c160ebba5b6da76d4adbdcd73eadf))
+* **dependencies:** get rid of unused dependencies - neomodel ([61e42a2](https://github.com/unoplat/unoplat-code-confluence/commit/61e42a202a7981a7e8cc1347e0b60e40131371ec))
+* **dependency-version:** commons dependency version with model update… ([dbdd027](https://github.com/unoplat/unoplat-code-confluence/commit/dbdd02708a379d3277d50f62e19d3934ef4a82fe))
+* **dependency-version:** commons dependency version with model updates for ingestion/query services ([890f4ca](https://github.com/unoplat/unoplat-code-confluence/commit/890f4cad1d3a5aaa3e1f4119f4ce122ab54b9d0d))
+* **deps-version:** pin common lib dependencies version to latest ([e5d5db2](https://github.com/unoplat/unoplat-code-confluence/commit/e5d5db2c358fee88b4afae35ff7a8a68807836de))
+* **deps-version:** pin common lib dependencies version to latest ([ed5b60f](https://github.com/unoplat/unoplat-code-confluence/commit/ed5b60f70f0ae254ea2a583a10f13a53b2df4740))
+* **docker-ci-cd-trigger:** pushing logging changes to fix docker buil… ([95a45d2](https://github.com/unoplat/unoplat-code-confluence/commit/95a45d22509c46ba9fc9ec8df4de15fd69110ebb))
+* **docker-ci-cd-trigger:** pushing logging changes to fix docker build trigger error ([0d421db](https://github.com/unoplat/unoplat-code-confluence/commit/0d421db894b60dda76fc0bbb96ec8c867ba4eafa))
+* fallback to owner name when no organisation exists for user repos ([31f81ec](https://github.com/unoplat/unoplat-code-confluence/commit/31f81ec03bcbf72f71cc94273890f3890a792947))
+* **flow-bridge-backend-tests:** assertions fixes post updates ([1160821](https://github.com/unoplat/unoplat-code-confluence/commit/1160821818e828fb104da3ca65f77b8c67664c37))
+* **flow-bridge:** replace loguru with workflow.logger in workflow outbound interceptor ([3c9fa9e](https://github.com/unoplat/unoplat-code-confluence/commit/3c9fa9e20cc04bba4e011bf32b4f10f0e67c97ee))
+* **github-issue-data-model:** feedback fixes ([17a16ba](https://github.com/unoplat/unoplat-code-confluence/commit/17a16badebd4f386e7d22669fd8aa41c682a3481))
+* **logging:** add rotating file sinks for ingestion ([ad92980](https://github.com/unoplat/unoplat-code-confluence/commit/ad92980634d5011d5f107e8500450a304913d038))
+* **loguru-temporal:** Temporal workflow sandbox blocks multiprocessing.current_process(). Loguru calls that when building log records, and enqueue=True adds a multiprocessing queue, so moved to workflow logger instead of loguru for workflow ([5713da9](https://github.com/unoplat/unoplat-code-confluence/commit/5713da9d21f053cf130e1a865c1a2c3c6c029406))
+* merge conflicts ([abb2396](https://github.com/unoplat/unoplat-code-confluence/commit/abb239688da11a5f22a8af7845aff60c559e347d))
+* **optimise-framework-schema:** switch ingestion and query paths to J… ([be0462c](https://github.com/unoplat/unoplat-code-confluence/commit/be0462c8bc0df22458dfff7026288b145370a38c))
+* **optimise-framework-schema:** switch ingestion and query paths to JSONB feature payload ([c2f6c15](https://github.com/unoplat/unoplat-code-confluence/commit/c2f6c153a6694666806fadb867652d56ab616472))
+* **overhaul-events-view:** make it intuitve and store upto 100k of to… ([0092204](https://github.com/unoplat/unoplat-code-confluence/commit/00922043a7145963859d0f3df8cb6f1f0d5f4206))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([0b08bbd](https://github.com/unoplat/unoplat-code-confluence/commit/0b08bbdd301bd9f00284a76f93ecea2fe83dc860))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([844b782](https://github.com/unoplat/unoplat-code-confluence/commit/844b782f8ffba60fefa2a2aeb40b486659df1ecd))
+* **refactor:** move from structural signature based detection of fram… ([e44d26f](https://github.com/unoplat/unoplat-code-confluence/commit/e44d26f3fb281f2ee5d569209215d0813d8d4d41))
+* **refactor:** move from structural signature based detection of framework/libs to direct source code and import based and also remove variable bound strategy from schema as it is brittle and can easily break. ([059e8da](https://github.com/unoplat/unoplat-code-confluence/commit/059e8daec3c3d08405df757019bb31262329fb84))
+* **standardise-github-issue:** error collection ,creation and submission ([36124e2](https://github.com/unoplat/unoplat-code-confluence/commit/36124e255a9d70366085ed5075867e50ab70ad09))
+* **standardise-github-issue:** error collection ,creation and submission ([79d0cab](https://github.com/unoplat/unoplat-code-confluence/commit/79d0cabfbea89ba6aaeaadf5202c606b536c6850))
+* tests and docs ([728c897](https://github.com/unoplat/unoplat-code-confluence/commit/728c897bb75bd78d1cb70e657d879c773b2282a3))
+* **typescript:** add concept enum in schema to support more typescript ([4195eb2](https://github.com/unoplat/unoplat-code-confluence/commit/4195eb21f5fd080f3e923cb53162136ff57f7a1b))
+* **typescript:** add concept enum in schema to support more typescript ([7cfe956](https://github.com/unoplat/unoplat-code-confluence/commit/7cfe9566ee97c4e3e2d016c72942ea4c0749bd43))
+* update dependencies ([e89724e](https://github.com/unoplat/unoplat-code-confluence/commit/e89724e89042a69d5845fb294579d3a58aa18f40))
+* **wrong-version-commons:** upgrade commons version across flow bridg… ([40c994a](https://github.com/unoplat/unoplat-code-confluence/commit/40c994a8172c766bdddeb3f6f8a6021fbdf426c4))
+* **wrong-version-commons:** upgrade commons version across flow bridge and query engine components to enable pr related functionality ([207c29e](https://github.com/unoplat/unoplat-code-confluence/commit/207c29e1c9cb719489d955df7757764b2894c7b5))
+
 ## [0.71.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.70.0...code-confluence-flow-bridge-v0.71.0) (2026-03-06)
 
 
