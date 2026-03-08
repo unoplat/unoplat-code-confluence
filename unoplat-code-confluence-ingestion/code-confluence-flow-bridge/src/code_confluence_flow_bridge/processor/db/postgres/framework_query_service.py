@@ -9,25 +9,31 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from unoplat_code_confluence_commons.base_models import (
+    Concept,
     FeatureAbsolutePath,
     FeatureSpec,
     FrameworkFeature,
 )
 
 
-def _resolve_base_confidence(feature: FrameworkFeature) -> float:
-    raw_value = feature.feature_definition.get("base_confidence", 0.85)
+def _resolve_base_confidence(feature: FrameworkFeature) -> float | None:
+    if feature.concept != Concept.CALL_EXPRESSION:
+        return None
+
+    raw_value = feature.feature_definition.get("base_confidence")
+    if raw_value is None:
+        return None
     if isinstance(raw_value, (int, float)) and not isinstance(raw_value, bool):
         numeric_value = float(raw_value)
         if 0.0 <= numeric_value <= 1.0:
             return numeric_value
-    return 0.85
+    return None
 
 
 def _build_feature_spec(
     feature: FrameworkFeature,
     absolute_paths: list[str],
-    base_confidence: float,
+    base_confidence: float | None,
 ) -> FeatureSpec:
     payload: dict[str, object] = {
         "feature_key": feature.feature_key,
@@ -40,7 +46,7 @@ def _build_feature_spec(
         "description": feature.description,
         "startpoint": feature.startpoint,
     }
-    if "base_confidence" in FeatureSpec.model_fields:
+    if base_confidence is not None:
         payload["base_confidence"] = base_confidence
     return FeatureSpec.model_validate(payload)
 

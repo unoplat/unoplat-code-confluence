@@ -3,10 +3,10 @@ id: TASK-6
 title: >-
   Add DuckDuckGo fallback for Temporal agents and remove Exa-only launch
   constraint
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-03-03 05:52'
-updated_date: '2026-03-03 06:34'
+updated_date: '2026-03-04 11:24'
 labels:
   - query-engine
   - agents
@@ -15,6 +15,7 @@ labels:
   - frontend
 dependencies: []
 priority: high
+ordinal: 9000
 ---
 
 ## Description

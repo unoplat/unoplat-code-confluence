@@ -77,6 +77,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.utils.agent_error_logger import (
         extract_model_error_from_exception,
     )
+    from unoplat_code_confluence_query_engine.utils.framework_feature_language_support import (
+        is_app_interfaces_supported,
+    )
 
 
 def _enrich_agent_error_with_model_details(
@@ -196,14 +199,36 @@ def _build_call_expression_validator_prompt(
     Returns:
         Prompt text instructing a strict tool-execution sequence.
     """
+    candidate_fields = (
+        "identity, concept, match_confidence, validation_status, match_text, "
+        "evidence_json, base_confidence, notes, construct_query, absolute_paths"
+    )
+    identity_fields = "file_path, feature_language, feature_library, feature_key, start_line, end_line"
+    evidence_fields = (
+        "concept, source, match_confidence, call_match_kind, matched_absolute_path, "
+        "matched_alias, call_match_policy_version, callee, args_text, validator"
+    )
     return (
         "Validate this low-confidence CallExpression candidate for app-interface mapping.\n"
-        "Use local code evidence and official docs validation before deciding.\n"
+        "You are given candidate metadata plus detector evidence to verify against official documentation and local code.\n"
         "You MUST persist writes using both validator write tools in order.\n\n"
+        "Candidate payload guide:\n"
+        f"- top-level fields: {candidate_fields}\n"
+        f"- identity fields: {identity_fields}\n"
+        "- evidence_json may be partial or absent; when present for CallExpression it commonly contains detector metadata and parsed call evidence.\n"
+        f"- expected CallExpression evidence_json keys: {evidence_fields}\n\n"
+        "Required review order:\n"
+        "1) Review official framework documentation first and determine what the claimed API usage should look like.\n"
+        "2) Compare docs expectations against candidate metadata/evidence_json and note present vs missing fields.\n"
+        "3) Read local file context with read_file_content.\n"
+        "4) Expand nearby symbol/object evidence with search_across_codebase.\n"
+        "5) Record gaps/mismatches before deciding (for example: import-binding mismatch, alias/path mismatch, API-shape mismatch, insufficient provenance, unsupported args, or docs mismatch).\n"
+        "6) Persist evidence/confidence, then persist status, then return output.\n\n"
         "Required write sequence:\n"
         "1) upsert_framework_feature_validation_evidence(request=...)\n"
         "2) set_framework_feature_validation_status(request=...)\n"
         "3) return output for the same identity\n\n"
+        "When you upsert evidence_json, include documentation findings, metadata review, local code findings, gap analysis, and final rationale.\n\n"
         "Candidate payload JSON:\n"
         f"{candidate.model_dump_json(indent=2)}"
     )
@@ -668,8 +693,8 @@ class CodebaseAgentWorkflow:
             # Disabled agents contribute zero to statistics
             agent_stats.append(create_zero_usage_statistics())
 
-        # Step 5: App Interfaces (Python only - deterministic DB activity, not LLM agent)
-        if codebase_metadata.codebase_programming_language.lower() == "python":
+        # Step 5: App Interfaces (Python + TypeScript - deterministic DB activity, not LLM agent)
+        if is_app_interfaces_supported(codebase_metadata.codebase_programming_language):
             try:
                 candidate_payloads = await workflow.execute_activity(
                     AppInterfacesActivity.fetch_low_confidence_call_expression_candidates,

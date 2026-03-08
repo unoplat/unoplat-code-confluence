@@ -3,11 +3,11 @@ id: TASK-4.4
 title: >-
   Frontend: Strict tool_call_id pairing + Flow 1 accordion + Flow 2 detail
   dialog (shadcn-first)
-status: In Progress
+status: Done
 assignee:
   - OpenCode
 created_date: '2026-03-03 05:24'
-updated_date: '2026-03-03 06:41'
+updated_date: '2026-03-04 11:24'
 labels:
   - frontend
   - typescript
@@ -37,6 +37,7 @@ documentation:
   - 'Paper page tool-dialog-improvements: artboard R7-0 (current baseline)'
 parent_task_id: TASK-4
 priority: high
+ordinal: 9000
 ---
 
 ## Description

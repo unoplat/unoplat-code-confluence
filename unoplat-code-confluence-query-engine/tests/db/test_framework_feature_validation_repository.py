@@ -42,6 +42,25 @@ TEST_FEATURE_LIBRARY = "validatorlib"
 TEST_SOURCE_FEATURE_KEY = "db_sql"
 TEST_CORRECTED_FEATURE_KEY = "http_client"
 
+TEST_TS_REPOSITORY_QUALIFIED_NAME = "validator-owner/validator-repo-typescript"
+TEST_TS_CODEBASE_QUALIFIED_NAME = (
+    "validator-owner/validator-repo-typescript:validator-typescript-codebase"
+)
+TEST_TS_CODEBASE_PATH = "/tmp/validator-typescript-codebase"
+TEST_TS_FILE_PATH = "/tmp/validator-typescript-codebase/src/app.ts"
+TEST_TS_FEATURE_LANGUAGE = "typescript"
+TEST_TS_FEATURE_LIBRARY = "swr"
+TEST_TS_FEATURE_KEY = "data_fetch"
+
+TEST_TS_LOW_CONF_REPOSITORY_QUALIFIED_NAME = "validator-owner/validator-repo-ts-lowconf"
+TEST_TS_LOW_CONF_CODEBASE_QUALIFIED_NAME = (
+    "validator-owner/validator-repo-ts-lowconf:validator-ts-lowconf-codebase"
+)
+TEST_TS_LOW_CONF_CODEBASE_PATH = "/tmp/validator-ts-lowconf-codebase"
+TEST_TS_LOW_CONF_FILE_PATH = "/tmp/validator-ts-lowconf-codebase/src/api.ts"
+TEST_TS_LOW_CONF_FEATURE_LIBRARY = "swr"
+TEST_TS_LOW_CONF_FEATURE_KEY = "data_fetch_lowconf"
+
 
 def _build_feature_definition(concept: str) -> dict[str, Any]:
     return {
@@ -64,6 +83,20 @@ def _build_usage_identity(feature_key: str) -> FrameworkFeatureUsageIdentity:
         start_line=10,
         end_line=12,
     )
+
+
+def _build_typescript_feature_definition(
+    base_confidence: float = 0.9,
+) -> dict[str, Any]:
+    return {
+        "description": "swr data fetch hook",
+        "absolute_paths": ["swr.default"],
+        "target_level": "function",
+        "concept": "CallExpression",
+        "locator_strategy": "VariableBound",
+        "startpoint": False,
+        "base_confidence": base_confidence,
+    }
 
 
 @pytest.fixture
@@ -193,6 +226,124 @@ def seeded_framework_usage(service_ports, test_database_tables, db_connections):
             delete(Framework).where(
                 Framework.language == TEST_FEATURE_LANGUAGE,
                 Framework.library == TEST_FEATURE_LIBRARY,
+            )
+        )
+
+
+@pytest.fixture
+def seeded_typescript_framework_usage(
+    service_ports, test_database_tables, db_connections
+):
+    """Seed TypeScript framework usage for query path coverage."""
+    postgresql_port = service_ports["postgresql"]
+
+    with get_sync_postgres_session(postgresql_port) as session:
+        session.execute(
+            delete(UnoplatCodeConfluenceGitRepository).where(
+                UnoplatCodeConfluenceGitRepository.qualified_name
+                == TEST_TS_REPOSITORY_QUALIFIED_NAME
+            )
+        )
+        session.execute(
+            delete(FrameworkFeature).where(
+                FrameworkFeature.language == TEST_TS_FEATURE_LANGUAGE,
+                FrameworkFeature.library == TEST_TS_FEATURE_LIBRARY,
+            )
+        )
+        session.execute(
+            delete(Framework).where(
+                Framework.language == TEST_TS_FEATURE_LANGUAGE,
+                Framework.library == TEST_TS_FEATURE_LIBRARY,
+            )
+        )
+
+        session.add(
+            UnoplatCodeConfluenceGitRepository(
+                qualified_name=TEST_TS_REPOSITORY_QUALIFIED_NAME,
+                repository_url="https://example.com/validator-typescript.git",
+                repository_name="validator-repo-typescript",
+            )
+        )
+        session.add(
+            UnoplatCodeConfluenceCodebase(
+                qualified_name=TEST_TS_CODEBASE_QUALIFIED_NAME,
+                repository_qualified_name=TEST_TS_REPOSITORY_QUALIFIED_NAME,
+                name="validator-typescript-codebase",
+                codebase_path=TEST_TS_CODEBASE_PATH,
+                programming_language=TEST_TS_FEATURE_LANGUAGE,
+            )
+        )
+        session.add(
+            UnoplatCodeConfluenceFile(
+                file_path=TEST_TS_FILE_PATH,
+                codebase_qualified_name=TEST_TS_CODEBASE_QUALIFIED_NAME,
+                imports=["import useSWR from 'swr'"],
+                has_data_model=False,
+                data_model_positions={},
+            )
+        )
+        session.add(
+            Framework(
+                language=TEST_TS_FEATURE_LANGUAGE,
+                library=TEST_TS_FEATURE_LIBRARY,
+            )
+        )
+        session.add(
+            FrameworkFeature(
+                language=TEST_TS_FEATURE_LANGUAGE,
+                library=TEST_TS_FEATURE_LIBRARY,
+                feature_key=TEST_TS_FEATURE_KEY,
+                feature_definition=_build_typescript_feature_definition(),
+            )
+        )
+        session.add(
+            FeatureAbsolutePath(
+                language=TEST_TS_FEATURE_LANGUAGE,
+                library=TEST_TS_FEATURE_LIBRARY,
+                feature_key=TEST_TS_FEATURE_KEY,
+                absolute_path="swr.default",
+            )
+        )
+        session.add(
+            UnoplatCodeConfluenceFileFrameworkFeature(
+                file_path=TEST_TS_FILE_PATH,
+                feature_language=TEST_TS_FEATURE_LANGUAGE,
+                feature_library=TEST_TS_FEATURE_LIBRARY,
+                feature_key=TEST_TS_FEATURE_KEY,
+                start_line=5,
+                end_line=5,
+                match_text="useSWR('/api/search', fetcher)",
+                match_confidence=0.92,
+                validation_status="pending",
+                evidence_json={
+                    "callee": "useSWR",
+                    "args_text": "('/api/search', fetcher)",
+                },
+            )
+        )
+
+    yield {
+        "postgresql_port": postgresql_port,
+        "codebase_path": TEST_TS_CODEBASE_PATH,
+    }
+
+    with get_sync_postgres_session(postgresql_port) as session:
+        session.execute(
+            delete(UnoplatCodeConfluenceGitRepository).where(
+                UnoplatCodeConfluenceGitRepository.qualified_name
+                == TEST_TS_REPOSITORY_QUALIFIED_NAME
+            )
+        )
+        session.execute(
+            delete(FrameworkFeature).where(
+                FrameworkFeature.language == TEST_TS_FEATURE_LANGUAGE,
+                FrameworkFeature.library == TEST_TS_FEATURE_LIBRARY,
+            )
+        )
+        session.execute(
+            delete(Framework).where(
+                Framework.language == TEST_TS_FEATURE_LANGUAGE,
+                Framework.library == TEST_TS_FEATURE_LIBRARY,
             )
         )
 
@@ -443,3 +594,202 @@ async def test_app_interface_fetch_excludes_source_row_after_correct_decision(
     )
     assert len(rows) == 1
     assert rows[0]["feature_key"] == TEST_CORRECTED_FEATURE_KEY
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_get_all_framework_features_supports_typescript_language_filter(
+    seeded_typescript_framework_usage,
+) -> None:
+    rows = await db_get_all_framework_features_for_codebase(
+        seeded_typescript_framework_usage["codebase_path"],
+        TEST_TS_FEATURE_LANGUAGE,
+    )
+
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["library"] == TEST_TS_FEATURE_LIBRARY
+    assert row["feature_key"] == TEST_TS_FEATURE_KEY
+    assert row["file_path"] == TEST_TS_FILE_PATH
+
+
+@pytest.fixture
+def seeded_typescript_low_confidence_framework_usage(
+    service_ports, test_database_tables, db_connections
+):
+    """Seed TypeScript framework usage with low-confidence CallExpression for validator tests."""
+    postgresql_port = service_ports["postgresql"]
+
+    with get_sync_postgres_session(postgresql_port) as session:
+        session.execute(
+            delete(UnoplatCodeConfluenceGitRepository).where(
+                UnoplatCodeConfluenceGitRepository.qualified_name
+                == TEST_TS_LOW_CONF_REPOSITORY_QUALIFIED_NAME
+            )
+        )
+        session.execute(
+            delete(FrameworkFeature).where(
+                FrameworkFeature.language == TEST_TS_FEATURE_LANGUAGE,
+                FrameworkFeature.library == TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+            )
+        )
+        session.execute(
+            delete(Framework).where(
+                Framework.language == TEST_TS_FEATURE_LANGUAGE,
+                Framework.library == TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+            )
+        )
+
+        session.add(
+            UnoplatCodeConfluenceGitRepository(
+                qualified_name=TEST_TS_LOW_CONF_REPOSITORY_QUALIFIED_NAME,
+                repository_url="https://example.com/validator-ts-lowconf.git",
+                repository_name="validator-repo-ts-lowconf",
+            )
+        )
+        session.add(
+            UnoplatCodeConfluenceCodebase(
+                qualified_name=TEST_TS_LOW_CONF_CODEBASE_QUALIFIED_NAME,
+                repository_qualified_name=TEST_TS_LOW_CONF_REPOSITORY_QUALIFIED_NAME,
+                name="validator-ts-lowconf-codebase",
+                codebase_path=TEST_TS_LOW_CONF_CODEBASE_PATH,
+                programming_language=TEST_TS_FEATURE_LANGUAGE,
+            )
+        )
+        session.add(
+            UnoplatCodeConfluenceFile(
+                file_path=TEST_TS_LOW_CONF_FILE_PATH,
+                codebase_qualified_name=TEST_TS_LOW_CONF_CODEBASE_QUALIFIED_NAME,
+                imports=["import useSWR from 'swr'"],
+                has_data_model=False,
+                data_model_positions={},
+            )
+        )
+        session.add(
+            Framework(
+                language=TEST_TS_FEATURE_LANGUAGE,
+                library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+            )
+        )
+        session.add(
+            FrameworkFeature(
+                language=TEST_TS_FEATURE_LANGUAGE,
+                library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+                feature_key=TEST_TS_LOW_CONF_FEATURE_KEY,
+                feature_definition=_build_typescript_feature_definition(
+                    base_confidence=0.5,
+                ),
+            )
+        )
+        session.add(
+            FeatureAbsolutePath(
+                language=TEST_TS_FEATURE_LANGUAGE,
+                library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+                feature_key=TEST_TS_LOW_CONF_FEATURE_KEY,
+                absolute_path="swr.default",
+            )
+        )
+        session.add(
+            UnoplatCodeConfluenceFileFrameworkFeature(
+                file_path=TEST_TS_LOW_CONF_FILE_PATH,
+                feature_language=TEST_TS_FEATURE_LANGUAGE,
+                feature_library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+                feature_key=TEST_TS_LOW_CONF_FEATURE_KEY,
+                start_line=3,
+                end_line=3,
+                match_text="useSWR('/api/data', fetcher)",
+                match_confidence=0.55,
+                validation_status="pending",
+                evidence_json={
+                    "callee": "useSWR",
+                    "args_text": "('/api/data', fetcher)",
+                },
+            )
+        )
+
+    yield {
+        "postgresql_port": postgresql_port,
+        "codebase_path": TEST_TS_LOW_CONF_CODEBASE_PATH,
+    }
+
+    with get_sync_postgres_session(postgresql_port) as session:
+        session.execute(
+            delete(UnoplatCodeConfluenceGitRepository).where(
+                UnoplatCodeConfluenceGitRepository.qualified_name
+                == TEST_TS_LOW_CONF_REPOSITORY_QUALIFIED_NAME
+            )
+        )
+        session.execute(
+            delete(FrameworkFeature).where(
+                FrameworkFeature.language == TEST_TS_FEATURE_LANGUAGE,
+                FrameworkFeature.library == TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+            )
+        )
+        session.execute(
+            delete(Framework).where(
+                Framework.language == TEST_TS_FEATURE_LANGUAGE,
+                Framework.library == TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+            )
+        )
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_low_confidence_typescript_candidate_query_returns_pending_call_expression(
+    seeded_typescript_low_confidence_framework_usage,
+) -> None:
+    """Mirrors Python test — verifies TypeScript low-confidence candidates are returned."""
+    candidates = await db_get_low_confidence_call_expression_candidates(
+        codebase_path=seeded_typescript_low_confidence_framework_usage["codebase_path"],
+        programming_language=TEST_TS_FEATURE_LANGUAGE,
+    )
+
+    assert len(candidates) == 1
+    candidate = candidates[0]
+    assert candidate.identity.feature_key == TEST_TS_LOW_CONF_FEATURE_KEY
+    assert candidate.match_confidence == pytest.approx(0.55)
+    assert candidate.validation_status == ValidationStatus.PENDING
+    assert candidate.absolute_paths == ["swr.default"]
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_app_interface_fetch_excludes_low_confidence_typescript_until_completed(
+    seeded_typescript_low_confidence_framework_usage,
+) -> None:
+    """Mirrors Python exclusion test — low-confidence TS rows excluded until validated."""
+    initial_rows = await db_get_all_framework_features_for_codebase(
+        seeded_typescript_low_confidence_framework_usage["codebase_path"],
+        TEST_TS_FEATURE_LANGUAGE,
+    )
+    assert initial_rows == []
+
+    identity = FrameworkFeatureUsageIdentity(
+        file_path=TEST_TS_LOW_CONF_FILE_PATH,
+        feature_language=TEST_TS_FEATURE_LANGUAGE,
+        feature_library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+        feature_key=TEST_TS_LOW_CONF_FEATURE_KEY,
+        start_line=3,
+        end_line=3,
+    )
+    await db_upsert_framework_feature_validation_evidence(
+        codebase_path=seeded_typescript_low_confidence_framework_usage["codebase_path"],
+        request=FrameworkFeatureValidationEvidenceUpsertRequest(
+            identity=identity,
+            decision=FrameworkFeatureValidationDecision.CONFIRM,
+            final_confidence=0.61,
+            evidence_json={"reason": "resolved by validator"},
+        ),
+    )
+    await db_set_framework_feature_validation_status(
+        codebase_path=seeded_typescript_low_confidence_framework_usage["codebase_path"],
+        request=FrameworkFeatureValidationStatusTransitionRequest(
+            identity=identity,
+            target_status=ValidationStatus.COMPLETED,
+            expected_current_status=ValidationStatus.PENDING,
+        ),
+    )
+
+    updated_rows = await db_get_all_framework_features_for_codebase(
+        seeded_typescript_low_confidence_framework_usage["codebase_path"],
+        TEST_TS_FEATURE_LANGUAGE,
+    )
+    assert len(updated_rows) == 1
+    assert updated_rows[0]["feature_key"] == TEST_TS_LOW_CONF_FEATURE_KEY
