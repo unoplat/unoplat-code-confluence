@@ -334,7 +334,7 @@ export function GenerateAgentsProgressLive({
                 value={resolvedActiveCodebaseName}
                 onValueChange={handleCodebaseChange}
               >
-                <SelectTrigger className="bg-background/70 w-64">
+                <SelectTrigger className="bg-muted/50 hover:bg-muted/80 max-w-80 cursor-pointer transition-colors">
                   <SelectValue placeholder="Select codebase" />
                 </SelectTrigger>
                 <SelectContent>
