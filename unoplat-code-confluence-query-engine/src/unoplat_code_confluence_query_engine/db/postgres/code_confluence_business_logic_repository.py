@@ -8,12 +8,12 @@ from typing import DefaultDict, Dict, Iterable, List, Mapping, Sequence, Tuple
 from loguru import logger
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 from sqlalchemy import select
-
 from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluenceCodebase,
     UnoplatCodeConfluenceFile,
     UnoplatCodeConfluenceFileFrameworkFeature,
 )
+
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 
 DataModelSpanMap = Dict[str, Dict[str, Tuple[int, int]]]

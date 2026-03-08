@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-03-02 08:01'
-updated_date: '2026-03-04 11:24'
+updated_date: '2026-03-02 12:14'
 labels:
   - backend
   - python
@@ -21,7 +21,6 @@ references:
     unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/tracking/repository_agent_snapshot_service.py
 parent_task_id: TASK-4
 priority: high
-ordinal: 8000
 ---
 
 ## Description
