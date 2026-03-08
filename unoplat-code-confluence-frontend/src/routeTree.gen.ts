@@ -83,6 +83,7 @@ const AppOnboardingProviderRoute = AppOnboardingProviderRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof AppIndexRoute
   '/developer': typeof AppDeveloperRoute
   '/onboarding': typeof AppOnboardingRouteWithChildren
   '/operationsManagement': typeof AppOperationsManagementRoute
@@ -91,7 +92,6 @@ export interface FileRoutesByFullPath {
   '/settings/developer': typeof SettingsDeveloperRoute
   '/settings/model-providers': typeof SettingsModelProvidersRoute
   '/settings/tool-config': typeof SettingsToolConfigRoute
-  '/': typeof AppIndexRoute
   '/onboarding/$provider': typeof AppOnboardingProviderRoute
   '/onboarding/': typeof AppOnboardingIndexRoute
 }
@@ -125,6 +125,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/developer'
     | '/onboarding'
     | '/operationsManagement'
@@ -133,7 +134,6 @@ export interface FileRouteTypes {
     | '/settings/developer'
     | '/settings/model-providers'
     | '/settings/tool-config'
-    | '/'
     | '/onboarding/$provider'
     | '/onboarding/'
   fileRoutesByTo: FileRoutesByTo
@@ -176,7 +176,7 @@ declare module '@tanstack/react-router' {
     '/_app': {
       id: '/_app'
       path: ''
-      fullPath: ''
+      fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }

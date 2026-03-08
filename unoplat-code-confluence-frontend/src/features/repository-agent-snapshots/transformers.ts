@@ -1,11 +1,8 @@
-import { useMemo } from "react";
-
 import {
   repositoryAgentSnapshotRowSchema,
   type AgentMdCodebaseOutput,
   type AgentMdOutputRecord,
-  type RepositoryAgentCodebaseProgress,
-  type RepositoryAgentEvent,
+  type RepositoryAgentCodebaseProgressRow,
   type RepositoryAgentSnapshotRow,
   type WorkflowStatistics,
 } from "./schema";
@@ -13,7 +10,6 @@ import {
 export interface RepositoryAgentCodebaseState {
   codebaseName: string;
   progress: number | null;
-  events: RepositoryAgentEvent[];
 }
 
 // NOTE: status field does NOT exist in PostgreSQL repository_agent_md_snapshot table
@@ -21,7 +17,6 @@ export interface RepositoryAgentCodebaseState {
 export interface ParsedRepositoryAgentSnapshot {
   repositoryWorkflowRunId: string;
   overallProgress: number;
-  codebases: RepositoryAgentCodebaseState[];
   markdownByCodebase: Record<string, AgentMdCodebaseOutput>;
   repositoryMarkdown?: string;
   statistics: WorkflowStatistics | null;
@@ -30,31 +25,11 @@ export interface ParsedRepositoryAgentSnapshot {
   latestEventAt?: string;
 }
 
-export function useParsedSnapshot(
-  row: RepositoryAgentSnapshotRow | undefined | null,
-): ParsedRepositoryAgentSnapshot | null {
-  return useMemo(() => (row ? parseSnapshotRow(row) : null), [row]);
-}
-
 export function parseSnapshotRow(
   row: RepositoryAgentSnapshotRow,
 ): ParsedRepositoryAgentSnapshot {
   const parsed = repositoryAgentSnapshotRowSchema.parse(row);
-
-  const codebases = (parsed.events?.codebases ?? []).map((codebase) =>
-    hydrateCodebase(codebase),
-  );
-
-  // Use top-level overall_progress (new PostgreSQL column) with fallback to events or computed average
-  const baseOverall =
-    typeof parsed.overall_progress === "number"
-      ? parsed.overall_progress
-      : typeof parsed.events?.overall_progress === "number"
-        ? parsed.events?.overall_progress
-        : null;
-  const overallProgress = normalizeProgress(
-    baseOverall ?? averageProgress(codebases),
-  );
+  const overallProgress = normalizeProgress(parsed.overall_progress ?? null);
 
   const { markdownByCodebase, repositoryMarkdown } = parseAgentMdOutputs(
     parsed.agent_md_output,
@@ -63,7 +38,6 @@ export function parseSnapshotRow(
   return {
     repositoryWorkflowRunId: parsed.repository_workflow_run_id,
     overallProgress,
-    codebases,
     markdownByCodebase,
     repositoryMarkdown,
     statistics: parsed.statistics ?? null,
@@ -142,38 +116,16 @@ export function parseAgentMdOutputsFromSnapshot(
   });
 }
 
-function hydrateCodebase(
-  codebase: RepositoryAgentCodebaseProgress,
-): RepositoryAgentCodebaseState {
-  const events: RepositoryAgentEvent[] = Array.isArray(codebase.events)
-    ? codebase.events
-    : [];
-  const numericProgress =
-    typeof codebase.progress === "number" ? codebase.progress : null;
-
-  return {
-    codebaseName: codebase.codebase_name,
-    progress: numericProgress,
-    events,
-  };
-}
-
-function averageProgress(
-  codebases: RepositoryAgentCodebaseState[],
-): number | null {
-  const valid = codebases
-    .map((entry) => entry.progress)
-    .filter(
-      (value): value is number =>
-        typeof value === "number" && !Number.isNaN(value),
-    );
-
-  if (valid.length === 0) {
-    return null;
-  }
-
-  const sum = valid.reduce((total, value) => total + value, 0);
-  return sum / valid.length;
+export function parseCodebaseProgressRows(
+  rows: RepositoryAgentCodebaseProgressRow[],
+): RepositoryAgentCodebaseState[] {
+  return [...rows]
+    .sort((left, right) => left.codebase_name.localeCompare(right.codebase_name))
+    .map((row) => ({
+      codebaseName: row.codebase_name,
+      progress:
+        typeof row.progress === "number" ? normalizeProgress(row.progress) : null,
+    }));
 }
 
 function normalizeProgress(progress: number | null): number {

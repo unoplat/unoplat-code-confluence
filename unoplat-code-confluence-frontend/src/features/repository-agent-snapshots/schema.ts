@@ -1,40 +1,40 @@
 import { z } from "zod";
 
 export const repositoryAgentEventSchema = z.object({
-  id: z.number(), // Backend returns numbers, not strings
+  repository_name: z.string(),
+  repository_owner_name: z.string(),
+  repository_workflow_run_id: z.string(),
+  codebase_name: z.string(),
+  event_id: z.number(),
   event: z.string(),
-  phase: z.string().optional().nullable(),
+  phase: z.string(),
   message: z.string().optional().nullable(),
   tool_name: z.string().optional().nullable(),
   tool_call_id: z.string().optional().nullable(),
   tool_args: z.record(z.unknown()).optional().nullable(),
   tool_result_content: z.string().optional().nullable(),
+  created_at: z.string(),
 });
 
 export type RepositoryAgentEvent = z.infer<typeof repositoryAgentEventSchema>;
 
-export const repositoryAgentCodebaseProgressSchema = z.object({
+export const repositoryAgentCodebaseProgressRowSchema = z.object({
+  repository_name: z.string(),
+  repository_owner_name: z.string(),
+  repository_workflow_run_id: z.string(),
   codebase_name: z.string(),
+  next_event_id: z.number(),
+  latest_event_id: z.number().nullable().optional(),
+  event_count: z.number(),
   progress: z.number().optional().nullable(),
-  events: z.array(repositoryAgentEventSchema),
+  completed_namespaces: z.array(z.string()).default([]),
+  latest_event_at: z.string().nullable().optional(),
+  created_at: z.string(),
+  modified_at: z.string(),
 });
 
-export type RepositoryAgentCodebaseProgress = z.infer<
-  typeof repositoryAgentCodebaseProgressSchema
->;
-
-export const repositoryAgentEventsEnvelopeSchema = z.object({
-  repository_name: z.string().optional().nullable(),
-  repository_workflow_run_id: z.string().optional().nullable(),
-  overall_progress: z.number().optional().nullable(),
-  codebases: z
-    .array(repositoryAgentCodebaseProgressSchema)
-    .optional()
-    .default([]),
-});
-
-export type RepositoryAgentEventsEnvelope = z.infer<
-  typeof repositoryAgentEventsEnvelopeSchema
+export type RepositoryAgentCodebaseProgressRow = z.infer<
+  typeof repositoryAgentCodebaseProgressRowSchema
 >;
 
 // Nested schemas for agent_md_output.codebases structure
@@ -173,21 +173,6 @@ export const workflowStatisticsSchema = z.object({
 
 export type WorkflowStatistics = z.infer<typeof workflowStatisticsSchema>;
 
-// Schema for event_counters JSONB field (tracks next_id per codebase)
-export const eventCounterEntrySchema = z.object({
-  next_id: z.number(),
-});
-
-export type EventCounterEntry = z.infer<typeof eventCounterEntrySchema>;
-
-// Schema for codebase_progress JSONB field (tracks progress and completed namespaces)
-export const codebaseProgressEntrySchema = z.object({
-  progress: z.number(),
-  completed_namespaces: z.array(z.string()).default([]),
-});
-
-export type CodebaseProgressEntry = z.infer<typeof codebaseProgressEntrySchema>;
-
 // Main schema aligned with PostgreSQL repository_agent_md_snapshot table
 // NOTE: status field does NOT exist in PostgreSQL - use job.status from REST API
 export const repositoryAgentSnapshotRowSchema = z.object({
@@ -196,14 +181,6 @@ export const repositoryAgentSnapshotRowSchema = z.object({
   repository_owner_name: z.string(),
   repository_workflow_run_id: z.string(), // Part of composite PK - required
 
-  // JSONB fields with defaults in PostgreSQL (non-nullable)
-  events: repositoryAgentEventsEnvelopeSchema.default({
-    codebases: [],
-  }),
-  event_counters: z.record(z.string(), eventCounterEntrySchema).default({}),
-  codebase_progress: z
-    .record(z.string(), codebaseProgressEntrySchema)
-    .default({}),
   agent_md_output: agentMdOutputSchema.default({
     codebases: {},
   }),
