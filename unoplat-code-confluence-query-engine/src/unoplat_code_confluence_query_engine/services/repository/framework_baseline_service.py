@@ -10,11 +10,11 @@ from typing import Dict, List
 from loguru import logger
 from sqlalchemy import select
 from unoplat_code_confluence_commons.base_models import Framework, FrameworkFeature
-
 from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluenceCodebase,
     UnoplatCodeConfluenceCodebaseFramework,
 )
+
 from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_repository import (
     db_get_framework_with_features,
 )

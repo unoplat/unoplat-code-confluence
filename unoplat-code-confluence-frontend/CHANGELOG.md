@@ -1,5 +1,51 @@
 # Changelog
 
+## [1.48.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.47.0...unoplat-code-confluence-frontend-v1.48.0) (2026-03-06)
+
+
+### Features
+
+* **app-feedback:** allow user to submit feedback for feature/bug/general ([86e994f](https://github.com/unoplat/unoplat-code-confluence/commit/86e994f54862155d8cc1b96755cc35311420d380))
+
+
+### Bug Fixes
+
+* **command-palette:** move to right position in top bar's right section ([0af3da1](https://github.com/unoplat/unoplat-code-confluence/commit/0af3da16657c56ab18b108749289a170558b19d9))
+
+## [1.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.2...unoplat-code-confluence-frontend-v1.47.0) (2026-03-03)
+
+
+### Features
+
+* **add-model-provider:** add aws bedrock model provider (manually tested) and added native web search for all providers who do not support native web search or user has not configured exa ([80336ed](https://github.com/unoplat/unoplat-code-confluence/commit/80336edfb27dc9e63049dba9e7d5efdf39123067))
+* **Add-model-provider:** aws bedrock support and enhanced cache for … ([c7841bf](https://github.com/unoplat/unoplat-code-confluence/commit/c7841bff3b2e9de07a2ed042b98761ca6bfdaeaa))
+
+## [1.46.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.1...unoplat-code-confluence-frontend-v1.46.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* **duplicate-row-key:** github repos rows were using name now they use git url so no state corruption while filtering ([0109e98](https://github.com/unoplat/unoplat-code-confluence/commit/0109e98c64a36cbe74b7d947e16f23bccd6bd564))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([0b08bbd](https://github.com/unoplat/unoplat-code-confluence/commit/0b08bbdd301bd9f00284a76f93ecea2fe83dc860))
+* **tool-call-result-ui-ux:** change colors according to design system ([7ef7e1e](https://github.com/unoplat/unoplat-code-confluence/commit/7ef7e1e1f5aef508694acedef0c54b599df6c2b3))
+
+## [1.46.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.46.0...unoplat-code-confluence-frontend-v1.46.1) (2026-03-03)
+
+
+### Bug Fixes
+
+* **overhaul-events-view:** make it intuitve and store upto 100k of to… ([0092204](https://github.com/unoplat/unoplat-code-confluence/commit/00922043a7145963859d0f3df8cb6f1f0d5f4206))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([844b782](https://github.com/unoplat/unoplat-code-confluence/commit/844b782f8ffba60fefa2a2aeb40b486659df1ecd))
+* **tool-call-result-ui-ux:** change colors according to design system ([20fe6a8](https://github.com/unoplat/unoplat-code-confluence/commit/20fe6a80ba68a1b28cd5dd73fe8e458e0185eb36))
+
+## [1.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.45.1...unoplat-code-confluence-frontend-v1.46.0) (2026-03-02)
+
+
+### Features
+
+* **command-palette:** control centre for easier navigation ([c5edbe8](https://github.com/unoplat/unoplat-code-confluence/commit/c5edbe88cc68344e0e0d6b8019ab9cd94b88201b))
+* **command-palette:** control centre for easier navigation ([5cd76d2](https://github.com/unoplat/unoplat-code-confluence/commit/5cd76d2c47f91352b82ebac6c54d6cbfb1299161))
+
 ## [1.45.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.45.0...unoplat-code-confluence-frontend-v1.45.1) (2026-02-24)
 
 

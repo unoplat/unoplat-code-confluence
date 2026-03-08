@@ -1,8 +1,10 @@
 """Service for AI model configuration database operations."""
 
+import os
 from datetime import UTC, datetime
-from typing import Optional
+from typing import Optional, cast
 
+import boto3  # pyright: ignore[reportMissingTypeStubs, reportUnknownVariableType]
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +24,69 @@ from unoplat_code_confluence_query_engine.services.config.credentials_service im
 from unoplat_code_confluence_query_engine.services.config.provider_catalog import (
     ProviderCatalog,
 )
+
+
+def _get_optional_string_config_value(value: object, key: str) -> str | None:
+    """Normalize optional string config values from provider extra_config."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError(f"{key} must be a string")
+    trimmed_value = value.strip()
+    return trimmed_value if trimmed_value else None
+
+
+def _resolve_runtime_aws_region(profile_name: str | None) -> str | None:
+    """Resolve AWS region from environment/profile runtime configuration."""
+    aws_region = os.getenv("AWS_REGION")
+    if aws_region and aws_region.strip():
+        return aws_region.strip()
+
+    aws_default_region = os.getenv("AWS_DEFAULT_REGION")
+    if aws_default_region and aws_default_region.strip():
+        return aws_default_region.strip()
+
+    try:
+        session = (
+            boto3.Session(profile_name=profile_name)
+            if profile_name
+            else boto3.Session()
+        )
+        region_name = cast(object, session.region_name)
+        if isinstance(region_name, str):
+            trimmed_region_name = region_name.strip()
+            return trimmed_region_name if trimmed_region_name else None
+        return None
+    except Exception as exc:
+        logger.debug("Failed to resolve runtime AWS region via boto3: {}", exc)
+        return None
+
+
+def _validate_bedrock_region_configuration(extra_config: dict[str, object]) -> None:
+    """Validate Bedrock region presence before worker startup.
+
+    Region can come from:
+    - explicit extra_config.region_name
+    - runtime AWS configuration (AWS_REGION/AWS_DEFAULT_REGION/profile config)
+    """
+    configured_region_name = _get_optional_string_config_value(
+        extra_config.get("region_name"), "region_name"
+    )
+    if configured_region_name:
+        return
+
+    profile_name = _get_optional_string_config_value(
+        extra_config.get("profile_name"), "profile_name"
+    )
+    runtime_region_name = _resolve_runtime_aws_region(profile_name)
+    if runtime_region_name:
+        return
+
+    raise ValueError(
+        "Bedrock requires an AWS region. Set 'region_name' in provider configuration "
+        "(for example 'us-east-1') or configure AWS_REGION/AWS_DEFAULT_REGION/runtime "
+        "AWS profile region before saving model config."
+    )
 
 
 class AiModelConfigService:
@@ -65,7 +130,9 @@ class AiModelConfigService:
                 base_url=config.base_url,
                 profile_key=config.profile_key,
                 extra_config=config.extra_config,
-                model_params=ModelParams(**config.model_params) if config.model_params else None,
+                model_params=ModelParams(**config.model_params)
+                if config.model_params
+                else None,
                 has_api_key=has_api_key,
                 created_at=config.created_at,
                 updated_at=config.updated_at,
@@ -98,6 +165,7 @@ class AiModelConfigService:
         provider_schema = ProviderCatalog.get_provider(config_in.provider_key)
         if not provider_schema:
             raise ValueError(f"Unknown provider: {config_in.provider_key}")
+        assert provider_schema is not None
 
         # Infer provider_kind if not provided
         provider_kind = config_in.provider_kind or ProviderCatalog.get_provider_kind(
@@ -123,9 +191,7 @@ class AiModelConfigService:
                 existing_config.profile_key = config_in.profile_key
                 # Build a fresh extra_config and FILTER unsupported keys for the provider.
                 # This ensures stale keys (e.g., provider_name from a previous provider) do not persist.
-                provider_schema_fields = ProviderCatalog.get_provider(
-                    config_in.provider_key
-                ).fields  # type: ignore[union-attr]
+                provider_schema_fields = provider_schema.fields
                 allowed_keys = {f.key for f in provider_schema_fields}
                 # Start from input extra_config only (no merge with existing)
                 incoming_extra = dict(config_in.extra_config or {})
@@ -141,8 +207,14 @@ class AiModelConfigService:
                 filtered_extra = {
                     k: v for k, v in incoming_extra.items() if k in allowed_keys
                 }
+                if config_in.provider_key == "bedrock":
+                    _validate_bedrock_region_configuration(filtered_extra)
                 existing_config.extra_config = filtered_extra
-                existing_config.model_params = config_in.model_params.model_dump(exclude_none=True) if config_in.model_params else {}
+                existing_config.model_params = (
+                    config_in.model_params.model_dump(exclude_none=True)
+                    if config_in.model_params
+                    else {}
+                )
                 existing_config.updated_at = current_time
 
                 saved_config = existing_config
@@ -153,9 +225,7 @@ class AiModelConfigService:
             else:
                 # Create new config
                 # Build fresh extra_config and filter keys to provider schema
-                provider_schema_fields = ProviderCatalog.get_provider(
-                    config_in.provider_key
-                ).fields  # type: ignore[union-attr]
+                provider_schema_fields = provider_schema.fields
                 allowed_keys = {f.key for f in provider_schema_fields}
                 incoming_extra = dict(config_in.extra_config or {})
                 incoming_extra.pop("model_api_key", None)
@@ -167,6 +237,8 @@ class AiModelConfigService:
                 merged_extra = {
                     k: v for k, v in incoming_extra.items() if k in allowed_keys
                 }
+                if config_in.provider_key == "bedrock":
+                    _validate_bedrock_region_configuration(merged_extra)
 
                 new_config = AiModelConfig(
                     id=1,  # Always use id=1 for single-record approach
@@ -176,7 +248,9 @@ class AiModelConfigService:
                     base_url=config_in.base_url,
                     profile_key=config_in.profile_key,
                     extra_config=merged_extra,
-                    model_params=config_in.model_params.model_dump(exclude_none=True) if config_in.model_params else {},
+                    model_params=config_in.model_params.model_dump(exclude_none=True)
+                    if config_in.model_params
+                    else {},
                     created_at=current_time,
                     updated_at=current_time,
                 )
@@ -189,7 +263,11 @@ class AiModelConfigService:
 
             # Store model API key only when non-empty
             if api_key is not None and api_key.strip():
-                await self.credentials_service.upsert_model_credential(api_key, session)
+                await self.credentials_service.upsert_model_credential(
+                    api_key,
+                    session,
+                    metadata_json={"provider_key": config_in.provider_key},
+                )
 
             # Check for stored credentials for response
             if saved_config.provider_key == "codex_openai":
@@ -215,7 +293,9 @@ class AiModelConfigService:
                 base_url=saved_config.base_url,
                 profile_key=saved_config.profile_key,
                 extra_config=saved_config.extra_config,
-                model_params=ModelParams(**saved_config.model_params) if saved_config.model_params else None,
+                model_params=ModelParams(**saved_config.model_params)
+                if saved_config.model_params
+                else None,
                 has_api_key=has_api_key,
                 created_at=saved_config.created_at,
                 updated_at=saved_config.updated_at,

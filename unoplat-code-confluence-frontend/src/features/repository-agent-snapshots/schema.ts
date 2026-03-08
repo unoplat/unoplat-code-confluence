@@ -5,6 +5,10 @@ export const repositoryAgentEventSchema = z.object({
   event: z.string(),
   phase: z.string().optional().nullable(),
   message: z.string().optional().nullable(),
+  tool_name: z.string().optional().nullable(),
+  tool_call_id: z.string().optional().nullable(),
+  tool_args: z.record(z.unknown()).optional().nullable(),
+  tool_result_content: z.string().optional().nullable(),
 });
 
 export type RepositoryAgentEvent = z.infer<typeof repositoryAgentEventSchema>;

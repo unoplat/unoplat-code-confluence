@@ -25,6 +25,7 @@ import {
   Handshake,
   FolderKanban,
 } from "lucide-react";
+import { useAppFeedbackSheetStore } from "@/features/app-feedback";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { NavUser } from "./NavUser";
@@ -33,6 +34,7 @@ import codeConfluenceLogoDark from "@/assets/code-confluence-logo-dark.svg";
 
 export function AppSidebar(): React.ReactElement {
   const { user } = useAuthStore();
+  const { open: openFeedback } = useAppFeedbackSheetStore();
   const { theme } = useThemeStore();
 
   const isDarkMode =
@@ -240,17 +242,14 @@ export function AppSidebar(): React.ReactElement {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Report an Issue">
-                        <a
-                          href="https://github.com/unoplat/unoplat-code-confluence/issues"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
-                        >
-                          <span className="text-sm font-medium">
-                            Report an Issue
-                          </span>
-                        </a>
+                      <SidebarMenuButton
+                        tooltip="Send Feedback"
+                        onClick={openFeedback}
+                        className="flex w-full items-center rounded-md px-4 py-2 group-data-[collapsible=icon]:justify-center"
+                      >
+                        <span className="text-sm font-medium">
+                          Send Feedback
+                        </span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   </SidebarMenu>
