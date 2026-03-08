@@ -31,6 +31,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
         AgentDependencies,
     )
+    from unoplat_code_confluence_query_engine.models.runtime.dependency_guide_target import (
+        DependencyGuideTarget,
+    )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
     )
@@ -107,6 +110,28 @@ def _enrich_agent_error_with_model_details(
     if model_error_details:
         error_dict["model_error_details"] = model_error_details
     return error_dict
+
+
+def _build_dependency_guide_prompt(
+    dependency_target: DependencyGuideTarget,
+    programming_language: str,
+) -> str:
+    """Build the dependency-guide prompt for one normalized target."""
+    prompt = (
+        f"Document the library '{dependency_target.name}' for programming language "
+        f"{programming_language}."
+    )
+    if dependency_target.search_query:
+        prompt += (
+            " When searching for official documentation, use this exact primary "
+            f"query hint: '{dependency_target.search_query}'."
+        )
+    if len(dependency_target.source_packages) > 1:
+        prompt += (
+            " This configured UI component library family represents the following "
+            f"packages: {', '.join(dependency_target.source_packages)}."
+        )
+    return prompt
 
 
 async def _run_section_updater(
@@ -488,16 +513,22 @@ class CodebaseAgentWorkflow:
         if "dependency_guide" in temporal_agents:
             try:
                 # Fetch dependency names from PostgreSQL via activity (deterministic)
-                dependency_names: list[str] = await workflow.execute_activity(
+                dependency_targets: list[
+                    DependencyGuideTarget
+                ] = await workflow.execute_activity(
                     DependencyGuideFetchActivity.fetch_codebase_dependencies,
-                    args=[codebase_metadata.codebase_path],
+                    args=[
+                        codebase_metadata.codebase_path,
+                        codebase_metadata.codebase_programming_language,
+                        codebase_metadata.codebase_package_manager,
+                    ],
                     start_to_close_timeout=timedelta(seconds=30),
                     retry_policy=DB_ACTIVITY_RETRY_POLICY,
                 )
 
                 logger.info(
-                    "[workflow] Found {} dependencies for {}",
-                    len(dependency_names),
+                    "[workflow] Found {} dependency-guide targets for {}",
+                    len(dependency_targets),
                     codebase_metadata.codebase_name,
                 )
 
@@ -505,7 +536,7 @@ class CodebaseAgentWorkflow:
                 dependency_entries: list[dict[str, Any]] = []
                 dependency_agent_stats: list[UsageStatistics] = []
 
-                for dep_name in dependency_names:
+                for dependency_target in dependency_targets:
                     try:
                         deps = AgentDependencies(
                             repository_qualified_name=repository_qualified_name,
@@ -514,7 +545,10 @@ class CodebaseAgentWorkflow:
                             agent_name="dependency_guide_item",
                         )
                         result = await temporal_agents["dependency_guide"].run(
-                            f"Document the library '{dep_name}' for programming language {codebase_metadata.codebase_programming_language}",
+                            _build_dependency_guide_prompt(
+                                dependency_target=dependency_target,
+                                programming_language=codebase_metadata.codebase_programming_language,
+                            ),
                             deps=deps,
                             usage_limits=get_cached_usage_limits(),
                         )
@@ -527,7 +561,7 @@ class CodebaseAgentWorkflow:
                     except Exception as dep_error:
                         logger.warning(
                             "[workflow] Failed to document dependency '{}': {}",
-                            dep_name,
+                            dependency_target.name,
                             dep_error,
                         )
                         # Continue with other dependencies - don't fail entire agent
