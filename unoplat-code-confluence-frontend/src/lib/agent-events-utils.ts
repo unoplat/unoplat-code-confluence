@@ -97,36 +97,66 @@ function getAgentOrder(agentId: string): number {
 }
 
 /**
- * Determine if an agent has completed based on its events.
- * An agent is considered complete if it has a "result" phase event.
+ * Return the latest event by event_id.
+ */
+function getLatestEvent(
+  events: RepositoryAgentEvent[],
+): RepositoryAgentEvent | null {
+  if (events.length === 0) {
+    return null;
+  }
+
+  let latestEvent = events[0] ?? null;
+
+  for (const event of events) {
+    if (!latestEvent || event.event_id > latestEvent.event_id) {
+      latestEvent = event;
+    }
+  }
+
+  return latestEvent;
+}
+
+/**
+ * Determine an agent group's runtime status from its newest event.
  *
- * For grouped agents (those with aliases), completion is determined by
- * checking if the canonical agent has emitted a "result" phase event,
- * not the aliased item-level events.
+ * Why newest event wins:
+ * - Historical result events can exist while the same group continues streaming
+ *   (for example, section updater events after completion signals, or repeated
+ *   validator runs).
+ * - Status should show running whenever newer non-result activity is present.
  *
  * @param events - All events in the agent group
  * @param canonicalAgentId - Optional canonical agent ID for grouped agents
+ * @param isCompleted - Optional completion signal from completed_namespaces
  */
 export function getAgentStatus(
   events: RepositoryAgentEvent[],
   canonicalAgentId?: string,
   isCompleted?: boolean,
 ): "pending" | "running" | "completed" {
+  if (events.length === 0) {
+    return isCompleted ? "completed" : "pending";
+  }
+
+  const latestEvent = getLatestEvent(events);
+  if (!latestEvent) {
+    return isCompleted ? "completed" : "pending";
+  }
+
+  if (latestEvent.phase !== "result") {
+    return "running";
+  }
+
   if (isCompleted) {
     return "completed";
   }
 
-  if (events.length === 0) {
-    return "pending";
+  if (!canonicalAgentId) {
+    return "completed";
   }
 
-  const hasResultPhase = events.some(
-    (event) =>
-      event.phase === "result" &&
-      // For grouped agents, only count result from the canonical agent
-      (!canonicalAgentId || event.event === canonicalAgentId),
-  );
-  return hasResultPhase ? "completed" : "running";
+  return latestEvent.event === canonicalAgentId ? "completed" : "running";
 }
 
 /**
