@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.48.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.48.1...unoplat-code-confluence-frontend-v1.48.2) (2026-03-08)
+
+
+### Bug Fixes
+
+* **agent-events:** derive live status from latest event ([4e143a4](https://github.com/unoplat/unoplat-code-confluence/commit/4e143a42438a208208cac69709e201c998a67589))
+* **codebase-dropdown:** improve trigger visibility and adaptive sizing ([1d9751c](https://github.com/unoplat/unoplat-code-confluence/commit/1d9751c7cbe525bb13d1fc100f7270b506d4cd49))
+* **font:** improve tool call/result readability with larger fonts and monospace ([58e0966](https://github.com/unoplat/unoplat-code-confluence/commit/58e0966bab0b4ef1ec19ae6478a1d5d6ba210086))
+* **perf:** virtual list and 3-phase schema for realtime sync using electric sql ([5748960](https://github.com/unoplat/unoplat-code-confluence/commit/5748960ac9a2b98792cee3ff715c412a3c1dfb3b))
+* **tool-dialog:** use CVA variants for responsive dialog sizing ([ccc8e11](https://github.com/unoplat/unoplat-code-confluence/commit/ccc8e11986e3a83de7eb4280d96db971ee63232b))
+* **ui-dependencies:** reduce dependency token churn by introducing fa… ([5473831](https://github.com/unoplat/unoplat-code-confluence/commit/5473831a81739551d76eeea2bee906cab8ea5edf))
+* **user-managed-accordion:** remove auto-expand so agent sections start collapsed ([9980f43](https://github.com/unoplat/unoplat-code-confluence/commit/9980f439a186fda2c153c5b5499ab6715f467f3f))
+
 ## [1.48.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.48.0...unoplat-code-confluence-frontend-v1.48.1) (2026-03-08)
 
 
