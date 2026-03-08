@@ -20,6 +20,9 @@ from pydantic_ai.messages import (
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
+from unoplat_code_confluence_query_engine.utils.framework_feature_language_support import (
+    is_app_interfaces_supported,
+)
 
 # Agent names that contribute to progress calculation
 BASE_COMPLETION_NAMESPACES: frozenset[str] = frozenset(
@@ -42,8 +45,8 @@ def get_completion_namespaces(
     codebase_programming_language: str | None,
 ) -> frozenset[str]:
     """Return completion namespaces based on the codebase programming language."""
-    language = (codebase_programming_language or "").lower()
-    if language == "python":
+    language = codebase_programming_language or ""
+    if is_app_interfaces_supported(language):
         return BASE_COMPLETION_NAMESPACES | {"app_interfaces_agent"}
     return BASE_COMPLETION_NAMESPACES
 

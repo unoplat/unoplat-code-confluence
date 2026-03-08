@@ -4,7 +4,7 @@ title: Fix stale GitHub repository table rows caused by duplicate row keys
 status: Done
 assignee: []
 created_date: '2026-03-03 12:11'
-updated_date: '2026-03-03 12:11'
+updated_date: '2026-03-04 11:24'
 labels:
   - frontend
   - bugfix
@@ -14,6 +14,7 @@ references:
   - >-
     unoplat-code-confluence-frontend/src/components/custom/RepositoryDataTable.tsx
 priority: high
+ordinal: 7000
 ---
 
 ## Description

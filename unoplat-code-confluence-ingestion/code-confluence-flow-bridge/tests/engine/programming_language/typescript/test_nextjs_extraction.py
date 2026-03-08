@@ -27,7 +27,6 @@ def _build_nextjs_feature_spec() -> FeatureSpec:
             "function_name_regex": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS)$",
             "export_name_regex": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS)$",
         },
-        base_confidence=0.95,
         startpoint=True,
     )
 
@@ -67,7 +66,6 @@ export async function GET(request: NextRequest) {
     assert "export async function GET" in detection.match_text
     assert detection.metadata["function_name"] == "GET"
     assert detection.metadata["export_name"] == "GET"
-    assert detection.metadata["match_confidence"] == 0.95
 
 
 def test_detector_skips_exported_get_without_next_server_import() -> None:
