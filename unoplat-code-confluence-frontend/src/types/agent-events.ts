@@ -7,7 +7,7 @@ export interface AgentGroup {
   agentId: string;
   displayName: string;
   events: RepositoryAgentEvent[];
-  status: "running" | "completed";
+  status: "pending" | "running" | "completed";
   eventCount: number;
 }
 
@@ -16,6 +16,7 @@ export interface AgentGroup {
  */
 export interface AgentEventsAccordionProps {
   events: RepositoryAgentEvent[];
+  completedNamespaces: string[];
 }
 
 /**
@@ -39,18 +40,22 @@ export interface ToolDetailModalProps {
  * Display model for event timeline rows.
  * Tool calls/results can be rendered as a single paired item.
  */
+export interface AgentEventSingleDisplayItem {
+  type: "single";
+  key: string;
+  event: RepositoryAgentEvent;
+}
+
+export interface AgentEventToolPairDisplayItem {
+  type: "tool-pair";
+  key: string;
+  callEvent: RepositoryAgentEvent;
+  resultEvent?: RepositoryAgentEvent;
+}
+
 export type AgentEventDisplayItem =
-  | {
-      type: "single";
-      key: string;
-      event: RepositoryAgentEvent;
-    }
-  | {
-      type: "tool-pair";
-      key: string;
-      callEvent: RepositoryAgentEvent;
-      resultEvent?: RepositoryAgentEvent;
-    };
+  | AgentEventSingleDisplayItem
+  | AgentEventToolPairDisplayItem;
 
 /**
  * Props for the AgentEventItem component.

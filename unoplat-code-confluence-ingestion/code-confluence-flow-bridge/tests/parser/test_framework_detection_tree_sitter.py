@@ -43,6 +43,7 @@ def _load_python_feature_specs() -> List[FeatureSpec]:
                         locator_strategy=LocatorStrategy.VARIABLE_BOUND,
                         construct_query=feature_data.get("construct_query"),
                         description=feature_data.get("description"),
+                        base_confidence=feature_data.get("base_confidence"),
                         startpoint=feature_data.get("startpoint", False),
                     )
                 )
@@ -71,6 +72,7 @@ def _build_litellm_completion_spec() -> FeatureSpec:
         concept=Concept.CALL_EXPRESSION,
         locator_strategy=LocatorStrategy.VARIABLE_BOUND,
         description="LiteLLM completion call",
+        base_confidence=0.69,
     )
 
 

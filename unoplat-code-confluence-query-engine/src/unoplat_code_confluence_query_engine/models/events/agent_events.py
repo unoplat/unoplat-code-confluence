@@ -24,7 +24,7 @@ class AgentEventPayload(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str
+    id: int
     event: str
     phase: str
     message: Optional[str] = None

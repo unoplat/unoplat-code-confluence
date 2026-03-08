@@ -162,15 +162,15 @@ export function AgentEventItem({
         <div className="border-secondary/70 bg-secondary/40 col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border px-2.5">
           <Badge
             variant="secondary"
-            className="h-[14px] shrink-0 rounded-sm border-0 px-1.5 text-[10px] font-medium tracking-wide uppercase"
+            className="h-[14px] shrink-0 rounded-sm border-0 px-1.5 text-[11px] font-medium tracking-wide uppercase"
           >
             CALL
           </Badge>
-          <span className="text-foreground min-w-0 flex-1 truncate text-[11px]">
+          <span className="text-foreground min-w-0 flex-1 truncate font-mono text-xs font-medium">
             {getToolName(item.callEvent)}
           </span>
           {callHint ? (
-            <span className="bg-background/60 text-muted-foreground dark:bg-background/20 max-w-[160px] shrink-0 truncate rounded px-1.5 py-px text-[10px]">
+            <span className="bg-background/60 text-muted-foreground dark:bg-background/20 max-w-[160px] shrink-0 truncate rounded px-1.5 py-px font-mono text-[11px]">
               {callHint}
             </span>
           ) : null}
@@ -180,18 +180,18 @@ export function AgentEventItem({
           <div className="border-success/30 bg-success/10 col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border px-2.5">
             <Badge
               variant="completed"
-              className="h-[14px] shrink-0 rounded-sm border-0 px-1.5 text-[10px] font-medium tracking-wide uppercase"
+              className="h-[14px] shrink-0 rounded-sm border-0 px-1.5 text-[11px] font-medium tracking-wide uppercase"
             >
               RESULT
             </Badge>
-            <span className="text-muted-foreground min-w-0 flex-1 truncate text-[11px]">
+            <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
               {resultPreview || "-"}
             </span>
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="text-primary hover:text-primary/80 h-4 shrink-0 px-1 text-[10px] hover:bg-transparent"
+              className="text-primary hover:text-primary/80 h-4 shrink-0 px-1 text-[11px] hover:bg-transparent"
               onClick={() => {
                 onViewDetails?.({
                   callEvent: item.callEvent,
@@ -205,7 +205,7 @@ export function AgentEventItem({
         ) : (
           <div className="border-border bg-muted/40 dark:bg-muted/30 col-start-2 flex h-8 min-w-0 items-center gap-1.5 overflow-hidden rounded-md border border-dashed px-2.5">
             <Loader2 className="text-muted-foreground h-3 w-3 shrink-0 animate-spin" />
-            <span className="text-muted-foreground text-[11px]">
+            <span className="text-muted-foreground text-xs">
               Awaiting result...
             </span>
           </div>

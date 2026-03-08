@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "families": [
+    {
+      "id": "radix-ui-react",
+      "kind": "ui_component_library",
+      "enabled": true,
+      "languages": ["typescript", "javascript"],
+      "package_managers": ["npm", "pnpm", "yarn", "bun"],
+      "display_name": "Radix UI React Primitives",
+      "search_query": "Radix UI React official documentation",
+      "match": {
+        "type": "prefix",
+        "value": "@radix-ui/react-"
+      }
+    },
+    {
+      "id": "dnd-kit",
+      "kind": "ui_component_library",
+      "enabled": true,
+      "languages": ["typescript", "javascript"],
+      "package_managers": ["npm", "pnpm", "yarn", "bun"],
+      "display_name": "dnd kit",
+      "search_query": "dnd kit official documentation",
+      "match": {
+        "type": "prefix",
+        "value": "@dnd-kit/"
+      }
+    }
+  ]
+}

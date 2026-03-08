@@ -77,4 +77,4 @@ async def fetch_codebase_dependencies(codebase_path: str) -> list[str]:
         codebase_path,
     )
 
-    return list(dependency_names)
+    return sorted(dependency_names, key=str.lower)

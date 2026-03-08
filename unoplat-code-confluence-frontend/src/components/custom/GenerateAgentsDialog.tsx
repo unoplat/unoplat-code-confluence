@@ -23,12 +23,15 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { GenerateAgentsProgress } from "@/components/custom/GenerateAgentsProgress";
+import { GenerateAgentsProgressLive } from "@/components/custom/GenerateAgentsProgressLive";
 import { Button } from "@/components/ui/button";
 import { GenerateAgentsPreview } from "@/components/custom/GenerateAgentsPreview";
 import { AgentStatisticsDisplay } from "@/components/custom/AgentStatisticsDisplay";
 import { codebasesToMarkdown } from "@/lib/agent-md-to-markdown";
-import { useRepositoryAgentSnapshot } from "@/features/repository-agent-snapshots/hooks";
+import {
+  useRepositoryAgentCodebaseProgress,
+  useRepositoryAgentSnapshot,
+} from "@/features/repository-agent-snapshots/hooks";
 import type { RepositoryAgentMdPrStatusResponse } from "@/lib/api";
 import {
   createRepositoryAgentMdPr,
@@ -82,7 +85,9 @@ function getUnknownErrorMessage(error: unknown): string {
  *
  * Data Sources:
  * - Status: job.status from REST API (already available from table row)
- * - Progress/Events/Output: Electric SQL real-time sync via useRepositoryAgentSnapshot
+ * - Snapshot metadata/output: Electric SQL real-time sync via useRepositoryAgentSnapshot
+ * - Live progress rows: Electric SQL real-time sync via useRepositoryAgentCodebaseProgress
+ * - Event history: Electric SQL on-demand live history per active codebase
  */
 export function GenerateAgentsDialog({
   open,
@@ -137,14 +142,13 @@ export function GenerateAgentsDialog({
   const actualJob = freshJob ?? job;
 
   // Build scope for Electric SQL query - requires runId from job
-  const scope = React.useMemo(() => {
-    if (!job) return null;
-    return {
-      owner: job.repository_owner_name,
-      repository: job.repository_name,
-      runId: job.repository_workflow_run_id,
-    };
-  }, [job]);
+  const scope = job
+    ? {
+        owner: job.repository_owner_name,
+        repository: job.repository_name,
+        runId: job.repository_workflow_run_id,
+      }
+    : null;
 
   // Electric SQL hook for real-time progress data
   const {
@@ -152,15 +156,39 @@ export function GenerateAgentsDialog({
     isLoading: isLiveLoading,
     isError: isLiveError,
     isReady: isLiveReady,
-    status: liveStatus,
+    status: snapshotLiveStatus,
     collection,
   } = useRepositoryAgentSnapshot(open ? scope : null);
+  const {
+    progressRows,
+    codebases: liveCodebases,
+    isLoading: isProgressLoading,
+    isError: isProgressError,
+    collection: progressCollection,
+  } = useRepositoryAgentCodebaseProgress(open ? scope : null);
 
-  // Derive codebaseIds from Electric SQL snapshot
-  const codebaseIds = React.useMemo(
-    () => parsedSnapshot?.codebases?.map((cb) => cb.codebaseName) ?? [],
-    [parsedSnapshot?.codebases],
-  );
+  React.useEffect(() => {
+    if (open) {
+      return undefined;
+    }
+
+    const timeoutId = setTimeout(() => {
+      if (collection) {
+        void collection.cleanup();
+      }
+      if (progressCollection) {
+        void progressCollection.cleanup();
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [open, collection, progressCollection]);
+
+  const codebaseIds = liveCodebases.map((codebase) => codebase.codebaseName);
+  const isAnyLiveError = isLiveError || isProgressError;
+  const liveStatus = isProgressError ? "progress error" : snapshotLiveStatus;
 
   // Derive preview content from Electric SQL snapshot
   const previewCodebases = parsedSnapshot?.markdownByCodebase;
@@ -456,7 +484,7 @@ export function GenerateAgentsDialog({
             )}
 
             {/* Error State */}
-            {isLiveError && (
+            {isAnyLiveError && (
               <div className="space-y-2" role="alert">
                 <div className="text-sm text-red-600">
                   Electric sync encountered an error.
@@ -476,6 +504,14 @@ export function GenerateAgentsDialog({
                           collection.utils.clearError();
                         }
                         await collection.preload();
+
+                        if (progressCollection) {
+                          await progressCollection.cleanup();
+                          if (progressCollection.utils.clearError) {
+                            progressCollection.utils.clearError();
+                          }
+                          await progressCollection.preload();
+                        }
                       };
 
                       void restart();
@@ -484,23 +520,24 @@ export function GenerateAgentsDialog({
                     Retry Sync
                   </Button>
                   <div className="text-muted-foreground text-xs">
-                    Status: {liveStatus}
+                    Status: {isProgressError ? "progress error" : liveStatus}
                   </div>
                 </div>
               </div>
             )}
 
             {/* Progress Display - shown when we have codebaseIds */}
-            {codebaseIds.length > 0 && (
-              <GenerateAgentsProgress
+            {codebaseIds.length > 0 && scope && (
+              <GenerateAgentsProgressLive
                 snapshot={parsedSnapshot}
-                codebaseIds={codebaseIds}
-                isSyncing={isLiveLoading || isRunning}
+                scope={scope}
+                progressRows={progressRows}
+                isSyncing={isLiveLoading || isProgressLoading || isRunning}
               />
             )}
 
             {/* Waiting for data state */}
-            {!isLiveError && codebaseIds.length === 0 && isRunning && (
+            {!isAnyLiveError && codebaseIds.length === 0 && isRunning && (
               <div className="text-muted-foreground py-8 text-center">
                 <p>Waiting for workflow to start...</p>
                 <p className="mt-2 text-sm">
@@ -655,12 +692,12 @@ export function GenerateAgentsDialog({
       />
 
       {/* Agent Feedback Sheet for rating agent generation quality */}
-      {parsedSnapshot?.codebases && actualJob && (
+      {liveCodebases.length > 0 && actualJob && (
         <AgentFeedbackSheet
           open={agentFeedbackSheetOpen}
           onOpenChange={setAgentFeedbackSheetOpen}
           job={actualJob}
-          codebases={parsedSnapshot.codebases}
+          codebases={liveCodebases}
         />
       )}
     </>
