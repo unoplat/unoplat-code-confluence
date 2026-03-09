@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.48.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.48.2...unoplat-code-confluence-frontend-v1.48.3) (2026-03-09)
+
+
+### Bug Fixes
+
+* **frontend:** add package description ([9b2415c](https://github.com/unoplat/unoplat-code-confluence/commit/9b2415cd1cf6aca96cc0eb602be2f9850caabfa6))
+
 ## [1.48.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.48.1...unoplat-code-confluence-frontend-v1.48.2) (2026-03-08)
 
 
