@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.72.4](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.3...code-confluence-flow-bridge-v0.72.4) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** comments to typescript implementation ([0c9776f](https://github.com/unoplat/unoplat-code-confluence/commit/0c9776fb2795c9e2095dc951559e07f859e5b039))
+* **chore:** comments to typescript implementation ([bd437f2](https://github.com/unoplat/unoplat-code-confluence/commit/bd437f24ff0ad14fc91800e97e33652ab1f60fad))
+
 ## [0.72.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.2...code-confluence-flow-bridge-v0.72.3) (2026-03-09)
 
 
