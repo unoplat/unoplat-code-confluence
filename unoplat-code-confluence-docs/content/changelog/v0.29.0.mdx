@@ -1,0 +1,33 @@
+---
+title: "Release v0.29.0"
+description: "Comprehensive SEO overhaul, changelog timeline redesign, and design-system alignment"
+version: "0.29.0"
+releaseDate: "2026-02-20"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.29.0"
+---
+
+## Highlights
+
+This release delivers a comprehensive SEO overhaul for the documentation site, redesigns the changelog into a single-page timeline, and aligns the frontend with design-system tokens and primitives.
+
+## What's New
+
+### Comprehensive SEO
+
+- Added meta tags, canonical links, JSON-LD structured data, and a robots.txt for improved search engine discoverability
+- `SITE_URL` is now sourced from `import.meta.env` for correct canonical URL generation across environments
+
+### Changelog Timeline Redesign
+
+- Redesigned the changelog into a single-page Commit-theme timeline for a more cohesive reading experience
+- Added v0.28.0 changelog entry
+
+### Design-System Alignment
+
+- Aligned design-system tokens and primitives across the frontend for visual consistency
+
+## Bug Fixes
+
+- Fixed design-system token and primitive alignment issues
+- Fixed Read tool call pagination with clamp/no-op correction
+- Fixed `SITE_URL` to be sourced from `import.meta.env` instead of hardcoded values

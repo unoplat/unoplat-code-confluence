@@ -1,0 +1,57 @@
+---
+title: "Release v0.30.0"
+description: "AWS Bedrock model provider, command palette, in-app feedback, TypeScript beta improvements, LLM-based DIDS validation, and language-first catalog navigation"
+version: "0.30.0"
+releaseDate: "2026-03-09"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.30.0"
+---
+
+## Highlights
+
+This release adds AWS Bedrock as a model provider, introduces a command palette for faster navigation, enables in-app feedback, improves the TypeScript beta with stronger detection capabilities, adds LLM-based DIDS validation for low-confidence matches, and reworks catalog navigation to be language-first.
+
+## What's New
+
+### AWS Bedrock Support
+
+- Added AWS Bedrock as a model provider with enhanced Anthropic model cache support
+- Broadens deployment options for teams running on AWS infrastructure
+
+### Command Palette
+
+- Introduced a command palette for easier navigation and quick access to actions across the app
+
+### In-App Feedback
+
+- Added a feedback dialog accessible from the command palette with a dedicated backend endpoint for collecting user feedback
+
+### Language-First DIDS Catalog
+
+- Reworked the catalog hierarchy to use a language-first navigation model for more intuitive browsing of ingested codebases
+
+### TypeScript Beta Improvements
+
+- Stronger grammar detection and Next.js endpoint detection for more accurate TypeScript codebase analysis
+
+### LLM-Based DIDS Validation
+
+- Added an LLM-based validator for low-confidence DIDS matches, improving ingestion accuracy with confidence metadata schema for ingestion contracts
+
+### Additional Framework Support
+
+- Extended Python and TypeScript framework detection coverage
+
+### Documentation Updates
+
+- Added roadmap for skills and blueprint generation
+
+## Bug Fixes
+
+- Agent events now derive live status from the latest event for accurate real-time state
+- Overhauled events view for more intuitive browsing with support for up to 100k tool results
+- Improved real-time sync performance with virtual list and 3-phase schema (ElectricSQL)
+- Aligned tool call/result UI colors to the design system
+- Responsive dialog sizing via CVA variants
+- Fixed codebase dropdown visibility and adaptive sizing
+- Fixed command palette positioning
+- Various schema, Docker, and dependency fixes
