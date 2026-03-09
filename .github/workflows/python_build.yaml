@@ -39,6 +39,58 @@ jobs:
             query-engine:
               - 'unoplat-code-confluence-query-engine/**'
 
+  refresh-release-pr-lockfiles:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Skip for non-release PRs
+        run: echo "Release PR lock refresh not required for this branch."
+
+      - name: Checkout release PR branch
+        if: startsWith(github.head_ref, 'release-please--') && (needs.detect-changes.outputs.flow-bridge == 'true' || needs.detect-changes.outputs.query-engine == 'true')
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.PAT }}
+          persist-credentials: true
+
+      - name: Setup Python
+        if: startsWith(github.head_ref, 'release-please--') && (needs.detect-changes.outputs.flow-bridge == 'true' || needs.detect-changes.outputs.query-engine == 'true')
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        if: startsWith(github.head_ref, 'release-please--') && (needs.detect-changes.outputs.flow-bridge == 'true' || needs.detect-changes.outputs.query-engine == 'true')
+        uses: astral-sh/setup-uv@v5
+
+      - name: Refresh flow-bridge lockfile
+        if: startsWith(github.head_ref, 'release-please--') && needs.detect-changes.outputs.flow-bridge == 'true'
+        working-directory: unoplat-code-confluence-ingestion/code-confluence-flow-bridge
+        env:
+          GITHUB_PAT_TOKEN: ${{ secrets.PAT }}
+        run: uv lock
+
+      - name: Refresh query-engine lockfile
+        if: startsWith(github.head_ref, 'release-please--') && needs.detect-changes.outputs.query-engine == 'true'
+        working-directory: unoplat-code-confluence-query-engine
+        env:
+          GITHUB_PAT_TOKEN: ${{ secrets.PAT }}
+        run: uv lock
+
+      - name: Commit refreshed lockfiles
+        if: startsWith(github.head_ref, 'release-please--') && (needs.detect-changes.outputs.flow-bridge == 'true' || needs.detect-changes.outputs.query-engine == 'true')
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          branch: ${{ github.head_ref }}
+          commit_message: "fix(ci): refresh release PR uv lockfiles after release-please version bumps"
+          file_pattern: >-
+            unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock
+            unoplat-code-confluence-query-engine/uv.lock
+
   build-commons:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.commons == 'true' }}
@@ -67,7 +119,9 @@ jobs:
         run: uv build
         
   test-flow-bridge:
-    needs: detect-changes
+    needs:
+      - detect-changes
+      - refresh-release-pr-lockfiles
     if: ${{ needs.detect-changes.outputs.flow-bridge == 'true' || needs.detect-changes.outputs.commons == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -144,7 +198,9 @@ jobs:
           retention-days: 7
     
   test-query-engine:
-    needs: detect-changes
+    needs:
+      - detect-changes
+      - refresh-release-pr-lockfiles
     if: ${{ needs.detect-changes.outputs.query-engine == 'true' || needs.detect-changes.outputs.commons == 'true' }}
     runs-on: ubuntu-latest
     steps:
