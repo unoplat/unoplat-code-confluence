@@ -25,6 +25,7 @@ from src.code_confluence_flow_bridge.engine.programming_language.python.python_s
 
 
 def _extract_node_text(source_bytes: bytes, node: tree_sitter.Node) -> str:
+    """Slice raw source bytes using the node's byte offsets and decode to str."""
     return source_bytes[node.start_byte : node.end_byte].decode(
         "utf-8", errors="ignore"
     )
@@ -33,9 +34,23 @@ def _extract_node_text(source_bytes: bytes, node: tree_sitter.Node) -> str:
 def _is_feature_imported(
     absolute_paths: List[str], import_aliases: Dict[str, str]
 ) -> bool:
+    """Check whether any of a feature's absolute import paths appear in the file's recorded imports.
+
+    Args:
+        absolute_paths: Fully-qualified dotted paths for the feature
+            (e.g. ``["flask.Flask", "flask.app.Flask"]``).
+        import_aliases: Mapping of dotted import path to the local alias
+            present in the source file.
+
+    Returns:
+        True if at least one absolute path (or any leading prefix of it)
+        is found in *import_aliases*.
+    """
     for absolute_path in absolute_paths:
         if absolute_path in import_aliases:
             return True
+        # Check progressively longer prefixes (e.g. "flask", "flask.app")
+        # so that `import flask` still matches feature path "flask.Flask".
         parts = absolute_path.split(".")
         for idx in range(1, len(parts)):
             prefix = ".".join(parts[:idx])
@@ -55,6 +70,16 @@ CallMatchKind = Literal[
 
 @dataclass(frozen=True)
 class CallMatchEvidence:
+    """Immutable evidence record describing how (or whether) a callee matched an import.
+
+    Attributes:
+        matched: Whether the callee resolved to a known import.
+        match_kind: Classification of the match strategy that succeeded.
+        matched_absolute_path: The fully-qualified path that was matched.
+        matched_alias: The local alias used in the source, if different from
+            the short symbol name.
+    """
+
     matched: bool
     match_kind: CallMatchKind
     matched_absolute_path: str
@@ -72,6 +97,7 @@ CALL_EXPRESSION_MATCH_POLICY_VERSION = "v1_import_bound"
 
 
 def _resolve_call_expression_confidence(spec: FeatureSpec) -> float:
+    """Return the confidence score for a call-expression match from the spec."""
     return float(spec.base_confidence)
 
 
@@ -80,6 +106,16 @@ def _build_call_expression_metadata(
     spec: FeatureSpec,
     call_match_evidence: CallMatchEvidence,
 ) -> dict[str, object]:
+    """Build the metadata dict attached to every CallExpressionInfo detection.
+
+    Args:
+        spec: The feature specification that triggered the match.
+        call_match_evidence: Evidence produced by ``_matches_callee``.
+
+    Returns:
+        A dict containing provenance fields (concept, source, confidence,
+        match kind, policy version) and, when applicable, the matched alias.
+    """
     metadata: dict[str, object] = {
         "concept": "CallExpression",
         "source": "tree_sitter",
@@ -96,11 +132,32 @@ def _build_call_expression_metadata(
 def _matches_callee(
     callee_text: str, absolute_paths: List[str], import_aliases: Dict[str, str]
 ) -> CallMatchEvidence:
+    """Determine whether a callee expression text resolves to an imported symbol.
+
+    The function tries three resolution strategies per absolute path, in order:
+
+    1. **symbol_exact / import_alias_exact** – the symbol (or its alias) was
+       imported directly (e.g. ``from flask import Flask`` → callee ``Flask``).
+    2. **module_member_exact** – the parent module was imported and the callee
+       uses attribute access (e.g. ``import flask.app`` → ``flask.app.Flask``).
+    3. **root_module_member_exact** – only the root package was imported
+       (e.g. ``import flask`` → ``flask.Flask``).
+
+    Args:
+        callee_text: The raw text of the callee node extracted from the AST.
+        absolute_paths: Candidate fully-qualified dotted paths for the feature.
+        import_aliases: Mapping of dotted import path → local alias in the file.
+
+    Returns:
+        A ``CallMatchEvidence`` describing the first successful match, or
+        ``NO_CALL_MATCH_EVIDENCE`` if none of the strategies matched.
+    """
     for abs_path in absolute_paths:
         path_parts = abs_path.split(".")
         short_name = path_parts[-1]
         module_path = ".".join(path_parts[:-1])
 
+        # Strategy 1: direct symbol import (e.g. `from x import Y` or `from x import Y as Z`)
         if abs_path in import_aliases:
             alias = import_aliases[abs_path]
             if callee_text == alias:
@@ -114,6 +171,7 @@ def _matches_callee(
                     matched_alias=alias,
                 )
 
+        # Strategy 2: module-level import with attribute access (e.g. `import flask.app` → `flask.app.Flask`)
         if module_path and module_path in import_aliases:
             module_alias = import_aliases[module_path]
             if callee_text == f"{module_alias}.{short_name}":
@@ -124,6 +182,7 @@ def _matches_callee(
                     matched_alias=module_alias,
                 )
 
+        # Strategy 3: root package import (e.g. `import flask` → `flask.Flask`)
         root_module = path_parts[0]
         if root_module in import_aliases:
             root_module_alias = import_aliases[root_module]
@@ -141,14 +200,27 @@ def _matches_callee(
 def _matches_superclass(
     superclass_text: str, absolute_paths: List[str], import_aliases: Dict[str, str]
 ) -> bool:
+    """Check whether a superclass text resolves to an imported symbol.
+
+    Args:
+        superclass_text: The raw text of the superclass node from the AST.
+        absolute_paths: Candidate fully-qualified dotted paths for the feature.
+        import_aliases: Mapping of dotted import path → local alias in the file.
+
+    Returns:
+        True if the superclass text matches a directly imported symbol or a
+        module-qualified attribute access for any of the *absolute_paths*.
+    """
     for abs_path in absolute_paths:
         path_parts = abs_path.split(".")
         short_name = path_parts[-1]
         module_path = ".".join(path_parts[:-1])
 
+        # Direct import match (e.g. `from django.db.models import Model`)
         if abs_path in import_aliases and superclass_text == import_aliases[abs_path]:
             return True
 
+        # Module-qualified match (e.g. `import django.db.models` → `models.Model`)
         if module_path and module_path in import_aliases:
             module_alias = import_aliases[module_path]
             if superclass_text == f"{module_alias}.{short_name}":
@@ -166,6 +238,22 @@ class PythonTreeSitterFrameworkDetector:
     def detect(
         self, context: PythonSourceContext, feature_specs: List[FeatureSpec]
     ) -> List[Detection]:
+        """Run framework detection for every feature spec against a single source file.
+
+        Each spec is first checked for an import presence guard; specs whose
+        imports are absent in the file are skipped entirely.  Surviving specs
+        are dispatched to concept-specific detection methods.
+
+        Args:
+            context: Pre-parsed source context (AST root, source bytes,
+                resolved import aliases).
+            feature_specs: Feature specifications to detect, each describing
+                one framework symbol/pattern.
+
+        Returns:
+            A flat list of ``Detection`` instances (may be empty) aggregated
+            across all specs.
+        """
         detections: List[Detection] = []
         for spec in feature_specs:
             try:
@@ -200,6 +288,7 @@ class PythonTreeSitterFrameworkDetector:
     def _detect_feature(
         self, context: PythonSourceContext, spec: FeatureSpec
     ) -> List[Detection]:
+        """Build a tree-sitter query for *spec* and route matches to the appropriate concept handler."""
         query = self._query_builder.build_query(spec)
         cursor = tree_sitter.QueryCursor(query)
         matches = cursor.matches(context.root_node)
@@ -219,6 +308,16 @@ class PythonTreeSitterFrameworkDetector:
         spec: FeatureSpec,
         matches: List[tuple[int, Dict[str, List[tree_sitter.Node]]]],
     ) -> List[Detection]:
+        """Process tree-sitter matches for decorator/annotation-like patterns.
+
+        Captures expected from the query:
+        ``decorator_call``, ``decorator_name``, ``decorator_object``,
+        ``decorator_method``, ``definition``, ``decorator``.
+
+        For method-style decorators (e.g. ``@app.route(...)``), the
+        *bound_object* is the object (``app``) and *annotation_name* is the
+        method (``route``).  For plain decorators the name is used directly.
+        """
         detections: List[Detection] = []
 
         for _pattern_index, captures in matches:
@@ -232,9 +331,11 @@ class PythonTreeSitterFrameworkDetector:
             if definition is None or decorator is None:
                 continue
 
+            # tree-sitter lines are 0-indexed; convert to 1-indexed for display
             start_line = decorator.start_point[0] + 1
             end_line = definition.end_point[0] + 1
 
+            # Prefer the most specific node available for match text
             match_text_node = decorator or decorator_call or decorator_name
             match_text = (
                 _extract_node_text(context.source_bytes, match_text_node)
@@ -281,6 +382,12 @@ class PythonTreeSitterFrameworkDetector:
         spec: FeatureSpec,
         matches: List[tuple[int, Dict[str, List[tree_sitter.Node]]]],
     ) -> List[Detection]:
+        """Process tree-sitter matches for function/constructor call expressions.
+
+        Each match is validated against the file's import aliases via
+        ``_matches_callee`` to confirm the callee actually refers to the
+        expected framework symbol (not just a name collision).
+        """
         detections: List[Detection] = []
 
         for _pattern_index, captures in matches:
@@ -329,6 +436,12 @@ class PythonTreeSitterFrameworkDetector:
         spec: FeatureSpec,
         matches: List[tuple[int, Dict[str, List[tree_sitter.Node]]]],
     ) -> List[Detection]:
+        """Process tree-sitter matches for class inheritance patterns.
+
+        Each matched superclass is validated against the file's import aliases
+        via ``_matches_superclass`` to confirm it refers to the expected
+        framework base class.
+        """
         detections: List[Detection] = []
 
         for _pattern_index, captures in matches:
@@ -368,6 +481,7 @@ class PythonTreeSitterFrameworkDetector:
     def _first_capture(
         self, captures: Dict[str, List[tree_sitter.Node]], name: str
     ) -> Optional[tree_sitter.Node]:
+        """Return the first node for a named capture, or None if absent."""
         nodes = captures.get(name)
         if nodes:
             return nodes[0]

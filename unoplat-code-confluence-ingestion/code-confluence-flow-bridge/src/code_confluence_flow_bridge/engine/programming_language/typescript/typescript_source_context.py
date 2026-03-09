@@ -15,6 +15,7 @@ _IMPORT_QUERY_PATH = Path(__file__).resolve().parent / "queries" / "imports.scm"
 
 @lru_cache(maxsize=1)
 def _get_import_query() -> tree_sitter.Query:
+    """Return the compiled tree-sitter import query, cached after first call."""
     language = get_language("typescript")  # type: ignore[arg-type]
     query_source = _IMPORT_QUERY_PATH.read_text(encoding="utf-8")
     return tree_sitter.Query(language, query_source)
@@ -23,6 +24,15 @@ def _get_import_query() -> tree_sitter.Query:
 def _extract_imports_from_tree(
     root_node: tree_sitter.Node, source_bytes: bytes
 ) -> List[str]:
+    """Run the import query on a parsed tree and return raw import statements.
+
+    Args:
+        root_node: Root node of the tree-sitter parse tree.
+        source_bytes: UTF-8 encoded source used to extract node text.
+
+    Returns:
+        List of raw import statement strings captured by the query.
+    """
     cursor = tree_sitter.QueryCursor(_get_import_query())
     captures: Dict[str, List[tree_sitter.Node]] = cursor.captures(root_node)
 
@@ -39,6 +49,7 @@ def _extract_imports_from_tree(
 def _record_import_alias(
     mapping: Dict[str, str], full_path: str, alias: str
 ) -> None:
+    """Record an import alias, keeping only the first mapping per path."""
     if full_path not in mapping:
         mapping[full_path] = alias
 
@@ -153,6 +164,15 @@ class TypeScriptSourceContext(BaseModel):
 
     @classmethod
     def from_source(cls, source_code: str) -> "TypeScriptSourceContext":
+        """Parse TypeScript source and build a fully-populated context.
+
+        Args:
+            source_code: Raw TypeScript source text.
+
+        Returns:
+            A ``TypeScriptSourceContext`` with the parse tree, extracted
+            imports, and resolved import-alias mapping ready for detection.
+        """
         source_bytes = source_code.encode("utf-8", errors="ignore")
         parser = get_parser("typescript")  # type: ignore[arg-type]
         tree = parser.parse(source_bytes)
