@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 ########################################
 # ---------- bun stage ---------------
 ########################################
@@ -20,7 +22,9 @@ RUN if [ -f package.json ]; then bun install --frozen-lockfile; else echo "No pa
 FROM python:3.13-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1
 
 # Install build dependencies
 RUN apt-get update && \
@@ -29,13 +33,20 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
 COPY README.md ./
+
+# Install dependency layer first so source changes do not invalidate it.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project --no-editable --no-dev
+
 COPY src ./src
-RUN uv sync --no-cache --frozen
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-editable --no-dev
+
 COPY . /app
 
 ########################################
@@ -49,7 +60,8 @@ ARG APP_UID=10001
 RUN useradd --uid ${APP_UID} --create-home --shell /usr/sbin/nologin ${APP_USER}
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PATH="/app/.venv/bin:$PATH"
 
 # Install minimal runtime dependencies
 RUN apt-get update && \
@@ -64,7 +76,6 @@ COPY --from=bun-stage /usr/local/bin/bun /usr/local/bin/bun
 COPY --from=bun-stage /usr/local/bin/bunx /usr/local/bin/bunx
 
 # Copy Python application and dependencies
-COPY --from=builder --chown=${APP_USER}:${APP_USER} /usr/local /usr/local
 COPY --from=builder --chown=${APP_USER}:${APP_USER} /app /app
 
 # Copy Bun dependencies; directory always exists from bun-stage
@@ -81,7 +92,6 @@ USER ${APP_USER}
 
 # Set environment variables
 ENV PYTHONPATH=/app/src
-ENV UV_SYSTEM_PYTHON=1
 
 EXPOSE 8000
-CMD ["uv", "run", "--frozen", "fastapi", "run", "src/unoplat_code_confluence_query_engine/main.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["fastapi", "run", "src/unoplat_code_confluence_query_engine/main.py", "--host", "0.0.0.0", "--port", "8000"]

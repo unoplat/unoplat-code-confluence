@@ -1,7 +1,7 @@
 [project]
 name = "unoplat-code-confluence-query-engine"
-version = "0.37.1"
-description = "Query engine for Unoplat Code Confluence"
+version = "0.37.3"
+description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -52,8 +52,8 @@ markers = [
 
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
-unoplat-code-confluence-commons = { path = "../unoplat-code-confluence-commons" }
-#unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.45.0" }
+#unoplat-code-confluence-commons = { path = "../unoplat-code-confluence-commons" }
+unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.45.1" }
 
 [tool.basedpyright]
 typeCheckingMode = "strict"
