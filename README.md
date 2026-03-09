@@ -32,7 +32,7 @@
     <a href="https://github.com/unoplat/unoplat-code-confluence/stargazers">
       <img src="https://img.shields.io/github/stars/unoplat/unoplat-code-confluence?style=social" alt="Star on GitHub" />
     </a>
-    <a href="https://youtu.be/fRBV_f9fDKc?si=XYKkDv4IBGoFBS9u">
+    <a href="https://www.youtube.com/watch?v=l6gFjoj4QJE">
       <img src="https://img.shields.io/badge/Watch%20demo-YouTube?logo=youtube" alt="Watch the demo" />
     </a>
   </p>
@@ -72,16 +72,18 @@
 ## 🎥 Demo: Agents.md-first Context
 
 <p align="center">
-  <a href="https://youtu.be/fRBV_f9fDKc?si=XYKkDv4IBGoFBS9u" target="_blank">
-    <img src="https://img.youtube.com/vi/fRBV_f9fDKc/maxresdefault.jpg" alt="Agents.md demo video" width="900">
+  <a href="https://www.youtube.com/watch?v=l6gFjoj4QJE" target="_blank">
+    <img src="https://img.youtube.com/vi/l6gFjoj4QJE/maxresdefault.jpg" alt="Agents.md demo video" width="900">
   </a>
   <br />
   <a href="https://github.com/unoplat/unoplat-code-confluence/stargazers"><b>Like this? Star the repo</b> ⭐</a>
   ·
-  <a href="https://youtu.be/fRBV_f9fDKc?si=XYKkDv4IBGoFBS9u">Watch on YouTube</a>
+  <a href="https://www.youtube.com/watch?v=l6gFjoj4QJE">Watch on YouTube</a>
+  ·
+  <a href="https://github.com/JayGhiya/onyx/pull/1">Sample PR</a>
 </p>
 
-**What's in the demo:** automatic `AGENTS.md` generation per repo and an org index that gives any coding agent a precise source of truth.
+**What's in the demo:** automatic `AGENTS.md` generation per repo and an org index that gives any coding agent a precise source of truth. See a [sample PR](https://github.com/JayGhiya/onyx/pull/1) created by the tool.
 
 <!-- THE PROBLEM SECTION -->
 ## ⚠️ The Problem
