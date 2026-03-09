@@ -24,14 +24,17 @@ _TEMPLATE_PATHS = {
     "inheritance": _TEMPLATE_DIR / "inheritance.scm",
 }
 
+# Module-level cache: avoids recompiling identical tree-sitter queries across calls.
 _QUERY_CACHE: Dict[str, tree_sitter.Query] = {}
 
 
 def _escape_query_regex(regex: str) -> str:
+    """Escape backslashes and double-quotes for safe embedding in tree-sitter regex literals."""
     return regex.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def _render_predicate(capture_name: str, regex: Optional[str]) -> str:
+    """Build a tree-sitter ``#match?`` predicate string, or return empty if *regex* is falsy."""
     if not regex:
         return ""
     safe_regex = _escape_query_regex(regex)
@@ -39,17 +42,29 @@ def _render_predicate(capture_name: str, regex: Optional[str]) -> str:
 
 
 def _render_template(template: str, replacements: Dict[str, str]) -> str:
+    """Substitute ``{{KEY}}`` placeholders in *template* with values from *replacements*."""
     rendered = template
     for key, value in replacements.items():
+        # Placeholders use double-brace syntax, e.g. {{ANNOTATION_CALL_BLOCK}}
         rendered = rendered.replace(f"{{{{{key}}}}}", value)
     return rendered
 
 
 def _load_template(path: Path) -> str:
+    """Read a ``.scm`` template file from disk."""
     return path.read_text(encoding="utf-8")
 
 
 def _definition_hash(feature_spec: FeatureSpec) -> str:
+    """Compute a deterministic SHA-256 hex digest for cache-key derivation.
+
+    Args:
+        feature_spec: The feature specification whose fields are serialised
+            into a canonical JSON payload before hashing.
+
+    Returns:
+        A 64-character lowercase hex string uniquely identifying the spec.
+    """
     payload = {
         "feature_key": feature_spec.feature_key,
         "library": feature_spec.library,
@@ -59,6 +74,7 @@ def _definition_hash(feature_spec: FeatureSpec) -> str:
         "locator_strategy": feature_spec.locator_strategy.value,
         "construct_query": feature_spec.construct_query,
     }
+    # sort_keys + compact separators guarantee a stable byte representation.
     payload_json = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload_json.encode("utf-8")).hexdigest()
 
@@ -70,6 +86,19 @@ class PythonFrameworkQueryBuilder:
         self._language = get_language("python")  # type: ignore[arg-type]
 
     def build_query(self, feature_spec: FeatureSpec) -> tree_sitter.Query:
+        """Build (or retrieve from cache) a compiled tree-sitter query for a feature.
+
+        Args:
+            feature_spec: Declarative specification describing which syntactic
+                construct to match (annotation, call expression, inheritance, etc.).
+
+        Returns:
+            A compiled ``tree_sitter.Query`` ready to execute against a parse tree.
+
+        Raises:
+            ValueError: If the concept in *feature_spec* is not supported.
+            KeyError: If the resolved template key has no corresponding template file.
+        """
         template_key = self._select_template_key(feature_spec)
         template_path = _TEMPLATE_PATHS[template_key]
         template = _load_template(template_path)
@@ -82,7 +111,9 @@ class PythonFrameworkQueryBuilder:
         return _QUERY_CACHE[cache_key]
 
     def _select_template_key(self, feature_spec: FeatureSpec) -> str:
+        """Map a feature spec's concept and target level to a template key."""
         if feature_spec.concept == Concept.ANNOTATION_LIKE:
+            # Annotations targeting classes use a different S-expression template.
             if feature_spec.target_level == TargetLevel.CLASS:
                 return "annotation_class"
             return "annotation_function"
@@ -93,8 +124,10 @@ class PythonFrameworkQueryBuilder:
         raise ValueError(f"Unsupported concept: {feature_spec.concept}")
 
     def _render_query(self, template: str, feature_spec: FeatureSpec) -> str:
+        """Build predicate strings from the feature spec and render the template."""
         construct_query = self._construct_query_config(feature_spec)
 
+        # method_regex and attribute_regex are interchangeable for annotation matching.
         method_regex = construct_query.method_regex or construct_query.attribute_regex
         annotation_regex = construct_query.annotation_name_regex
         callee_regex = construct_query.callee_regex
@@ -115,12 +148,23 @@ class PythonFrameworkQueryBuilder:
     def _construct_query_config(
         self, feature_spec: FeatureSpec
     ) -> ConstructQueryConfig:
+        """Extract a typed ConstructQueryConfig, falling back to an empty default."""
         construct_query = feature_spec.construct_query_typed
         if construct_query is not None:
             return construct_query
         return ConstructQueryConfig.model_validate({})
 
     def _build_annotation_call_block(self, method_regex: Optional[str]) -> str:
+        """Build the S-expression block matching decorator call patterns.
+
+        Args:
+            method_regex: Optional regex to constrain the decorator method name.
+                When ``None``, the block matches any decorator call.
+
+        Returns:
+            A multi-line S-expression string for the ``decorated_definition``
+            pattern with an optional ``#match?`` predicate.
+        """
         predicate = _render_predicate("@decorator_method", method_regex)
         predicate_line = f"\n  {predicate}" if predicate else ""
         return f"""
@@ -141,6 +185,17 @@ class PythonFrameworkQueryBuilder:
 """
 
     def _build_annotation_name_block(self, annotation_regex: Optional[str]) -> str:
+        """Build the S-expression block matching simple (non-call) decorator names.
+
+        Args:
+            annotation_regex: Regex the decorator identifier must match.
+                Returns an empty string when ``None``, effectively disabling
+                this match branch.
+
+        Returns:
+            A multi-line S-expression string, or an empty string if no regex
+            is provided.
+        """
         if not annotation_regex:
             return ""
         predicate = _render_predicate("@decorator_name", annotation_regex)

@@ -1,3 +1,5 @@
+"""Load framework definition JSON files and bulk-insert them into Postgres."""
+
 import os
 import json
 import logging
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def _normalize_concept_name(raw_concept: object) -> str:
+    """Map a raw concept value to a known concept name, defaulting to AnnotationLike."""
     if raw_concept in {
         "AnnotationLike",
         "CallExpression",
@@ -33,6 +36,15 @@ def _normalize_concept_name(raw_concept: object) -> str:
 
 
 def _normalize_base_confidence(payload_data: Dict[str, Any]) -> None:
+    """Validate and coerce base_confidence for CallExpression payloads.
+
+    Args:
+        payload_data: Mutable feature payload dict; modified in-place.
+
+    Raises:
+        ValueError: If base_confidence is present on a non-CallExpression
+            concept, is not numeric, or falls outside ``[0.0, 1.0]``.
+    """
     concept_name = cast(str, payload_data["concept"])
     if concept_name != "CallExpression":
         if "base_confidence" in payload_data:
@@ -205,6 +217,7 @@ class FrameworkDefinitionLoader:
     def _normalize_feature_payload(
         self, feature_data: Dict[str, Any]
     ) -> FrameworkFeaturePayload:
+        """Sanitise and validate raw feature JSON into a FrameworkFeaturePayload."""
         payload_data = dict(feature_data)
 
         if not isinstance(payload_data.get("absolute_paths"), list):

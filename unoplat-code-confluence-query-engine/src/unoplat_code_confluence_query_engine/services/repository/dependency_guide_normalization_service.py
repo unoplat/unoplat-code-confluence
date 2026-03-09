@@ -25,12 +25,14 @@ _REGISTRY_FILE_NAME = "ui_component_dependency_families.json"
 
 
 def _registry_file_path() -> Path:
+    """Resolve the absolute path to the UI component dependency families JSON registry."""
     package_root = Path(__file__).resolve().parents[2]
     return package_root / "config" / _REGISTRY_FILE_NAME
 
 
 @lru_cache(maxsize=1)
 def _load_ui_dependency_family_registry() -> UIDependencyFamilyRegistry:
+    """Load and validate the UI dependency family registry from disk (cached after first call)."""
     registry_path = _registry_file_path()
     with registry_path.open("r", encoding="utf-8") as registry_file:
         raw_registry = json.load(registry_file)
@@ -44,6 +46,7 @@ def _load_ui_dependency_family_registry() -> UIDependencyFamilyRegistry:
 
 
 def _normalize_value(value: str) -> str:
+    """Strip whitespace and lowercase a string for case-insensitive comparison."""
     return value.strip().lower()
 
 
@@ -52,6 +55,7 @@ def _is_rule_applicable(
     programming_language: str,
     package_manager: str,
 ) -> bool:
+    """Check if a family rule applies for the given language and package manager."""
     if not rule.enabled:
         return False
     if rule.kind != _SUPPORTED_FAMILY_KIND:
@@ -70,6 +74,7 @@ def _is_rule_applicable(
 
 
 def _matches_rule(rule: UIDependencyFamilyRule, dependency_name: str) -> bool:
+    """Test whether a dependency name satisfies the rule's match criterion (exact, prefix, or regex)."""
     match_type = rule.match.type
     match_value = rule.match.value
     if match_type == "exact":
@@ -82,6 +87,7 @@ def _matches_rule(rule: UIDependencyFamilyRule, dependency_name: str) -> bool:
 
 
 def _get_rule_priority(rule: UIDependencyFamilyRule) -> int:
+    """Return sort priority for a rule: exact (0) > prefix (1) > regex (2)."""
     try:
         return _MATCH_TYPE_PRIORITY[rule.match.type]
     except KeyError as error:
@@ -94,6 +100,7 @@ def _get_applicable_rules(
     programming_language: str,
     package_manager: str,
 ) -> list[UIDependencyFamilyRule]:
+    """Filter registry rules by language/package-manager and return sorted by match-type priority."""
     registry = _load_ui_dependency_family_registry()
     applicable_rules = [
         rule
@@ -107,6 +114,7 @@ def _find_matching_rule(
     dependency_name: str,
     rules: list[UIDependencyFamilyRule],
 ) -> UIDependencyFamilyRule | None:
+    """Return the first rule that matches the dependency name, or None."""
     for rule in rules:
         if _matches_rule(rule, dependency_name):
             return rule
@@ -117,6 +125,7 @@ def _build_grouped_target(
     rule: UIDependencyFamilyRule,
     source_packages: list[str],
 ) -> DependencyGuideTarget:
+    """Create a grouped DependencyGuideTarget from a family rule and its matched packages."""
     return DependencyGuideTarget(
         name=rule.display_name,
         source_packages=sorted(source_packages, key=str.lower),
@@ -125,6 +134,7 @@ def _build_grouped_target(
 
 
 def _build_single_dependency_target(dependency_name: str) -> DependencyGuideTarget:
+    """Create a pass-through DependencyGuideTarget for a dependency that matched no family rule."""
     return DependencyGuideTarget(
         name=dependency_name, source_packages=[dependency_name]
     )

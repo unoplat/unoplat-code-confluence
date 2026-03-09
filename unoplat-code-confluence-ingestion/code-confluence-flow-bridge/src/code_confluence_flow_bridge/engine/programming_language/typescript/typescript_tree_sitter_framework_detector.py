@@ -25,6 +25,7 @@ from src.code_confluence_flow_bridge.engine.programming_language.typescript.type
 
 
 def _extract_node_text(source_bytes: bytes, node: tree_sitter.Node) -> str:
+    """Extract UTF-8 text from a tree-sitter node using its byte offsets."""
     return source_bytes[node.start_byte : node.end_byte].decode(
         "utf-8", errors="ignore"
     )
@@ -33,9 +34,12 @@ def _extract_node_text(source_bytes: bytes, node: tree_sitter.Node) -> str:
 def _is_feature_imported(
     absolute_paths: List[str], import_aliases: Dict[str, str]
 ) -> bool:
+    """Check whether any of a feature's import paths appear in the recorded imports."""
     for absolute_path in absolute_paths:
         if absolute_path in import_aliases:
             return True
+        # Check progressively longer prefixes (e.g. "react" then "react.useState")
+        # so namespace-level imports like `import * as React from 'react'` still match.
         parts = absolute_path.split(".")
         for idx in range(1, len(parts)):
             prefix = ".".join(parts[:idx])
@@ -47,6 +51,7 @@ def _is_feature_imported(
 def _first_capture(
     captures: Dict[str, List[tree_sitter.Node]], name: str
 ) -> Optional[tree_sitter.Node]:
+    """Return the first node for a named capture, or None if the capture is absent."""
     nodes = captures.get(name)
     if nodes:
         return nodes[0]
@@ -65,6 +70,15 @@ CallMatchKind = Literal[
 
 @dataclass(frozen=True)
 class CallMatchEvidence:
+    """Immutable evidence record produced when a callee is matched against imports.
+
+    Attributes:
+        matched: Whether the callee was successfully matched.
+        match_kind: Discriminator indicating how the match was resolved.
+        matched_absolute_path: The fully-qualified import path that matched.
+        matched_alias: The local alias used in source, if any.
+    """
+
     matched: bool
     match_kind: CallMatchKind
     matched_absolute_path: str
@@ -82,6 +96,7 @@ CALL_EXPRESSION_MATCH_POLICY_VERSION = "v1_import_bound"
 
 
 def _resolve_call_expression_confidence(spec: FeatureSpec) -> float:
+    """Map a feature spec to its call-expression confidence score."""
     return float(spec.base_confidence)
 
 
@@ -90,6 +105,16 @@ def _build_call_expression_metadata(
     spec: FeatureSpec,
     call_match_evidence: CallMatchEvidence,
 ) -> dict[str, object]:
+    """Build the metadata dict attached to a CallExpression detection.
+
+    Args:
+        spec: The feature specification that triggered the match.
+        call_match_evidence: Evidence describing how the callee was matched.
+
+    Returns:
+        A metadata dictionary containing match kind, confidence, and
+        policy version fields.
+    """
     metadata: dict[str, object] = {
         "concept": "CallExpression",
         "source": "tree_sitter",
@@ -108,11 +133,31 @@ def _matches_callee(
     absolute_paths: List[str],
     import_aliases: Dict[str, str],
 ) -> CallMatchEvidence:
+    """Validate a callee expression against imported symbols.
+
+    Tries several resolution strategies per absolute path:
+    1. Direct symbol or alias match (``symbol_exact`` / ``import_alias_exact``).
+    2. Namespace member access via the parent module alias
+       (``module_member_exact``), with special handling for default exports
+       (``default_import_exact``).
+    3. Root-module member access when only the top-level package is imported
+       (``root_module_member_exact``).
+
+    Args:
+        callee_text: The raw callee text extracted from the call expression node.
+        absolute_paths: Fully-qualified import paths declared by the feature spec.
+        import_aliases: Mapping of absolute import paths to their local aliases.
+
+    Returns:
+        A ``CallMatchEvidence`` describing the match, or ``NO_CALL_MATCH_EVIDENCE``
+        if no strategy succeeded.
+    """
     for absolute_path in absolute_paths:
         path_parts = absolute_path.split(".")
         short_name = path_parts[-1]
         module_path = ".".join(path_parts[:-1])
 
+        # Strategy 1: the full absolute path was imported directly.
         if absolute_path in import_aliases:
             alias = import_aliases[absolute_path]
             if callee_text == alias:
@@ -126,8 +171,10 @@ def _matches_callee(
                     matched_alias=alias,
                 )
 
+        # Strategy 2: the parent module was imported; callee uses `module.member`.
         if module_path and module_path in import_aliases:
             module_alias = import_aliases[module_path]
+            # Default exports are accessed via the module alias alone.
             if short_name == "default":
                 if callee_text == module_alias:
                     return CallMatchEvidence(
@@ -144,6 +191,7 @@ def _matches_callee(
                     matched_alias=module_alias,
                 )
 
+        # Strategy 3: only the root package was imported (e.g. `import * as pkg`).
         root_module = path_parts[0]
         if root_module in import_aliases:
             root_module_alias = import_aliases[root_module]
@@ -163,6 +211,20 @@ def _matches_superclass(
     absolute_paths: List[str],
     import_aliases: Dict[str, str],
 ) -> bool:
+    """Validate a superclass identifier against imported symbols.
+
+    Uses the same resolution strategies as ``_matches_callee`` (direct alias,
+    namespace member, default export) but returns a simple boolean since
+    inheritance detections do not carry match-kind evidence.
+
+    Args:
+        superclass_text: The raw superclass text from the class heritage clause.
+        absolute_paths: Fully-qualified import paths declared by the feature spec.
+        import_aliases: Mapping of absolute import paths to their local aliases.
+
+    Returns:
+        True if the superclass text resolves to any of the given import paths.
+    """
     for absolute_path in absolute_paths:
         path_parts = absolute_path.split(".")
         short_name = path_parts[-1]
@@ -188,6 +250,21 @@ def _resolve_annotation_parts(
     source_bytes: bytes,
     captures: Dict[str, List[tree_sitter.Node]],
 ) -> tuple[str, str]:
+    """Resolve the bound object and annotation name from decorator captures.
+
+    Handles three tree-sitter capture layouts:
+    - ``@obj.method(...)`` → decorator_object + decorator_method captures.
+    - ``@method(...)`` with a dotted decorator_name fallback.
+    - Plain ``@Name`` with no call expression.
+
+    Args:
+        source_bytes: Raw source bytes for text extraction.
+        captures: Named captures from a tree-sitter decorator query match.
+
+    Returns:
+        A ``(bound_object, annotation_name)`` tuple.  ``bound_object`` is
+        empty when the decorator is unqualified.
+    """
     decorator_object_node = _first_capture(captures, "decorator_object")
     decorator_method_node = _first_capture(captures, "decorator_method")
     decorator_name_node = _first_capture(captures, "decorator_name")
@@ -198,6 +275,8 @@ def _resolve_annotation_parts(
             bound_object = _extract_node_text(source_bytes, decorator_object_node)
             return bound_object, annotation_name
 
+        # Fallback: infer bound_object from a dotted decorator_name when
+        # the query didn't produce a separate decorator_object capture.
         if decorator_name_node is not None:
             decorator_name = _extract_node_text(source_bytes, decorator_name_node)
             if "." in decorator_name:
@@ -208,6 +287,7 @@ def _resolve_annotation_parts(
     if decorator_name_node is None:
         return "", ""
 
+    # Simple decorator: split on the last dot to separate namespace from name.
     decorator_name = _extract_node_text(source_bytes, decorator_name_node)
     if "." in decorator_name:
         bound_object, annotation_name = decorator_name.rsplit(".", 1)
@@ -224,6 +304,19 @@ class TypeScriptTreeSitterFrameworkDetector:
     def detect(
         self, context: TypeScriptSourceContext, feature_specs: List[FeatureSpec]
     ) -> List[Detection]:
+        """Run all feature specs against a parsed TypeScript source and return detections.
+
+        Each spec is first checked for an import presence guard: if none of the
+        spec's absolute paths appear in the source imports, the spec is skipped.
+        Specs that pass are dispatched to concept-specific detection methods.
+
+        Args:
+            context: Pre-parsed TypeScript source with import alias mapping.
+            feature_specs: Feature specifications to detect.
+
+        Returns:
+            Aggregated list of Detection objects across all matched specs.
+        """
         detections: List[Detection] = []
         for spec in feature_specs:
             try:
@@ -258,6 +351,7 @@ class TypeScriptTreeSitterFrameworkDetector:
     def _detect_feature(
         self, context: TypeScriptSourceContext, spec: FeatureSpec
     ) -> List[Detection]:
+        """Build a tree-sitter query for the spec and dispatch to the concept-specific handler."""
         query = self._query_builder.build_query(spec)
         cursor = tree_sitter.QueryCursor(query)
         matches = cursor.matches(context.root_node)
@@ -283,6 +377,7 @@ class TypeScriptTreeSitterFrameworkDetector:
         spec: FeatureSpec,
         matches: List[Tuple[int, Dict[str, List[tree_sitter.Node]]]],
     ) -> List[Detection]:
+        """Extract exported function definition detections from tree-sitter query matches."""
         detections: List[Detection] = []
         seen: Set[Tuple[str, str, int, int]] = set()
         source_bytes = context.source_bytes
@@ -328,6 +423,7 @@ class TypeScriptTreeSitterFrameworkDetector:
         spec: FeatureSpec,
         matches: List[Tuple[int, Dict[str, List[tree_sitter.Node]]]],
     ) -> List[Detection]:
+        """Process matched call expressions and verify callees against imports."""
         detections: List[Detection] = []
         seen: Set[Tuple[str, str, int, int]] = set()
         source_bytes = context.source_bytes
@@ -382,6 +478,7 @@ class TypeScriptTreeSitterFrameworkDetector:
         spec: FeatureSpec,
         matches: List[Tuple[int, Dict[str, List[tree_sitter.Node]]]],
     ) -> List[Detection]:
+        """Process class inheritance matches and verify superclasses against imports."""
         detections: List[Detection] = []
         seen: Set[Tuple[str, str, int, int]] = set()
         source_bytes = context.source_bytes
@@ -437,6 +534,7 @@ class TypeScriptTreeSitterFrameworkDetector:
         spec: FeatureSpec,
         matches: List[Tuple[int, Dict[str, List[tree_sitter.Node]]]],
     ) -> List[Detection]:
+        """Detect decorator / annotation-like patterns from tree-sitter matches."""
         detections: List[Detection] = []
         seen: Set[Tuple[str, str, int, int]] = set()
         source_bytes = context.source_bytes
@@ -456,6 +554,7 @@ class TypeScriptTreeSitterFrameworkDetector:
                 continue
             seen.add(dedup_key)
 
+            # Prefer the call node (includes arguments) over the bare decorator node.
             match_text_node = decorator_call_node or decorator_node
             bound_object, annotation_name = _resolve_annotation_parts(
                 source_bytes,

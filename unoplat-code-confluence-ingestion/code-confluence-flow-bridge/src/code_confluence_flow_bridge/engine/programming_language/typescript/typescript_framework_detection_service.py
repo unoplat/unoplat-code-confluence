@@ -32,10 +32,21 @@ if TYPE_CHECKING:
 
 
 def _expand_import_paths(import_paths: List[str]) -> List[str]:
+    """Expand dotted import paths into all ancestor prefixes for DB lookup.
+
+    Args:
+        import_paths: Fully-qualified dotted import paths
+            (e.g. ``["next/server.NextRequest"]``).
+
+    Returns:
+        Sorted, deduplicated list containing each original path plus every
+        leading prefix so the DB query can match at any depth.
+    """
     expanded: List[str] = []
     for path in import_paths:
         expanded.append(path)
         parts = path.split(".")
+        # Generate every leading prefix so the DB query can match at any depth
         for idx in range(1, len(parts)):
             expanded.append(".".join(parts[:idx]))
     return sorted(set(expanded))
@@ -45,6 +56,7 @@ class TypeScriptFrameworkDetectionService(FrameworkDetectionService):
     """TypeScript-specific framework detection service."""
 
     def __init__(self) -> None:
+        """Initialize TypeScript framework detection service."""
         self.detector = TypeScriptTreeSitterFrameworkDetector()
 
     async def detect_features(
