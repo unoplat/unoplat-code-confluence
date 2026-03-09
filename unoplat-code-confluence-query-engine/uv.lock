@@ -3483,8 +3483,8 @@ wheels = [
 
 [[package]]
 name = "unoplat-code-confluence-commons"
-version = "0.45.0"
-source = { directory = "../unoplat-code-confluence-commons" }
+version = "0.45.1"
+source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.45.1#207281b4dedec3c97a3b9d372a0aa48759d39974" }
 dependencies = [
     { name = "cryptography" },
     { name = "pydantic" },
@@ -3494,19 +3494,9 @@ dependencies = [
     { name = "sqlmodel" },
 ]
 
-[package.metadata]
-requires-dist = [
-    { name = "cryptography", specifier = ">=45.0.6" },
-    { name = "pydantic", specifier = ">=2.11.7" },
-    { name = "pytest", specifier = "==8.3.4" },
-    { name = "pytest-asyncio", specifier = ">=0.25.0,<0.26" },
-    { name = "sqlalchemy", specifier = ">=2.0.41" },
-    { name = "sqlmodel", specifier = ">=0.0.24" },
-]
-
 [[package]]
 name = "unoplat-code-confluence-query-engine"
-version = "0.37.0"
+version = "0.37.1"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
@@ -3561,7 +3551,7 @@ requires-dist = [
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.0" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
     { name = "sse-starlette", specifier = ">=3.0.0" },
-    { name = "unoplat-code-confluence-commons", directory = "../unoplat-code-confluence-commons" },
+    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.45.1" },
 ]
 
 [package.metadata.requires-dev]
