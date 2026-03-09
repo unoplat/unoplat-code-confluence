@@ -1,22 +1,47 @@
 ---
 title: Submitting Feedback
-description: "How to submit feedback for AI agent generation operations"
+description: "How to submit feedback — in-app general feedback and agent generation feedback"
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
 # Submitting Feedback
 
-**Unoplat Code Confluence** includes a feedback system that allows you to share your experience with AI agent generation results. Your feedback helps improve the quality of generated documentation and is submitted as a GitHub issue for tracking and follow-up.
+**Unoplat Code Confluence** provides two ways to share feedback:
 
-## When to Submit Feedback
+1. **In-App Feedback** — Send general feedback (bug reports, feature requests, or comments) directly to the Unoplat team from within the application.
+2. **Agent Generation Feedback** — Rate and review the results of a completed AI Agent Generation operation, submitted as a GitHub issue.
 
-Feedback submission is available for **completed AI Agent Generation operations**. Use this feature when you want to:
-- Report accuracy issues in the generated AGENTS.md content
-- Highlight missing information that should be included
-- Provide general suggestions for improvement
+## In-App Feedback
 
-## Feedback Submission Workflow
+You can send general feedback at any time using the built-in **Send Feedback** command.
+
+### Opening the Feedback Dialog
+
+Open the **Command Palette** and search for **"feedback"**, then click **Send Feedback**.
+
+![Command Palette — Send Feedback](../../../src/assets/images/send-feedback-command-pallete.png)
+
+### Filling Out the Form
+
+The Send Feedback dialog lets you describe your experience:
+
+![Send Feedback Dialog](../../../src/assets/images/send-app-feedback-dialog.png)
+
+| Field | Description |
+|-------|-------------|
+| **Category** | Select one: Bug Report, Feature Request, or General |
+| **How are you feeling?** | Choose a sentiment: Happy, Neutral, or Unhappy |
+| **Subject** | A brief summary of your feedback |
+| **Description** | Detailed feedback (up to 2000 characters) |
+
+<Callout type="info" title="Where does this go?">
+In-app feedback is sent directly to the Unoplat team for review.
+</Callout>
+
+## Agent Generation Feedback
+
+After a completed **AI Agent Generation** operation, you can rate the generated results and submit detailed feedback as a GitHub issue. This helps improve the quality of generated AGENTS.md documentation.
 
 ### Step 1: Navigate to Operations Panel
 
