@@ -1,5 +1,6 @@
 """
 Service for querying framework features from PostgreSQL database.
+This module bridges the ingestion layer and the query/detection engine.
 """
 
 from typing import cast
