@@ -81,9 +81,7 @@ jobs:
         with:
           branch: ${{ github.event.pull_request.head.ref }}
           commit_message: "fix(ci): refresh package uv lockfiles before python lock checks run"
-          file_pattern: |
-            unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock
-            unoplat-code-confluence-query-engine/uv.lock
+          file_pattern: "**/uv.lock"
 
   build-commons:
     needs: detect-changes
