@@ -1,7 +1,7 @@
 [project]
 name = "code-confluence-flow-bridge"
 version = "0.72.1"
-description = "Bridge between Code Confluence User and Ingestion Workflow"
+description = "Bridge between Code Confluence user interface and ingestion workflow"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
