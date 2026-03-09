@@ -23,14 +23,17 @@ _TEMPLATE_PATHS = {
     "annotation_like": _TEMPLATE_DIR / "annotation_function_like.scm",
 }
 
+# Module-level cache: avoids recompiling identical tree-sitter queries across calls.
 _QUERY_CACHE: Dict[str, tree_sitter.Query] = {}
 
 
 def _escape_query_regex(regex: str) -> str:
+    """Escape backslashes and double-quotes for safe embedding in tree-sitter regex literals."""
     return regex.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def _render_predicate(capture_name: str, regex: Optional[str]) -> str:
+    """Build a tree-sitter ``#match?`` predicate string, or return empty if *regex* is falsy."""
     if not regex:
         return ""
     safe_regex = _escape_query_regex(regex)
@@ -38,17 +41,29 @@ def _render_predicate(capture_name: str, regex: Optional[str]) -> str:
 
 
 def _render_template(template: str, replacements: Dict[str, str]) -> str:
+    """Substitute ``{{KEY}}`` placeholders in *template* with values from *replacements*."""
     rendered = template
     for key, value in replacements.items():
+        # Placeholders use double-brace syntax, e.g. {{CALLEE_PREDICATE}}
         rendered = rendered.replace(f"{{{{{key}}}}}", value)
     return rendered
 
 
 def _load_template(path: Path) -> str:
+    """Read a ``.scm`` template file from disk."""
     return path.read_text(encoding="utf-8")
 
 
 def _definition_hash(feature_spec: FeatureSpec) -> str:
+    """Compute a deterministic SHA-256 hex digest for cache-key derivation.
+
+    Args:
+        feature_spec: The feature specification whose fields are serialised
+            into a canonical JSON payload before hashing.
+
+    Returns:
+        A 64-character lowercase hex string uniquely identifying the spec.
+    """
     payload = {
         "feature_key": feature_spec.feature_key,
         "library": feature_spec.library,
@@ -58,6 +73,7 @@ def _definition_hash(feature_spec: FeatureSpec) -> str:
         "locator_strategy": feature_spec.locator_strategy.value,
         "construct_query": feature_spec.construct_query,
     }
+    # sort_keys + compact separators guarantee a stable byte representation.
     payload_json = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload_json.encode("utf-8")).hexdigest()
 
@@ -69,6 +85,19 @@ class TypeScriptFrameworkQueryBuilder:
         self._language = get_language("typescript")  # type: ignore[arg-type]
 
     def build_query(self, feature_spec: FeatureSpec) -> tree_sitter.Query:
+        """Build (or retrieve from cache) a compiled tree-sitter query for a feature.
+
+        Args:
+            feature_spec: Declarative specification describing which syntactic
+                construct to match (decorator, call expression, inheritance, etc.).
+
+        Returns:
+            A compiled ``tree_sitter.Query`` ready to execute against a parse tree.
+
+        Raises:
+            ValueError: If the concept in *feature_spec* is not supported.
+            KeyError: If the resolved template key has no corresponding template file.
+        """
         template_key = self._resolve_template_key(feature_spec.concept)
         template_path = _TEMPLATE_PATHS[template_key]
         template = _load_template(template_path)
@@ -83,12 +112,14 @@ class TypeScriptFrameworkQueryBuilder:
     def _construct_query_config(
         self, feature_spec: FeatureSpec
     ) -> ConstructQueryConfig:
+        """Extract a typed ConstructQueryConfig, falling back to an empty default."""
         construct_query = feature_spec.construct_query_typed
         if construct_query is not None:
             return construct_query
         return ConstructQueryConfig.model_validate({})
 
     def _render_query(self, template: str, feature_spec: FeatureSpec) -> str:
+        """Build predicate strings from the feature spec and render the template."""
         construct_query = self._construct_query_config(feature_spec)
 
         export_name_predicate = _render_predicate(
@@ -101,6 +132,7 @@ class TypeScriptFrameworkQueryBuilder:
         superclass_predicate = _render_predicate(
             "@superclass", construct_query.superclass_regex
         )
+        # annotation_name_regex takes precedence; method_regex is the fallback.
         annotation_regex = (
             construct_query.annotation_name_regex or construct_query.method_regex
         )
@@ -123,6 +155,17 @@ class TypeScriptFrameworkQueryBuilder:
         return _render_template(template, replacements)
 
     def _resolve_template_key(self, concept: Concept) -> str:
+        """Map a Concept enum value to the corresponding template key.
+
+        Args:
+            concept: The syntactic concept to resolve.
+
+        Returns:
+            A string key present in ``_TEMPLATE_PATHS``.
+
+        Raises:
+            ValueError: If *concept* is not handled by this builder.
+        """
         if concept == Concept.FUNCTION_DEFINITION:
             return "function_definition"
         if concept == Concept.CALL_EXPRESSION:
