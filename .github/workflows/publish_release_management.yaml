@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release_action_plan.outputs.releases_created }}
+      release_pr_created: ${{ steps.release_action_plan.outputs.prs_created }}
+      release_pr_branch: ${{ steps.extract-release-pr.outputs.branch }}
+      refresh_flow_bridge_lock: ${{ steps.create-matrix.outputs.refresh_flow_bridge_lock }}
+      refresh_query_engine_lock: ${{ steps.create-matrix.outputs.refresh_query_engine_lock }}
       matrix: ${{ steps.create-matrix.outputs.matrix }}   # noqa: unknown-context
       has_docker_images: ${{ steps.create-matrix.outputs.has_docker_images }}
     steps:
@@ -35,6 +39,22 @@ jobs:
         manifest-file: .github/configuration/release-please-manifest.json
         include-component-in-tag: true
         target-branch: dev
+
+    - name: Extract release PR metadata
+      id: extract-release-pr
+      uses: actions/github-script@v5
+      env:
+        RELEASE_PR_JSON: ${{ steps.release_action_plan.outputs.pr }}
+      with:
+        script: |
+          const prRaw = process.env.RELEASE_PR_JSON || '';
+          if (!prRaw) {
+            core.setOutput('branch', '');
+            return;
+          }
+
+          const pr = JSON.parse(prRaw);
+          core.setOutput('branch', pr.headBranchName || '');
         
     - name: Create matrix for release    
       id: create-matrix
@@ -43,6 +63,8 @@ jobs:
         script: |
           const allOutputs = ${{ toJson(steps.release_action_plan.outputs) }};
           const pathsReleased = JSON.parse('${{ steps.release_action_plan.outputs.paths_released }}');
+          const flowBridgePath = 'unoplat-code-confluence-ingestion/code-confluence-flow-bridge';
+          const queryEnginePath = 'unoplat-code-confluence-query-engine';
           
           console.log("Processing paths:", pathsReleased);
           
@@ -71,6 +93,55 @@ jobs:
           console.log("Final Docker Matrix:", matrixObj.include);
           core.setOutput('matrix', JSON.stringify(matrixObj));
           core.setOutput('has_docker_images', hasDockerImages.toString());
+          core.setOutput('refresh_flow_bridge_lock', pathsReleased.includes(flowBridgePath).toString());
+          core.setOutput('refresh_query_engine_lock', pathsReleased.includes(queryEnginePath).toString());
+
+  refresh-release-pr-lockfiles:
+    name: Refresh Release PR Lockfiles
+    runs-on: ubuntu-latest
+    needs: dev-pr-merge
+    permissions:
+      contents: write
+    if: needs.dev-pr-merge.outputs.release_pr_created == 'true' && (needs.dev-pr-merge.outputs.refresh_flow_bridge_lock == 'true' || needs.dev-pr-merge.outputs.refresh_query_engine_lock == 'true')
+    steps:
+      - name: Checkout Release PR Branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.dev-pr-merge.outputs.release_pr_branch }}
+          token: ${{ secrets.PAT }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Refresh flow-bridge lockfile
+        if: needs.dev-pr-merge.outputs.refresh_flow_bridge_lock == 'true'
+        working-directory: unoplat-code-confluence-ingestion/code-confluence-flow-bridge
+        env:
+          GITHUB_PAT_TOKEN: ${{ secrets.PAT }}
+        run: uv lock
+
+      - name: Refresh query-engine lockfile
+        if: needs.dev-pr-merge.outputs.refresh_query_engine_lock == 'true'
+        working-directory: unoplat-code-confluence-query-engine
+        env:
+          GITHUB_PAT_TOKEN: ${{ secrets.PAT }}
+        run: uv lock
+
+      - name: Commit refreshed lockfiles
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          branch: ${{ needs.dev-pr-merge.outputs.release_pr_branch }}
+          commit_message: "chore(release): refresh uv lockfiles"
+          file_pattern: >-
+            unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock
+            unoplat-code-confluence-query-engine/uv.lock
 
   release-docker-image:
     name: Build and Push Docker Image
@@ -135,6 +206,3 @@ jobs:
       #       fs.writeFileSync(filePath, yaml.dump(compose, { lineWidth: -1 }));
             
       #       console.log(`Updated image to: ${newImage}`);
-
-
-
