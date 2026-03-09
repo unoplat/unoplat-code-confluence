@@ -1,5 +1,71 @@
 # Changelog
 
+## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.29.0...unoplat-code-confluence-v0.30.0) (2026-03-09)
+
+
+### Features
+
+* **add-model-provider:** add aws bedrock model provider (manually tested) and added native web search for all providers who do not support native web search or user has not configured exa ([80336ed](https://github.com/unoplat/unoplat-code-confluence/commit/80336edfb27dc9e63049dba9e7d5efdf39123067))
+* **Add-model-provider:** aws bedrock support and enhanced cache for … ([c7841bf](https://github.com/unoplat/unoplat-code-confluence/commit/c7841bff3b2e9de07a2ed042b98761ca6bfdaeaa))
+* **Add-model-provider:** aws bedrock support and enhanced cache for anthropic models on bedrock ([13dccc3](https://github.com/unoplat/unoplat-code-confluence/commit/13dccc3e510a6f5930c9fea3ae85cf601b0c08d3))
+* **add-more-python-typescript-frameworks:** libs/frameworks added ([92f7175](https://github.com/unoplat/unoplat-code-confluence/commit/92f717566b731966b177ce6e9adb515b7685379a))
+* **app-feedback:** allow user to submit feedback for feature/bug/general ([86e994f](https://github.com/unoplat/unoplat-code-confluence/commit/86e994f54862155d8cc1b96755cc35311420d380))
+* **backend-app-feedback:** endpoint for app feedback ([3db4b77](https://github.com/unoplat/unoplat-code-confluence/commit/3db4b776f6e953e20d5fd69ea92c7d9d94443856))
+* **better-navigation-structure:** add language-first DIDS catalog hi… ([93b094a](https://github.com/unoplat/unoplat-code-confluence/commit/93b094a213cfb8d636f29053420e560206c4c317))
+* **better-navigation-structure:** add language-first DIDS catalog hierarchy ([bc74675](https://github.com/unoplat/unoplat-code-confluence/commit/bc74675e9f51bd35c94ff15d0edd87ee897ac333))
+* **call-expression-validation:** trust definition confidence and validate TS app interfaces ([febc30f](https://github.com/unoplat/unoplat-code-confluence/commit/febc30fdaba1727a1b55dc08964fcb258b12fe87))
+* **command-palette:** control centre for easier navigation ([c5edbe8](https://github.com/unoplat/unoplat-code-confluence/commit/c5edbe88cc68344e0e0d6b8019ab9cd94b88201b))
+* **command-palette:** control centre for easier navigation ([5cd76d2](https://github.com/unoplat/unoplat-code-confluence/commit/5cd76d2c47f91352b82ebac6c54d6cbfb1299161))
+* **confidence:** add schema and ingestion contracts for usage confidence metadata ([f71b085](https://github.com/unoplat/unoplat-code-confluence/commit/f71b085d653de9c339f0ffb615a4d07863fadd98))
+* **docs:** roadmap added for skills and blueprint generation ([c98c269](https://github.com/unoplat/unoplat-code-confluence/commit/c98c2695044d42eeb75093be3bab75c89a9bd617))
+* **docs:** roadmap added for skills and blueprint generation ([8fe9921](https://github.com/unoplat/unoplat-code-confluence/commit/8fe9921f764179e064cc0e092f1877d742946643))
+* **typescript-beta:** strengthen typescript grammar detection and in… ([2a673ec](https://github.com/unoplat/unoplat-code-confluence/commit/2a673ec26aafd42c5a625f501af2242c41286e39))
+* **typescript-beta:** strengthen typescript grammar detection and include next js endpoint detection as a starting example ([0489d94](https://github.com/unoplat/unoplat-code-confluence/commit/0489d94e0d4f3b72c3ac43859f7d97b54a3cc7c4))
+* **validation-spec-implementation:** introducing llm based validator for low confidence matches to ensure defects introduced through dids are rectified ([05c1bb9](https://github.com/unoplat/unoplat-code-confluence/commit/05c1bb95481bf32e27fac39bad106ecbb84d8ba4))
+* **validation-spec-implementation:** introducing llm based validator… ([ffddafb](https://github.com/unoplat/unoplat-code-confluence/commit/ffddafb41dd10abff0429470f45064a25e3a1d36))
+
+
+### Bug Fixes
+
+* **agent-events:** derive live status from latest event ([4e143a4](https://github.com/unoplat/unoplat-code-confluence/commit/4e143a42438a208208cac69709e201c998a67589))
+* **bedrock:** stale key fix ([1e211ff](https://github.com/unoplat/unoplat-code-confluence/commit/1e211ff94e6910486ecf7c94325a000b2fee6d31))
+* **codebase-dropdown:** improve trigger visibility and adaptive sizing ([1d9751c](https://github.com/unoplat/unoplat-code-confluence/commit/1d9751c7cbe525bb13d1fc100f7270b506d4cd49))
+* **command-palette:** move to right position in top bar's right section ([0af3da1](https://github.com/unoplat/unoplat-code-confluence/commit/0af3da16657c56ab18b108749289a170558b19d9))
+* **dependencies:** split dependency guides into dedicated overview files ([77ee463](https://github.com/unoplat/unoplat-code-confluence/commit/77ee463fb1566ff4e96b337dab808371a57ed4dd))
+* **dids-catalog:** route summary links to generated docs pages ([3bad458](https://github.com/unoplat/unoplat-code-confluence/commit/3bad458e71f3993bc126352f1cd252ebe21e3c03))
+* **documentation:** heading fixes ([83743b9](https://github.com/unoplat/unoplat-code-confluence/commit/83743b96f3d6cba380e13d66bcc4c99f4c3dfee2))
+* **documentation:** heading fixes ([eb12a74](https://github.com/unoplat/unoplat-code-confluence/commit/eb12a745d5548c99353cacb65597eef10b8cb4fd))
+* **duplicate-row-key:** github repos rows were using name now they use git url so no state corruption while filtering ([0109e98](https://github.com/unoplat/unoplat-code-confluence/commit/0109e98c64a36cbe74b7d947e16f23bccd6bd564))
+* **file-update-tool:** enrich updater_apply_patch docstring with full patch format spec and add parser resilience ([30e72ea](https://github.com/unoplat/unoplat-code-confluence/commit/30e72ea5bff9c21da0f85b6a8eb245af72a6556d))
+* **font:** improve tool call/result readability with larger fonts and monospace ([58e0966](https://github.com/unoplat/unoplat-code-confluence/commit/58e0966bab0b4ef1ec19ae6478a1d5d6ba210086))
+* **frontend-progress:** label validator before app interfaces ([723553e](https://github.com/unoplat/unoplat-code-confluence/commit/723553e6a905a060e6161fcefa2e89af0e830b42))
+* **ingestion-docker-optimisation:** reuse cache and also update commons depenency ([01a149a](https://github.com/unoplat/unoplat-code-confluence/commit/01a149a28dc2e736e87264fd5f23d3a583d1c1f2))
+* **ingestion-test:** include base confidence for call-expression specs ([6db3341](https://github.com/unoplat/unoplat-code-confluence/commit/6db33410ef22dafafdbb9883f1e56dc0ef4e9227))
+* **irrelevant-link:** remove FastAPI Catalog link from DIDS quick ref… ([0f93bfb](https://github.com/unoplat/unoplat-code-confluence/commit/0f93bfb3fa7b23b084312ad8abf4030a170f4ee8))
+* **irrelevant-link:** remove FastAPI Catalog link from DIDS quick reference ([8130af0](https://github.com/unoplat/unoplat-code-confluence/commit/8130af0195a373af4aa96d40e265d5b093bbbbca))
+* **links:** link logo and globe icon to main website unoplat.io ([953cc26](https://github.com/unoplat/unoplat-code-confluence/commit/953cc265462456c38e36ca2ed343c3b36e105d1a))
+* **links:** link logo and globe icon to main website unoplat.io ([8243b32](https://github.com/unoplat/unoplat-code-confluence/commit/8243b32b1ac1153b630724a54b0ba2cf7336cc46))
+* **mandatory-regional-argument:** region is not mandatory for bedrock ([729f4f7](https://github.com/unoplat/unoplat-code-confluence/commit/729f4f7f53959dd0b0ce93531d112c92ed08236d))
+* **optimise-framework-schema:** move framework feature fields to JSON… ([ccf65ec](https://github.com/unoplat/unoplat-code-confluence/commit/ccf65ecf93e861fd0b537e1145fcef4bcf831590))
+* **optimise-framework-schema:** move framework feature fields to JSONB payload ([de6f144](https://github.com/unoplat/unoplat-code-confluence/commit/de6f1445d175acabc44f88d6832bb960b18f9981))
+* **optimise-framework-schema:** switch ingestion and query paths to J… ([be0462c](https://github.com/unoplat/unoplat-code-confluence/commit/be0462c8bc0df22458dfff7026288b145370a38c))
+* **optimise-framework-schema:** switch ingestion and query paths to JSONB feature payload ([c2f6c15](https://github.com/unoplat/unoplat-code-confluence/commit/c2f6c153a6694666806fadb867652d56ab616472))
+* **overhaul-events-view:** make it intuitve and store upto 100k of to… ([0092204](https://github.com/unoplat/unoplat-code-confluence/commit/00922043a7145963859d0f3df8cb6f1f0d5f4206))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([0b08bbd](https://github.com/unoplat/unoplat-code-confluence/commit/0b08bbdd301bd9f00284a76f93ecea2fe83dc860))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([844b782](https://github.com/unoplat/unoplat-code-confluence/commit/844b782f8ffba60fefa2a2aeb40b486659df1ecd))
+* **perf:** virtual list and 3-phase schema for realtime sync using electric sql ([5748960](https://github.com/unoplat/unoplat-code-confluence/commit/5748960ac9a2b98792cee3ff715c412a3c1dfb3b))
+* **query-engine-docker-fixes:** docker cache optimisation and update commons version ([e7bb376](https://github.com/unoplat/unoplat-code-confluence/commit/e7bb37698dd2a57591b9f9f57c5ffba58170ceaf))
+* **query-engine-test:** align snapshot tests with normalized event schema ([7d27081](https://github.com/unoplat/unoplat-code-confluence/commit/7d270816929bd0ae778ddd4636718f3fd4ffdfff))
+* **remove-react:** react react feature detection as of now ([1f79e53](https://github.com/unoplat/unoplat-code-confluence/commit/1f79e5374498c75903c7ff84402b2f1f7db8fe0c))
+* **tool-call-result-ui-ux:** change colors according to design system ([7ef7e1e](https://github.com/unoplat/unoplat-code-confluence/commit/7ef7e1e1f5aef508694acedef0c54b599df6c2b3))
+* **tool-call-result-ui-ux:** change colors according to design system ([20fe6a8](https://github.com/unoplat/unoplat-code-confluence/commit/20fe6a80ba68a1b28cd5dd73fe8e458e0185eb36))
+* **tool-dialog:** use CVA variants for responsive dialog sizing ([ccc8e11](https://github.com/unoplat/unoplat-code-confluence/commit/ccc8e11986e3a83de7eb4280d96db971ee63232b))
+* **typescript:** add concept enum in schema to support more typescript ([4195eb2](https://github.com/unoplat/unoplat-code-confluence/commit/4195eb21f5fd080f3e923cb53162136ff57f7a1b))
+* **typescript:** add concept enum in schema to support more typescript ([7cfe956](https://github.com/unoplat/unoplat-code-confluence/commit/7cfe9566ee97c4e3e2d016c72942ea4c0749bd43))
+* **ui-dependencies:** reduce dependency token churn by introducing fa… ([5473831](https://github.com/unoplat/unoplat-code-confluence/commit/5473831a81739551d76eeea2bee906cab8ea5edf))
+* **ui-dependencies:** reduce dependency token churn by introducing family level filter for ui components' libs ([1722e08](https://github.com/unoplat/unoplat-code-confluence/commit/1722e089775a339a23fccc64c1b166ecb0d070f9))
+* **user-managed-accordion:** remove auto-expand so agent sections start collapsed ([9980f43](https://github.com/unoplat/unoplat-code-confluence/commit/9980f439a186fda2c153c5b5499ab6715f467f3f))
+
 ## [0.29.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.28.0...unoplat-code-confluence-v0.29.0) (2026-02-20)
 
 
