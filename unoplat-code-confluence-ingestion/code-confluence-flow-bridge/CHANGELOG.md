@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.72.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.1...code-confluence-flow-bridge-v0.72.2) (2026-03-09)
+
+
+### Bug Fixes
+
+* **ingestion-docker-optimisation:** reuse cache and also update commons depenency ([01a149a](https://github.com/unoplat/unoplat-code-confluence/commit/01a149a28dc2e736e87264fd5f23d3a583d1c1f2))
+
 ## [0.72.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.0...code-confluence-flow-bridge-v0.72.1) (2026-03-08)
 
 

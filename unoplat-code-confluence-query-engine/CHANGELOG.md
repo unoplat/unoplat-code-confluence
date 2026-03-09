@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.1...unoplat-code-confluence-query-engine-v0.37.2) (2026-03-09)
+
+
+### Bug Fixes
+
+* **query-engine-docker-fixes:** docker cache optimisation and update commons version ([e7bb376](https://github.com/unoplat/unoplat-code-confluence/commit/e7bb37698dd2a57591b9f9f57c5ffba58170ceaf))
+
 ## [0.37.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.0...unoplat-code-confluence-query-engine-v0.37.1) (2026-03-08)
 
 
