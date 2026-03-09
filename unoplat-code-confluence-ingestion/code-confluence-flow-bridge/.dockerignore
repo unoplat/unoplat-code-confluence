@@ -10,7 +10,7 @@ dist
 tests
 .mypy_cache
 .pytest_cache
-.ruff_Cache
+.ruff_cache
 .vscode
 mypy.ini
 ruff.toml
