@@ -139,9 +139,7 @@ jobs:
         with:
           branch: ${{ needs.dev-pr-merge.outputs.release_pr_branch }}
           commit_message: "chore(release): refresh uv lockfiles"
-          file_pattern: |
-            unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock
-            unoplat-code-confluence-query-engine/uv.lock
+          file_pattern: "**/uv.lock"
 
   release-docker-image:
     name: Build and Push Docker Image
