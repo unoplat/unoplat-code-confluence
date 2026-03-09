@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.72.5](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.4...code-confluence-flow-bridge-v0.72.5) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** add comment to release docker builds ([2d8732a](https://github.com/unoplat/unoplat-code-confluence/commit/2d8732a95696f4a0528e10d4261b0732500f29a4))
+* **ci:** early detection of stale uv lock ([d0aced9](https://github.com/unoplat/unoplat-code-confluence/commit/d0aced9a1688bea976070aca6adeeb45d13b4282))
+
 ## [0.72.4](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.3...code-confluence-flow-bridge-v0.72.4) (2026-03-09)
 
 
