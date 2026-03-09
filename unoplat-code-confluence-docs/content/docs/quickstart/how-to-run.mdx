@@ -111,18 +111,6 @@ If you're using self-hosted Enterprise Server or Enterprise Cloud with data resi
 
 ![Ingest Repo Action](../../../src/assets/images/repository_ingest_action.jpeg)
 
-<Callout type="warn" title="Codebase Detection - Beta Feature">
-Automatic codebase detection is currently in beta and may have bugs. After ingestion completes:
-
-1. Navigate to **Ingestion Management** to review your repository ingestion results
-2. Verify that all expected codebases were detected correctly
-3. Check for any errors or missing codebases
-
-![Ingestion Management - Codebases Ingested](../../../src/assets/images/codebases-ingested.png)
-
-If you encounter any issues, such as codebases not being detected or errors during ingestion, please [**report them on our GitHub Issues**](https://github.com/unoplat/unoplat-code-confluence/issues).
-</Callout>
-
 ### 5. Configure Model Provider
 
 After ingestion completes, configure your *AI model provider* to enable **code intelligence** features.
@@ -169,18 +157,26 @@ We have tested the following model configurations:
 Other models may work but have not been fully validated. If you encounter issues with a specific provider or model, please report them on our [GitHub Issues](https://github.com/unoplat/unoplat-code-confluence/issues) page.
 </Callout>
 
-### 6. Configure Exa Search Tool
+### 6. Web Search for Documentation Lookup
 
-After configuring your model provider, set up **Exa Search** to enable *documentation search* capabilities for AI agents.
+**Unoplat Code Confluence** AI agents use *web search* to find official documentation, library references, and best practices during code analysis. The search provider is resolved automatically in the following **priority order**:
 
-- Navigate to **Settings > Tool Configuration** in the application
-- **Unoplat Code Confluence** uses Exa for *intelligent documentation search* during code analysis
+1. **Exa** — Used when an Exa API key is configured *(recommended for best results)*
+2. **Built-in Web Search** — Used when the configured model provider supports native web search (Anthropic, OpenAI Codex, Grok, Groq)
+3. **DuckDuckGo** — Automatic fallback when neither Exa nor built-in web search is available
 
-#### Setup Steps
+<Callout type="info" title="No Configuration Required for Basic Search">
+If you skip Exa setup, **Unoplat Code Confluence** will automatically fall back to your model provider's built-in web search or DuckDuckGo. You always get documentation search capabilities regardless of configuration.
+</Callout>
 
-1. Click **Configure** next to **Exa Search**
-2. Enter your Exa API key
-3. Click **Save**
+#### Optional: Configure Exa for Enhanced Search
+
+For the *best documentation search results*, configure **Exa Search**:
+
+1. Navigate to **Settings > Tool Configuration** in the application
+2. Click **Configure** next to **Exa Search**
+3. Enter your Exa API key
+4. Click **Save**
 
 ![Tool Configuration - Exa Search](../../../src/assets/images/tool-configuration.png)
 
@@ -189,12 +185,6 @@ If you don't have an Exa API key:
 1. Visit [Exa](https://exa.ai/) and create an account
 2. Navigate to your API Keys section
 3. Generate a new API key and copy it
-
-Exa provides AI-powered search capabilities for finding relevant documentation and web content.
-</Callout>
-
-<Callout type="info" title="Why Exa?">
-**Unoplat Code Confluence** uses Exa for documentation search to help AI agents find relevant external documentation, library references, and best practices during code analysis.
 </Callout>
 
 ### 7. Repository Operations
