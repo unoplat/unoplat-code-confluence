@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.72.6](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.5...code-confluence-flow-bridge-v0.72.6) (2026-03-09)
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([e9135f3](https://github.com/unoplat/unoplat-code-confluence/commit/e9135f36abcf2dec5491f432e2f444b105cec327))
+* **comments:** adding comment to trigger docker build ([e45f67b](https://github.com/unoplat/unoplat-code-confluence/commit/e45f67bd8713041f6cc091805094669a5f86cf9f))
+* **comments:** adding comment to trigger docker build ([20636cb](https://github.com/unoplat/unoplat-code-confluence/commit/20636cb932bf346231306311bbe90061bd98e67e))
+
 ## [0.72.5](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.4...code-confluence-flow-bridge-v0.72.5) (2026-03-09)
 
 
