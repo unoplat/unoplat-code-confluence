@@ -199,6 +199,10 @@ jobs:
           # Extract project name from pyproject.toml and convert hyphens to underscores
           PACKAGE_NAME=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['name'].replace('-', '_'))")
           echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Check lockfile freshness
+        working-directory: unoplat-code-confluence-query-engine
+        run: uv lock --check
         
       - name: Install dependencies and run tests
         working-directory: unoplat-code-confluence-query-engine
