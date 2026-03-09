@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.39.0...unoplat-code-confluence-docs-v0.39.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* **docs:** update quickstart guide, add in-app feedback docs, and add changelogs ([5882cc8](https://github.com/unoplat/unoplat-code-confluence/commit/5882cc8b25957cf8fec9a4fa2f95ca4160bece8b))
+
 ## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.38.0...unoplat-code-confluence-docs-v0.39.0) (2026-03-08)
 
 
