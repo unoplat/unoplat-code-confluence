@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.37.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.3...unoplat-code-confluence-query-engine-v0.37.4) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** comments to typescript implementation ([0c9776f](https://github.com/unoplat/unoplat-code-confluence/commit/0c9776fb2795c9e2095dc951559e07f859e5b039))
+* **chore:** comments to typescript implementation ([bd437f2](https://github.com/unoplat/unoplat-code-confluence/commit/bd437f24ff0ad14fc91800e97e33652ab1f60fad))
+
 ## [0.37.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.2...unoplat-code-confluence-query-engine-v0.37.3) (2026-03-09)
 
 
