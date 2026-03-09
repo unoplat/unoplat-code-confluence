@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.30.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.30.0...unoplat-code-confluence-v0.30.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** add comment to release docker builds ([2d8732a](https://github.com/unoplat/unoplat-code-confluence/commit/2d8732a95696f4a0528e10d4261b0732500f29a4))
+* **chore:** add comment to release query engine docker ([398a17b](https://github.com/unoplat/unoplat-code-confluence/commit/398a17b0db044133dc239e55938793d14eba1a6d))
+* **chore:** comments to typescript implementation ([0c9776f](https://github.com/unoplat/unoplat-code-confluence/commit/0c9776fb2795c9e2095dc951559e07f859e5b039))
+* **chore:** comments to typescript implementation ([bd437f2](https://github.com/unoplat/unoplat-code-confluence/commit/bd437f24ff0ad14fc91800e97e33652ab1f60fad))
+* **ci:** auto-commit refreshed uv lockfiles using stable path pattern ([808dc35](https://github.com/unoplat/unoplat-code-confluence/commit/808dc35d49a8bd94317a8888160d08c69feaa1f1))
+* **ci:** checkout branch tip in test jobs so they see refreshed lockfiles ([61ffe17](https://github.com/unoplat/unoplat-code-confluence/commit/61ffe170e5600104bfadc22d97cd2730d1c4b3a6))
+* **ci:** early detection of stale uv lock ([d0aced9](https://github.com/unoplat/unoplat-code-confluence/commit/d0aced9a1688bea976070aca6adeeb45d13b4282))
+* **ci:** early detection of stale uv lock ([2be44c8](https://github.com/unoplat/unoplat-code-confluence/commit/2be44c80f2aaa9fbdcce39a9e8b251016707af6c))
+* **ci:** file pattern ([e2f8cc7](https://github.com/unoplat/unoplat-code-confluence/commit/e2f8cc7b44fcd2c266b2a5cac301c32f2df18700))
+* **ci:** query engine early stale lock check ([4464c24](https://github.com/unoplat/unoplat-code-confluence/commit/4464c247bce914688d39b19df611147da3dcc574))
+* **ci:** refresh package uv lockfiles before python lock checks run ([9e15c88](https://github.com/unoplat/unoplat-code-confluence/commit/9e15c882fffe16062cf55ba99758fc72433ed171))
+* **ci:** refresh package uv lockfiles before python lock checks run ([f736085](https://github.com/unoplat/unoplat-code-confluence/commit/f736085fe502ab03370598987ab396324f23eba8))
+* **ci:** refresh package uv lockfiles before python lock checks run ([e9135f3](https://github.com/unoplat/unoplat-code-confluence/commit/e9135f36abcf2dec5491f432e2f444b105cec327))
+* **ci:** refresh release PR uv lockfiles after release-please version bumps to keep lock checks green ([2d3575e](https://github.com/unoplat/unoplat-code-confluence/commit/2d3575ed96c807fe068c1d3e193d0043875debd2))
+* **ci:** refresh release PR uv lockfiles before python lock checks run ([2a2f8de](https://github.com/unoplat/unoplat-code-confluence/commit/2a2f8de3f6994f8b2f28ad18d31e562d194a9bc1))
+* **ci:** refresh release PR uv lockfiles before python lock checks run ([77d1662](https://github.com/unoplat/unoplat-code-confluence/commit/77d1662de744b04826c5e3ab23b4ef74cc34ecf2))
+* **comments:** adding comment to trigger docker build ([e45f67b](https://github.com/unoplat/unoplat-code-confluence/commit/e45f67bd8713041f6cc091805094669a5f86cf9f))
+* **comments:** adding comment to trigger docker build ([20636cb](https://github.com/unoplat/unoplat-code-confluence/commit/20636cb932bf346231306311bbe90061bd98e67e))
+* **docker:** pin uv image version for deterministic builds ([98fff39](https://github.com/unoplat/unoplat-code-confluence/commit/98fff397dacbc16d979cbf22b6cac375d8c016d7))
+* **docker:** pin uv image version for deterministic builds ([dfe02f0](https://github.com/unoplat/unoplat-code-confluence/commit/dfe02f0a57aa35d4bd96fa95f448cb82e883fa70))
+* **docs:** update quickstart guide, add in-app feedback docs, and add changelogs ([5882cc8](https://github.com/unoplat/unoplat-code-confluence/commit/5882cc8b25957cf8fec9a4fa2f95ca4160bece8b))
+* **flow-bridge:** update package description ([44f737d](https://github.com/unoplat/unoplat-code-confluence/commit/44f737d44200c1ccab1b3457e79a86b417ede989))
+* **frontend:** add package description ([9b2415c](https://github.com/unoplat/unoplat-code-confluence/commit/9b2415cd1cf6aca96cc0eb602be2f9850caabfa6))
+* **query-engine:** update package description ([67ca3b4](https://github.com/unoplat/unoplat-code-confluence/commit/67ca3b4a12494b58fdb1620bac7fee03b2c6f752))
+* **stale-lock:** lock update ([091085d](https://github.com/unoplat/unoplat-code-confluence/commit/091085d861acc433ffc212f02e896a16ed4cf8b4))
+
 ## [0.30.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.29.0...unoplat-code-confluence-v0.30.0) (2026-03-09)
 
 
