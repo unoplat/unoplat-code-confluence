@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.37.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.4...unoplat-code-confluence-query-engine-v0.37.5) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** add comment to release query engine docker ([398a17b](https://github.com/unoplat/unoplat-code-confluence/commit/398a17b0db044133dc239e55938793d14eba1a6d))
+* **ci:** early detection of stale uv lock ([d0aced9](https://github.com/unoplat/unoplat-code-confluence/commit/d0aced9a1688bea976070aca6adeeb45d13b4282))
+* **stale-lock:** lock update ([091085d](https://github.com/unoplat/unoplat-code-confluence/commit/091085d861acc433ffc212f02e896a16ed4cf8b4))
+
 ## [0.37.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.3...unoplat-code-confluence-query-engine-v0.37.4) (2026-03-09)
 
 
