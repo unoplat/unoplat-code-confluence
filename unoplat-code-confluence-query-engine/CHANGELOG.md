@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.37.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.2...unoplat-code-confluence-query-engine-v0.37.3) (2026-03-09)
+
+
+### Bug Fixes
+
+* **docker:** pin uv image version for deterministic builds ([98fff39](https://github.com/unoplat/unoplat-code-confluence/commit/98fff397dacbc16d979cbf22b6cac375d8c016d7))
+* **docker:** pin uv image version for deterministic builds ([dfe02f0](https://github.com/unoplat/unoplat-code-confluence/commit/dfe02f0a57aa35d4bd96fa95f448cb82e883fa70))
+
 ## [0.37.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.1...unoplat-code-confluence-query-engine-v0.37.2) (2026-03-09)
 
 
