@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.37.6](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.5...unoplat-code-confluence-query-engine-v0.37.6) (2026-03-09)
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([f736085](https://github.com/unoplat/unoplat-code-confluence/commit/f736085fe502ab03370598987ab396324f23eba8))
+* **comments:** adding comment to trigger docker build ([e45f67b](https://github.com/unoplat/unoplat-code-confluence/commit/e45f67bd8713041f6cc091805094669a5f86cf9f))
+* **comments:** adding comment to trigger docker build ([20636cb](https://github.com/unoplat/unoplat-code-confluence/commit/20636cb932bf346231306311bbe90061bd98e67e))
+
 ## [0.37.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.4...unoplat-code-confluence-query-engine-v0.37.5) (2026-03-09)
 
 
