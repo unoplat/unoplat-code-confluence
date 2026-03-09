@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.72.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.2...code-confluence-flow-bridge-v0.72.3) (2026-03-09)
+
+
+### Bug Fixes
+
+* **docker:** pin uv image version for deterministic builds ([98fff39](https://github.com/unoplat/unoplat-code-confluence/commit/98fff397dacbc16d979cbf22b6cac375d8c016d7))
+* **docker:** pin uv image version for deterministic builds ([dfe02f0](https://github.com/unoplat/unoplat-code-confluence/commit/dfe02f0a57aa35d4bd96fa95f448cb82e883fa70))
+
 ## [0.72.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.1...code-confluence-flow-bridge-v0.72.2) (2026-03-09)
 
 
