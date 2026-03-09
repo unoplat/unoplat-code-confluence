@@ -1,13 +1,14 @@
 ---
-title: Custom Framework/Library Schema
-description: "Define framework and library patterns for Unoplat Code Confluence"
+title: Deterministic Interface Discovery Schema (DIDS)
+description: "Define framework and library patterns for detection of app interfaces in Unoplat Code Confluence."
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
+import { FrameworkCatalogSummary } from '../../../../src/components/framework-catalog-summary';
 
-# Custom Framework/Library Schema
+# Deterministic Interface Discovery Schema (DIDS)
 
-The **Custom Framework/Library Schema** enables contributors to define *framework and library patterns* for **Unoplat Code Confluence** to detect and analyze across different programming languages. This schema provides a **structured way** to describe how frameworks and libraries should be identified in codebases.
+The **Deterministic Interface Discovery Schema (DIDS)** enables contributors to define *framework and library patterns* for **Unoplat Code Confluence** to detect and analyze across different programming languages. This schema provides a **structured way** to describe how frameworks and libraries should be identified in codebases.
 
 <Callout type="info" title="Quick Reference">
   - **Latest Schema**: [custom-framework-lib-schema.json](/schemas/custom-framework-lib-schema.json) *(opens as JSON)*
@@ -15,6 +16,52 @@ The **Custom Framework/Library Schema** enables contributors to define *framewor
   - **Specification**: [JSON Schema Draft 2020-12](https://json-schema.org/specification)
   - **Organization**: By *programming language* → *library* → *features*
 </Callout>
+
+<Callout type="info" title="Source of Truth">
+  - Canonical definitions live in ingestion: [framework-definitions directory](https://github.com/unoplat/unoplat-code-confluence/tree/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions)
+  - Docs consume generated static assets from: `/framework-definitions`
+</Callout>
+
+## Background and Problem Statement
+
+### Background
+
+Modern code intelligence systems usually cannot read entire repositories for every request. In large codebases, they typically rely on a retrieval pipeline:
+
+1. Chunk source files into indexable units
+2. Compute embeddings for semantic lookup
+3. Retrieve nearest candidates from the index
+4. Rerank candidates for relevance
+5. Assemble final context for analysis or generation
+
+This pattern works well for broad navigation and question answering, but it is fundamentally probabilistic. Retrieval quality depends on chunking boundaries, embedding behavior, reranking heuristics, and prompt phrasing.
+
+At scale, this pipeline is also expensive to execute and maintain: indexing/embedding jobs must be recomputed, vector infrastructure must be operated, and retrieval quality must be continuously tuned. The approach is also non-extensible for deterministic interface discovery because framework-specific logic is usually implemented as ad-hoc runtime behavior instead of a reusable contract.
+
+For interface discovery, we need stronger guarantees than "likely relevant context." We need reproducible detection of framework and library constructs so downstream systems can build stable blueprints, generate reliable structured output, and reason across repositories consistently.
+
+The **Deterministic Interface Discovery Schema (DIDS)** introduces that missing contract: a versioned, machine-enforceable way to describe what to detect and how those detections should be interpreted.
+
+### Problem Statement
+
+For any coding task, an agent or human needs a reliable blueprint of the codebase. Today, that blueprint is inferred mostly from semantic retrieval and ad-hoc heuristics, which creates following problems:
+
+1. **Non-determinism**: the same repository can produce different detections across runs.
+2. **High execution and maintenance cost**: embeddings, indexes, and tuning loops create ongoing operational overhead.
+3. **Low extensibility**: adding support for new frameworks or internal patterns requires custom, scattered logic.
+4. **Weak verifiability**: behavior is hard to validate in CI because rules are implicit instead of contract-driven.
+5. **Lack of open standards**: without an open, versioned schema, definitions are harder to share, interoperate, and evolve safely.
+
+We therefore need a deterministic, schema-first standard that defines framework and library features with explicit constraints and validation rules, enabling consistent interface discovery across any tech ecosystem.
+
+
+## Goals
+
+This specification work aims to:
+
+1. Define a machine-enforceable detection contract for framework/library features based on programming constructs like annotations, calls, imports etc.
+2. Improve contributor correctness with explicit constraints and validation expectations
+3. Support safe schema evolution with clear compatibility and migration expectations
 
 ## Schema Structure
 
@@ -61,6 +108,12 @@ The schema organizes definitions hierarchically by **language** and **library**:
     },
   }}
 />
+
+### Frameworks Supported (Catalog)
+
+The catalog below shows what is currently available by programming language. This is generated from static assets and kept in sync with ingestion framework definitions.
+
+<FrameworkCatalogSummary />
 
 ---
 
@@ -119,7 +172,7 @@ Each **feature** within a library describes a specific pattern that **Unoplat Co
     },
     concept: {
       description: 'Language-agnostic construct category for pattern matching',
-      type: '"AnnotationLike" | "CallExpression" | "Inheritance"',
+      type: '"AnnotationLike" | "CallExpression" | "Inheritance" | "FunctionDefinition"',
     },
   }}
 />
@@ -155,6 +208,10 @@ Each **feature** within a library describes a specific pattern that **Unoplat Co
       description: 'Class inheritance patterns where a class extends a base class',
       type: 'enum',
     },
+    FunctionDefinition: {
+      description: 'Exported function declarations used as framework entrypoints (for example route handlers)',
+      type: 'enum',
+    },
   }}
 />
 
@@ -162,11 +219,12 @@ Each **feature** within a library describes a specific pattern that **Unoplat Co
   - **AnnotationLike**: `@app.get("/")`, `@Component`, `[HttpGet]`, `@dataclass`
   - **CallExpression**: `mapped_column()`, `Field()`, `relationship()`, `useState()`
   - **Inheritance**: `class User(BaseModel)`, `class MyView(APIView)`, `class App extends Component`
+  - **FunctionDefinition**: `export async function GET(request: Request) { ... }`
 </Callout>
 
 ### Detection Heuristics (v3)
 
-Detection is import-gated and regex-based. `absolute_paths` must be present in the file imports, and `construct_query` refines the tree-sitter regex patterns used to match decorators, calls, and inheritance.
+Detection is import-gated and regex-based. `absolute_paths` must be present in the file imports, and `construct_query` refines the tree-sitter regex patterns used to match decorators, calls, inheritance, and exported function declarations.
 
 ### Optional Fields
 
@@ -192,8 +250,17 @@ Detection is import-gated and regex-based. `absolute_paths` must be present in t
       type: 'ConstructQuery',
       default: 'undefined',
     },
+    base_confidence: {
+      description: 'Baseline confidence score for this feature definition; use lower values for ambiguous call patterns',
+      type: 'number (0.0 - 1.0)',
+      default: '0.85',
+    },
   }}
 />
+
+<Callout type="info" title="Low-Confidence Guidance">
+  If a feature uses `base_confidence < 0.70`, include disambiguation instructions in `notes` so downstream validation can reliably confirm or reject ambiguous matches.
+</Callout>
 
 ### `construct_query` Properties
 
@@ -225,6 +292,16 @@ Detection is import-gated and regex-based. `absolute_paths` must be present in t
     },
     superclass_regex: {
       description: 'Regular expression for superclass names. Best used with Inheritance concept.',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+    function_name_regex: {
+      description: 'Regular expression for function declaration names. Best used with FunctionDefinition concept.',
+      type: 'string (regex)',
+      default: 'undefined',
+    },
+    export_name_regex: {
+      description: 'Regular expression for exported symbol names. Best used with FunctionDefinition concept.',
       type: 'string (regex)',
       default: 'undefined',
     },

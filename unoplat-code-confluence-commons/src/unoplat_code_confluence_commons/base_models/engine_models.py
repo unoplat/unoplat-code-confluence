@@ -3,9 +3,9 @@ Pydantic models for the custom grammar detection engine.
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # ──────────────────────────────────────────────
 # 🔄 Enum definitions - must be defined before use
@@ -32,6 +32,15 @@ class Concept(str, Enum):
     ANNOTATION_LIKE = "AnnotationLike"
     CALL_EXPRESSION = "CallExpression"
     INHERITANCE = "Inheritance"
+    FUNCTION_DEFINITION = "FunctionDefinition"
+
+
+class ValidationStatus(str, Enum):
+    """Validation lifecycle status for detected feature usage rows."""
+
+    PENDING = "pending"
+    COMPLETED = "completed"
+    NEEDS_REVIEW = "needs_review"
 
 
 # ──────────────────────────────────────────────
@@ -57,8 +66,29 @@ class ConstructQueryConfig(BaseModel):
     superclass_regex: Optional[str] = Field(
         None, description="Regex for superclass names (Inheritance)"
     )
+    function_name_regex: Optional[str] = Field(
+        None, description="Regex for function declaration names (FunctionDefinition)"
+    )
+    export_name_regex: Optional[str] = Field(
+        None, description="Regex for exported symbol names (FunctionDefinition)"
+    )
 
     model_config = ConfigDict(extra="forbid")
+
+
+def _validate_base_confidence_scope(
+    concept: Concept,
+    base_confidence: float | None,
+) -> None:
+    if concept == Concept.CALL_EXPRESSION:
+        if base_confidence is None:
+            raise ValueError("CallExpression features must define base_confidence")
+        return
+
+    if base_confidence is not None:
+        raise ValueError(
+            "base_confidence is supported only for CallExpression features"
+        )
 
 
 class FeatureSpec(BaseModel):
@@ -103,10 +133,85 @@ class FeatureSpec(BaseModel):
             self.construct_query = value.model_dump(exclude_none=True)
 
     description: Optional[str] = Field(None, description="Human-readable description")
+    base_confidence: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Baseline confidence for CallExpression feature definitions",
+    )
     startpoint: bool = Field(
         default=False,
         description="Indicates whether this feature represents a starting point or entry point in the application",
     )
+
+    @model_validator(mode="after")
+    def validate_base_confidence_scope(self) -> Self:
+        _validate_base_confidence_scope(self.concept, self.base_confidence)
+        return self
+
+
+class FrameworkFeaturePayload(BaseModel):
+    """JSONB payload shape for framework_feature.feature_definition."""
+
+    description: Optional[str] = Field(None, description="Human-readable description")
+    absolute_paths: List[str] = Field(
+        default_factory=list,
+        description="Fully qualified import paths",
+    )
+    target_level: TargetLevel = Field(
+        default=TargetLevel.FUNCTION,
+        description="function or class",
+    )
+    concept: Concept = Field(
+        default=Concept.ANNOTATION_LIKE,
+        description="Semantic concept",
+    )
+    locator_strategy: LocatorStrategy = Field(
+        default=LocatorStrategy.VARIABLE_BOUND,
+        description="VariableBound or Direct",
+    )
+    construct_query: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Language-specific tweaks for ConceptQuery construction",
+    )
+    base_confidence: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Baseline confidence for CallExpression feature definitions",
+    )
+    startpoint: bool = Field(
+        default=False,
+        description="Feature is a starting point",
+    )
+
+    model_config = ConfigDict(extra="allow", use_enum_values=True)
+
+    @model_validator(mode="after")
+    def validate_base_confidence_scope(self) -> Self:
+        _validate_base_confidence_scope(self.concept, self.base_confidence)
+        return self
+
+
+class FeatureUsagePayload(BaseModel):
+    """Typed payload for detected feature usage confidence metadata."""
+
+    match_confidence: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Confidence score for a single detected usage",
+    )
+    validation_status: ValidationStatus = Field(
+        default=ValidationStatus.PENDING,
+        description="Validation lifecycle state for the usage row",
+    )
+    evidence_json: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Structured evidence payload supporting usage classification",
+    )
+
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class Detection(BaseModel):

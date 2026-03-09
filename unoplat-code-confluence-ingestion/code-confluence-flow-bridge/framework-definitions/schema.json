@@ -76,13 +76,20 @@
           "description": "Fully-qualified symbols identifying the constructor / base class / annotation provider.",
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$"
+            "pattern": "^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$"
           }
         },
         "target_level": { "$ref": "#/$defs/targetLevelEnum" },
         "concept": { "$ref": "#/$defs/conceptEnum" },
 
         "construct_query": { "$ref": "#/$defs/constructQueryDef" },
+
+        "base_confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Contributor-authored confidence for CallExpression feature definitions only; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
+        },
 
         "startpoint": {
           "type": "boolean",
@@ -100,11 +107,54 @@
       "allOf": [
         {
           "if": { "properties": { "concept": { "const": "CallExpression" } } },
-          "then": { "properties": { "target_level": { "const": "function" } } }
+          "then": {
+            "properties": { "target_level": { "const": "function" } },
+            "required": ["base_confidence"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": { "const": "CallExpression" },
+              "base_confidence": {
+                "type": "number",
+                "exclusiveMaximum": 0.7
+              }
+            },
+            "required": ["concept", "base_confidence"]
+          },
+          "then": {
+            "required": ["notes"],
+            "properties": {
+              "notes": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "not": { "const": "CallExpression" }
+              }
+            },
+            "required": ["concept"]
+          },
+          "then": {
+            "not": {
+              "required": ["base_confidence"]
+            }
+          }
         },
         {
           "if": { "properties": { "concept": { "const": "Inheritance" } } },
           "then": { "properties": { "target_level": { "const": "class" } } }
+        },
+        {
+          "if": { "properties": { "concept": { "const": "FunctionDefinition" } } },
+          "then": { "properties": { "target_level": { "const": "function" } } }
         }
       ]
     },
@@ -117,7 +167,12 @@
 
     "conceptEnum": {
       "type": "string",
-      "enum": ["AnnotationLike", "CallExpression", "Inheritance"],
+      "enum": [
+        "AnnotationLike",
+        "CallExpression",
+        "Inheritance",
+        "FunctionDefinition"
+      ],
       "description": "Language-agnostic construct category."
     },
 
@@ -131,7 +186,9 @@
 
         "callee_regex": { "type": "string" },
 
-        "superclass_regex": { "type": "string" }
+        "superclass_regex": { "type": "string" },
+        "function_name_regex": { "type": "string" },
+        "export_name_regex": { "type": "string" }
       },
       "additionalProperties": false
     }

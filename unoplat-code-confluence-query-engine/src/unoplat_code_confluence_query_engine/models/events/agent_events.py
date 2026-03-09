@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -24,10 +24,14 @@ class AgentEventPayload(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str
+    id: int
     event: str
     phase: str
     message: Optional[str] = None
+    tool_name: Optional[str] = None
+    tool_call_id: Optional[str] = None
+    tool_args: Optional[dict[str, Any]] = None
+    tool_result_content: Optional[str] = None
 
 
 class CodebaseEventDelta(BaseModel):

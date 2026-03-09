@@ -6,6 +6,8 @@ Persists events to PostgreSQL via atomic CTEs for progress tracking.
 
 import os
 from collections.abc import AsyncIterable
+import json
+from typing import Any
 
 from loguru import logger
 from pydantic_ai import AgentStreamEvent, RunContext
@@ -17,6 +19,9 @@ from pydantic_ai.messages import (
 
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
+)
+from unoplat_code_confluence_query_engine.utils.framework_feature_language_support import (
+    is_app_interfaces_supported,
 )
 
 # Agent names that contribute to progress calculation
@@ -40,8 +45,8 @@ def get_completion_namespaces(
     codebase_programming_language: str | None,
 ) -> frozenset[str]:
     """Return completion namespaces based on the codebase programming language."""
-    language = (codebase_programming_language or "").lower()
-    if language == "python":
+    language = codebase_programming_language or ""
+    if is_app_interfaces_supported(language):
         return BASE_COMPLETION_NAMESPACES | {"app_interfaces_agent"}
     return BASE_COMPLETION_NAMESPACES
 
@@ -82,6 +87,40 @@ def _extract_tool_name(event: AgentStreamEvent) -> str | None:
     return None
 
 
+def _extract_tool_args(event: AgentStreamEvent) -> dict[str, Any] | None:
+    """Extract tool arguments as a dict when present."""
+    if isinstance(event, FunctionToolCallEvent):
+        args = event.part.args
+        if isinstance(args, dict):
+            return args
+        if isinstance(args, str):
+            try:
+                parsed_args = json.loads(args)
+            except json.JSONDecodeError:
+                logger.warning(
+                    "[event_stream] Invalid tool args JSON for tool={} call_id={}; skipping tool_args",
+                    event.part.tool_name,
+                    event.part.tool_call_id,
+                )
+                return None
+            if isinstance(parsed_args, dict):
+                return parsed_args
+            logger.warning(
+                "[event_stream] Ignoring non-object tool args for tool={} call_id={} parsed_type={}",
+                event.part.tool_name,
+                event.part.tool_call_id,
+                type(parsed_args).__name__,
+            )
+    return None
+
+
+def _extract_tool_result_content(event: AgentStreamEvent) -> str | None:
+    """Extract raw tool result content capped at 100_000 chars."""
+    if isinstance(event, FunctionToolResultEvent):
+        return str(event.result.content)[:100_000]
+    return None
+
+
 def _extract_event_message(event: AgentStreamEvent) -> str | None:
     """Extract human-readable message from stream event.
 
@@ -94,7 +133,7 @@ def _extract_event_message(event: AgentStreamEvent) -> str | None:
     if isinstance(event, FunctionToolCallEvent):
         return f"Calling {event.part.tool_name}"
     if isinstance(event, FunctionToolResultEvent):
-        preview = str(event.result.content)[:100]
+        preview = str(event.result.content)[:200]
         return f"Tool result: {preview}"
     if isinstance(event, FinalResultEvent):
         return (
@@ -154,6 +193,8 @@ async def event_stream_handler(
         message = _extract_event_message(event)
         tool_call_id = _extract_tool_call_id(event)
         tool_name = _extract_tool_name(event)
+        tool_args = _extract_tool_args(event)
+        tool_result_content = _extract_tool_result_content(event)
         event_kind = type(event).__name__
 
         # Always log for observability
@@ -195,6 +236,10 @@ async def event_stream_handler(
                     agent_name=deps.agent_name,
                     phase=phase,
                     message=message,
+                    tool_name=tool_name,
+                    tool_call_id=tool_call_id,
+                    tool_args=tool_args,
+                    tool_result_content=tool_result_content,
                     completion_namespaces=set(
                         get_completion_namespaces(
                             deps.codebase_metadata.codebase_programming_language

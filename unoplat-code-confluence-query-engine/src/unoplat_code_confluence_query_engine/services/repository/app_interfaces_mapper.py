@@ -8,8 +8,8 @@ from typing import Optional
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     InboundConstruct,
     InboundKind,
-    InternalConstruct,
     Interfaces,
+    InternalConstruct,
     OutboundConstruct,
     OutboundKind,
 )
@@ -24,12 +24,15 @@ INBOUND_FEATURE_MAPPING: dict[str, InboundKind] = {
     "webhook_receiver": InboundKind.WEBHOOK,
     "message_consumer": InboundKind.MSG_CONSUMER,
     "scheduler_trigger": InboundKind.SCHEDULE,
+    "task_definition": InboundKind.SCHEDULE,
     "cli_command": InboundKind.CLI,
     "sse_endpoint": InboundKind.SSE,
     "mqtt_iot_endpoint": InboundKind.MQTT_IOT_ENDPOINT,
     "udp_server": InboundKind.UDP_SERVER,
     "tcp_raw_server": InboundKind.TCP_RAW_SERVER,
     "file_watcher": InboundKind.FILE_WATCHER,
+    "mcp_tool": InboundKind.MCP_SERVER,
+    "mcp_resource": InboundKind.MCP_SERVER,
 }
 
 # Mapping from feature_key to OutboundKind
@@ -46,6 +49,8 @@ OUTBOUND_FEATURE_MAPPING: dict[str, OutboundKind] = {
     "file_storage": OutboundKind.FILE_STORAGE,
     "email_service": OutboundKind.EMAIL,
     "telemetry_emit": OutboundKind.TELEMETRY,
+    "llm_completion": OutboundKind.LLM_INFERENCE,
+    "llm_embedding": OutboundKind.LLM_INFERENCE,
     "db_timeseries": OutboundKind.DB_TSDB,
     "db_vector": OutboundKind.DB_VECTOR,
     "db_search_index": OutboundKind.DB_SEARCH_INDEX,

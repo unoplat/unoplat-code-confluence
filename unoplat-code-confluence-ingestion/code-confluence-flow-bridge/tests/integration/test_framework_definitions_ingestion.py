@@ -17,10 +17,18 @@ from fastapi.testclient import TestClient
 import pytest
 from sqlalchemy import func, select, text
 from sqlmodel import delete
+from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
+    get_framework_features_for_imports,
+)
 from unoplat_code_confluence_commons.base_models import (
+    Concept,
     FeatureAbsolutePath,
     Framework,
     FrameworkFeature,
+    FrameworkFeaturePayload,
+    LocatorStrategy,
+    TargetLevel,
 )
 
 from tests.utils.sync_db_utils import get_sync_postgres_session
@@ -62,25 +70,27 @@ def parse_json_data(
             # Process features
             features_data = library_data.get("features", {})
             for feature_key, feature_data in features_data.items():
+                normalized_payload = normalize_feature_payload(feature_data)
+                feature_definition = normalized_payload.model_dump(
+                    mode="json", exclude_none=False
+                )
+                if feature_definition.get("concept") != "CallExpression":
+                    feature_definition.pop("base_confidence", None)
+                elif feature_definition.get("base_confidence") is None:
+                    feature_definition.pop("base_confidence", None)
+
                 # Create FrameworkFeature record with new schema fields
                 features.append(
                     FrameworkFeature(
                         language=language,
                         library=library_name,
                         feature_key=feature_key,
-                        description=feature_data.get("description"),
-                        target_level=feature_data.get("target_level", "function"),
-                        concept=feature_data.get("concept", "AnnotationLike"),
-                        locator_strategy=feature_data.get(
-                            "locator_strategy", "VariableBound"
-                        ),
-                        construct_query=feature_data.get("construct_query"),
-                        startpoint=feature_data.get("startpoint", False),
+                        feature_definition=feature_definition,
                     )
                 )
 
                 # Create FeatureAbsolutePath records for each absolute path
-                absolute_paths_data = feature_data.get("absolute_paths", [])
+                absolute_paths_data = normalized_payload.absolute_paths
                 for absolute_path in absolute_paths_data:
                     absolute_paths.append(
                         FeatureAbsolutePath(
@@ -92,6 +102,76 @@ def parse_json_data(
                     )
 
     return frameworks, features, absolute_paths
+
+
+def normalize_feature_payload(feature_data: Dict[str, Any]) -> FrameworkFeaturePayload:
+    payload_data = dict(feature_data)
+
+    if not isinstance(payload_data.get("absolute_paths"), list):
+        payload_data["absolute_paths"] = []
+    else:
+        payload_data["absolute_paths"] = [
+            value for value in payload_data["absolute_paths"] if isinstance(value, str)
+        ]
+
+    if not isinstance(payload_data.get("construct_query"), dict):
+        payload_data["construct_query"] = None
+
+    if payload_data.get("concept") not in {
+        "AnnotationLike",
+        "CallExpression",
+        "Inheritance",
+        "FunctionDefinition",
+    }:
+        payload_data["concept"] = "AnnotationLike"
+
+    if payload_data.get("target_level") not in {"function", "class"}:
+        payload_data["target_level"] = "function"
+
+    if payload_data["concept"] == "CallExpression":
+        base_confidence = payload_data.get("base_confidence")
+        if not isinstance(base_confidence, (int, float)) or isinstance(
+            base_confidence, bool
+        ):
+            raise ValueError(
+                "CallExpression features must define explicit numeric base_confidence"
+            )
+        numeric_confidence = float(base_confidence)
+        if not 0.0 <= numeric_confidence <= 1.0:
+            raise ValueError(
+                "CallExpression base_confidence must be between 0.0 and 1.0"
+            )
+        payload_data["base_confidence"] = numeric_confidence
+    elif "base_confidence" in payload_data:
+        raise ValueError(
+            "base_confidence is supported only for CallExpression features"
+        )
+
+    if payload_data.get("locator_strategy") not in {
+        "VariableBound",
+        "Direct",
+    }:
+        payload_data["locator_strategy"] = "VariableBound"
+
+    if not isinstance(payload_data.get("startpoint"), bool):
+        payload_data["startpoint"] = False
+
+    return FrameworkFeaturePayload.model_validate(payload_data)
+
+
+def resolve_base_confidence(feature: FrameworkFeature) -> float | None:
+    """Resolve normalized base_confidence from feature_definition payload."""
+    if feature.concept != Concept.CALL_EXPRESSION:
+        return None
+
+    raw_value = feature.feature_definition.get("base_confidence")
+    if raw_value is None:
+        return None
+    if isinstance(raw_value, (int, float)) and not isinstance(raw_value, bool):
+        numeric_value = float(raw_value)
+        if 0.0 <= numeric_value <= 1.0:
+            return numeric_value
+    return None
 
 
 def load_framework_definitions() -> Dict[str, Any]:
@@ -213,6 +293,19 @@ class TestFrameworkDefinitionsIngestion:
                 f"Expected at least 2 foreign keys, got {len(foreign_keys)}"
             )
 
+            # Verify JSONB payload column exists
+            column_result = session.execute(
+                text("""
+                SELECT data_type
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'framework_feature'
+                  AND column_name = 'feature_definition'
+            """)
+            )
+            data_type = column_result.scalar_one()
+            assert data_type == "jsonb"
+
     @pytest.mark.asyncio(loop_scope="session")
     async def test_framework_definitions_loading(self):
         """Test that framework definitions can be loaded and parsed correctly."""
@@ -225,7 +318,15 @@ class TestFrameworkDefinitionsIngestion:
         )
         python_frameworks = framework_data["python"]
 
-        expected_frameworks = {"fastapi", "pydantic", "sqlalchemy", "sqlmodel"}
+        expected_frameworks = {
+            "celery",
+            "fastapi",
+            "fastmcp",
+            "litellm",
+            "pydantic",
+            "sqlalchemy",
+            "sqlmodel",
+        }
         actual_frameworks = set(python_frameworks.keys())
         assert actual_frameworks == expected_frameworks, (
             f"Expected {expected_frameworks}, got {actual_frameworks}"
@@ -273,15 +374,15 @@ class TestFrameworkDefinitionsIngestion:
                 f"Database operations took {metrics['db_time']:.3f}s, expected < 3.0s"
             )
 
-            # Validate expected data counts (schema v3: 7 features, 11 paths)
-            assert metrics["frameworks_count"] == 4, (
-                f"Expected 4 frameworks, got {metrics['frameworks_count']}"
+            # Validate expected data counts for python framework definitions
+            assert metrics["frameworks_count"] == 7, (
+                f"Expected 7 frameworks, got {metrics['frameworks_count']}"
             )
-            assert metrics["features_count"] == 7, (
-                f"Expected 7 features, got {metrics['features_count']}"
+            assert metrics["features_count"] == 13, (
+                f"Expected 13 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 11, (
-                f"Expected 11 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 29, (
+                f"Expected 29 absolute paths, got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -293,9 +394,9 @@ class TestFrameworkDefinitionsIngestion:
                 select(func.count(FeatureAbsolutePath.language))
             )  # type: ignore
 
-            assert framework_count == 4
-            assert feature_count == 7
-            assert path_count == 11
+            assert framework_count == 7
+            assert feature_count == 13
+            assert path_count == 29
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -361,13 +462,16 @@ class TestFrameworkDefinitionsIngestion:
             seed_framework_definitions(framework_data, session)
 
             # Test different concept types
+            concept_expression = FrameworkFeature.concept_sql_expression()
             concepts_query = session.execute(
-                select(
-                    FrameworkFeature.concept, func.count(FrameworkFeature.concept)
-                ).group_by(FrameworkFeature.concept)
+                select(concept_expression, func.count(concept_expression)).group_by(
+                    concept_expression
+                )
             )
-            # Use .value to get the enum string value (e.g., "AnnotationLike")
-            concepts = {row[0].value: row[1] for row in concepts_query.fetchall()}
+            concepts = {
+                row[0].value if hasattr(row[0], "value") else row[0]: row[1]
+                for row in concepts_query.fetchall()
+            }
 
             # Should have all three concept types
             assert "AnnotationLike" in concepts
@@ -377,7 +481,7 @@ class TestFrameworkDefinitionsIngestion:
     def test_construct_query_jsonb_storage(
         self, test_client: TestClient, service_ports
     ):
-        """Test that construct_query JSONB field is stored and retrieved correctly."""
+        """Test that feature_definition JSONB stores construct_query correctly."""
         with get_sync_postgres_session(service_ports["postgresql"]) as session:
             framework_data = load_framework_definitions()
 
@@ -392,6 +496,7 @@ class TestFrameworkDefinitionsIngestion:
             )
             feature = feature_result.scalar_one()
 
+            assert "construct_query" in feature.feature_definition
             assert feature.construct_query is not None
             assert "method_regex" in feature.construct_query
             assert (
@@ -423,8 +528,8 @@ class TestFrameworkDefinitionsIngestion:
                 }
                 results.append(state)
 
-            # All results should be identical (schema v3: 7 features, 11 paths)
-            expected_state = {"frameworks": 4, "features": 7, "paths": 11}
+            # All results should be identical for python framework definitions
+            expected_state = {"frameworks": 7, "features": 13, "paths": 29}
             for result in results:
                 assert result == expected_state
 
@@ -445,11 +550,11 @@ class TestFrameworkDefinitionsIngestion:
         # Parse data using the same logic as production
         frameworks, features, absolute_paths = parse_json_data(framework_data)
 
-        # Validate parsing results match expected production data (schema v3)
-        assert len(frameworks) == 4, f"Expected 4 frameworks, got {len(frameworks)}"
-        assert len(features) == 7, f"Expected 7 features, got {len(features)}"
-        assert len(absolute_paths) == 11, (
-            f"Expected 11 absolute paths, got {len(absolute_paths)}"
+        # Validate parsing results match expected production data for python definitions
+        assert len(frameworks) == 7, f"Expected 7 frameworks, got {len(frameworks)}"
+        assert len(features) == 13, f"Expected 13 features, got {len(features)}"
+        assert len(absolute_paths) == 29, (
+            f"Expected 29 absolute paths, got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI
@@ -474,14 +579,15 @@ class TestFrameworkDefinitionsIngestion:
             http_endpoint.description
             == "HTTP verb decorator that registers a route handler"
         )
-        assert http_endpoint.target_level == "function"
-        assert http_endpoint.concept == "AnnotationLike"
-        assert http_endpoint.locator_strategy == "VariableBound"
+        assert http_endpoint.target_level == TargetLevel.FUNCTION
+        assert http_endpoint.concept == Concept.ANNOTATION_LIKE
+        assert http_endpoint.locator_strategy == LocatorStrategy.VARIABLE_BOUND
         assert http_endpoint.startpoint is True, (
             "http_endpoint should be marked as startpoint"
         )
         assert http_endpoint.construct_query is not None
         assert "method_regex" in http_endpoint.construct_query
+        assert resolve_base_confidence(http_endpoint) is None
 
         # Test absolute paths for http_endpoint
         http_endpoint_paths = [
@@ -502,14 +608,23 @@ class TestFrameworkDefinitionsIngestion:
             assert feature.library is not None
             assert feature.feature_key is not None
             assert feature.description is not None
-            assert feature.target_level in ["function", "class"]
-            assert feature.concept in [
-                "AnnotationLike",
-                "CallExpression",
-                "Inheritance",
+            assert feature.target_level in [
+                TargetLevel.FUNCTION,
+                TargetLevel.CLASS,
             ]
+            assert feature.concept in [
+                Concept.ANNOTATION_LIKE,
+                Concept.CALL_EXPRESSION,
+                Concept.INHERITANCE,
+            ]
+            if feature.concept == Concept.CALL_EXPRESSION:
+                base_confidence = resolve_base_confidence(feature)
+                assert base_confidence is not None
+                assert 0.0 <= base_confidence <= 1.0
+            else:
+                assert resolve_base_confidence(feature) is None
             # locator_strategy defaults to "VariableBound" (schema v3 removed this field)
-            assert feature.locator_strategy == "VariableBound"
+            assert feature.locator_strategy == LocatorStrategy.VARIABLE_BOUND
             assert isinstance(feature.startpoint, bool)
 
         # Validate all absolute paths have required fields
@@ -519,3 +634,194 @@ class TestFrameworkDefinitionsIngestion:
             assert ap.feature_key is not None
             assert ap.absolute_path is not None
             assert "." in ap.absolute_path  # Should be fully qualified
+
+    def test_unknown_keys_are_preserved_in_feature_definition(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test unknown feature keys are preserved through JSONB ingestion."""
+        framework_data = load_framework_definitions()
+        framework_data["python"]["fastapi"]["features"]["http_endpoint"][
+            "synthetic_extra_field"
+        ] = {"enabled": True, "note": "preserve"}
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            seed_framework_definitions(framework_data, session)
+
+            feature = session.execute(
+                select(FrameworkFeature).where(
+                    FrameworkFeature.library == "fastapi",
+                    FrameworkFeature.feature_key == "http_endpoint",
+                )
+            ).scalar_one()
+
+            assert "synthetic_extra_field" in feature.feature_definition
+            assert feature.feature_definition["synthetic_extra_field"] == {
+                "enabled": True,
+                "note": "preserve",
+            }
+
+    def test_payload_defaults_are_applied_during_ingestion(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test non-call features keep existing non-confidence defaults during ingestion."""
+        framework_data = {
+            "python": {
+                "customlib": {
+                    "docs_url": "https://example.com/docs",
+                    "description": "Custom framework",
+                    "features": {
+                        "custom_feature": {
+                            "description": "Custom feature",
+                            "absolute_paths": ["customlib.feature"],
+                            "target_level": "function",
+                            "concept": "AnnotationLike",
+                        }
+                    },
+                }
+            }
+        }
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            seed_framework_definitions(framework_data, session)
+
+            feature = session.execute(select(FrameworkFeature)).scalar_one()
+
+            assert feature.locator_strategy == LocatorStrategy.VARIABLE_BOUND
+            assert resolve_base_confidence(feature) is None
+            assert feature.startpoint is False
+            assert feature.feature_definition["locator_strategy"] == "VariableBound"
+            assert "base_confidence" not in feature.feature_definition
+            assert feature.feature_definition["startpoint"] is False
+
+    def test_base_confidence_is_normalized_during_ingestion(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test CallExpression base_confidence must be explicit and valid during ingestion."""
+        framework_data = {
+            "python": {
+                "customlib": {
+                    "docs_url": "https://example.com/docs",
+                    "description": "Custom framework",
+                    "features": {
+                        "valid_confidence": {
+                            "description": "Valid confidence",
+                            "absolute_paths": ["customlib.valid"],
+                            "target_level": "function",
+                            "concept": "CallExpression",
+                            "base_confidence": 0.62,
+                        },
+                    },
+                }
+            }
+        }
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            seed_framework_definitions(framework_data, session)
+
+            valid_feature = session.execute(
+                select(FrameworkFeature).where(
+                    FrameworkFeature.feature_key == "valid_confidence"
+                )
+            ).scalar_one()
+            assert resolve_base_confidence(valid_feature) == 0.62
+
+    def test_call_expression_invalid_base_confidence_is_rejected(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test invalid CallExpression base_confidence values are rejected."""
+        framework_data = {
+            "python": {
+                "customlib": {
+                    "docs_url": "https://example.com/docs",
+                    "description": "Custom framework",
+                    "features": {
+                        "invalid_confidence": {
+                            "description": "Invalid confidence",
+                            "absolute_paths": ["customlib.invalid"],
+                            "target_level": "function",
+                            "concept": "CallExpression",
+                            "base_confidence": 1.4,
+                        }
+                    },
+                }
+            }
+        }
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            try:
+                seed_framework_definitions(framework_data, session)
+            except ValueError as exc:
+                assert "CallExpression base_confidence" in str(exc)
+            else:
+                raise AssertionError(
+                    "Expected invalid CallExpression confidence to raise"
+                )
+
+    def test_non_call_expression_base_confidence_is_rejected(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test non-CallExpression features cannot define base_confidence."""
+        framework_data = {
+            "python": {
+                "customlib": {
+                    "docs_url": "https://example.com/docs",
+                    "description": "Custom framework",
+                    "features": {
+                        "http_endpoint": {
+                            "description": "HTTP endpoint",
+                            "absolute_paths": ["customlib.Endpoint"],
+                            "target_level": "function",
+                            "concept": "AnnotationLike",
+                            "base_confidence": 0.91,
+                        }
+                    },
+                }
+            }
+        }
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            try:
+                seed_framework_definitions(framework_data, session)
+            except ValueError as exc:
+                assert "only for CallExpression" in str(exc)
+            else:
+                raise AssertionError("Expected non-CallExpression confidence to raise")
+
+    @pytest.mark.asyncio(loop_scope="session")
+    async def test_query_parity_for_import_lookup(
+        self, test_client: TestClient, service_ports
+    ):
+        """Test import lookup returns expected FeatureSpec set after JSONB cutover."""
+        framework_data = load_framework_definitions()
+
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            seed_framework_definitions(framework_data, session)
+
+            imports = [
+                "fastapi.FastAPI",
+                "sqlmodel.SQLModel",
+                "pydantic.BaseModel",
+            ]
+            expected_rows = session.execute(
+                select(FrameworkFeature.feature_key, FrameworkFeature.library)
+                .join(FeatureAbsolutePath)
+                .where(
+                    FrameworkFeature.language == "python",
+                    FeatureAbsolutePath.absolute_path.in_(imports),
+                )
+                .distinct()
+            ).all()
+
+        expected_set = {(row[0], row[1]) for row in expected_rows}
+
+        async with get_session_cm() as async_session:
+            feature_specs = await get_framework_features_for_imports(
+                async_session,
+                "python",
+                imports,
+            )
+
+        actual_set = {
+            (feature.feature_key, feature.library) for feature in feature_specs
+        }
+        assert actual_set == expected_set

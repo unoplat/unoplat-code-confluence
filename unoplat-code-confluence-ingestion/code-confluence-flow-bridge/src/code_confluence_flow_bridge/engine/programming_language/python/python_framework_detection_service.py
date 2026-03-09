@@ -2,12 +2,15 @@
 Python-specific framework detection service implementation.
 """
 
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Optional
 
 from loguru import logger
 from unoplat_code_confluence_commons.base_models import (
     Detection,
     PythonStructuralSignature,
+    TypeScriptStructuralSignature,
 )
 
 from src.code_confluence_flow_bridge.engine.framework_detection_service import (
@@ -23,6 +26,11 @@ from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
 from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
     get_framework_features_for_imports,
 )
+
+if TYPE_CHECKING:
+    from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
+        TypeScriptSourceContext,
+    )
 
 
 def _expand_import_paths(import_paths: List[str]) -> List[str]:
@@ -46,8 +54,9 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
         self,
         source_code: Optional[str],
         imports: List[str],
-        structural_signature: PythonStructuralSignature | None,
+        structural_signature: PythonStructuralSignature | TypeScriptStructuralSignature | None,
         programming_language: str,
+        source_context: PythonSourceContext | TypeScriptSourceContext | None = None,
     ) -> List[Detection]:
         """
         Detect framework features in Python source code using tree-sitter queries.
@@ -57,10 +66,12 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
             imports: List of imports in the file (unused - kept for interface compatibility)
             structural_signature: Structural signature of the file (unused)
             programming_language: Programming language (should be "python")
+            source_context: Pre-parsed source context (unused in Python path)
 
         Returns:
             List of Detection objects for framework features found
         """
+        _ = source_context  # unused in Python path
         if programming_language.lower() != "python":
             logger.warning(
                 "PythonFrameworkDetectionService called with language: {}",

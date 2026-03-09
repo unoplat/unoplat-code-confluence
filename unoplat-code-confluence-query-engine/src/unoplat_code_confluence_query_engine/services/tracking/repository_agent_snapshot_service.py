@@ -2,26 +2,71 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import Any, Sequence
+from collections.abc import Mapping, Sequence, Set
+from datetime import datetime, timezone
+from decimal import ROUND_HALF_UP, Decimal
+from typing import TypedDict
 
 from loguru import logger
-from sqlalchemy import func, select, text, update
+from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert
-from unoplat_code_confluence_commons.repo_models import RepositoryAgentMdSnapshot
+from unoplat_code_confluence_commons.repo_models import (
+    RepositoryAgentCodebaseProgress,
+    RepositoryAgentEvent,
+    RepositoryAgentMdSnapshot,
+)
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
-from unoplat_code_confluence_query_engine.models.events.agent_events import (
-    RepositoryAgentEventDelta,
-)
+
+ZERO_DECIMAL = Decimal("0")
+HUNDRED_DECIMAL = Decimal("100")
+PERCENTAGE_QUANTIZER = Decimal("0.01")
+
+
+class RepositoryAgentCodebaseProgressInsertRow(TypedDict):
+    repository_owner_name: str
+    repository_name: str
+    repository_workflow_run_id: str
+    codebase_name: str
+    next_event_id: int
+    latest_event_id: int | None
+    event_count: int
+    progress: Decimal
+    completed_namespaces: list[str]
+    latest_event_at: datetime | None
+
+
+def _quantize_percentage(value: Decimal) -> Decimal:
+    return value.quantize(PERCENTAGE_QUANTIZER, rounding=ROUND_HALF_UP)
+
+
+def _compute_codebase_progress(
+    completed_namespaces: Set[str],
+    completion_namespaces: Set[str],
+) -> Decimal:
+    if not completion_namespaces:
+        return ZERO_DECIMAL
+
+    return _quantize_percentage(
+        (Decimal(len(completed_namespaces)) / Decimal(len(completion_namespaces)))
+        * HUNDRED_DECIMAL
+    )
+
+
+def _normalize_completed_namespaces(completed_namespaces: Set[str]) -> list[str]:
+    return sorted(completed_namespaces)
+
+
+def _normalize_tool_args(
+    tool_args: Mapping[str, object] | None,
+) -> dict[str, object] | None:
+    if tool_args is None:
+        return None
+    return dict(tool_args)
 
 
 class RepositoryAgentSnapshotWriter:
-    """Persist agent lifecycle events and progress snapshots.
-
-    This service is stateless - all identifying attributes (owner_name, repo_name)
-    are passed as method parameters to avoid unnecessary instance allocation.
-    """
+    """Persist agent lifecycle events and progress snapshots."""
 
     async def begin_run(
         self,
@@ -32,136 +77,57 @@ class RepositoryAgentSnapshotWriter:
         repository_workflow_run_id: str,
         codebase_names: Sequence[str],
     ) -> None:
-        """Initialize the snapshot row with zeroed progress and empty event lists."""
-        codebases: list[dict[str, Any]] = [
-            {
-                "codebase_name": codebase_name,
-                "progress": 0.0,
-                "events": [],
-            }
-            for codebase_name in codebase_names
-        ]
-        events_payload: dict[str, Any] = {
-            "repository_name": repository_qualified_name,
-            "repository_workflow_run_id": repository_workflow_run_id,
-            "overall_progress": 0.0,
-            "codebases": codebases,
-        }
-
-        # Initialize event_counters for each codebase
-        event_counters = {name: {"next_id": 1} for name in codebase_names}
-
-        # Initialize codebase_progress for each codebase
-        codebase_progress: dict[str, dict[str, Any]] = {
-            name: {"progress": 0.0, "completed_namespaces": []}
-            for name in codebase_names
-        }
+        """Initialize snapshot and normalized progress rows for a run."""
+        del repository_qualified_name
 
         async with get_startup_session() as session:
-            stmt = insert(RepositoryAgentMdSnapshot).values(
+            snapshot_stmt = insert(RepositoryAgentMdSnapshot).values(
                 repository_owner_name=owner_name,
                 repository_name=repo_name,
                 repository_workflow_run_id=repository_workflow_run_id,
-                events=events_payload,
-                event_counters=event_counters,
-                codebase_progress=codebase_progress,
-                overall_progress=Decimal("0"),
+                overall_progress=ZERO_DECIMAL,
+                latest_event_at=None,
                 agent_md_output={},
             )
-
-            stmt = stmt.on_conflict_do_update(
+            snapshot_stmt = snapshot_stmt.on_conflict_do_nothing(
                 index_elements=[
                     RepositoryAgentMdSnapshot.repository_owner_name,
                     RepositoryAgentMdSnapshot.repository_name,
                     RepositoryAgentMdSnapshot.repository_workflow_run_id,
-                ],
-                set_={
-                    "events": stmt.excluded.events,
-                    "event_counters": stmt.excluded.event_counters,
-                    "codebase_progress": stmt.excluded.codebase_progress,
-                    "overall_progress": stmt.excluded.overall_progress,
-                    "agent_md_output": stmt.excluded.agent_md_output,
-                    "modified_at": func.now(),
-                },
+                ]
             )
+            await session.execute(snapshot_stmt)
 
-            await session.execute(stmt)
+            if not codebase_names:
+                return
 
-    async def append_event(
-        self,
-        *,
-        owner_name: str,
-        repo_name: str,
-        delta: RepositoryAgentEventDelta,
-    ) -> None:
-        """Append a new event and update progress metrics atomically."""
-        event_payload = delta.codebase_delta.new_event.model_dump_json()
-
-        query = text(
-            """
-            WITH target AS (
-                SELECT elem.ordinality - 1 AS idx
-                FROM repository_agent_md_snapshot ras,
-                     LATERAL jsonb_array_elements(ras.events -> 'codebases') WITH ORDINALITY AS elem(codebase, ordinality)
-                WHERE ras.repository_owner_name = :owner_name
-                  AND ras.repository_name = :repo_name
-                  AND elem.codebase ->> 'codebase_name' = :codebase_name
-                LIMIT 1
-            ),
-            updated AS (
-                UPDATE repository_agent_md_snapshot AS ras
-                SET events = jsonb_set(
-                        jsonb_set(
-                            jsonb_set(
-                                ras.events,
-                                ARRAY['codebases', target.idx::text, 'events'],
-                                COALESCE(
-                                    ras.events #> ARRAY['codebases', target.idx::text, 'events'],
-                                    '[]'::jsonb
-                                ) || CAST(:event_payload AS jsonb),
-                                true
-                            ),
-                            ARRAY['codebases', target.idx::text, 'progress'],
-                            to_jsonb(CAST(:codebase_progress AS numeric)),
-                            true
-                        ),
-                        ARRAY['overall_progress'],
-                        to_jsonb(CAST(:overall_progress AS numeric)),
-                        true
-                    ),
-                    modified_at = NOW()
-                FROM target
-                WHERE ras.repository_owner_name = :owner_name
-                  AND ras.repository_name = :repo_name
-                RETURNING 1
+            progress_rows: list[RepositoryAgentCodebaseProgressInsertRow] = [
+                {
+                    "repository_owner_name": owner_name,
+                    "repository_name": repo_name,
+                    "repository_workflow_run_id": repository_workflow_run_id,
+                    "codebase_name": codebase_name,
+                    "next_event_id": 1,
+                    "latest_event_id": None,
+                    "event_count": 0,
+                    "progress": ZERO_DECIMAL,
+                    "completed_namespaces": [],
+                    "latest_event_at": None,
+                }
+                for codebase_name in codebase_names
+            ]
+            progress_stmt = insert(RepositoryAgentCodebaseProgress).values(
+                progress_rows
             )
-            SELECT COALESCE((SELECT 1 FROM updated), 0) AS updated;
-            """
-        )
-
-        params = {
-            "owner_name": owner_name,
-            "repo_name": repo_name,
-            "codebase_name": delta.codebase_delta.codebase_name,
-            "event_payload": event_payload,
-            "codebase_progress": str(delta.codebase_delta.progress),
-            "overall_progress": str(delta.overall_progress),
-        }
-
-        async with get_startup_session() as session:
-            result = await session.execute(query, params)
-            updated = result.scalar_one()
-
-            if not updated:
-                logger.error(
-                    "Failed to append event for %s/%s codebase=%s",
-                    owner_name,
-                    repo_name,
-                    delta.codebase_delta.codebase_name,
-                )
-                raise ValueError(
-                    f"Codebase {delta.codebase_delta.codebase_name} is not initialized in events document"
-                )
+            progress_stmt = progress_stmt.on_conflict_do_nothing(
+                index_elements=[
+                    RepositoryAgentCodebaseProgress.repository_owner_name,
+                    RepositoryAgentCodebaseProgress.repository_name,
+                    RepositoryAgentCodebaseProgress.repository_workflow_run_id,
+                    RepositoryAgentCodebaseProgress.codebase_name,
+                ]
+            )
+            await session.execute(progress_stmt)
 
     async def append_event_atomic(
         self,
@@ -172,174 +138,117 @@ class RepositoryAgentSnapshotWriter:
         agent_name: str,
         phase: str,
         message: str | None,
+        tool_name: str | None = None,
+        tool_call_id: str | None = None,
+        tool_args: Mapping[str, object] | None = None,
+        tool_result_content: str | None = None,
         completion_namespaces: set[str],
         repository_workflow_run_id: str,
     ) -> int:
-        """Atomically allocate event ID, append event, and update progress.
-
-        All state is managed in the DB via a single atomic UPDATE with CTEs.
-        Progress is calculated as (completed_namespaces / total_namespaces) * 100.
-
-        Args:
-            codebase_name: Name of the codebase this event belongs to
-            agent_name: Name of the agent that emitted this event
-            phase: Event phase (tool.call, tool.result, result)
-            message: Human-readable event message
-            completion_namespaces: Set of agent names that count toward progress
-            repository_workflow_run_id: Workflow run ID for row identification
-
-        Returns:
-            The allocated event ID
-        """
-        total_namespaces = len(completion_namespaces)
-        completion_namespaces_list = list(completion_namespaces)
-
-        query = text(
-            """
-            WITH current_state AS (
-                SELECT
-                    ras.event_counters,
-                    ras.codebase_progress,
-                    ras.events,
-                    COALESCE((ras.event_counters -> :codebase_name ->> 'next_id')::int, 1) AS current_id,
-                    COALESCE(ras.codebase_progress -> :codebase_name -> 'completed_namespaces', '[]'::jsonb) AS completed
-                FROM repository_agent_md_snapshot ras
-                WHERE ras.repository_owner_name = :owner_name
-                  AND ras.repository_name = :repo_name
-                  AND ras.repository_workflow_run_id = :workflow_run_id
-            ),
-            codebase_idx AS (
-                SELECT elem.ordinality - 1 AS idx
-                FROM current_state cs,
-                     LATERAL jsonb_array_elements(cs.events -> 'codebases') WITH ORDINALITY AS elem(codebase, ordinality)
-                WHERE elem.codebase ->> 'codebase_name' = :codebase_name
-                LIMIT 1
-            ),
-            new_completed_calc AS (
-                SELECT
-                    cs.current_id AS allocated_id,
-                    cs.current_id + 1 AS next_id,
-                    CASE
-                        WHEN :phase = 'result'
-                             AND :agent_name = ANY(CAST(:completion_namespaces_arr AS text[]))
-                             AND NOT EXISTS (
-                                 SELECT 1 FROM jsonb_array_elements_text(cs.completed) AS elem
-                                 WHERE elem = :agent_name
-                             )
-                        THEN cs.completed || to_jsonb(CAST(:agent_name AS text))
-                        ELSE cs.completed
-                    END AS new_completed
-                FROM current_state cs
-            ),
-            progress_calc AS (
-                SELECT
-                    ncc.allocated_id,
-                    ncc.next_id,
-                    ncc.new_completed,
-                    ROUND((jsonb_array_length(ncc.new_completed)::numeric / :total_namespaces) * 100, 2) AS new_codebase_progress
-                FROM new_completed_calc ncc
-            ),
-            overall_progress_calc AS (
-                SELECT
-                    pc.allocated_id,
-                    pc.next_id,
-                    pc.new_completed,
-                    pc.new_codebase_progress,
-                    ROUND(AVG(
-                        CASE
-                            WHEN cb_key = :codebase_name THEN pc.new_codebase_progress
-                            ELSE COALESCE((cb_val -> 'progress')::numeric, 0)
-                        END
-                    ), 2) AS new_overall_progress
-                FROM progress_calc pc, current_state cs,
-                     LATERAL jsonb_each(cs.codebase_progress) AS cb(cb_key, cb_val)
-                GROUP BY pc.allocated_id, pc.next_id, pc.new_completed, pc.new_codebase_progress
-            ),
-            new_event_obj AS (
-                SELECT jsonb_build_object(
-                    'id', opc.allocated_id,
-                    'event', :agent_name,
-                    'phase', :phase,
-                    'message', CAST(:message AS text)
-                ) AS event_obj,
-                opc.allocated_id,
-                opc.next_id,
-                opc.new_completed,
-                opc.new_codebase_progress,
-                opc.new_overall_progress
-                FROM overall_progress_calc opc
-            ),
-            updated AS (
-                UPDATE repository_agent_md_snapshot AS ras
-                SET
-                    event_counters = jsonb_set(
-                        ras.event_counters,
-                        ARRAY[:codebase_name, 'next_id'],
-                        to_jsonb(neo.next_id),
-                        true
-                    ),
-                    codebase_progress = jsonb_set(
-                        jsonb_set(
-                            ras.codebase_progress,
-                            ARRAY[:codebase_name, 'completed_namespaces'],
-                            neo.new_completed,
-                            true
-                        ),
-                        ARRAY[:codebase_name, 'progress'],
-                        to_jsonb(neo.new_codebase_progress),
-                        true
-                    ),
-                    events = jsonb_set(
-                        jsonb_set(
-                            jsonb_set(
-                                ras.events,
-                                ARRAY['codebases', ci.idx::text, 'events'],
-                                COALESCE(
-                                    ras.events #> ARRAY['codebases', ci.idx::text, 'events'],
-                                    '[]'::jsonb
-                                ) || neo.event_obj,
-                                true
-                            ),
-                            ARRAY['codebases', ci.idx::text, 'progress'],
-                            to_jsonb(neo.new_codebase_progress),
-                            true
-                        ),
-                        ARRAY['overall_progress'],
-                        to_jsonb(neo.new_overall_progress),
-                        true
-                    ),
-                    overall_progress = neo.new_overall_progress,
-                    latest_event_at = NOW(),
-                    modified_at = NOW()
-                FROM new_event_obj neo, codebase_idx ci
-                WHERE ras.repository_owner_name = :owner_name
-                  AND ras.repository_name = :repo_name
-                  AND ras.repository_workflow_run_id = :workflow_run_id
-                RETURNING neo.allocated_id
-            )
-            SELECT COALESCE((SELECT allocated_id FROM updated), -1) AS allocated_id;
-            """
-        )
-
-        params = {
-            "owner_name": owner_name,
-            "repo_name": repo_name,
-            "workflow_run_id": repository_workflow_run_id,
-            "codebase_name": codebase_name,
-            "agent_name": agent_name,
-            "phase": phase,
-            "message": message,
-            "completion_namespaces_arr": completion_namespaces_list,
-            "total_namespaces": total_namespaces,
-        }
+        """Atomically allocate an event id, persist the event, and update progress."""
+        event_timestamp = datetime.now(timezone.utc)
 
         async with get_startup_session() as session:
-            result = await session.execute(query, params)
-            allocated_id = result.scalar_one()
+            progress_stmt = (
+                select(RepositoryAgentCodebaseProgress)
+                .where(
+                    RepositoryAgentCodebaseProgress.repository_owner_name == owner_name,
+                    RepositoryAgentCodebaseProgress.repository_name == repo_name,
+                    RepositoryAgentCodebaseProgress.repository_workflow_run_id
+                    == repository_workflow_run_id,
+                    RepositoryAgentCodebaseProgress.codebase_name == codebase_name,
+                )
+                .with_for_update()
+            )
+            progress_result = await session.execute(progress_stmt)
+            progress_row = progress_result.scalar_one_or_none()
 
-            if allocated_id == -1:
+            if progress_row is None:
                 logger.error(
-                    "Failed to append event atomically for %s/%s codebase=%s run_id=%s",
+                    "Progress row missing for %s/%s codebase=%s run_id=%s",
+                    owner_name,
+                    repo_name,
+                    codebase_name,
+                    repository_workflow_run_id,
+                )
+                raise ValueError(
+                    f"Progress row not initialized for {owner_name}/{repo_name} "
+                    f"codebase={codebase_name} run_id={repository_workflow_run_id}"
+                )
+
+            allocated_event_id = progress_row.next_event_id
+            completed_namespaces = set(progress_row.completed_namespaces)
+            if phase == "result" and agent_name in completion_namespaces:
+                completed_namespaces.add(agent_name)
+
+            normalized_completed_namespaces = _normalize_completed_namespaces(
+                completed_namespaces
+            )
+            updated_progress = _compute_codebase_progress(
+                completed_namespaces,
+                completion_namespaces,
+            )
+
+            session.add(
+                RepositoryAgentEvent(
+                    repository_owner_name=owner_name,
+                    repository_name=repo_name,
+                    repository_workflow_run_id=repository_workflow_run_id,
+                    codebase_name=codebase_name,
+                    event_id=allocated_event_id,
+                    event=agent_name,
+                    phase=phase,
+                    message=message,
+                    tool_name=tool_name,
+                    tool_call_id=tool_call_id,
+                    tool_args=_normalize_tool_args(tool_args),
+                    tool_result_content=tool_result_content,
+                    created_at=event_timestamp,
+                )
+            )
+
+            progress_row.next_event_id = allocated_event_id + 1
+            progress_row.latest_event_id = allocated_event_id
+            progress_row.event_count = progress_row.event_count + 1
+            progress_row.progress = updated_progress
+            progress_row.completed_namespaces = normalized_completed_namespaces
+            progress_row.latest_event_at = event_timestamp
+            progress_row.modified_at = event_timestamp
+
+            await session.flush()
+
+            overall_progress_stmt = select(
+                func.avg(RepositoryAgentCodebaseProgress.progress)
+            ).where(
+                RepositoryAgentCodebaseProgress.repository_owner_name == owner_name,
+                RepositoryAgentCodebaseProgress.repository_name == repo_name,
+                RepositoryAgentCodebaseProgress.repository_workflow_run_id
+                == repository_workflow_run_id,
+            )
+            overall_progress_result = await session.execute(overall_progress_stmt)
+            overall_progress_raw = overall_progress_result.scalar_one_or_none()
+            overall_progress = _quantize_percentage(
+                Decimal(overall_progress_raw)
+                if overall_progress_raw is not None
+                else ZERO_DECIMAL
+            )
+
+            snapshot_stmt = (
+                select(RepositoryAgentMdSnapshot)
+                .where(
+                    RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
+                    RepositoryAgentMdSnapshot.repository_name == repo_name,
+                    RepositoryAgentMdSnapshot.repository_workflow_run_id
+                    == repository_workflow_run_id,
+                )
+                .with_for_update()
+            )
+            snapshot_result = await session.execute(snapshot_stmt)
+            snapshot = snapshot_result.scalar_one_or_none()
+
+            if snapshot is None:
+                logger.error(
+                    "Snapshot row missing for %s/%s codebase=%s run_id=%s",
                     owner_name,
                     repo_name,
                     codebase_name,
@@ -350,7 +259,11 @@ class RepositoryAgentSnapshotWriter:
                     f"run_id={repository_workflow_run_id}"
                 )
 
-            return allocated_id
+            snapshot.overall_progress = overall_progress
+            snapshot.latest_event_at = event_timestamp
+            snapshot.modified_at = event_timestamp
+
+            return allocated_event_id
 
     async def complete_run(
         self,
@@ -361,18 +274,7 @@ class RepositoryAgentSnapshotWriter:
         final_payload: dict[str, object],
         statistics_payload: dict[str, object] | None = None,
     ) -> None:
-        """Persist the final agent output and statistics.
-
-        Note: Status is tracked by Temporal via RepositoryWorkflowRun, not here.
-
-        Args:
-            owner_name: Repository owner name
-            repo_name: Repository name
-            repository_workflow_run_id: Workflow run ID for correct row targeting
-            final_payload: Final agent MD output payload to persist
-            statistics_payload: Usage statistics (optional)
-        """
-        # Log what's being persisted
+        """Persist the final agent output and statistics."""
         if statistics_payload:
             logger.info(
                 "Persisting statistics for {}/{} run_id={}: {} keys, has_cost={}",

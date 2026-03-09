@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v3.json",
-  "title": "Unoplat Code Confluence Multi-Language Framework/Library Schema v3",
+  "title": "Unoplat Code Confluence Deterministic Interface Discovery Schema (DIDS) v3",
   "description": "Framework / library feature signatures grouped by programming language.",
   "type": "object",
   "propertyNames": {
@@ -90,7 +90,7 @@
           "description": "Fully-qualified symbols identifying the constructor / base class / annotation provider.",
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$"
+            "pattern": "^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$"
           }
         },
         "target_level": {
@@ -101,6 +101,12 @@
         },
         "construct_query": {
           "$ref": "#/$defs/constructQueryDef"
+        },
+        "base_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Contributor-authored confidence for CallExpression feature definitions only; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
         },
         "startpoint": {
           "type": "boolean",
@@ -127,6 +133,58 @@
               "target_level": {
                 "const": "function"
               }
+            },
+            "required": [
+              "base_confidence"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "CallExpression"
+              },
+              "base_confidence": {
+                "type": "number",
+                "exclusiveMaximum": 0.7
+              }
+            },
+            "required": [
+              "concept",
+              "base_confidence"
+            ]
+          },
+          "then": {
+            "required": [
+              "notes"
+            ],
+            "properties": {
+              "notes": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "not": {
+                  "const": "CallExpression"
+                }
+              }
+            },
+            "required": [
+              "concept"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "base_confidence"
+              ]
             }
           }
         },
@@ -142,6 +200,22 @@
             "properties": {
               "target_level": {
                 "const": "class"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "FunctionDefinition"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_level": {
+                "const": "function"
               }
             }
           }
@@ -161,7 +235,8 @@
       "enum": [
         "AnnotationLike",
         "CallExpression",
-        "Inheritance"
+        "Inheritance",
+        "FunctionDefinition"
       ],
       "description": "Language-agnostic construct category."
     },
@@ -182,6 +257,12 @@
           "type": "string"
         },
         "superclass_regex": {
+          "type": "string"
+        },
+        "function_name_regex": {
+          "type": "string"
+        },
+        "export_name_regex": {
           "type": "string"
         }
       },

@@ -3,7 +3,7 @@ import json
 import logging
 import pathlib
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, cast
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,7 @@ from unoplat_code_confluence_commons.base_models import (
     FeatureAbsolutePath,
     Framework,
     FrameworkFeature,
+    FrameworkFeaturePayload,
 )
 
 from src.code_confluence_flow_bridge.models.configuration.settings import (
@@ -18,6 +19,41 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_concept_name(raw_concept: object) -> str:
+    if raw_concept in {
+        "AnnotationLike",
+        "CallExpression",
+        "Inheritance",
+        "FunctionDefinition",
+    }:
+        return cast(str, raw_concept)
+    return "AnnotationLike"
+
+
+def _normalize_base_confidence(payload_data: Dict[str, Any]) -> None:
+    concept_name = cast(str, payload_data["concept"])
+    if concept_name != "CallExpression":
+        if "base_confidence" in payload_data:
+            raise ValueError(
+                "base_confidence is supported only for CallExpression features"
+            )
+        return
+
+    base_confidence = payload_data.get("base_confidence")
+    if not isinstance(base_confidence, (int, float)) or isinstance(
+        base_confidence, bool
+    ):
+        raise ValueError(
+            "CallExpression features must define explicit numeric base_confidence"
+        )
+
+    numeric_confidence = float(base_confidence)
+    if not 0.0 <= numeric_confidence <= 1.0:
+        raise ValueError("CallExpression base_confidence must be between 0.0 and 1.0")
+
+    payload_data["base_confidence"] = numeric_confidence
 
 
 class FrameworkDefinitionLoader:
@@ -44,25 +80,29 @@ class FrameworkDefinitionLoader:
 
     def load_framework_definitions(self) -> Dict[str, Any]:
         """Load and combine all framework definition JSON files."""
-        python_dir = self.definitions_path / "python"
-
         logger.info(f"Loading framework definitions from: {self.definitions_path}")
-        logger.debug(f"Python directory path: {python_dir.resolve()}")
 
-        if not python_dir.exists():
+        if not self.definitions_path.exists():
             raise FileNotFoundError(
-                f"Framework definitions python directory not found: {python_dir.resolve()}"
+                "Framework definitions directory not found: "
+                f"{self.definitions_path.resolve()}"
             )
 
         combined_data: Dict[str, Dict[str, Any]] = {}
-        json_files = list(python_dir.glob("*.json"))
+        json_files = sorted(
+            file_path
+            for file_path in self.definitions_path.glob("*/*.json")
+            if file_path.is_file()
+        )
 
         if not json_files:
-            logger.warning(f"No JSON files found in {python_dir}")
+            logger.warning("No framework definition JSON files found in language dirs")
             return combined_data
 
+        language_dirs = sorted({json_file.parent.name for json_file in json_files})
         logger.info(
-            f"Loading framework definitions from {len(json_files)} files in {python_dir}"
+            f"Loading framework definitions from {len(json_files)} files across languages: "
+            f"{', '.join(language_dirs)}"
         )
 
         for json_file in json_files:
@@ -89,19 +129,20 @@ class FrameworkDefinitionLoader:
 
     def parse_json_data(
         self, data: Dict[str, Any]
-    ) -> Tuple[List[Framework], List[FrameworkFeature], List[FeatureAbsolutePath]]:
+    ) -> tuple[list[Framework], list[FrameworkFeature], list[FeatureAbsolutePath]]:
         """Parse JSON data into normalized database records."""
-        frameworks = []
-        features = []
-        absolute_paths = []
+        frameworks: list[Framework] = []
+        features: list[FrameworkFeature] = []
+        absolute_paths: list[FeatureAbsolutePath] = []
 
         # Track unique frameworks to avoid duplicates
-        seen_frameworks = set()
+        seen_frameworks: set[tuple[str, str]] = set()
 
         logger.debug("Parsing framework definitions into SQLModel objects")
 
         # Parse new schema structure: language -> library -> features
-        for language, language_data in data.items():
+        for language, language_data_raw in data.items():
+            language_data = cast(dict[str, dict[str, Any]], language_data_raw)
             for library_name, library_data in language_data.items():
                 docs_url = library_data.get("docs_url")
                 description = library_data.get("description")
@@ -120,27 +161,32 @@ class FrameworkDefinitionLoader:
                     seen_frameworks.add(framework_key)
 
                 # Process features
-                features_data = library_data.get("features", {})
+                features_data = cast(
+                    dict[str, dict[str, Any]],
+                    library_data.get("features", {}),
+                )
                 for feature_key, feature_data in features_data.items():
+                    normalized_payload = self._normalize_feature_payload(feature_data)
+                    feature_definition: dict[str, object] = (
+                        normalized_payload.model_dump(mode="json", exclude_none=False)
+                    )
+                    if feature_definition.get("concept") != "CallExpression":
+                        feature_definition.pop("base_confidence", None)
+                    elif feature_definition.get("base_confidence") is None:
+                        feature_definition.pop("base_confidence", None)
+
                     # Create FrameworkFeature record with new schema fields
                     features.append(
                         FrameworkFeature(
                             language=language,
                             library=library_name,
                             feature_key=feature_key,
-                            description=feature_data.get("description"),
-                            target_level=feature_data.get("target_level", "function"),
-                            concept=feature_data.get("concept", "AnnotationLike"),
-                            locator_strategy=feature_data.get(
-                                "locator_strategy", "VariableBound"
-                            ),
-                            construct_query=feature_data.get("construct_query"),
-                            startpoint=feature_data.get("startpoint", False),
+                            feature_definition=feature_definition,
                         )
                     )
 
                     # Create FeatureAbsolutePath records for each absolute path
-                    absolute_paths_data = feature_data.get("absolute_paths", [])
+                    absolute_paths_data = normalized_payload.absolute_paths
                     for absolute_path in absolute_paths_data:
                         absolute_paths.append(
                             FeatureAbsolutePath(
@@ -155,6 +201,40 @@ class FrameworkDefinitionLoader:
             f"Parsed {len(frameworks)} frameworks, {len(features)} features, {len(absolute_paths)} absolute paths"
         )
         return frameworks, features, absolute_paths
+
+    def _normalize_feature_payload(
+        self, feature_data: Dict[str, Any]
+    ) -> FrameworkFeaturePayload:
+        payload_data = dict(feature_data)
+
+        if not isinstance(payload_data.get("absolute_paths"), list):
+            payload_data["absolute_paths"] = []
+        else:
+            payload_data["absolute_paths"] = [
+                value
+                for value in payload_data["absolute_paths"]
+                if isinstance(value, str)
+            ]
+
+        if not isinstance(payload_data.get("construct_query"), dict):
+            payload_data["construct_query"] = None
+
+        payload_data["concept"] = _normalize_concept_name(payload_data.get("concept"))
+        _normalize_base_confidence(payload_data)
+
+        if payload_data.get("target_level") not in {"function", "class"}:
+            payload_data["target_level"] = "function"
+
+        if payload_data.get("locator_strategy") not in {
+            "VariableBound",
+            "Direct",
+        }:
+            payload_data["locator_strategy"] = "VariableBound"
+
+        if not isinstance(payload_data.get("startpoint"), bool):
+            payload_data["startpoint"] = False
+
+        return FrameworkFeaturePayload.model_validate(payload_data)
 
     async def load_framework_definitions_at_startup(
         self, session: AsyncSession

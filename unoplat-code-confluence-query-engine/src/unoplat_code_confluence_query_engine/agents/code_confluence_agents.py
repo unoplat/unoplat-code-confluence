@@ -8,6 +8,78 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 
 SEARCH_MODE_EXA = "exa"
 SEARCH_MODE_BUILTIN_WEB_SEARCH = "builtin_web_search"
+SEARCH_MODE_DUCKDUCKGO = "duckduckgo"
+SEARCH_MODE_NONE = "none"
+
+
+def get_official_docs_search_instruction(
+    search_mode: str,
+    *,
+    target: str,
+) -> str:
+    """Return search-mode-specific instruction for official documentation lookup.
+
+    Args:
+        search_mode: Resolved search mode (`exa`, `builtin_web_search`, `duckduckgo`, or `none`).
+        target: Subject to validate against official docs (for example "framework API usage").
+
+    Returns:
+        Instruction sentence describing required documentation lookup behavior.
+    """
+    if search_mode == SEARCH_MODE_EXA:
+        return f"Use Exa MCP tools (web_search_exa/get_code_context_exa) to verify {target} against official documentation."
+    if search_mode == SEARCH_MODE_BUILTIN_WEB_SEARCH:
+        return f"Use built-in web_search to verify {target} against official documentation."
+    if search_mode == SEARCH_MODE_DUCKDUCKGO:
+        return f"Use the DuckDuckGo search tool to verify {target} against official documentation."
+    return f"No external search tools are available; if official documentation cannot be verified for {target}, choose a conservative unresolved path."
+
+
+def get_official_docs_workflow_steps(
+    search_mode: str,
+    *,
+    target: str,
+    unresolved_outcome: str,
+) -> str:
+    """Return numbered workflow steps for official docs verification by search mode.
+
+    Args:
+        search_mode: Resolved search mode (`exa`, `builtin_web_search`, `duckduckgo`, or `none`).
+        target: Subject to verify against official documentation.
+        unresolved_outcome: Required fallback behavior when docs cannot be verified.
+
+    Returns:
+        Multi-line numbered steps string.
+    """
+    if search_mode == SEARCH_MODE_EXA:
+        return (
+            f"1. Use Exa MCP tools (web_search_exa/get_code_context_exa) to locate official documentation for {target}.\n"
+            "2. Evaluate results:\n"
+            "   - If official documentation is found: continue with evidence-backed synthesis\n"
+            f"   - If docs are missing/ambiguous: {unresolved_outcome}\n"
+            "3. Return structured output."
+        )
+    if search_mode == SEARCH_MODE_BUILTIN_WEB_SEARCH:
+        return (
+            f"1. Use built-in web_search to locate official documentation for {target}.\n"
+            "2. Evaluate results:\n"
+            "   - If official documentation is found: continue with evidence-backed synthesis\n"
+            f"   - If docs are missing/ambiguous: {unresolved_outcome}\n"
+            "3. Return structured output."
+        )
+    if search_mode == SEARCH_MODE_DUCKDUCKGO:
+        return (
+            f"1. Use the DuckDuckGo search tool to locate official documentation for {target}.\n"
+            "2. Evaluate results:\n"
+            "   - If official documentation is found: continue with evidence-backed synthesis\n"
+            f"   - If docs are missing/ambiguous: {unresolved_outcome}\n"
+            "3. Return structured output."
+        )
+    return (
+        "1. Use available repository context only.\n"
+        f"2. Since official documentation lookup is unavailable: {unresolved_outcome}\n"
+        "3. Return structured output."
+    )
 
 
 def get_engineering_citation_instructions(search_mode: str) -> str:
@@ -42,7 +114,34 @@ def get_engineering_citation_instructions(search_mode: str) -> str:
             "Only emit commands with confidence >= 0.35.\n"
             "</citation_validation>\n"
         )
-    raise ValueError(f"Unsupported search_mode '{search_mode}': either Exa or built-in web search must be available")
+    if search_mode == SEARCH_MODE_DUCKDUCKGO:
+        return (
+            "<citation_validation>\n"
+            "For EVERY command you emit, you MUST verify it against official documentation "
+            "using the DuckDuckGo search tool.\n"
+            "Search for the official docs of the tool or framework behind each command and confirm "
+            "the command syntax, flags, and usage are correct before emitting it.\n\n"
+            "Confidence scoring guidance:\n"
+            "- 0.8-1.0: Exact match with official documentation or config file evidence\n"
+            "- 0.5-0.79: Reasonable variant confirmed by documentation patterns\n"
+            "- 0.35-0.49: Inferred from file structure and common conventions\n"
+            "- Below 0.35: Speculative — do NOT emit these commands\n"
+            "Only emit commands with confidence >= 0.35.\n"
+            "</citation_validation>\n"
+        )
+    return (
+        "<citation_validation>\n"
+        "External search is unavailable. Verify commands only from repository evidence "
+        "(Taskfile/Makefile/configs/scripts) and avoid speculative assumptions.\n"
+        "If official documentation cannot be verified, keep outputs conservative and avoid "
+        "high-confidence claims.\n\n"
+        "Confidence scoring guidance:\n"
+        "- 0.6-1.0: Strong repository-local evidence for exact command syntax\n"
+        "- 0.35-0.59: Plausible command inferred from repository conventions\n"
+        "- Below 0.35: Speculative — do NOT emit these commands\n"
+        "Only emit commands with confidence >= 0.35.\n"
+        "</citation_validation>\n"
+    )
 
 
 async def per_language_development_workflow_prompt(

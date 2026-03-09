@@ -8,11 +8,17 @@ from unoplat_code_confluence_commons.base_models.engine_models import (
 )
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from sqlalchemy import ForeignKeyConstraint, Index
+from sqlalchemy import (
+    ForeignKeyConstraint,
+    Index,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql.elements import ColumnElement
 
 
 # ──────────────────────────────────────────────
@@ -20,13 +26,20 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 # ──────────────────────────────────────────────
 class Framework(SQLBase):
     """Language-library combo ("python-fastapi", etc.)."""
+
     __tablename__ = "framework"
     __table_args__ = {"extend_existing": True}
 
-    language: Mapped[str] = mapped_column(primary_key=True, comment="Programming language")
-    library: Mapped[str] = mapped_column(primary_key=True, comment="Library / framework")
+    language: Mapped[str] = mapped_column(
+        primary_key=True, comment="Programming language"
+    )
+    library: Mapped[str] = mapped_column(
+        primary_key=True, comment="Library / framework"
+    )
     docs_url: Mapped[Optional[str]] = mapped_column(default=None, comment="Docs URL")
-    description: Mapped[Optional[str]] = mapped_column(default=None, comment="Framework/library description")
+    description: Mapped[Optional[str]] = mapped_column(
+        default=None, comment="Framework/library description"
+    )
 
     # Relationships
     features: Mapped[List["FrameworkFeature"]] = relationship(
@@ -41,44 +54,40 @@ class Framework(SQLBase):
 # ──────────────────────────────────────────────
 class FrameworkFeature(SQLBase):
     """Per-feature metadata (one row per feature_key)."""
+
     __tablename__ = "framework_feature"
     __table_args__ = (
-        ForeignKeyConstraint(                             # FK → Framework
+        ForeignKeyConstraint(  # FK → Framework
             ["language", "library"],
             ["framework.language", "framework.library"],
             ondelete="CASCADE",
         ),
-        {"extend_existing": True}
+        Index(
+            "framework_feature_definition_gin_idx",
+            "feature_definition",
+            postgresql_using="gin",
+            postgresql_ops={"feature_definition": "jsonb_path_ops"},
+        ),
+        Index(
+            "framework_feature_startpoint_bool_idx",
+            text("coalesce((feature_definition['startpoint'])::boolean, false)"),
+        ),
+        {"extend_existing": True},
     )
 
     # Composite PK = language + library + feature_key
     language: Mapped[str] = mapped_column(primary_key=True)
     library: Mapped[str] = mapped_column(primary_key=True)
-    feature_key: Mapped[str] = mapped_column(primary_key=True, comment="Feature identifier")
+    feature_key: Mapped[str] = mapped_column(
+        primary_key=True, comment="Feature identifier"
+    )
 
-    # Core fields with explicit PostgreSQL enum types
-    target_level: Mapped[TargetLevel] = mapped_column(
-        nullable=False,
-        comment="Granularity: function or class"
-    )
-    concept: Mapped[Concept] = mapped_column(
-        nullable=False,
-        comment="Semantic concept (AnnotationLike, CallExpression, Inheritance)"
-    )
-    locator_strategy: Mapped[LocatorStrategy] = mapped_column(
-        nullable=False,
-        comment="VariableBound or Direct"
-    )
-    construct_query: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+    feature_definition: Mapped[dict[str, object]] = mapped_column(
         JSONB,
-        nullable=True,
-        default=None,
-        comment="Language-specific query tweaks for adapter construction",
-    )
-    description: Mapped[Optional[str]] = mapped_column(default=None)
-    startpoint: Mapped[bool] = mapped_column(
-        default=False,
-        comment="Indicates whether this feature represents a starting point or entry point in the application"
+        nullable=False,
+        default=dict,
+        server_default=text("'{}'::jsonb"),
+        comment="Source-of-truth JSONB payload for feature schema fields",
     )
 
     # Relationships
@@ -88,24 +97,109 @@ class FrameworkFeature(SQLBase):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
-    
+
+    @property
+    def description(self) -> Optional[str]:
+        """Return description from feature_definition."""
+        value = self.feature_definition.get("description")
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return value
+        raise TypeError("feature_definition.description must be a string")
+
+    @property
+    def target_level(self) -> TargetLevel:
+        """Return target level from feature_definition."""
+        value = self.feature_definition["target_level"]
+        if isinstance(value, TargetLevel):
+            return value
+        if isinstance(value, str):
+            return TargetLevel(value)
+        raise TypeError("feature_definition.target_level must be a string enum value")
+
+    @property
+    def concept(self) -> Concept:
+        """Return concept from feature_definition."""
+        value = self.feature_definition["concept"]
+        if isinstance(value, Concept):
+            return value
+        if isinstance(value, str):
+            return Concept(value)
+        raise TypeError("feature_definition.concept must be a string enum value")
+
+    @property
+    def locator_strategy(self) -> LocatorStrategy:
+        """Return locator strategy from feature_definition."""
+        value = self.feature_definition["locator_strategy"]
+        if isinstance(value, LocatorStrategy):
+            return value
+        if isinstance(value, str):
+            return LocatorStrategy(value)
+        raise TypeError(
+            "feature_definition.locator_strategy must be a string enum value"
+        )
+
+    @property
+    def construct_query(self) -> Optional[dict[str, object]]:
+        """Return construct_query from feature_definition."""
+        value = self.feature_definition.get("construct_query")
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return value
+        raise TypeError("feature_definition.construct_query must be an object")
+
+    @property
+    def startpoint(self) -> bool:
+        """Return startpoint from feature_definition."""
+        value = self.feature_definition["startpoint"]
+        if isinstance(value, bool):
+            return value
+        raise TypeError("feature_definition.startpoint must be a boolean")
+
+    @property
+    def base_confidence(self) -> float | None:
+        """Return base confidence from feature_definition when present."""
+        value = self.feature_definition.get("base_confidence")
+        if value is None:
+            return None
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return float(value)
+        raise TypeError("feature_definition.base_confidence must be a number")
+
+    @classmethod
+    def concept_sql_expression(cls) -> ColumnElement[str]:
+        """SQL expression for concept reads/grouping."""
+        return cls.feature_definition["concept"].astext
+
+    @classmethod
+    def startpoint_sql_expression(cls) -> ColumnElement[bool]:
+        """SQL expression for startpoint reads/filtering."""
+        return func.coalesce(cls.feature_definition["startpoint"].as_boolean(), False)
+
     @property
     def construct_query_typed(self) -> Optional[ConstructQueryConfig]:
         """Get construct_query as typed configuration."""
-        if not self.construct_query:
+        construct_query = self.construct_query
+        if not construct_query:
             return None
         try:
-            return ConstructQueryConfig.model_validate(self.construct_query)
+            return ConstructQueryConfig.model_validate(construct_query)
         except Exception:
             return None
-    
+
     @construct_query_typed.setter
     def construct_query_typed(self, value: Optional[ConstructQueryConfig]) -> None:
         """Set construct_query from typed configuration."""
+        updated_feature_definition = dict(self.feature_definition)
         if value is None:
-            self.construct_query = None
+            updated_feature_definition.pop("construct_query", None)
         else:
-            self.construct_query = value.model_dump(exclude_none=True)
+            updated_feature_definition["construct_query"] = value.model_dump(
+                exclude_none=True
+            )
+        self.feature_definition = updated_feature_definition
 
 
 # ──────────────────────────────────────────────
@@ -113,13 +207,16 @@ class FrameworkFeature(SQLBase):
 # ──────────────────────────────────────────────
 class FeatureAbsolutePath(SQLBase):
     """Maps each absolute import path to its feature."""
+
     __tablename__ = "feature_absolute_path"
     __table_args__ = (
-        ForeignKeyConstraint(                             # FK → FrameworkFeature
+        ForeignKeyConstraint(  # FK → FrameworkFeature
             ["language", "library", "feature_key"],
-            ["framework_feature.language",
-             "framework_feature.library",
-             "framework_feature.feature_key"],
+            [
+                "framework_feature.language",
+                "framework_feature.library",
+                "framework_feature.feature_key",
+            ],
             ondelete="CASCADE",
         ),
         # Fast lookup by path + covering columns for an index-only probe
@@ -128,7 +225,7 @@ class FeatureAbsolutePath(SQLBase):
             "absolute_path",
             postgresql_include=("language", "library", "feature_key"),
         ),
-        {"extend_existing": True}
+        {"extend_existing": True},
     )
 
     # Composite PK = language + library + feature_key + absolute_path

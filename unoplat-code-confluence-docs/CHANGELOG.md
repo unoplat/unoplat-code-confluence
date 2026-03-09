@@ -1,5 +1,62 @@
 # Changelog
 
+## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.38.0...unoplat-code-confluence-docs-v0.39.0) (2026-03-08)
+
+
+### Features
+
+* **docs:** roadmap added for skills and blueprint generation ([c98c269](https://github.com/unoplat/unoplat-code-confluence/commit/c98c2695044d42eeb75093be3bab75c89a9bd617))
+* **docs:** roadmap added for skills and blueprint generation ([8fe9921](https://github.com/unoplat/unoplat-code-confluence/commit/8fe9921f764179e064cc0e092f1877d742946643))
+
+## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.37.0...unoplat-code-confluence-docs-v0.38.0) (2026-03-08)
+
+
+### Features
+
+* **add-more-python-typescript-frameworks:** libs/frameworks added ([92f7175](https://github.com/unoplat/unoplat-code-confluence/commit/92f717566b731966b177ce6e9adb515b7685379a))
+* **call-expression-validation:** trust definition confidence and validate TS app interfaces ([febc30f](https://github.com/unoplat/unoplat-code-confluence/commit/febc30fdaba1727a1b55dc08964fcb258b12fe87))
+
+
+### Bug Fixes
+
+* **remove-react:** react react feature detection as of now ([1f79e53](https://github.com/unoplat/unoplat-code-confluence/commit/1f79e5374498c75903c7ff84402b2f1f7db8fe0c))
+
+## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.36.1...unoplat-code-confluence-docs-v0.37.0) (2026-02-28)
+
+
+### Features
+
+* **confidence:** add schema and ingestion contracts for usage confidence metadata ([f71b085](https://github.com/unoplat/unoplat-code-confluence/commit/f71b085d653de9c339f0ffb615a4d07863fadd98))
+
+
+### Bug Fixes
+
+* **documentation:** heading fixes ([83743b9](https://github.com/unoplat/unoplat-code-confluence/commit/83743b96f3d6cba380e13d66bcc4c99f4c3dfee2))
+* **documentation:** heading fixes ([eb12a74](https://github.com/unoplat/unoplat-code-confluence/commit/eb12a745d5548c99353cacb65597eef10b8cb4fd))
+* **typescript:** add concept enum in schema to support more typescript ([4195eb2](https://github.com/unoplat/unoplat-code-confluence/commit/4195eb21f5fd080f3e923cb53162136ff57f7a1b))
+* **typescript:** add concept enum in schema to support more typescript ([7cfe956](https://github.com/unoplat/unoplat-code-confluence/commit/7cfe9566ee97c4e3e2d016c72942ea4c0749bd43))
+
+## [0.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.36.0...unoplat-code-confluence-docs-v0.36.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* **irrelevant-link:** remove FastAPI Catalog link from DIDS quick ref… ([0f93bfb](https://github.com/unoplat/unoplat-code-confluence/commit/0f93bfb3fa7b23b084312ad8abf4030a170f4ee8))
+* **irrelevant-link:** remove FastAPI Catalog link from DIDS quick reference ([8130af0](https://github.com/unoplat/unoplat-code-confluence/commit/8130af0195a373af4aa96d40e265d5b093bbbbca))
+
+## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.35.0...unoplat-code-confluence-docs-v0.36.0) (2026-02-24)
+
+
+### Features
+
+* **better-navigation-structure:** add language-first DIDS catalog hi… ([93b094a](https://github.com/unoplat/unoplat-code-confluence/commit/93b094a213cfb8d636f29053420e560206c4c317))
+* **better-navigation-structure:** add language-first DIDS catalog hierarchy ([bc74675](https://github.com/unoplat/unoplat-code-confluence/commit/bc74675e9f51bd35c94ff15d0edd87ee897ac333))
+
+
+### Bug Fixes
+
+* **dids-catalog:** route summary links to generated docs pages ([3bad458](https://github.com/unoplat/unoplat-code-confluence/commit/3bad458e71f3993bc126352f1cd252ebe21e3c03))
+
 ## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.34.0...unoplat-code-confluence-docs-v0.35.0) (2026-02-20)
 
 

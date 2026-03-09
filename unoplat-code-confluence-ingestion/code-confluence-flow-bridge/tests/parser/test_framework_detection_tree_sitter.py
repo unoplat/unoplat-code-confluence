@@ -3,20 +3,21 @@
 from functools import lru_cache
 import json
 from pathlib import Path
-from typing import List
-
-from unoplat_code_confluence_commons.base_models import (
-    Concept,
-    FeatureSpec,
-    LocatorStrategy,
-    TargetLevel,
-)
+from typing import List, cast
 
 from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
     PythonSourceContext,
 )
 from src.code_confluence_flow_bridge.engine.programming_language.python.python_tree_sitter_framework_detector import (
     PythonTreeSitterFrameworkDetector,
+)
+from unoplat_code_confluence_commons.base_models import (
+    CallExpressionInfo,
+    Concept,
+    FeatureSpec,
+    InheritanceInfo,
+    LocatorStrategy,
+    TargetLevel,
 )
 
 
@@ -42,11 +43,37 @@ def _load_python_feature_specs() -> List[FeatureSpec]:
                         locator_strategy=LocatorStrategy.VARIABLE_BOUND,
                         construct_query=feature_data.get("construct_query"),
                         description=feature_data.get("description"),
+                        base_confidence=feature_data.get("base_confidence"),
                         startpoint=feature_data.get("startpoint", False),
                     )
                 )
 
     return feature_specs
+
+
+def _build_pydantic_inheritance_spec() -> FeatureSpec:
+    return FeatureSpec(
+        feature_key="data_model",
+        library="pydantic",
+        absolute_paths=["pydantic.BaseModel", "pydantic.main.BaseModel"],
+        target_level=TargetLevel.CLASS,
+        concept=Concept.INHERITANCE,
+        locator_strategy=LocatorStrategy.VARIABLE_BOUND,
+        description="Pydantic BaseModel inheritance",
+    )
+
+
+def _build_litellm_completion_spec() -> FeatureSpec:
+    return FeatureSpec(
+        feature_key="llm_completion",
+        library="litellm",
+        absolute_paths=["litellm.completion", "litellm.main.completion"],
+        target_level=TargetLevel.FUNCTION,
+        concept=Concept.CALL_EXPRESSION,
+        locator_strategy=LocatorStrategy.VARIABLE_BOUND,
+        description="LiteLLM completion call",
+        base_confidence=0.69,
+    )
 
 
 def test_fastapi_tree_sitter_detection_main_py() -> None:
@@ -118,3 +145,94 @@ def build():
         det.feature_key == "db_data_model" and det.library == "sqlmodel"
         for det in detections
     )
+
+
+def test_python_call_expression_accepts_import_bound_module_alias_call() -> None:
+    source_code = """
+import litellm as llm
+
+
+def run() -> None:
+    llm.completion(model="gpt-4o-mini", messages=[])
+"""
+
+    context = PythonSourceContext.from_source(source_code)
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _build_litellm_completion_spec()
+
+    detections = detector.detect(context, [spec])
+
+    assert len(detections) == 1
+    call_detection = cast(CallExpressionInfo, detections[0])
+    assert call_detection.library == "litellm"
+    assert call_detection.feature_key == "llm_completion"
+    assert call_detection.callee == "llm.completion"
+    assert call_detection.metadata["match_confidence"] == spec.base_confidence
+    assert call_detection.metadata["call_match_kind"] == "module_member_exact"
+    assert call_detection.metadata["matched_absolute_path"] == "litellm.completion"
+    assert call_detection.metadata["matched_alias"] == "llm"
+    assert call_detection.metadata["call_match_policy_version"] == "v1_import_bound"
+
+
+def test_python_call_expression_rejects_unbound_member_collision() -> None:
+    source_code = """
+from litellm import completion
+
+
+class ApiClient:
+    def completion(self, payload: str) -> str:
+        return payload
+
+
+api = ApiClient()
+
+
+def run() -> str:
+    return api.completion("hello")
+"""
+
+    context = PythonSourceContext.from_source(source_code)
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, [_build_litellm_completion_spec()])
+
+    assert detections == []
+
+
+def test_pydantic_inheritance_rejects_unbound_member_superclass() -> None:
+    source_code = """
+from pydantic import BaseModel
+
+
+class User(foo.BaseModel):
+    pass
+"""
+
+    context = PythonSourceContext.from_source(source_code)
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, [_build_pydantic_inheritance_spec()])
+
+    assert detections == []
+
+
+def test_pydantic_inheritance_accepts_symbol_alias_superclass() -> None:
+    source_code = """
+from pydantic import BaseModel as BM
+
+
+class User(BM):
+    pass
+"""
+
+    context = PythonSourceContext.from_source(source_code)
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, [_build_pydantic_inheritance_spec()])
+
+    assert len(detections) == 1
+    inheritance_detection = cast(InheritanceInfo, detections[0])
+    assert inheritance_detection.library == "pydantic"
+    assert inheritance_detection.feature_key == "data_model"
+    assert inheritance_detection.subclass == "User"
+    assert inheritance_detection.superclass == "BM"

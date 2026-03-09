@@ -2,22 +2,58 @@
 Service for querying framework features from PostgreSQL database.
 """
 
-from typing import List
+from typing import cast
 
 from loguru import logger
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_scoped_session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from unoplat_code_confluence_commons.base_models import (
+    Concept,
     FeatureAbsolutePath,
     FeatureSpec,
     FrameworkFeature,
 )
 
 
+def _resolve_base_confidence(feature: FrameworkFeature) -> float | None:
+    if feature.concept != Concept.CALL_EXPRESSION:
+        return None
+
+    raw_value = feature.feature_definition.get("base_confidence")
+    if raw_value is None:
+        return None
+    if isinstance(raw_value, (int, float)) and not isinstance(raw_value, bool):
+        numeric_value = float(raw_value)
+        if 0.0 <= numeric_value <= 1.0:
+            return numeric_value
+    return None
+
+
+def _build_feature_spec(
+    feature: FrameworkFeature,
+    absolute_paths: list[str],
+    base_confidence: float | None,
+) -> FeatureSpec:
+    payload: dict[str, object] = {
+        "feature_key": feature.feature_key,
+        "library": feature.library,
+        "absolute_paths": absolute_paths,
+        "target_level": feature.target_level,
+        "concept": feature.concept,
+        "locator_strategy": feature.locator_strategy,
+        "construct_query": feature.construct_query,
+        "description": feature.description,
+        "startpoint": feature.startpoint,
+    }
+    if base_confidence is not None:
+        payload["base_confidence"] = base_confidence
+    return FeatureSpec.model_validate(payload)
+
+
 async def get_framework_features_for_imports(
-    session: async_scoped_session, language: str, imports: List[str]
-) -> List[FeatureSpec]:
+    session: AsyncSession, language: str, imports: list[str]
+) -> list[FeatureSpec]:
     """
     Query framework features that match the given imports for a specific language.
 
@@ -57,23 +93,21 @@ async def get_framework_features_for_imports(
         # connection while the first one is still being iterated over.
 
         result = await session.execute(query)
-        framework_features = result.scalars().unique().all()
+        framework_features = cast(
+            list[FrameworkFeature], result.scalars().unique().all()
+        )
 
         # Convert to FeatureSpec objects
-        feature_specs = []
+        feature_specs: list[FeatureSpec] = []
         for feature in framework_features:
             # Extract absolute paths from the loaded relationship
             absolute_paths = [path.absolute_path for path in feature.absolute_paths]
+            base_confidence = _resolve_base_confidence(feature)
 
-            feature_spec = FeatureSpec(
-                feature_key=feature.feature_key,
-                library=feature.library,
-                absolute_paths=absolute_paths,
-                target_level=feature.target_level,
-                concept=feature.concept,
-                locator_strategy=feature.locator_strategy,
-                construct_query=feature.construct_query,
-                description=feature.description,
+            feature_spec = _build_feature_spec(
+                feature,
+                absolute_paths,
+                base_confidence,
             )
             feature_specs.append(feature_spec)
 
@@ -90,8 +124,8 @@ async def get_framework_features_for_imports(
 
 
 async def get_all_framework_features_for_language(
-    session: async_scoped_session, language: str
-) -> List[FeatureSpec]:
+    session: AsyncSession, language: str
+) -> list[FeatureSpec]:
     """
     Query all framework features for a specific language.
 
@@ -113,22 +147,20 @@ async def get_all_framework_features_for_language(
         # here as well when eager-loading relationships via selectinload().
 
         result = await session.execute(query)
-        framework_features = result.scalars().unique().all()
+        framework_features = cast(
+            list[FrameworkFeature], result.scalars().unique().all()
+        )
 
         # Convert to FeatureSpec objects
-        feature_specs = []
+        feature_specs: list[FeatureSpec] = []
         for feature in framework_features:
             absolute_paths = [path.absolute_path for path in feature.absolute_paths]
+            base_confidence = _resolve_base_confidence(feature)
 
-            feature_spec = FeatureSpec(
-                feature_key=feature.feature_key,
-                library=feature.library,
-                absolute_paths=absolute_paths,
-                target_level=feature.target_level,
-                concept=feature.concept,
-                locator_strategy=feature.locator_strategy,
-                construct_query=feature.construct_query,
-                description=feature.description,
+            feature_spec = _build_feature_spec(
+                feature,
+                absolute_paths,
+                base_confidence,
             )
             feature_specs.append(feature_spec)
 

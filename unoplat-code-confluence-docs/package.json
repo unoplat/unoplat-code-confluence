@@ -1,6 +1,6 @@
 {
   "name": "unoplat-code-confluence-docs",
-  "version": "0.35.0",
+  "version": "0.39.0",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -9,6 +9,8 @@
     "build": "NODE_ENV=production vite build",
     "preview": "vite preview",
     "start": "vite preview",
+    "sync:framework-definitions": "node ./scripts/sync-framework-definitions.mjs",
+    "check:framework-definitions": "bun run sync:framework-definitions && [ -z \"$(git status --porcelain -- public/framework-definitions content/docs/contribution/custom-framework-schema/catalog)\" ]",
     "types:check": "fumadocs-mdx && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },

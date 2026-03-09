@@ -9,72 +9,8 @@ bun run lint # ([bun.sh](https://bun.sh/docs/cli/run?utm_source=openai))
 ```
 
 ## Dependency Guide
-- **Package manager**: Bun (`bun install`, `bun run ...`).
-- **Core dependencies and usage**:
-  - **@dnd-kit/core**: Core package of dnd kit that provides the main building blocks for creating drag-and-drop experiences in React, including context, hooks, sensors, and drag overlay. Usage: it exposes the `<DndContext>` provider with hooks such as `useDraggable` and `useDroppable` to build draggable and droppable components, plus sensors for pointer, mouse, touch, and keyboard input and a `DragOverlay` for rendering the active item outside normal document flow.
-  - **@dnd-kit/sortable**: Provides a preset of building blocks to create sortable interfaces on top of `@dnd-kit/core`. Usage: use `SortableContext` and the `useSortable` hook to wire items as draggable sources and droppable targets with sorting strategies for lists, grids, and virtualized layouts.
-  - **@dnd-kit/utilities**: Internal utilities to be shared between `@dnd-kit` packages. Usage: import shared helpers like CSS transform utilities used across core and sortable packages.
-  - **@hugeicons/core-free-icons**: Free Hugeicons core package that provides 4,600+ Stroke Rounded icons. Usage: import icon definitions to render with framework wrappers such as `@hugeicons/react`.
-  - **@hugeicons/react**: Hugeicons React wrapper that renders imported icon definitions. Usage: use the `HugeiconsIcon` component with size, color, and stroke width props.
-  - **@mdxeditor/editor**: MDXEditor is a React component for authoring markdown documents in a WYSIWYG manner, accepting and emitting markdown strings. Usage: render the editor component and enable plugins for headings, lists, links, tables, images, and code blocks.
-  - **@playwright/test**: Playwright Test provides a test runner for end-to-end testing with Playwright. Usage: write TypeScript tests with the `test` API and assertions via `expect`.
-  - **@radix-ui/react-accordion**: Accessible, unstyled accordion primitive for building expandable/collapsible content sections. Usage: compose `Accordion.Root`, `Item`, `Header`, `Trigger`, and `Content` for single or multiple open items with full keyboard navigation.
-  - **@radix-ui/react-alert-dialog**: A modal dialog that interrupts the user with important content and expects a response. Usage: compose `Root`, `Trigger`, `Content`, `Title`, `Description`, `Action`, and `Cancel` with focus trapping and Escape-to-close behavior.
-  - **@radix-ui/react-avatar**: Avatar image element with a fallback for representing the user. Usage: compose `Root`, `Image`, and `Fallback` with optional delayed fallback rendering.
-  - **@radix-ui/react-checkbox**: A control that allows the user to toggle between checked and not checked. Usage: compose `Checkbox.Root` and `Checkbox.Indicator` with checked, unchecked, or indeterminate states.
-  - **@radix-ui/react-collapsible**: An interactive component which expands/collapses a panel. Usage: compose `Root`, `Trigger`, and `Content` with controlled or uncontrolled state and keyboard navigation.
-  - **@radix-ui/react-dialog**: A window overlaid on either the primary window or another dialog window, rendering the content underneath inert. Usage: compose `Root`, `Trigger`, `Overlay`, `Content`, `Title`, `Description`, and `Close` with modal or non-modal behavior.
-  - **@radix-ui/react-dropdown-menu**: React primitives for building accessible dropdown menus. Usage: compose `Root`, `Trigger`, `Content`, `Item`, `CheckboxItem`, `RadioGroup`, and submenus with keyboard navigation and positioning options.
-  - **@radix-ui/react-label**: Renders an accessible label associated with controls. Usage: use `Label.Root` to wrap controls or pair with `htmlFor`.
-  - **@radix-ui/react-popover**: Popover component that displays rich content in a portal, triggered by a button. Usage: compose `Root`, `Trigger`, `Content`, `Portal`, and optional arrow with positioning and focus management.
-  - **@radix-ui/react-progress**: Displays an indicator showing the completion progress of a task. Usage: compose `Progress.Root` and `Progress.Indicator` with controlled `value`/`max` and accessible semantics.
-  - **@radix-ui/react-radio-group**: Set of checkable buttons where only one can be selected. Usage: compose `RadioGroup.Root`, `Item`, and `Indicator` with controlled or uncontrolled selection.
-  - **@radix-ui/react-scroll-area**: Custom scroll area primitives for styled scrollbars with native scroll behavior. Usage: compose `Root`, `Viewport`, `Scrollbar`, `Thumb`, and `Corner` for vertical or horizontal scroll regions.
-  - **@radix-ui/react-select**: Select displays a list of options for the user to pick from. Usage: compose `Root`, `Trigger`, `Value`, `Content`, and `Item` with keyboard navigation and popper positioning.
-  - **@radix-ui/react-separator**: Visual or semantic separator component. Usage: render horizontal or vertical separators with decorative or semantic modes.
-  - **@radix-ui/react-slider**: An input where the user selects a value from within a given range. Usage: compose `Root`, `Track`, `Range`, and `Thumb` with controlled or uncontrolled values and keyboard navigation.
-  - **@radix-ui/react-slot**: Slot component that merges its props onto its immediate child. Usage: use `Slot`/`Slottable` to enable `asChild` composition and merged event handlers.
-  - **@radix-ui/react-switch**: A control that allows the user to toggle between checked and not checked. Usage: compose `Switch.Root` and `Switch.Thumb` with controlled or uncontrolled state.
-  - **@radix-ui/react-tabs**: Layered sections of content displayed one at a time. Usage: compose `Root`, `List`, `Trigger`, and `Content` with keyboard navigation and orientation controls.
-  - **@radix-ui/react-toast**: Succinct messages displayed temporarily (toasts). Usage: compose `Toast.Provider`, `Toast.Root`, `Title`, `Description`, `Action`, `Close`, and `Viewport` with swipe-to-dismiss.
-  - **@radix-ui/react-toggle**: A two-state button that can be either on or off. Usage: use `Toggle.Root` with controlled or uncontrolled pressed state.
-  - **@radix-ui/react-toggle-group**: A set of two-state buttons that can be toggled on or off. Usage: compose `ToggleGroup.Root` and `Item` for single or multiple selection with roving focus.
-  - **@radix-ui/react-tooltip**: Tooltip primitive that displays information on focus or hover. Usage: compose `Provider`, `Root`, `Trigger`, `Content`, and `Arrow` with configurable delays.
-  - **@tanstack/electric-db-collection**: TanStack DB Electric Collection for syncing data into collections from Postgres using ElectricSQL’s real-time sync engine. Usage: configure with `electricCollectionOptions` and use helper utilities for sync coordination.
-  - **@tanstack/query-db-collection**: Provides query collections that integrate TanStack DB with TanStack Query to keep local collections synchronized with remote data sources and handle optimistic updates. Usage: create collections via `queryCollectionOptions`, configure optimistic mutations, and use manual refetch/write utilities.
-  - **@tanstack/react-db**: React hooks adapter for TanStack DB. Usage: use `useLiveQuery` and related helpers to run reactive queries against TanStack DB collections.
-  - **@tanstack/react-form**: Headless, performant, and type-safe form state management for TS/JS. Usage: use `useForm`/`useField` to manage typed form values and validation.
-  - **@tanstack/react-query**: Asynchronous server-state management and data fetching for TS/JS apps. Usage: use `useQuery`/`useMutation` with a `QueryClient` to manage caching and background updates.
-  - **@tanstack/react-query-devtools**: React Query devtools package. Usage: mount the Devtools component in development to inspect query behavior.
-  - **@tanstack/react-router**: Type-safe router for building React applications with URL search-params support. Usage: configure nested routes with loaders, typed navigation, and prefetching.
-  - **@tanstack/react-table**: React adapter for TanStack Table that wraps the core table logic and manages table state in React. Usage: build headless tables with `useReactTable` and row models for sorting, filtering, pagination, and grouping.
-  - **@tanstack/zod-adapter**: Provides a Zod adapter for TanStack Router that pipes through the correct input and output types for search-parameter validation. Usage: use `zodValidator` and `fallback` to validate search params with Zod schemas while preserving inferred types.
-  - **axios**: Promise-based HTTP client for the browser and Node.js. Usage: make HTTP requests with interceptors, data transformation, and cancellation support.
-  - **canvas-confetti**: Performant confetti animation library for the browser. Usage: call `confetti(options)` or create custom instances with `confetti.create`.
-  - **class-variance-authority**: Utility for building type-safe UI component variants. Usage: define base classes and variant mappings with `cva` to compose class strings from props.
-  - **clsx**: Utility for constructing `className` strings conditionally. Usage: pass strings, objects, arrays, or booleans to build space-delimited class names.
-  - **cmdk**: Command menu/combobox component for React. Usage: compose `Command`, `Input`, `List`, `Item`, `Group`, and `Dialog` with built-in filtering.
-  - **date-fns**: Modern JavaScript date utility library. Usage: import modular, tree-shakeable functions for formatting, parsing, and date math with i18n support.
-  - **flyonui**: Tailwind CSS UI component library with semantic classes and optional JavaScript plugins. Usage: use ready-made components/blocks and optional plugins for interactive UI.
-  - **json2md**: JSON to Markdown converter that turns structured JSON into Markdown output. Usage: call `json2md(data, prefix)` to generate headings, lists, tables, and more.
-  - **lucide-react**: React components for Lucide icons. Usage: import icon components individually with props for size, color, and stroke width.
-  - **motion**: Production-grade animation library for the web. Usage: build high-performance animations and gestures with a simple API and independent transforms.
-  - **nanoid**: Tiny, secure, URL-friendly unique string ID generator. Usage: generate short IDs with custom sizes or alphabets.
-  - **next-themes**: Theme abstraction for React/Next.js apps. Usage: wrap with `ThemeProvider` and use `useTheme` to sync dark mode and system preference.
-  - **nuqs**: Type-safe search params state manager for React. Usage: use `useQueryState`/`useQueryStates` to sync component state with URL query strings.
-  - **react**: React is a library for building web and native user interfaces. Usage: build UIs from components with JSX and update UI in response to state changes.
-  - **react-day-picker**: DayPicker React component for creating date pickers, calendars, and date inputs. Usage: configure single, multiple, or range selections with localization and custom components.
-  - **react-dom**: React DOM entry point for browser DOM rendering. Usage: use `createRoot` for client rendering, `renderTo*` for server rendering, and web-specific helpers like portals.
-  - **react-icons**: Include popular icons in React projects with ES6 imports. Usage: import from pack-specific paths like `react-icons/fa` and configure via `IconContext`.
-  - **react-markdown**: React component to render markdown safely to React elements. Usage: render CommonMark/GFM with remark/rehype plugins and custom component overrides.
-  - **shadcn-ui**: shadcn/ui provides accessible components and a code distribution platform. Usage: use the CLI to add components and customize copied TypeScript code directly in your project.
-  - **sonner**: Opinionated toast component for React. Usage: mount a `Toaster` and call `toast()` for notifications with styling and positioning options.
-  - **tailwind-merge**: Utility to efficiently merge Tailwind CSS classes without style conflicts. Usage: call `twMerge` to resolve conflicting class groups.
-  - **@tailwindcss/typography**: Tailwind CSS Typography plugin that provides `prose` classes. Usage: apply `prose`/size variants and configure class name overrides in Tailwind config.
-  - **vaul**: Drawer component for React. Usage: compose `Root`, `Trigger`, `Portal`, `Overlay`, `Content`, and snap point options.
-  - **wicg-inert**: Polyfill for the HTML inert attribute/property. Usage: import the package or script and toggle `inert` on DOM elements.
-  - **zod**: TypeScript-first schema validation library with static type inference. Usage: define schemas and parse with `parse`/`safeParse` while inferring types.
-  - **zustand**: Lightweight state manager for React. Usage: create stores with `create`, update state via `set`, and select slices for efficient rendering.
+- **Overview**: Full dependency descriptions are maintained in `dependencies_overview.md`.
+- **Usage**: Keep this section concise and treat `dependencies_overview.md` as the source-of-truth dependency catalog.
 
 ## Business Logic Domain
 - **Summary**: This frontend models a Code Confluence platform that connects GitHub/GitLab repositories, collects metadata for ingestion jobs, and tracks workflow runs plus codebase status. It surfaces AI “agent” snapshot outputs (engineering workflows, dependency guides, business logic summaries, app interface scans) and stores user feedback tied to those runs. Supporting domains include credential/provider onboarding, model provider configuration (including OAuth), and tool configuration for integrations.
@@ -127,3 +63,30 @@ bun eslint src/path/file.tsx    # Lint single file
 ## Operating Instructions
 1. Use Context7 docs for dependency versions | Check existing code before changes | Structure: exported component → subcomponents → helpers → types
 2. When in read mode always remember to raise access from user for any command that you want to execute.
+
+<!-- intent-skills:start -->
+# Skill mappings — when working in these areas, load the linked skill file into context.
+skills:
+  - task: "Using TanStack DB React hooks (useLiveQuery, useLiveSuspenseQuery, useLiveInfiniteQuery, usePacedMutations) for live collections and optimistic updates"
+    load: "node_modules/@tanstack/react-db/skills/react-db/SKILL.md"
+  - task: "Configuring Electric ShapeStream options for syncing Postgres tables"
+    load: "node_modules/@electric-sql/client/skills/electric-shapes/SKILL.md"
+  - task: "Designing Postgres schemas and Electric shape WHERE clauses for new synced features"
+    load: "node_modules/@electric-sql/client/skills/electric-schema-shapes/SKILL.md"
+  - task: "Adding a new real-time synced feature end-to-end with Electric and TanStack DB"
+    load: "node_modules/@electric-sql/client/skills/electric-new-feature/SKILL.md"
+  - task: "Debugging Electric sync issues (shapes not updating, stale cache, proxy buffering)"
+    load: "node_modules/@electric-sql/client/skills/electric-debugging/SKILL.md"
+  - task: "Deploying or configuring Electric SQL via Docker or Docker Compose"
+    load: "node_modules/@electric-sql/client/skills/electric-deployment/SKILL.md"
+  - task: "Setting up server-side Electric proxy routes, CORS headers, or auth for shapes"
+    load: "node_modules/@electric-sql/client/skills/electric-proxy-auth/SKILL.md"
+  - task: "Securing Postgres for Electric deployment (replication roles, SELECT grants, REPLICA IDENTITY, publication config)"
+    load: "node_modules/@electric-sql/client/skills/electric-postgres-security/SKILL.md"
+  - task: "Creating or modifying TanStack DB collections with Electric adapter options"
+    load: "node_modules/@tanstack/db/skills/db-core/collection-setup/SKILL.md"
+  - task: "Writing TanStack DB live queries with the query builder (from, where, join, select, orderBy)"
+    load: "node_modules/@tanstack/db/skills/db-core/live-queries/SKILL.md"
+  - task: "Adding optimistic mutations to TanStack DB collections (insert, update, delete, transactions)"
+    load: "node_modules/@tanstack/db/skills/db-core/mutations-optimistic/SKILL.md"
+<!-- intent-skills:end -->

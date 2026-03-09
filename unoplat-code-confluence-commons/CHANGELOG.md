@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.45.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.45.0...unoplat-code-confluence-commons-v0.45.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* **perf:** virtual list and 3-phase schema for realtime sync using electric sql ([5748960](https://github.com/unoplat/unoplat-code-confluence/commit/5748960ac9a2b98792cee3ff715c412a3c1dfb3b))
+* **ui-dependencies:** reduce dependency token churn by introducing fa… ([5473831](https://github.com/unoplat/unoplat-code-confluence/commit/5473831a81739551d76eeea2bee906cab8ea5edf))
+
+## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.44.0...unoplat-code-confluence-commons-v0.45.0) (2026-03-08)
+
+
+### Features
+
+* **call-expression-validation:** trust definition confidence and validate TS app interfaces ([febc30f](https://github.com/unoplat/unoplat-code-confluence/commit/febc30fdaba1727a1b55dc08964fcb258b12fe87))
+
+## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.43.2...unoplat-code-confluence-commons-v0.44.0) (2026-02-28)
+
+
+### Features
+
+* **confidence:** add schema and ingestion contracts for usage confidence metadata ([f71b085](https://github.com/unoplat/unoplat-code-confluence/commit/f71b085d653de9c339f0ffb615a4d07863fadd98))
+
+
+### Bug Fixes
+
+* **typescript:** add concept enum in schema to support more typescript ([4195eb2](https://github.com/unoplat/unoplat-code-confluence/commit/4195eb21f5fd080f3e923cb53162136ff57f7a1b))
+* **typescript:** add concept enum in schema to support more typescript ([7cfe956](https://github.com/unoplat/unoplat-code-confluence/commit/7cfe9566ee97c4e3e2d016c72942ea4c0749bd43))
+
+## [0.43.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.43.1...unoplat-code-confluence-commons-v0.43.2) (2026-02-24)
+
+
+### Bug Fixes
+
+* **dependencies:** split dependency guides into dedicated overview files ([77ee463](https://github.com/unoplat/unoplat-code-confluence/commit/77ee463fb1566ff4e96b337dab808371a57ed4dd))
+
+
+### Documentation
+
+* **agents:** split dependency guides into dedicated overview files ([59e7cfb](https://github.com/unoplat/unoplat-code-confluence/commit/59e7cfbd9412ece74d41b42b723d11cd60648aaa))
+
+## [0.43.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.43.0...unoplat-code-confluence-commons-v0.43.1) (2026-02-21)
+
+
+### Bug Fixes
+
+* **optimise-framework-schema:** move framework feature fields to JSON… ([ccf65ec](https://github.com/unoplat/unoplat-code-confluence/commit/ccf65ecf93e861fd0b537e1145fcef4bcf831590))
+* **optimise-framework-schema:** move framework feature fields to JSONB payload ([de6f144](https://github.com/unoplat/unoplat-code-confluence/commit/de6f1445d175acabc44f88d6832bb960b18f9981))
+
 ## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.42.0...unoplat-code-confluence-commons-v0.43.0) (2026-02-15)
 
 

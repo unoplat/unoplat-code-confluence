@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
 )
@@ -45,6 +46,7 @@ class InboundKind(str, Enum):
     FILE_WATCHER = "file_watcher"
     SFTP_FTP_SERVER = "sftp_ftp_server"
     EMAIL_INBOUND = "email_inbound"
+    MCP_SERVER = "mcp_server"  # Model Context Protocol server (tools/resources/prompts)
     Other = "other"
 
 
@@ -75,6 +77,7 @@ class OutboundKind(str, Enum):
     EMAIL = "email_service"  # SES/SendGrid/etc.
     SMS_PUSH = "notification_service"  # SMS/Push (Twilio/FCM/APNs)
     TELEMETRY = "telemetry_emit"  # Metrics/Traces/Logs (OTel/StatsD/Prom)
+    LLM_INFERENCE = "llm_inference"  # LLM API inference call (completion/chat)
     Other = "other"
 
 
@@ -95,6 +98,8 @@ class BackendArchitecturalType(str, Enum):
     SERVERLESS = "serverless"
     MONOLITH = "monolith"
     EVENT_DRIVEN = "event_driven"
+    RAG_PIPELINE = "rag_pipeline"
+    AI_AGENT = "ai_agent"
 
 
 class FrontendRenderingStrategyType(str, Enum):
@@ -145,11 +150,13 @@ class LocatorStrategy(str, Enum):
 class ConstructQueryConfigKey(str, Enum):
     """Typed construct query configuration matching JSON schema structure."""
 
-    method_regex = "MethodRegex"
-    annotation_name_regex = "AnnotationNameRegex"
-    attribute_regex = "AttributeRegex"
-    callee_regex = "CalleeRegex"
-    superclass_regex = "SuperclassRegex"
+    method_regex = "method_regex"
+    annotation_name_regex = "annotation_name_regex"
+    attribute_regex = "attribute_regex"
+    callee_regex = "callee_regex"
+    superclass_regex = "superclass_regex"
+    function_name_regex = "function_name_regex"
+    export_name_regex = "export_name_regex"
 
     model_config = ConfigDict(extra="forbid")
 
@@ -221,7 +228,10 @@ class DependencyGuideEntry(BaseModel):
     """Documentation entry for a single dependency."""
 
     name: str = Field(..., description="Library name (exact match to input)")
-    purpose: str = Field(..., description="1-2 lines from official docs describing what this library does")
+    purpose: str = Field(
+        ...,
+        description="1-2 lines from official docs describing what this library does",
+    )
     usage: str = Field(
         ...,
         description="Exactly 2 sentences describing core features and capabilities",
@@ -303,7 +313,9 @@ class OutboundConstruct(BaseModel):
 class InternalConstruct(BaseModel):
     """Internal framework feature construct (non-inbound/outbound)."""
 
-    kind: str = Field(..., description="Feature key identifying this internal construct")
+    kind: str = Field(
+        ..., description="Feature key identifying this internal construct"
+    )
     library: Optional[str] = Field(
         ...,
         description="Library/Framework used for the internal construct if applicable.",

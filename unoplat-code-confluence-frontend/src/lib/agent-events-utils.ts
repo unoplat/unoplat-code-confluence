@@ -12,6 +12,7 @@ export const AgentType = {
   DEVELOPMENT_WORKFLOW: "development_workflow_guide",
   DEPENDENCY: "dependency_guide",
   BUSINESS_DOMAIN: "business_domain_guide",
+  APP_INTERFACE_VALIDATOR: "call_expression_validator",
   APP_INTERFACES: "app_interfaces_agent",
 } as const;
 
@@ -20,6 +21,7 @@ export const AgentType = {
  * Used to consolidate related events into a single display group.
  */
 const AGENT_ALIASES: Record<string, string> = {
+  app_interface_validator: "call_expression_validator",
   dependency_guide_item: "dependency_guide",
   // Section-scoped updater events merge into parent guide sections
   development_workflow_agents_md_updater: "development_workflow_guide",
@@ -50,9 +52,13 @@ export const AGENT_REGISTRY: Record<
     displayName: "Business Domain Guide",
     order: 3,
   },
+  [AgentType.APP_INTERFACE_VALIDATOR]: {
+    displayName: "App Interface Validator",
+    order: 4,
+  },
   [AgentType.APP_INTERFACES]: {
     displayName: "App Interfaces",
-    order: 4,
+    order: 5,
   },
 };
 
@@ -91,27 +97,66 @@ function getAgentOrder(agentId: string): number {
 }
 
 /**
- * Determine if an agent has completed based on its events.
- * An agent is considered complete if it has a "result" phase event.
+ * Return the latest event by event_id.
+ */
+function getLatestEvent(
+  events: RepositoryAgentEvent[],
+): RepositoryAgentEvent | null {
+  if (events.length === 0) {
+    return null;
+  }
+
+  let latestEvent = events[0] ?? null;
+
+  for (const event of events) {
+    if (!latestEvent || event.event_id > latestEvent.event_id) {
+      latestEvent = event;
+    }
+  }
+
+  return latestEvent;
+}
+
+/**
+ * Determine an agent group's runtime status from its newest event.
  *
- * For grouped agents (those with aliases), completion is determined by
- * checking if the canonical agent has emitted a "result" phase event,
- * not the aliased item-level events.
+ * Why newest event wins:
+ * - Historical result events can exist while the same group continues streaming
+ *   (for example, section updater events after completion signals, or repeated
+ *   validator runs).
+ * - Status should show running whenever newer non-result activity is present.
  *
  * @param events - All events in the agent group
  * @param canonicalAgentId - Optional canonical agent ID for grouped agents
+ * @param isCompleted - Optional completion signal from completed_namespaces
  */
 export function getAgentStatus(
   events: RepositoryAgentEvent[],
   canonicalAgentId?: string,
-): "running" | "completed" {
-  const hasResultPhase = events.some(
-    (event) =>
-      event.phase === "result" &&
-      // For grouped agents, only count result from the canonical agent
-      (!canonicalAgentId || event.event === canonicalAgentId),
-  );
-  return hasResultPhase ? "completed" : "running";
+  isCompleted?: boolean,
+): "pending" | "running" | "completed" {
+  if (events.length === 0) {
+    return isCompleted ? "completed" : "pending";
+  }
+
+  const latestEvent = getLatestEvent(events);
+  if (!latestEvent) {
+    return isCompleted ? "completed" : "pending";
+  }
+
+  if (latestEvent.phase !== "result") {
+    return "running";
+  }
+
+  if (isCompleted) {
+    return "completed";
+  }
+
+  if (!canonicalAgentId) {
+    return "completed";
+  }
+
+  return latestEvent.event === canonicalAgentId ? "completed" : "running";
 }
 
 /**
@@ -131,46 +176,90 @@ export function truncateMessage(
   };
 }
 
+function getToolCallId(event: RepositoryAgentEvent): string | null {
+  const toolCallId = event.tool_call_id;
+  if (typeof toolCallId !== "string" || toolCallId.trim().length === 0) {
+    return null;
+  }
+  return toolCallId;
+}
+
 /**
  * Build display items by pairing tool calls with tool results.
- * Pairing uses FIFO matching in event order and preserves tool call position.
+ * Pairing uses strict tool_call_id matching and preserves event order.
  */
 export function buildEventDisplayItems(
   events: RepositoryAgentEvent[],
 ): AgentEventDisplayItem[] {
-  const sortedEvents = [...events].sort((a, b) => a.id - b.id);
+  const sortedEvents = [...events].sort((a, b) => a.event_id - b.event_id);
   const items: AgentEventDisplayItem[] = [];
-  const pendingPairIndexes: number[] = [];
 
+  const resultEventsByToolCallId = new Map<string, RepositoryAgentEvent[]>();
   for (const event of sortedEvents) {
-    if (event.phase === "tool.call") {
-      items.push({
-        type: "tool-pair",
-        key: `tool-pair-${event.id}`,
-        callEvent: event,
-      });
-      pendingPairIndexes.push(items.length - 1);
+    if (event.phase !== "tool.result") {
       continue;
     }
 
-    if (event.phase === "tool.result") {
-      const pendingIndex = pendingPairIndexes.shift();
-      if (pendingIndex !== undefined) {
-        const pendingItem = items[pendingIndex];
-        if (pendingItem?.type === "tool-pair") {
-          items[pendingIndex] = {
-            ...pendingItem,
-            key: `tool-pair-${pendingItem.callEvent.id}-${event.id}`,
-            resultEvent: event,
-          };
+    const toolCallId = getToolCallId(event);
+    if (!toolCallId) {
+      continue;
+    }
+
+    const existingResults = resultEventsByToolCallId.get(toolCallId) ?? [];
+    existingResults.push(event);
+    resultEventsByToolCallId.set(toolCallId, existingResults);
+  }
+
+  const consumedResultIds = new Set<number>();
+
+  for (const event of sortedEvents) {
+    if (event.phase === "tool.call") {
+      const toolCallId = getToolCallId(event);
+      if (!toolCallId) {
+        items.push({
+          type: "single",
+          key: `event-${event.event_id}`,
+          event,
+        });
+        continue;
+      }
+
+      const candidateResults = resultEventsByToolCallId.get(toolCallId) ?? [];
+      let matchedResultEvent: RepositoryAgentEvent | undefined;
+
+      for (const candidate of candidateResults) {
+        if (consumedResultIds.has(candidate.event_id)) {
           continue;
         }
+
+        if (candidate.event_id > event.event_id) {
+          matchedResultEvent = candidate;
+          consumedResultIds.add(candidate.event_id);
+          break;
+        }
       }
+
+      items.push({
+        type: "tool-pair",
+        key: matchedResultEvent
+          ? `tool-pair-${event.event_id}-${matchedResultEvent.event_id}`
+          : `tool-pair-${event.event_id}`,
+        callEvent: event,
+        resultEvent: matchedResultEvent,
+      });
+      continue;
+    }
+
+    if (
+      event.phase === "tool.result" &&
+      consumedResultIds.has(event.event_id)
+    ) {
+      continue;
     }
 
     items.push({
       type: "single",
-      key: `event-${event.id}`,
+      key: `event-${event.event_id}`,
       event,
     });
   }
@@ -180,16 +269,18 @@ export function buildEventDisplayItems(
 
 /**
  * Group events by agent name and return sorted agent groups.
- * Only returns groups that have at least one event.
+ * Only returns groups that have at least one event — agents that never
+ * emitted any events (not applicable for this run) are excluded.
  *
  * Events from aliased agents (e.g., "dependency_guide_item") are
  * consolidated into their canonical parent agent group (e.g., "dependency_guide").
  */
 export function groupEventsByAgent(
   events: RepositoryAgentEvent[],
+  completedNamespaces?: string[],
 ): AgentGroup[] {
-  // Group events by canonical agent ID (resolving aliases)
   const groupsMap = new Map<string, RepositoryAgentEvent[]>();
+  const completedSet = new Set(completedNamespaces ?? []);
 
   for (const event of events) {
     const canonicalAgentId = resolveAgentId(event.event);
@@ -198,22 +289,67 @@ export function groupEventsByAgent(
     groupsMap.set(canonicalAgentId, existingEvents);
   }
 
-  // Convert to AgentGroup array
   const groups: AgentGroup[] = [];
+
+  for (const agentId of Object.keys(AGENT_REGISTRY)) {
+    const agentEvents = groupsMap.get(agentId) ?? [];
+    groups.push({
+      agentId,
+      displayName: getAgentDisplayName(agentId),
+      events: agentEvents,
+      status: getAgentStatus(agentEvents, agentId, completedSet.has(agentId)),
+      eventCount: agentEvents.length,
+    });
+    groupsMap.delete(agentId);
+  }
 
   for (const [agentId, agentEvents] of groupsMap) {
     groups.push({
       agentId,
       displayName: getAgentDisplayName(agentId),
       events: agentEvents,
-      // Pass canonicalAgentId so status checks canonical agent's result event
-      status: getAgentStatus(agentEvents, agentId),
+      status: getAgentStatus(agentEvents, agentId, completedSet.has(agentId)),
       eventCount: agentEvents.length,
     });
   }
 
-  // Sort by registry order
   groups.sort((a, b) => getAgentOrder(a.agentId) - getAgentOrder(b.agentId));
 
   return groups;
+}
+
+export interface AgentGroupSummaryCounts {
+  completed: number;
+  pending: number;
+  running: number;
+  total: number;
+}
+
+export function getAgentGroupSummaryCounts(
+  groups: AgentGroup[],
+): AgentGroupSummaryCounts {
+  let completed = 0;
+  let pending = 0;
+  let running = 0;
+
+  for (const group of groups) {
+    if (group.status === "completed") {
+      completed += 1;
+      continue;
+    }
+
+    if (group.status === "pending") {
+      pending += 1;
+      continue;
+    }
+
+    running += 1;
+  }
+
+  return {
+    completed,
+    pending,
+    running,
+    total: groups.length,
+  };
 }
