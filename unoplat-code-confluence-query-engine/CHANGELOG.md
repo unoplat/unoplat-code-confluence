@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.37.6](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.5...unoplat-code-confluence-query-engine-v0.37.6) (2026-03-09)
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([f736085](https://github.com/unoplat/unoplat-code-confluence/commit/f736085fe502ab03370598987ab396324f23eba8))
+* **comments:** adding comment to trigger docker build ([e45f67b](https://github.com/unoplat/unoplat-code-confluence/commit/e45f67bd8713041f6cc091805094669a5f86cf9f))
+* **comments:** adding comment to trigger docker build ([20636cb](https://github.com/unoplat/unoplat-code-confluence/commit/20636cb932bf346231306311bbe90061bd98e67e))
+
+## [0.37.5](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.4...unoplat-code-confluence-query-engine-v0.37.5) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** add comment to release query engine docker ([398a17b](https://github.com/unoplat/unoplat-code-confluence/commit/398a17b0db044133dc239e55938793d14eba1a6d))
+* **ci:** early detection of stale uv lock ([d0aced9](https://github.com/unoplat/unoplat-code-confluence/commit/d0aced9a1688bea976070aca6adeeb45d13b4282))
+* **stale-lock:** lock update ([091085d](https://github.com/unoplat/unoplat-code-confluence/commit/091085d861acc433ffc212f02e896a16ed4cf8b4))
+
+## [0.37.4](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.3...unoplat-code-confluence-query-engine-v0.37.4) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** comments to typescript implementation ([0c9776f](https://github.com/unoplat/unoplat-code-confluence/commit/0c9776fb2795c9e2095dc951559e07f859e5b039))
+* **chore:** comments to typescript implementation ([bd437f2](https://github.com/unoplat/unoplat-code-confluence/commit/bd437f24ff0ad14fc91800e97e33652ab1f60fad))
+
+## [0.37.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.2...unoplat-code-confluence-query-engine-v0.37.3) (2026-03-09)
+
+
+### Bug Fixes
+
+* **docker:** pin uv image version for deterministic builds ([98fff39](https://github.com/unoplat/unoplat-code-confluence/commit/98fff397dacbc16d979cbf22b6cac375d8c016d7))
+* **docker:** pin uv image version for deterministic builds ([dfe02f0](https://github.com/unoplat/unoplat-code-confluence/commit/dfe02f0a57aa35d4bd96fa95f448cb82e883fa70))
+
+## [0.37.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.1...unoplat-code-confluence-query-engine-v0.37.2) (2026-03-09)
+
+
+### Bug Fixes
+
+* **query-engine-docker-fixes:** docker cache optimisation and update commons version ([e7bb376](https://github.com/unoplat/unoplat-code-confluence/commit/e7bb37698dd2a57591b9f9f57c5ffba58170ceaf))
+
 ## [0.37.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.0...unoplat-code-confluence-query-engine-v0.37.1) (2026-03-08)
 
 

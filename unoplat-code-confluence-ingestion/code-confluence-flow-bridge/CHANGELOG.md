@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.72.6](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.5...code-confluence-flow-bridge-v0.72.6) (2026-03-09)
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([e9135f3](https://github.com/unoplat/unoplat-code-confluence/commit/e9135f36abcf2dec5491f432e2f444b105cec327))
+* **comments:** adding comment to trigger docker build ([e45f67b](https://github.com/unoplat/unoplat-code-confluence/commit/e45f67bd8713041f6cc091805094669a5f86cf9f))
+* **comments:** adding comment to trigger docker build ([20636cb](https://github.com/unoplat/unoplat-code-confluence/commit/20636cb932bf346231306311bbe90061bd98e67e))
+
+## [0.72.5](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.4...code-confluence-flow-bridge-v0.72.5) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** add comment to release docker builds ([2d8732a](https://github.com/unoplat/unoplat-code-confluence/commit/2d8732a95696f4a0528e10d4261b0732500f29a4))
+* **ci:** early detection of stale uv lock ([d0aced9](https://github.com/unoplat/unoplat-code-confluence/commit/d0aced9a1688bea976070aca6adeeb45d13b4282))
+
+## [0.72.4](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.3...code-confluence-flow-bridge-v0.72.4) (2026-03-09)
+
+
+### Bug Fixes
+
+* **chore:** comments to typescript implementation ([0c9776f](https://github.com/unoplat/unoplat-code-confluence/commit/0c9776fb2795c9e2095dc951559e07f859e5b039))
+* **chore:** comments to typescript implementation ([bd437f2](https://github.com/unoplat/unoplat-code-confluence/commit/bd437f24ff0ad14fc91800e97e33652ab1f60fad))
+
+## [0.72.3](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.2...code-confluence-flow-bridge-v0.72.3) (2026-03-09)
+
+
+### Bug Fixes
+
+* **docker:** pin uv image version for deterministic builds ([98fff39](https://github.com/unoplat/unoplat-code-confluence/commit/98fff397dacbc16d979cbf22b6cac375d8c016d7))
+* **docker:** pin uv image version for deterministic builds ([dfe02f0](https://github.com/unoplat/unoplat-code-confluence/commit/dfe02f0a57aa35d4bd96fa95f448cb82e883fa70))
+
+## [0.72.2](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.1...code-confluence-flow-bridge-v0.72.2) (2026-03-09)
+
+
+### Bug Fixes
+
+* **ingestion-docker-optimisation:** reuse cache and also update commons depenency ([01a149a](https://github.com/unoplat/unoplat-code-confluence/commit/01a149a28dc2e736e87264fd5f23d3a583d1c1f2))
+
 ## [0.72.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.0...code-confluence-flow-bridge-v0.72.1) (2026-03-08)
 
 

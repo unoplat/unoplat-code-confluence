@@ -34,10 +34,22 @@ if TYPE_CHECKING:
 
 
 def _expand_import_paths(import_paths: List[str]) -> List[str]:
+    """Expand dotted import paths into all ancestor prefixes for DB lookup.
+
+    Args:
+        import_paths: Fully-qualified dotted import paths
+            (e.g. ``["flask.blueprints.Blueprint"]``).
+
+    Returns:
+        Sorted, deduplicated list containing each original path plus every
+        leading prefix (e.g. ``["flask", "flask.blueprints",
+        "flask.blueprints.Blueprint"]``).
+    """
     expanded: List[str] = []
     for path in import_paths:
         expanded.append(path)
         parts = path.split(".")
+        # Generate every leading prefix so the DB query can match at any depth
         for idx in range(1, len(parts)):
             expanded.append(".".join(parts[:idx]))
     return sorted(set(expanded))

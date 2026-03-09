@@ -1,3 +1,4 @@
+# Query engine entry point — serves the agent and API layer over ingested code graph data.
 import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
