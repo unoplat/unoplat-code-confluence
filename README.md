@@ -9,7 +9,7 @@
   </a>
   -->
 
-  <h1 align="center">Unoplat-CodeConfluence</h1>
+  <h1 align="center"><a href="https://www.unoplat.io">Unoplat-CodeConfluence</a></h1>
   <h3 align="center">The Universal Code Context Engine</h3>
 
   <p align="center">
