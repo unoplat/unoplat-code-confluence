@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-03-05 09:56'
-updated_date: '2026-03-05 10:17'
+updated_date: '2026-03-10 09:31'
 labels:
   - typescript
   - framework-detection
@@ -20,6 +20,7 @@ references:
     unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/engine/programming_language/typescript/test_typescript_additional_concept_extraction.py
 parent_task_id: TASK-3.2
 priority: high
+ordinal: 18000
 ---
 
 ## Description

@@ -1,11 +1,11 @@
 ---
 id: TASK-9
 title: Collapse UI component package families in dependency guide
-status: In Progress
+status: Done
 assignee:
   - OpenCode
 created_date: '2026-03-08 05:24'
-updated_date: '2026-03-08 07:33'
+updated_date: '2026-03-10 09:31'
 labels:
   - dependency-guide
   - frontend
@@ -34,6 +34,7 @@ documentation:
   - >-
     https://logfire-us.pydantic.dev/jayghiya/unoplat-code-confluence?q=trace_id%3D%27019cc6b086da24fda466c36da3475f50%27
 priority: high
+ordinal: 26000
 ---
 
 ## Description

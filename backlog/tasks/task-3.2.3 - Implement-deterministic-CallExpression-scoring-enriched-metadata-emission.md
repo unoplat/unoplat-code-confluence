@@ -4,7 +4,7 @@ title: Implement deterministic CallExpression scoring + enriched metadata emissi
 status: Done
 assignee: []
 created_date: '2026-03-05 09:56'
-updated_date: '2026-03-05 10:27'
+updated_date: '2026-03-10 09:31'
 labels:
   - confidence-scoring
   - framework-detection
@@ -24,6 +24,7 @@ references:
     unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/processor/db/postgres/code_confluence_relational_ingestion.py
 parent_task_id: TASK-3.2
 priority: high
+ordinal: 16000
 ---
 
 ## Description

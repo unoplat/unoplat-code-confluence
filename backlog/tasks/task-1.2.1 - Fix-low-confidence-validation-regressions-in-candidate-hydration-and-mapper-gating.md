@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-02-27 13:12'
-updated_date: '2026-03-04 11:24'
+updated_date: '2026-03-10 09:31'
 labels:
   - query-engine
   - validator
@@ -32,7 +32,7 @@ documentation:
     CallExpression-Confidence-Scoring-and-Validation-Agent.md
 parent_task_id: TASK-1.2
 priority: high
-ordinal: 5000
+ordinal: 6000
 ---
 
 ## Description
