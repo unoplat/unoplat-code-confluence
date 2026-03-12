@@ -144,16 +144,32 @@ Check out our [Quick Start Guide](https://docs.unoplat.io/docs/quickstart/how-to
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-<!-- PROJECT STATUS SECTION -->
 ## 📊 Project Status
 
 <div align="center">
-  <h3>ALPHA</h3>
-  <p>We're actively developing Unoplat Code Confluence. Currently supports <b>Python</b> and <b>TypeScript</b> codebases.</p>
+
+  ![Status](https://img.shields.io/badge/Status-ALPHA→BETA-orange?style=for-the-badge)
+  ![Progress](https://img.shields.io/badge/Beta_Progress-Shipping_Fast_🚀-blue?style=for-the-badge)
+```
+  ALPHA ████████████████░░░░ BETA
+```
+
+  <h3>🚀 Sprinting Toward Beta</h3>
+  <p>
+    Unoplat Code Confluence currently supports <b>Python</b> and <b>TypeScript</b> codebases.<br/>
+    We're heads-down closing the remaining blockers to reach <b>Beta</b>.
+  </p>
+
+  <p>
+    👉 <a href="https://github.com/unoplat/unoplat-code-confluence/issues?q=is%3Aissue%20state%3Aopen%20label%3Aurgent"><b>Track our Beta blockers →</b></a><br/>
+    <sub>Every open <code>urgent</code> issue is actively being worked on. We're shipping fixes daily.</sub>
+  </p>
+
 </div>
 
 For detailed roadmap, language support status, and planned features, see our **[Product Roadmap](https://docs.unoplat.io/docs/introduction/roadmap)**.
 
+<p align="right">(<a href="#top">back to top</a>)</p>
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- MAINTAINERS SECTION -->
