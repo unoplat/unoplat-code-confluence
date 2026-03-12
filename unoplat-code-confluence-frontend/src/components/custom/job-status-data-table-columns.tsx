@@ -6,10 +6,12 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import {
   AlertCircle,
+  AlertTriangle,
   CheckCircle,
   Clock,
   PauseCircle,
   RefreshCw,
+  XCircle,
 } from "lucide-react";
 
 // Reusing the status icon and styles functions from the parent component
@@ -27,6 +29,10 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
       return <PauseCircle className="text-info h-4 w-4" />;
     case "RETRYING":
       return <RefreshCw className="text-info h-4 w-4" />;
+    case "ERROR":
+      return <AlertTriangle className="text-destructive h-4 w-4" />;
+    case "CANCELLED":
+      return <XCircle className="text-muted-foreground h-4 w-4" />;
     default:
       return <Clock className="text-muted-foreground h-4 w-4" />;
   }
@@ -34,7 +40,7 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
 
 export const getStatusVariant = (
   status: JobStatus,
-): "completed" | "failed" | "pending" | "running" | "cancelled" => {
+): "completed" | "failed" | "pending" | "running" | "cancelled" | "error" => {
   switch (status) {
     case "COMPLETED":
       return "completed";
@@ -46,6 +52,10 @@ export const getStatusVariant = (
     case "RUNNING":
     case "RETRYING":
       return "running";
+    case "ERROR":
+      return "error";
+    case "CANCELLED":
+      return "cancelled";
     default:
       return "cancelled";
   }
@@ -124,6 +134,8 @@ export function getJobStatusDataTableColumns({
           { label: "Failed", value: "FAILED" },
           { label: "Timed Out", value: "TIMED_OUT" },
           { label: "Retrying", value: "RETRYING" },
+          { label: "Error", value: "ERROR" },
+          { label: "Cancelled", value: "CANCELLED" },
         ],
       },
       enableColumnFilter: true,
