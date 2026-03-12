@@ -58,6 +58,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
         RepositoryAgentSnapshotActivity,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.cancellation_helpers import (
+        is_temporal_cancellation_exception,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
         DB_ACTIVITY_RETRY_POLICY,
     )
@@ -110,6 +113,13 @@ def _enrich_agent_error_with_model_details(
     if model_error_details:
         error_dict["model_error_details"] = model_error_details
     return error_dict
+
+
+def _raise_if_temporal_cancellation(exception: BaseException) -> None:
+    """Re-raise cancellation-shaped exceptions so workflow cancel is preserved."""
+    if is_temporal_cancellation_exception(exception):
+        logger.info("[workflow] Cancellation detected, re-raising")
+        raise exception
 
 
 def _build_dependency_guide_prompt(
@@ -190,6 +200,7 @@ async def _run_section_updater(
             codebase_metadata.codebase_name,
         )
     except Exception as e:
+        _raise_if_temporal_cancellation(e)
         logger.error(
             "[workflow] {} failed for {}: {}",
             updater_agent_name,
@@ -321,6 +332,7 @@ async def _run_call_expression_validation(
             )
             agent_stats.append(extract_usage_statistics(validator_result.usage()))
         except Exception as validator_error:
+            _raise_if_temporal_cancellation(validator_error)
             logger.error(
                 "[workflow] call_expression_validator failed for {}:{}:{}:{}:{}-{}: {}",
                 candidate.identity.feature_language,
@@ -482,6 +494,7 @@ class CodebaseAgentWorkflow:
                     updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
+                _raise_if_temporal_cancellation(e)
                 logger.error(
                     "[workflow] development_workflow_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
@@ -559,6 +572,7 @@ class CodebaseAgentWorkflow:
                             extract_usage_statistics(result.usage())
                         )
                     except Exception as dep_error:
+                        _raise_if_temporal_cancellation(dep_error)
                         logger.warning(
                             "[workflow] Failed to document dependency '{}': {}",
                             dependency_target.name,
@@ -613,6 +627,7 @@ class CodebaseAgentWorkflow:
                     updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
+                _raise_if_temporal_cancellation(e)
                 logger.error(
                     "[workflow] dependency_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
@@ -697,6 +712,7 @@ class CodebaseAgentWorkflow:
                     updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
+                _raise_if_temporal_cancellation(e)
                 logger.error(
                     "[workflow] business_domain_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
@@ -799,6 +815,7 @@ class CodebaseAgentWorkflow:
                     updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
+                _raise_if_temporal_cancellation(e)
                 logger.error(
                     "[workflow] app_interfaces_agent failed for {}: {}",
                     codebase_metadata.codebase_name,
@@ -938,6 +955,7 @@ class RepositoryAgentWorkflow:
 
         for (codebase_name, _), result in zip(child_handles, results_list):
             if isinstance(result, BaseException):
+                _raise_if_temporal_cancellation(result)
                 logger.error(
                     "[workflow] CodebaseAgentWorkflow failed for {}/{}: {}",
                     repository_qualified_name,

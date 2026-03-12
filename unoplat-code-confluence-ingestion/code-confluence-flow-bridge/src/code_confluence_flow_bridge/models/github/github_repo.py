@@ -132,7 +132,10 @@ class WorkflowRun(BaseModel):
     )
     started_at: datetime = Field(description="Timestamp when the workflow run started")
     status: JobStatus = Field(
-        description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED."
+        description=(
+            "Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, "
+            "TIMED_OUT, COMPLETED, RETRYING, ERROR, CANCELLED."
+        )
     )
     completed_at: Optional[datetime] = Field(
         default=None, description="Timestamp when the workflow run completed"
@@ -238,7 +241,10 @@ class GithubRepoStatus(BaseModel):
     repository_workflow_id: str = Field(description="The ID of the repository workflow")
     started_at: datetime = Field(description="Timestamp when the workflow run started")
     status: JobStatus = Field(
-        description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED."
+        description=(
+            "Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, "
+            "TIMED_OUT, COMPLETED, RETRYING, ERROR, CANCELLED."
+        )
     )
     error_report: Optional[ErrorReport] = Field(
         default=None, description="Error report if the workflow run failed"
@@ -268,7 +274,10 @@ class ParentWorkflowJobResponse(BaseModel):
         description="Operation type of the workflow run. One of: INGESTION, AGENTS_GENERATION, AGENT_MD_UPDATE."
     )
     status: JobStatus = Field(
-        description="Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING."
+        description=(
+            "Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, "
+            "TIMED_OUT, COMPLETED, RETRYING, ERROR, CANCELLED."
+        )
     )
     started_at: datetime = Field(description="Timestamp when the workflow run started")
     completed_at: Optional[datetime] = Field(
@@ -277,6 +286,13 @@ class ParentWorkflowJobResponse(BaseModel):
     feedback_issue_url: Optional[str] = Field(
         default=None,
         description="URL of the GitHub issue created from agent feedback submission",
+    )
+    is_cancellable: bool = Field(
+        default=False,
+        description=(
+            "Whether this workflow run can be canceled by users from the operations "
+            "management UI"
+        ),
     )
 
 
