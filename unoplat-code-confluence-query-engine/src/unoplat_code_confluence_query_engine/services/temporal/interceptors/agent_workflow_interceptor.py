@@ -10,6 +10,7 @@ This module provides the inbound interceptor that:
 
 from __future__ import annotations
 
+import asyncio
 from datetime import timedelta
 import traceback
 from typing import Any, Optional
@@ -18,13 +19,21 @@ import uuid
 from temporalio import workflow
 from temporalio.api.common.v1 import Payload
 from temporalio.common import RetryPolicy
-from temporalio.exceptions import ActivityError, ApplicationError, ChildWorkflowError
+from temporalio.exceptions import (
+    ActivityError,
+    ApplicationError,
+    ChildWorkflowError,
+)
 from temporalio.worker._interceptor import (
     ExecuteWorkflowInput,
     Interceptor,
     WorkflowInboundInterceptor,
 )
 from temporalio.workflow import Info
+
+from unoplat_code_confluence_query_engine.services.temporal.cancellation_helpers import (
+    is_temporal_cancellation_exception,
+)
 
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
@@ -59,6 +68,11 @@ DB_ACTIVITY_RETRY_POLICY = RetryPolicy(
     backoff_coefficient=2.0,
     maximum_attempts=3,
     maximum_interval=timedelta(seconds=10),
+)
+
+WORKFLOW_EXECUTION_EXCEPTIONS: tuple[type[BaseException], ...] = (
+    asyncio.CancelledError,
+    Exception,
 )
 
 
@@ -230,14 +244,21 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             bound_logger.info(
                 "[agent_workflow_interceptor] RepositoryAgentWorkflow completed successfully"
             )
-        except (ActivityError, ChildWorkflowError, ApplicationError, Exception) as e:
+        except WORKFLOW_EXECUTION_EXCEPTIONS as e:
             exc = e
-            status = JobStatus.ERROR.value
-            error_report = self._build_error_report(e)
-            bound_logger.error(
-                "[agent_workflow_interceptor] RepositoryAgentWorkflow failed: {}",
-                str(e),
-            )
+            if is_temporal_cancellation_exception(e):
+                status = JobStatus.CANCELLED.value
+                error_report = None
+                bound_logger.info(
+                    "[agent_workflow_interceptor] RepositoryAgentWorkflow cancelled"
+                )
+            else:
+                status = JobStatus.ERROR.value
+                error_report = self._build_error_report(e)
+                bound_logger.error(
+                    "[agent_workflow_interceptor] RepositoryAgentWorkflow failed: {}",
+                    str(e),
+                )
         finally:
             # Record final status
             final_envelope = ParentWorkflowDbActivityEnvelope(
@@ -362,14 +383,21 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             bound_logger.info(
                 "[agent_workflow_interceptor] CodebaseAgentWorkflow completed successfully"
             )
-        except (ActivityError, ChildWorkflowError, ApplicationError, Exception) as e:
+        except WORKFLOW_EXECUTION_EXCEPTIONS as e:
             exc = e
-            status = JobStatus.ERROR.value
-            error_report = self._build_error_report(e)
-            bound_logger.error(
-                "[agent_workflow_interceptor] CodebaseAgentWorkflow failed: {}",
-                str(e),
-            )
+            if is_temporal_cancellation_exception(e):
+                status = JobStatus.CANCELLED.value
+                error_report = None
+                bound_logger.info(
+                    "[agent_workflow_interceptor] CodebaseAgentWorkflow cancelled"
+                )
+            else:
+                status = JobStatus.ERROR.value
+                error_report = self._build_error_report(e)
+                bound_logger.error(
+                    "[agent_workflow_interceptor] CodebaseAgentWorkflow failed: {}",
+                    str(e),
+                )
         finally:
             # Record final status for codebase workflow
             final_envelope = CodebaseWorkflowDbActivityEnvelope(
@@ -438,11 +466,11 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             ErrorReport with error details
         """
         # Get root cause for activity/child workflow errors
-        root = exc
-        if isinstance(exc, (ActivityError, ChildWorkflowError)) and getattr(
-            exc, "cause", None
-        ):
-            root = exc.cause  # type: ignore[assignment]
+        root: BaseException = exc
+        if isinstance(exc, ActivityError) and exc.cause:
+            root = exc.cause
+        elif isinstance(exc, ChildWorkflowError) and exc.cause:
+            root = exc.cause
 
         # Build metadata - always start with dict (AC#4: merge model error details)
         metadata: dict[str, Any] = {}
@@ -461,15 +489,14 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             }
 
         # Extract and MERGE model error details using shared utility (AC#4)
-        if root is not None:
-            model_error_details = extract_model_error_from_exception(root)
-            if not model_error_details and isinstance(root, ApplicationError):
-                model_error_details = extract_model_error_from_details(root.details)
-            if model_error_details:
-                metadata["model_error"] = model_error_details
+        model_error_details = extract_model_error_from_exception(root)
+        if not model_error_details and isinstance(root, ApplicationError):
+            model_error_details = extract_model_error_from_details(root.details)
+        if model_error_details:
+            metadata["model_error"] = model_error_details
 
         return ErrorReport(
             error_message=str(root),
-            stack_trace=traceback.format_exc() if root is not None else "",
+            stack_trace=traceback.format_exc(),
             metadata=metadata if metadata else None,
         )

@@ -17,12 +17,16 @@ from ghapi.core import GhApi
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
+from temporalio.service import RPCError, RPCStatusCode
 from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.pr_metadata_model import PrMetadata
 from unoplat_code_confluence_commons.repo_models import (
     Repository,
     RepositoryAgentMdSnapshot,
+    RepositoryWorkflowOperation,
+    RepositoryWorkflowRun,
 )
+from unoplat_code_confluence_commons.workflow_models import JobStatus
 
 from unoplat_code_confluence_query_engine.api.deps import trace_dependency
 from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
@@ -44,6 +48,7 @@ from unoplat_code_confluence_query_engine.services.temporal.workflow_service imp
 
 if TYPE_CHECKING:
     from loguru import Logger
+    from temporalio.client import Client
 
 router = APIRouter(prefix="/v1", tags=["codebase-rules"])
 
@@ -53,6 +58,14 @@ class RepositoryWorkflowRunResponse(BaseModel):
 
     repository_workflow_run_id: str
     trace_id: str
+
+
+class RepositoryAgentRunCancelResponse(BaseModel):
+    """Response returned when a repository agent workflow cancel is requested."""
+
+    repository_workflow_run_id: str
+    status: Literal["cancel_requested"]
+    message: str
 
 
 class RepositoryAgentMdPrRequest(BaseModel):
@@ -81,6 +94,35 @@ class RepositoryAgentMdPrStatusResponse(BaseModel):
 
     exists: bool
     pr_metadata: RepositoryAgentMdPrResponse | None = None
+
+
+TERMINAL_REPOSITORY_WORKFLOW_STATUSES: set[str] = {
+    JobStatus.COMPLETED.value,
+    JobStatus.FAILED.value,
+    JobStatus.TIMED_OUT.value,
+    JobStatus.ERROR.value,
+    JobStatus.CANCELLED.value,
+}
+
+CANCELLABLE_REPOSITORY_WORKFLOW_OPERATIONS: set[RepositoryWorkflowOperation] = {
+    RepositoryWorkflowOperation.AGENTS_GENERATION,
+    RepositoryWorkflowOperation.AGENT_MD_UPDATE,
+}
+
+
+def _is_terminal_repository_workflow_status(status: str) -> bool:
+    return status in TERMINAL_REPOSITORY_WORKFLOW_STATUSES
+
+
+async def _cancel_temporal_workflow(
+    *,
+    temporal_client: Client,
+    workflow_id: str,
+) -> None:
+    workflow_handle = temporal_client.get_workflow_handle(  # pyright: ignore[reportUnknownMemberType]
+        workflow_id
+    )
+    await workflow_handle.cancel()
 
 
 def _get_mapping_field(
@@ -412,6 +454,140 @@ async def start_repository_agent_run(
     return RepositoryWorkflowRunResponse(
         repository_workflow_run_id=repository_workflow_run_id,
         trace_id=trace_id,
+    )
+
+
+@router.post("/repository-agent-run/cancel")
+async def cancel_repository_agent_run(
+    owner_name: str = Query(..., description="Repository owner name"),
+    repo_name: str = Query(..., description="Repository name"),
+    repository_workflow_run_id: str = Query(
+        ..., description="Repository workflow run ID"
+    ),
+    bound_logger: "Logger" = Depends(trace_dependency),
+) -> RepositoryAgentRunCancelResponse:
+    """Cancel an in-flight repository agent workflow.
+
+    This endpoint supports cancellation only for agent workflows
+    (AGENTS_GENERATION, AGENT_MD_UPDATE). INGESTION workflows are explicitly
+    non-cancellable from this API.
+    """
+    worker_manager = get_worker_manager()
+
+    if not worker_manager.is_running:
+        bound_logger.error(
+            "[codebase_agent_rules] Temporal worker not running for cancel request"
+        )
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Agent runtime is unavailable. Please verify model/tool configuration "
+                "and retry."
+            ),
+        )
+
+    async with get_startup_session() as session:
+        workflow_run = await session.get(
+            RepositoryWorkflowRun,
+            (repo_name, owner_name, repository_workflow_run_id),
+        )
+
+        if workflow_run is None:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    "Repository workflow run not found for "
+                    f"{owner_name}/{repo_name} run_id={repository_workflow_run_id}"
+                ),
+            )
+
+        if workflow_run.operation not in CANCELLABLE_REPOSITORY_WORKFLOW_OPERATIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Cancellation is only supported for AGENTS_GENERATION and "
+                    "AGENT_MD_UPDATE workflows"
+                ),
+            )
+
+        if _is_terminal_repository_workflow_status(workflow_run.status):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"Workflow run is already in terminal state ({workflow_run.status})"
+                ),
+            )
+
+        workflow_id = workflow_run.repository_workflow_id
+
+    try:
+        await _cancel_temporal_workflow(
+            temporal_client=worker_manager.client,
+            workflow_id=workflow_id,
+        )
+    except RPCError as rpc_error:
+        if rpc_error.status == RPCStatusCode.NOT_FOUND:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    "Temporal workflow not found for "
+                    f"workflow_id={workflow_id}; run may have already finished"
+                ),
+            ) from rpc_error
+
+        if rpc_error.status in (
+            RPCStatusCode.FAILED_PRECONDITION,
+            RPCStatusCode.ABORTED,
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Workflow run is no longer cancellable because it is already "
+                    "finishing or finished"
+                ),
+            ) from rpc_error
+
+        bound_logger.error(
+            "[codebase_agent_rules] Cancel failed for {}/{} run_id={} workflow_id={} status={} message={}",
+            owner_name,
+            repo_name,
+            repository_workflow_run_id,
+            workflow_id,
+            rpc_error.status,
+            rpc_error.message,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to cancel repository agent workflow",
+        ) from rpc_error
+    except Exception as cancel_error:
+        bound_logger.error(
+            "[codebase_agent_rules] Unexpected cancel error for {}/{} run_id={} workflow_id={}: {}",
+            owner_name,
+            repo_name,
+            repository_workflow_run_id,
+            workflow_id,
+            cancel_error,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to cancel repository agent workflow",
+        ) from cancel_error
+
+    bound_logger.info(
+        "[codebase_agent_rules] Cancel requested for {}/{} run_id={} workflow_id={}",
+        owner_name,
+        repo_name,
+        repository_workflow_run_id,
+        workflow_id,
+    )
+    return RepositoryAgentRunCancelResponse(
+        repository_workflow_run_id=repository_workflow_run_id,
+        status="cancel_requested",
+        message=(
+            "Cancel requested successfully. The workflow may take a short time "
+            "to reach a terminal state."
+        ),
     )
 
 

@@ -90,12 +90,17 @@ class TemporalWorkflowService:
             repository_workflow_run_id,
         )
 
+        # Generate Temporal workflow ID up front so it can be persisted with the
+        # repository workflow run row for later lifecycle operations (cancel, describe).
+        workflow_id = f"agent-{repository_qualified_name.replace('/', '-')}-{uuid.uuid4().hex[:8]}"
+
         # Ensure parent records exist (Repository + RepositoryWorkflowRun)
         # This satisfies foreign key constraints for RepositoryAgentMdSnapshot
         await ensure_workflow_run_exists(
             owner_name=owner_name,
             repo_name=repo_name,
             repository_workflow_run_id=repository_workflow_run_id,
+            repository_workflow_id=workflow_id,
         )
         bound_logger.info(
             "[workflow_service] Ensured Repository and RepositoryWorkflowRun records exist"
@@ -123,9 +128,6 @@ class TemporalWorkflowService:
             metadata.model_dump() for metadata in ruleset_metadata.codebase_metadata
         ]
 
-        # Generate workflow ID
-        workflow_id = f"agent-{repository_qualified_name.replace('/', '-')}-{uuid.uuid4().hex[:8]}"
-
         bound_logger.info(
             "[workflow_service] Starting RepositoryAgentWorkflow with id={}, "
             "repository={}, codebases={}, trace_id={}",
@@ -136,7 +138,7 @@ class TemporalWorkflowService:
         )
 
         # Start the workflow (non-blocking - returns immediately)
-        await self._client.start_workflow(
+        workflow_handle = await self._client.start_workflow(
             RepositoryAgentWorkflow.run,
             args=[
                 repository_qualified_name,
@@ -149,8 +151,9 @@ class TemporalWorkflowService:
         )
 
         bound_logger.info(
-            "[workflow_service] Workflow started successfully: workflow_id={}, run_id={}",
-            workflow_id,
+            "[workflow_service] Workflow started successfully: workflow_id={}, temporal_run_id={}, run_id={}",
+            workflow_handle.id,
+            workflow_handle.result_run_id,
             repository_workflow_run_id,
         )
 
