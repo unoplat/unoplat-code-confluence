@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-03-03 05:52'
-updated_date: '2026-03-04 11:24'
+updated_date: '2026-03-10 09:31'
 labels:
   - query-engine
   - agents
@@ -15,7 +15,7 @@ labels:
   - frontend
 dependencies: []
 priority: high
-ordinal: 9000
+ordinal: 10000
 ---
 
 ## Description

@@ -1,11 +1,11 @@
 ---
 id: TASK-10.2
 title: 'Frontend: replace agent events accordion body with a virtualized flat timeline'
-status: In Progress
+status: Done
 assignee:
   - codex
 created_date: '2026-03-08 08:43'
-updated_date: '2026-03-08 12:22'
+updated_date: '2026-03-10 09:31'
 labels:
   - frontend
   - performance
@@ -26,6 +26,7 @@ references:
     /Users/jayghiya/.superset/worktrees/unoplat-code-confluence/update-commons-testing/unoplat-code-confluence-frontend/src/types/agent-events.ts
 parent_task_id: TASK-10
 priority: high
+ordinal: 22000
 ---
 
 ## Description

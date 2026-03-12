@@ -4,7 +4,7 @@ title: Polish app feedback sheet spacing and selection states
 status: Done
 assignee: []
 created_date: '2026-03-06 10:11'
-updated_date: '2026-03-06 10:59'
+updated_date: '2026-03-10 09:31'
 labels:
   - frontend
   - design-polish
@@ -17,6 +17,7 @@ references:
   - unoplat-code-confluence-frontend/src/forms/fields/emoji-rating-field.tsx
   - unoplat-code-confluence-frontend/src/components/ui/sheet.tsx
 priority: medium
+ordinal: 13000
 ---
 
 ## Description
