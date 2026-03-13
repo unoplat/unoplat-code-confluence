@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.49.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.48.3...unoplat-code-confluence-frontend-v1.49.0) (2026-03-13)
+
+
+### Features
+
+* **frontend:** add cancel workflow action and CANCELLED status to operations UI ([1db5b58](https://github.com/unoplat/unoplat-code-confluence/commit/1db5b58aa179a52d56deb9184f58257664f65a25))
+
+
+### Bug Fixes
+
+* **agent-feedback:** replace emoji sheet with thumbs dialog and redesign preview ([e9640f5](https://github.com/unoplat/unoplat-code-confluence/commit/e9640f562c7c4178c502cfa0ed830080487078c2))
+
 ## [1.48.3](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.48.2...unoplat-code-confluence-frontend-v1.48.3) (2026-03-09)
 
 
