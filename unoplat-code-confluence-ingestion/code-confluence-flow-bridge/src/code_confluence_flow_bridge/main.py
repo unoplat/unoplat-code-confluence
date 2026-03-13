@@ -1060,6 +1060,16 @@ async def ingestion(
     Returns the workflow_id and run_id.
     Also ingests the repository configuration into the database.
     """
+    # Check for existing repository — prevent duplicate ingestion
+    existing_repo: Repository | None = await session.get(
+        Repository, (repo_request.repository_name, repo_request.repository_owner_name)
+    )
+    if existing_repo is not None:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Repository {repo_request.repository_owner_name}/{repo_request.repository_name} has already been ingested. Use Repository Operations to refresh or manage it.",
+        )
+
     # Fetch repository provider token from database using provider_key from request
     github_token, _ = await fetch_repository_provider_token(
         session, CredentialNamespace.REPOSITORY, repo_request.provider_key
