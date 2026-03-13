@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.74.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.73.0...code-confluence-flow-bridge-v0.74.0) (2026-03-13)
+
+
+### Features
+
+* prevent duplicate repository ingestion with 409 guard ([257dcab](https://github.com/unoplat/unoplat-code-confluence/commit/257dcab7518a9f234814909697e5227fad2b9401))
+
 ## [0.73.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.72.6...code-confluence-flow-bridge-v0.73.0) (2026-03-13)
 
 

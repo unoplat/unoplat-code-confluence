@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.49.0...unoplat-code-confluence-frontend-v1.50.0) (2026-03-13)
+
+
+### Features
+
+* prevent duplicate repository ingestion with 409 guard ([257dcab](https://github.com/unoplat/unoplat-code-confluence/commit/257dcab7518a9f234814909697e5227fad2b9401))
+
 ## [1.49.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.48.3...unoplat-code-confluence-frontend-v1.49.0) (2026-03-13)
 
 
