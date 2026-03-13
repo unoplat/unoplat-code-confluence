@@ -62,3 +62,17 @@ class SectionUpdaterRunRecord(BaseModel):
     output: AgentsMdUpdaterOutput = Field(..., description="Updater output for this section")
 
     model_config = ConfigDict(extra="forbid")
+
+
+class ManagedBlockRunRecord(BaseModel):
+    """Record of a managed-block lifecycle step (e.g., bootstrap), stored in workflow results."""
+
+    lifecycle_step: Literal["bootstrap"] = Field(
+        ..., description="Lifecycle step identifier"
+    )
+    agent_name: str = Field(..., description="Agent/activity name for event tracking")
+    output: AgentsMdUpdaterOutput = Field(
+        ..., description="File-change output from this lifecycle step"
+    )
+
+    model_config = ConfigDict(extra="forbid")
