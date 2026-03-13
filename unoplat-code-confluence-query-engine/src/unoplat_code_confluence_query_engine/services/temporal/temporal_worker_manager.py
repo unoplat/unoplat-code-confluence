@@ -52,6 +52,12 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.dependenc
 from unoplat_code_confluence_query_engine.services.temporal.activities.engineering_workflow_completion_activity import (
     EngineeringWorkflowCompletionActivity,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.git_ref_resolution_activity import (
+    GitRefResolutionActivity,
+)
+from unoplat_code_confluence_query_engine.services.temporal.activities.managed_block_activity import (
+    ManagedBlockActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
     RepositoryAgentSnapshotActivity,
 )
@@ -338,6 +344,8 @@ class TemporalWorkerManager:
             EngineeringWorkflowCompletionActivity()
         )
         app_interfaces_activity = AppInterfacesActivity()
+        git_ref_resolution_activity = GitRefResolutionActivity()
+        managed_block_activity = ManagedBlockActivity()
 
         # Build interceptor list - always include status interceptor
         all_interceptors: list[Interceptor] = [AgentWorkflowStatusInterceptor()]
@@ -383,6 +391,8 @@ class TemporalWorkerManager:
                 app_interfaces_activity.fetch_low_confidence_call_expression_candidates,
                 app_interfaces_activity.build_app_interfaces,
                 app_interfaces_activity.emit_app_interfaces_completion,
+                git_ref_resolution_activity.resolve_git_ref,
+                managed_block_activity.bootstrap,
             ],
             plugins=agent_plugins,
             interceptors=all_interceptors,

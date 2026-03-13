@@ -10,7 +10,6 @@ from base64 import b64decode, b64encode
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, cast
-from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from ghapi.core import GhApi
@@ -35,6 +34,14 @@ from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.services.config.credentials_service import (
     CredentialsService,
+)
+from unoplat_code_confluence_query_engine.services.github.git_ref_resolver import (
+    resolve_repository_git_ref,
+)
+from unoplat_code_confluence_query_engine.services.github.github_api_helpers import (
+    extract_http_error_status,
+    is_http_not_found,
+    resolve_github_host as _resolve_github_host_shared,
 )
 from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
     fetch_repository_metadata,
@@ -135,50 +142,15 @@ def _get_mapping_field(
     return None
 
 
-def _get_string_field(payload: Mapping[str, object], key: str) -> str | None:
-    value = payload.get(key)
-    if isinstance(value, str) and value.strip():
-        return value
-    return None
-
-
 def _resolve_github_host(
     provider_key: ProviderKey,
     metadata: Mapping[str, object] | None,
 ) -> str:
-    if provider_key == ProviderKey.GITHUB_OPEN:
-        return "https://api.github.com"
-
-    if provider_key != ProviderKey.GITHUB_ENTERPRISE:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported repository provider '{provider_key.value}'",
-        )
-
-    if metadata is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Missing metadata for github_enterprise credentials",
-        )
-
-    enterprise_url = _get_string_field(metadata, "url")
-    if enterprise_url is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Missing enterprise URL in github_enterprise credentials metadata",
-        )
-
-    parsed = urlparse(enterprise_url)
-    host = f"{parsed.scheme}://{parsed.netloc}" if parsed.netloc else ""
-    if not host:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid enterprise URL in github_enterprise credentials metadata",
-        )
-
-    if enterprise_url.rstrip("/").endswith("/api/v3"):
-        return enterprise_url.rstrip("/")
-    return f"{host}/api/v3"
+    """Resolve GitHub API host, wrapping ValueError from shared helper as HTTPException."""
+    try:
+        return _resolve_github_host_shared(provider_key, metadata)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 def _get_codebase_file_rel_path(codebase_name: str, file_relative: str) -> str:
@@ -234,75 +206,6 @@ def _decode_remote_content(encoded_content: str) -> str | None:
         return decoded.decode("utf-8")
     except (ValueError, UnicodeDecodeError):
         return None
-
-
-def _require_mapping(value: object, context: str) -> Mapping[str, object]:
-    if isinstance(value, Mapping):
-        return cast(Mapping[str, object], value)
-    raise HTTPException(status_code=502, detail=f"Invalid GitHub payload for {context}")
-
-
-def _require_string(
-    payload: Mapping[str, object],
-    key: str,
-    context: str,
-) -> str:
-    value = payload.get(key)
-    if isinstance(value, str) and value:
-        return value
-    raise HTTPException(
-        status_code=502,
-        detail=f"Missing or invalid '{key}' in GitHub payload for {context}",
-    )
-
-
-def _extract_http_error_status(error: Exception) -> int | None:
-    for attribute in ("status", "code"):
-        value = getattr(error, attribute, None)
-        if isinstance(value, int):
-            return value
-    return None
-
-
-def _is_http_not_found(error: Exception) -> bool:
-    return _extract_http_error_status(error) == 404
-
-
-def _gh_call(
-    api: GhApi,
-    path: str,
-    verb: str,
-    *,
-    route: dict[str, str] | None = None,
-    query: dict[str, object] | None = None,
-    data: dict[str, object] | None = None,
-) -> object:
-    route_payload = route if route is not None else {}
-    query_payload = query if query is not None else {}
-    return cast(
-        object,
-        api(
-            path,
-            verb,
-            route=route_payload,
-            query=query_payload,
-            data=data,
-        ),
-    )
-
-
-def _as_object_list(value: object) -> list[object]:
-    if isinstance(value, list):
-        return cast(list[object], value)
-    return []
-
-
-def _get_int_field(payload: Mapping[str, object], key: str) -> int | None:
-    """Extract an integer field from a mapping, returning None if absent or wrong type."""
-    value = payload.get(key)
-    if isinstance(value, int):
-        return value
-    return None
 
 
 async def _persist_pr_metadata(
@@ -864,99 +767,66 @@ async def create_repository_agent_md_pr(
     branch_name = f"agents-md/{repository_workflow_run_id[:12]}"
 
     try:
-        repository_info_response = _gh_call(
-            api,
-            "/repos/{owner}/{repo}",
-            "GET",
-            route={"owner": owner_name, "repo": repo_name},
-        )
-        repository_info = _require_mapping(repository_info_response, "repos.get")
-        default_branch = _require_string(
-            repository_info,
-            "default_branch",
-            "repos.get",
-        )
-
-        base_ref_response = _gh_call(
-            api,
-            "/repos/{owner}/{repo}/git/ref/{ref}",
-            "GET",
-            route={
-                "owner": owner_name,
-                "repo": repo_name,
-                "ref": f"heads/{default_branch}",
-            },
-        )
-        base_ref_payload = _require_mapping(base_ref_response, "git.get_ref")
-        base_ref_object = _get_mapping_field(base_ref_payload, "object")
-        if base_ref_object is None:
+        # Resolve default branch + head SHA via shared resolver
+        try:
+            git_ref = resolve_repository_git_ref(api, owner_name, repo_name)
+        except ValueError as ref_error:
             raise HTTPException(
                 status_code=502,
-                detail="Missing object payload in git.get_ref response",
-            )
-        base_sha = _require_string(base_ref_object, "sha", "git.get_ref.object")
+                detail=f"Failed to resolve repository git ref: {ref_error}",
+            ) from ref_error
+        default_branch = git_ref.default_branch
+        base_sha = git_ref.head_commit_sha
 
         # Get or create feature branch
         try:
-            _gh_call(
-                api,
-                "/repos/{owner}/{repo}/git/ref/{ref}",
-                "GET",
-                route={
-                    "owner": owner_name,
-                    "repo": repo_name,
-                    "ref": f"heads/{branch_name}",
-                },
+            api.git.get_ref(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+                owner=owner_name,
+                repo=repo_name,
+                ref=f"heads/{branch_name}",
             )
         except Exception as get_ref_error:
-            if _is_http_not_found(get_ref_error):
-                _gh_call(
-                    api,
-                    "/repos/{owner}/{repo}/git/refs",
-                    "POST",
-                    route={"owner": owner_name, "repo": repo_name},
-                    data={"ref": f"refs/heads/{branch_name}", "sha": base_sha},
+            if is_http_not_found(get_ref_error):
+                api.git.create_ref(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+                    owner=owner_name,
+                    repo=repo_name,
+                    ref=f"refs/heads/{branch_name}",
+                    sha=base_sha,
                 )
             else:
                 raise
 
         # Check for existing open PR BEFORE pushing files (zero mutations if PR exists)
-        pulls_response = _gh_call(
-            api,
-            "/repos/{owner}/{repo}/pulls",
-            "GET",
-            route={"owner": owner_name, "repo": repo_name},
-            query={
-                "state": "open",
-                "head": f"{owner_name}:{branch_name}",
-                "base": default_branch,
-                "per_page": 1,
-                "page": 1,
-            },
+        pulls = api.pulls.list(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
+            owner=owner_name,
+            repo=repo_name,
+            state="open",
+            head=f"{owner_name}:{branch_name}",
+            base=default_branch,
+            per_page=1,
+            page=1,
         )
-        pulls = _as_object_list(pulls_response)
-        if pulls:
-            first_pull = pulls[0]
-            if isinstance(first_pull, Mapping):
-                first_pull_map = cast(Mapping[str, object], first_pull)
-                existing_pr_url = _get_string_field(first_pull_map, "html_url")
-                existing_pr_number = _get_int_field(first_pull_map, "number")
+        pulls_list: list[object] = list(pulls) if isinstance(pulls, list) else []  # pyright: ignore[reportUnknownArgumentType]
+        if pulls_list:
+            first_pull = pulls_list[0]
+            existing_pr_url: str | None = getattr(first_pull, "html_url", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+            existing_pr_number: int | None = getattr(first_pull, "number", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
 
-                if existing_pr_url:
-                    existing_pr_meta = PrMetadata(
-                        status="no_changes",
-                        pr_url=existing_pr_url,
-                        pr_number=existing_pr_number,
-                        branch_name=branch_name,
-                        message="PR already exists for this branch",
-                    )
-                    persisted, already_existed = await _persist_pr_metadata(
-                        owner_name,
-                        repo_name,
-                        repository_workflow_run_id,
-                        existing_pr_meta,
-                    )
-                    return _build_pr_response(persisted, already_existed)
+            if isinstance(existing_pr_url, str) and existing_pr_url:
+                existing_pr_meta = PrMetadata(
+                    status="no_changes",
+                    pr_url=existing_pr_url,
+                    pr_number=existing_pr_number if isinstance(existing_pr_number, int) else None,
+                    branch_name=branch_name,
+                    message="PR already exists for this branch",
+                )
+                persisted, already_existed = await _persist_pr_metadata(
+                    owner_name,
+                    repo_name,
+                    repository_workflow_run_id,
+                    existing_pr_meta,
+                )
+                return _build_pr_response(persisted, already_existed)
 
         # Push files (compare with remote, skip unchanged)
         changed_files: list[str] = []
@@ -964,23 +834,21 @@ async def create_repository_agent_md_pr(
             existing_sha: str | None = None
             existing_content: str | None = None
             try:
-                remote_content_response = _gh_call(
-                    api,
-                    f"/repos/{owner_name}/{repo_name}/contents/{rel_path}",
-                    "GET",
-                    query={"ref": branch_name},
+                remote_content_response = api.repos.get_content(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
+                    owner=owner_name,
+                    repo=repo_name,
+                    path=rel_path,
+                    ref=branch_name,
                 )
-                remote_content = _require_mapping(
-                    remote_content_response,
-                    f"repos.get_content({rel_path})",
-                )
-                remote_encoded = _get_string_field(remote_content, "content") or ""
-                remote_encoding = _get_string_field(remote_content, "encoding") or ""
-                existing_sha = _get_string_field(remote_content, "sha")
+                remote_encoded: str = getattr(remote_content_response, "content", "") or ""  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+                remote_encoding: str = getattr(remote_content_response, "encoding", "") or ""  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+                existing_sha = getattr(remote_content_response, "sha", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+                if not isinstance(existing_sha, str):
+                    existing_sha = None
                 if remote_encoding == "base64" and remote_encoded:
                     existing_content = _decode_remote_content(remote_encoded)
             except Exception as get_content_error:
-                if _is_http_not_found(get_content_error):
+                if is_http_not_found(get_content_error):
                     existing_sha = None
                     existing_content = None
                 else:
@@ -990,19 +858,19 @@ async def create_repository_agent_md_pr(
                 continue
 
             content_b64 = b64encode(local_content.encode("utf-8")).decode("ascii")
-            update_payload: dict[str, object] = {
-                "message": (f"Update {rel_path} from run {repository_workflow_run_id}"),
+            update_kwargs: dict[str, object] = {
+                "owner": owner_name,
+                "repo": repo_name,
+                "path": rel_path,
+                "message": f"Update {rel_path} from run {repository_workflow_run_id}",
                 "content": content_b64,
                 "branch": branch_name,
             }
             if existing_sha is not None:
-                update_payload["sha"] = existing_sha
+                update_kwargs["sha"] = existing_sha
 
-            _gh_call(
-                api,
-                f"/repos/{owner_name}/{repo_name}/contents/{rel_path}",
-                "PUT",
-                data=update_payload,
+            api.repos.create_or_update_file_contents(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+                **update_kwargs,
             )
             changed_files.append(rel_path)
 
@@ -1027,21 +895,23 @@ async def create_repository_agent_md_pr(
             "## Changed Files",
             *[f"- `{path}`" for path in changed_files],
         ]
-        created_pr_response = _gh_call(
-            api,
-            "/repos/{owner}/{repo}/pulls",
-            "POST",
-            route={"owner": owner_name, "repo": repo_name},
-            data={
-                "title": pr_title,
-                "head": branch_name,
-                "base": default_branch,
-                "body": "\n".join(pr_body_lines),
-            },
+        created_pr = api.pulls.create(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
+            owner=owner_name,
+            repo=repo_name,
+            title=pr_title,
+            head=branch_name,
+            base=default_branch,
+            body="\n".join(pr_body_lines),
         )
-        created_pr = _require_mapping(created_pr_response, "pulls.create")
-        created_pr_url = _require_string(created_pr, "html_url", "pulls.create")
-        created_pr_number = _get_int_field(created_pr, "number")
+        created_pr_url: str | None = getattr(created_pr, "html_url", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+        if not isinstance(created_pr_url, str) or not created_pr_url:
+            raise HTTPException(
+                status_code=502,
+                detail="GitHub API response missing 'html_url' in pulls.create",
+            )
+        created_pr_number: int | None = getattr(created_pr, "number", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+        if not isinstance(created_pr_number, int):
+            created_pr_number = None
 
         # Persist modified result
         modified_meta = PrMetadata(
@@ -1059,10 +929,10 @@ async def create_repository_agent_md_pr(
     except HTTPException:
         raise
     except Exception as github_error:
-        status_code = _extract_http_error_status(github_error)
-        if status_code in {401, 403}:
+        gh_status_code = extract_http_error_status(github_error)
+        if gh_status_code in {401, 403}:
             raise HTTPException(
-                status_code=status_code,
+                status_code=gh_status_code,
                 detail=f"GitHub permission/auth error: {github_error}",
             ) from github_error
         raise HTTPException(
