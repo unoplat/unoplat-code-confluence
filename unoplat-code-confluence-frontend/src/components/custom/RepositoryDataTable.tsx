@@ -8,6 +8,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 
@@ -15,6 +16,7 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useDataTable } from "@/hooks/use-data-table";
+import type { ApiError } from "@/lib/api";
 import { fetchGitHubRepositories, submitRepositoryConfig } from "@/lib/api";
 import type { GitHubRepoSummary, PaginatedResponse } from "@/types";
 import { ProviderKey } from "@/types/credential-enums";
@@ -27,6 +29,7 @@ interface RepositoryDataTableProps {
 
 export function RepositoryDataTable({ providerKey }: RepositoryDataTableProps) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const ingestMutation = useMutation({
     mutationFn: (repo: GitHubRepoSummary) =>
@@ -43,8 +46,26 @@ export function RepositoryDataTable({ providerKey }: RepositoryDataTableProps) {
       );
       queryClient.invalidateQueries({ queryKey: ["repository-config"] });
     },
-    onError: (error, repo) => {
-      toast.error(`Failed to submit repository ${repo.name}: ${error.message}`);
+    onError: (error: ApiError, repo) => {
+      if (error.statusCode === 409) {
+        toast.error(
+          `${repo.owner_name}/${repo.name} has already been ingested.`,
+          {
+            description: "Manage this repository in Repository Operations.",
+            action: {
+              label: "Go to Repository Operations",
+              onClick: () => {
+                void navigate({ to: "/repositoryOperations" });
+              },
+            },
+            duration: 8000,
+          },
+        );
+      } else {
+        toast.error(
+          `Failed to submit repository ${repo.name}: ${error.message}`,
+        );
+      }
     },
   });
 
