@@ -3,8 +3,8 @@ import { createFormHook } from "@tanstack/react-form";
 import {
   CategoryChipsField,
   EmojiRatingField,
-  MiniEmojiField,
   TextareaField,
+  ThumbsRatingField,
 } from "./fields";
 import { fieldContext, formContext } from "./form-context";
 
@@ -44,8 +44,8 @@ export const { useAppForm, withForm } = createFormHook({
   fieldComponents: {
     CategoryChipsField,
     EmojiRatingField,
-    MiniEmojiField,
     TextareaField,
+    ThumbsRatingField,
   },
   formComponents: {},
 });

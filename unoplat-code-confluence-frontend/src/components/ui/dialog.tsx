@@ -46,7 +46,7 @@ function DialogOverlay({
 }
 
 const dialogContentVariants = cva(
-  "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] rounded-lg border shadow-lg duration-200",
+  "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] rounded-lg border shadow-lg duration-200",
   {
     variants: {
       size: {
@@ -67,11 +67,16 @@ const dialogContentVariants = cva(
         none: "gap-0",
         default: "gap-4",
       },
+      layout: {
+        default: "grid",
+        scrollable: "flex flex-col max-h-[80vh] overflow-hidden",
+      },
     },
     defaultVariants: {
       size: "default",
       padding: "default",
       gap: "default",
+      layout: "default",
     },
   },
 );
@@ -83,6 +88,7 @@ function DialogContent({
   size,
   padding,
   gap,
+  layout,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> &
   VariantProps<typeof dialogContentVariants> & {
@@ -93,7 +99,10 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
-        className={cn(dialogContentVariants({ size, padding, gap }), className)}
+        className={cn(
+          dialogContentVariants({ size, padding, gap, layout }),
+          className,
+        )}
         {...props}
       >
         {children}
@@ -111,24 +120,56 @@ function DialogContent({
   );
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+const dialogHeaderVariants = cva(
+  "flex flex-col gap-2 text-center sm:text-left",
+  {
+    variants: {
+      variant: {
+        default: "",
+        sticky: "shrink-0 border-b px-6 py-4",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+);
+
+function DialogHeader({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof dialogHeaderVariants>) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      className={cn(dialogHeaderVariants({ variant }), className)}
       {...props}
     />
   );
 }
 
-function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
+const dialogFooterVariants = cva("flex", {
+  variants: {
+    variant: {
+      default: "flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+      sticky: "flex-row justify-end gap-2 border-t px-6 py-4",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+function DialogFooter({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof dialogFooterVariants>) {
   return (
     <div
       data-slot="dialog-footer"
-      className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className,
-      )}
+      className={cn(dialogFooterVariants({ variant }), className)}
       {...props}
     />
   );
@@ -172,4 +213,6 @@ export {
   DialogTitle,
   DialogTrigger,
   dialogContentVariants,
+  dialogFooterVariants,
+  dialogHeaderVariants,
 };

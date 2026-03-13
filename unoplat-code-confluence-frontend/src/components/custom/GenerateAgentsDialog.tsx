@@ -44,7 +44,7 @@ import {
 } from "@/lib/api";
 import { apiToUiErrorReport } from "@/lib/error-utils";
 import { FeedbackDialog } from "@/components/custom/FeedbackDialog";
-import { AgentFeedbackSheet } from "@/features/agent-feedback";
+import { AgentFeedbackDialog } from "@/features/agent-feedback";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { XCircle, ExternalLink, MessageSquare } from "lucide-react";
@@ -116,7 +116,7 @@ export function GenerateAgentsDialog({
     React.useState<boolean>(false);
   const [feedbackSource, setFeedbackSource] =
     React.useState<FeedbackSource | null>(null);
-  const [agentFeedbackSheetOpen, setAgentFeedbackSheetOpen] =
+  const [agentFeedbackDialogOpen, setAgentFeedbackDialogOpen] =
     React.useState<boolean>(false);
   const queryClient = useQueryClient();
 
@@ -769,7 +769,7 @@ export function GenerateAgentsDialog({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setAgentFeedbackSheetOpen(true)}
+                      onClick={() => setAgentFeedbackDialogOpen(true)}
                     >
                       <MessageSquare className="mr-1.5 h-3 w-3" />
                       Give Feedback
@@ -872,11 +872,11 @@ export function GenerateAgentsDialog({
         onSuccess={handleFeedbackSuccess}
       />
 
-      {/* Agent Feedback Sheet for rating agent generation quality */}
+      {/* Agent Feedback Dialog for rating agent generation quality */}
       {liveCodebases.length > 0 && actualJob && (
-        <AgentFeedbackSheet
-          open={agentFeedbackSheetOpen}
-          onOpenChange={setAgentFeedbackSheetOpen}
+        <AgentFeedbackDialog
+          open={agentFeedbackDialogOpen}
+          onOpenChange={setAgentFeedbackDialogOpen}
           job={actualJob}
           codebases={liveCodebases}
         />
