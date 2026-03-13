@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SheetFooter } from "@/components/ui/sheet";
+import { DialogFooter } from "@/components/ui/dialog";
 import { useAppForm } from "@/forms";
 import type { IssueTracking, ParentWorkflowJobResponse } from "@/types";
 
@@ -118,8 +118,8 @@ export function DetailsStep({
 
   return (
     <>
-      <ScrollArea className="flex-1 px-6">
-        <div className="space-y-6 py-4">
+      <ScrollArea className="flex-1">
+        <div className="space-y-6 px-6 py-4">
           {/* Selected Rating Summary Card */}
           <Card>
             <CardHeader className="pb-2">
@@ -188,7 +188,7 @@ export function DetailsStep({
         </div>
       </ScrollArea>
 
-      <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+      <DialogFooter variant="sticky">
         <Button variant="outline" onClick={handleBack}>
           Back
         </Button>
@@ -207,7 +207,7 @@ export function DetailsStep({
             </Button>
           )}
         </form.Subscribe>
-      </SheetFooter>
+      </DialogFooter>
     </>
   );
 }

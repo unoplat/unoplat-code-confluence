@@ -1,12 +1,12 @@
 import { useCallback, useState } from "react";
 
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { IssueTracking, ParentWorkflowJobResponse } from "@/types";
 import type { RepositoryAgentCodebaseState } from "@/features/repository-agent-snapshots/transformers";
 
@@ -16,8 +16,8 @@ import { DetailsStep } from "./details-step";
 import { RatingStep } from "./rating-step";
 import { SuccessStep } from "./success-step";
 
-interface AgentFeedbackSheetProps {
-  /** Whether the sheet is open */
+interface AgentFeedbackDialogProps {
+  /** Whether the dialog is open */
   open: boolean;
   /** Callback when open state changes */
   onOpenChange: (open: boolean) => void;
@@ -28,7 +28,7 @@ interface AgentFeedbackSheetProps {
 }
 
 /**
- * Agent feedback sheet component
+ * Agent feedback dialog component
  *
  * Pure coordinator that orchestrates the multi-step feedback flow.
  * Each step (RatingStep, DetailsStep) owns its own form via useAppForm.
@@ -36,12 +36,12 @@ interface AgentFeedbackSheetProps {
  *
  * Flow: Rating Step → Details Step → Success Step
  */
-export function AgentFeedbackSheet({
+export function AgentFeedbackDialog({
   open,
   onOpenChange,
   job,
   codebases,
-}: AgentFeedbackSheetProps): React.ReactElement {
+}: AgentFeedbackDialogProps): React.ReactElement {
   // Zustand store for step navigation and draft persistence
   const { step, setStep, reset: resetStore } = useAgentFeedbackStore();
 
@@ -70,7 +70,7 @@ export function AgentFeedbackSheet({
     [setStep],
   );
 
-  // Handle sheet close
+  // Handle dialog close
   const handleClose = useCallback((): void => {
     // On success step, reset the store since feedback was submitted
     if (step === FeedbackStep.SUCCESS) {
@@ -137,8 +137,7 @@ export function AgentFeedbackSheet({
       case FeedbackStep.RATING:
         return {
           title: "Rate Your Experience",
-          description:
-            "Help us improve agent generation by sharing your feedback",
+          description: "Help us improve context by sharing your feedback",
         };
       case FeedbackStep.DETAILS:
         return {
@@ -153,7 +152,7 @@ export function AgentFeedbackSheet({
       default:
         return {
           title: "Agent Feedback",
-          description: "Share your experience with agent generation",
+          description: "Share your experience with code confluence agents",
         };
     }
   };
@@ -161,19 +160,15 @@ export function AgentFeedbackSheet({
   const { title, description } = getStepHeader();
 
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent
-        side="right"
-        size="lg"
-        className="flex flex-col gap-0 overflow-hidden p-0"
-      >
-        <SheetHeader className="flex-shrink-0 border-b px-6 py-4">
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent size="md" padding="none" gap="none" layout="scrollable">
+        <DialogHeader variant="sticky">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
 
         {renderStepContent()}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

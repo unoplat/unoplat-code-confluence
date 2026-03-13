@@ -1,28 +1,31 @@
-import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useMemo } from "react";
 import { SiGithub } from "react-icons/si";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Card, CardContent } from "@/components/ui/card";
+import { DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { SheetFooter } from "@/components/ui/sheet";
 import { useAppForm, useFieldContext } from "@/forms";
-import { cn } from "@/lib/utils";
 import type { ParentWorkflowJobResponse } from "@/types";
 import type { RepositoryAgentCodebaseState } from "@/features/repository-agent-snapshots/transformers";
 
-import type { AgentId, AgentRatingValue, SentimentRating } from "../schema";
+import type {
+  AgentId,
+  AgentRatingValue,
+  AgentSentimentRating,
+  SentimentRating,
+} from "../schema";
 import { AGENT_IDS, AGENT_ID_LABELS } from "../schema";
 import { useAgentFeedbackStore } from "../store";
-import { MiniEmojiSelector } from "./mini-emoji-selector";
+import { ThumbsRatingSelector } from "./thumbs-rating-selector";
 
 interface RatingStepProps {
   /** Codebases from Electric SQL snapshot */
@@ -39,7 +42,7 @@ interface RatingStepProps {
  * Rating step - First step of feedback flow
  *
  * Owns its form via `useAppForm` and syncs values to Zustand store on navigation.
- * Uses context-based field access for nested components (CodebaseRatingCard, AgentRatingRow).
+ * Uses context-based field access for nested components (CodebaseAccordionItem, AgentRatingRow).
  */
 export function RatingStep({
   codebases,
@@ -47,7 +50,6 @@ export function RatingStep({
   onCancel,
   onContinue,
 }: RatingStepProps): React.ReactElement {
-  const [agentRatingsOpen, setAgentRatingsOpen] = useState(true);
   const { draft, setDraft } = useAgentFeedbackStore();
 
   // Build initial agent ratings array from codebases + stored draft
@@ -89,81 +91,59 @@ export function RatingStep({
 
   return (
     <>
-      <ScrollArea className="flex-1 px-6">
-        <div className="space-y-8 py-6">
-          {/* Repository Info Card */}
-          <Card className="border-muted/50">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-full">
-                <SiGithub className="text-muted-foreground h-5 w-5" />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium">
-                  {job.repository_owner_name}/{job.repository_name}
-                </span>
-                <span className="text-muted-foreground text-xs">
-                  {codebases.length} codebase{codebases.length !== 1 ? "s" : ""}{" "}
-                  analyzed
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+      <ScrollArea className="flex-1">
+        {/* Repository Info Card */}
+        <Card className="border-muted/50 mx-7 mt-6">
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-full">
+              <SiGithub className="text-muted-foreground h-5 w-5" />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">
+                {job.repository_owner_name}/{job.repository_name}
+              </span>
+              <span className="text-muted-foreground text-xs">
+                {codebases.length} codebase{codebases.length !== 1 ? "s" : ""}{" "}
+                analyzed
+              </span>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Separator />
+        {/* Overall Rating Section */}
+        <div className="flex flex-col gap-2.5 px-7 pt-4">
+          <Label className="text-base font-medium">
+            How was your experience with the generated agents?
+          </Label>
+          <form.AppField name="overallRating">
+            {(field) => <field.EmojiRatingField />}
+          </form.AppField>
+        </div>
 
-          {/* Overall Rating Section */}
-          <div className="space-y-2">
-            <Label className="text-base font-medium">
-              How was your experience with the generated agents?
-            </Label>
-            <form.AppField name="overallRating">
-              {(field) => <field.EmojiRatingField />}
-            </form.AppField>
-          </div>
-
-          <Separator />
-
-          {/* Per-Agent Ratings Collapsible */}
-          <Collapsible
-            open={agentRatingsOpen}
-            onOpenChange={setAgentRatingsOpen}
-          >
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                className="flex h-auto w-full justify-between px-0 py-2 hover:bg-transparent"
+        {/* Per-Agent Ratings Accordion */}
+        <div className="flex flex-col px-7 pt-4 pb-4">
+          <Label className="text-muted-foreground text-sm font-medium">
+            Rate individual agents (optional)
+          </Label>
+          <form.AppField name="agentRatings">
+            {() => (
+              <Accordion
+                type="multiple"
+                defaultValue={codebases[0] ? [codebases[0].codebaseName] : []}
               >
-                <span className="text-muted-foreground text-sm font-medium">
-                  Rate individual agents (optional)
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "text-muted-foreground h-4 w-4 transition-transform",
-                    agentRatingsOpen && "rotate-180",
-                  )}
-                />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-4 pt-4">
-              {/* Wrap with agentRatings field context for nested components */}
-              <form.AppField name="agentRatings">
-                {() => (
-                  <>
-                    {codebases.map((codebase) => (
-                      <CodebaseRatingCard
-                        key={codebase.codebaseName}
-                        codebase={codebase}
-                      />
-                    ))}
-                  </>
-                )}
-              </form.AppField>
-            </CollapsibleContent>
-          </Collapsible>
+                {codebases.map((codebase) => (
+                  <CodebaseAccordionItem
+                    key={codebase.codebaseName}
+                    codebase={codebase}
+                  />
+                ))}
+              </Accordion>
+            )}
+          </form.AppField>
         </div>
       </ScrollArea>
 
-      <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+      <DialogFooter variant="sticky">
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
@@ -174,37 +154,46 @@ export function RatingStep({
             </Button>
           )}
         </form.Subscribe>
-      </SheetFooter>
+      </DialogFooter>
     </>
   );
 }
 
 // ─────────────────────────────────────────────────
-// Sub-component: CodebaseRatingCard
+// Sub-component: CodebaseAccordionItem
 // ─────────────────────────────────────────────────
 
-interface CodebaseRatingCardProps {
+interface CodebaseAccordionItemProps {
   codebase: RepositoryAgentCodebaseState;
 }
 
 /**
- * Card showing agent ratings for a single codebase
+ * Accordion item showing agent ratings for a single codebase.
  *
- * No form prop needed - nested AgentRatingRow components access
- * field state via useFieldContext (context set by parent form.AppField).
+ * Reads the agentRatings array via useFieldContext to compute
+ * the progress badge count (rated / total agents).
  */
-function CodebaseRatingCard({
+function CodebaseAccordionItem({
   codebase,
-}: CodebaseRatingCardProps): React.ReactElement {
+}: CodebaseAccordionItemProps): React.ReactElement {
+  const field = useFieldContext<AgentRatingValue[]>();
+
+  // Count non-null ratings for this codebase
+  const ratedCount = field.state.value.filter(
+    (ar) => ar.codebase_name === codebase.codebaseName && ar.rating !== null,
+  ).length;
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <AccordionItem value={codebase.codebaseName}>
+      <AccordionTrigger className="text-sm hover:no-underline">
         <div className="flex items-center gap-2">
-          <Badge variant="section">CODEBASE</Badge>
-          <span className="text-sm font-medium">{codebase.codebaseName}</span>
+          <span className="font-medium">{codebase.codebaseName}</span>
+          <Badge variant="secondary">
+            {ratedCount}/{AGENT_IDS.length}
+          </Badge>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
+      </AccordionTrigger>
+      <AccordionContent className="space-y-3">
         {AGENT_IDS.map((agentId) => (
           <AgentRatingRow
             key={`${codebase.codebaseName}-${agentId}`}
@@ -212,8 +201,8 @@ function CodebaseRatingCard({
             agentId={agentId}
           />
         ))}
-      </CardContent>
-    </Card>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 
@@ -227,7 +216,7 @@ interface AgentRatingRowProps {
 }
 
 /**
- * Single row for rating one agent
+ * Single row for rating one agent with thumbs up/down.
  *
  * Uses `useFieldContext` to access the agentRatings array field
  * without requiring form prop drilling. Must be rendered inside
@@ -244,9 +233,10 @@ function AgentRatingRow({
   const index = field.state.value.findIndex(
     (ar) => ar.codebase_name === codebaseName && ar.agent_id === agentId,
   );
-  const currentRating = index >= 0 ? field.state.value[index]?.rating : null;
+  const currentRating =
+    index >= 0 ? (field.state.value[index]?.rating ?? null) : null;
 
-  const handleChange = (rating: SentimentRating | null): void => {
+  const handleChange = (rating: AgentSentimentRating | null): void => {
     if (index >= 0) {
       const updated = [...field.state.value];
       updated[index] = { ...updated[index], rating };
@@ -255,11 +245,11 @@ function AgentRatingRow({
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <Label className="text-muted-foreground text-sm">
+    <div className="flex items-center justify-between gap-3">
+      <Label className="text-muted-foreground min-w-0 text-sm">
         {AGENT_ID_LABELS[agentId]}
       </Label>
-      <MiniEmojiSelector value={currentRating} onChange={handleChange} />
+      <ThumbsRatingSelector value={currentRating} onChange={handleChange} />
     </div>
   );
 }
