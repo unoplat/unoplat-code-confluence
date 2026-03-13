@@ -13,6 +13,8 @@ import type {
   CodebaseStatus,
   WorkflowStatus,
   WorkflowRun,
+  JobStatus,
+  RepositoryWorkflowOperation,
 } from "@/types";
 import {
   Dialog,
@@ -34,6 +36,7 @@ import {
 } from "@/features/repository-agent-snapshots/hooks";
 import type { RepositoryAgentMdPrStatusResponse } from "@/lib/api";
 import {
+  cancelRepositoryAgentRun,
   createRepositoryAgentMdPr,
   getParentWorkflowJobs,
   getRepositoryAgentMdPrStatus,
@@ -41,9 +44,11 @@ import {
 } from "@/lib/api";
 import { apiToUiErrorReport } from "@/lib/error-utils";
 import { FeedbackDialog } from "@/components/custom/FeedbackDialog";
-import { AgentFeedbackSheet } from "@/features/agent-feedback";
+import { AgentFeedbackDialog } from "@/features/agent-feedback";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { XCircle, ExternalLink, MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 
 // Data structure for aggregated errors (repository + codebase errors combined)
 interface AggregatedErrorData {
@@ -64,7 +69,7 @@ interface GenerateAgentsDialogProps {
   job: ParentWorkflowJobResponse | null;
 }
 
-function getUnknownErrorMessage(error: unknown): string {
+function getApiErrorMessage(error: unknown, fallbackMessage: string): string {
   if (
     typeof error === "object" &&
     error !== null &&
@@ -76,7 +81,19 @@ function getUnknownErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
-  return "Failed to publish PR";
+  return fallbackMessage;
+}
+
+function isInFlightJobStatus(status: JobStatus): boolean {
+  return (
+    status === "SUBMITTED" || status === "RUNNING" || status === "RETRYING"
+  );
+}
+
+function isAgentWorkflowOperation(
+  operation: RepositoryWorkflowOperation,
+): boolean {
+  return operation === "AGENTS_GENERATION" || operation === "AGENT_MD_UPDATE";
 }
 
 /**
@@ -99,9 +116,40 @@ export function GenerateAgentsDialog({
     React.useState<boolean>(false);
   const [feedbackSource, setFeedbackSource] =
     React.useState<FeedbackSource | null>(null);
-  const [agentFeedbackSheetOpen, setAgentFeedbackSheetOpen] =
+  const [agentFeedbackDialogOpen, setAgentFeedbackDialogOpen] =
     React.useState<boolean>(false);
   const queryClient = useQueryClient();
+
+  const cancelRunMutation = useMutation({
+    mutationFn: (payload: {
+      ownerName: string;
+      repoName: string;
+      repositoryWorkflowRunId: string;
+    }) =>
+      cancelRepositoryAgentRun(
+        payload.ownerName,
+        payload.repoName,
+        payload.repositoryWorkflowRunId,
+      ),
+    onSuccess: (response, variables) => {
+      toast.success(response.message);
+      queryClient.invalidateQueries({ queryKey: ["parentWorkflowJobs"] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "repositoryStatus",
+          variables.repoName,
+          variables.ownerName,
+          variables.repositoryWorkflowRunId,
+        ],
+      });
+      handleDialogOpenChange(false);
+    },
+    onError: (error: unknown) => {
+      toast.error(
+        getApiErrorMessage(error, "Failed to cancel AGENTS.md workflow"),
+      );
+    },
+  });
 
   const createPrMutation = useMutation({
     mutationFn: createRepositoryAgentMdPr,
@@ -206,10 +254,16 @@ export function GenerateAgentsDialog({
 
   // Derive status from actualJob (fresh cache data or prop fallback)
   const jobStatus = actualJob?.status ?? "SUBMITTED";
-  const isRunning = jobStatus === "RUNNING" || jobStatus === "SUBMITTED";
+  const isRunning = isInFlightJobStatus(jobStatus);
   const isCompleted = jobStatus === "COMPLETED";
   // ERROR = partial failure (some agents succeeded, some failed)
   const isFailed = jobStatus === "FAILED" || jobStatus === "ERROR";
+  const isCancelled = jobStatus === "CANCELLED";
+  const canCancelWorkflow =
+    !!actualJob &&
+    isAgentWorkflowOperation(actualJob.operation) &&
+    isRunning &&
+    (actualJob.is_cancellable ?? true);
 
   // Persisted PR status — query when dialog open + job completed
   const { data: persistedPrStatus } =
@@ -419,16 +473,29 @@ export function GenerateAgentsDialog({
     });
   };
 
+  const handleCancelWorkflow = (): void => {
+    if (!actualJob || cancelRunMutation.isPending || !canCancelWorkflow) {
+      return;
+    }
+
+    cancelRunMutation.mutate({
+      ownerName: actualJob.repository_owner_name,
+      repoName: actualJob.repository_name,
+      repositoryWorkflowRunId: actualJob.repository_workflow_run_id,
+    });
+  };
+
   const handleDialogOpenChange = (nextOpen: boolean): void => {
     if (!nextOpen) {
       createPrMutation.reset();
+      cancelRunMutation.reset();
     }
     onOpenChange(nextOpen);
   };
 
   const prResult = createPrMutation.data ?? persistedPrResult;
   const prErrorMessage = createPrMutation.isError
-    ? getUnknownErrorMessage(createPrMutation.error)
+    ? getApiErrorMessage(createPrMutation.error, "Failed to publish PR")
     : null;
 
   if (!job) {
@@ -448,7 +515,7 @@ export function GenerateAgentsDialog({
           </DialogHeader>
 
           {/* Section: Run Details */}
-          <div className="mt-6 mb-4 flex justify-center">
+          <div className="mt-1 flex justify-center">
             <Badge variant="section">Run Details</Badge>
           </div>
 
@@ -471,97 +538,186 @@ export function GenerateAgentsDialog({
             </div>
           </Card>
 
-          {/* Section: Progress */}
-          <div className="mt-6 mb-4 flex justify-center">
-            <Badge variant="section">Progress</Badge>
-          </div>
+          {/* Main Content Area — tabbed when statistics available, flat otherwise */}
+          {showStatistics && parsedSnapshot?.statistics ? (
+            <Tabs
+              defaultValue="progress"
+              className="flex min-h-0 flex-1 flex-col"
+            >
+              <TabsList className="mt-1 w-fit self-center">
+                <TabsTrigger value="progress">Progress</TabsTrigger>
+                <TabsTrigger value="statistics">Statistics</TabsTrigger>
+              </TabsList>
 
-          {/* Main Content Area */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {/* Loading State */}
-            {isLiveLoading && !isLiveReady && (
-              <div className="text-sm">Connecting to real-time updates...</div>
-            )}
-
-            {/* Error State */}
-            {isAnyLiveError && (
-              <div className="space-y-2" role="alert">
-                <div className="text-sm text-red-600">
-                  Electric sync encountered an error.
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const restart = async (): Promise<void> => {
-                        if (!collection) {
-                          return;
-                        }
-
-                        await collection.cleanup();
-                        if (collection.utils.clearError) {
-                          collection.utils.clearError();
-                        }
-                        await collection.preload();
-
-                        if (progressCollection) {
-                          await progressCollection.cleanup();
-                          if (progressCollection.utils.clearError) {
-                            progressCollection.utils.clearError();
-                          }
-                          await progressCollection.preload();
-                        }
-                      };
-
-                      void restart();
-                    }}
-                  >
-                    Retry Sync
-                  </Button>
-                  <div className="text-muted-foreground text-xs">
-                    Status: {isProgressError ? "progress error" : liveStatus}
+              <TabsContent
+                value="progress"
+                className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+              >
+                {/* Loading State */}
+                {isLiveLoading && !isLiveReady && (
+                  <div className="text-sm">
+                    Connecting to real-time updates...
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {/* Progress Display - shown when we have codebaseIds */}
-            {codebaseIds.length > 0 && scope && (
-              <GenerateAgentsProgressLive
-                snapshot={parsedSnapshot}
-                scope={scope}
-                progressRows={progressRows}
-                isSyncing={isLiveLoading || isProgressLoading || isRunning}
-              />
-            )}
+                {/* Error State */}
+                {isAnyLiveError && (
+                  <div className="space-y-2" role="alert">
+                    <div className="text-sm text-red-600">
+                      Electric sync encountered an error.
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const restart = async (): Promise<void> => {
+                            if (!collection) {
+                              return;
+                            }
 
-            {/* Waiting for data state */}
-            {!isAnyLiveError && codebaseIds.length === 0 && isRunning && (
-              <div className="text-muted-foreground py-8 text-center">
-                <p>Waiting for workflow to start...</p>
-                <p className="mt-2 text-sm">
-                  Real-time updates will appear automatically.
-                </p>
-              </div>
-            )}
+                            await collection.cleanup();
+                            if (collection.utils.clearError) {
+                              collection.utils.clearError();
+                            }
+                            await collection.preload();
 
-            {/* Statistics Display (for completed jobs) */}
-            {showStatistics && parsedSnapshot?.statistics && (
-              <>
-                {/* Section: Statistics */}
-                <div className="mt-6 mb-4 flex justify-center">
-                  <Badge variant="section">Statistics</Badge>
-                </div>
+                            if (progressCollection) {
+                              await progressCollection.cleanup();
+                              if (progressCollection.utils.clearError) {
+                                progressCollection.utils.clearError();
+                              }
+                              await progressCollection.preload();
+                            }
+                          };
+
+                          void restart();
+                        }}
+                      >
+                        Retry Sync
+                      </Button>
+                      <div className="text-muted-foreground text-xs">
+                        Status:{" "}
+                        {isProgressError ? "progress error" : liveStatus}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Progress Display - shown when we have codebaseIds */}
+                {codebaseIds.length > 0 && scope && (
+                  <GenerateAgentsProgressLive
+                    snapshot={parsedSnapshot}
+                    scope={scope}
+                    progressRows={progressRows}
+                    isSyncing={isLiveLoading || isProgressLoading || isRunning}
+                  />
+                )}
+
+                {/* Waiting for data state */}
+                {!isAnyLiveError && codebaseIds.length === 0 && isRunning && (
+                  <div className="text-muted-foreground py-8 text-center">
+                    <p>Waiting for workflow to start...</p>
+                    <p className="mt-2 text-sm">
+                      Real-time updates will appear automatically.
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent
+                value="statistics"
+                className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+              >
                 <AgentStatisticsDisplay
                   statistics={parsedSnapshot.statistics}
                 />
-              </>
-            )}
-          </div>
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <>
+              {/* Section: Progress (no tabs when statistics unavailable) */}
+              <div className="mt-1 flex justify-center">
+                <Badge variant="section">Progress</Badge>
+              </div>
+
+              <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+                {/* Loading State */}
+                {isLiveLoading && !isLiveReady && (
+                  <div className="text-sm">
+                    Connecting to real-time updates...
+                  </div>
+                )}
+
+                {/* Error State */}
+                {isAnyLiveError && (
+                  <div className="space-y-2" role="alert">
+                    <div className="text-sm text-red-600">
+                      Electric sync encountered an error.
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const restart = async (): Promise<void> => {
+                            if (!collection) {
+                              return;
+                            }
+
+                            await collection.cleanup();
+                            if (collection.utils.clearError) {
+                              collection.utils.clearError();
+                            }
+                            await collection.preload();
+
+                            if (progressCollection) {
+                              await progressCollection.cleanup();
+                              if (progressCollection.utils.clearError) {
+                                progressCollection.utils.clearError();
+                              }
+                              await progressCollection.preload();
+                            }
+                          };
+
+                          void restart();
+                        }}
+                      >
+                        Retry Sync
+                      </Button>
+                      <div className="text-muted-foreground text-xs">
+                        Status:{" "}
+                        {isProgressError ? "progress error" : liveStatus}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Progress Display - shown when we have codebaseIds */}
+                {codebaseIds.length > 0 && scope && (
+                  <GenerateAgentsProgressLive
+                    snapshot={parsedSnapshot}
+                    scope={scope}
+                    progressRows={progressRows}
+                    isSyncing={isLiveLoading || isProgressLoading || isRunning}
+                  />
+                )}
+
+                {/* Waiting for data state */}
+                {!isAnyLiveError && codebaseIds.length === 0 && isRunning && (
+                  <div className="text-muted-foreground py-8 text-center">
+                    <p>Waiting for workflow to start...</p>
+                    <p className="mt-2 text-sm">
+                      Real-time updates will appear automatically.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Footer Actions */}
-          <div className="mt-6 flex items-center justify-between gap-3">
+          <div className="mt-1 flex items-center justify-between gap-3">
             {/* Left side: Status + Actions based on job state */}
             {isFailed ? (
               <ButtonGroup>
@@ -613,7 +769,7 @@ export function GenerateAgentsDialog({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setAgentFeedbackSheetOpen(true)}
+                      onClick={() => setAgentFeedbackDialogOpen(true)}
                     >
                       <MessageSquare className="mr-1.5 h-3 w-3" />
                       Give Feedback
@@ -655,6 +811,31 @@ export function GenerateAgentsDialog({
                   </div>
                 )}
               </div>
+            ) : isRunning ? (
+              <ButtonGroup>
+                <Badge variant="running" className="gap-1 rounded-md">
+                  In Progress
+                </Badge>
+                {canCancelWorkflow && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleCancelWorkflow}
+                    disabled={cancelRunMutation.isPending}
+                  >
+                    {cancelRunMutation.isPending
+                      ? "Requesting cancel..."
+                      : "Cancel Run"}
+                  </Button>
+                )}
+              </ButtonGroup>
+            ) : isCancelled ? (
+              <ButtonGroup>
+                <Badge variant="cancelled" className="gap-1 rounded-md">
+                  <XCircle className="h-3 w-3" />
+                  Cancelled
+                </Badge>
+              </ButtonGroup>
             ) : (
               <div />
             )}
@@ -691,11 +872,11 @@ export function GenerateAgentsDialog({
         onSuccess={handleFeedbackSuccess}
       />
 
-      {/* Agent Feedback Sheet for rating agent generation quality */}
+      {/* Agent Feedback Dialog for rating agent generation quality */}
       {liveCodebases.length > 0 && actualJob && (
-        <AgentFeedbackSheet
-          open={agentFeedbackSheetOpen}
-          onOpenChange={setAgentFeedbackSheetOpen}
+        <AgentFeedbackDialog
+          open={agentFeedbackDialogOpen}
+          onOpenChange={setAgentFeedbackDialogOpen}
           job={actualJob}
           codebases={liveCodebases}
         />

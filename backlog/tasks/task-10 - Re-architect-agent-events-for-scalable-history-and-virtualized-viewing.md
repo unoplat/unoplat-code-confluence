@@ -1,11 +1,11 @@
 ---
 id: TASK-10
 title: Re-architect agent events for scalable history and virtualized viewing
-status: In Progress
+status: Done
 assignee:
   - codex
 created_date: '2026-03-08 08:43'
-updated_date: '2026-03-08 11:05'
+updated_date: '2026-03-10 09:31'
 labels:
   - backend
   - frontend
@@ -30,6 +30,7 @@ documentation:
   - 'https://tanstack.com/virtual/latest/docs/introduction'
   - 'https://electric-sql.com/docs/guides/shapes'
 priority: high
+ordinal: 25000
 ---
 
 ## Description

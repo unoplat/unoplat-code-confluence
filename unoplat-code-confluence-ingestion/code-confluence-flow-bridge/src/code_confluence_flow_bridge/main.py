@@ -35,6 +35,7 @@ from unoplat_code_confluence_commons.base_models import (
     Flag,
     ProgrammingLanguageMetadata,
     Repository,
+    RepositoryWorkflowOperation,
     RepositoryWorkflowRun,
 )
 from unoplat_code_confluence_commons.credential_enums import (
@@ -144,6 +145,31 @@ from src.code_confluence_flow_bridge.utility.token_utils import (
 logger = setup_logging(
     service_name="code-confluence-flow-bridge", app_name="unoplat-code-confluence"
 )
+
+
+CANCELLABLE_PARENT_WORKFLOW_OPERATIONS: set[RepositoryWorkflowOperation] = {
+    RepositoryWorkflowOperation.AGENTS_GENERATION,
+    RepositoryWorkflowOperation.AGENT_MD_UPDATE,
+}
+
+TERMINAL_PARENT_WORKFLOW_STATUSES: set[str] = {
+    JobStatus.COMPLETED.value,
+    JobStatus.FAILED.value,
+    JobStatus.TIMED_OUT.value,
+    JobStatus.ERROR.value,
+    JobStatus.CANCELLED.value,
+}
+
+
+def is_parent_workflow_cancellable(
+    operation: RepositoryWorkflowOperation,
+    status: str,
+) -> bool:
+    """Return whether a parent workflow row can be canceled by UI users."""
+    return (
+        operation in CANCELLABLE_PARENT_WORKFLOW_OPERATIONS
+        and status not in TERMINAL_PARENT_WORKFLOW_STATUSES
+    )
 
 
 # setup supertokens
@@ -309,8 +335,6 @@ def create_worker(
         # TODO: fix this exception this should be standard exception as worker exceptions should be application error
         error_message = "Failed to start Temporal worker: {}".format(str(e))
         raise ApplicationError(error_message, type="WORKER_INITIALIZATION_ERROR") from e
-
-
 
 
 async def start_workflow(
@@ -1490,6 +1514,10 @@ async def get_parent_workflow_jobs(
                 started_at=run.started_at,
                 completed_at=run.completed_at,
                 feedback_issue_url=run.feedback_issue_url,
+                is_cancellable=is_parent_workflow_cancellable(
+                    run.operation,
+                    run.status,
+                ),
             )
             for run in workflow_runs
         ]

@@ -3,10 +3,10 @@ id: TASK-3.6
 title: >-
   Replace detector-scored CallExpression confidence with contributor-authored
   manual confidence
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-03-06 05:58'
-updated_date: '2026-03-06 10:10'
+updated_date: '2026-03-10 09:32'
 labels:
   - framework-detection
   - call-expression
@@ -26,6 +26,7 @@ references:
     unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions/README.md
 parent_task_id: TASK-3
 priority: high
+ordinal: 27000
 ---
 
 ## Description

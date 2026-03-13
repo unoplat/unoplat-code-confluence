@@ -7,5 +7,5 @@
 
 export { CategoryChipsField } from "./category-chips-field";
 export { EmojiRatingField } from "./emoji-rating-field";
-export { MiniEmojiField } from "./mini-emoji-field";
+export { ThumbsRatingField } from "./thumbs-rating-field";
 export { TextareaField } from "./textarea-field";

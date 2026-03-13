@@ -58,8 +58,8 @@ export { useAppForm, withForm } from "./form-hook";
 export {
   CategoryChipsField,
   EmojiRatingField,
-  MiniEmojiField,
   TextareaField,
+  ThumbsRatingField,
 } from "./fields";
 
 // Types and utilities

@@ -3,11 +3,11 @@ id: TASK-10.3
 title: >-
   Frontend: sync agent event history through Electric collection and merge with
   live updates
-status: In Progress
+status: Done
 assignee:
   - codex
 created_date: '2026-03-08 08:43'
-updated_date: '2026-03-08 13:11'
+updated_date: '2026-03-10 09:31'
 labels:
   - frontend
   - performance
@@ -28,6 +28,7 @@ references:
     /Users/jayghiya/.superset/worktrees/unoplat-code-confluence/update-commons-testing/unoplat-code-confluence-frontend/src/components/custom/GenerateAgentsDialog.tsx
 parent_task_id: TASK-10
 priority: high
+ordinal: 21000
 ---
 
 ## Description

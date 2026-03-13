@@ -40,33 +40,26 @@ export function EmojiRatingField({
     <div className="space-y-3">
       <ToggleGroup
         type="single"
+        variant="card"
+        size="card"
         value={field.state.value ?? ""}
         onValueChange={(newValue) => {
           if (newValue) {
             field.handleChange(newValue as SentimentRating);
           }
         }}
-        className={cn(
-          "flex w-full items-center justify-center gap-[10px]",
-          className,
-        )}
+        className={cn("w-full gap-2.5", className)}
       >
         {RATINGS.map((rating) => (
           <ToggleGroupItem
             key={rating}
             value={rating}
             aria-label={getSentimentLabel(rating)}
-            className={cn(
-              "border-border text-muted-foreground flex h-auto flex-1 flex-col items-center gap-[8px] rounded-[12px] border px-[16px] py-[14px] transition-[background-color,border-color,color,box-shadow]",
-              "hover:border-primary/30 hover:bg-primary/5 hover:text-foreground",
-              "data-[state=on]:border-primary/70 data-[state=on]:bg-primary/10 data-[state=on]:text-foreground data-[state=on]:ring-primary/70 data-[state=on]:ring-2",
-              "data-[state=on]:hover:border-primary data-[state=on]:hover:bg-primary/15 data-[state=on]:hover:text-foreground",
-            )}
           >
-            <span className="text-[24px] leading-[28px]" aria-hidden="true">
+            <span className="text-2xl leading-7" aria-hidden="true">
               {getSentimentEmoji(rating)}
             </span>
-            <span className="text-[12px] leading-[16px] font-medium">
+            <span className="text-xs leading-4 font-medium">
               {getSentimentLabel(rating)}
             </span>
           </ToggleGroupItem>

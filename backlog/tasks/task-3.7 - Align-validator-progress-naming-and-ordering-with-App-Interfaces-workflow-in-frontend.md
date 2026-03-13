@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-03-07 12:38'
-updated_date: '2026-03-07 12:44'
+updated_date: '2026-03-10 09:31'
 labels:
   - frontend
   - progress-ui
@@ -28,6 +28,7 @@ documentation:
   - 'backlog://workflow/overview'
 parent_task_id: TASK-3
 priority: high
+ordinal: 11000
 ---
 
 ## Description
