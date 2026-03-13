@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.45.1...unoplat-code-confluence-commons-v0.46.0) (2026-03-13)
+
+
+### Features
+
+* **cancellation:** implement agent workflow cancellation across backend stack ([0106cdf](https://github.com/unoplat/unoplat-code-confluence/commit/0106cdf07d0af116747adb1e5cb59f1268ff2ea9))
+
 ## [0.45.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.45.0...unoplat-code-confluence-commons-v0.45.1) (2026-03-08)
 
 
