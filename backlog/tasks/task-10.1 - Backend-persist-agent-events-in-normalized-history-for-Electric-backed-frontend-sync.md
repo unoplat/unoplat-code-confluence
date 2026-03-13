@@ -3,11 +3,11 @@ id: TASK-10.1
 title: >-
   Backend: persist agent events in normalized history for Electric-backed
   frontend sync
-status: In Progress
+status: Done
 assignee:
   - codex
 created_date: '2026-03-08 08:43'
-updated_date: '2026-03-08 11:50'
+updated_date: '2026-03-10 09:31'
 labels:
   - backend
   - performance
@@ -25,6 +25,7 @@ references:
     /Users/jayghiya/.superset/worktrees/unoplat-code-confluence/update-commons-testing/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/repo_models.py
 parent_task_id: TASK-10
 priority: high
+ordinal: 24000
 ---
 
 ## Description

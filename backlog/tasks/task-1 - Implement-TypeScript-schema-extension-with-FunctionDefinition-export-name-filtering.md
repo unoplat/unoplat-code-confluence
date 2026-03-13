@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-02-25 06:16'
-updated_date: '2026-03-04 11:24'
+updated_date: '2026-03-10 09:31'
 labels:
   - typescript
   - schema
@@ -28,7 +28,7 @@ documentation:
   - >-
     https://tree-sitter.github.io/py-tree-sitter/classes/tree_sitter.QueryCursor.html
 priority: high
-ordinal: 6000
+ordinal: 7000
 ---
 
 ## Description

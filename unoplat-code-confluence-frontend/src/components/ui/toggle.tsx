@@ -12,10 +12,14 @@ const toggleVariants = cva(
         default: "bg-transparent",
         outline:
           "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
+        soft: "bg-transparent focus-visible:ring-offset-0 data-[state=on]:bg-primary/10 data-[state=on]:text-foreground data-[state=on]:ring-inset data-[state=on]:ring-1 data-[state=on]:ring-primary",
+        card: "border border-border text-muted-foreground ring-inset ring-offset-0 focus-visible:ring-offset-0 transition-[color,background-color,border-color,box-shadow] hover:border-primary/30 hover:bg-primary/5 hover:text-foreground data-[state=on]:border-primary/70 data-[state=on]:bg-primary/10 data-[state=on]:text-foreground data-[state=on]:ring-2 data-[state=on]:ring-primary/70 data-[state=on]:hover:border-primary data-[state=on]:hover:bg-primary/15 data-[state=on]:hover:text-foreground",
       },
       size: {
         default: "h-10 px-3 min-w-10",
         sm: "h-9 px-2.5 min-w-9",
+        icon: "h-8 w-8 min-w-8 p-0 rounded-lg",
+        card: "flex h-auto flex-1 flex-col gap-2 px-4 py-3.5 rounded-xl",
         lg: "h-11 px-5 min-w-11",
       },
     },

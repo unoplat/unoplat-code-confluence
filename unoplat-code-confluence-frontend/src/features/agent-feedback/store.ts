@@ -49,7 +49,7 @@ const initialDraft: AgentFeedbackDraft = {
  * Zustand store for agent feedback form state
  *
  * Uses localStorage persistence to preserve draft data across sessions.
- * This protects against accidental sheet close when user has entered data.
+ * This protects against accidental dialog close when user has entered data.
  *
  * Usage:
  * - Form reads defaultValues from draft

@@ -55,6 +55,12 @@ class RepositoryWorkflowDbActivity:
             existing = result.scalar_one_or_none()
 
             now = datetime.now(timezone.utc)
+            workflow_id = envelope.workflow_id
+
+            if workflow_id is None:
+                raise ValueError(
+                    "ParentWorkflowDbActivityEnvelope.workflow_id is required"
+                )
 
             if existing is None:
                 # CREATE new record
@@ -65,7 +71,7 @@ class RepositoryWorkflowDbActivity:
                     repository_name=envelope.repository_name,
                     repository_owner_name=envelope.repository_owner_name,
                     repository_workflow_run_id=envelope.workflow_run_id,
-                    repository_workflow_id=envelope.workflow_id,
+                    repository_workflow_id=workflow_id,
                     operation=envelope.operation,
                     status=envelope.status,
                     started_at=now,
@@ -84,6 +90,7 @@ class RepositoryWorkflowDbActivity:
                     in (
                         JobStatus.FAILED.value,
                         JobStatus.ERROR.value,
+                        JobStatus.CANCELLED.value,
                     )
                     and envelope.status == JobStatus.COMPLETED.value
                 ):
@@ -102,6 +109,18 @@ class RepositoryWorkflowDbActivity:
                     existing.status,
                     envelope.status,
                 )
+
+                if existing.repository_workflow_id != workflow_id:
+                    logger.warning(
+                        "[repository_workflow_db_activity] Correcting repository_workflow_id for {}/{} run_id={} from {} to {}",
+                        envelope.repository_owner_name,
+                        envelope.repository_name,
+                        envelope.workflow_run_id,
+                        existing.repository_workflow_id,
+                        workflow_id,
+                    )
+                    existing.repository_workflow_id = workflow_id
+
                 existing.status = envelope.status
 
                 # Set completed_at for terminal states
@@ -110,6 +129,7 @@ class RepositoryWorkflowDbActivity:
                     JobStatus.FAILED.value,
                     JobStatus.TIMED_OUT.value,
                     JobStatus.ERROR.value,
+                    JobStatus.CANCELLED.value,
                 ):
                     existing.completed_at = now
 

@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Cpu,
   FileCode,
+  XCircle,
 } from "lucide-react";
 
 export const getStatusIcon = (status: JobStatus): React.ReactNode => {
@@ -42,6 +43,8 @@ export const getStatusIcon = (status: JobStatus): React.ReactNode => {
       return <RefreshCw className="text-info h-4 w-4" />;
     case "ERROR":
       return <AlertTriangle className="text-destructive h-4 w-4" />;
+    case "CANCELLED":
+      return <XCircle className="text-muted-foreground h-4 w-4" />;
     default:
       return <Clock className="text-muted-foreground h-4 w-4" />;
   }
@@ -63,6 +66,8 @@ export const getStatusVariant = (
       return "running";
     case "ERROR":
       return "error";
+    case "CANCELLED":
+      return "cancelled";
     default:
       return "cancelled";
   }
@@ -216,6 +221,7 @@ export const submittedJobsColumns: ColumnDef<ParentWorkflowJobResponse>[] = [
         { label: "Timed Out", value: "TIMED_OUT" },
         { label: "Retrying", value: "RETRYING" },
         { label: "Error", value: "ERROR" },
+        { label: "Cancelled", value: "CANCELLED" },
       ],
     },
     enableColumnFilter: true,

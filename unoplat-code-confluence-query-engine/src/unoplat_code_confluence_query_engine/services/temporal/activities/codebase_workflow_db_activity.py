@@ -82,10 +82,15 @@ class CodebaseWorkflowDbActivity:
             else:
                 # UPDATE existing record
                 # Status preservation: FAILED/ERROR status should never be overwritten with COMPLETED
-                if existing.status in (
-                    JobStatus.FAILED.value,
-                    JobStatus.ERROR.value,
-                ) and envelope.status == JobStatus.COMPLETED.value:
+                if (
+                    existing.status
+                    in (
+                        JobStatus.FAILED.value,
+                        JobStatus.ERROR.value,
+                        JobStatus.CANCELLED.value,
+                    )
+                    and envelope.status == JobStatus.COMPLETED.value
+                ):
                     logger.warning(
                         "[codebase_workflow_db_activity] Preserving {} status - "
                         "ignoring COMPLETED update for {}/{}/{} run_id={}",
@@ -110,6 +115,7 @@ class CodebaseWorkflowDbActivity:
                     JobStatus.FAILED.value,
                     JobStatus.TIMED_OUT.value,
                     JobStatus.ERROR.value,
+                    JobStatus.CANCELLED.value,
                 ):
                     existing.completed_at = now
 

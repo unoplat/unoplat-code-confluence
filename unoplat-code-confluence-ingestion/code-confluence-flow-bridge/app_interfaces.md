@@ -7,7 +7,7 @@
 - `GET /repository-status` — retrieve repository status (response: `GithubRepoStatus`).
 - `GET /repository-data` — fetch repository configuration (response: `GitHubRepoResponseConfiguration`).
 - `GET /codebase-metadata` — list codebase metadata (response: `CodebaseMetadataListResponse`).
-- `GET /parent-workflow-jobs` — list parent workflow jobs (response: `ParentWorkflowJobListResponse`).
+- `GET /parent-workflow-jobs` — list parent workflow jobs with cancellability metadata for operations UI gating (response: `ParentWorkflowJobListResponse`).
 - `GET /get/ingestedRepositories` — list ingested repositories (response: `IngestedRepositoriesListResponse`).
 - `POST /refresh-repository` — refresh repository ingestion (response: `RefreshRepositoryResponse`).
 - `DELETE /delete-repository` — delete repository from tracking.
