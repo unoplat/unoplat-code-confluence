@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.50.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.0...unoplat-code-confluence-frontend-v1.50.1) (2026-03-14)
+
+
+### Bug Fixes
+
+* toast notifications for duplicate request for repository for ing… ([d584813](https://github.com/unoplat/unoplat-code-confluence/commit/d5848131682e33cf1f62913908116091cd8adc59))
+* toast notifications for duplicate request for repository for ingestion ([afa5dba](https://github.com/unoplat/unoplat-code-confluence/commit/afa5dba4c9256021b8fdc68855a4e4435f3490e0))
+
 ## [1.50.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.49.0...unoplat-code-confluence-frontend-v1.50.0) (2026-03-13)
 
 
