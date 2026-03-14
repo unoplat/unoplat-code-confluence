@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet, useRouterState, Link } from "@tanstack/react-router";
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
-import { Toaster } from "../ui/toaster";
+import { Toaster } from "../ui/sonner";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "@/components/custom/AppSidebar";
 import {
