@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.40.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.40.0...unoplat-code-confluence-docs-v0.40.1) (2026-03-14)
+
+
+### Bug Fixes
+
+* **preview:** preview result not needed as of now and remove duplicat… ([d40a19c](https://github.com/unoplat/unoplat-code-confluence/commit/d40a19ce6e443addd26646070db3fb4b068b8732))
+* **preview:** preview result not needed as of now and remove duplicate troubleshooting section ([34f112f](https://github.com/unoplat/unoplat-code-confluence/commit/34f112f765492922ef7b54a2e9367e8110b830a3))
+
+## [0.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.39.1...unoplat-code-confluence-docs-v0.40.0) (2026-03-14)
+
+
+### Features
+
+* **docs:** update docs with new functionalities and screenshots and … ([aeb5968](https://github.com/unoplat/unoplat-code-confluence/commit/aeb59686f59f46f612c411234e778fe1393c9d23))
+* **docs:** update docs with new functionalities and screenshots and releases ([8677c3c](https://github.com/unoplat/unoplat-code-confluence/commit/8677c3cedd3b8a586a7c73ae76df37521da5e410))
+
 ## [0.39.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.39.0...unoplat-code-confluence-docs-v0.39.1) (2026-03-09)
 
 
