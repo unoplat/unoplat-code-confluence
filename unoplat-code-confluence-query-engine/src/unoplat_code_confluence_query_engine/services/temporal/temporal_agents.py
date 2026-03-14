@@ -46,6 +46,10 @@ from unoplat_code_confluence_query_engine.models.repository.framework_feature_va
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
+from unoplat_code_confluence_query_engine.services.agents_md.managed_block import (
+    MANAGED_BLOCK_BEGIN,
+    MANAGED_BLOCK_END,
+)
 from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
     CONFIDENCE_THRESHOLD,
 )
@@ -237,24 +241,13 @@ def build_section_updater_prompt(
 
     return (
         f"Update the '{heading}' section in codebase-local AGENTS.md.\n"
-        f"If the section heading does not exist yet, CREATE it.\n"
-        f"Do NOT modify content outside the '{heading}' section.\n\n"
-        f"Section order in AGENTS.md (for positioning):\n"
-        "1. ## Engineering Workflow\n"
-        "2. ## Dependency Guide\n"
-        "3. ## Business Logic Domain\n"
-        "4. ## App Interfaces\n\n"
+        f"Modify only the content under '{heading}'.\n"
+        "Do not change any other AGENTS.md section.\n\n"
         f"Expected managed files:\n{artifacts_instruction}\n\n"
         f"{section_specific_instruction}"
         f"Codebase path: {codebase_path}\n"
         f"Programming language metadata: {programming_language_metadata}\n"
         f"Section data:\n{section_data}\n\n"
-        "Deterministic update workflow:\n"
-        "- Read the target section first (and only within scope).\n"
-        "- Compute expected section content from section_data.\n"
-        "- Compare current vs expected content before writing.\n"
-        "- If equivalent, do NOT call write tools and return status='no_changes'.\n"
-        "- Use updater_apply_patch/updater_edit_file only when a real diff exists.\n\n"
         "Return summary metadata only (no raw file content)."
     )
 
@@ -716,17 +709,24 @@ def create_agents_md_updater_agent(
     agent = Agent(
         model,
         name="agents_md_updater",
-        instructions=r"""You are the AGENTS.md section updater.
+        instructions=f"""You are the AGENTS.md section updater.
 
 Goal:
 - Create or update a SPECIFIC SECTION of codebase-local AGENTS.md using safe and minimal edits.
 - Create/update companion artifact files when instructed (dependencies_overview.md, business_logic_references.md, app_interfaces.md).
 
+Managed block awareness:
+- All generated sections live inside a managed block delimited by {MANAGED_BLOCK_BEGIN} and {MANAGED_BLOCK_END}.
+- Your assigned section heading already exists inside the managed block. Update the content under it.
+- NEVER modify the block markers.
+- NEVER modify the <CRITICAL_INSTRUCTION> block — it contains freshness metadata managed separately.
+- NEVER add commit SHA, branch name, or generation timestamps to your section content.
+- Treat other ## headings inside the managed block as read-only.
+
 Section scoping:
 - You will be told which section heading you own (e.g., "## Engineering Workflow").
-- Create the heading if it doesn't exist. Update content under it if it does.
+- Update content under your assigned heading.
 - NEVER modify content outside your assigned section boundary.
-- Sections are delimited by ## level headings.
 
 Root-scope safety (hard invariant):
 - ALL file operations MUST use absolute paths within the current codebase root.
@@ -753,7 +753,12 @@ Output constraints:
         tools=[
             Tool(updater_read_file, takes_ctx=True, max_retries=2),
             Tool(updater_edit_file, takes_ctx=True, max_retries=2),
-            Tool(updater_apply_patch, takes_ctx=True, max_retries=4, docstring_format='google'),
+            Tool(
+                updater_apply_patch,
+                takes_ctx=True,
+                max_retries=4,
+                docstring_format="google",
+            ),
         ],
         output_type=AgentsMdUpdaterOutput,
         output_retries=2,

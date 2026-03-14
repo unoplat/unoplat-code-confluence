@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-03-05 09:56'
-updated_date: '2026-03-05 10:09'
+updated_date: '2026-03-10 09:31'
 labels:
   - python
   - framework-detection
@@ -20,6 +20,7 @@ references:
     unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/parser/test_framework_detection_tree_sitter.py
 parent_task_id: TASK-3.2
 priority: high
+ordinal: 19000
 ---
 
 ## Description

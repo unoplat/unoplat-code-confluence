@@ -36,13 +36,32 @@ export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
 };
 
 /**
+ * Agent-level sentiment rating — binary thumbs up/down only.
+ * The overall rating still uses the full SentimentRating (happy/neutral/unhappy).
+ * Both "happy" and "unhappy" are valid SentimentRating values, so the API stays compatible.
+ */
+export const AgentSentimentRating = {
+  HAPPY: "happy",
+  UNHAPPY: "unhappy",
+} as const;
+
+export type AgentSentimentRating =
+  (typeof AgentSentimentRating)[keyof typeof AgentSentimentRating];
+
+export const agentSentimentRatingSchema = z.enum([
+  AgentSentimentRating.HAPPY,
+  AgentSentimentRating.UNHAPPY,
+]);
+
+/**
  * Agent IDs for per-agent ratings
- * These correspond to the three agents generated in the AGENTS.md workflow
+ * These correspond to the four agents generated in the AGENTS.md workflow
  */
 export const AGENT_IDS = [
   "development-workflow-guide",
   "dependency-guide",
   "business-domain-guide",
+  "app-interfaces-guide",
 ] as const;
 
 export type AgentId = (typeof AGENT_IDS)[number];
@@ -54,6 +73,7 @@ export const AGENT_ID_LABELS: Record<AgentId, string> = {
   "development-workflow-guide": "Development Workflow Guide",
   "dependency-guide": "Dependency Guide",
   "business-domain-guide": "Business Domain Guide",
+  "app-interfaces-guide": "App Interfaces Guide",
 };
 
 /**
@@ -116,7 +136,7 @@ export const categoriesSchema = z.array(feedbackCategorySchema);
 export const agentRatingSchema = z.object({
   codebase_name: z.string(),
   agent_id: z.string(),
-  rating: sentimentRatingSchema.nullable(),
+  rating: agentSentimentRatingSchema.nullable(),
 });
 
 export type AgentRatingValue = z.infer<typeof agentRatingSchema>;

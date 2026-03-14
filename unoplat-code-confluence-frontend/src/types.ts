@@ -155,7 +155,8 @@ export type JobStatus =
   | "TIMED_OUT"
   | "COMPLETED"
   | "RETRYING"
-  | "ERROR"; // Partial failures (some agents succeeded, some failed)
+  | "ERROR" // Partial failures (some agents succeeded, some failed)
+  | "CANCELLED";
 
 // Repository workflow operation type
 export type RepositoryWorkflowOperation =
@@ -174,6 +175,8 @@ export interface ParentWorkflowJobResponse {
   completed_at?: string | null;
   /** GitHub issue URL for user feedback on agent generation (if submitted) */
   feedback_issue_url?: string | null;
+  /** Whether this run can be canceled from operations management */
+  is_cancellable?: boolean;
 }
 
 // Parent workflow jobs list response

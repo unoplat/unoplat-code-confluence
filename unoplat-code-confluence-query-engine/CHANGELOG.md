@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.38.0...unoplat-code-confluence-query-engine-v0.39.0) (2026-03-13)
+
+
+### Features
+
+* **query-engine:** add managed block bootstrap and git ref resolution for AGENTS.md ([6d449f9](https://github.com/unoplat/unoplat-code-confluence/commit/6d449f90095d9070b372df5a7c4b5fa46a2d17ef))
+
+## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.6...unoplat-code-confluence-query-engine-v0.38.0) (2026-03-13)
+
+
+### Features
+
+* **cancellation:** implement agent workflow cancellation across backend stack ([0106cdf](https://github.com/unoplat/unoplat-code-confluence/commit/0106cdf07d0af116747adb1e5cb59f1268ff2ea9))
+
 ## [0.37.6](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.37.5...unoplat-code-confluence-query-engine-v0.37.6) (2026-03-09)
 
 

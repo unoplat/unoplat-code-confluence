@@ -22,7 +22,7 @@ async def ensure_workflow_run_exists(
     owner_name: str,
     repo_name: str,
     repository_workflow_run_id: str,
-    repository_workflow_id: str | None = None,
+    repository_workflow_id: str,
     operation: RepositoryWorkflowOperation = RepositoryWorkflowOperation.AGENTS_GENERATION,
     provider_key: ProviderKey = ProviderKey.GITHUB_OPEN,
 ) -> None:
@@ -35,12 +35,10 @@ async def ensure_workflow_run_exists(
         owner_name: Repository owner name (e.g., "unoplat")
         repo_name: Repository name (e.g., "unoplat-code-confluence")
         repository_workflow_run_id: Unique workflow run identifier
-        repository_workflow_id: Optional workflow identifier (defaults to run_id)
+        repository_workflow_id: Temporal workflow identifier
         operation: Type of workflow operation being performed
         provider_key: Git provider for the repository
     """
-    workflow_id = repository_workflow_id or repository_workflow_run_id
-
     async with get_startup_session() as session:
         # Check if Repository exists, create if not
         repository = await session.get(Repository, (repo_name, owner_name))
@@ -68,7 +66,7 @@ async def ensure_workflow_run_exists(
                 repository_name=repo_name,
                 repository_owner_name=owner_name,
                 repository_workflow_run_id=repository_workflow_run_id,
-                repository_workflow_id=workflow_id,
+                repository_workflow_id=repository_workflow_id,
                 operation=operation,
                 status="RUNNING",
                 started_at=now,

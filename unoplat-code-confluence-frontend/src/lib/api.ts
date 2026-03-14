@@ -621,6 +621,12 @@ export interface RepositoryWorkflowRunResponse {
   repository_workflow_run_id: string;
 }
 
+export interface RepositoryAgentRunCancelResponse {
+  repository_workflow_run_id: string;
+  status: "cancel_requested";
+  message: string;
+}
+
 export interface RepositoryAgentMdPrRequest {
   owner_name: string;
   repo_name: string;
@@ -653,6 +659,29 @@ export async function startRepositoryAgentRun(
 
     const response: AxiosResponse<RepositoryWorkflowRunResponse> =
       await queryEngineClient.get("/v1/codebase-agent-rules", {
+        params,
+      });
+
+    return response.data;
+  } catch (error: unknown) {
+    throw handleApiError(error);
+  }
+}
+
+export async function cancelRepositoryAgentRun(
+  ownerName: string,
+  repoName: string,
+  repositoryWorkflowRunId: string,
+): Promise<RepositoryAgentRunCancelResponse> {
+  try {
+    const params = {
+      owner_name: ownerName,
+      repo_name: repoName,
+      repository_workflow_run_id: repositoryWorkflowRunId,
+    };
+
+    const response: AxiosResponse<RepositoryAgentRunCancelResponse> =
+      await queryEngineClient.post("/v1/repository-agent-run/cancel", null, {
         params,
       });
 

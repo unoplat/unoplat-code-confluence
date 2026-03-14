@@ -1,5 +1,5 @@
 // Main component
-export { AgentFeedbackSheet } from "./components/agent-feedback-sheet";
+export { AgentFeedbackDialog } from "./components/agent-feedback-dialog";
 
 // Store
 export { useAgentFeedbackStore } from "./store";
@@ -9,6 +9,7 @@ export type {
   AgentFeedbackFormValues,
   AgentId,
   AgentRatingValue,
+  AgentSentimentRating,
   FeedbackCategory,
   FeedbackStep,
   SentimentRating,

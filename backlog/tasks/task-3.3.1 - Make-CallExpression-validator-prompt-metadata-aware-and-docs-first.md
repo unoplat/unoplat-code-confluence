@@ -4,7 +4,7 @@ title: Make CallExpression validator prompt metadata-aware and docs-first
 status: Done
 assignee: []
 created_date: '2026-03-06 11:18'
-updated_date: '2026-03-06 11:34'
+updated_date: '2026-03-10 09:31'
 labels:
   - query-engine
   - validator
@@ -20,6 +20,7 @@ references:
     unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/repository/framework_feature_validation_models.py
 parent_task_id: TASK-3.3
 priority: high
+ordinal: 12000
 ---
 
 ## Description

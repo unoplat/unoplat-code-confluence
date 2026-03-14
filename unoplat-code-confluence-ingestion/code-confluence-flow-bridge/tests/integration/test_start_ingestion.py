@@ -19,6 +19,7 @@ from src.code_confluence_flow_bridge.processor.db.postgres.db import (
     dispose_current_engine,
 )
 from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle
+from unoplat_code_confluence_commons.base_models import Repository
 from unoplat_code_confluence_commons.credential_enums import (
     CredentialNamespace,
     ProviderKey,
@@ -256,4 +257,52 @@ class TestStartIngestionEndpoint:
                 )
             except Exception as e:
                 logger.warning(f"Failed to terminate workflow during cleanup: {e}")
+
+    @pytest.mark.asyncio(loop_scope="session")  # type: ignore[var-annotated]
+    async def test_duplicate_ingestion_returns_409(
+        self,
+        test_client: TestClient,
+        github_token: str,
+        service_ports: Dict[str, int],
+    ) -> None:
+        """Submitting an already-ingested repository must return 409 Conflict."""
+        # Clean up databases
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            cleanup_postgresql_sync(session)
+        await dispose_current_engine()
+
+        # Store token (idempotent)
+        token_resp = test_client.post(
+            "/ingest-token",
+            params={
+                "namespace": CredentialNamespace.REPOSITORY.value,
+                "provider_key": ProviderKey.GITHUB_OPEN.value,
+                "secret_kind": SecretKind.PAT.value,
+            },
+            headers={"Authorization": f"Bearer {github_token}"},
+        )
+        assert token_resp.status_code in (201, 409), token_resp.text
+
+        # Seed a Repository row to simulate a previously-ingested repo
+        repo = Repository(
+            repository_name=REPO_REQUEST["repository_name"],
+            repository_owner_name=REPO_REQUEST["repository_owner_name"],
+            repository_provider=ProviderKey.GITHUB_OPEN,
+        )
+        with get_sync_postgres_session(service_ports["postgresql"]) as session:
+            session.merge(repo)
+            session.commit()
+        await dispose_current_engine()
+
+        # Attempt duplicate ingestion — should be rejected
+        ingest_resp = test_client.post("/start-ingestion", json=REPO_REQUEST)
+        assert ingest_resp.status_code == 409, ingest_resp.text
+        assert "already been ingested" in ingest_resp.json()["detail"]
+
+        # Cleanup
+        cleanup_repository_via_endpoint(
+            test_client,
+            repository_name=REPO_REQUEST["repository_name"],
+            repository_owner_name=REPO_REQUEST["repository_owner_name"],
+        )
 

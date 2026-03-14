@@ -20,7 +20,12 @@ with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
     from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
+        AgentsMdUpdaterOutput,
+        ManagedBlockRunRecord,
         SectionId,
+    )
+    from unoplat_code_confluence_query_engine.models.output.git_ref_info import (
+        GitRefInfo,
     )
     from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
         FrameworkFeatureValidationCandidate,
@@ -55,8 +60,17 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.activities.engineering_workflow_completion_activity import (
         EngineeringWorkflowCompletionActivity,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.git_ref_resolution_activity import (
+        GitRefResolutionActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.managed_block_activity import (
+        ManagedBlockActivity,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
         RepositoryAgentSnapshotActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.cancellation_helpers import (
+        is_temporal_cancellation_exception,
     )
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
         DB_ACTIVITY_RETRY_POLICY,
@@ -110,6 +124,13 @@ def _enrich_agent_error_with_model_details(
     if model_error_details:
         error_dict["model_error_details"] = model_error_details
     return error_dict
+
+
+def _raise_if_temporal_cancellation(exception: BaseException) -> None:
+    """Re-raise cancellation-shaped exceptions so workflow cancel is preserved."""
+    if is_temporal_cancellation_exception(exception):
+        logger.info("[workflow] Cancellation detected, re-raising")
+        raise exception
 
 
 def _build_dependency_guide_prompt(
@@ -190,6 +211,7 @@ async def _run_section_updater(
             codebase_metadata.codebase_name,
         )
     except Exception as e:
+        _raise_if_temporal_cancellation(e)
         logger.error(
             "[workflow] {} failed for {}: {}",
             updater_agent_name,
@@ -321,6 +343,7 @@ async def _run_call_expression_validation(
             )
             agent_stats.append(extract_usage_statistics(validator_result.usage()))
         except Exception as validator_error:
+            _raise_if_temporal_cancellation(validator_error)
             logger.error(
                 "[workflow] call_expression_validator failed for {}:{}:{}:{}:{}-{}: {}",
                 candidate.identity.feature_language,
@@ -360,6 +383,7 @@ class CodebaseAgentWorkflow:
         codebase_metadata_dict: dict[str, Any],
         repository_workflow_run_id: str,
         trace_id: str = "",
+        git_ref_info: GitRefInfo | None = None,
     ) -> dict[str, Any]:
         """Execute all agents sequentially for a single codebase.
 
@@ -368,6 +392,7 @@ class CodebaseAgentWorkflow:
             codebase_metadata_dict: Serialized CodebaseMetadata
             repository_workflow_run_id: Unique workflow run ID for event tracking
             trace_id: Trace ID for distributed tracing (from API level)
+            git_ref_info: Resolved git ref metadata for freshness stamping (optional)
 
         Returns:
             Dictionary containing results from all agents
@@ -409,6 +434,29 @@ class CodebaseAgentWorkflow:
 
         # Track errors from agent execution (continue & collect all strategy)
         agent_errors: list[dict[str, Any]] = []
+
+        # Step 0: Bootstrap managed block with markers + freshness metadata
+        try:
+            bootstrap_output: AgentsMdUpdaterOutput = await workflow.execute_activity(
+                ManagedBlockActivity.bootstrap,
+                args=[
+                    codebase_metadata.codebase_path,
+                    git_ref_info.default_branch if git_ref_info else None,
+                    git_ref_info.head_commit_sha if git_ref_info else None,
+                ],
+                start_to_close_timeout=timedelta(seconds=30),
+                retry_policy=DB_ACTIVITY_RETRY_POLICY,
+            )
+            bootstrap_record = ManagedBlockRunRecord(
+                lifecycle_step="bootstrap",
+                agent_name="managed_block_bootstrap",
+                output=bootstrap_output,
+            )
+            results["agents_md_updater_runs"].append(
+                bootstrap_record.model_dump(mode="json")
+            )
+        except Exception as e:
+            logger.error("[workflow] Managed block bootstrap failed: {}", e)
 
         # Step 1: Development Workflow Guide
         if "development_workflow_guide" in temporal_agents:
@@ -482,6 +530,7 @@ class CodebaseAgentWorkflow:
                     updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
+                _raise_if_temporal_cancellation(e)
                 logger.error(
                     "[workflow] development_workflow_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
@@ -559,6 +608,7 @@ class CodebaseAgentWorkflow:
                             extract_usage_statistics(result.usage())
                         )
                     except Exception as dep_error:
+                        _raise_if_temporal_cancellation(dep_error)
                         logger.warning(
                             "[workflow] Failed to document dependency '{}': {}",
                             dependency_target.name,
@@ -613,6 +663,7 @@ class CodebaseAgentWorkflow:
                     updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
+                _raise_if_temporal_cancellation(e)
                 logger.error(
                     "[workflow] dependency_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
@@ -697,6 +748,7 @@ class CodebaseAgentWorkflow:
                     updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
+                _raise_if_temporal_cancellation(e)
                 logger.error(
                     "[workflow] business_domain_guide failed for {}: {}",
                     codebase_metadata.codebase_name,
@@ -799,6 +851,7 @@ class CodebaseAgentWorkflow:
                     updater_runs=results["agents_md_updater_runs"],
                 )
             except Exception as e:
+                _raise_if_temporal_cancellation(e)
                 logger.error(
                     "[workflow] app_interfaces_agent failed for {}: {}",
                     codebase_metadata.codebase_name,
@@ -892,6 +945,21 @@ class RepositoryAgentWorkflow:
         # Track per-codebase statistics for workflow-level aggregation
         codebase_statistics_map: dict[str, UsageStatistics] = {}
 
+        # Phase 0: Resolve repository git ref for freshness metadata
+        owner_name, repo_name = repository_qualified_name.split("/", maxsplit=1)
+        git_ref_info: GitRefInfo | None = None
+        try:
+            git_ref_info = await workflow.execute_activity(
+                GitRefResolutionActivity.resolve_git_ref,
+                args=[owner_name, repo_name],
+                start_to_close_timeout=timedelta(seconds=30),
+                retry_policy=DB_ACTIVITY_RETRY_POLICY,
+            )
+        except Exception:
+            logger.warning(
+                "[workflow] Git ref resolution failed, proceeding without freshness metadata"
+            )
+
         # Phase 1: Start all child workflows (non-blocking)
         # Each start_child_workflow returns immediately with a handle
         child_handles: list[
@@ -914,6 +982,7 @@ class RepositoryAgentWorkflow:
                     codebase_dict,
                     repository_workflow_run_id,
                     trace_id,
+                    git_ref_info,
                 ],
                 id=f"{repository_qualified_name.replace('/', '-')}-{codebase_name}",
                 parent_close_policy=ParentClosePolicy.TERMINATE,
@@ -938,6 +1007,7 @@ class RepositoryAgentWorkflow:
 
         for (codebase_name, _), result in zip(child_handles, results_list):
             if isinstance(result, BaseException):
+                _raise_if_temporal_cancellation(result)
                 logger.error(
                     "[workflow] CodebaseAgentWorkflow failed for {}/{}: {}",
                     repository_qualified_name,
