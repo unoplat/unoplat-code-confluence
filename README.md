@@ -80,7 +80,7 @@
   ·
   <a href="https://www.youtube.com/watch?v=l6gFjoj4QJE">Watch on YouTube</a>
   ·
-  <a href="https://github.com/JayGhiya/onyx/pull/1">Sample PR</a>
+  <a href="https://github.com/JayGhiya/full-stack-fastapi-template/pull/1">Sample PR</a>
 </p>
 
 **What's in the demo:** automatic `AGENTS.md` generation per repo and an org index that gives any coding agent a precise source of truth. See a [sample PR](https://github.com/JayGhiya/onyx/pull/1) created by the tool.
