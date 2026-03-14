@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.31.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.30.1...unoplat-code-confluence-v0.31.0) (2026-03-14)
+
+
+### Features
+
+* **cancellation:** implement agent workflow cancellation across backend stack ([0106cdf](https://github.com/unoplat/unoplat-code-confluence/commit/0106cdf07d0af116747adb1e5cb59f1268ff2ea9))
+* **frontend:** add cancel workflow action and CANCELLED status to operations UI ([1db5b58](https://github.com/unoplat/unoplat-code-confluence/commit/1db5b58aa179a52d56deb9184f58257664f65a25))
+* prevent duplicate repository ingestion with 409 guard ([257dcab](https://github.com/unoplat/unoplat-code-confluence/commit/257dcab7518a9f234814909697e5227fad2b9401))
+* **query-engine:** add managed block bootstrap and git ref resolution for AGENTS.md ([6d449f9](https://github.com/unoplat/unoplat-code-confluence/commit/6d449f90095d9070b372df5a7c4b5fa46a2d17ef))
+
+
+### Bug Fixes
+
+* **agent-feedback:** replace emoji sheet with thumbs dialog and redesign preview ([e9640f5](https://github.com/unoplat/unoplat-code-confluence/commit/e9640f562c7c4178c502cfa0ed830080487078c2))
+* **ci:** refresh package uv lockfiles before python lock checks run ([25d4882](https://github.com/unoplat/unoplat-code-confluence/commit/25d48827770f59c361eec09b6cb3a63932517093))
+* **ci:** refresh package uv lockfiles before python lock checks run ([7a7bf57](https://github.com/unoplat/unoplat-code-confluence/commit/7a7bf57e40cd1db2c629a4b6b0afaed8dfab2206))
+* toast notifications for duplicate request for repository for ing… ([d584813](https://github.com/unoplat/unoplat-code-confluence/commit/d5848131682e33cf1f62913908116091cd8adc59))
+* toast notifications for duplicate request for repository for ingestion ([afa5dba](https://github.com/unoplat/unoplat-code-confluence/commit/afa5dba4c9256021b8fdc68855a4e4435f3490e0))
+
 ## [0.30.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.30.0...unoplat-code-confluence-v0.30.1) (2026-03-09)
 
 
