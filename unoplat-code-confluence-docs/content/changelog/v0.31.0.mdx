@@ -1,0 +1,40 @@
+---
+title: "Release v0.31.0"
+description: "Agent workflow cancellation, managed AGENTS.md context blocks, duplicate ingestion prevention, and redesigned agent feedback"
+version: "0.31.0"
+releaseDate: "2026-03-14"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.31.0"
+---
+
+## Highlights
+
+This release introduces agent workflow cancellation from the Operations UI, managed AGENTS.md context blocks with git ref resolution, duplicate ingestion prevention, and a fully redesigned agent feedback experience with binary per-agent ratings.
+
+## What's New
+
+### Agent Workflow Cancellation
+
+- Cancel in-flight agent generation directly from the Operations UI
+- Full backend cancellation propagation ensures clean teardown of running workflows
+
+### Managed AGENTS.md Context Block
+
+- Git ref resolution and managed block bootstrap for structured AGENTS.md updates
+- Ensures consistent, version-aware context blocks across generated documentation
+
+### Duplicate Ingestion Prevention
+
+- 409 guard prevents submitting the same repository for ingestion multiple times
+- Clear toast notification when a duplicate ingestion is attempted
+
+### Redesigned Agent Feedback
+
+- Replaced the emoji-based rating sheet with a streamlined thumbs up/down dialog
+- Binary per-agent ratings for all four agent types: Development Workflow Guide, Dependency Guide, Business Domain Guide, and App Interfaces Guide
+- Enhanced preview with tech stack badges and "Copy All" functionality
+- Per-codebase sections with progress badges for tracking rating completion
+
+## Bug Fixes
+
+- Fixed toast notifications for duplicate ingestion requests
+- CI lockfile refresh for Python packages
