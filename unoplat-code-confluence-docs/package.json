@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "prebuild": "node ./scripts/sync-framework-definitions.mjs",
     "build": "NODE_ENV=production vite build",
     "preview": "vite preview",
     "start": "vite preview",
