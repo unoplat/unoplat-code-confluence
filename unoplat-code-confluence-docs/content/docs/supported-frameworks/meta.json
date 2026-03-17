@@ -1,0 +1,10 @@
+{
+  "title": "Supported Frameworks",
+  "icon": "Library",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "python",
+    "typescript"
+  ]
+}
