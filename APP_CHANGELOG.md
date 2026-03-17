@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.32.0...unoplat-code-confluence-v0.33.0) (2026-03-17)
+
+
+### Features
+
+* **docs:** add framework catalog table with pagination, filtering, a… ([8ce0db9](https://github.com/unoplat/unoplat-code-confluence/commit/8ce0db96fed079973dcc80a9663c7e78353694c6))
+* **docs:** add framework catalog table with pagination, filtering, and GitHub issue template ([54ba679](https://github.com/unoplat/unoplat-code-confluence/commit/54ba67959589b0ca015bfe71fbfdcd50f25e410f))
+
+
+### Bug Fixes
+
+* **agent-md-section:** duplicate information across corresponding art… ([1ef311d](https://github.com/unoplat/unoplat-code-confluence/commit/1ef311ddc5d956880cb26501507bf419da32613c))
+* **agent-md-section:** duplicate information across corresponding artifacts and agents.md ([333e1cd](https://github.com/unoplat/unoplat-code-confluence/commit/333e1cdb91ed8a2e6d66d61fadcf5a5dfe9cd879))
+* **ci:** refresh package uv lockfiles before python lock checks run ([d9cbd4a](https://github.com/unoplat/unoplat-code-confluence/commit/d9cbd4ae2e578d99f8597f720ed1c182018305c9))
+* **data-table-filter:** invert numeric filter sync condition so parent state propagates ([52ed378](https://github.com/unoplat/unoplat-code-confluence/commit/52ed378770bcbc1d8ad070aa9df102a4e44e196f))
+* **prebuild-bun:** prebuild step generates catalog json ([b1690e8](https://github.com/unoplat/unoplat-code-confluence/commit/b1690e8d9884407557394a295f5fd28b6db8e431))
+
 ## [0.32.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.31.0...unoplat-code-confluence-v0.32.0) (2026-03-14)
 
 
