@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.40.1...unoplat-code-confluence-docs-v0.41.0) (2026-03-17)
+
+
+### Features
+
+* **docs:** add framework catalog table with pagination, filtering, a… ([8ce0db9](https://github.com/unoplat/unoplat-code-confluence/commit/8ce0db96fed079973dcc80a9663c7e78353694c6))
+* **docs:** add framework catalog table with pagination, filtering, and GitHub issue template ([54ba679](https://github.com/unoplat/unoplat-code-confluence/commit/54ba67959589b0ca015bfe71fbfdcd50f25e410f))
+
+
+### Bug Fixes
+
+* **data-table-filter:** invert numeric filter sync condition so parent state propagates ([52ed378](https://github.com/unoplat/unoplat-code-confluence/commit/52ed378770bcbc1d8ad070aa9df102a4e44e196f))
+* **prebuild-bun:** prebuild step generates catalog json ([b1690e8](https://github.com/unoplat/unoplat-code-confluence/commit/b1690e8d9884407557394a295f5fd28b6db8e431))
+
 ## [0.40.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.40.0...unoplat-code-confluence-docs-v0.40.1) (2026-03-14)
 
 
