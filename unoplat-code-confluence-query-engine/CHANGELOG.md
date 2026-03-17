@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.39.0...unoplat-code-confluence-query-engine-v0.39.1) (2026-03-17)
+
+
+### Bug Fixes
+
+* **agent-md-section:** duplicate information across corresponding art… ([1ef311d](https://github.com/unoplat/unoplat-code-confluence/commit/1ef311ddc5d956880cb26501507bf419da32613c))
+* **agent-md-section:** duplicate information across corresponding artifacts and agents.md ([333e1cd](https://github.com/unoplat/unoplat-code-confluence/commit/333e1cdb91ed8a2e6d66d61fadcf5a5dfe9cd879))
+
 ## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.38.0...unoplat-code-confluence-query-engine-v0.39.0) (2026-03-13)
 
 
