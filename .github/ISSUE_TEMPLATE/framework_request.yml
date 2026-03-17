@@ -1,0 +1,49 @@
+name: Framework / Library Request
+description: Request support for a new framework or library in Unoplat Code Confluence
+title: "[Framework Request] "
+labels: ["framework-request"]
+assignees:
+  - JayGhiya
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for requesting a new framework! Please fill in the details below so we can add support for it.
+
+  - type: input
+    id: library
+    attributes:
+      label: Framework / Library Name
+      description: The name of the framework or library (e.g. FastAPI, Next.js, SQLAlchemy)
+      placeholder: e.g. Django
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Programming Language
+      description: The language this framework/library belongs to
+      options:
+        - Python
+        - TypeScript
+        - Go
+        - Rust
+        - Java
+    validations:
+      required: true
+
+  - type: input
+    id: docs_url
+    attributes:
+      label: Documentation URL
+      description: Link to the official documentation for this framework/library
+      placeholder: e.g. https://docs.djangoproject.com
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any extra details — why this framework matters to you, specific modules/patterns you need covered, etc.

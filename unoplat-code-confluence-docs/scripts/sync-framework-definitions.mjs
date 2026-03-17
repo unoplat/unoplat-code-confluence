@@ -25,10 +25,9 @@ const DIDS_CATALOG_ROOT = path.resolve(
   DOCS_ROOT,
   "content",
   "docs",
-  "contribution",
-  "custom-framework-schema",
-  "catalog",
+  "supported-frameworks",
 );
+const CATALOG_DATA_PATH = path.resolve(DOCS_ROOT, "src", "data", "framework-catalog-data.json");
 const CANONICAL_DEFINITIONS_TREE_URL =
   "https://github.com/unoplat/unoplat-code-confluence/tree/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions";
 const CANONICAL_DEFINITIONS_BLOB_BASE_URL =
@@ -142,7 +141,7 @@ description: "Static ${displayName} feature catalog powered by DIDS framework de
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
-import { FrameworkFeatureCatalog } from '../../../../../../src/components/framework-feature-catalog';
+import { FrameworkFeatureCatalog } from '../../../../src/components/framework-feature-catalog';
 
 # ${displayName} Feature Catalog (${toTitleCase(language)})
 
@@ -176,8 +175,10 @@ async function syncCatalogDocs(languageRows) {
 
   const catalogMetaPath = path.resolve(DIDS_CATALOG_ROOT, "meta.json");
   const catalogMeta = {
-    title: "Catalog",
-    pages: languageRows.map((row) => row.language),
+    title: "Supported Frameworks",
+    icon: "Library",
+    defaultOpen: true,
+    pages: ["index", ...languageRows.map((row) => row.language)],
   };
   await writeFile(catalogMetaPath, `${JSON.stringify(catalogMeta, null, 2)}\n`, "utf-8");
 
@@ -218,6 +219,7 @@ async function syncFrameworkDefinitions() {
   const generatedAt = getGeneratedAtTimestamp();
   const languages = await listLanguageDirectories();
   const indexLanguages = [];
+  const catalogRows = [];
 
   for (const language of languages) {
     const libraryFiles = await listLibraryJsonFiles(language);
@@ -235,9 +237,20 @@ async function syncFrameworkDefinitions() {
       const targetFilePath = path.resolve(targetLanguagePath, fileName);
 
       const rawJsonContent = await readFile(sourceFilePath, "utf-8");
-      JSON.parse(rawJsonContent);
+      const parsed = JSON.parse(rawJsonContent);
       await copyFile(sourceFilePath, targetFilePath);
-      libraries.push(getLibraryName(fileName));
+
+      const library = getLibraryName(fileName);
+      libraries.push(library);
+
+      const libraryDefinition = parsed[language]?.[library];
+      catalogRows.push({
+        language,
+        library,
+        description: libraryDefinition?.description ?? "",
+        docsUrl: libraryDefinition?.docs_url ?? "",
+        catalogPath: `/docs/supported-frameworks/${language}/${library}`,
+      });
     }
 
     indexLanguages.push({ language, libraries });
@@ -251,6 +264,9 @@ async function syncFrameworkDefinitions() {
 
   const languageIndexPath = path.resolve(TARGET_ROOT, "language-index.json");
   await writeFile(languageIndexPath, `${JSON.stringify(languageIndex, null, 2)}\n`, "utf-8");
+
+  await mkdir(path.dirname(CATALOG_DATA_PATH), { recursive: true });
+  await writeFile(CATALOG_DATA_PATH, `${JSON.stringify(catalogRows, null, 2)}\n`, "utf-8");
 
   await syncCatalogDocs(indexLanguages);
 }

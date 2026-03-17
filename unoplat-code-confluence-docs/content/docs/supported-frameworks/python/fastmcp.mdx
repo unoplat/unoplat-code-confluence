@@ -1,0 +1,32 @@
+---
+title: Fastmcp
+description: "Static Fastmcp feature catalog powered by DIDS framework definitions"
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { FrameworkFeatureCatalog } from '../../../../src/components/framework-feature-catalog';
+
+# Fastmcp Feature Catalog (Python)
+
+This page provides a static, contributor-friendly view of Fastmcp features currently covered by the Deterministic Interface Discovery Schema (DIDS).
+
+<Callout type="info" title="Source of Truth">
+  - Canonical definitions live in ingestion: [framework-definitions directory](https://github.com/unoplat/unoplat-code-confluence/tree/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions)
+  - Canonical Fastmcp file: [framework-definitions/python/fastmcp.json](https://github.com/unoplat/unoplat-code-confluence/blob/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions/python/fastmcp.json)
+  - Docs consume generated static assets from: `/framework-definitions`
+  - Current file shown here: [`/framework-definitions/python/fastmcp.json`](/framework-definitions/python/fastmcp.json)
+</Callout>
+
+## Why this catalog exists
+
+This catalog makes deterministic feature coverage visible so contributors can evolve discovery rules safely.
+
+## Current Fastmcp coverage
+
+<FrameworkFeatureCatalog displayName="Fastmcp" language="python" library="fastmcp" />
+
+## How to update this page's data
+
+1. Update Fastmcp definitions in ingestion source.
+2. Run `bun run sync:framework-definitions` from `unoplat-code-confluence-docs`.
+3. Commit both source definition changes and generated docs artifacts.
