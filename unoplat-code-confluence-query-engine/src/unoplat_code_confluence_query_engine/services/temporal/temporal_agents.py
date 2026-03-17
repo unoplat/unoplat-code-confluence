@@ -204,22 +204,47 @@ SECTION_HEADINGS: dict[SectionId, str] = {
 }
 
 DEPENDENCY_OVERVIEW_ARTIFACT = "dependencies_overview.md"
+BUSINESS_LOGIC_REFERENCES_ARTIFACT = "business_logic_references.md"
+APP_INTERFACES_ARTIFACT = "app_interfaces.md"
 
 SECTION_ARTIFACTS: dict[SectionId, list[str]] = {
     SectionId.ENGINEERING_WORKFLOW: ["AGENTS.md"],
     SectionId.DEPENDENCY_GUIDE: ["AGENTS.md", DEPENDENCY_OVERVIEW_ARTIFACT],
-    SectionId.BUSINESS_DOMAIN: ["AGENTS.md", "business_logic_references.md"],
-    SectionId.APP_INTERFACES: ["AGENTS.md", "app_interfaces.md"],
+    SectionId.BUSINESS_DOMAIN: ["AGENTS.md", BUSINESS_LOGIC_REFERENCES_ARTIFACT],
+    SectionId.APP_INTERFACES: ["AGENTS.md", APP_INTERFACES_ARTIFACT],
 }
 
-SECTION_EXTRA_REQUIREMENTS: dict[SectionId, str] = {
-    SectionId.DEPENDENCY_GUIDE: (
-        "- Keep AGENTS.md dependency content concise and reference "
-        f"`{DEPENDENCY_OVERVIEW_ARTIFACT}`.\n"
-        f"- Write full dependency purpose/usage entries in `{DEPENDENCY_OVERVIEW_ARTIFACT}`.\n"
-        f"- Treat `{DEPENDENCY_OVERVIEW_ARTIFACT}` as the source-of-truth dependency catalog."
-    )
+SECTION_COMPANION_ARTIFACTS: dict[SectionId, str] = {
+    SectionId.DEPENDENCY_GUIDE: DEPENDENCY_OVERVIEW_ARTIFACT,
+    SectionId.BUSINESS_DOMAIN: BUSINESS_LOGIC_REFERENCES_ARTIFACT,
+    SectionId.APP_INTERFACES: APP_INTERFACES_ARTIFACT,
 }
+
+
+def _build_section_extra_requirements(section_id: SectionId) -> str:
+    """Build section-specific updater requirements."""
+    requirements: list[str] = []
+    companion_artifact = SECTION_COMPANION_ARTIFACTS.get(section_id)
+
+    if companion_artifact is not None:
+        requirements.extend(
+            [
+                "- In `AGENTS.md`, write ONLY a concise description of "
+                f"`{companion_artifact}` and a markdown link to it.",
+                "- Keep the `AGENTS.md` section body to 1-2 short sentences total.",
+                "- Do NOT include tables, bullet inventories, endpoint lists, file maps, "
+                "dependency catalogs, or detailed prose in `AGENTS.md`.",
+                f"- Write all detailed section content in `{companion_artifact}`.",
+                f"- Treat `{companion_artifact}` as the source-of-truth artifact for this section.",
+            ]
+        )
+
+    if section_id == SectionId.DEPENDENCY_GUIDE:
+        requirements.append(
+            f"- Put full dependency purpose/usage entries only in `{DEPENDENCY_OVERVIEW_ARTIFACT}`."
+        )
+
+    return "\n".join(requirements)
 
 
 def build_section_updater_prompt(
@@ -232,7 +257,7 @@ def build_section_updater_prompt(
     heading = SECTION_HEADINGS[section_id]
     artifacts = SECTION_ARTIFACTS[section_id]
     artifacts_instruction = "\n".join(f"- {a}" for a in artifacts)
-    section_specific_requirements = SECTION_EXTRA_REQUIREMENTS.get(section_id, "")
+    section_specific_requirements = _build_section_extra_requirements(section_id)
     section_specific_instruction = ""
     if section_specific_requirements:
         section_specific_instruction = (
@@ -727,6 +752,15 @@ Section scoping:
 - You will be told which section heading you own (e.g., "## Engineering Workflow").
 - Update content under your assigned heading.
 - NEVER modify content outside your assigned section boundary.
+
+Companion artifact policy:
+- Some sections have a companion artifact file (for example `{DEPENDENCY_OVERVIEW_ARTIFACT}`, `{BUSINESS_LOGIC_REFERENCES_ARTIFACT}`, `{APP_INTERFACES_ARTIFACT}`).
+- If your assigned section has a companion artifact, `AGENTS.md` is pointer-only.
+- In `AGENTS.md`, write only a concise description of the companion artifact and a markdown link to it.
+- Keep the `AGENTS.md` section body to 1-2 short sentences total.
+- NEVER copy tables, bullet inventories, endpoint lists, file maps, dependency catalogs, or detailed summaries into `AGENTS.md`.
+- Put detailed content in the companion artifact and treat that artifact as the source-of-truth.
+- Sections without a companion artifact may store their section content directly in `AGENTS.md`.
 
 Root-scope safety (hard invariant):
 - ALL file operations MUST use absolute paths within the current codebase root.
