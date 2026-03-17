@@ -717,12 +717,12 @@ export function FilterValueNumberController<TData>({
   useEffect(() => {
     if (
       filter?.values &&
-      filter.values.length === values.length &&
-      filter.values.every((v, i) => v === values[i])
+      (filter.values.length !== values.length ||
+        !filter.values.every((v, i) => v === values[i]))
     ) {
       setValues(filter.values)
     }
-  }, [filter?.values, values])
+  }, [filter?.values])
 
   const isNumberRange =
     // filter && values.length === 2
