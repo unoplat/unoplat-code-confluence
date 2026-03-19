@@ -82,11 +82,15 @@ class TypeScriptRipgrepDetector:
             rules_data: Dict[str, object] = yaml.safe_load(content)  # type: ignore[assignment]
 
         ts_rules_raw: object = rules_data.get(self.LANGUAGE_KEY, {})
-        ts_rules: Dict[str, object] = ts_rules_raw if isinstance(ts_rules_raw, dict) else {}  # type: ignore[assignment]
+        ts_rules: Dict[str, object] = (
+            ts_rules_raw if isinstance(ts_rules_raw, dict) else {}
+        )  # type: ignore[assignment]
         managers: List[ManagerRule] = []
 
         managers_list: object = ts_rules.get("managers", [])
-        for manager_entry_raw in managers_list if isinstance(managers_list, list) else []:  # pyright: ignore[reportUnknownVariableType]
+        for manager_entry_raw in (
+            managers_list if isinstance(managers_list, list) else []
+        ):  # pyright: ignore[reportUnknownVariableType]
             if not isinstance(manager_entry_raw, dict):
                 continue
             manager_entry: Dict[str, object] = manager_entry_raw  # type: ignore[assignment]
@@ -102,7 +106,9 @@ class TypeScriptRipgrepDetector:
             manager_name_val: str = str(manager_entry.get("manager", ""))
             weight_val: int = int(manager_entry.get("weight", 1))  # type: ignore[arg-type]
             ws_field_val: object = manager_entry.get("workspace_field")
-            ws_field_str: Optional[str] = ws_field_val if isinstance(ws_field_val, str) else None
+            ws_field_str: Optional[str] = (
+                ws_field_val if isinstance(ws_field_val, str) else None
+            )
 
             managers.append(
                 ManagerRule(
@@ -164,13 +170,20 @@ class TypeScriptRipgrepDetector:
         ws_field = self._get_workspace_field(manager_name)
         if not ws_field:
             return set()
-        globs = await self._read_workspace_globs(directory_path, repo_path, ws_field)
+        globs = await self._read_workspace_globs(
+            directory_path, repo_path, manager_name, ws_field
+        )
         if not globs:
             return set()
-        # Prefix globs with the declaring directory so they match repo-relative paths
         if directory_path != ".":
-            globs = [f"{directory_path}/{g}" for g in globs]
-        return self._expand_workspace_globs(globs, known_dirs)
+            globs = [
+                self._rebase_workspace_glob(directory_path, glob_pattern)
+                for glob_pattern in globs
+            ]
+        members, _excluded_dirs = self._expand_workspace_globs_with_exclusions(
+            globs, known_dirs
+        )
+        return members
 
     async def _fast_detect(
         self, repo_path: str
@@ -204,10 +217,16 @@ class TypeScriptRipgrepDetector:
         done_dirs: set[str] = set()
         aggregator_manager_map: Dict[str, str] = {}  # aggregator_dir → manager
         workspace_member_dirs: set[str] = set()  # expanded member paths
+        workspace_excluded_dirs: set[str] = set()  # explicit negated workspace paths
 
         sorted_dirs = sorted(dirs_to_files.keys(), key=lambda p: len(p.split("/")))
 
         for directory_path in sorted_dirs:
+            if directory_path in workspace_excluded_dirs:
+                logger.debug(
+                    "Skipping excluded workspace directory: {}", directory_path
+                )
+                continue
 
             # --- Branch A: Explicit workspace member (checked FIRST) ---
             if directory_path in workspace_member_dirs:
@@ -224,13 +243,17 @@ class TypeScriptRipgrepDetector:
                     continue
 
                 # Check if this member is itself a nested aggregator
-                nested_members = await self._resolve_workspace_members(
+                (
+                    nested_members,
+                    nested_excluded_dirs,
+                ) = await self._resolve_workspace_glob_sets(
                     directory_path, repo_path, inherited, known_dirs_list
                 )
 
                 if nested_members:
                     # Nested aggregator — suppress, register its members
                     workspace_member_dirs.update(nested_members)
+                    workspace_excluded_dirs.update(nested_excluded_dirs)
                     aggregator_manager_map[directory_path] = inherited
                     logger.debug(
                         "Nested workspace aggregator: {} (inherited {}), members: {}",
@@ -266,13 +289,20 @@ class TypeScriptRipgrepDetector:
 
                 if is_typescript:
                     # Check for workspace aggregator
-                    resolved_members = await self._resolve_workspace_members(
-                        directory_path, repo_path, detected_manager, known_dirs_list
+                    (
+                        resolved_members,
+                        excluded_dirs,
+                    ) = await self._resolve_workspace_glob_sets(
+                        directory_path,
+                        repo_path,
+                        detected_manager,
+                        known_dirs_list,
                     )
 
                     if resolved_members:
                         # Aggregator — DO NOT add to detections or done_dirs
                         workspace_member_dirs.update(resolved_members)
+                        workspace_excluded_dirs.update(excluded_dirs)
                         aggregator_manager_map[directory_path] = detected_manager
                         logger.debug(
                             "Workspace aggregator: {} ({}), members: {}",
@@ -296,6 +326,29 @@ class TypeScriptRipgrepDetector:
                     )
 
         return inventory, detections
+
+    async def _resolve_workspace_glob_sets(
+        self,
+        directory_path: str,
+        repo_path: str,
+        manager_name: str,
+        known_dirs: List[str],
+    ) -> Tuple[set[str], set[str]]:
+        """Resolve included and excluded workspace directories for an aggregator."""
+        ws_field = self._get_workspace_field(manager_name)
+        if not ws_field:
+            return set(), set()
+        globs = await self._read_workspace_globs(
+            directory_path, repo_path, manager_name, ws_field
+        )
+        if not globs:
+            return set(), set()
+        if directory_path != ".":
+            globs = [
+                self._rebase_workspace_glob(directory_path, glob_pattern)
+                for glob_pattern in globs
+            ]
+        return self._expand_workspace_globs_with_exclusions(globs, known_dirs)
 
     def _get_workspace_field(self, manager_name: str) -> Optional[str]:
         """Return the workspace_field declared in rules for the given manager."""
@@ -332,14 +385,29 @@ class TypeScriptRipgrepDetector:
         return raw  # type: ignore[return-value]
 
     async def _read_workspace_globs(
-        self, directory_path: str, repo_path: str, workspace_field: str
+        self,
+        directory_path: str,
+        repo_path: str,
+        manager_name: str,
+        workspace_field: str,
     ) -> List[str]:
-        """Read workspace globs from package.json.
+        """Read workspace globs for the detected package manager.
 
-        Handles both array and object forms of the workspaces field:
+        pnpm prefers `pnpm-workspace.yaml` with a top-level `packages` list.
+        For compatibility, pnpm falls back to package.json when the YAML file
+        is absent or does not declare any package patterns.
+
+        package.json handling supports both array and object forms:
         - Array: ``"workspaces": ["apps/*", "packages/*"]``
         - Object: ``"workspaces": {"packages": ["apps/*", ...]}``
         """
+        if manager_name == "pnpm":
+            pnpm_globs = await self._read_pnpm_workspace_globs(
+                directory_path, repo_path
+            )
+            if pnpm_globs:
+                return pnpm_globs
+
         pkg = await self._read_package_json(directory_path, repo_path)
         if pkg is None:
             return []
@@ -367,6 +435,38 @@ class TypeScriptRipgrepDetector:
         return globs
 
     @staticmethod
+    async def _read_pnpm_workspace_globs(
+        directory_path: str, repo_path: str
+    ) -> List[str]:
+        """Read workspace package patterns from pnpm-workspace.yaml."""
+        workspace_path = os.path.join(repo_path, directory_path, "pnpm-workspace.yaml")
+
+        try:
+            async with async_open(workspace_path, "r") as fh:
+                content = await fh.read()
+            raw: object = yaml.safe_load(content)
+        except FileNotFoundError:
+            return []
+        except yaml.YAMLError as exc:
+            logger.debug(
+                "Cannot read pnpm-workspace.yaml from {}: {}", workspace_path, exc
+            )
+            return []
+
+        if not isinstance(raw, dict):
+            return []
+
+        packages: object = raw.get("packages")
+        if not isinstance(packages, list):
+            return []
+
+        globs: List[str] = []
+        for item in packages:
+            if isinstance(item, str):
+                globs.append(item)
+        return globs
+
+    @staticmethod
     def _match_workspace_pattern(pattern: str, dir_path: str) -> bool:
         """Segment-aware glob match with ``fnmatch`` and ``**`` support.
 
@@ -387,14 +487,34 @@ class TypeScriptRipgrepDetector:
         cls, workspace_globs: List[str], known_dirs: List[str]
     ) -> set[str]:
         """Expand workspace glob patterns against known directories."""
+        members, _excluded_dirs = cls._expand_workspace_globs_with_exclusions(
+            workspace_globs, known_dirs
+        )
+        return members
+
+    @classmethod
+    def _expand_workspace_globs_with_exclusions(
+        cls, workspace_globs: List[str], known_dirs: List[str]
+    ) -> Tuple[set[str], set[str]]:
+        """Expand workspace glob patterns, returning included and excluded dirs."""
         members: set[str] = set()
+        excluded_dirs: set[str] = set()
         for glob_pattern in workspace_globs:
-            normalized_pattern = cls._normalize_dir_path(glob_pattern)
+            is_exclusion = glob_pattern.startswith("!")
+            pattern_body = glob_pattern[1:] if is_exclusion else glob_pattern
+            normalized_pattern = cls._normalize_dir_path(pattern_body)
+            matching_dirs: set[str] = set()
             for dir_path in known_dirs:
                 normalized_dir = cls._normalize_dir_path(dir_path)
                 if cls._match_workspace_pattern(normalized_pattern, normalized_dir):
-                    members.add(normalized_dir)
-        return members
+                    matching_dirs.add(normalized_dir)
+            if is_exclusion:
+                members.difference_update(matching_dirs)
+                excluded_dirs.update(matching_dirs)
+            else:
+                members.update(matching_dirs)
+                excluded_dirs.difference_update(matching_dirs)
+        return members, excluded_dirs
 
     @staticmethod
     def _find_aggregator_manager(
@@ -425,6 +545,16 @@ class TypeScriptRipgrepDetector:
         if not stripped:
             return "."
         return str(PurePosixPath(stripped))
+
+    @classmethod
+    def _rebase_workspace_glob(cls, directory_path: str, glob_pattern: str) -> str:
+        """Rebase a workspace glob declared in a subdirectory to repo-relative form."""
+        is_exclusion = glob_pattern.startswith("!")
+        pattern_body = glob_pattern[1:] if is_exclusion else glob_pattern
+        rebased_pattern = cls._normalize_dir_path(f"{directory_path}/{pattern_body}")
+        if is_exclusion:
+            return f"!{rebased_pattern}"
+        return rebased_pattern
 
     def _extract_file_patterns(self) -> List[str]:
         """

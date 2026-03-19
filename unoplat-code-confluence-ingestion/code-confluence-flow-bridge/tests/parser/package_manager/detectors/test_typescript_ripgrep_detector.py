@@ -36,6 +36,9 @@ EXPECTED_T3CODE_PROJECT_NAMES: dict[str, str] = {
 STANDALONE_FIXTURE_DIR = (
     Path(__file__).resolve().parents[3] / "test_data" / "standalone_ts_project"
 )
+PNPM_WORKSPACE_FIXTURE_DIR = (
+    Path(__file__).resolve().parents[3] / "test_data" / "pnpm_workspace_test"
+)
 
 
 def format_detected_codebases(detected_codebases: list[CodebaseConfig]) -> list[str]:
@@ -81,7 +84,10 @@ async def test_detect_codebases_t3code_turbo_monorepo_returns_workspace_members_
 
     # All workspace members must inherit the aggregator's package manager (bun)
     for codebase in detected_codebases:
-        assert codebase.programming_language_metadata.package_manager == PackageManagerType("bun"), (
+        assert (
+            codebase.programming_language_metadata.package_manager
+            == PackageManagerType("bun")
+        ), (
             f"Codebase {codebase.codebase_folder} should inherit bun, "
             f"got {codebase.programming_language_metadata.package_manager}"
         )
@@ -89,7 +95,9 @@ async def test_detect_codebases_t3code_turbo_monorepo_returns_workspace_members_
         assert codebase.programming_language_metadata.manifest_path is not None, (
             f"Codebase {codebase.codebase_folder} should have manifest_path set"
         )
-        assert codebase.programming_language_metadata.manifest_path.endswith("package.json"), (
+        assert codebase.programming_language_metadata.manifest_path.endswith(
+            "package.json"
+        ), (
             f"Codebase {codebase.codebase_folder} manifest_path should end with package.json, "
             f"got {codebase.programming_language_metadata.manifest_path}"
         )
@@ -110,7 +118,9 @@ async def test_detect_codebases_standalone_ts_project_returns_root() -> None:
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
 
-    detected_codebases = await detector.detect_codebases(str(STANDALONE_FIXTURE_DIR), "")
+    detected_codebases = await detector.detect_codebases(
+        str(STANDALONE_FIXTURE_DIR), ""
+    )
     detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
 
     assert detected_folders == {"."}, (
@@ -119,9 +129,14 @@ async def test_detect_codebases_standalone_ts_project_returns_root() -> None:
     )
 
     root_codebase = detected_codebases[0]
-    assert root_codebase.programming_language_metadata.package_manager == PackageManagerType("bun")
+    assert (
+        root_codebase.programming_language_metadata.package_manager
+        == PackageManagerType("bun")
+    )
     assert root_codebase.programming_language_metadata.manifest_path == "package.json"
-    assert root_codebase.programming_language_metadata.project_name == "standalone-ts-app"
+    assert (
+        root_codebase.programming_language_metadata.project_name == "standalone-ts-app"
+    )
 
 
 @pytest.mark.asyncio
@@ -142,7 +157,7 @@ async def test_nested_workspace_aggregator_suppressed(tmp_path: Path) -> None:
     platform_dir.mkdir(parents=True)
     platform_pkg = {
         "name": "platform",
-        "workspaces": ["plugins/*"],
+        "workspaces": ["plugins/*", "!plugins/e2e/*"],
         "devDependencies": {"typescript": "^5.0.0"},
     }
     (platform_dir / "package.json").write_text(json.dumps(platform_pkg))
@@ -154,6 +169,13 @@ async def test_nested_workspace_aggregator_suppressed(tmp_path: Path) -> None:
     foo_pkg = {"name": "@platform/foo", "devDependencies": {"typescript": "^5.0.0"}}
     (foo_dir / "package.json").write_text(json.dumps(foo_pkg))
     (foo_dir / "tsconfig.json").write_text('{"compilerOptions": {}}')
+
+    # packages/platform/plugins/e2e/bar: excluded by nested negated workspace glob
+    e2e_dir = platform_dir / "plugins" / "e2e" / "bar"
+    e2e_dir.mkdir(parents=True)
+    e2e_pkg = {"name": "@platform/e2e-bar", "devDependencies": {"typescript": "^5.0.0"}}
+    (e2e_dir / "package.json").write_text(json.dumps(e2e_pkg))
+    (e2e_dir / "tsconfig.json").write_text('{"compilerOptions": {}}')
 
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
@@ -167,13 +189,51 @@ async def test_nested_workspace_aggregator_suppressed(tmp_path: Path) -> None:
     )
 
     foo_codebase = detected_codebases[0]
-    assert foo_codebase.programming_language_metadata.package_manager == PackageManagerType("bun")
+    assert (
+        foo_codebase.programming_language_metadata.package_manager
+        == PackageManagerType("bun")
+    )
     assert foo_codebase.programming_language_metadata.project_name == "@platform/foo"
+
+
+@pytest.mark.asyncio
+async def test_detect_codebases_pnpm_workspace_yaml_returns_workspace_members_only() -> (
+    None
+):
+    assert PNPM_WORKSPACE_FIXTURE_DIR.exists(), (
+        f"pnpm workspace fixture not found: {PNPM_WORKSPACE_FIXTURE_DIR}"
+    )
+
+    detector = TypeScriptRipgrepDetector()
+    await detector.initialize_rules()
+
+    detected_codebases = await detector.detect_codebases(
+        str(PNPM_WORKSPACE_FIXTURE_DIR), ""
+    )
+    detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
+
+    assert detected_folders == {"packages/app"}, (
+        "pnpm-workspace.yaml members should be emitted while the root aggregator is suppressed.\n"
+        f"Actual codebases: {format_detected_codebases(detected_codebases)}"
+    )
+
+    app_codebase = detected_codebases[0]
+    assert (
+        app_codebase.programming_language_metadata.package_manager
+        == PackageManagerType("pnpm")
+    )
+    assert (
+        app_codebase.programming_language_metadata.manifest_path
+        == "packages/app/package.json"
+    )
+    assert app_codebase.programming_language_metadata.project_name == "@pnpm/app"
 
 
 def _match(pattern: str, dir_path: str) -> bool:
     """Helper to call segment_match with PurePosixPath parts."""
-    return segment_match(PurePosixPath(pattern).parts, 0, PurePosixPath(dir_path).parts, 0)
+    return segment_match(
+        PurePosixPath(pattern).parts, 0, PurePosixPath(dir_path).parts, 0
+    )
 
 
 def test_segment_aware_glob_matching() -> None:
@@ -196,3 +256,21 @@ def test_segment_aware_glob_matching() -> None:
 
     # No match
     assert _match("apps/*", "packages/foo") is False
+
+
+def test_expand_workspace_globs_honors_negated_patterns_in_order() -> None:
+    expanded = TypeScriptRipgrepDetector._expand_workspace_globs(
+        ["packages/**", "!packages/excluded/**", "packages/excluded/keep"],
+        [
+            "packages/core",
+            "packages/excluded/app",
+            "packages/excluded/keep",
+            "packages/shared",
+        ],
+    )
+
+    assert expanded == {
+        "packages/core",
+        "packages/excluded/keep",
+        "packages/shared",
+    }
