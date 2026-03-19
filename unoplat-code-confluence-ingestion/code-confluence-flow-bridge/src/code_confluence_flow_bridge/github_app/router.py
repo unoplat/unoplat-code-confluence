@@ -43,22 +43,13 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
 
 # Local
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
+from src.code_confluence_flow_bridge.utility.runtime_deps import get_env_settings
 
 router = APIRouter(prefix="/integrations/github", tags=["GitHub App"])
 
 GITHUB_MANIFEST_CONVERSION_ENDPOINT = (
     "https://api.github.com/app-manifests/{code}/conversions"
 )
-
-
-def _resolve_env_settings(request: Request) -> EnvironmentSettings:
-    """Retrieve the cached environment configuration from the FastAPI app."""
-    env_settings: EnvironmentSettings = request.app.state.code_confluence_env
-    if not isinstance(env_settings, EnvironmentSettings):
-        raise RuntimeError(
-            "Environment settings have not been initialised on the FastAPI app."
-        )
-    return env_settings
 
 
 @router.post(
@@ -68,11 +59,10 @@ def _resolve_env_settings(request: Request) -> EnvironmentSettings:
 )
 async def create_manifest(
     payload: ManifestGenerationRequest,
-    request: Request,
+    env_settings: EnvironmentSettings = Depends(get_env_settings),
     session: async_scoped_session = Depends(get_session),  # pyright:ignore
 ) -> ManifestGenerationResponse:
     """Generate a manifest JSON payload and registration URL for the operator."""
-    env_settings = _resolve_env_settings(request)
 
     # Resolve owner defaults
     owner_login: Optional[str] = payload.owner or env_settings.github_app_owner
