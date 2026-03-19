@@ -6,7 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-03-07 11:32'
-updated_date: '2026-03-07 11:32'
+updated_date: '2026-03-19 09:57'
 labels:
   - typescript
   - nextjs
@@ -38,6 +38,7 @@ documentation:
   - 'https://nextjs.org/docs/app/api-reference/file-conventions/route'
 parent_task_id: TASK-1
 priority: high
+ordinal: 7000
 ---
 
 ## Description

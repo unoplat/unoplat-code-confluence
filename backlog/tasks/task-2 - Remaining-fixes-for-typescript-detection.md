@@ -4,8 +4,10 @@ title: Remaining fixes for typescript detection
 status: To Do
 assignee: []
 created_date: '2026-02-28 06:59'
+updated_date: '2026-03-19 09:57'
 labels: []
 dependencies: []
+ordinal: 1000
 ---
 
 ## Description
