@@ -4,6 +4,7 @@ title: Support multiple saved model-provider configurations
 status: To Do
 assignee: []
 created_date: '2026-03-02 12:09'
+updated_date: '2026-03-19 09:57'
 labels:
   - feature
   - model-config
@@ -11,6 +12,7 @@ labels:
   - frontend
 dependencies: []
 priority: high
+ordinal: 3000
 ---
 
 ## Description

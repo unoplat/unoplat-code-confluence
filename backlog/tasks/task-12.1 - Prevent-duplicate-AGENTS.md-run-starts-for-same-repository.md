@@ -4,6 +4,7 @@ title: Prevent duplicate AGENTS.md run starts for same repository
 status: To Do
 assignee: []
 created_date: '2026-03-10 11:03'
+updated_date: '2026-03-19 09:57'
 labels:
   - frontend
   - ux
@@ -21,6 +22,7 @@ references:
     unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/api/v1/endpoints/codebase_agent_rules.py
 parent_task_id: TASK-12
 priority: high
+ordinal: 11000
 ---
 
 ## Description

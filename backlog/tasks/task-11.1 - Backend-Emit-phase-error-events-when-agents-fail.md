@@ -4,6 +4,7 @@ title: 'Backend: Emit phase="error" events when agents fail'
 status: To Do
 assignee: []
 created_date: '2026-03-08 14:34'
+updated_date: '2026-03-19 09:57'
 labels:
   - backend
   - temporal
@@ -22,6 +23,7 @@ references:
     unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/event_stream_handler.py
 parent_task_id: TASK-11
 priority: high
+ordinal: 9000
 ---
 
 ## Description

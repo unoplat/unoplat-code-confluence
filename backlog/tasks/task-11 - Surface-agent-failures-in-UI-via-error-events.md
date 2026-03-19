@@ -4,6 +4,7 @@ title: Surface agent failures in UI via error events
 status: To Do
 assignee: []
 created_date: '2026-03-08 14:33'
+updated_date: '2026-03-19 09:57'
 labels:
   - bug
   - full-stack
@@ -28,6 +29,7 @@ references:
     unoplat-code-confluence-frontend/src/components/custom/GenerateAgentsProgressLive.tsx
   - unoplat-code-confluence-frontend/src/components/ui/badge.tsx
 priority: high
+ordinal: 8000
 ---
 
 ## Description
