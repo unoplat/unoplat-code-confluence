@@ -381,8 +381,8 @@ class TestFrameworkDefinitionsIngestion:
             assert metrics["features_count"] == 13, (
                 f"Expected 13 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 29, (
-                f"Expected 29 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 32, (
+                f"Expected 32 absolute paths, got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -396,7 +396,7 @@ class TestFrameworkDefinitionsIngestion:
 
             assert framework_count == 7
             assert feature_count == 13
-            assert path_count == 29
+            assert path_count == 32
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -447,12 +447,14 @@ class TestFrameworkDefinitionsIngestion:
             )
             paths_list = related_paths.scalars().all()
 
-            assert len(paths_list) == 2, (
-                f"Expected 2 absolute paths for http_endpoint, got {len(paths_list)}"
+            assert len(paths_list) == 4, (
+                f"Expected 4 absolute paths for http_endpoint, got {len(paths_list)}"
             )
             path_values = [p.absolute_path for p in paths_list]
             assert "fastapi.FastAPI" in path_values
             assert "fastapi.applications.FastAPI" in path_values
+            assert "fastapi.APIRouter" in path_values
+            assert "fastapi.routing.APIRouter" in path_values
 
     def test_concept_validation(self, test_client: TestClient, service_ports):
         """Test that concept fields are correctly stored (schema v3: locator_strategy removed)."""
@@ -529,7 +531,7 @@ class TestFrameworkDefinitionsIngestion:
                 results.append(state)
 
             # All results should be identical for python framework definitions
-            expected_state = {"frameworks": 7, "features": 13, "paths": 29}
+            expected_state = {"frameworks": 7, "features": 13, "paths": 32}
             for result in results:
                 assert result == expected_state
 
@@ -553,8 +555,8 @@ class TestFrameworkDefinitionsIngestion:
         # Validate parsing results match expected production data for python definitions
         assert len(frameworks) == 7, f"Expected 7 frameworks, got {len(frameworks)}"
         assert len(features) == 13, f"Expected 13 features, got {len(features)}"
-        assert len(absolute_paths) == 29, (
-            f"Expected 29 absolute paths, got {len(absolute_paths)}"
+        assert len(absolute_paths) == 32, (
+            f"Expected 32 absolute paths, got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI
@@ -595,12 +597,14 @@ class TestFrameworkDefinitionsIngestion:
             for ap in absolute_paths
             if ap.library == "fastapi" and ap.feature_key == "http_endpoint"
         ]
-        assert len(http_endpoint_paths) == 2, (
-            f"Expected 2 paths for http_endpoint, got {len(http_endpoint_paths)}"
+        assert len(http_endpoint_paths) == 4, (
+            f"Expected 4 paths for http_endpoint, got {len(http_endpoint_paths)}"
         )
         path_values = [p.absolute_path for p in http_endpoint_paths]
         assert "fastapi.FastAPI" in path_values
         assert "fastapi.applications.FastAPI" in path_values
+        assert "fastapi.APIRouter" in path_values
+        assert "fastapi.routing.APIRouter" in path_values
 
         # Validate all features have required fields
         for feature in features:
