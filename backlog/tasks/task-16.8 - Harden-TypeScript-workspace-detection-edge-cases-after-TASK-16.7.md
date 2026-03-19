@@ -1,10 +1,11 @@
 ---
 id: TASK-16.8
 title: Harden TypeScript workspace detection edge cases after TASK-16.7
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - OpenCode
 created_date: '2026-03-19 10:11'
-updated_date: '2026-03-19 10:12'
+updated_date: '2026-03-19 13:22'
 labels:
   - backend
   - typescript
@@ -243,10 +244,28 @@ flowchart TD
 1. `uv run --group test pytest tests/parser/package_manager/detectors/test_typescript_ripgrep_detector.py -v`
 2. `uv run --group dev basedpyright src/code_confluence_flow_bridge/parser/package_manager/detectors/typescript_ripgrep_detector.py tests/parser/package_manager/detectors/test_typescript_ripgrep_detector.py`
 3. `uv run ruff check src/code_confluence_flow_bridge/parser/package_manager/detectors/typescript_ripgrep_detector.py tests/parser/package_manager/detectors/test_typescript_ripgrep_detector.py`
+
+Approved implementation delta for the newly identified pnpm regression: add a red detector test that models a standard `pnpm-workspace.yaml` monorepo and proves the current detector incorrectly emits `.` instead of the workspace member, then make the narrowest detector-local fix by teaching workspace-glob resolution to read pnpm members from `pnpm-workspace.yaml` while preserving existing `package.json` workspace handling for bun/npm/yarn. Validate by rerunning the TypeScript detector test module plus basedpyright and ruff on the touched detector/test files.
+
+User requested a repository-local fixture instead of an ephemeral tmp-path repo for the pnpm regression. Update the red test plan to add `tests/test_data/pnpm_workspace_test/` with a standards-conformant sample layout (`package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, workspace member package files) based on pnpm workspace documentation, then point the detector regression at that fixture before implementing the detector fix.
+
+User approved a narrow fix for workspace-glob negation handling. Implementation plan: (1) add detector regressions covering include+exclude workspaces, including a nested workspace case with a negated child glob; (2) update `_resolve_workspace_members()` so non-root negated patterns keep the `!` prefix when rebased to repo-relative form; (3) update `_expand_workspace_globs()` to honor ordered negated patterns by subtracting matches for `!` entries instead of only adding matches; (4) rerun the TypeScript detector pytest module plus basedpyright and ruff on the touched files.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Created as a TASK-16 follow-up from review findings on TASK-16.7 so nested workspace aggregators, richer workspace glob syntax, and portable detector regressions are tracked explicitly instead of being folded silently into the current subtask.
+
+Investigating a new pnpm workspace regression: `_read_workspace_globs()` only inspects `package.json`, so repositories that declare members in `pnpm-workspace.yaml` currently resolve no workspace members and emit `.` as a standalone codebase. Planning a regression-safe fix that starts with a red detector test.
+
+User approved starting with the failing pnpm regression test before implementation.
+
+Switched the pnpm regression strategy from a temporary test repository to a checked-in fixture under `tests/test_data/` for easier debugging and repeatable local inspection.
+
+Added a repository-local pnpm fixture at `tests/test_data/pnpm_workspace_test/` and a red regression that initially failed because the detector emitted `.`. Implemented the narrow detector fix by reading pnpm workspace members from `pnpm-workspace.yaml`, then reran the full TypeScript detector test module successfully. Basedpyright still reports pre-existing strict-typing issues around YAML-derived dicts in the detector; user explicitly asked to defer that cleanup for now to keep scope on the regression fix.
+
+User confirmed to proceed with the TASK-16.8 workspace negation fix after read-only confirmation.
+
+Implemented ordered negated workspace handling in the TypeScript detector and added regressions for a nested excluded workspace member. Targeted detector pytest now passes (`6 passed`) after suppressing explicitly excluded workspace directories; basedpyright and ruff remain to be rerun/fixed separately.
 <!-- SECTION:NOTES:END -->
