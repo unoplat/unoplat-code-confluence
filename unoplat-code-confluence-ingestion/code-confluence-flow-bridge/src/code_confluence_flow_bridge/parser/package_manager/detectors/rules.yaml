@@ -111,6 +111,7 @@ typescript:
   managers:
     # Bun - modern runtime with built-in package manager
     - manager: bun
+      workspace_field: workspaces
       signatures:
         - file: bun.lock
         - file: bun.lockb
@@ -119,18 +120,21 @@ typescript:
 
     # pnpm - disk efficient package manager
     - manager: pnpm
+      workspace_field: workspaces
       signatures:
         - file: pnpm-lock.yaml
         - file: .pnpmfile.cjs
 
     # Yarn - classic alternative with lockfile
     - manager: yarn
+      workspace_field: workspaces
       signatures:
         - file: yarn.lock
         - file: .yarnrc.yml
 
     # npm - default Node.js package manager (fallback)
     - manager: npm
+      workspace_field: workspaces
       signatures:
         - file: package-lock.json
         - file: npm-shrinkwrap.json
