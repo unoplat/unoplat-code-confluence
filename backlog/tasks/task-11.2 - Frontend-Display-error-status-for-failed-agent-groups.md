@@ -4,6 +4,7 @@ title: 'Frontend: Display error status for failed agent groups'
 status: To Do
 assignee: []
 created_date: '2026-03-08 14:34'
+updated_date: '2026-03-19 09:57'
 labels:
   - frontend
   - agent-events
@@ -22,6 +23,7 @@ references:
   - unoplat-code-confluence-frontend/src/components/ui/badge.tsx
 parent_task_id: TASK-11
 priority: high
+ordinal: 10000
 ---
 
 ## Description

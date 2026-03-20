@@ -4,6 +4,7 @@ title: Proactively disable already-ingested repos in onboarding picker
 status: To Do
 assignee: []
 created_date: '2026-03-13 11:12'
+updated_date: '2026-03-19 09:57'
 labels:
   - frontend
   - ux
@@ -18,6 +19,7 @@ references:
   - >-
     unoplat-code-confluence-frontend/src/components/custom/IngestedRepositoriesDataTable.tsx
 priority: medium
+ordinal: 13000
 ---
 
 ## Description

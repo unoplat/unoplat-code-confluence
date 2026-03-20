@@ -1,0 +1,7 @@
+{
+  "name": "pnpm-workspace-test",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

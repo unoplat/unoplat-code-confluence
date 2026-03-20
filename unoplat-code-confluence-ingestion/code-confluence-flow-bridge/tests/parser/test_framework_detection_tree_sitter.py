@@ -89,6 +89,58 @@ def test_fastapi_tree_sitter_detection_main_py() -> None:
     assert any(det.feature_key == "http_endpoint" for det in detections)
 
 
+def test_fastapi_tree_sitter_detection_router_decorators() -> None:
+    source_code = """
+from fastapi import APIRouter
+
+router = APIRouter()
+
+
+@router.get("/health")
+async def health_check() -> dict[str, str]:
+    return {"status": "ok"}
+"""
+
+    feature_specs = _load_python_feature_specs()
+    context = PythonSourceContext.from_source(source_code)
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, feature_specs)
+
+    assert any(
+        det.feature_key == "http_endpoint"
+        and det.library == "fastapi"
+        and "health" in det.match_text
+        for det in detections
+    )
+
+
+def test_fastapi_tree_sitter_detection_fastapi_routing_apirouter() -> None:
+    source_code = """
+from fastapi.routing import APIRouter
+
+router = APIRouter()
+
+
+@router.post("/users")
+async def create_user() -> dict[str, bool]:
+    return {"created": True}
+"""
+
+    feature_specs = _load_python_feature_specs()
+    context = PythonSourceContext.from_source(source_code)
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, feature_specs)
+
+    assert any(
+        det.feature_key == "http_endpoint"
+        and det.library == "fastapi"
+        and "users" in det.match_text
+        for det in detections
+    )
+
+
 def test_pydantic_tree_sitter_detection_model_file() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     model_path = (
