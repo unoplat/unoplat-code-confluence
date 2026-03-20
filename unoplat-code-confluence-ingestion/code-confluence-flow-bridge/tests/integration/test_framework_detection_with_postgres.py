@@ -27,56 +27,70 @@ class TestFrameworkDetectionWithPostgres:
         return PythonFrameworkDetectionService()
 
     @pytest.mark.asyncio(loop_scope="session")
-    async def test_detect_fastapi_endpoints_main_py(self, test_client: TestClient):
-        """Test FastAPI endpoint detection using the real main.py file."""
+    async def test_detect_fastapi_endpoints_across_router_modules(
+        self, test_client: TestClient
+    ):
+        """Test FastAPI endpoint detection across main.py and extracted routers."""
 
         detection_service = self.get_detection_service()
-        # Load framework definitions first (wrap sync operation in asyncio.to_thread)
-
-        # Read the actual main.py file
-        main_py_path = (
-            Path(__file__).parent.parent.parent
-            / "src"
-            / "code_confluence_flow_bridge"
-            / "main.py"
+        source_root = (
+            Path(__file__).parent.parent.parent / "src" / "code_confluence_flow_bridge"
         )
-        assert main_py_path.exists(), f"main.py not found at {main_py_path}"
+        fastapi_files = [
+            source_root / "main.py",
+            source_root / "routers" / "providers" / "router.py",
+            source_root / "routers" / "credentials" / "router.py",
+            source_root / "routers" / "flags" / "router.py",
+        ]
 
-        source_code = main_py_path.read_text(encoding="utf-8")
+        endpoint_texts: list[str] = []
+        source_texts: list[str] = []
+        main_source_code = ""
 
-        # Run framework detection (keep async business logic)
-        detections = await detection_service.detect_features(
-            source_code=source_code,
-            imports=extract_imports_from_source(source_code),
-            structural_signature=None,
-            programming_language="python",
+        for fastapi_file in fastapi_files:
+            assert fastapi_file.exists(), f"FastAPI file not found at {fastapi_file}"
+
+            source_code = fastapi_file.read_text(encoding="utf-8")
+            source_texts.append(source_code)
+            if fastapi_file.name == "main.py":
+                main_source_code = source_code
+
+            detections = await detection_service.detect_features(
+                source_code=source_code,
+                imports=extract_imports_from_source(source_code),
+                structural_signature=None,
+                programming_language="python",
+            )
+            fastapi_detections = [
+                detection
+                for detection in detections
+                if detection.feature_key == "http_endpoint"
+            ]
+            endpoint_texts.extend(
+                detection.match_text for detection in fastapi_detections
+            )
+
+        assert endpoint_texts, "No FastAPI endpoints detected across router modules"
+        assert "app.include_router(credentials_router)" in main_source_code
+        assert "app.include_router(flags_router)" in main_source_code
+        assert "app.include_router(providers_router)" in main_source_code
+
+        all_source_code = "\n".join(source_texts)
+
+        assert any("/start-ingestion" in text for text in endpoint_texts), (
+            "Expected FastAPI detector to find at least one main.py endpoint"
         )
-
-        # Verify FastAPI endpoints were detected
-        fastapi_detections = [d for d in detections if d.feature_key == "http_endpoint"]
-        assert len(fastapi_detections) > 0, "No FastAPI endpoints detected in main.py"
-
-        # Log line numbers for each detection
-        print("\n=== FastAPI Endpoint Detection Line Numbers ===")
-        for i, detection in enumerate(fastapi_detections):
-            start_line = detection.start_line
-            end_line = detection.end_line
-            match_text = detection.match_text
-            feature_key = detection.feature_key
-            print(f"Detection {i}: {feature_key}")
-            print(f"  Match text: {match_text}")
-            print(f"  Line range: {start_line}-{end_line}")
-            print(f"  Span: {end_line - start_line + 1} lines")
-
-        # Check that we found expected endpoints
-        endpoint_texts = [d.match_text for d in fastapi_detections]
-
-        # Should find some of the known endpoints in main.py
-        assert any("/repos" in text for text in endpoint_texts), (
-            "Expected /repos endpoint"
+        assert '/repos", response_model=PaginatedResponse' in all_source_code, (
+            "Expected /repos endpoint declaration"
         )
-        assert any("get" in text.lower() for text in endpoint_texts), (
-            "Expected GET endpoints"
+        assert '/ingest-token", status_code=201' in all_source_code, (
+            "Expected /ingest-token endpoint"
+        )
+        assert '/flags/{flag_name}", status_code=200' in all_source_code, (
+            "Expected /flags/{flag_name} endpoint"
+        )
+        assert any("@router.get" in source for source in source_texts), (
+            "Expected extracted router GET endpoints"
         )
 
     @pytest.mark.asyncio(loop_scope="session")

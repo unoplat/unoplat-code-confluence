@@ -1,10 +1,10 @@
 ---
 id: TASK-12
 title: Add cancel action for agent workflows in Operations Management
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-03-10 09:28'
-updated_date: '2026-03-12 10:40'
+updated_date: '2026-03-19 09:57'
 labels:
   - operations-management
   - agent-md
@@ -38,7 +38,7 @@ documentation:
   - 'https://python.temporal.io/temporalio.client.WorkflowHandle.html'
   - 'https://docs.temporal.io/develop/python'
 priority: high
-ordinal: 3000
+ordinal: 31000
 ---
 
 ## Description

@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-03-03 07:10'
+updated_date: '2026-03-19 09:57'
 labels:
   - backend
   - frontend
@@ -26,6 +27,7 @@ references:
   - unoplat-code-confluence-frontend/src/routes/__root.tsx
 parent_task_id: TASK-4
 priority: high
+ordinal: 4000
 ---
 
 ## Description
