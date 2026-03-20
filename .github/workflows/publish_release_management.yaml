@@ -135,11 +135,21 @@ jobs:
         run: uv lock
 
       - name: Commit refreshed lockfiles
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          branch: ${{ needs.dev-pr-merge.outputs.release_pr_branch }}
-          commit_message: "chore(release): refresh uv lockfiles"
-          file_pattern: "**/uv.lock"
+        shell: bash
+        run: |
+          git add -- \
+            unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock \
+            unoplat-code-confluence-query-engine/uv.lock
+
+          if git diff --cached --quiet; then
+            echo "No lockfile changes to commit."
+            exit 0
+          fi
+
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "chore(release): refresh uv lockfiles"
+
+          git push origin "HEAD:${{ needs.dev-pr-merge.outputs.release_pr_branch }}"
 
   release-docker-image:
     name: Build and Push Docker Image

@@ -12,6 +12,10 @@ on:
       - 'unoplat-code-confluence-ingestion/**'
       - 'unoplat-code-confluence-query-engine/**'
 
+concurrency:
+  group: develop-branch-action-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -77,11 +81,21 @@ jobs:
         run: uv lock
 
       - name: Commit refreshed lockfiles
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          branch: ${{ github.event.pull_request.head.ref }}
-          commit_message: "fix(ci): refresh package uv lockfiles before python lock checks run"
-          file_pattern: "**/uv.lock"
+        shell: bash
+        run: |
+          git add -- \
+            unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock \
+            unoplat-code-confluence-query-engine/uv.lock
+
+          if git diff --cached --quiet; then
+            echo "No lockfile changes to commit."
+            exit 0
+          fi
+
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "fix(ci): refresh package uv lockfiles before python lock checks run"
+
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
 
   build-commons:
     needs: detect-changes
