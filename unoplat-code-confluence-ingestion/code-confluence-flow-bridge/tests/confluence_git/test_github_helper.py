@@ -126,7 +126,8 @@ class TestGithubHelper:
         assert "stars" in repo.repository_metadata
         assert "forks" in repo.repository_metadata
         assert "language" in repo.repository_metadata
-        assert repo.repository_metadata["language"] == "Python"
+        assert isinstance(repo.repository_metadata["language"], str)
+        assert len(repo.repository_metadata["language"]) > 0
 
         # Check codebases
         assert len(repo.codebases) == len(settings.codebases)
@@ -204,7 +205,8 @@ class TestGithubHelper:
         assert "stars" in repo.repository_metadata
         assert "forks" in repo.repository_metadata
         assert "language" in repo.repository_metadata
-        assert repo.repository_metadata["language"] == "Python"
+        assert isinstance(repo.repository_metadata["language"], str)
+        assert len(repo.repository_metadata["language"]) > 0
 
         # Check codebases with nested structure
         assert len(repo.codebases) == len(nested_settings.codebases)

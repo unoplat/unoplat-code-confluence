@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.74.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.74.0...code-confluence-flow-bridge-v0.74.1) (2026-03-20)
+
+
+### Bug Fixes
+
+* **flow-bridge:** add APIRouter support to FastAPI framework definitions ([20fb035](https://github.com/unoplat/unoplat-code-confluence/commit/20fb0354cdee34bcb93d9596a6deaccfa365fee2))
+* **flow-bridge:** add pnpm-workspace.yaml support and negation glob handling ([2d37456](https://github.com/unoplat/unoplat-code-confluence/commit/2d374562a5789770bc6b39f7f43565e6eb96a9f6))
+* **flow-bridge:** extract credential, provider, and flag routers from main.py ([771577f](https://github.com/unoplat/unoplat-code-confluence/commit/771577f83e18c7cbe9808c823b6a926f9584d743))
+* **flow-bridge:** extract repository and operations routers, slim down main.py ([a9378e4](https://github.com/unoplat/unoplat-code-confluence/commit/a9378e4977858f20f94ad60a15be309a0bf9b473))
+* **flow-bridge:** extract shared backend utility modules from main.py ([85874fe](https://github.com/unoplat/unoplat-code-confluence/commit/85874fe492bb5440d24694cd0d1bd084177e8f56))
+* **flow-bridge:** improve TypeScript workspace detection for monorepos ([811d4ed](https://github.com/unoplat/unoplat-code-confluence/commit/811d4ed57022fa0bf39856cd1a62d914fb6c0e68))
+* **test-data:** vendor turbo monorepo fixture files ([20be0c1](https://github.com/unoplat/unoplat-code-confluence/commit/20be0c19c34eb6eddba2f3315ee229905cc8a449))
+
 ## [0.74.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.73.0...code-confluence-flow-bridge-v0.74.0) (2026-03-13)
 
 
