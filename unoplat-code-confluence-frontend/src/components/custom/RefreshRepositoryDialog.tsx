@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { StatusBadge } from "@/components/custom/StatusBadge";
 import type { IngestedRepository } from "../../types";
 
 interface RefreshRepositoryDialogProps {
@@ -35,15 +34,11 @@ export function RefreshRepositoryDialog({
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
               Refresh Repository
-              <StatusBadge status="alpha" />
             </div>
           </DialogTitle>
-          <DialogDescription asChild>
-            <div>
-              This will trigger a re-ingestion of the repository. This feature
-              is in <StatusBadge status="alpha" className="mx-1 inline-flex" />
-              and may take some time to complete.
-            </div>
+          <DialogDescription>
+            This will trigger a re-ingestion of the repository and may take some
+            time to complete.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
