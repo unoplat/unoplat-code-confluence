@@ -18,7 +18,6 @@ import {
   GitBranch,
   FileText,
 } from "lucide-react";
-import { StatusBadge } from "@/components/custom/StatusBadge";
 import { ProviderKey } from "@/types/credential-enums";
 
 interface ColumnOptions {
@@ -154,7 +153,6 @@ export function getIngestedRepositoriesColumns({
               >
                 <FileText className="h-4 w-4" />
                 Generate Agents.md
-                <StatusBadge status="alpha" className="ml-1" />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -163,7 +161,6 @@ export function getIngestedRepositoriesColumns({
               >
                 <RefreshCw className="h-4 w-4" />
                 Refresh
-                <StatusBadge status="alpha" className="ml-1" />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -172,7 +169,6 @@ export function getIngestedRepositoriesColumns({
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
-                <StatusBadge status="beta" className="ml-1" />
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
