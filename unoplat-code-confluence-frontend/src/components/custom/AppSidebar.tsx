@@ -25,6 +25,7 @@ import {
   Handshake,
   FolderKanban,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useAppFeedbackSheetStore } from "@/features/app-feedback";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useThemeStore } from "@/stores/useThemeStore";
@@ -54,12 +55,18 @@ export function AppSidebar(): React.ReactElement {
       className="group w-full max-w-[14rem]"
     >
       <SidebarHeader>
-        <div className="flex items-center px-4 py-2">
+        <div className="flex min-w-0 items-center gap-2 px-4 py-2">
           <img
             src={logo}
             alt="Code Confluence"
-            className="h-auto w-full max-w-[10rem] object-contain"
+            className="h-auto min-w-0 shrink object-contain"
           />
+          <Badge
+            variant="alpha"
+            className="shrink-0 rounded-[3px] px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wider uppercase group-data-[collapsible=icon]:hidden"
+          >
+            Alpha
+          </Badge>
         </div>
       </SidebarHeader>
       <SidebarContent>

@@ -10,7 +10,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
-import { StatusBadge } from "@/components/custom/StatusBadge";
 import type { IngestedRepository } from "../../types";
 
 interface DeleteRepositoryDialogProps {
@@ -36,7 +35,6 @@ export function DeleteRepositoryDialog({
             <div className="flex items-center gap-2">
               <Trash2 className="text-destructive h-4 w-4" />
               Delete Repository
-              <StatusBadge status="beta" />
             </div>
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
@@ -55,10 +53,8 @@ export function DeleteRepositoryDialog({
           </div>
           <div className="bg-destructive/10 rounded-md p-3">
             <div className="text-destructive text-sm">
-              <strong>Warning:</strong> This feature is in{" "}
-              <StatusBadge status="beta" className="mx-1 inline-flex" />. All
-              associated data including code analysis, dependencies, and
-              metadata will be removed.
+              <strong>Warning:</strong> All associated data including code
+              analysis, dependencies, and metadata will be permanently removed.
             </div>
           </div>
         </div>
