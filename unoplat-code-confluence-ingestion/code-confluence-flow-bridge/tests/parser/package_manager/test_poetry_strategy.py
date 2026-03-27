@@ -5,7 +5,7 @@ import pytest
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatProjectDependency,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import (
+from src.code_confluence_flow_bridge.parser.package_manager.python.managers.poetry_strategy import (
     PythonPoetryStrategy,
 )
 from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
