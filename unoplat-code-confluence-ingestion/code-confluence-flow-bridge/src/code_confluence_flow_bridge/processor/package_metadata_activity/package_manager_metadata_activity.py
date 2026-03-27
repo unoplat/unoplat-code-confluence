@@ -12,7 +12,7 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     PackageMetadataActivityEnvelope,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.package_manager_parser import (
+from src.code_confluence_flow_bridge.parser.package_manager.shared.parser import (
     PackageManagerParser,
 )
 

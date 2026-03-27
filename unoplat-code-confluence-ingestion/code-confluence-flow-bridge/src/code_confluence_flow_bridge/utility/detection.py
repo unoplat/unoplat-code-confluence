@@ -1,12 +1,11 @@
 """Codebase detection orchestration and Protocol definition."""
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from fastapi import HTTPException
 from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
 
-if TYPE_CHECKING:
-    from loguru import Logger
+from src.code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
 
 
 @runtime_checkable
@@ -27,7 +26,7 @@ async def detect_codebases_multi_language(
     git_url: str,
     github_token: str,
     detectors: dict[str, CodebaseDetector],
-    request_logger: "Logger",
+    request_logger: StructuredLogger,
 ) -> list[CodebaseConfig]:
     """
     Detect codebases using all configured language detectors.
