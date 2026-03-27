@@ -24,9 +24,11 @@ from unoplat_code_confluence_commons.base_models import (
     FrameworkFeature,
     InheritanceInfo,
     LocatorStrategy,
+    PackageManagerProvenance,
     PackageManagerType,
     ProgrammingLanguage,
     ProgrammingLanguageMetadata,
+    WorkspaceOrchestratorType,
     # Python structural signature models
     PythonClassInfo,
     PythonFunctionInfo,
@@ -142,6 +144,8 @@ __all__ = [
     "ProgrammingLanguageMetadata",
     "ProgrammingLanguage",
     "PackageManagerType",
+    "PackageManagerProvenance",
+    "WorkspaceOrchestratorType",
     "RepositoryAgentMdSnapshot",
     "PrMetadata",
     # Credentials and related enums
