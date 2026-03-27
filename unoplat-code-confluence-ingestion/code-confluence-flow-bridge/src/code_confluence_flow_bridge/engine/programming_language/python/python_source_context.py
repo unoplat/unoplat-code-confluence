@@ -6,10 +6,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List
 
-import tree_sitter
 from pydantic import BaseModel, ConfigDict
+import tree_sitter
 from tree_sitter_language_pack import get_language, get_parser
-
 
 _IMPORT_QUERY_PATH = Path(__file__).resolve().parent / "queries" / "imports.scm"
 
