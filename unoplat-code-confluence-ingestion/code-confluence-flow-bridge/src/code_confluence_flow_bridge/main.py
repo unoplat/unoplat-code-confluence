@@ -1,13 +1,8 @@
 import os
 import asyncio
+from collections.abc import AsyncGenerator, Callable
 from concurrent.futures import ThreadPoolExecutor
 import traceback
-from typing import (
-    Any,
-    AsyncGenerator,
-    Callable,
-    List,
-)
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.concurrency import asynccontextmanager
@@ -26,6 +21,7 @@ from src.code_confluence_flow_bridge.github_app.router import (
     router as github_app_router,
 )
 from src.code_confluence_flow_bridge.logging.log_config import setup_logging
+from src.code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     trace_id_var,
 )
@@ -38,10 +34,10 @@ from src.code_confluence_flow_bridge.models.configuration.settings import (
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRequestConfiguration,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.python_ripgrep_detector import (
+from src.code_confluence_flow_bridge.parser.package_manager.python.detectors.ripgrep_detector import (
     PythonRipgrepDetector,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.detectors.typescript_ripgrep_detector import (
+from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.ripgrep_detector import (
     TypeScriptRipgrepDetector,
 )
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
@@ -124,6 +120,8 @@ logger = setup_logging(
     service_name="code-confluence-flow-bridge", app_name="unoplat-code-confluence"
 )
 
+ActivityCallable = Callable[..., object]
+
 
 # setup supertokens
 
@@ -147,7 +145,7 @@ async def _serve_worker(stop: asyncio.Event, worker: Worker) -> None:
 
 
 def create_worker(
-    activities: List[Callable],
+    activities: list[ActivityCallable],
     client: Client,
     activity_executor: ThreadPoolExecutor,
     env_settings: EnvironmentSettings,
@@ -165,38 +163,8 @@ def create_worker(
         Worker: Configured Temporal worker instance
     """
     try:
-        # Worker configuration parameters
-        worker_params = {
-            "client": client,
-            "task_queue": "unoplat-code-confluence-repository-context-ingestion",
-            "workflows": [RepoWorkflow, CodebaseChildWorkflow],
-            "activities": activities,
-            "activity_executor": activity_executor,
-            "interceptors": [
-                ParentWorkflowStatusInterceptor(),
-                ActivityStatusInterceptor(),
-            ],
-            "max_concurrent_activities": env_settings.temporal_max_concurrent_activities,
-        }
-
         # Configure poller behaviors based on settings
         if env_settings.temporal_enable_poller_autoscaling:
-            # Configure workflow task poller behavior with autoscaling
-            workflow_poller = PollerBehaviorAutoscaling(
-                minimum=env_settings.temporal_workflow_poller_min,
-                initial=env_settings.temporal_workflow_poller_initial,
-                maximum=env_settings.temporal_workflow_poller_max,
-            )
-            worker_params["workflow_task_poller_behavior"] = workflow_poller
-
-            # Configure activity task poller behavior with autoscaling
-            activity_poller = PollerBehaviorAutoscaling(
-                minimum=env_settings.temporal_activity_poller_min,
-                initial=env_settings.temporal_activity_poller_initial,
-                maximum=env_settings.temporal_activity_poller_max,
-            )
-            worker_params["activity_task_poller_behavior"] = activity_poller
-
             # Log autoscaling configuration
             logger.info(
                 "Starting Temporal worker with autoscaling pollers enabled. "
@@ -210,11 +178,6 @@ def create_worker(
                 env_settings.temporal_activity_poller_max,
             )
         else:
-            # Use traditional fixed polling configuration
-            worker_params["max_concurrent_activity_task_polls"] = (
-                env_settings.temporal_max_concurrent_activity_task_polls
-            )
-
             # Log standard configuration
             logger.info(
                 """Starting Temporal worker with max_concurrent_activities={},
@@ -329,27 +292,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Set default executor for asyncio loop")
 
     # Define activities
-    activities: List[Callable] = []
     git_activity = GitActivity()
-    activities.append(git_activity.process_git_activity)
-
     parent_workflow_db_activity: ParentWorkflowDbActivity = ParentWorkflowDbActivity()
-    activities.append(parent_workflow_db_activity.update_repository_workflow_status)
-
     child_workflow_db_activity = ChildWorkflowDbActivity()
-    activities.append(child_workflow_db_activity.update_codebase_workflow_status)
-
     package_metadata_activity = PackageMetadataActivity()
-    activities.append(package_metadata_activity.get_package_metadata)
-
     confluence_git_graph = ConfluenceGitGraph()
-    activities.append(confluence_git_graph.insert_git_repo_into_graph_db)
-
     codebase_package_ingestion = PackageManagerMetadataIngestion()
-    activities.append(codebase_package_ingestion.insert_package_manager_metadata)
-
     generic_activity = GenericCodebaseProcessingActivity()
-    activities.append(generic_activity.process_codebase_generic)
+    activities: list[ActivityCallable] = [
+        git_activity.process_git_activity,
+        parent_workflow_db_activity.update_repository_workflow_status,
+        child_workflow_db_activity.update_codebase_workflow_status,
+        package_metadata_activity.get_package_metadata,
+        confluence_git_graph.insert_git_repo_into_graph_db,
+        codebase_package_ingestion.insert_package_manager_metadata,
+        generic_activity.process_codebase_generic,
+    ]
 
     # Create database tables during startup
     await create_db_and_tables()
@@ -430,7 +388,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(lifespan=lifespan)
 
 # Configure CORS
-origins: List[str] = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+origins: list[str] = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 
 app.add_middleware(
     CORSMiddleware,
@@ -453,7 +411,7 @@ app.include_router(operations_router)
 async def ingestion(
     repo_request: RepositoryRequestConfiguration,
     session: AsyncSession = Depends(get_session),
-    request_logger: "Logger" = Depends(trace_dependency),  # type: ignore
+    request_logger: StructuredLogger = Depends(trace_dependency),
     temporal_client: Client = Depends(get_temporal_client_dep),
     detectors: dict[str, CodebaseDetector] = Depends(get_codebase_detectors),
 ) -> dict[str, str]:
