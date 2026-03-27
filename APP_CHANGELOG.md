@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.33.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.33.0...unoplat-code-confluence-v0.33.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* **alpha:** ui-ux for alpha status near app name ([e3d5f68](https://github.com/unoplat/unoplat-code-confluence/commit/e3d5f6885c78e665be1d689b83128742e826a900))
+* **alpha:** ui-ux for alpha status near app name ([eca15cf](https://github.com/unoplat/unoplat-code-confluence/commit/eca15cf7186b8b650c3ad9f1c7e7ed8077e2f59d))
+* **ci:** commit refreshed nested uv lockfiles explicitly ([5de8105](https://github.com/unoplat/unoplat-code-confluence/commit/5de8105936abcd8d272b617f9e9f2a3f04d6d530))
+* **ci:** commit refreshed nested uv lockfiles explicitly ([e7c452c](https://github.com/unoplat/unoplat-code-confluence/commit/e7c452c61d61106add4d3ba03759c81f979b203c))
+* **ci:** scope PR concurrency by head repo ([1f07d9a](https://github.com/unoplat/unoplat-code-confluence/commit/1f07d9a49ffbf952e82fc5334392791afd965113))
+* **codebase-detection:** add structured detection data models for rules, evidence, and results ([81c91c2](https://github.com/unoplat/unoplat-code-confluence/commit/81c91c2813c87ebb7733d510e498649aaaf12bdb))
+* **codebase-detection:** add TypeScript monorepo detection and reorganize into typescript/ namespace ([1da28c9](https://github.com/unoplat/unoplat-code-confluence/commit/1da28c9ad884594c1fa53dbcad7550968c9c1bd9))
+* **codebase-detection:** add workspace metadata enums and fields to commons library ([10d1b29](https://github.com/unoplat/unoplat-code-confluence/commit/10d1b29b4ebf2f20cafe8e4f40f790f92129abea))
+* **codebase-detection:** extract shared parser infrastructure into shared/ namespace ([8d6a074](https://github.com/unoplat/unoplat-code-confluence/commit/8d6a074b30561b061c7df725aa65c367a043ae2d))
+* **codebase-detection:** introduce StructuredLogger protocol and modernize trace_utils types ([06b8d55](https://github.com/unoplat/unoplat-code-confluence/commit/06b8d55a79e0598299710a4654f6c49aa87d970e))
+* **codebase-detection:** propagate workspace metadata through query engine models and services ([ce0499f](https://github.com/unoplat/unoplat-code-confluence/commit/ce0499f7d75ac13ed13bc425ba21a9fda6a82a8a))
+* **codebase-detection:** remove legacy flat-layout directories ([8f71756](https://github.com/unoplat/unoplat-code-confluence/commit/8f7175662846f9db83803f3795400c94d7795b48))
+* **codebase-detection:** remove original files superseded by namespace reorganization ([a58f444](https://github.com/unoplat/unoplat-code-confluence/commit/a58f4448f58fc5a825e0b0580de0af7b6bd12f66))
+* **codebase-detection:** reorganize Python package managers into python/ namespace ([9047646](https://github.com/unoplat/unoplat-code-confluence/commit/904764695a3d1624e5a22801fcd959445775da95))
+* **codebase-detection:** update and relocate tests for refactored module layout ([28a6759](https://github.com/unoplat/unoplat-code-confluence/commit/28a67599c8994ef6c77fbaa1d37583ad9bee95ad))
+* **codebase-detection:** update build config and project metadata ([6d46ecf](https://github.com/unoplat/unoplat-code-confluence/commit/6d46ecf79931527403465e9b8169d8281e74405d))
+* **codebase-detection:** wire integration points to new module namespaces ([dab878c](https://github.com/unoplat/unoplat-code-confluence/commit/dab878c825fc00b0bb1763a9bf0933bf430f55ff))
+* **flow-bridge:** add APIRouter support to FastAPI framework definitions ([20fb035](https://github.com/unoplat/unoplat-code-confluence/commit/20fb0354cdee34bcb93d9596a6deaccfa365fee2))
+* **flow-bridge:** add pnpm-workspace.yaml support and negation glob handling ([2d37456](https://github.com/unoplat/unoplat-code-confluence/commit/2d374562a5789770bc6b39f7f43565e6eb96a9f6))
+* **flow-bridge:** extract credential, provider, and flag routers from main.py ([771577f](https://github.com/unoplat/unoplat-code-confluence/commit/771577f83e18c7cbe9808c823b6a926f9584d743))
+* **flow-bridge:** extract repository and operations routers, slim down main.py ([a9378e4](https://github.com/unoplat/unoplat-code-confluence/commit/a9378e4977858f20f94ad60a15be309a0bf9b473))
+* **flow-bridge:** extract shared backend utility modules from main.py ([85874fe](https://github.com/unoplat/unoplat-code-confluence/commit/85874fe492bb5440d24694cd0d1bd084177e8f56))
+* **flow-bridge:** improve TypeScript workspace detection for monorepos ([811d4ed](https://github.com/unoplat/unoplat-code-confluence/commit/811d4ed57022fa0bf39856cd1a62d914fb6c0e68))
+* **flow-bridge:** relax github helper language assertions ([85757e0](https://github.com/unoplat/unoplat-code-confluence/commit/85757e0a60631fba897a5efe7953de567118219e))
+* **test-data:** vendor turbo monorepo fixture files ([20be0c1](https://github.com/unoplat/unoplat-code-confluence/commit/20be0c19c34eb6eddba2f3315ee229905cc8a449))
+
 ## [0.33.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.32.0...unoplat-code-confluence-v0.33.0) (2026-03-17)
 
 
