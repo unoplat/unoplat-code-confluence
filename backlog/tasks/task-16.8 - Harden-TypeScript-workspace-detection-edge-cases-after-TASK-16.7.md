@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - OpenCode
 created_date: '2026-03-19 10:11'
-updated_date: '2026-03-19 13:22'
+updated_date: '2026-03-25 06:54'
 labels:
   - backend
   - typescript
@@ -268,4 +268,8 @@ Added a repository-local pnpm fixture at `tests/test_data/pnpm_workspace_test/` 
 User confirmed to proceed with the TASK-16.8 workspace negation fix after read-only confirmation.
 
 Implemented ordered negated workspace handling in the TypeScript detector and added regressions for a nested excluded workspace member. Targeted detector pytest now passes (`6 passed`) after suppressing explicitly excluded workspace directories; basedpyright and ruff remain to be rerun/fixed separately.
+
+Implementing a new regression fix for false-positive pnpm/npm-style workspace members: workspace glob expansion currently matches against all ripgrep-discovered directories, so config-only folders like `packages/hoppscotch-cli/src` can be treated as workspace members. Plan is to carry a manifest-bearing directory set through `TypeScriptRepositoryScan`, resolve workspace globs against that package-root candidate set, add a regression for config-only child directories, and defensively skip emitting detections whose manifest cannot be resolved.
+
+Implemented the false-positive workspace-member fix by adding `manifest_dirs` to `TypeScriptRepositoryScan`, resolving workspace globs only against manifest-bearing package roots, and skipping emitted detections with no resolved manifest. Added a detector regression for `packages/**` with a config-only `src/tsconfig.json` child, then reran basedpyright, targeted TypeScript detector pytest, and ruff successfully. While rerunning the full detector module, the Hoppscotch network test exposed that the desktop plugin packages already behave as explicit local pnpm overrides due to child `pnpm-lock.yaml` files, so the regression expectations were tightened to encode their local provenance/workspace-root semantics explicitly.
 <!-- SECTION:NOTES:END -->
