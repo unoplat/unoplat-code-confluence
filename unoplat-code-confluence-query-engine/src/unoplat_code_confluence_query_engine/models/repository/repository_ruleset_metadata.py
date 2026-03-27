@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -11,9 +13,20 @@ class CodebaseMetadata(BaseModel):
     codebase_programming_language: str = Field(
         description="The programming language of the codebase"
     )
-
     codebase_package_manager: str = Field(
         description="The package manager of the codebase"
+    )
+    codebase_package_manager_provenance: Optional[str] = Field(
+        default=None,
+        description="How the package manager was determined: 'local' or 'inherited'",
+    )
+    codebase_workspace_root: Optional[str] = Field(
+        default=None,
+        description="Repo-relative path to nearest workspace/aggregator root",
+    )
+    codebase_workspace_root_path: Optional[str] = Field(
+        default=None,
+        description="Absolute filesystem path to workspace/aggregator root",
     )
 
 

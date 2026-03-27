@@ -1,7 +1,7 @@
 """Canonical engineering workflow output models."""
 
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -27,6 +27,14 @@ class EngineeringWorkflowCommand(BaseModel):
     )
     confidence: float = Field(
         ..., ge=0.0, le=1.0, description="Citation-validated confidence score"
+    )
+    working_directory: Optional[str] = Field(
+        default=None,
+        description=(
+            "Repo-relative directory from which command should execute. "
+            "None/omitted = codebase root, '.' = repository root, "
+            "nested path = specific workspace root."
+        ),
     )
 
     model_config = ConfigDict(extra="forbid")
