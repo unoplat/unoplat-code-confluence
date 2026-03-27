@@ -1,0 +1,146 @@
+# Package Manager Detection Rules - Version 3
+# 
+# Simplified Python-only rules with ordered evaluation (no weights).
+# Each signature is a homogeneous mapping with peer keys.
+#
+# Schema for each signature:
+#   - file: <string>              - Match exact filename (required if glob not present)
+#   - glob: <string>              - Match shell-style patterns (required if file not present)  
+#   - contains: <string>          - Fixed substring that must appear in file (optional, only valid with file)
+#   - contains_absence: <list>    - Strings that must NOT appear in file (optional, only valid with file)
+#
+# Key principles:
+#   - All signature entries are mappings (no mixed scalar/mapping sequences)
+#   - file, glob, contains, and contains_absence are peer keys at same indentation level
+#   - Managers are evaluated in order: first match wins (no weight calculations)
+#   - Ignores apply to all managers within a language
+
+python:
+  # Common directories to ignore during detection
+  ignores:
+    # Virtual environments
+    - venv
+    - .venv
+    - env
+    - .env
+    - virtualenv
+    # Python cache and build artifacts
+    - __pycache__
+    - .pytest_cache
+    - .tox
+    - .mypy_cache
+    - .ruff_cache
+    - dist
+    - build
+    - .eggs
+    - site-packages
+    # Test and coverage
+    - htmlcov
+    - .coverage
+    # Test directories
+    - test
+    - tests
+    - __tests__
+    - spec
+    - specs
+    # IDE and tools
+    - .idea
+    - .vscode
+    # Dependencies
+    - node_modules
+    # Version control
+    - .git
+    # Documentation
+    - docs/_build
+    - site
+  
+  # Package managers in order of evaluation (first match wins)
+  managers:
+    - manager: uv
+      signatures:
+        # UV lockfile is definitive
+        - file: uv.lock
+        # UV configuration in pyproject.toml
+        - file: pyproject.toml
+          contains: "[tool.uv]"
+      
+    - manager: poetry
+      signatures:
+        # Poetry lockfile is definitive
+        - file: poetry.lock
+        # Poetry configuration in pyproject.toml
+        - file: pyproject.toml
+          contains: "[tool.poetry]"
+
+    - manager: pip
+      signatures:
+        # Modern pip with PEP 621 metadata (must have [project] section)
+        - file: pyproject.toml
+          contains: "[project]"
+          contains_absence:
+            - "[tool.poetry]"
+            - "[tool.uv]"
+        # Classic pip requirements files
+        - glob: "requirements*.txt"
+        # Legacy setup.py files
+        - file: setup.py
+
+typescript:
+  # Ignore artefacts produced by TS/JS toolchains
+  ignores:
+    - node_modules
+    - .next
+    - .nuxt
+    - dist
+    - build
+    - out
+    - coverage
+    - .turbo
+    - .yarn
+    - .pnp.cjs
+    - .pnp.loader.mjs
+    - .bun
+    - .cache
+    # Test directories
+    - test
+    - tests
+    - __tests__
+    - spec
+    - specs
+
+  managers:
+    # Bun - modern runtime with built-in package manager
+    - manager: bun
+      workspace_field: workspaces
+      signatures:
+        - file: bun.lock
+        - file: bun.lockb
+        - file: bunfig.toml
+        - file: .bunfig.toml
+
+    # pnpm - disk efficient package manager
+    - manager: pnpm
+      workspace_field: workspaces
+      signatures:
+        - file: pnpm-lock.yaml
+        - file: .pnpmfile.cjs
+
+    # Yarn - classic alternative with lockfile
+    - manager: yarn
+      workspace_field: workspaces
+      signatures:
+        - file: yarn.lock
+        - file: .yarnrc.yml
+
+    # npm - default Node.js package manager (fallback)
+    - manager: npm
+      workspace_field: workspaces
+      signatures:
+        - file: package-lock.json
+        - file: npm-shrinkwrap.json
+        - file: package.json
+          contains_absence:
+            - yarn.lock
+            - pnpm-lock.yaml
+            - bun.lock
+            - bun.lockb

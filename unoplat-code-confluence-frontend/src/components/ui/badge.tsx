@@ -32,7 +32,7 @@ const badgeVariants = cva(
           "border-transparent bg-destructive/10 text-destructive [a&]:hover:bg-destructive/20",
         // Feature status variants
         alpha:
-          "border-transparent bg-purple-500 text-white [a&]:hover:bg-purple-600",
+          "border-transparent bg-purple-500/10 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400 [a&]:hover:bg-purple-500/20",
         beta: "border-transparent bg-indigo-500 text-white [a&]:hover:bg-indigo-600",
         stable:
           "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600",

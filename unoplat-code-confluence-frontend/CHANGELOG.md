@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.50.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.1...unoplat-code-confluence-frontend-v1.50.2) (2026-03-21)
+
+
+### Bug Fixes
+
+* **alpha:** ui-ux for alpha status near app name ([e3d5f68](https://github.com/unoplat/unoplat-code-confluence/commit/e3d5f6885c78e665be1d689b83128742e826a900))
+* **alpha:** ui-ux for alpha status near app name ([eca15cf](https://github.com/unoplat/unoplat-code-confluence/commit/eca15cf7186b8b650c3ad9f1c7e7ed8077e2f59d))
+
 ## [1.50.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.0...unoplat-code-confluence-frontend-v1.50.1) (2026-03-14)
 
 

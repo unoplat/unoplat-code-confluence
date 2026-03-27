@@ -81,9 +81,11 @@ from unoplat_code_confluence_commons.flags import (
     Flag,
 )
 from unoplat_code_confluence_commons.programming_language_metadata import (
+    PackageManagerProvenance,
     PackageManagerType,
     ProgrammingLanguage,
     ProgrammingLanguageMetadata,
+    WorkspaceOrchestratorType,
 )
 
 # Repository and Programming Language models
@@ -152,6 +154,8 @@ __all__ = [
     "ProgrammingLanguageMetadata",
     "ProgrammingLanguage",
     "PackageManagerType",
+    "PackageManagerProvenance",
+    "WorkspaceOrchestratorType",
     # Credentials model
     "Credentials",
     # Flags model

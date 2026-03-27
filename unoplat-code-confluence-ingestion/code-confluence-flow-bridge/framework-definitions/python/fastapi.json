@@ -8,7 +8,9 @@
           "description": "HTTP verb decorator that registers a route handler",
           "absolute_paths": [
             "fastapi.FastAPI",
-            "fastapi.applications.FastAPI"
+            "fastapi.applications.FastAPI",
+            "fastapi.APIRouter",
+            "fastapi.routing.APIRouter"
           ],
           "target_level": "function",
           "concept": "AnnotationLike",
@@ -29,7 +31,8 @@
         "api_router": {
           "description": "Route organization using APIRouter",
           "absolute_paths": [
-            "fastapi.APIRouter"
+            "fastapi.APIRouter",
+            "fastapi.routing.APIRouter"
           ],
           "target_level": "function",
           "concept": "AnnotationLike",

@@ -2,7 +2,7 @@
 from pathlib import Path
 
 import pytest
-from src.code_confluence_flow_bridge.parser.package_manager.uv.uv_strategy import (
+from src.code_confluence_flow_bridge.parser.package_manager.python.managers.uv_strategy import (
     UvStrategy,
 )
 from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors

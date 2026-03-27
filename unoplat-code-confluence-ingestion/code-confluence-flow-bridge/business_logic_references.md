@@ -6,7 +6,7 @@ Catalog of domain models supporting repository ingestion, parsing metadata, work
 - `src/code_confluence_flow_bridge/engine/programming_language/python/python_source_context.py`: Python parsing context and extracted module metadata.
 - `src/code_confluence_flow_bridge/parser/language_processors/language_processor_context.py`: Shared context passed through language processors during parsing.
 - `src/code_confluence_flow_bridge/parser/tree_sitter_config.py`: Tree-sitter language bindings/configuration used for parsing.
-- `src/code_confluence_flow_bridge/parser/package_manager/node/package_json_loader.py`: Loads and normalizes Node package.json metadata.
+- `src/code_confluence_flow_bridge/parser/package_manager/typescript/manifests/package_json_loader.py`: Loads and normalizes TypeScript package.json metadata.
 
 ## Codebase Parsing Models
 - `src/code_confluence_flow_bridge/models/code_confluence_parsing_models/unoplat_git_repository.py`: Repository identity and clone metadata captured during ingestion.

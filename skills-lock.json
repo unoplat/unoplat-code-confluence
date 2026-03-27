@@ -81,6 +81,11 @@
       "sourceType": "github",
       "computedHash": "72c2426ac9540884eb5032bb438324bb344d0e2dd2b80f300a9fb49fe38d624e"
     },
+    "python-design-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "b70500bae0d16740d8a359be63c4645a0ab0f9b839d11d181c45d20958313698"
+    },
     "quieter": {
       "source": "pbakaus/impeccable",
       "sourceType": "github",

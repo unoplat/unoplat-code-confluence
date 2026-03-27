@@ -4,6 +4,7 @@ title: Correct TypeScript Lit framework identity mis-modeled as litellm
 status: To Do
 assignee: []
 created_date: '2026-03-04 11:17'
+updated_date: '2026-03-19 09:57'
 labels:
   - framework-definitions
   - typescript
@@ -20,6 +21,7 @@ references:
     unoplat-code-confluence-ingestion/code-confluence-flow-bridge/tests/integration/test_framework_definitions_ingestion.py
 parent_task_id: TASK-3
 priority: medium
+ordinal: 5000
 ---
 
 ## Description
