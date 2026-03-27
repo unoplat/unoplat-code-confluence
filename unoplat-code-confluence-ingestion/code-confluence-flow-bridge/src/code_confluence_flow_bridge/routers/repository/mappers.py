@@ -34,6 +34,12 @@ def build_programming_language_metadata(
         language_version=raw_metadata.get("language_version"),  # type: ignore[arg-type]
         manifest_path=raw_metadata.get("manifest_path"),  # type: ignore[arg-type]
         project_name=raw_metadata.get("project_name"),  # type: ignore[arg-type]
+        package_manager_provenance=raw_metadata.get("package_manager_provenance"),  # type: ignore[arg-type]
+        workspace_root=raw_metadata.get("workspace_root"),  # type: ignore[arg-type]
+        workspace_orchestrator=raw_metadata.get("workspace_orchestrator"),  # type: ignore[arg-type]
+        workspace_orchestrator_config_path=raw_metadata.get(
+            "workspace_orchestrator_config_path"
+        ),  # type: ignore[arg-type]
     )
 
 

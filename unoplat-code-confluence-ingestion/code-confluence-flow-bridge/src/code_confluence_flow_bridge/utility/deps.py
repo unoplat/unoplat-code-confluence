@@ -1,19 +1,14 @@
-# deps.py
-from typing import TYPE_CHECKING
-
 from fastapi import HTTPException, Request
 
+from src.code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
 from src.code_confluence_flow_bridge.logging.trace_utils import (
     bind_trace_id_logger,
     build_trace_id,
     trace_id_var,
 )
 
-if TYPE_CHECKING:
-    from loguru import Logger
 
-
-async def trace_dependency(request: Request) -> "Logger":
+async def trace_dependency(request: Request) -> StructuredLogger:
     """
     • Runs **before** the endpoint handler<br>
     • Extracts repo/owner from JSON body (or headers, query – adjust as needed)<br>

@@ -1,71 +1,13 @@
 # Standard Library
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, Literal, Optional
 
 # Third Party
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Import from commons package
-
-
 # ──────────────────────────────────────────────────────────────────────────────
-# CODEBASE DETECTION MODELS (moved from POC)
+# CONFIGURATION MODELS
 # ──────────────────────────────────────────────────────────────────────────────
-
-
-class FileNode(BaseModel):
-    """A single path from the repository inventory."""
-
-    path: str  # e.g. "src/foo/__init__.py"
-    kind: Literal["file", "dir"]
-    size: Optional[int] = None  # bytes (None for directories)
-
-
-class Signature(BaseModel):
-    """
-    A test applied to the set of filenames in a directory, or to the file
-    contents if 'contains' is supplied.
-    """
-
-    file: Optional[str] = None  # exact filename to look for
-    contains: Optional[str] = None  # substring that must appear in that file
-    contains_absence: Optional[List[str]] = (
-        None  # substrings that must NOT appear in file
-    )
-    glob: Optional[str] = None  # shell-style wildcard pattern
-
-
-class ManagerRule(BaseModel):
-    """Package manager detection rule."""
-
-    manager: str  # "poetry", "pip", "maven", …
-    weight: int = 1  # for tie-breaking / confidence
-    signatures: List[Signature] = Field(default_factory=list)
-    workspace_field: Optional[str] = (
-        None  # e.g. "workspaces" for npm, "tool.uv.workspace" for uv
-    )
-
-
-class LanguageRules(BaseModel):
-    """Language-specific detection rules."""
-
-    ignores: List[str]  # dir tokens to drop if not referenced
-    managers: List[ManagerRule]
-
-
-class CodebaseDetection(BaseModel):
-    """Simple codebase detection result."""
-
-    path: str  # relative path from repository root
-    programming_language: str  # "python"
-    package_manager: str  # "poetry" | "pip" | "uv"
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# EXISTING CONFIGURATION MODELS (BaseModel for JSON config)
-# ──────────────────────────────────────────────────────────────────────────────
-
-# RepositorySettings and CodebaseConfig now imported from commons above
 
 
 class LLMProviderConfig(BaseModel):
