@@ -2,7 +2,7 @@
 from pathlib import Path
 
 import pytest
-from src.code_confluence_flow_bridge.parser.package_manager.pip.pip_strategy import (
+from src.code_confluence_flow_bridge.parser.package_manager.python.managers.pip_strategy import (
     PipStrategy,
 )
 

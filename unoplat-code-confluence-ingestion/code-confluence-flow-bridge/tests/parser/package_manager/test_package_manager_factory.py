@@ -5,21 +5,21 @@ combinations to their appropriate strategy implementations.
 """
 
 import pytest
-from src.code_confluence_flow_bridge.parser.package_manager.node.node_package_manager_strategy import (
-    NodePackageManagerStrategy,
+from src.code_confluence_flow_bridge.parser.package_manager.python.managers.pip_strategy import (
+    PipStrategy,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.package_manager_factory import (
+from src.code_confluence_flow_bridge.parser.package_manager.python.managers.poetry_strategy import (
+    PythonPoetryStrategy,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.python.managers.uv_strategy import (
+    UvStrategy,
+)
+from src.code_confluence_flow_bridge.parser.package_manager.shared.registry import (
     PackageManagerStrategyFactory,
     UnsupportedPackageManagerError,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.pip.pip_strategy import (
-    PipStrategy,
-)
-from src.code_confluence_flow_bridge.parser.package_manager.poetry.poetry_strategy import (
-    PythonPoetryStrategy,
-)
-from src.code_confluence_flow_bridge.parser.package_manager.uv.uv_strategy import (
-    UvStrategy,
+from src.code_confluence_flow_bridge.parser.package_manager.typescript.managers.package_json_strategy import (
+    TypeScriptPackageJsonStrategy,
 )
 from unoplat_code_confluence_commons.programming_language_metadata import (
     PackageManagerType,
@@ -33,32 +33,32 @@ class TestPackageManagerStrategyFactory:
     # TypeScript Package Manager Tests
 
     def test_get_strategy_typescript_npm(self) -> None:
-        """Verify NPM returns NodePackageManagerStrategy for TypeScript."""
+        """Verify NPM returns TypeScriptPackageJsonStrategy for TypeScript."""
         strategy = PackageManagerStrategyFactory.get_strategy(
             ProgrammingLanguage.TYPESCRIPT, PackageManagerType.NPM
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     def test_get_strategy_typescript_yarn(self) -> None:
-        """Verify YARN returns NodePackageManagerStrategy for TypeScript."""
+        """Verify YARN returns TypeScriptPackageJsonStrategy for TypeScript."""
         strategy = PackageManagerStrategyFactory.get_strategy(
             ProgrammingLanguage.TYPESCRIPT, PackageManagerType.YARN
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     def test_get_strategy_typescript_pnpm(self) -> None:
-        """Verify PNPM returns NodePackageManagerStrategy for TypeScript."""
+        """Verify PNPM returns TypeScriptPackageJsonStrategy for TypeScript."""
         strategy = PackageManagerStrategyFactory.get_strategy(
             ProgrammingLanguage.TYPESCRIPT, PackageManagerType.PNPM
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     def test_get_strategy_typescript_bun(self) -> None:
-        """Verify BUN returns NodePackageManagerStrategy for TypeScript."""
+        """Verify BUN returns TypeScriptPackageJsonStrategy for TypeScript."""
         strategy = PackageManagerStrategyFactory.get_strategy(
             ProgrammingLanguage.TYPESCRIPT, PackageManagerType.BUN
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     # Python Package Manager Tests
 
@@ -90,28 +90,28 @@ class TestPackageManagerStrategyFactory:
         strategy = PackageManagerStrategyFactory.get_strategy_from_name(
             ProgrammingLanguage.TYPESCRIPT, "npm"
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     def test_get_strategy_from_name_yarn(self) -> None:
         """Verify name-based lookup works for yarn."""
         strategy = PackageManagerStrategyFactory.get_strategy_from_name(
             ProgrammingLanguage.TYPESCRIPT, "yarn"
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     def test_get_strategy_from_name_pnpm(self) -> None:
         """Verify name-based lookup works for pnpm."""
         strategy = PackageManagerStrategyFactory.get_strategy_from_name(
             ProgrammingLanguage.TYPESCRIPT, "pnpm"
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     def test_get_strategy_from_name_bun(self) -> None:
         """Verify name-based lookup works for bun."""
         strategy = PackageManagerStrategyFactory.get_strategy_from_name(
             ProgrammingLanguage.TYPESCRIPT, "bun"
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     def test_get_strategy_from_name_poetry(self) -> None:
         """Verify name-based lookup works for poetry."""
@@ -169,22 +169,22 @@ class TestPackageManagerStrategyFactory:
             PackageManagerType.BUN,
         ],
     )
-    def test_all_typescript_managers_return_node_strategy(
+    def test_all_typescript_managers_return_typescript_strategy(
         self, package_manager_type: PackageManagerType
     ) -> None:
-        """Verify all TypeScript package managers return NodePackageManagerStrategy."""
+        """Verify all TypeScript package managers return TypeScriptPackageJsonStrategy."""
         strategy = PackageManagerStrategyFactory.get_strategy(
             ProgrammingLanguage.TYPESCRIPT, package_manager_type
         )
-        assert isinstance(strategy, NodePackageManagerStrategy)
+        assert isinstance(strategy, TypeScriptPackageJsonStrategy)
 
     @pytest.mark.parametrize(
         "manager_name,expected_strategy_type",
         [
-            ("npm", NodePackageManagerStrategy),
-            ("yarn", NodePackageManagerStrategy),
-            ("pnpm", NodePackageManagerStrategy),
-            ("bun", NodePackageManagerStrategy),
+            ("npm", TypeScriptPackageJsonStrategy),
+            ("yarn", TypeScriptPackageJsonStrategy),
+            ("pnpm", TypeScriptPackageJsonStrategy),
+            ("bun", TypeScriptPackageJsonStrategy),
             ("poetry", PythonPoetryStrategy),
             ("pip", PipStrategy),
             ("uv", UvStrategy),
