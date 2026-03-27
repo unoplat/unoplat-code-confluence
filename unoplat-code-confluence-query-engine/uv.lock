@@ -2436,6 +2436,20 @@ wheels = [
 ]
 
 [[package]]
+name = "pydantic-ai-skills"
+version = "0.5.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "pydantic-ai-slim" },
+    { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0a/e3/6069c92225b24cf97a5128e308dc32056c0ea016d16034e06f2c578e1fe3/pydantic_ai_skills-0.5.1.tar.gz", hash = "sha256:2375783fcf554581a9eeca834a4c44bfd503f7e8a67e58b771556e0ba61892cb", size = 9071286, upload-time = "2026-03-06T00:09:52.305Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a9/22/dc2a13f1525c69460033811f48dafe2c26c6ec4606116ce085d671ae5666/pydantic_ai_skills-0.5.1-py3-none-any.whl", hash = "sha256:386fded552d646bf02af0550c0bc8ed8c1e3f0a24a532219c0e2232e78b4746c", size = 47942, upload-time = "2026-03-06T00:09:50.217Z" },
+]
+
+[[package]]
 name = "pydantic-ai-slim"
 version = "1.56.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3484,7 +3498,7 @@ wheels = [
 [[package]]
 name = "unoplat-code-confluence-commons"
 version = "0.46.0"
-source = { git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.46.0#1ae715b5f5fe6a5fb69b097003614356c55350c8" }
+source = { directory = "../unoplat-code-confluence-commons" }
 dependencies = [
     { name = "cryptography" },
     { name = "pydantic" },
@@ -3492,6 +3506,16 @@ dependencies = [
     { name = "pytest-asyncio" },
     { name = "sqlalchemy" },
     { name = "sqlmodel" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cryptography", specifier = ">=45.0.6" },
+    { name = "pydantic", specifier = ">=2.11.7" },
+    { name = "pytest", specifier = "==8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.0,<0.26" },
+    { name = "sqlalchemy", specifier = ">=2.0.41" },
+    { name = "sqlmodel", specifier = ">=0.0.24" },
 ]
 
 [[package]]
@@ -3507,6 +3531,7 @@ dependencies = [
     { name = "logfire", extra = ["fastapi"] },
     { name = "loguru" },
     { name = "pydantic-ai" },
+    { name = "pydantic-ai-skills" },
     { name = "pydantic-ai-slim", extra = ["bedrock", "duckduckgo", "retries"] },
     { name = "qs-codec" },
     { name = "sqlalchemy", extra = ["asyncio"] },
@@ -3546,12 +3571,13 @@ requires-dist = [
     { name = "logfire", extras = ["fastapi"], specifier = ">=4.4.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pydantic-ai", specifier = ">=1.47.0" },
+    { name = "pydantic-ai-skills", specifier = ">=0.1.0" },
     { name = "pydantic-ai-slim", extras = ["bedrock", "duckduckgo", "retries"], specifier = ">=1.0.5" },
     { name = "qs-codec", specifier = ">=1.1.1" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.0" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
     { name = "sse-starlette", specifier = ">=3.0.0" },
-    { name = "unoplat-code-confluence-commons", git = "https://github.com/unoplat/unoplat-code-confluence.git?subdirectory=unoplat-code-confluence-commons&rev=unoplat-code-confluence-commons-v0.46.0" },
+    { name = "unoplat-code-confluence-commons", directory = "../unoplat-code-confluence-commons" },
 ]
 
 [package.metadata.requires-dev]

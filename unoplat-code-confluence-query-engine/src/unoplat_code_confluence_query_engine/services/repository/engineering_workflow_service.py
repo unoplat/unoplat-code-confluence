@@ -37,6 +37,88 @@ _STAGE_ALIASES: dict[str, str] = {
 CONFIDENCE_THRESHOLD: float = 0.35
 
 
+def _normalize_repo_relative_posix_directory(
+    raw_value: object,
+    *,
+    allow_dot: bool,
+    field_name: str,
+) -> str | None:
+    """Normalize a repo-relative POSIX directory value or reject it."""
+    if raw_value is None:
+        return None
+
+    candidate = str(raw_value).strip()
+    if not candidate:
+        return None
+
+    if "\\" in candidate:
+        logger.warning(
+            "Rejecting {} '{}' because it is not POSIX-formatted",
+            field_name,
+            candidate,
+        )
+        return None
+
+    if candidate.startswith("/"):
+        logger.warning(
+            "Rejecting absolute {} '{}', falling back to None",
+            field_name,
+            candidate,
+        )
+        return None
+
+    normalized = PurePosixPath(candidate).as_posix()
+    if ".." in PurePosixPath(normalized).parts:
+        logger.warning(
+            "Rejecting traversal {} '{}', falling back to None",
+            field_name,
+            candidate,
+        )
+        return None
+
+    if normalized == ".":
+        if allow_dot:
+            return "."
+        logger.warning(
+            "Rejecting {} '{}' because '.' is not allowed here",
+            field_name,
+            candidate,
+        )
+        return None
+
+    return normalized
+
+
+def _normalize_working_directory(raw_value: object) -> str | None:
+    """Normalize a raw working_directory value from agent output.
+
+    Semantics:
+        None/empty → None (codebase root)
+        "." → "." (repository root, PRESERVED)
+        valid repo-relative path → normalized POSIX path
+        absolute/traversal/malformed → None with warning
+    """
+    return _normalize_repo_relative_posix_directory(
+        raw_value,
+        allow_dot=True,
+        field_name="working_directory",
+    )
+
+
+def is_valid_working_directory(raw_value: str) -> bool:
+    """Return whether a working_directory value matches the output contract."""
+    if not raw_value.strip():
+        return False
+    return (
+        _normalize_repo_relative_posix_directory(
+            raw_value,
+            allow_dot=True,
+            field_name="working_directory",
+        )
+        is not None
+    )
+
+
 def _normalize_path(path: str) -> str:
     candidate = (path or "").strip().replace("\\", "/")
     candidate = re.sub(r"^[A-Za-z]:/", "", candidate)
@@ -51,7 +133,9 @@ def _normalize_path(path: str) -> str:
         if marker_index != -1:
             tail = candidate[marker_index + len(marker) :]
             candidate_parts = [p for p in tail.split("/") if p]
-            candidate = "/".join(candidate_parts[1:]) if len(candidate_parts) > 1 else tail
+            candidate = (
+                "/".join(candidate_parts[1:]) if len(candidate_parts) > 1 else tail
+            )
         else:
             candidate = candidate.lstrip("/")
 
@@ -62,8 +146,12 @@ def _normalize_path(path: str) -> str:
     return normalized
 
 
-def normalize_commands(commands: Iterable[dict[str, object]]) -> list[EngineeringWorkflowCommand]:
-    dedup: dict[tuple[EngineeringWorkflowStage, str], EngineeringWorkflowCommand] = {}
+def normalize_commands(
+    commands: Iterable[dict[str, object]],
+) -> list[EngineeringWorkflowCommand]:
+    dedup: dict[
+        tuple[EngineeringWorkflowStage, str, str | None], EngineeringWorkflowCommand
+    ] = {}
 
     for raw in commands:
         stage_value = raw.get("stage", "")
@@ -74,7 +162,11 @@ def normalize_commands(commands: Iterable[dict[str, object]]) -> list[Engineerin
             stage_raw = _STAGE_ALIASES.get(stage_raw, stage_raw)
         command = str(raw.get("command", "")).strip()
         if not stage_raw or not command:
-            logger.warning("Skipping invalid command entry with stage='{}' command='{}'", stage_raw, command)
+            logger.warning(
+                "Skipping invalid command entry with stage='{}' command='{}'",
+                stage_raw,
+                command,
+            )
             continue
 
         try:
@@ -106,15 +198,19 @@ def normalize_commands(commands: Iterable[dict[str, object]]) -> list[Engineerin
             confidence = 0.0
         confidence = max(0.0, min(1.0, confidence))
 
-        key = (stage, command)
+        # Normalize working_directory
+        working_directory = _normalize_working_directory(raw.get("working_directory"))
+
+        # Dedupe on (stage, command, working_directory) retaining highest confidence
+        key = (stage, command, working_directory)
         existing = dedup.get(key)
-        # Dedupe on (stage, command) retaining highest confidence
         if existing is None or confidence > existing.confidence:
             dedup[key] = EngineeringWorkflowCommand(
                 command=command,
                 stage=stage,
                 config_file=config_file,
                 confidence=confidence,
+                working_directory=working_directory,
             )
 
     # Filter by confidence threshold

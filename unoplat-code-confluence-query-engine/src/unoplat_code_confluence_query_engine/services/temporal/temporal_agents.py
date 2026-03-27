@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Literal, TypeAlias, TypedDict, cast
 
 from loguru import logger
-from pydantic_ai import Agent, ModelRetry, Tool
+from pydantic_ai import Agent, ModelRetry, RunContext, Tool
 from pydantic_ai.builtin_tools import AbstractBuiltinTool, WebSearchTool
 from pydantic_ai.common_tools.duckduckgo import (
     duckduckgo_search_tool,  # pyright: ignore[reportUnknownVariableType]
@@ -18,6 +18,7 @@ from pydantic_ai.durable_exec.temporal import TemporalAgent
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 from pydantic_ai.usage import UsageLimits
+from pydantic_ai_skills import SkillsToolset
 from temporalio.workflow import ActivityConfig
 
 from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
@@ -52,6 +53,7 @@ from unoplat_code_confluence_query_engine.services.agents_md.managed_block impor
 )
 from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
     CONFIDENCE_THRESHOLD,
+    is_valid_working_directory,
 )
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
@@ -61,6 +63,9 @@ from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler
 )
 from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
     get_mcp_server_manager,
+)
+from unoplat_code_confluence_query_engine.skills.typescript_monorepo_skill import (
+    create_typescript_monorepo_toolset,
 )
 from unoplat_code_confluence_query_engine.tools.agents_md_updater_tools import (
     updater_apply_patch,
@@ -331,6 +336,9 @@ EXA_TOOLSET_IDS = {
     AgentType.CALL_EXPRESSION_VALIDATOR: "exa__call_expression_validator",
 }
 
+TS_MONOREPO_DYNAMIC_TOOLSET_ID = "ts_monorepo_dynamic__development_workflow_guide"
+TS_MONOREPO_TOOLSET_ID = "ts_monorepo__development_workflow_guide"
+
 
 # Toggle agents here - comment/uncomment to enable/disable
 ENABLED_AGENTS: set[AgentType] = {
@@ -364,6 +372,13 @@ def validate_engineering_development_workflow_output(
         if command.confidence < 0.0 or command.confidence > 1.0:
             raise ModelRetry(
                 f"confidence {command.confidence} for command '{command.command}' must be between 0.0 and 1.0."
+            )
+        if command.working_directory is not None and not is_valid_working_directory(
+            command.working_directory
+        ):
+            raise ModelRetry(
+                "working_directory must be omitted/null for codebase root, '.' for repository root, "
+                "or a repo-relative POSIX path without backslashes, absolute prefixes, or traversal."
             )
     if not any(
         command.confidence >= CONFIDENCE_THRESHOLD for command in output.commands
@@ -487,6 +502,32 @@ def create_engineering_development_workflow_agent(
     agent.output_validator(validate_engineering_development_workflow_output)
     # Attach dynamic per-language instructions (always enabled)
     agent.instructions(per_language_development_workflow_prompt)
+
+    # Conditional TypeScript monorepo skill via @agent.toolset
+    ts_monorepo_toolset = create_typescript_monorepo_toolset(TS_MONOREPO_TOOLSET_ID)
+
+    @agent.toolset(  # pyright: ignore[reportUntypedFunctionDecorator]
+        id=TS_MONOREPO_DYNAMIC_TOOLSET_ID,
+        per_run_step=False,
+    )
+    def monorepo_skill_toolset(  # pyright: ignore[reportUnusedFunction]
+        ctx: RunContext[AgentDependencies],
+    ) -> SkillsToolset | None:
+        if (
+            ctx.deps.codebase_metadata.codebase_package_manager_provenance
+            == "inherited"
+        ):
+            return ts_monorepo_toolset
+        return None
+
+    @agent.instructions  # pyright: ignore[reportUntypedFunctionDecorator]
+    async def add_skill_instructions(ctx: RunContext[AgentDependencies]) -> str | None:  # pyright: ignore[reportUnusedFunction]
+        if (
+            ctx.deps.codebase_metadata.codebase_package_manager_provenance
+            == "inherited"
+        ):
+            return await ts_monorepo_toolset.get_instructions(ctx)
+        return None
 
     logger.debug("Dynamic instructions attached to development_workflow_guide")
 
@@ -901,6 +942,15 @@ def create_temporal_agents(
         engineering_toolset_tool_activity_config: ToolsetToolActivityConfigMap = {
             default_toolset_id: engineering_tool_activity_config
         }
+        # Register both the dynamic toolset wrapper and the returned SkillsToolset.
+        engineering_toolset_activity_config[TS_MONOREPO_DYNAMIC_TOOLSET_ID] = (
+            toolset_activity_config
+        )
+        engineering_toolset_tool_activity_config[TS_MONOREPO_DYNAMIC_TOOLSET_ID] = {}
+        engineering_toolset_activity_config[TS_MONOREPO_TOOLSET_ID] = (
+            toolset_activity_config
+        )
+        engineering_toolset_tool_activity_config[TS_MONOREPO_TOOLSET_ID] = {}
         if use_exa_tools:
             engineering_toolset_activity_config[exa_toolset_id] = (
                 toolset_activity_config
