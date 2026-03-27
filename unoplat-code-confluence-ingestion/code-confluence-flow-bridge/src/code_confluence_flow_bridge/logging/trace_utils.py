@@ -2,13 +2,12 @@
 from __future__ import annotations
 
 import contextvars
-from typing import TYPE_CHECKING, Optional
+from typing import cast
 import uuid
 
 from loguru import logger
 
-if TYPE_CHECKING:
-    from loguru import Logger
+from src.code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
 
 trace_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "trace_id", default=None
@@ -42,17 +41,17 @@ def build_trace_id(repo: str | None, owner: str | None) -> str:
     return f"{repo}__{owner}" if repo and owner else str(uuid.uuid4())
 
 
-def bind_trace_id_logger(trace_id: str):
-    return logger.bind(app_trace_id=trace_id)
+def bind_trace_id_logger(trace_id: str) -> StructuredLogger:
+    return cast(StructuredLogger, logger.bind(app_trace_id=trace_id))
 
 
 def bind_logger(
-    trace_id: str,
-    workflow_id: str,
-    workflow_run_id: str,
-    activity_id: Optional[str] = None,
-    activity_name: Optional[str] = None,
-) -> "Logger":
+    trace_id: str | None,
+    workflow_id: str | None,
+    workflow_run_id: str | None,
+    activity_id: str | None = None,
+    activity_name: str | None = None,
+) -> StructuredLogger:
     """
     Create a Loguru logger instance with bound context variables.
 
@@ -66,7 +65,7 @@ def bind_logger(
     Returns:
         Logger: A Loguru logger instance with appropriate context variables bound
     """
-    log_context = {}
+    log_context: dict[str, str] = {}
     if trace_id:
         log_context["app_trace_id"] = trace_id
     if workflow_id:
@@ -80,7 +79,7 @@ def bind_logger(
     if activity_name:
         log_context["activity_name"] = activity_name
 
-    return logger.bind(**log_context)
+    return cast(StructuredLogger, logger.bind(**log_context))
 
 
 # ---------------- Context helpers ---------------- #
@@ -88,8 +87,8 @@ def seed_ids(
     trace_id: str,
     workflow_id: str,
     workflow_run_id: str,
-    activity_id: Optional[str] = None,
-    activity_name: Optional[str] = None,
+    activity_id: str | None = None,
+    activity_name: str | None = None,
 ) -> None:
     """
     Set the trace_id, workflow_id, workflow_run_id, and optionally activity_id in their respective ContextVars.
@@ -122,12 +121,12 @@ def seed_ids(
 # ---------------------------------------------------------------
 # Helper: seed ContextVar and return bound logger in one step
 def seed_and_bind_logger_from_trace_id(
-    trace_id: Optional[str] = None,
-    workflow_id: Optional[str] = None,
-    workflow_run_id: Optional[str] = None,
-    activity_id: Optional[str] = None,
-    activity_name: Optional[str] = None,
-) -> "Logger":
+    trace_id: str | None = None,
+    workflow_id: str | None = None,
+    workflow_run_id: str | None = None,
+    activity_id: str | None = None,
+    activity_name: str | None = None,
+) -> StructuredLogger:
     """
     Initialize context variables and create a bound logger in a single operation.
 
@@ -144,7 +143,8 @@ def seed_and_bind_logger_from_trace_id(
     Returns:
         Logger: A Loguru logger instance with appropriate context variables bound
     """
-    seed_ids(trace_id, workflow_id, workflow_run_id, activity_id, activity_name)  # type: ignore
+    if trace_id is not None and workflow_id is not None and workflow_run_id is not None:
+        seed_ids(trace_id, workflow_id, workflow_run_id, activity_id, activity_name)
     return bind_logger(
         trace_id, workflow_id, workflow_run_id, activity_id, activity_name
-    )  # type: ignore
+    )
