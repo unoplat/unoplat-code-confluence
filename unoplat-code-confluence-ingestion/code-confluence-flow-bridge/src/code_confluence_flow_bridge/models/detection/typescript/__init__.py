@@ -1,0 +1,1 @@
+"""TypeScript-specific detection models."""
