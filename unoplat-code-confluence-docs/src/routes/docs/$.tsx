@@ -21,6 +21,14 @@ import { TypeTable } from "fumadocs-ui/components/type-table";
 import { ImageZoom } from "fumadocs-ui/components/image-zoom";
 import { seo, canonicalLink } from "@/lib/seo";
 
+interface DocsPageLoaderData {
+  pageTree: Awaited<ReturnType<typeof source.serializePageTree>>;
+  path: string;
+  url: string;
+  title: string;
+  description: string;
+}
+
 // Server function to load page data - runs on server during dev, pre-rendered for static build if static middleware present
 const serverLoader = createServerFn({
   method: "GET",
@@ -42,6 +50,13 @@ const serverLoader = createServerFn({
 
 export const Route = createFileRoute("/docs/$")({
   component: Page,
+  loader: async ({ params }): Promise<DocsPageLoaderData> => {
+    const raw = params._splat;
+    const slugs = raw && raw.length > 0 ? raw.split("/") : [];
+    const data = await serverLoader({ data: slugs });
+    await clientLoader.preload(data.path);
+    return data;
+  },
   head: ({ loaderData }) => ({
     meta: loaderData
       ? seo({
@@ -52,13 +67,6 @@ export const Route = createFileRoute("/docs/$")({
       : [],
     links: loaderData ? [canonicalLink(loaderData.url)] : [],
   }),
-  loader: async ({ params }) => {
-    const raw = params._splat;
-    const slugs = raw && raw.length > 0 ? raw.split("/") : [];
-    const data = await serverLoader({ data: slugs });
-    await clientLoader.preload(data.path);
-    return data;
-  },
 });
 
 const clientLoader = browserCollections.docs.createClientLoader<Record<string, never>>({
