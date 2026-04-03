@@ -1,7 +1,6 @@
 """Tests for commons engine models used by framework detection."""
 
 from pydantic import ValidationError
-
 from unoplat_code_confluence_commons.base_models import (
     Concept,
     ConstructQueryConfig,

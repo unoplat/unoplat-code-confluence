@@ -28,7 +28,6 @@ from unoplat_code_confluence_commons.base_models import (
     PackageManagerType,
     ProgrammingLanguage,
     ProgrammingLanguageMetadata,
-    WorkspaceOrchestratorType,
     # Python structural signature models
     PythonClassInfo,
     PythonFunctionInfo,
@@ -58,6 +57,7 @@ from unoplat_code_confluence_commons.base_models import (
     TypeScriptTypeAliasInfo,
     TypeScriptVariableInfo,
     ValidationStatus,
+    WorkspaceOrchestratorType,
     deserialize_structural_signature,
     get_signature_type_for_language,
 )
@@ -69,9 +69,6 @@ from unoplat_code_confluence_commons.credential_enums import (
 from unoplat_code_confluence_commons.pr_metadata_model import (
     PrMetadata,
 )
-from unoplat_code_confluence_commons.repo_models import (
-    RepositoryAgentMdSnapshot,
-)
 from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluenceCodebase,
     UnoplatCodeConfluenceCodebaseFramework,
@@ -79,6 +76,9 @@ from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluenceFileFrameworkFeature,
     UnoplatCodeConfluenceGitRepository,
     UnoplatCodeConfluencePackageManagerMetadata,
+)
+from unoplat_code_confluence_commons.repo_models import (
+    RepositoryAgentMdSnapshot,
 )
 from unoplat_code_confluence_commons.security import (
     decrypt_token,

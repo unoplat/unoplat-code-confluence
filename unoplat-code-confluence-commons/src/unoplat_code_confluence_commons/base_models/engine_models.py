@@ -143,6 +143,8 @@ class FeatureSpec(BaseModel):
         default=False,
         description="Indicates whether this feature represents a starting point or entry point in the application",
     )
+    capability_key: Optional[str] = Field(default=None, description="Capability family this feature belongs to")
+    operation_key: Optional[str] = Field(default=None, description="Operation identifier within the capability")
 
     @model_validator(mode="after")
     def validate_base_confidence_scope(self) -> Self:
@@ -184,8 +186,12 @@ class FrameworkFeaturePayload(BaseModel):
         default=False,
         description="Feature is a starting point",
     )
+    capability_key: Optional[str] = Field(default=None, description="Capability family this feature belongs to")
+    operation_key: Optional[str] = Field(default=None, description="Operation identifier within the capability")
+    notes: Optional[str] = Field(default=None, description="Contributor notes, caveats, disambiguation guidance")
+    docs_url: Optional[str] = Field(default=None, description="Operation-specific documentation URL")
 
-    model_config = ConfigDict(extra="allow", use_enum_values=True)
+    model_config = ConfigDict(extra="forbid", use_enum_values=True)
 
     @model_validator(mode="after")
     def validate_base_confidence_scope(self) -> Self:
