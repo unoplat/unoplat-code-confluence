@@ -122,7 +122,7 @@ class FrameworkDefinitionLoader:
                 logger.debug(f"Loading framework definition from {json_file}")
                 file_data = json.loads(json_file.read_text())
 
-                # Merge data from each file (language -> library -> features structure)
+                # Merge data from each file (language -> library -> capabilities -> operations structure)
                 for language, language_data in file_data.items():
                     if language not in combined_data:
                         combined_data[language] = {}
@@ -152,7 +152,7 @@ class FrameworkDefinitionLoader:
 
         logger.debug("Parsing framework definitions into SQLModel objects")
 
-        # Parse new schema structure: language -> library -> features
+        # Parse new schema structure: language -> library -> capabilities -> operations
         for language, language_data_raw in data.items():
             language_data = cast(dict[str, dict[str, Any]], language_data_raw)
             for library_name, library_data in language_data.items():
@@ -172,42 +172,55 @@ class FrameworkDefinitionLoader:
                     )
                     seen_frameworks.add(framework_key)
 
-                # Process features
-                features_data = cast(
+                # Process capabilities -> operations
+                capabilities_data = cast(
                     dict[str, dict[str, Any]],
-                    library_data.get("features", {}),
+                    library_data.get("capabilities", {}),
                 )
-                for feature_key, feature_data in features_data.items():
-                    normalized_payload = self._normalize_feature_payload(feature_data)
-                    feature_definition: dict[str, object] = (
-                        normalized_payload.model_dump(mode="json", exclude_none=False)
+                for cap_key, cap_data in capabilities_data.items():
+                    operations_data = cast(
+                        dict[str, dict[str, Any]],
+                        cap_data.get("operations", {}),
                     )
-                    if feature_definition.get("concept") != "CallExpression":
-                        feature_definition.pop("base_confidence", None)
-                    elif feature_definition.get("base_confidence") is None:
-                        feature_definition.pop("base_confidence", None)
-
-                    # Create FrameworkFeature record with new schema fields
-                    features.append(
-                        FrameworkFeature(
-                            language=language,
-                            library=library_name,
-                            feature_key=feature_key,
-                            feature_definition=feature_definition,
+                    for op_key, op_data in operations_data.items():
+                        feature_key = f"{cap_key}.{op_key}"
+                        feature_data = dict(op_data)
+                        feature_data["capability_key"] = cap_key
+                        feature_data["operation_key"] = op_key
+                        normalized_payload = self._normalize_feature_payload(
+                            feature_data
                         )
-                    )
+                        feature_definition: dict[str, object] = (
+                            normalized_payload.model_dump(
+                                mode="json", exclude_none=False
+                            )
+                        )
+                        if feature_definition.get("concept") != "CallExpression":
+                            feature_definition.pop("base_confidence", None)
+                        elif feature_definition.get("base_confidence") is None:
+                            feature_definition.pop("base_confidence", None)
 
-                    # Create FeatureAbsolutePath records for each absolute path
-                    absolute_paths_data = normalized_payload.absolute_paths
-                    for absolute_path in absolute_paths_data:
-                        absolute_paths.append(
-                            FeatureAbsolutePath(
+                        # Create FrameworkFeature record with new schema fields
+                        features.append(
+                            FrameworkFeature(
                                 language=language,
                                 library=library_name,
                                 feature_key=feature_key,
-                                absolute_path=absolute_path,
+                                feature_definition=feature_definition,
                             )
                         )
+
+                        # Create FeatureAbsolutePath records for each absolute path
+                        absolute_paths_data = normalized_payload.absolute_paths
+                        for absolute_path in absolute_paths_data:
+                            absolute_paths.append(
+                                FeatureAbsolutePath(
+                                    language=language,
+                                    library=library_name,
+                                    feature_key=feature_key,
+                                    absolute_path=absolute_path,
+                                )
+                            )
 
         logger.info(
             f"Parsed {len(frameworks)} frameworks, {len(features)} features, {len(absolute_paths)} absolute paths"
