@@ -3,43 +3,145 @@
     "fastapi": {
       "docs_url": "https://fastapi.tiangolo.com",
       "description": "FastAPI is a modern, fast (high-performance), web framework for building APIs with Python based on standard Python type hints. It provides automatic interactive documentation and is designed for high performance and ease of use.",
-      "features": {
+      "capabilities": {
         "http_endpoint": {
-          "description": "HTTP verb decorator that registers a route handler",
-          "absolute_paths": [
-            "fastapi.FastAPI",
-            "fastapi.applications.FastAPI",
-            "fastapi.APIRouter",
-            "fastapi.routing.APIRouter"
-          ],
-          "target_level": "function",
-          "concept": "AnnotationLike",
-          "construct_query": {
-            "method_regex": "(get|post|put|delete|patch|head|options|trace)"
-          },
-          "startpoint": true
+          "description": "HTTP verb decorators that register route handlers on FastAPI or APIRouter instances.",
+          "operations": {
+            "get": {
+              "description": "FastAPI GET route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^get$"
+              },
+              "startpoint": true
+            },
+            "post": {
+              "description": "FastAPI POST route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^post$"
+              },
+              "startpoint": true
+            },
+            "put": {
+              "description": "FastAPI PUT route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^put$"
+              },
+              "startpoint": true
+            },
+            "delete": {
+              "description": "FastAPI DELETE route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^delete$"
+              },
+              "startpoint": true
+            },
+            "patch": {
+              "description": "FastAPI PATCH route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^patch$"
+              },
+              "startpoint": true
+            },
+            "head": {
+              "description": "FastAPI HEAD route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^head$"
+              },
+              "startpoint": true
+            },
+            "options": {
+              "description": "FastAPI OPTIONS route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^options$"
+              },
+              "startpoint": true
+            },
+            "trace": {
+              "description": "FastAPI TRACE route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^trace$"
+              },
+              "startpoint": true
+            }
+          }
         },
-        "background_tasks": {
-          "description": "Background task execution using BackgroundTasks",
-          "absolute_paths": [
-            "fastapi.BackgroundTasks"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression",
-          "base_confidence": 0.88
-        },
-        "api_router": {
-          "description": "Route organization using APIRouter",
-          "absolute_paths": [
-            "fastapi.APIRouter",
-            "fastapi.routing.APIRouter"
-          ],
-          "target_level": "function",
-          "concept": "AnnotationLike",
-          "construct_query": {
-            "method_regex": "(get|post|put|delete|patch|head|options|trace|include_router)"
-          },
-          "startpoint": true
+        "background_worker": {
+          "description": "Background task execution using FastAPI BackgroundTasks.",
+          "operations": {
+            "background_tasks": {
+              "description": "Background task execution using BackgroundTasks.",
+              "absolute_paths": [
+                "fastapi.BackgroundTasks"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.88
+            }
+          }
         }
       }
     }
