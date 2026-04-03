@@ -3,9 +3,9 @@ id: TASK-24
 title: Introduce architecture-level capability grouping for framework features
 status: In Progress
 assignee:
-  - OpenCode
+  - '@OpenCode'
 created_date: '2026-03-30 04:57'
-updated_date: '2026-03-30 06:31'
+updated_date: '2026-04-03 04:55'
 labels:
   - schema
   - framework-features
@@ -32,7 +32,7 @@ ordinal: 1000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Framework feature definitions currently use feature keys as the main semantic label, which pushes us toward library-specific names like `get_auth` instead of software-engineering fundamentals like app bootstrap, authentication, document database access, or file storage. We need a design that preserves precise detection while also supporting library-agnostic capability grouping so downstream outputs can aggregate by architectural intent rather than raw API names.
+Architecture-level capability grouping is now documented in the public v4 schema and is mostly adopted in flow-bridge through operation-level persisted keys (`capability.operation`). Remaining work is to reconcile the public docs/examples with the simplified single-contract operation model, add real Firebase TypeScript definitions against the final capability taxonomy, and update query-engine outputs/mappers to consume capability + operation metadata instead of raw feature keys.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
@@ -42,21 +42,3 @@ Framework feature definitions currently use feature keys as the main semantic la
 - [ ] #3 The design identifies downstream model or mapper changes needed so architectural capabilities such as authentication are not forced into library-specific internal constructs.
 - [ ] #4 Firebase TypeScript support is aligned to the chosen capability-grouping approach.
 <!-- AC:END -->
-
-## Implementation Plan
-
-<!-- SECTION:PLAN:BEGIN -->
-1. Publish DIDS v4 in `unoplat-code-confluence-docs` as the design source of truth for architecture-level grouping.
-2. Use library-level `capabilities`, capability-level `operations`, and operation-level `detectors` so one capability can contain multiple operations and each operation can contain multiple precise detectors or variants.
-3. Keep precise match semantics on detectors: `absolute_paths`, `target_level`, `concept`, `construct_query`, `base_confidence`, and low-confidence `notes` constraints remain detector-scoped.
-4. Introduce enum validation for capability families and operation kinds, while detector keys remain contributor-defined identifiers local to each operation.
-5. After the docs schema is stable, implement ingestion-side schema/model/test changes, then update Firebase definitions to the new structure, then align query-engine aggregation and output mapping to capability + operation instead of raw feature keys.
-6. Use FastAPI route methods and Firebase auth sign-in flows as validation examples for grouping: `http_endpoint -> register_handler -> get/post/...` and `authentication -> sign_in -> email_password/popup/redirect`.
-7. Preserve v3 as legacy documentation during migration; keep latest schema alias pointed at v4 once the docs page is updated.
-<!-- SECTION:PLAN:END -->
-
-## Implementation Notes
-
-<!-- SECTION:NOTES:BEGIN -->
-Docs-first v4 direction chosen: publish a breaking schema version that replaces flat `features` with `capabilities -> operations -> detectors`. Capability and operation keys become enum-validated architectural groupings; detector keys preserve precise matching identity and carry `absolute_paths`, `concept`, `target_level`, `construct_query`, and `base_confidence`.
-<!-- SECTION:NOTES:END -->
