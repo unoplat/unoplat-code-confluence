@@ -134,7 +134,7 @@ export function FrameworkFeatureCatalog({
   }, [definitionPath, label, normalizedLanguage, normalizedLibrary]);
 
   const featureRows = useMemo<FeatureRow[]>(() => {
-    if (!libraryDefinition) {
+    if (!libraryDefinition?.features) {
       return [];
     }
 
