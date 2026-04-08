@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v3.json",
-  "title": "Code-Confluence Multi-Language Library Feature Schema v3",
-  "description": "Framework / library feature signatures grouped by programming language.",
+  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v4.json",
+  "title": "Code-Confluence Multi-Language Library Feature Schema v4",
+  "description": "Framework / library feature signatures grouped by programming language using capability-operation hierarchy.",
   "type": "object",
 
   "propertyNames": { "$ref": "#/$defs/languageEnum" },
@@ -27,7 +27,7 @@
     },
     "libraryDef": {
       "type": "object",
-      "required": ["docs_url", "features"],
+      "required": ["docs_url", "capabilities"],
       "properties": {
         "docs_url": {
           "type": "string",
@@ -36,37 +36,75 @@
         },
         "description": {
           "type": "string",
-          "description": "Human-readable description of the library. This is a short description of the library that is used to describe the library in the documentation."
+          "description": "Human-readable description of the library."
         },
         "version": {
           "type": "string",
           "description": "Library version used to verify patterns (optional)."
         },
-        "features": {
+        "capabilities": {
           "type": "object",
           "minProperties": 1,
-          "description": "Discoverable features keyed by contributor-chosen identifier.",
-          "patternProperties": { "^.+$": { "$ref": "#/$defs/featureDef" } },
+          "description": "Discoverable capabilities keyed by capability family.",
+          "propertyNames": { "$ref": "#/$defs/capabilityFamilyEnum" },
+          "patternProperties": { "^.+$": { "$ref": "#/$defs/capabilityDef" } },
           "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
 
-    "featureDef": {
+    "capabilityFamilyEnum": {
+      "type": "string",
+      "description": "Allowed capability family identifiers.",
+      "enum": [
+        "background_worker",
+        "data_validation",
+        "embeddings",
+        "http_client",
+        "http_endpoint",
+        "key_value_store",
+        "llm_inference",
+        "mcp_server",
+        "relational_database",
+        "scheduled_task",
+        "web_component"
+      ]
+    },
+
+    "capabilityDef": {
+      "type": "object",
+      "required": ["operations"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the capability."
+        },
+        "operations": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Discoverable operations keyed by contributor-chosen identifier.",
+          "patternProperties": { "^.+$": { "$ref": "#/$defs/operationDef" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "operationDef": {
       "type": "object",
       "required": ["description", "absolute_paths", "target_level", "concept"],
 
       "properties": {
         "description": {
           "type": "string",
-          "description": "Human-readable explanation of the feature."
+          "description": "Human-readable explanation of the operation."
         },
 
         "docs_url": {
           "type": "string",
           "format": "uri",
-          "description": "Feature-specific documentation URL (optional)."
+          "description": "Operation-specific documentation URL (optional)."
         },
 
         "absolute_paths": {
@@ -88,12 +126,12 @@
           "type": "number",
           "minimum": 0.0,
           "maximum": 1.0,
-          "description": "Contributor-authored confidence for CallExpression feature definitions only; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
+          "description": "Contributor-authored confidence for CallExpression operation definitions only; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
         },
 
         "startpoint": {
           "type": "boolean",
-          "description": "Indicates whether this feature represents a starting point or entry point in the application, such as API endpoints (e.g., FastAPI routes) or message consumers (e.g., Kafka listeners).",
+          "description": "Indicates whether this operation represents a starting point or entry point in the application, such as API endpoints (e.g., FastAPI routes) or message consumers (e.g., Kafka listeners).",
           "default": false
         },
 
@@ -162,7 +200,7 @@
     "targetLevelEnum": {
       "type": "string",
       "enum": ["function", "class"],
-      "description": "Granularity of the code element that owns the feature."
+      "description": "Granularity of the code element that owns the operation."
     },
 
     "conceptEnum": {
@@ -178,7 +216,7 @@
 
     "constructQueryDef": {
       "type": "object",
-      "description": "Optional refinements to the auto-generated Tree-sitter query. Allowed keys depend on the feature's concept.",
+      "description": "Optional refinements to the auto-generated Tree-sitter query. Allowed keys depend on the operation's concept.",
       "properties": {
         "method_regex": { "type": "string" },
         "annotation_name_regex": { "type": "string" },

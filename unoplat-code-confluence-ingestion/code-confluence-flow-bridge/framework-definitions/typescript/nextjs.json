@@ -3,17 +3,88 @@
     "nextjs": {
       "docs_url": "https://nextjs.org/docs/app/building-your-application/routing/route-handlers",
       "description": "Next.js App Router HTTP route handler exports in route.ts files.",
-      "features": {
+      "capabilities": {
         "http_endpoint": {
-          "description": "App Router HTTP method handler: named export function (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS). Requires next/server import to gate false positives.",
-          "absolute_paths": ["next/server.NextRequest", "next/server.NextResponse"],
-          "target_level": "function",
-          "concept": "FunctionDefinition",
-          "construct_query": {
-            "function_name_regex": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS)$",
-            "export_name_regex": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS)$"
-          },
-          "startpoint": true
+          "description": "App Router HTTP method handler named exports requiring next/server imports.",
+          "operations": {
+            "get": {
+              "description": "Next.js App Router GET handler.",
+              "absolute_paths": ["next/server.NextRequest", "next/server.NextResponse"],
+              "target_level": "function",
+              "concept": "FunctionDefinition",
+              "construct_query": {
+                "function_name_regex": "^GET$",
+                "export_name_regex": "^GET$"
+              },
+              "startpoint": true
+            },
+            "post": {
+              "description": "Next.js App Router POST handler.",
+              "absolute_paths": ["next/server.NextRequest", "next/server.NextResponse"],
+              "target_level": "function",
+              "concept": "FunctionDefinition",
+              "construct_query": {
+                "function_name_regex": "^POST$",
+                "export_name_regex": "^POST$"
+              },
+              "startpoint": true
+            },
+            "put": {
+              "description": "Next.js App Router PUT handler.",
+              "absolute_paths": ["next/server.NextRequest", "next/server.NextResponse"],
+              "target_level": "function",
+              "concept": "FunctionDefinition",
+              "construct_query": {
+                "function_name_regex": "^PUT$",
+                "export_name_regex": "^PUT$"
+              },
+              "startpoint": true
+            },
+            "delete": {
+              "description": "Next.js App Router DELETE handler.",
+              "absolute_paths": ["next/server.NextRequest", "next/server.NextResponse"],
+              "target_level": "function",
+              "concept": "FunctionDefinition",
+              "construct_query": {
+                "function_name_regex": "^DELETE$",
+                "export_name_regex": "^DELETE$"
+              },
+              "startpoint": true
+            },
+            "patch": {
+              "description": "Next.js App Router PATCH handler.",
+              "absolute_paths": ["next/server.NextRequest", "next/server.NextResponse"],
+              "target_level": "function",
+              "concept": "FunctionDefinition",
+              "construct_query": {
+                "function_name_regex": "^PATCH$",
+                "export_name_regex": "^PATCH$"
+              },
+              "startpoint": true
+            },
+            "head": {
+              "description": "Next.js App Router HEAD handler.",
+              "absolute_paths": ["next/server.NextRequest", "next/server.NextResponse"],
+              "target_level": "function",
+              "concept": "FunctionDefinition",
+              "construct_query": {
+                "function_name_regex": "^HEAD$",
+                "export_name_regex": "^HEAD$"
+              },
+              "startpoint": true
+            },
+            "options": {
+              "description": "Next.js App Router OPTIONS handler.",
+              "absolute_paths": ["next/server.NextRequest", "next/server.NextResponse"],
+              "target_level": "function",
+              "concept": "FunctionDefinition",
+              "construct_query": {
+                "function_name_regex": "^OPTIONS$",
+                "export_name_regex": "^OPTIONS$"
+              },
+              "startpoint": true
+            }
+          }
         }
       }
     }

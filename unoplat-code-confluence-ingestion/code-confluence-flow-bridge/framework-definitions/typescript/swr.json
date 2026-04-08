@@ -3,24 +3,29 @@
     "swr": {
       "docs_url": "https://swr.vercel.app/docs",
       "description": "SWR stale-while-revalidate data fetching and mutation hooks.",
-      "features": {
-        "data_fetch": {
-          "description": "SWR query hook usage via default useSWR export.",
-          "absolute_paths": [
-            "swr.default"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression",
-          "base_confidence": 0.91
-        },
-        "mutation": {
-          "description": "SWR mutation hook usage via default useSWRMutation export.",
-          "absolute_paths": [
-            "swr/mutation.default"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression",
-          "base_confidence": 0.91
+      "capabilities": {
+        "http_client": {
+          "description": "SWR data fetching and mutation hooks for client-side HTTP.",
+          "operations": {
+            "data_fetch": {
+              "description": "SWR query hook usage via default useSWR export.",
+              "absolute_paths": [
+                "swr.default"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.91
+            },
+            "mutation": {
+              "description": "SWR mutation hook usage via default useSWRMutation export.",
+              "absolute_paths": [
+                "swr/mutation.default"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.91
+            }
+          }
         }
       }
     }
