@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-# pyright: reportPrivateUsage=false
 from unoplat_code_confluence_query_engine.models.runtime.dependency_guide_target import (
     DependencyGuideTarget,
 )
 from unoplat_code_confluence_query_engine.services.repository.dependency_guide_normalization_service import (
     normalize_dependency_guide_targets,
 )
-from unoplat_code_confluence_query_engine.services.temporal.temporal_workflows import (
-    _build_dependency_guide_prompt,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_dependency_guide import (
+    build_dependency_guide_prompt,
 )
 
 
@@ -132,7 +131,7 @@ def test_normalize_dependency_guide_targets_respects_language_scope() -> None:
 def test_build_dependency_guide_prompt_includes_search_query_and_source_packages() -> (
     None
 ):
-    prompt = _build_dependency_guide_prompt(
+    prompt = build_dependency_guide_prompt(
         dependency_target=DependencyGuideTarget(
             name="Radix UI React Primitives",
             source_packages=[
