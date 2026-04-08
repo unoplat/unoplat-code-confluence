@@ -46,6 +46,8 @@ def _build_feature_spec(
         "construct_query": feature.construct_query,
         "description": feature.description,
         "startpoint": feature.startpoint,
+        "capability_key": feature.feature_definition.get("capability_key"),
+        "operation_key": feature.feature_definition.get("operation_key"),
     }
     if base_confidence is not None:
         payload["base_confidence"] = base_confidence
