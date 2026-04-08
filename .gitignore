@@ -344,3 +344,15 @@ node_modules/
 
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/experiments
 experiments/
+
+# Local agent/tooling directories (keep out of git)
+.agents/skills/
+.agent/skills/
+.claude/skills/
+.codex/skills/
+.gemini/skills/
+.kiro/specs/context-engine/
+.opencode/skills/
+.superset/
+.dmux/
+.dmux-hooks/
