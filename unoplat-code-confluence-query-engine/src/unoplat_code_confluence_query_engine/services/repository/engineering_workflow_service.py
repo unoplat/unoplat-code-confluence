@@ -34,7 +34,7 @@ _STAGE_ALIASES: dict[str, str] = {
     "typing": "type_check",
 }
 
-CONFIDENCE_THRESHOLD: float = 0.35
+CONFIDENCE_THRESHOLD: float = 0.70
 
 
 def _normalize_repo_relative_posix_directory(
@@ -214,7 +214,7 @@ def normalize_commands(
             )
 
     # Filter by confidence threshold
-    filtered = [cmd for cmd in dedup.values() if cmd.confidence >= CONFIDENCE_THRESHOLD]
+    filtered = [cmd for cmd in dedup.values() if cmd.confidence > CONFIDENCE_THRESHOLD]
 
     return sorted(
         filtered,
