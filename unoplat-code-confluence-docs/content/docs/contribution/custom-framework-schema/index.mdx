@@ -173,6 +173,30 @@ Each **capability** groups related operations under a library-agnostic architect
   }}
 />
 
+### Capability Enum Validation
+
+Capability keys are **not free-form labels**. They are validated against the [published capability enum](#published-capability-enum), which means contributors must use an existing architectural capability identifier from the schema.
+
+If you need a new capability family, do **not** introduce an ad-hoc key in a framework definition. Update the schema and validation layer first, then use that enum value in your contributed definition.
+
+### Published Capability Enum
+
+The following capability families are taken from [`custom-framework-lib-schema.json`](/schemas/custom-framework-lib-schema.json). Only these values are accepted as capability keys.
+
+<Accordions>
+  <Accordion title="View all capability enum values" id="published-capability-enum">
+
+  | Category | Allowed values |
+  |----------|---------------|
+  | **App interfaces / entrypoints** | `rest_api`, `graphql_api`, `grpc_server`, `websocket_server`, `sse_server`, `webhook_receiver`, `webhook_sender`, `cli_command`, `scheduler`, `background_worker`, `file_watcher`, `mqtt_server`, `tcp_server`, `udp_server` |
+  | **Clients / integrations** | `http_client`, `graphql_client`, `grpc_client`, `websocket_client`, `email_service`, `message_broker`, `job_queue`, `change_data_capture` |
+  | **Data / storage** | `relational_database`, `document_database`, `key_value_store`, `wide_column_store`, `graph_database`, `multi_model_database`, `vector_store`, `file_storage`, `object_storage` |
+  | **Security / config / ops** | `authentication`, `authorization`, `configuration`, `secret_management`, `observability`, `telemetry`, `logging` |
+  | **AI / platform / modeling** | `llm_inference`, `mcp_server`, `data_model`, `web_component` |
+
+  </Accordion>
+</Accordions>
+
 ### Operation Definition Structure
 
 Each **operation** is the precise detection contract that tree-sitter and downstream validation use. Operation keys are contributor-chosen identifiers validated by object shape, not a global enum.
@@ -446,7 +470,8 @@ This example shows a Python relational database library with an Inheritance-base
 
 <Callout type="warn" title="Mandatory Constraints">
   The schema enforces these **mandatory constraints**:
-  - Capability keys must match the published capability enum (e.g. `rest_api`, `authentication`, `relational_database`)
+  - Capability keys must match the [published capability enum](#published-capability-enum) (for example `rest_api`, `authentication`, `relational_database`)
+  - Capability validation happens on the **capability key itself**, so unsupported names such as `firebase_auth` or `route_get` will fail schema validation even if the nested operation shape is valid
   - Operation keys are contributor-chosen identifiers validated by object shape, not a global enum
   - Every operation must define `description`, `absolute_paths`, `target_level`, and `concept`
   - **CallExpression** operations *must* use `target_level: "function"` and define `base_confidence`
@@ -467,7 +492,7 @@ This example shows a Python relational database library with an Inheritance-base
       type: 'regex: ^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$',
     },
     capability_keys: {
-      description: 'Must match one of the published capability enum values such as rest_api, authentication, relational_database, scheduler, or data_model',
+      description: 'Must match one of the published capability enum values listed in Published Capability Enum',
       type: 'enum',
     },
     operation_keys: {
@@ -487,124 +512,16 @@ This example shows a Python relational database library with an Inheritance-base
 
 ---
 
-## Best Practices
-
-### 1. Comprehensive Coverage
-- Define **all major capabilities** of a framework or library first
-- Group related detection operations under the appropriate **capability family**
-- Cover both *common* and *advanced* operation variants when they are semantically important
-
-### 2. Accurate Paths
-- Use **fully-qualified import paths**
-- Test paths against actual library documentation
-- Include `version` information when patterns change between versions
-
-### 3. Clear Descriptions
-- Write **human-readable descriptions**
-- Explain the *purpose* and *context* of each capability and operation
-- Include examples in `notes` when helpful
-
-### 4. Group At The Right Layer
-- Put workflow families such as authentication or HTTP routing at the **capability** layer
-- Put specific detection contracts such as `get`, `post`, `sign_in`, or `db_data_model` at the **operation** layer
-- Use `startpoint: true` on operations that represent **entry points** like API route registration or message consumption
-
-### 5. Strategic Regex And Confidence Usage
-- Use `construct_query` regex patterns to **refine operation matches**
-- Test regex patterns against real code examples
-- Keep patterns *specific enough* to avoid false positives
-- Use lower `base_confidence` only when ambiguity is real, and document disambiguation in `notes`
-
----
-
 ## Contributing Schema Updates
 
-To contribute new framework/library definitions:
-
-1. **Fork the repository** and create a feature branch
-2. **Add or update a framework definition JSON** in `framework-definitions/{language}/` following the structure above
-3. **Validate your changes** using `task validate-framework-definitions` or `task validate-single-framework FILE=...`
-4. **Add comprehensive capability and operation definitions** that match the schema structure
-5. **Test your definitions** against real codebases
-6. **Submit a pull request** with detailed examples and test cases
-
-### Testing Your Schema
-
-Before submitting, verify your schema definitions:
-
-1. **JSON Validation** — Ensure the file is valid JSON
-2. **Schema Validation** — Run `task validate-single-framework FILE=framework-definitions/{language}/your-framework.json`
-3. **Architecture Review** — Confirm the capability and operation choices reflect software-engineering fundamentals instead of raw API names
-4. **Real-world Testing** — Test operations against actual codebases using the framework
-5. **Documentation** — Ensure all referenced URLs are accessible
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-<Accordions>
-  <Accordion title="Invalid capability key" id="error-capability-key">
-    **Error Message:**
-    ```
-    Error: property name must be equal to one of the allowed values
-    ```
-
-    **Cause:** A capability name such as `auth_flow` or `firebase_auth` is not part of the published capability enum.
-
-    **Solution:** Use a library-agnostic capability family such as:
-    - **Correct**: `authentication`, `rest_api`, `file_storage`, `relational_database`, `scheduler`
-    - **Incorrect**: `get_auth`, `firebase_auth`, `route_get`, `http_endpoint`
-  </Accordion>
-
-  <Accordion title="Missing required operation fields" id="error-required">
-    **Error Message:**
-    ```
-    Error: Missing required property 'description' (or 'absolute_paths', 'target_level', 'concept')
-    ```
-
-    **Cause:** An operation is missing one or more required fields.
-
-    **Solution:** Include **all required fields** at each layer:
-    - Capability: `operations` (required), `description` (recommended)
-    - Operation: `description`, `absolute_paths`, `target_level`, `concept`
-
-  </Accordion>
-
-  <Accordion title="Concept-Target Level Mismatch" id="error-mismatch">
-    **Error Message:**
-    ```
-    Error: CallExpression requires target_level 'function'
-    ```
-
-    **Cause:** The operation's `concept` and `target_level` values are incompatible.
-
-    **Solution:** Follow the concept-target level constraints:
-    - `CallExpression` → `target_level: "function"` and `base_confidence` required
-    - `Inheritance` → `target_level: "class"`
-    - `FunctionDefinition` → `target_level: "function"`
-    - `AnnotationLike` → can be either `"function"` or `"class"`
-  </Accordion>
-
-  <Accordion title="Operation Not Detected" id="error-not-detected">
-    **Symptom:** Your schema is valid but the operation isn't being detected in code.
-
-    **Possible Causes:**
-    1. **Incorrect `absolute_paths`** — Verify the exact import path used in the library
-    2. **Missing `construct_query`** — Add regex patterns to narrow down matches
-    3. **Import not present** — Detection is import-gated; ensure the file imports the library
-    4. **Overly broad regex** — Tighten `construct_query` patterns to avoid false positives
-
-    **Solution:** Test with a minimal code example and check the Tree-sitter output.
-  </Accordion>
-</Accordions>
+<Callout type="info" title="Coming Soon">
+  Detailed contribution guidelines including step-by-step instructions, validation commands, and testing workflows will be added here.
+</Callout>
 
 ---
 
 ## Future Enhancements
 
-The schema is designed to be **extensible**. Future versions may include:
-- *Additional programming languages* (Rust, C#, Kotlin)
-- *Capability-specific operation profiles* where certain capability families can narrow the allowed operation set further
-- *Richer qualifier metadata* for cases like HTTP verbs, auth providers, and transport protocols
+<Callout type="info" title="Coming Soon">
+  Details on planned schema extensions — additional programming languages, capability-specific operation profiles, and richer qualifier metadata — will be documented here.
+</Callout>
