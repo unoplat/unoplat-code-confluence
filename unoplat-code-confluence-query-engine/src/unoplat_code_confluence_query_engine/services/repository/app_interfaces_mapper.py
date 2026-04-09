@@ -16,6 +16,7 @@ from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
 
 # Mapping from feature_key to InboundKind
 INBOUND_FEATURE_MAPPING: dict[str, InboundKind] = {
+    "rest_api": InboundKind.HTTP,
     "http_endpoint": InboundKind.HTTP,
     "api_router": InboundKind.HTTP,
     "graphql_resolver": InboundKind.GRAPHQL,
@@ -23,6 +24,7 @@ INBOUND_FEATURE_MAPPING: dict[str, InboundKind] = {
     "websocket_endpoint": InboundKind.WEBSOCKET,
     "webhook_receiver": InboundKind.WEBHOOK,
     "message_consumer": InboundKind.MSG_CONSUMER,
+    "scheduler": InboundKind.SCHEDULE,
     "scheduler_trigger": InboundKind.SCHEDULE,
     "task_definition": InboundKind.SCHEDULE,
     "cli_command": InboundKind.CLI,
