@@ -3,34 +3,39 @@
     "fastmcp": {
       "docs_url": "https://gofastmcp.com/",
       "description": "FastMCP server constructs for exposing tools and resources over MCP.",
-      "features": {
-        "mcp_tool": {
-          "description": "MCP tool handler decorator exposed by FastMCP.",
-          "absolute_paths": [
-            "mcp.server.fastmcp.FastMCP.tool",
-            "fastmcp.FastMCP.tool"
-          ],
-          "target_level": "function",
-          "concept": "AnnotationLike",
-          "construct_query": {
-            "method_regex": "^(tool)$",
-            "annotation_name_regex": "^(tool)$"
-          },
-          "startpoint": true
-        },
-        "mcp_resource": {
-          "description": "MCP resource handler decorator exposed by FastMCP.",
-          "absolute_paths": [
-            "mcp.server.fastmcp.FastMCP.resource",
-            "fastmcp.FastMCP.resource"
-          ],
-          "target_level": "function",
-          "concept": "AnnotationLike",
-          "construct_query": {
-            "method_regex": "^(resource)$",
-            "annotation_name_regex": "^(resource)$"
-          },
-          "startpoint": true
+      "capabilities": {
+        "mcp_server": {
+          "description": "MCP server handler decorators exposed by FastMCP.",
+          "operations": {
+            "mcp_tool": {
+              "description": "MCP tool handler decorator exposed by FastMCP.",
+              "absolute_paths": [
+                "mcp.server.fastmcp.FastMCP.tool",
+                "fastmcp.FastMCP.tool"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^(tool)$",
+                "annotation_name_regex": "^(tool)$"
+              },
+              "startpoint": true
+            },
+            "mcp_resource": {
+              "description": "MCP resource handler decorator exposed by FastMCP.",
+              "absolute_paths": [
+                "mcp.server.fastmcp.FastMCP.resource",
+                "fastmcp.FastMCP.resource"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^(resource)$",
+                "annotation_name_regex": "^(resource)$"
+              },
+              "startpoint": true
+            }
+          }
         }
       }
     }
