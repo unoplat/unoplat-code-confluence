@@ -1,26 +1,21 @@
 ---
 title: Deterministic Interface Discovery Schema (DIDS)
 description: "Define framework and library patterns for detection of app interfaces in Unoplat Code Confluence."
+hideDescription: true
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-# Deterministic Interface Discovery Schema (DIDS)
-
-The **Deterministic Interface Discovery Schema (DIDS)** enables contributors to define *framework and library patterns* for **Unoplat Code Confluence** to detect and analyze across different programming languages. This schema provides a **structured way** to describe how frameworks and libraries should be identified in codebases.
+The **Deterministic Interface Discovery Schema (DIDS)** gives contributors a deterministic structured way to define how **Unoplat Code Confluence** should identify and analyze framework and library patterns in codebases across programming languages.
 
 <Callout type="info" title="Quick Reference">
   - **Latest Schema**: [custom-framework-lib-schema.json](/schemas/custom-framework-lib-schema.json) *(opens as JSON)*
-  - **Schema v4**: [custom-framework-lib-schema-v4.json](/schemas/custom-framework-lib-schema-v4.json) *(opens as JSON)*
-  - **Schema v3 (legacy)**: [custom-framework-lib-schema-v3.json](/schemas/custom-framework-lib-schema-v3.json) *(opens as JSON)*
   - **Specification**: [JSON Schema Draft 2020-12](https://json-schema.org/specification)
-  - **Organization**: By *programming language* → *library* → *capability* → *operation* → *detector*
+  - **Organization**: By *programming language* → *library* → *capability* → *operation*
 </Callout>
 
 <Callout type="info" title="Source of Truth">
   - Canonical definitions live in ingestion: [framework-definitions directory](https://github.com/unoplat/unoplat-code-confluence/tree/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions)
-  - Docs consume generated static assets from: `/framework-definitions`
-  - The published **v4 schema** is the next-generation contract for architecture-level grouping; the generated framework catalog remains v3-shaped until ingestion migrates
 </Callout>
 
 ## Background and Problem Statement
@@ -53,7 +48,7 @@ For any coding task, an agent or human needs a reliable blueprint of the codebas
 4. **Weak verifiability**: behavior is hard to validate in CI because rules are implicit instead of contract-driven.
 5. **Lack of open standards**: without an open, versioned schema, definitions are harder to share, interoperate, and evolve safely.
 
-We therefore need a deterministic, schema-first standard that defines framework and library capabilities, operations, and detectors with explicit constraints and validation rules, enabling consistent interface discovery across any tech ecosystem.
+We therefore need a deterministic, schema-first standard that defines framework and library capabilities and operations with explicit constraints and validation rules, enabling consistent interface discovery across any tech ecosystem.
 
 
 ## Goals
@@ -154,14 +149,11 @@ Each **library definition** describes a framework or library that **Unoplat Code
 
 ---
 
-## Capability, Operation, And Detector Hierarchy
+## Capability And Operation Hierarchy
 
-Schema v4 separates **architectural meaning** from **precise detection identity**:
-
-<Callout type="info" title="Three Layers Of Meaning">
-  - **Capability** answers *what part of the system this belongs to* such as `http_endpoint`, `authentication`, or `file_storage`
-  - **Operation** answers *what architectural action is happening* such as `register_handler`, `sign_in`, or `upload`
-  - **Detector** answers *exactly which code pattern should match* using `absolute_paths`, `concept`, `target_level`, and optional `construct_query`
+<Callout type="info" title="Two Simple Questions">
+  - **Capability** = the role this code plays in the system, such as `rest_api`, `authentication`, or `file_storage`
+  - **Operation** = the action performed by that role, such as defining a route, checking a user, or uploading a file
 </Callout>
 
 ### Capability Definition Structure
@@ -174,21 +166,18 @@ Each **capability** groups related operations under a library-agnostic architect
       description: 'Human-readable explanation of the architectural capability',
       type: 'string',
     },
-    docs_url: {
-      description: 'Capability-specific documentation URL (optional)',
-      type: 'string (URI format)',
-      default: 'undefined',
-    },
     operations: {
-      description: 'Architectural operations keyed by enum value',
-      type: 'Record<OperationKind, OperationDefinition>',
+      description: 'Detection operations keyed by contributor-chosen identifier',
+      type: 'Record<string, OperationDefinition>',
     },
   }}
 />
 
 ### Operation Definition Structure
 
-Each **operation** groups precise detectors that all represent the same architectural action.
+Each **operation** is the precise detection contract that tree-sitter and downstream validation use. Operation keys are contributor-chosen identifiers validated by object shape, not a global enum.
+
+### Required Fields
 
 <TypeTable
   type={{
@@ -196,42 +185,12 @@ Each **operation** groups precise detectors that all represent the same architec
       description: 'Human-readable explanation of the operation',
       type: 'string',
     },
-    detectors: {
-      description: 'Precise detector definitions keyed by contributor-chosen local identifier',
-      type: 'Record<string, DetectorDefinition>',
-    },
-    docs_url: {
-      description: 'Operation-specific documentation URL (optional)',
-      type: 'string (URI format)',
-      default: 'undefined',
-    },
-    startpoint: {
-      description: 'Marks the operation as an application entry point such as route registration or message consumption',
-      type: 'boolean',
-      default: 'false',
-    },
-    notes: {
-      description: 'Contributor notes, caveats, or grouping guidance for the operation',
-      type: 'string',
-      default: 'undefined',
-    },
-  }}
-/>
-
-### Detector Definition Structure
-
-Each **detector** is the precise matching contract that tree-sitter and downstream validation use.
-
-### Required Fields
-
-<TypeTable
-  type={{
     absolute_paths: {
-      description: 'Fully-qualified import paths identifying the exact symbols used by this detector',
+      description: 'Fully-qualified import paths identifying the exact symbols used by this operation',
       type: 'string[]',
     },
     target_level: {
-      description: 'Granularity of the code element that owns the detector',
+      description: 'Granularity of the code element that owns the operation',
       type: '"function" | "class"',
     },
     concept: {
@@ -245,19 +204,9 @@ Each **detector** is the precise matching contract that tree-sitter and downstre
 
 <TypeTable
   type={{
-    description: {
-      description: 'Optional explanation of what this detector specifically matches',
-      type: 'string',
-      default: 'undefined',
-    },
     docs_url: {
-      description: 'Detector-specific documentation URL (optional)',
+      description: 'Operation-specific documentation URL',
       type: 'string (URI format)',
-      default: 'undefined',
-    },
-    notes: {
-      description: 'Contributor notes, caveats, version-specific behavior, or disambiguation guidance',
-      type: 'string',
       default: 'undefined',
     },
     construct_query: {
@@ -266,8 +215,18 @@ Each **detector** is the precise matching contract that tree-sitter and downstre
       default: 'undefined',
     },
     base_confidence: {
-      description: 'Baseline confidence score for CallExpression detectors; lower values indicate higher ambiguity',
+      description: 'Baseline confidence score for CallExpression operations; lower values indicate higher ambiguity',
       type: 'number (0.0 - 1.0)',
+      default: 'undefined',
+    },
+    startpoint: {
+      description: 'Marks the operation as an application entry point such as route registration or message consumption',
+      type: 'boolean',
+      default: 'false',
+    },
+    notes: {
+      description: 'Contributor notes, caveats, version-specific behavior, or disambiguation guidance',
+      type: 'string',
       default: 'undefined',
     },
   }}
@@ -278,11 +237,11 @@ Each **detector** is the precise matching contract that tree-sitter and downstre
 <TypeTable
   type={{
     function: {
-      description: 'Function-level detectors such as decorators on functions, call expressions, and exported function definitions',
+      description: 'Function-level operations such as decorators on functions, call expressions, and exported function definitions',
       type: 'enum',
     },
     class: {
-      description: 'Class-level detectors such as class inheritance and class decorators',
+      description: 'Class-level operations such as class inheritance and class decorators',
       type: 'enum',
     },
   }}
@@ -321,30 +280,29 @@ Each **detector** is the precise matching contract that tree-sitter and downstre
 ### Grouping Rules
 
 <Callout type="warn" title="Group At The Right Layer">
-  - Put **multiple operations** under one capability when they belong to the same architectural workflow, such as `authentication -> sign_in`, `sign_out`, and `observe_state`
-  - Put **multiple detectors** under one operation when they all represent the same architectural action, such as `sign_in -> email_password`, `popup`, and `redirect`
-  - Put **multiple absolute paths** inside one detector only when they share the same operation meaning, `target_level`, `concept`, `construct_query`, confidence semantics, and notes
-  - If the variant changes the semantics that matter downstream, keep separate detectors instead of collapsing everything into one broad regex
+  - Put **multiple operations** under one capability when they belong to the same architectural workflow, such as `rest_api -> get`, `post`, `put`, and `delete`
+  - Put **multiple absolute paths** inside one operation only when they share the same detection meaning, `target_level`, `concept`, `construct_query`, confidence semantics, and notes
+  - If a variant changes the semantics that matter downstream, keep it as a separate operation instead of collapsing paths into one broad regex
 </Callout>
 
-### Detection Heuristics (v4)
+### Detection Heuristics
 
-Detection is still import-gated and regex-refined, but architectural grouping now lives above the precise detector layer. `absolute_paths` must be present in the file imports, and `construct_query` refines the tree-sitter patterns used to match decorators, calls, inheritance, and exported function declarations.
+Detection is import-gated and regex-refined. `absolute_paths` must be present in the file imports, and `construct_query` refines the tree-sitter patterns used to match decorators, calls, inheritance, and exported function declarations.
 
 <Callout type="info" title="Low-Confidence Guidance">
-  If a detector uses `base_confidence < 0.70`, include disambiguation instructions in `notes` so downstream validation can reliably confirm or reject ambiguous matches.
+  If an operation uses `base_confidence < 0.70`, include disambiguation instructions in `notes` so downstream validation can reliably confirm or reject ambiguous matches.
 </Callout>
 
 ### `construct_query` Properties
 
 <Callout type="warn" title="Context-Dependent">
-  Available properties depend on the detector's `concept` value. Use the appropriate regex for your detector type.
+  Available properties depend on the operation's `concept` value. Use the appropriate regex for your operation type.
 </Callout>
 
 <TypeTable
   type={{
     method_regex: {
-      description: 'Regular expression for method names. Best used with AnnotationLike detectors.',
+      description: 'Regular expression for method names. Best used with AnnotationLike operations.',
       type: 'string (regex)',
       default: 'undefined',
     },
@@ -359,22 +317,22 @@ Detection is still import-gated and regex-refined, but architectural grouping no
       default: 'undefined',
     },
     callee_regex: {
-      description: 'Regular expression for function call names. Best used with CallExpression detectors.',
+      description: 'Regular expression for function call names. Best used with CallExpression operations.',
       type: 'string (regex)',
       default: 'undefined',
     },
     superclass_regex: {
-      description: 'Regular expression for superclass names. Best used with Inheritance detectors.',
+      description: 'Regular expression for superclass names. Best used with Inheritance operations.',
       type: 'string (regex)',
       default: 'undefined',
     },
     function_name_regex: {
-      description: 'Regular expression for function declaration names. Best used with FunctionDefinition detectors.',
+      description: 'Regular expression for function declaration names. Best used with FunctionDefinition operations.',
       type: 'string (regex)',
       default: 'undefined',
     },
     export_name_regex: {
-      description: 'Regular expression for exported symbol names. Best used with FunctionDefinition detectors.',
+      description: 'Regular expression for exported symbol names. Best used with FunctionDefinition operations.',
       type: 'string (regex)',
       default: 'undefined',
     },
@@ -385,9 +343,9 @@ Detection is still import-gated and regex-refined, but architectural grouping no
 
 ## Real Framework Examples
 
-### FastAPI v4 Example
+### FastAPI Example
 
-This example separates endpoint registration from router composition and keeps HTTP verbs as precise detectors under the same operation.
+This example shows HTTP verb operations directly under the `rest_api` capability. Each verb is its own operation with the detection contract defined inline.
 
 ```json
 {
@@ -396,65 +354,52 @@ This example separates endpoint registration from router composition and keeps H
       "docs_url": "https://fastapi.tiangolo.com",
       "description": "Modern, fast web framework for building APIs with Python",
       "capabilities": {
-        "http_endpoint": {
-          "description": "Inbound HTTP route handlers",
+        "rest_api": {
+          "description": "HTTP verb decorators that register route handlers on FastAPI or APIRouter instances.",
           "operations": {
-            "register_handler": {
-              "description": "Register HTTP route handlers by verb",
-              "startpoint": true,
-              "detectors": {
-                "get": {
-                  "description": "GET route handler decorator",
-                  "absolute_paths": [
-                    "fastapi.FastAPI",
-                    "fastapi.applications.FastAPI",
-                    "fastapi.APIRouter",
-                    "fastapi.routing.APIRouter"
-                  ],
-                  "target_level": "function",
-                  "concept": "AnnotationLike",
-                  "construct_query": {
-                    "method_regex": "get"
-                  }
-                },
-                "post": {
-                  "description": "POST route handler decorator",
-                  "absolute_paths": [
-                    "fastapi.FastAPI",
-                    "fastapi.applications.FastAPI",
-                    "fastapi.APIRouter",
-                    "fastapi.routing.APIRouter"
-                  ],
-                  "target_level": "function",
-                  "concept": "AnnotationLike",
-                  "construct_query": {
-                    "method_regex": "post"
-                  }
-                }
-              }
+            "get": {
+              "description": "FastAPI GET route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^get$"
+              },
+              "startpoint": true
+            },
+            "post": {
+              "description": "FastAPI POST route handler.",
+              "absolute_paths": [
+                "fastapi.FastAPI",
+                "fastapi.applications.FastAPI",
+                "fastapi.APIRouter",
+                "fastapi.routing.APIRouter"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^post$"
+              },
+              "startpoint": true
             }
           }
         },
-        "router_composition": {
-          "description": "Router organization and inclusion",
+        "background_worker": {
+          "description": "Background task execution using FastAPI BackgroundTasks.",
           "operations": {
-            "compose_router": {
-              "description": "Include routers into a larger route tree",
-              "detectors": {
-                "include_router": {
-                  "absolute_paths": [
-                    "fastapi.FastAPI",
-                    "fastapi.applications.FastAPI",
-                    "fastapi.APIRouter",
-                    "fastapi.routing.APIRouter"
-                  ],
-                  "target_level": "function",
-                  "concept": "AnnotationLike",
-                  "construct_query": {
-                    "method_regex": "include_router"
-                  }
-                }
-              }
+            "background_tasks": {
+              "description": "Background task execution using BackgroundTasks.",
+              "absolute_paths": [
+                "fastapi.BackgroundTasks"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.88
             }
           }
         }
@@ -464,125 +409,28 @@ This example separates endpoint registration from router composition and keeps H
 }
 ```
 
-### Firebase v4 Example
+### SQLAlchemy Example
 
-This example shows how multiple auth flows stay under the same architectural operation while preserving precise detector identity.
-
-```json
-{
-  "typescript": {
-    "firebase": {
-      "docs_url": "https://firebase.google.com/docs/web/setup",
-      "capabilities": {
-        "app_bootstrap": {
-          "description": "Firebase application bootstrap and runtime initialization",
-          "operations": {
-            "initialize": {
-              "description": "Initialize a Firebase app instance",
-              "detectors": {
-                "default": {
-                  "absolute_paths": [
-                    "firebase/app.initializeApp"
-                  ],
-                  "target_level": "function",
-                  "concept": "CallExpression",
-                  "base_confidence": 0.98
-                }
-              }
-            }
-          }
-        },
-        "authentication": {
-          "description": "User identity and authentication flows",
-          "operations": {
-            "sign_in": {
-              "description": "Authenticate a user with a supported sign-in flow",
-              "detectors": {
-                "email_password": {
-                  "absolute_paths": [
-                    "firebase/auth.signInWithEmailAndPassword"
-                  ],
-                  "target_level": "function",
-                  "concept": "CallExpression",
-                  "base_confidence": 0.97
-                },
-                "popup": {
-                  "absolute_paths": [
-                    "firebase/auth.signInWithPopup"
-                  ],
-                  "target_level": "function",
-                  "concept": "CallExpression",
-                  "base_confidence": 0.93
-                },
-                "redirect": {
-                  "absolute_paths": [
-                    "firebase/auth.signInWithRedirect"
-                  ],
-                  "target_level": "function",
-                  "concept": "CallExpression",
-                  "base_confidence": 0.93
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### SQLAlchemy v4 Example
-
-This example shows a Python relational database library mapped to architecture-level database concepts instead of raw ORM helper names.
+This example shows a Python relational database library with an Inheritance-based model operation.
 
 ```json
 {
   "python": {
     "sqlalchemy": {
-      "docs_url": "https://docs.sqlalchemy.org/en/20/orm/",
+      "docs_url": "https://docs.sqlalchemy.org",
       "description": "Python ORM and SQL toolkit for relational database access",
       "capabilities": {
-        "relational_db": {
-          "description": "Relational database models and ORM relationships",
+        "relational_database": {
+          "description": "SQLAlchemy ORM declarative model definitions.",
           "operations": {
-            "model": {
-              "description": "Declare ORM-backed model classes",
-              "detectors": {
-                "model": {
-                  "absolute_paths": [
-                    "sqlalchemy.orm.DeclarativeBase"
-                  ],
-                  "target_level": "class",
-                  "concept": "Inheritance"
-                }
-              }
-            },
-            "field": {
-              "description": "Declare mapped database fields on ORM models",
-              "detectors": {
-                "field": {
-                  "absolute_paths": [
-                    "sqlalchemy.orm.mapped_column"
-                  ],
-                  "target_level": "function",
-                  "concept": "CallExpression",
-                  "base_confidence": 0.98
-                }
-              }
-            },
-            "relationship": {
-              "description": "Declare ORM relationships between model classes",
-              "detectors": {
-                "relationship": {
-                  "absolute_paths": [
-                    "sqlalchemy.orm.relationship"
-                  ],
-                  "target_level": "function",
-                  "concept": "CallExpression",
-                  "base_confidence": 0.96
-                }
-              }
+            "db_data_model": {
+              "description": "Base class for SQLAlchemy declarative models.",
+              "absolute_paths": [
+                "sqlalchemy.ext.declarative.declarative_base",
+                "sqlalchemy.orm.declarative_base"
+              ],
+              "target_level": "class",
+              "concept": "Inheritance"
             }
           }
         }
@@ -596,14 +444,16 @@ This example shows a Python relational database library mapped to architecture-l
 
 ## Validation Rules
 
-<Callout type="warn" title="v4 Mandatory Constraints">
+<Callout type="warn" title="Mandatory Constraints">
   The schema enforces these **mandatory constraints**:
-  - Capability keys must match the published capability enum
-  - Operation keys must match the published operation enum
-  - **CallExpression** detectors *must* use `target_level: "function"` and define `base_confidence`
-  - Low-confidence **CallExpression** detectors with `base_confidence < 0.70` *must* include non-empty `notes`
-  - **Inheritance** detectors *must* use `target_level: "class"`
-  - **FunctionDefinition** detectors *must* use `target_level: "function"`
+  - Capability keys must match the published capability enum (e.g. `rest_api`, `authentication`, `relational_database`)
+  - Operation keys are contributor-chosen identifiers validated by object shape, not a global enum
+  - Every operation must define `description`, `absolute_paths`, `target_level`, and `concept`
+  - **CallExpression** operations *must* use `target_level: "function"` and define `base_confidence`
+  - Low-confidence **CallExpression** operations with `base_confidence < 0.70` *must* include non-empty `notes`
+  - **Inheritance** operations *must* use `target_level: "class"`
+  - **FunctionDefinition** operations *must* use `target_level: "function"`
+  - `base_confidence` is **only** allowed on `CallExpression` operations; the schema rejects it on other concepts
 
   Violations will cause schema validation to fail.
 </Callout>
@@ -614,19 +464,15 @@ This example shows a Python relational database library mapped to architecture-l
   type={{
     absolute_paths: {
       description: 'Must follow the pattern: module.submodule.symbol (e.g., fastapi.FastAPI)',
-      type: 'regex: ^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$',
+      type: 'regex: ^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$',
     },
     capability_keys: {
-      description: 'Must match one of the published capability enum values such as http_endpoint, authentication, or file_storage',
+      description: 'Must match one of the published capability enum values such as rest_api, authentication, relational_database, scheduler, or data_model',
       type: 'enum',
     },
     operation_keys: {
-      description: 'Must match one of the published operation enum values such as register_handler, sign_in, or upload',
-      type: 'enum',
-    },
-    detector_keys: {
-      description: 'Must be lowercase snake_case and are only unique within a single operation',
-      type: 'regex: ^[a-z][a-z0-9_]*$',
+      description: 'Contributor-chosen identifiers; any non-empty string is valid (e.g., get, post, db_data_model)',
+      type: 'string (non-empty)',
     },
     language_keys: {
       description: 'Must be lowercase and match one of the supported languages',
@@ -645,8 +491,8 @@ This example shows a Python relational database library mapped to architecture-l
 
 ### 1. Comprehensive Coverage
 - Define **all major capabilities** of a framework or library first
-- Group related architectural actions under **operations** before adding precise detectors
-- Cover both *common* and *advanced* detector variants when they are semantically important
+- Group related detection operations under the appropriate **capability family**
+- Cover both *common* and *advanced* operation variants when they are semantically important
 
 ### 2. Accurate Paths
 - Use **fully-qualified import paths**
@@ -660,12 +506,11 @@ This example shows a Python relational database library mapped to architecture-l
 
 ### 4. Group At The Right Layer
 - Put workflow families such as authentication or HTTP routing at the **capability** layer
-- Put actions such as `sign_in`, `register_handler`, or `upload` at the **operation** layer
-- Put exact SDK or framework variants at the **detector** layer
+- Put specific detection contracts such as `get`, `post`, `sign_in`, or `db_data_model` at the **operation** layer
 - Use `startpoint: true` on operations that represent **entry points** like API route registration or message consumption
 
 ### 5. Strategic Regex And Confidence Usage
-- Use `construct_query` regex patterns to **refine detector matches**
+- Use `construct_query` regex patterns to **refine operation matches**
 - Test regex patterns against real code examples
 - Keep patterns *specific enough* to avoid false positives
 - Use lower `base_confidence` only when ambiguity is real, and document disambiguation in `notes`
@@ -677,9 +522,9 @@ This example shows a Python relational database library mapped to architecture-l
 To contribute new framework/library definitions:
 
 1. **Fork the repository** and create a feature branch
-2. **Update the versioned schema file** at `/public/schemas/custom-framework-lib-schema-v4.json`
-3. **Keep the latest alias** at `/public/schemas/custom-framework-lib-schema.json` aligned with the newest published version
-4. **Add comprehensive capability, operation, and detector definitions** following the structure above
+2. **Add or update a framework definition JSON** in `framework-definitions/{language}/` following the structure above
+3. **Validate your changes** using `task validate-framework-definitions` or `task validate-single-framework FILE=...`
+4. **Add comprehensive capability and operation definitions** that match the schema structure
 5. **Test your definitions** against real codebases
 6. **Submit a pull request** with detailed examples and test cases
 
@@ -688,9 +533,9 @@ To contribute new framework/library definitions:
 Before submitting, verify your schema definitions:
 
 1. **JSON Validation** — Ensure the file is valid JSON
-2. **Schema Validation** — Validate against the [JSON Schema specification](https://json-schema.org/specification)
+2. **Schema Validation** — Run `task validate-single-framework FILE=framework-definitions/{language}/your-framework.json`
 3. **Architecture Review** — Confirm the capability and operation choices reflect software-engineering fundamentals instead of raw API names
-4. **Real-world Testing** — Test detectors against actual codebases using the framework
+4. **Real-world Testing** — Test operations against actual codebases using the framework
 5. **Documentation** — Ensure all referenced URLs are accessible
 
 ---
@@ -709,22 +554,21 @@ Before submitting, verify your schema definitions:
     **Cause:** A capability name such as `auth_flow` or `firebase_auth` is not part of the published capability enum.
 
     **Solution:** Use a library-agnostic capability family such as:
-    - **Correct**: `authentication`, `http_endpoint`, `file_storage`
-    - **Incorrect**: `get_auth`, `firebase_auth`, `route_get`
+    - **Correct**: `authentication`, `rest_api`, `file_storage`, `relational_database`, `scheduler`
+    - **Incorrect**: `get_auth`, `firebase_auth`, `route_get`, `http_endpoint`
   </Accordion>
 
-  <Accordion title="Missing detectors or required detector fields" id="error-required">
+  <Accordion title="Missing required operation fields" id="error-required">
     **Error Message:**
     ```
-    Error: Missing required property 'detectors'
+    Error: Missing required property 'description' (or 'absolute_paths', 'target_level', 'concept')
     ```
 
-    **Cause:** An operation does not define detectors, or a detector is missing one or more required fields.
+    **Cause:** An operation is missing one or more required fields.
 
-    **Solution:** Include **all required fields** at the correct layer:
-    - Capability: `description`, `operations`
-    - Operation: `description`, `detectors`
-    - Detector: `absolute_paths`, `target_level`, `concept`
+    **Solution:** Include **all required fields** at each layer:
+    - Capability: `operations` (required), `description` (recommended)
+    - Operation: `description`, `absolute_paths`, `target_level`, `concept`
 
   </Accordion>
 
@@ -734,22 +578,23 @@ Before submitting, verify your schema definitions:
     Error: CallExpression requires target_level 'function'
     ```
 
-    **Cause:** The detector's `concept` and `target_level` values are incompatible.
+    **Cause:** The operation's `concept` and `target_level` values are incompatible.
 
-    **Solution:** Follow the detector-level concept-target level constraints:
-    - `CallExpression` → `target_level: "function"`
+    **Solution:** Follow the concept-target level constraints:
+    - `CallExpression` → `target_level: "function"` and `base_confidence` required
     - `Inheritance` → `target_level: "class"`
+    - `FunctionDefinition` → `target_level: "function"`
     - `AnnotationLike` → can be either `"function"` or `"class"`
   </Accordion>
 
-  <Accordion title="Detector Not Detected" id="error-not-detected">
-    **Symptom:** Your schema is valid but the detector isn't being detected in code.
+  <Accordion title="Operation Not Detected" id="error-not-detected">
+    **Symptom:** Your schema is valid but the operation isn't being detected in code.
 
     **Possible Causes:**
     1. **Incorrect `absolute_paths`** — Verify the exact import path used in the library
-    2. **Over-grouped detector** — Split variants into separate detectors when verbs, providers, or flows need different semantics
-    3. **Missing `construct_query`** — Add regex patterns to narrow down matches
-    4. **Import not present** — Detection is import-gated; ensure the file imports the library
+    2. **Missing `construct_query`** — Add regex patterns to narrow down matches
+    3. **Import not present** — Detection is import-gated; ensure the file imports the library
+    4. **Overly broad regex** — Tighten `construct_query` patterns to avoid false positives
 
     **Solution:** Test with a minimal code example and check the Tree-sitter output.
   </Accordion>
@@ -763,5 +608,3 @@ The schema is designed to be **extensible**. Future versions may include:
 - *Additional programming languages* (Rust, C#, Kotlin)
 - *Capability-specific operation profiles* where certain capability families can narrow the allowed operation set further
 - *Richer qualifier metadata* for cases like HTTP verbs, auth providers, and transport protocols
-- *Migration tooling* to convert flat v3 `features` into v4 `capabilities -> operations -> detectors`
-- *Ingestion and query-engine adoption* of the v4 grouping model across the full stack
