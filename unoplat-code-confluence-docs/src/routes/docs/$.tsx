@@ -21,6 +21,9 @@ import { TypeTable } from "fumadocs-ui/components/type-table";
 import { ImageZoom } from "fumadocs-ui/components/image-zoom";
 import { seo, canonicalLink } from "@/lib/seo";
 
+const DIDS_LABEL = "Deterministic Interface Discovery Schema (DIDS)";
+const DIDS_DOCS_SLUG = "contribution/custom-framework-schema";
+
 interface DocsPageLoaderData {
   pageTree: Awaited<ReturnType<typeof source.serializePageTree>>;
   path: string;
@@ -69,13 +72,41 @@ export const Route = createFileRoute("/docs/$")({
   }),
 });
 
+function renderDescription(description: string) {
+  if (!description.includes(DIDS_LABEL)) return description;
+
+  const [before, after] = description.split(DIDS_LABEL);
+
+  return (
+    <>
+      {before}
+      <Link
+        to="/docs/$"
+        params={{ _splat: DIDS_DOCS_SLUG }}
+        className="font-medium underline underline-offset-4"
+      >
+        <span>{DIDS_LABEL}</span>
+      </Link>
+      {after}
+    </>
+  );
+}
+
 const clientLoader = browserCollections.docs.createClientLoader<Record<string, never>>({
   id: "docs",
   component({ toc, frontmatter, default: MDX }) {
+    const description =
+      typeof frontmatter.description === "string" ? frontmatter.description : "";
+    const hideDescription =
+      "hideDescription" in frontmatter &&
+      (frontmatter as Record<string, unknown>).hideDescription === true;
+
     return (
       <DocsPage toc={toc}>
         <DocsTitle>{frontmatter.title}</DocsTitle>
-        <DocsDescription>{frontmatter.description}</DocsDescription>
+        {!hideDescription && description ? (
+          <DocsDescription>{renderDescription(description)}</DocsDescription>
+        ) : null}
         <DocsBody>
           <MDX
             components={{
