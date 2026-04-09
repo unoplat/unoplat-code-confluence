@@ -4,7 +4,7 @@
       "docs_url": "https://nextjs.org/docs/app/building-your-application/routing/route-handlers",
       "description": "Next.js App Router HTTP route handler exports in route.ts files.",
       "capabilities": {
-        "http_endpoint": {
+        "rest_api": {
           "description": "App Router HTTP method handler named exports requiring next/server imports.",
           "operations": {
             "get": {

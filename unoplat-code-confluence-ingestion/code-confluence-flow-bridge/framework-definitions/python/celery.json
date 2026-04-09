@@ -24,7 +24,7 @@
             }
           }
         },
-        "scheduled_task": {
+        "scheduler": {
           "description": "Celery Beat periodic schedule expressions.",
           "operations": {
             "periodic_task_schedule": {

@@ -1,6 +1,6 @@
 {
   "typescript": {
-    "litellm": {
+    "lit": {
       "docs_url": "https://lit.dev/docs/",
       "description": "Lit web component base class and reactive decorator patterns.",
       "capabilities": {
