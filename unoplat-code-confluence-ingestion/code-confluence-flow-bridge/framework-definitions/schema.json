@@ -4,30 +4,43 @@
   "title": "Code-Confluence Multi-Language Library Feature Schema v4",
   "description": "Framework / library feature signatures grouped by programming language using capability-operation hierarchy.",
   "type": "object",
-
-  "propertyNames": { "$ref": "#/$defs/languageEnum" },
+  "propertyNames": {
+    "$ref": "#/$defs/languageEnum"
+  },
   "patternProperties": {
-    "^[a-z]+$": { "$ref": "#/$defs/languageBlock" }
+    "^[a-z]+$": {
+      "$ref": "#/$defs/languageBlock"
+    }
   },
   "additionalProperties": false,
-
   "$defs": {
     "languageEnum": {
       "type": "string",
       "description": "Allowed lower-case language identifiers.",
-      "enum": ["python", "javascript", "typescript", "java", "go"]
+      "enum": [
+        "python",
+        "javascript",
+        "typescript",
+        "java",
+        "go"
+      ]
     },
     "languageBlock": {
       "type": "object",
       "description": "All libraries / frameworks implemented in a single language.",
       "patternProperties": {
-        "^.+$": { "$ref": "#/$defs/libraryDef" }
+        "^.+$": {
+          "$ref": "#/$defs/libraryDef"
+        }
       },
       "additionalProperties": false
     },
     "libraryDef": {
       "type": "object",
-      "required": ["docs_url", "capabilities"],
+      "required": [
+        "docs_url",
+        "capabilities"
+      ],
       "properties": {
         "docs_url": {
           "type": "string",
@@ -46,35 +59,72 @@
           "type": "object",
           "minProperties": 1,
           "description": "Discoverable capabilities keyed by capability family.",
-          "propertyNames": { "$ref": "#/$defs/capabilityFamilyEnum" },
-          "patternProperties": { "^.+$": { "$ref": "#/$defs/capabilityDef" } },
+          "propertyNames": {
+            "$ref": "#/$defs/capabilityFamilyEnum"
+          },
+          "patternProperties": {
+            "^.+$": {
+              "$ref": "#/$defs/capabilityDef"
+            }
+          },
           "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
-
     "capabilityFamilyEnum": {
       "type": "string",
-      "description": "Allowed capability family identifiers.",
+      "description": "Allowed canonical capability family identifiers.",
       "enum": [
+        "rest_api",
+        "graphql_api",
+        "grpc_server",
+        "websocket_server",
+        "sse_server",
+        "webhook_receiver",
+        "webhook_sender",
+        "cli_command",
+        "scheduler",
         "background_worker",
-        "data_validation",
-        "embeddings",
+        "file_watcher",
+        "mqtt_server",
+        "tcp_server",
+        "udp_server",
         "http_client",
-        "http_endpoint",
+        "graphql_client",
+        "grpc_client",
+        "websocket_client",
+        "email_service",
+        "message_broker",
+        "job_queue",
+        "change_data_capture",
+        "relational_database",
+        "document_database",
         "key_value_store",
+        "wide_column_store",
+        "graph_database",
+        "multi_model_database",
+        "vector_store",
+        "file_storage",
+        "object_storage",
+        "authentication",
+        "authorization",
+        "configuration",
+        "secret_management",
+        "observability",
+        "telemetry",
+        "logging",
         "llm_inference",
         "mcp_server",
-        "relational_database",
-        "scheduled_task",
+        "data_model",
         "web_component"
       ]
     },
-
     "capabilityDef": {
       "type": "object",
-      "required": ["operations"],
+      "required": [
+        "operations"
+      ],
       "properties": {
         "description": {
           "type": "string",
@@ -84,29 +134,34 @@
           "type": "object",
           "minProperties": 1,
           "description": "Discoverable operations keyed by contributor-chosen identifier.",
-          "patternProperties": { "^.+$": { "$ref": "#/$defs/operationDef" } },
+          "patternProperties": {
+            "^.+$": {
+              "$ref": "#/$defs/operationDef"
+            }
+          },
           "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
-
     "operationDef": {
       "type": "object",
-      "required": ["description", "absolute_paths", "target_level", "concept"],
-
+      "required": [
+        "description",
+        "absolute_paths",
+        "target_level",
+        "concept"
+      ],
       "properties": {
         "description": {
           "type": "string",
           "description": "Human-readable explanation of the operation."
         },
-
         "docs_url": {
           "type": "string",
           "format": "uri",
           "description": "Operation-specific documentation URL (optional)."
         },
-
         "absolute_paths": {
           "type": "array",
           "minItems": 1,
@@ -117,52 +172,72 @@
             "pattern": "^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$"
           }
         },
-        "target_level": { "$ref": "#/$defs/targetLevelEnum" },
-        "concept": { "$ref": "#/$defs/conceptEnum" },
-
-        "construct_query": { "$ref": "#/$defs/constructQueryDef" },
-
+        "target_level": {
+          "$ref": "#/$defs/targetLevelEnum"
+        },
+        "concept": {
+          "$ref": "#/$defs/conceptEnum"
+        },
+        "construct_query": {
+          "$ref": "#/$defs/constructQueryDef"
+        },
         "base_confidence": {
           "type": "number",
           "minimum": 0.0,
           "maximum": 1.0,
           "description": "Contributor-authored confidence for CallExpression operation definitions only; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
         },
-
         "startpoint": {
           "type": "boolean",
           "description": "Indicates whether this operation represents a starting point or entry point in the application, such as API endpoints (e.g., FastAPI routes) or message consumers (e.g., Kafka listeners).",
           "default": false
         },
-
         "notes": {
           "type": "string",
           "description": "Contributor notes, caveats, links."
         }
       },
       "additionalProperties": false,
-
       "allOf": [
         {
-          "if": { "properties": { "concept": { "const": "CallExpression" } } },
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "CallExpression"
+              }
+            }
+          },
           "then": {
-            "properties": { "target_level": { "const": "function" } },
-            "required": ["base_confidence"]
+            "properties": {
+              "target_level": {
+                "const": "function"
+              }
+            },
+            "required": [
+              "base_confidence"
+            ]
           }
         },
         {
           "if": {
             "properties": {
-              "concept": { "const": "CallExpression" },
+              "concept": {
+                "const": "CallExpression"
+              },
               "base_confidence": {
                 "type": "number",
                 "exclusiveMaximum": 0.7
               }
             },
-            "required": ["concept", "base_confidence"]
+            "required": [
+              "concept",
+              "base_confidence"
+            ]
           },
           "then": {
-            "required": ["notes"],
+            "required": [
+              "notes"
+            ],
             "properties": {
               "notes": {
                 "type": "string",
@@ -175,34 +250,65 @@
           "if": {
             "properties": {
               "concept": {
-                "not": { "const": "CallExpression" }
+                "not": {
+                  "const": "CallExpression"
+                }
               }
             },
-            "required": ["concept"]
+            "required": [
+              "concept"
+            ]
           },
           "then": {
             "not": {
-              "required": ["base_confidence"]
+              "required": [
+                "base_confidence"
+              ]
             }
           }
         },
         {
-          "if": { "properties": { "concept": { "const": "Inheritance" } } },
-          "then": { "properties": { "target_level": { "const": "class" } } }
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "Inheritance"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_level": {
+                "const": "class"
+              }
+            }
+          }
         },
         {
-          "if": { "properties": { "concept": { "const": "FunctionDefinition" } } },
-          "then": { "properties": { "target_level": { "const": "function" } } }
+          "if": {
+            "properties": {
+              "concept": {
+                "const": "FunctionDefinition"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_level": {
+                "const": "function"
+              }
+            }
+          }
         }
       ]
     },
-
     "targetLevelEnum": {
       "type": "string",
-      "enum": ["function", "class"],
+      "enum": [
+        "function",
+        "class"
+      ],
       "description": "Granularity of the code element that owns the operation."
     },
-
     "conceptEnum": {
       "type": "string",
       "enum": [
@@ -213,20 +319,31 @@
       ],
       "description": "Language-agnostic construct category."
     },
-
     "constructQueryDef": {
       "type": "object",
       "description": "Optional refinements to the auto-generated Tree-sitter query. Allowed keys depend on the operation's concept.",
       "properties": {
-        "method_regex": { "type": "string" },
-        "annotation_name_regex": { "type": "string" },
-        "attribute_regex": { "type": "string" },
-
-        "callee_regex": { "type": "string" },
-
-        "superclass_regex": { "type": "string" },
-        "function_name_regex": { "type": "string" },
-        "export_name_regex": { "type": "string" }
+        "method_regex": {
+          "type": "string"
+        },
+        "annotation_name_regex": {
+          "type": "string"
+        },
+        "attribute_regex": {
+          "type": "string"
+        },
+        "callee_regex": {
+          "type": "string"
+        },
+        "superclass_regex": {
+          "type": "string"
+        },
+        "function_name_regex": {
+          "type": "string"
+        },
+        "export_name_regex": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     }
