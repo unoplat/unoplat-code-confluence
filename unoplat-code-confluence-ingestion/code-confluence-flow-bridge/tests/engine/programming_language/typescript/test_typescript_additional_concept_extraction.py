@@ -158,7 +158,7 @@ class SearchWidget extends LitElement {}
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         feature_key="web_component",
-        library="litellm",
+        library="lit",
         description="LitElement inheritance",
         absolute_paths=["lit.LitElement"],
         target_level=TargetLevel.CLASS,
@@ -185,7 +185,7 @@ class SearchWidget extends foo.LitElement {}
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         feature_key="web_component",
-        library="litellm",
+        library="lit",
         description="LitElement inheritance",
         absolute_paths=["lit.LitElement"],
         target_level=TargetLevel.CLASS,
@@ -209,7 +209,7 @@ class SearchWidget extends BaseElement {}
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         feature_key="web_component",
-        library="litellm",
+        library="lit",
         description="LitElement inheritance",
         absolute_paths=["lit.LitElement"],
         target_level=TargetLevel.CLASS,
@@ -239,7 +239,7 @@ class SearchWidget {
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         feature_key="reactive_property",
-        library="litellm",
+        library="lit",
         description="Lit decorators",
         absolute_paths=["lit/decorators.js.property", "lit/decorators.js.state"],
         target_level=TargetLevel.FUNCTION,

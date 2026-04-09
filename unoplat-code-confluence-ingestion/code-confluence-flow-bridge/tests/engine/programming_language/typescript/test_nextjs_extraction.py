@@ -16,8 +16,8 @@ from unoplat_code_confluence_commons.base_models import (
 
 def _build_nextjs_get_spec() -> FeatureSpec:
     return FeatureSpec(
-        feature_key="http_endpoint.get",
-        capability_key="http_endpoint",
+        feature_key="rest_api.get",
+        capability_key="rest_api",
         operation_key="get",
         library="nextjs",
         description="Next.js App Router GET handler",
@@ -35,8 +35,8 @@ def _build_nextjs_get_spec() -> FeatureSpec:
 
 def _build_nextjs_post_spec() -> FeatureSpec:
     return FeatureSpec(
-        feature_key="http_endpoint.post",
-        capability_key="http_endpoint",
+        feature_key="rest_api.post",
+        capability_key="rest_api",
         operation_key="post",
         library="nextjs",
         description="Next.js App Router POST handler",
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     assert len(detections) == 1
     detection = detections[0]
-    assert detection.feature_key == "http_endpoint.get"
+    assert detection.feature_key == "rest_api.get"
     assert detection.library == "nextjs"
     assert "export async function GET" in detection.match_text
     assert detection.metadata["function_name"] == "GET"

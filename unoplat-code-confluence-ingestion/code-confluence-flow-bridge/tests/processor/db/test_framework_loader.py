@@ -36,7 +36,7 @@ def test_loader_reads_all_language_directories(tmp_path: Path) -> None:
     "fastapi": {
       "docs_url": "https://fastapi.tiangolo.com",
       "capabilities": {
-        "http_endpoint": {
+        "rest_api": {
           "description": "HTTP endpoint capability.",
           "operations": {
             "get": {
@@ -64,7 +64,7 @@ def test_loader_reads_all_language_directories(tmp_path: Path) -> None:
     "nextjs": {
       "docs_url": "https://nextjs.org/docs",
       "capabilities": {
-        "http_endpoint": {
+        "rest_api": {
           "description": "Route handler capability.",
           "operations": {
             "get": {
@@ -106,7 +106,7 @@ def test_parse_json_data_preserves_function_export_regexes(tmp_path: Path) -> No
                 "docs_url": "https://nextjs.org/docs",
                 "description": "Next.js",
                 "capabilities": {
-                    "http_endpoint": {
+                    "rest_api": {
                         "description": "Route handler capability.",
                         "operations": {
                             "get": {
@@ -130,7 +130,7 @@ def test_parse_json_data_preserves_function_export_regexes(tmp_path: Path) -> No
 
     assert len(features) == 1
     feature = features[0]
-    assert feature.feature_key == "http_endpoint.get"
+    assert feature.feature_key == "rest_api.get"
     assert feature.concept == Concept.ANNOTATION_LIKE
     assert feature.target_level.value == "function"
     assert feature.construct_query is not None
@@ -211,7 +211,7 @@ def test_parse_json_data_rejects_base_confidence_for_non_call_expression(
             "customlib": {
                 "docs_url": "https://example.com/docs",
                 "capabilities": {
-                    "http_endpoint": {
+                    "rest_api": {
                         "description": "Endpoint capability.",
                         "operations": {
                             "get": {

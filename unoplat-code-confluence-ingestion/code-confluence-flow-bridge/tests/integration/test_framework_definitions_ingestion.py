@@ -244,28 +244,28 @@ class TestFrameworkDefinitionsIngestion:
             )
 
             # Test feature -> absolute paths relationship
-            http_endpoint_get_feature = None
+            rest_api_get_feature = None
             for feature in features_list:
-                if feature.feature_key == "http_endpoint.get":
-                    http_endpoint_get_feature = feature
+                if feature.feature_key == "rest_api.get":
+                    rest_api_get_feature = feature
                     break
 
-            assert http_endpoint_get_feature is not None, (
-                "FastAPI http_endpoint.get feature not found"
+            assert rest_api_get_feature is not None, (
+                "FastAPI rest_api.get feature not found"
             )
 
             related_paths = session.execute(
                 select(FeatureAbsolutePath).where(
-                    FeatureAbsolutePath.language == http_endpoint_get_feature.language,
-                    FeatureAbsolutePath.library == http_endpoint_get_feature.library,
+                    FeatureAbsolutePath.language == rest_api_get_feature.language,
+                    FeatureAbsolutePath.library == rest_api_get_feature.library,
                     FeatureAbsolutePath.feature_key
-                    == http_endpoint_get_feature.feature_key,
+                    == rest_api_get_feature.feature_key,
                 )
             )
             paths_list = related_paths.scalars().all()
 
             assert len(paths_list) == 4, (
-                f"Expected 4 absolute paths for http_endpoint.get, got {len(paths_list)}"
+                f"Expected 4 absolute paths for rest_api.get, got {len(paths_list)}"
             )
             path_values = [p.absolute_path for p in paths_list]
             assert "fastapi.FastAPI" in path_values
@@ -303,11 +303,11 @@ class TestFrameworkDefinitionsIngestion:
         with get_sync_postgres_session(service_ports["postgresql"]) as session:
             _seed(session)
 
-            # Find FastAPI http_endpoint.get feature which has construct_query
+            # Find FastAPI rest_api.get feature which has construct_query
             feature_result = session.execute(
                 select(FrameworkFeature).where(
                     FrameworkFeature.library == "fastapi",
-                    FrameworkFeature.feature_key == "http_endpoint.get",
+                    FrameworkFeature.feature_key == "rest_api.get",
                 )
             )
             feature = feature_result.scalar_one()
@@ -376,41 +376,41 @@ class TestFrameworkDefinitionsIngestion:
         assert fastapi_framework.language == "python"
         assert fastapi_framework.docs_url == "https://fastapi.tiangolo.com"
 
-        # Test specific feature: FastAPI http_endpoint.get
+        # Test specific feature: FastAPI rest_api.get
         fastapi_features = [f for f in features if f.library == "fastapi"]
         assert len(fastapi_features) == 9, (
             f"Expected 9 FastAPI features, got {len(fastapi_features)}"
         )
 
-        http_endpoint_get = next(
-            (f for f in fastapi_features if f.feature_key == "http_endpoint.get"), None
+        rest_api_get = next(
+            (f for f in fastapi_features if f.feature_key == "rest_api.get"), None
         )
-        assert http_endpoint_get is not None, (
-            "FastAPI http_endpoint.get feature not found"
+        assert rest_api_get is not None, (
+            "FastAPI rest_api.get feature not found"
         )
-        assert http_endpoint_get.description == "FastAPI GET route handler."
-        assert http_endpoint_get.target_level == TargetLevel.FUNCTION
-        assert http_endpoint_get.concept == Concept.ANNOTATION_LIKE
-        assert http_endpoint_get.locator_strategy == LocatorStrategy.VARIABLE_BOUND
-        assert http_endpoint_get.startpoint is True, (
-            "http_endpoint.get should be marked as startpoint"
+        assert rest_api_get.description == "FastAPI GET route handler."
+        assert rest_api_get.target_level == TargetLevel.FUNCTION
+        assert rest_api_get.concept == Concept.ANNOTATION_LIKE
+        assert rest_api_get.locator_strategy == LocatorStrategy.VARIABLE_BOUND
+        assert rest_api_get.startpoint is True, (
+            "rest_api.get should be marked as startpoint"
         )
-        assert http_endpoint_get.construct_query is not None
-        assert "method_regex" in http_endpoint_get.construct_query
-        assert http_endpoint_get.construct_query["method_regex"] == "^get$"
+        assert rest_api_get.construct_query is not None
+        assert "method_regex" in rest_api_get.construct_query
+        assert rest_api_get.construct_query["method_regex"] == "^get$"
         # AnnotationLike concept has no base_confidence
-        assert http_endpoint_get.feature_definition.get("base_confidence") is None
+        assert rest_api_get.feature_definition.get("base_confidence") is None
 
-        # Test absolute paths for http_endpoint.get
-        http_endpoint_get_paths = [
+        # Test absolute paths for rest_api.get
+        rest_api_get_paths = [
             ap
             for ap in absolute_paths
-            if ap.library == "fastapi" and ap.feature_key == "http_endpoint.get"
+            if ap.library == "fastapi" and ap.feature_key == "rest_api.get"
         ]
-        assert len(http_endpoint_get_paths) == 4, (
-            f"Expected 4 paths for http_endpoint.get, got {len(http_endpoint_get_paths)}"
+        assert len(rest_api_get_paths) == 4, (
+            f"Expected 4 paths for rest_api.get, got {len(rest_api_get_paths)}"
         )
-        path_values = [p.absolute_path for p in http_endpoint_get_paths]
+        path_values = [p.absolute_path for p in rest_api_get_paths]
         assert "fastapi.FastAPI" in path_values
         assert "fastapi.applications.FastAPI" in path_values
         assert "fastapi.APIRouter" in path_values
@@ -460,7 +460,7 @@ class TestFrameworkDefinitionsIngestion:
                     "docs_url": "https://example.com/docs",
                     "description": "Custom framework",
                     "capabilities": {
-                        "data_validation": {
+                        "data_model": {
                             "description": "Validation capability.",
                             "operations": {
                                 "custom_feature": {
@@ -490,7 +490,7 @@ class TestFrameworkDefinitionsIngestion:
                     "docs_url": "https://example.com/docs",
                     "description": "Custom framework",
                     "capabilities": {
-                        "data_validation": {
+                        "data_model": {
                             "description": "Validation capability.",
                             "operations": {
                                 "custom_feature": {
@@ -511,7 +511,7 @@ class TestFrameworkDefinitionsIngestion:
 
             feature = session.execute(
                 select(FrameworkFeature).where(
-                    FrameworkFeature.feature_key == "data_validation.custom_feature"
+                    FrameworkFeature.feature_key == "data_model.custom_feature"
                 )
             ).scalar_one()
 
@@ -608,7 +608,7 @@ class TestFrameworkDefinitionsIngestion:
                     "docs_url": "https://example.com/docs",
                     "description": "Custom framework",
                     "capabilities": {
-                        "http_endpoint": {
+                        "rest_api": {
                             "description": "Endpoint capability.",
                             "operations": {
                                 "get": {

@@ -68,8 +68,8 @@ def _load_python_feature_specs() -> List[FeatureSpec]:
 
 def _build_pydantic_inheritance_spec() -> FeatureSpec:
     return FeatureSpec(
-        feature_key="data_validation.data_model",
-        capability_key="data_validation",
+        feature_key="data_model.data_model",
+        capability_key="data_model",
         operation_key="data_model",
         library="pydantic",
         absolute_paths=["pydantic.BaseModel", "pydantic.main.BaseModel"],
@@ -105,7 +105,7 @@ def test_fastapi_tree_sitter_detection_main_py() -> None:
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, feature_specs)
-    assert any(det.feature_key.startswith("http_endpoint.") for det in detections)
+    assert any(det.feature_key.startswith("rest_api.") for det in detections)
 
 
 def test_fastapi_tree_sitter_detection_router_decorators() -> None:
@@ -127,7 +127,7 @@ async def health_check() -> dict[str, str]:
     detections = detector.detect(context, feature_specs)
 
     assert any(
-        det.feature_key == "http_endpoint.get"
+        det.feature_key == "rest_api.get"
         and det.library == "fastapi"
         and "health" in det.match_text
         for det in detections
@@ -153,7 +153,7 @@ async def create_user() -> dict[str, bool]:
     detections = detector.detect(context, feature_specs)
 
     assert any(
-        det.feature_key == "http_endpoint.post"
+        det.feature_key == "rest_api.post"
         and det.library == "fastapi"
         and "users" in det.match_text
         for det in detections
@@ -178,7 +178,7 @@ def test_pydantic_tree_sitter_detection_model_file() -> None:
 
     detections = detector.detect(context, feature_specs)
     assert any(
-        det.feature_key == "data_validation.data_model" and det.library == "pydantic"
+        det.feature_key == "data_model.data_model" and det.library == "pydantic"
         for det in detections
     )
 
@@ -304,6 +304,6 @@ class User(BM):
     assert len(detections) == 1
     inheritance_detection = cast(InheritanceInfo, detections[0])
     assert inheritance_detection.library == "pydantic"
-    assert inheritance_detection.feature_key == "data_validation.data_model"
+    assert inheritance_detection.feature_key == "data_model.data_model"
     assert inheritance_detection.subclass == "User"
     assert inheritance_detection.superclass == "BM"

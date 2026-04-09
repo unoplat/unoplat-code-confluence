@@ -64,7 +64,7 @@ class TestFrameworkDetectionWithPostgres:
             fastapi_detections = [
                 detection
                 for detection in detections
-                if detection.feature_key.startswith("http_endpoint.")
+                if detection.feature_key.startswith("rest_api.")
             ]
             endpoint_texts.extend(
                 detection.match_text for detection in fastapi_detections
@@ -136,7 +136,7 @@ class MyApp:
 
             # Verify instance variable endpoints were detected
             fastapi_detections = [
-                d for d in detections if d.feature_key.startswith("http_endpoint.")
+                d for d in detections if d.feature_key.startswith("rest_api.")
             ]
             assert len(fastapi_detections) >= 2, (
                 f"Expected at least 2 endpoints, got {len(fastapi_detections)}"
@@ -206,7 +206,7 @@ class Product(BaseModel):
 
             # Look for Pydantic model detections
             pydantic_detections = [
-                d for d in detections if d.feature_key == "data_validation.data_model"
+                d for d in detections if d.feature_key == "data_model.data_model"
             ]
             assert len(pydantic_detections) >= 2, (
                 f"Expected at least 2 data_model models, got {len(pydantic_detections)}"
@@ -286,12 +286,12 @@ async def create_user(user: UserModel, db=Depends(get_db)):
             print("\n=== Multi-Framework Detection Line Numbers ===")
 
             # FastAPI endpoints
-            http_endpoint_detections = [
-                d for d in detections if d.feature_key.startswith("http_endpoint.")
+            rest_api_detections = [
+                d for d in detections if d.feature_key.startswith("rest_api.")
             ]
-            if http_endpoint_detections:
-                print("\nFastAPI HTTP Endpoints:")
-                for i, detection in enumerate(http_endpoint_detections):
+            if rest_api_detections:
+                print("\nFastAPI REST API Endpoints:")
+                for i, detection in enumerate(rest_api_detections):
                     start_line = detection.start_line
                     end_line = detection.end_line
                     match_text = detection.match_text
@@ -322,7 +322,7 @@ async def create_user(user: UserModel, db=Depends(get_db)):
 
             # Pydantic models
             pydantic_detections = [
-                d for d in detections if d.feature_key == "data_validation.data_model"
+                d for d in detections if d.feature_key == "data_model.data_model"
             ]
             if pydantic_detections:
                 print("\nPydantic Models:")
@@ -333,8 +333,8 @@ async def create_user(user: UserModel, db=Depends(get_db)):
                     print(f"  [{i}] {match_text} | Lines: {start_line}-{end_line}")
 
             # Should detect FastAPI endpoints
-            assert len(http_endpoint_detections) >= 2, (
-                f"Expected at least 2 FastAPI endpoints, got {len(http_endpoint_detections)}"
+            assert len(rest_api_detections) >= 2, (
+                f"Expected at least 2 FastAPI endpoints, got {len(rest_api_detections)}"
             )
 
             # Should detect dependency injection

@@ -6,10 +6,10 @@ Tests verify custom_features_list is populated correctly when:
 3. Results include proper feature_key, library, and line numbers
 
 These tests cover all currently supported framework definitions:
-- Pydantic (data_validation.data_model via Inheritance)
+- Pydantic (data_model.data_model via Inheritance)
 - SQLAlchemy (relational_database.db_data_model via Inheritance)
 - SQLModel (relational_database.db_data_model via Inheritance)
-- FastAPI (http_endpoint.* via AnnotationLike)
+- FastAPI (rest_api.* via AnnotationLike)
 """
 
 # Standard Library
@@ -88,7 +88,7 @@ class TestFrameworkDetectionLanguageProcessor:
         self,
         language_processor_context: LanguageProcessorContext,
     ) -> None:
-        """Test Pydantic BaseModel detection produces data_validation.data_model feature spans.
+        """Test Pydantic BaseModel detection produces data_model.data_model feature spans.
 
         File: github_repo.py contains multiple Pydantic models:
         - GitHubOwner (BaseModel)
@@ -96,7 +96,7 @@ class TestFrameworkDetectionLanguageProcessor:
         - GitHubRepo (BaseModel)
         - RepositoryRequestConfiguration (BaseModel)
 
-        Expected: At least 3 pydantic data_validation.data_model detections with valid line numbers.
+        Expected: At least 3 pydantic data_model.data_model detections with valid line numbers.
         """
         processor = PythonLanguageProcessor(language_processor_context)
 
@@ -118,7 +118,7 @@ class TestFrameworkDetectionLanguageProcessor:
         pydantic_detections = [
             d
             for d in result.custom_features_list
-            if d.feature_key == "data_validation.data_model" and d.library == "pydantic"
+            if d.feature_key == "data_model.data_model" and d.library == "pydantic"
         ]
 
         # Log detections for debugging
@@ -154,7 +154,7 @@ class TestFrameworkDetectionLanguageProcessor:
         - ManifestGenerationRequest (Pydantic BaseModel)
         - ManifestGenerationResponse (Pydantic BaseModel)
 
-        Expected: Both SQLAlchemy relational_database.db_data_model and Pydantic data_validation.data_model detections.
+        Expected: Both SQLAlchemy relational_database.db_data_model and Pydantic data_model.data_model detections.
         """
         processor = PythonLanguageProcessor(language_processor_context)
 
@@ -193,7 +193,7 @@ class TestFrameworkDetectionLanguageProcessor:
         pydantic_detections = [
             d
             for d in result.custom_features_list
-            if d.feature_key == "data_validation.data_model" and d.library == "pydantic"
+            if d.feature_key == "data_model.data_model" and d.library == "pydantic"
         ]
 
         # Log Pydantic detections
@@ -258,12 +258,12 @@ class TestFrameworkDetectionLanguageProcessor:
         self,
         language_processor_context: LanguageProcessorContext,
     ) -> None:
-        """Test FastAPI http_endpoint.* detection through PythonLanguageProcessor.
+        """Test FastAPI rest_api.* detection through PythonLanguageProcessor.
 
         File: main.py contains FastAPI application with @app.get(), @app.post()
-        decorators that should be detected as http_endpoint.* features.
+        decorators that should be detected as rest_api.* features.
 
-        Expected: At least 1 FastAPI http_endpoint.* detection with valid line numbers.
+        Expected: At least 1 FastAPI rest_api.* detection with valid line numbers.
         """
         processor = PythonLanguageProcessor(language_processor_context)
 
@@ -276,11 +276,11 @@ class TestFrameworkDetectionLanguageProcessor:
         assert result is not None, "extract_file_data returned None"
         assert result.custom_features_list is not None, "custom_features_list is None"
 
-        # Find FastAPI http_endpoint detections
+        # Find FastAPI rest_api detections
         fastapi_detections = [
             d
             for d in result.custom_features_list
-            if d.feature_key.startswith("http_endpoint.") and d.library == "fastapi"
+            if d.feature_key.startswith("rest_api.") and d.library == "fastapi"
         ]
 
         # Log FastAPI detections
