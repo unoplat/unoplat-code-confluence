@@ -464,6 +464,137 @@ This example shows a Python relational database library with an Inheritance-base
 }
 ```
 
+### Firebase TypeScript SDK Example (compact)
+
+This compact example shows the same operation-level model used by ingestion for Firebase.  
+For the full maintained definition, see `framework-definitions/typescript/firebase.json` in ingestion.
+
+<Callout type="info" title="Vetted Firebase Capability → Operation Map">
+  - `authentication`: `sign_in`, `create_user`, `sign_out`, `observe_state`
+  - `document_database`: `create`, `read`, `update`, `delete`, `query`, `listen`
+  - `object_storage`: `upload`, `download`, `delete`
+  - `telemetry`: `log_event`, `set_user`, `set_user_properties`
+  - `rpc_server`: `call`
+  - `rest_api`: `request`
+  - `rpc_client`: `invoke`
+  - `http_client`: `request`
+  - `scheduler`: `schedule`
+  - `change_data_capture`: `create`, `update`, `delete`, `write`
+  - `job_queue`: `dispatch`
+</Callout>
+
+```json
+{
+  "typescript": {
+    "firebase": {
+      "docs_url": "https://firebase.google.com/docs/reference/js",
+      "description": "Firebase TypeScript SDK capabilities across auth, data, storage, telemetry, and Cloud Functions client/server patterns.",
+      "capabilities": {
+        "authentication": {
+          "description": "Firebase Authentication sign-in and session state flows.",
+          "operations": {
+            "sign_in": {
+              "description": "Signs users in through Firebase Authentication provider/credential flows.",
+              "absolute_paths": [
+                "firebase/auth.signInWithEmailAndPassword",
+                "firebase/auth.signInWithPopup"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.93
+            }
+          }
+        },
+        "document_database": {
+          "description": "Cloud Firestore document CRUD/query/listen patterns.",
+          "operations": {
+            "query": {
+              "description": "Builds constrained Firestore queries.",
+              "absolute_paths": [
+                "firebase/firestore.query",
+                "firebase/firestore.where",
+                "firebase/firestore.orderBy"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.86
+            },
+            "listen": {
+              "description": "Subscribes to real-time Firestore updates.",
+              "absolute_paths": [
+                "firebase/firestore.onSnapshot"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.92
+            }
+          }
+        },
+        "rpc_server": {
+          "description": "Cloud Functions callable RPC handlers.",
+          "operations": {
+            "call": {
+              "description": "Defines callable Cloud Functions handlers.",
+              "absolute_paths": [
+                "firebase-functions/v2/https.onCall"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            }
+          }
+        },
+        "rest_api": {
+          "description": "Cloud Functions HTTP request handlers.",
+          "operations": {
+            "request": {
+              "description": "Defines HTTP request handlers via Cloud Functions.",
+              "absolute_paths": [
+                "firebase-functions/v2/https.onRequest"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            }
+          }
+        },
+        "rpc_client": {
+          "description": "Callable function invocation from Firebase client SDK.",
+          "operations": {
+            "invoke": {
+              "description": "Invokes callable Cloud Functions by name.",
+              "absolute_paths": [
+                "firebase/functions.httpsCallable"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.9
+            }
+          }
+        },
+        "change_data_capture": {
+          "description": "Cloud Functions Firestore event triggers.",
+          "operations": {
+            "write": {
+              "description": "Handles Firestore document write events.",
+              "absolute_paths": [
+                "firebase-functions/v2/firestore.onDocumentWritten"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ---
 
 ## Validation Rules
