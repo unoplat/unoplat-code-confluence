@@ -78,7 +78,7 @@
       "enum": [
         "rest_api",
         "graphql_api",
-        "grpc_server",
+        "rpc_server",
         "websocket_server",
         "sse_server",
         "webhook_receiver",
@@ -92,7 +92,7 @@
         "udp_server",
         "http_client",
         "graphql_client",
-        "grpc_client",
+        "rpc_client",
         "websocket_client",
         "email_service",
         "message_broker",
