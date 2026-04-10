@@ -194,14 +194,14 @@ class TestFrameworkDefinitionsIngestion:
             metrics = _seed(session)
 
             # Validate expected data counts for all framework definitions
-            assert metrics["frameworks_count"] == 11, (
-                f"Expected 11 frameworks, got {metrics['frameworks_count']}"
+            assert metrics["frameworks_count"] == 12, (
+                f"Expected 12 frameworks, got {metrics['frameworks_count']}"
             )
-            assert metrics["features_count"] == 32, (
-                f"Expected 32 features, got {metrics['features_count']}"
+            assert metrics["features_count"] == 58, (
+                f"Expected 58 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 82, (
-                f"Expected 82 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 128, (
+                f"Expected 128 absolute paths, got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -213,9 +213,9 @@ class TestFrameworkDefinitionsIngestion:
                 select(func.count(FeatureAbsolutePath.language))
             )  # type: ignore
 
-            assert framework_count == 11
-            assert feature_count == 32
-            assert path_count == 82
+            assert framework_count == 12
+            assert feature_count == 58
+            assert path_count == 128
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -340,7 +340,7 @@ class TestFrameworkDefinitionsIngestion:
                 results.append(state)
 
             # All results should be identical for all framework definitions
-            expected_state = {"frameworks": 11, "features": 32, "paths": 82}
+            expected_state = {"frameworks": 12, "features": 58, "paths": 128}
             for result in results:
                 assert result == expected_state
 
@@ -362,10 +362,10 @@ class TestFrameworkDefinitionsIngestion:
         frameworks, features, absolute_paths = loader.parse_json_data(framework_data)
 
         # Validate parsing results match expected production data for all definitions
-        assert len(frameworks) == 11, f"Expected 11 frameworks, got {len(frameworks)}"
-        assert len(features) == 32, f"Expected 32 features, got {len(features)}"
-        assert len(absolute_paths) == 82, (
-            f"Expected 82 absolute paths, got {len(absolute_paths)}"
+        assert len(frameworks) == 12, f"Expected 12 frameworks, got {len(frameworks)}"
+        assert len(features) == 58, f"Expected 58 features, got {len(features)}"
+        assert len(absolute_paths) == 128, (
+            f"Expected 128 absolute paths, got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI
