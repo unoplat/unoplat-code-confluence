@@ -36,6 +36,21 @@
               "startpoint": true
             }
           }
+        },
+        "mcp_client": {
+          "description": "FastMCP client toolset construction for outbound MCP server connections.",
+          "operations": {
+            "toolset_client": {
+              "description": "FastMCPToolset constructor usage for stdio/SSE/HTTP MCP client wiring.",
+              "absolute_paths": [
+                "pydantic_ai.toolsets.fastmcp.FastMCPToolset"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "notes": "Confirm the call resolves to `FastMCPToolset` imported from `pydantic_ai.toolsets.fastmcp`; this models outbound MCP client setup rather than server-side FastMCP decorators."
+            }
+          }
         }
       }
     }

@@ -116,6 +116,7 @@
         "logging",
         "llm_inference",
         "mcp_server",
+        "mcp_client",
         "data_model",
         "web_component"
       ]
