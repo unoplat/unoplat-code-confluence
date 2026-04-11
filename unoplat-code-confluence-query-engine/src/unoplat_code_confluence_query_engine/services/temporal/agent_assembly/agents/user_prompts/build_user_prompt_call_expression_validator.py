@@ -76,7 +76,7 @@ def build_call_expression_validator_instructions(
         "Decision policy:\n"
         "- confirm/reject/correct => target_status must be completed\n"
         "- needs_review => target_status must be needs_review\n"
-        "- correct requires updated_feature_key different from source feature_key"
+        "- correct requires updated_feature_capability_key and updated_feature_operation_key different from the source identity"
     )
 
 
@@ -88,7 +88,8 @@ def build_call_expression_validator_prompt(
         "evidence_json, base_confidence, notes, construct_query, absolute_paths"
     )
     identity_fields = (
-        "file_path, feature_language, feature_library, feature_key, start_line, end_line"
+        "file_path, feature_language, feature_library, feature_capability_key, "
+        "feature_operation_key, start_line, end_line"
     )
     evidence_fields = (
         "concept, source, match_confidence, call_match_kind, matched_absolute_path, "

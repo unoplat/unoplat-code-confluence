@@ -17,7 +17,8 @@ CALL_EXPRESSION_VALIDATOR_IDENTITY_FIELDS: tuple[str, ...] = (
     "file_path",
     "feature_language",
     "feature_library",
-    "feature_key",
+    "feature_capability_key",
+    "feature_operation_key",
     "start_line",
     "end_line",
 )

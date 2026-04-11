@@ -29,7 +29,6 @@ class AgentMdAggregate:
         self.codebase = codebase
         self.language_metadata: Optional[ProgrammingLanguageMetadataOutput] = None
         self.engineering_workflow: Optional[EngineeringWorkflow] = None
-        # self.frameworks_libraries: Optional[list[FrameworkLibraryOutput]] = None
         self.business_logic: Optional[BusinessLogicDomain] = None
 
     def set_language_metadata(
@@ -41,15 +40,6 @@ class AgentMdAggregate:
             meta: Programming language metadata or None if not found
         """
         self.language_metadata = meta
-
-    # def update_from_framework_explorer(self, frameworks: list[FrameworkLibraryOutput]) -> None:
-    #     """Update frameworks and libraries from framework explorer agent result.
-
-    #     Args:
-    #         frameworks: List of FrameworkLibraryOutput BaseModels from framework explorer agent (post-processed)
-    #     """
-    #     self.frameworks_libraries = frameworks
-    #     logger.debug("Updated frameworks/libraries for codebase: {}", self.codebase.codebase_name)
 
     def update_from_engineering_workflow(self, workflow: EngineeringWorkflow) -> None:
         """Update canonical engineering workflow from single workflow agent result."""
