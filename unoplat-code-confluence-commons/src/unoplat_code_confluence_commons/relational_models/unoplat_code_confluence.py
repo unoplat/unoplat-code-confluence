@@ -173,6 +173,11 @@ class UnoplatCodeConfluenceCodebaseFramework(SQLBase):
     )
 
 
+def _compose_feature_key(capability_key: str, operation_key: str) -> str:
+    """Build the dotted convenience key from structured identity parts."""
+    return f"{capability_key}.{operation_key}"
+
+
 class UnoplatCodeConfluenceFileFrameworkFeature(SQLBase):
     """Join table linking files to framework features with span metadata."""
 
@@ -184,11 +189,17 @@ class UnoplatCodeConfluenceFileFrameworkFeature(SQLBase):
             ondelete="CASCADE",
         ),
         ForeignKeyConstraint(
-            ["feature_language", "feature_library", "feature_key"],
+            [
+                "feature_language",
+                "feature_library",
+                "feature_capability_key",
+                "feature_operation_key",
+            ],
             [
                 "framework_feature.language",
                 "framework_feature.library",
-                "framework_feature.feature_key",
+                "framework_feature.capability_key",
+                "framework_feature.operation_key",
             ],
             ondelete="CASCADE",
         ),
@@ -198,18 +209,27 @@ class UnoplatCodeConfluenceFileFrameworkFeature(SQLBase):
     file_path: Mapped[str] = mapped_column(primary_key=True)
     feature_language: Mapped[str] = mapped_column(primary_key=True)
     feature_library: Mapped[str] = mapped_column(primary_key=True)
-    feature_key: Mapped[str] = mapped_column(primary_key=True)
+    feature_capability_key: Mapped[str] = mapped_column(primary_key=True)
+    feature_operation_key: Mapped[str] = mapped_column(primary_key=True)
     start_line: Mapped[int] = mapped_column(primary_key=True)
     end_line: Mapped[int] = mapped_column(primary_key=True)
     match_text: Mapped[Optional[str]] = mapped_column(Text, default=None)
     match_confidence: Mapped[float] = mapped_column(default=1.0)
     validation_status: Mapped[str] = mapped_column(
-        default=ValidationStatus.PENDING.value,
+        default=ValidationStatus.COMPLETED.value,
     )
     evidence_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSONB,
         default=None,
     )
+
+    @property
+    def feature_key(self) -> str:
+        """Return the dotted convenience key derived from structured identity."""
+        return _compose_feature_key(
+            self.feature_capability_key,
+            self.feature_operation_key,
+        )
 
     file: Mapped[UnoplatCodeConfluenceFile] = relationship(
         back_populates="framework_features"
