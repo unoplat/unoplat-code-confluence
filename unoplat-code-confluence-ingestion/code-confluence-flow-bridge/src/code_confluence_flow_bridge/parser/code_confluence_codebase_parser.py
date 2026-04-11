@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from unoplat_code_confluence_commons.base_models import (
     CallExpressionInfo,
     ProgrammingLanguageMetadata,
+    ValidationStatus,
 )
 
 from src.code_confluence_flow_bridge.engine.framework_detection_service import (
@@ -40,6 +41,8 @@ from src.code_confluence_flow_bridge.processor.db.postgres.code_confluence_relat
     CodeConfluenceRelationalIngestion,
 )
 
+LOW_CONFIDENCE_CALL_EXPRESSION_THRESHOLD = 0.70
+
 
 def _resolve_match_confidence(detection: object) -> float:
     metadata = getattr(detection, "metadata", None)
@@ -57,6 +60,20 @@ def _resolve_match_confidence(detection: object) -> float:
             return numeric_confidence
 
     return 1.0
+
+
+def _resolve_validation_status(
+    detection: object,
+    *,
+    match_confidence: float,
+) -> str:
+    if not isinstance(detection, CallExpressionInfo):
+        return ValidationStatus.COMPLETED.value
+
+    if match_confidence < LOW_CONFIDENCE_CALL_EXPRESSION_THRESHOLD:
+        return ValidationStatus.PENDING.value
+
+    return ValidationStatus.COMPLETED.value
 
 
 def _build_evidence_json(detection: object) -> Optional[dict[str, object]]:
@@ -113,7 +130,7 @@ class CodeConfluenceCodebaseParser:
 
         self.files_processed = 0
         self._known_frameworks: Set[str] = set()
-        self._known_features: Set[tuple[str, str]] = set()
+        self._known_features: Set[tuple[str, str, str]] = set()
 
         self._initialize_components()
         self.language_processor: LanguageCodebaseProcessor = (
@@ -264,6 +281,8 @@ class CodeConfluenceCodebaseParser:
                 feature_rows: list[dict[str, object]] = []
                 for detection in detections:
                     library = detection.library
+                    capability_key = detection.capability_key
+                    operation_key = detection.operation_key
                     feature_key = detection.feature_key
 
                     if library not in self._known_frameworks:
@@ -274,11 +293,16 @@ class CodeConfluenceCodebaseParser:
                         )
                         continue
 
-                    if (library, feature_key) not in self._known_features:
+                    if (
+                        library,
+                        capability_key,
+                        operation_key,
+                    ) not in self._known_features:
                         logger.debug(
-                            "Skipping unknown feature | library={} | feature_key={} | file={}",
+                            "Skipping unknown feature | library={} | capability_key={} | operation_key={} | file={}",
                             library,
-                            feature_key,
+                            capability_key,
+                            operation_key,
                             file_data.file_path,
                         )
                         continue
@@ -292,16 +316,21 @@ class CodeConfluenceCodebaseParser:
                         detection.end_line,
                     )
 
+                    match_confidence = _resolve_match_confidence(detection)
                     feature_rows.append(
                         {
                             "feature_language": language,
                             "feature_library": library,
-                            "feature_key": feature_key,
+                            "feature_capability_key": capability_key,
+                            "feature_operation_key": operation_key,
                             "start_line": detection.start_line,
                             "end_line": detection.end_line,
                             "match_text": detection.match_text,
-                            "match_confidence": _resolve_match_confidence(detection),
-                            "validation_status": "pending",
+                            "match_confidence": match_confidence,
+                            "validation_status": _resolve_validation_status(
+                                detection,
+                                match_confidence=match_confidence,
+                            ),
                             "evidence_json": _build_evidence_json(detection),
                         }
                     )

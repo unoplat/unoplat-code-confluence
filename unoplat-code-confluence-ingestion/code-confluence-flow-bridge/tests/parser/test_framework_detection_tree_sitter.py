@@ -68,7 +68,6 @@ def _load_python_feature_specs() -> List[FeatureSpec]:
 
 def _build_pydantic_inheritance_spec() -> FeatureSpec:
     return FeatureSpec(
-        feature_key="data_model.data_model",
         capability_key="data_model",
         operation_key="data_model",
         library="pydantic",
@@ -82,7 +81,6 @@ def _build_pydantic_inheritance_spec() -> FeatureSpec:
 
 def _build_litellm_completion_spec() -> FeatureSpec:
     return FeatureSpec(
-        feature_key="llm_inference.llm_completion",
         capability_key="llm_inference",
         operation_key="llm_completion",
         library="litellm",

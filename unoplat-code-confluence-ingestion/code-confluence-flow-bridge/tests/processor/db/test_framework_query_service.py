@@ -101,10 +101,9 @@ async def test_query_service_rebuilds_operation_level_feature_specs(
 
     assert len(feature_specs) == 1
     feature_spec = feature_specs[0]
-    capability_key, operation_key = feature_spec.feature_key.split(".", 1)
+    assert feature_spec.capability_key == "rest_api"
+    assert feature_spec.operation_key == "get"
     assert feature_spec.feature_key == "rest_api.get"
-    assert capability_key == "rest_api"
-    assert operation_key == "get"
     assert feature_spec.library == "fastapi"
     assert sorted(feature_spec.absolute_paths) == [
         "fastapi.APIRouter",
@@ -114,10 +113,7 @@ async def test_query_service_rebuilds_operation_level_feature_specs(
     assert feature_spec.base_confidence == 0.73
 
     assert len(all_feature_specs) == 1
-    all_capability_key, all_operation_key = all_feature_specs[0].feature_key.split(
-        ".", 1
-    )
-    assert all_capability_key == "rest_api"
-    assert all_operation_key == "get"
+    assert all_feature_specs[0].capability_key == "rest_api"
+    assert all_feature_specs[0].operation_key == "get"
     assert all_feature_specs[0].construct_query == {"function_name_regex": "^get$"}
     assert all_feature_specs[0].base_confidence == 0.73

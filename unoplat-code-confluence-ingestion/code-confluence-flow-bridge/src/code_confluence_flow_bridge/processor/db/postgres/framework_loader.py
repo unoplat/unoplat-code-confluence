@@ -183,12 +183,8 @@ class FrameworkDefinitionLoader:
                         cap_data.get("operations", {}),
                     )
                     for op_key, op_data in operations_data.items():
-                        feature_key = f"{cap_key}.{op_key}"
-                        feature_data = dict(op_data)
-                        feature_data["capability_key"] = cap_key
-                        feature_data["operation_key"] = op_key
                         normalized_payload = self._normalize_feature_payload(
-                            feature_data
+                            dict(op_data)
                         )
                         feature_definition: dict[str, object] = (
                             normalized_payload.model_dump(
@@ -200,24 +196,24 @@ class FrameworkDefinitionLoader:
                         elif feature_definition.get("base_confidence") is None:
                             feature_definition.pop("base_confidence", None)
 
-                        # Create FrameworkFeature record with new schema fields
                         features.append(
                             FrameworkFeature(
                                 language=language,
                                 library=library_name,
-                                feature_key=feature_key,
+                                capability_key=cap_key,
+                                operation_key=op_key,
                                 feature_definition=feature_definition,
                             )
                         )
 
-                        # Create FeatureAbsolutePath records for each absolute path
                         absolute_paths_data = normalized_payload.absolute_paths
                         for absolute_path in absolute_paths_data:
                             absolute_paths.append(
                                 FeatureAbsolutePath(
                                     language=language,
                                     library=library_name,
-                                    feature_key=feature_key,
+                                    capability_key=cap_key,
+                                    operation_key=op_key,
                                     absolute_path=absolute_path,
                                 )
                             )

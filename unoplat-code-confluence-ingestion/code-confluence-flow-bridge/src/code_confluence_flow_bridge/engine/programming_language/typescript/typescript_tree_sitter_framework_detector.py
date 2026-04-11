@@ -379,7 +379,6 @@ class TypeScriptTreeSitterFrameworkDetector:
     ) -> List[Detection]:
         """Extract exported function definition detections from tree-sitter query matches."""
         detections: List[Detection] = []
-        seen: Set[Tuple[str, str, int, int]] = set()
         source_bytes = context.source_bytes
 
         for _pattern_index, captures in matches:
@@ -394,14 +393,10 @@ class TypeScriptTreeSitterFrameworkDetector:
             start_line = export_statement_node.start_point[0] + 1
             end_line = export_statement_node.end_point[0] + 1
 
-            dedup_key = (spec.library, spec.feature_key, start_line, end_line)
-            if dedup_key in seen:
-                continue
-            seen.add(dedup_key)
-
             detections.append(
                 Detection(
-                    feature_key=spec.feature_key,
+                    capability_key=spec.capability_key,
+                    operation_key=spec.operation_key,
                     library=spec.library,
                     match_text=match_text,
                     start_line=start_line,
@@ -425,7 +420,7 @@ class TypeScriptTreeSitterFrameworkDetector:
     ) -> List[Detection]:
         """Process matched call expressions and verify callees against imports."""
         detections: List[Detection] = []
-        seen: Set[Tuple[str, str, int, int]] = set()
+        seen: Set[Tuple[str, str, str, int, int]] = set()
         source_bytes = context.source_bytes
 
         for _pattern_index, captures in matches:
@@ -445,7 +440,13 @@ class TypeScriptTreeSitterFrameworkDetector:
 
             start_line = call_expression_node.start_point[0] + 1
             end_line = call_expression_node.end_point[0] + 1
-            dedup_key = (spec.library, spec.feature_key, start_line, end_line)
+            dedup_key = (
+                spec.library,
+                spec.capability_key,
+                spec.operation_key,
+                start_line,
+                end_line,
+            )
             if dedup_key in seen:
                 continue
             seen.add(dedup_key)
@@ -456,7 +457,8 @@ class TypeScriptTreeSitterFrameworkDetector:
 
             detections.append(
                 CallExpressionInfo(
-                    feature_key=spec.feature_key,
+                    capability_key=spec.capability_key,
+                    operation_key=spec.operation_key,
                     library=spec.library,
                     match_text=_extract_node_text(source_bytes, call_expression_node),
                     start_line=start_line,
@@ -480,7 +482,6 @@ class TypeScriptTreeSitterFrameworkDetector:
     ) -> List[Detection]:
         """Process class inheritance matches and verify superclasses against imports."""
         detections: List[Detection] = []
-        seen: Set[Tuple[str, str, int, int]] = set()
         source_bytes = context.source_bytes
 
         for _pattern_index, captures in matches:
@@ -505,14 +506,11 @@ class TypeScriptTreeSitterFrameworkDetector:
 
             start_line = class_definition_node.start_point[0] + 1
             end_line = class_definition_node.end_point[0] + 1
-            dedup_key = (spec.library, spec.feature_key, start_line, end_line)
-            if dedup_key in seen:
-                continue
-            seen.add(dedup_key)
 
             detections.append(
                 InheritanceInfo(
-                    feature_key=spec.feature_key,
+                    capability_key=spec.capability_key,
+                    operation_key=spec.operation_key,
                     library=spec.library,
                     match_text=_extract_node_text(source_bytes, class_definition_node),
                     start_line=start_line,
@@ -536,7 +534,6 @@ class TypeScriptTreeSitterFrameworkDetector:
     ) -> List[Detection]:
         """Detect decorator / annotation-like patterns from tree-sitter matches."""
         detections: List[Detection] = []
-        seen: Set[Tuple[str, str, int, int]] = set()
         source_bytes = context.source_bytes
 
         for _pattern_index, captures in matches:
@@ -549,10 +546,6 @@ class TypeScriptTreeSitterFrameworkDetector:
 
             start_line = decorator_node.start_point[0] + 1
             end_line = definition_node.end_point[0] + 1
-            dedup_key = (spec.library, spec.feature_key, start_line, end_line)
-            if dedup_key in seen:
-                continue
-            seen.add(dedup_key)
 
             # Prefer the call node (includes arguments) over the bare decorator node.
             match_text_node = decorator_call_node or decorator_node
@@ -563,7 +556,8 @@ class TypeScriptTreeSitterFrameworkDetector:
 
             detections.append(
                 AnnotationLikeInfo(
-                    feature_key=spec.feature_key,
+                    capability_key=spec.capability_key,
+                    operation_key=spec.operation_key,
                     library=spec.library,
                     match_text=_extract_node_text(source_bytes, match_text_node),
                     start_line=start_line,

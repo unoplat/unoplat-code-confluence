@@ -37,7 +37,8 @@ def _build_feature_spec(
     base_confidence: float | None,
 ) -> FeatureSpec:
     payload: dict[str, object] = {
-        "feature_key": feature.feature_key,
+        "capability_key": feature.capability_key,
+        "operation_key": feature.operation_key,
         "library": feature.library,
         "absolute_paths": absolute_paths,
         "target_level": feature.target_level,
@@ -46,8 +47,6 @@ def _build_feature_spec(
         "construct_query": feature.construct_query,
         "description": feature.description,
         "startpoint": feature.startpoint,
-        "capability_key": feature.feature_definition.get("capability_key"),
-        "operation_key": feature.feature_definition.get("operation_key"),
     }
     if base_confidence is not None:
         payload["base_confidence"] = base_confidence

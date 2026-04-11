@@ -197,11 +197,11 @@ class TestFrameworkDefinitionsIngestion:
             assert metrics["frameworks_count"] == 12, (
                 f"Expected 12 frameworks, got {metrics['frameworks_count']}"
             )
-            assert metrics["features_count"] == 58, (
-                f"Expected 58 features, got {metrics['features_count']}"
+            assert metrics["features_count"] == 59, (
+                f"Expected 59 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 128, (
-                f"Expected 128 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 129, (
+                f"Expected 129 absolute paths, got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -214,8 +214,8 @@ class TestFrameworkDefinitionsIngestion:
             )  # type: ignore
 
             assert framework_count == 12
-            assert feature_count == 58
-            assert path_count == 128
+            assert feature_count == 59
+            assert path_count == 129
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -258,8 +258,10 @@ class TestFrameworkDefinitionsIngestion:
                 select(FeatureAbsolutePath).where(
                     FeatureAbsolutePath.language == rest_api_get_feature.language,
                     FeatureAbsolutePath.library == rest_api_get_feature.library,
-                    FeatureAbsolutePath.feature_key
-                    == rest_api_get_feature.feature_key,
+                    FeatureAbsolutePath.capability_key
+                    == rest_api_get_feature.capability_key,
+                    FeatureAbsolutePath.operation_key
+                    == rest_api_get_feature.operation_key,
                 )
             )
             paths_list = related_paths.scalars().all()
@@ -307,7 +309,8 @@ class TestFrameworkDefinitionsIngestion:
             feature_result = session.execute(
                 select(FrameworkFeature).where(
                     FrameworkFeature.library == "fastapi",
-                    FrameworkFeature.feature_key == "rest_api.get",
+                    FrameworkFeature.capability_key == "rest_api",
+                    FrameworkFeature.operation_key == "get",
                 )
             )
             feature = feature_result.scalar_one()
@@ -340,7 +343,7 @@ class TestFrameworkDefinitionsIngestion:
                 results.append(state)
 
             # All results should be identical for all framework definitions
-            expected_state = {"frameworks": 12, "features": 58, "paths": 128}
+            expected_state = {"frameworks": 12, "features": 59, "paths": 129}
             for result in results:
                 assert result == expected_state
 
@@ -363,9 +366,9 @@ class TestFrameworkDefinitionsIngestion:
 
         # Validate parsing results match expected production data for all definitions
         assert len(frameworks) == 12, f"Expected 12 frameworks, got {len(frameworks)}"
-        assert len(features) == 58, f"Expected 58 features, got {len(features)}"
-        assert len(absolute_paths) == 128, (
-            f"Expected 128 absolute paths, got {len(absolute_paths)}"
+        assert len(features) == 59, f"Expected 59 features, got {len(features)}"
+        assert len(absolute_paths) == 129, (
+            f"Expected 129 absolute paths, got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI
@@ -415,6 +418,42 @@ class TestFrameworkDefinitionsIngestion:
         assert "fastapi.applications.FastAPI" in path_values
         assert "fastapi.APIRouter" in path_values
         assert "fastapi.routing.APIRouter" in path_values
+
+        # Test specific feature: FastMCP mcp_client.toolset_client
+        fastmcp_features = [f for f in features if f.library == "fastmcp"]
+        assert len(fastmcp_features) == 3, (
+            f"Expected 3 FastMCP features, got {len(fastmcp_features)}"
+        )
+
+        fastmcp_toolset_client = next(
+            (
+                f
+                for f in fastmcp_features
+                if f.feature_key == "mcp_client.toolset_client"
+            ),
+            None,
+        )
+        assert fastmcp_toolset_client is not None, (
+            "FastMCP mcp_client.toolset_client feature not found"
+        )
+        assert fastmcp_toolset_client.concept == Concept.CALL_EXPRESSION
+        assert fastmcp_toolset_client.target_level == TargetLevel.FUNCTION
+        assert fastmcp_toolset_client.startpoint is False
+        assert fastmcp_toolset_client.feature_definition.get("base_confidence") == 0.95
+
+        fastmcp_toolset_paths = [
+            ap
+            for ap in absolute_paths
+            if ap.library == "fastmcp"
+            and ap.feature_key == "mcp_client.toolset_client"
+        ]
+        assert len(fastmcp_toolset_paths) == 1, (
+            f"Expected 1 absolute path for mcp_client.toolset_client, got {len(fastmcp_toolset_paths)}"
+        )
+        assert (
+            fastmcp_toolset_paths[0].absolute_path
+            == "pydantic_ai.toolsets.fastmcp.FastMCPToolset"
+        )
 
         # Validate all features have required fields
         for feature in features:
@@ -511,7 +550,8 @@ class TestFrameworkDefinitionsIngestion:
 
             feature = session.execute(
                 select(FrameworkFeature).where(
-                    FrameworkFeature.feature_key == "data_model.custom_feature"
+                    FrameworkFeature.capability_key == "data_model",
+                    FrameworkFeature.operation_key == "custom_feature",
                 )
             ).scalar_one()
 
@@ -554,7 +594,8 @@ class TestFrameworkDefinitionsIngestion:
 
             valid_feature = session.execute(
                 select(FrameworkFeature).where(
-                    FrameworkFeature.feature_key == "http_client.valid_confidence"
+                    FrameworkFeature.capability_key == "http_client",
+                    FrameworkFeature.operation_key == "valid_confidence",
                 )
             ).scalar_one()
             assert valid_feature.feature_definition.get("base_confidence") == 0.62
@@ -647,7 +688,11 @@ class TestFrameworkDefinitionsIngestion:
                 "pydantic.BaseModel",
             ]
             expected_rows = session.execute(
-                select(FrameworkFeature.feature_key, FrameworkFeature.library)
+                select(
+                    FrameworkFeature.capability_key,
+                    FrameworkFeature.operation_key,
+                    FrameworkFeature.library,
+                )
                 .join(FeatureAbsolutePath)
                 .where(
                     FrameworkFeature.language == "python",
@@ -656,7 +701,9 @@ class TestFrameworkDefinitionsIngestion:
                 .distinct()
             ).all()
 
-        expected_set = {(row[0], row[1]) for row in expected_rows}
+        expected_set = {
+            (f"{row[0]}.{row[1]}", row[2]) for row in expected_rows
+        }
 
         async with get_session_cm() as async_session:
             feature_specs = await get_framework_features_for_imports(
