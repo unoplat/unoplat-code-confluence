@@ -27,7 +27,7 @@ async def upsert_framework_feature_validation_evidence(
     Args:
         request: Typed validation payload containing usage-row identity,
             validator decision, final confidence, evidence payload, and optional
-            corrected feature key for `correct` decisions.
+            corrected structured feature identity for `correct` decisions.
 
     Returns:
         Typed summary describing whether the source row was updated and whether

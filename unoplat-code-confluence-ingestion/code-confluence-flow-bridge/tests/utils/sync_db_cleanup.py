@@ -34,5 +34,5 @@ def cleanup_postgresql_sync(session: Session) -> None:
         logger.debug("PostgreSQL repository data cleared successfully")
     except Exception as e:
         session.rollback()
-        logger.error(f"Failed to cleanup PostgreSQL: {e}")
+        logger.error("Failed to cleanup PostgreSQL: {}", e)
         raise

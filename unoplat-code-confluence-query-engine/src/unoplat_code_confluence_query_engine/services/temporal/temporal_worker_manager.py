@@ -8,9 +8,9 @@ of creating new workers per request.
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 from typing import TYPE_CHECKING
 
-import logfire
 from loguru import logger
 from pydantic_ai.durable_exec.temporal import (
     AgentPlugin,
@@ -34,34 +34,37 @@ from unoplat_code_confluence_query_engine.services.config.credentials_service im
 from unoplat_code_confluence_query_engine.services.config.model_factory import (
     ModelFactory,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.app_interfaces_activity import (
+from unoplat_code_confluence_query_engine.services.observability.temporal_logfire import (
+    setup_temporal_logfire,
+)
+from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.app_interfaces_activity import (
     AppInterfacesActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.business_logic_post_process_activity import (
+from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.business_logic_post_process_activity import (
     BusinessLogicPostProcessActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_db_activity import (
+from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.codebase_workflow_db_activity import (
     CodebaseWorkflowDbActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_completion_activity import (
+from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.dependency_guide_completion_activity import (
     DependencyGuideCompletionActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.dependency_guide_fetch_activity import (
+from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.dependency_guide_fetch_activity import (
     DependencyGuideFetchActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.engineering_workflow_completion_activity import (
+from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.engineering_workflow_completion_activity import (
     EngineeringWorkflowCompletionActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.git_ref_resolution_activity import (
-    GitRefResolutionActivity,
-)
-from unoplat_code_confluence_query_engine.services.temporal.activities.managed_block_activity import (
+from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.managed_block_activity import (
     ManagedBlockActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.repository_agent_snapshot_activity import (
+from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.git_ref_resolution_activity import (
+    GitRefResolutionActivity,
+)
+from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.repository_agent_snapshot_activity import (
     RepositoryAgentSnapshotActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_db_activity import (
+from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.repository_workflow_db_activity import (
     RepositoryWorkflowDbActivity,
 )
 from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
@@ -79,7 +82,7 @@ from unoplat_code_confluence_query_engine.services.temporal.temporal_agents impo
     get_temporal_agents,
     initialize_temporal_agents,
 )
-from unoplat_code_confluence_query_engine.services.temporal.temporal_workflows import (
+from unoplat_code_confluence_query_engine.services.temporal.workflows import (
     CodebaseAgentWorkflow,
     RepositoryAgentWorkflow,
 )
@@ -92,33 +95,6 @@ if TYPE_CHECKING:
 
 # Task queue name for the agent workflows
 TASK_QUEUE = "agent-queue"
-
-
-def _setup_logfire(settings: EnvironmentSettings) -> logfire.Logfire:
-    """Configure Logfire for the Temporal worker.
-
-    Args:
-        settings: Environment settings with Logfire configuration
-
-    Returns:
-        Configured Logfire instance
-    """
-    if settings.logfire_sdk_write_key:
-        instance = logfire.configure(
-            token=settings.logfire_sdk_write_key.get_secret_value(),
-            service_name="unoplat-code-confluence-query-engine-worker",
-            environment=settings.environment,
-            send_to_logfire=True,
-        )
-        logger.debug("[temporal_worker_manager] Logfire configured with SDK write key")
-    else:
-        instance = logfire.configure(
-            service_name="unoplat-code-confluence-query-engine-worker",
-            environment=settings.environment,
-            send_to_logfire="if-token-present",
-        )
-    logfire.instrument_pydantic_ai()
-    return instance
 
 
 class TemporalWorkerManager:
@@ -196,17 +172,13 @@ class TemporalWorkerManager:
             TASK_QUEUE,
         )
 
-        # Create Logfire setup function that captures settings
-        def setup_logfire() -> logfire.Logfire:
-            return _setup_logfire(settings)
-
         # Connect to Temporal server
         self._client = await Client.connect(
             temporal_address,
             namespace=namespace,
             plugins=[
                 PydanticAIPlugin(),
-                LogfirePlugin(setup_logfire=setup_logfire),
+                LogfirePlugin(setup_logfire=partial(setup_temporal_logfire, settings)),
             ],
         )
         logger.info("[temporal_worker_manager] Connected to Temporal server")
@@ -311,26 +283,14 @@ class TemporalWorkerManager:
 
         # Get temporal agents and create plugins
         temporal_agents = get_temporal_agents()
-        agent_plugins: list[AgentPlugin] = []
-        if "development_workflow_guide" in temporal_agents:
-            agent_plugins.append(
-                AgentPlugin(temporal_agents["development_workflow_guide"])
-            )
-        if "dependency_guide" in temporal_agents:
-            agent_plugins.append(AgentPlugin(temporal_agents["dependency_guide"]))
-        if "business_domain_guide" in temporal_agents:
-            agent_plugins.append(AgentPlugin(temporal_agents["business_domain_guide"]))
-        if "agents_md_updater" in temporal_agents:
-            agent_plugins.append(AgentPlugin(temporal_agents["agents_md_updater"]))
-        if "call_expression_validator" in temporal_agents:
-            agent_plugins.append(
-                AgentPlugin(temporal_agents["call_expression_validator"])
-            )
+        agent_plugins: list[AgentPlugin] = [
+            AgentPlugin(agent) for agent in temporal_agents.iter_agents()
+        ]
 
         logger.info(
             "[temporal_worker_manager] Created {} agent plugins: {}",
             len(agent_plugins),
-            list(temporal_agents.keys()),
+            temporal_agents.enabled_agent_names(),
         )
 
         # Create DB activity instances

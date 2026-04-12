@@ -21,6 +21,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.elements import ColumnElement
 
 
+def _compose_feature_key(capability_key: str, operation_key: str) -> str:
+    """Build the dotted convenience key from structured identity parts."""
+    return f"{capability_key}.{operation_key}"
+
+
 # ──────────────────────────────────────────────
 # 1️⃣  Parent table: language-library pair
 # ──────────────────────────────────────────────
@@ -53,7 +58,7 @@ class Framework(SQLBase):
 # 2️⃣  Feature metadata  (no absolute_path here)
 # ──────────────────────────────────────────────
 class FrameworkFeature(SQLBase):
-    """Per-feature metadata (one row per feature_key)."""
+    """Per-feature metadata keyed by capability + operation."""
 
     __tablename__ = "framework_feature"
     __table_args__ = (
@@ -75,11 +80,16 @@ class FrameworkFeature(SQLBase):
         {"extend_existing": True},
     )
 
-    # Composite PK = language + library + feature_key
+    # Composite PK = language + library + capability_key + operation_key
     language: Mapped[str] = mapped_column(primary_key=True)
     library: Mapped[str] = mapped_column(primary_key=True)
-    feature_key: Mapped[str] = mapped_column(
-        primary_key=True, comment="Feature identifier"
+    capability_key: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="Capability family this feature belongs to",
+    )
+    operation_key: Mapped[str] = mapped_column(
+        primary_key=True,
+        comment="Operation identifier within the capability",
     )
 
     feature_definition: Mapped[dict[str, object]] = mapped_column(
@@ -97,6 +107,11 @@ class FrameworkFeature(SQLBase):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+
+    @property
+    def feature_key(self) -> str:
+        """Return the dotted convenience key derived from structured identity."""
+        return _compose_feature_key(self.capability_key, self.operation_key)
 
     @property
     def description(self) -> Optional[str]:
@@ -211,11 +226,12 @@ class FeatureAbsolutePath(SQLBase):
     __tablename__ = "feature_absolute_path"
     __table_args__ = (
         ForeignKeyConstraint(  # FK → FrameworkFeature
-            ["language", "library", "feature_key"],
+            ["language", "library", "capability_key", "operation_key"],
             [
                 "framework_feature.language",
                 "framework_feature.library",
-                "framework_feature.feature_key",
+                "framework_feature.capability_key",
+                "framework_feature.operation_key",
             ],
             ondelete="CASCADE",
         ),
@@ -223,16 +239,27 @@ class FeatureAbsolutePath(SQLBase):
         Index(
             "path_lookup_idx",
             "absolute_path",
-            postgresql_include=("language", "library", "feature_key"),
+            postgresql_include=(
+                "language",
+                "library",
+                "capability_key",
+                "operation_key",
+            ),
         ),
         {"extend_existing": True},
     )
 
-    # Composite PK = language + library + feature_key + absolute_path
+    # Composite PK = language + library + capability_key + operation_key + absolute_path
     language: Mapped[str] = mapped_column(primary_key=True)
     library: Mapped[str] = mapped_column(primary_key=True)
-    feature_key: Mapped[str] = mapped_column(primary_key=True)
+    capability_key: Mapped[str] = mapped_column(primary_key=True)
+    operation_key: Mapped[str] = mapped_column(primary_key=True)
     absolute_path: Mapped[str] = mapped_column(primary_key=True, comment="Import path")
+
+    @property
+    def feature_key(self) -> str:
+        """Return the dotted convenience key derived from structured identity."""
+        return _compose_feature_key(self.capability_key, self.operation_key)
 
     # Relationship back to metadata
     feature: Mapped[FrameworkFeature] = relationship(back_populates="absolute_paths")

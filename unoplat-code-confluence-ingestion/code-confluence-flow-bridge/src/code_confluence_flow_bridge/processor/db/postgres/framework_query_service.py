@@ -37,7 +37,8 @@ def _build_feature_spec(
     base_confidence: float | None,
 ) -> FeatureSpec:
     payload: dict[str, object] = {
-        "feature_key": feature.feature_key,
+        "capability_key": feature.capability_key,
+        "operation_key": feature.operation_key,
         "library": feature.library,
         "absolute_paths": absolute_paths,
         "target_level": feature.target_level,

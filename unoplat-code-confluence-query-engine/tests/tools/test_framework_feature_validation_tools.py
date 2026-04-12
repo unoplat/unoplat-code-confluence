@@ -50,7 +50,8 @@ def _build_identity() -> FrameworkFeatureUsageIdentity:
         file_path="/tmp/test-codebase/app.py",
         feature_language="python",
         feature_library="validatorlib",
-        feature_key="db_sql",
+        feature_capability_key="database",
+        feature_operation_key="db_sql",
         start_line=10,
         end_line=12,
     )
@@ -124,7 +125,8 @@ async def test_upsert_tool_returns_typed_result(
 
     async def fake_upsert(*, codebase_path, request):
         assert codebase_path == "/tmp/test-codebase"
-        assert request.identity.feature_key == "db_sql"
+        assert request.identity.feature_capability_key == "database"
+        assert request.identity.feature_operation_key == "db_sql"
         assert request.decision == FrameworkFeatureValidationDecision.CONFIRM
         return FrameworkFeatureValidationEvidenceUpsertResult(
             source_row_updated=True,

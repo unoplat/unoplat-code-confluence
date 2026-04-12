@@ -282,7 +282,7 @@ class UvStrategy(PackageManagerStrategy):
             return name, version_part, extras
 
         except Exception as e:
-            logger.warning(f"Error parsing dependency '{dep_string}': {str(e)}")
+            logger.warning("Error parsing dependency '{}': {}", dep_string, e)
             return dep_string.strip(), None, None
 
     def _parse_version_constraint(self, constraint: str) -> UnoplatVersion:
@@ -315,7 +315,7 @@ class UvStrategy(PackageManagerStrategy):
             return UnoplatVersion(specifier=constraint)
 
         except Exception as e:
-            logger.warning(f"Error parsing version constraint '{constraint}': {str(e)}")
+            logger.warning("Error parsing version constraint '{}': {}", constraint, e)
             return UnoplatVersion()
 
     def _get_index_url(self, pyproject_data: dict, index_name: str) -> Optional[str]:
@@ -444,7 +444,7 @@ class UvStrategy(PackageManagerStrategy):
             return base_url, source_reference, subdirectory, name
 
         except Exception as e:
-            logger.warning(f"Error parsing VCS URL '{url}': {str(e)}")
+            logger.warning("Error parsing VCS URL '{}': {}", url, e)
             return None, None, None, None
 
     def _process_git_source(
@@ -503,7 +503,7 @@ class UvStrategy(PackageManagerStrategy):
                     dependency.subdirectory = subdirectory
 
         except Exception as e:
-            logger.warning(f"Error processing git source for {package_name}: {str(e)}")
+            logger.warning("Error processing git source for {}: {}", package_name, e)
 
     def _ensure_group(
         self,
