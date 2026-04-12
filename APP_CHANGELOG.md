@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.33.1...unoplat-code-confluence-v0.34.0) (2026-04-12)
+
+
+### Features
+
+* **add-fastmcp-client:** add mcp_client capability and FastMCP toolset_client definition ([231c64f](https://github.com/unoplat/unoplat-code-confluence/commit/231c64f705f7574247c16fc67c63a8afff211fdb))
+* **add-firebase:** add Firebase TypeScript framework definition ([9111f21](https://github.com/unoplat/unoplat-code-confluence/commit/9111f21312d2656aa0d849e79bb8b1eb0cb818f4))
+* **commons:** add capability_key and operation_key to FeatureSpec and FrameworkFeaturePayload ([5620b4d](https://github.com/unoplat/unoplat-code-confluence/commit/5620b4d069bd2a60290b7fe3e938dc871f780cd8))
+* **commons:** replace framework feature_key with structured capability_key + operation_key identity ([a2ef841](https://github.com/unoplat/unoplat-code-confluence/commit/a2ef841633ec492781d8252ac414b3842405285b))
+* **detection-schema:** introduce v4 schema with capability-operation-detector hierarchy ([9e85bd8](https://github.com/unoplat/unoplat-code-confluence/commit/9e85bd8dc173ccf44e6dc74d8a01c781f0af61cd))
+* **detection-schema:** migrate schema and definitions to v4 capability-operation hierarchy ([8941cfd](https://github.com/unoplat/unoplat-code-confluence/commit/8941cfd429cf9bf463343d29adc55440dbb58729))
+* **detection-schema:** rewrite contribution docs for v4 capability hierarchy ([62729c9](https://github.com/unoplat/unoplat-code-confluence/commit/62729c9505414d1e91cb2b17ebbe0df9120ab0ee))
+* **docs:** add hideDescription support and DIDS link rendering to docs route ([d1d09d0](https://github.com/unoplat/unoplat-code-confluence/commit/d1d09d032318886bedcc7e3c353dd8cabbadca45))
+* **docs:** update framework-feature-catalog component to render capability-operation hierarchy ([90b09d4](https://github.com/unoplat/unoplat-code-confluence/commit/90b09d4c7bd7e33d69b83c91100ad57ed2ae7e4b))
+* **flow-bridge:** flatten capability-operations into composite feature keys during ingestion ([3456139](https://github.com/unoplat/unoplat-code-confluence/commit/3456139daaa5b456d36a1d4027ef17617c033794))
+* **ingestion:** add commit SHA pinning for deterministic network test clones ([4195d1f](https://github.com/unoplat/unoplat-code-confluence/commit/4195d1fa2dcc542e86de3625f3c2c07da91bb2d5))
+* **ingestion:** adopt structured framework feature identity across detectors, loaders, and parsers ([228f9aa](https://github.com/unoplat/unoplat-code-confluence/commit/228f9aa0054b2b47ee63b26284503343c53a7c23))
+* **query-engine:** adopt structured framework feature identity and remove dead baseline service ([cdd43a1](https://github.com/unoplat/unoplat-code-confluence/commit/cdd43a119b2eb60369e494114b91e840bfe94eae))
+* **schema:** expand and rename capability family enum to canonical identifiers ([ba434f3](https://github.com/unoplat/unoplat-code-confluence/commit/ba434f3575f37d8c5d29451634f44de2654dbcf5))
+* **temporal:** add agent_assembly package with catalog, assembler, and agent definitions ([c4e0a66](https://github.com/unoplat/unoplat-code-confluence/commit/c4e0a66aecf20e2c6a4e80d192b19d5d6ac46e93))
+
+
+### Bug Fixes
+
+* **agents:** raise confidence threshold to 0.70 ([bed7dbd](https://github.com/unoplat/unoplat-code-confluence/commit/bed7dbd3a378e3c8bdfbc209625e80dfd4aa7d89))
+* **ci:** refresh package uv lockfiles before python lock checks run ([57c682b](https://github.com/unoplat/unoplat-code-confluence/commit/57c682bdfed10e9527ed88e0ca47ad4f6a47e98e))
+* **ci:** refresh package uv lockfiles before python lock checks run ([3316b2a](https://github.com/unoplat/unoplat-code-confluence/commit/3316b2a1d4339035f8370e4d8da46103388992b2))
+* **common-version-ingestion:** upgrade commons dependency to v0.47.0 ([6b722d9](https://github.com/unoplat/unoplat-code-confluence/commit/6b722d9d178b203ac5514079556773874df35549))
+* **common-version-query-engine:** upgrade commons dependency to v0.47.0 ([c7844d4](https://github.com/unoplat/unoplat-code-confluence/commit/c7844d451dca86836aa24dd7cf95714f666765cd))
+* **docs:** guard against null features in framework feature catalog ([7d9f2cd](https://github.com/unoplat/unoplat-code-confluence/commit/7d9f2cd0e43b0fc579e82fcc17075adbc0034201))
+* **docs:** resolve typecheck and build failures in docs project ([22a5ac8](https://github.com/unoplat/unoplat-code-confluence/commit/22a5ac8681b860bcef994df506b92fe5082e4676))
+* **docs:** split hash fragment into dedicated prop for TanStack Router links ([f989f91](https://github.com/unoplat/unoplat-code-confluence/commit/f989f91b24122daf8808bb8a3b21c555abcfced0))
+* **flow-bridge:** align detection and ingestion tests with v4 operation keys ([bedba7a](https://github.com/unoplat/unoplat-code-confluence/commit/bedba7a87394250f428dc9df4c94e0a2841eabce))
+* **framework-defs:** align ingestion definitions with canonical capability keys and rename litellm to lit ([86e4b8c](https://github.com/unoplat/unoplat-code-confluence/commit/86e4b8ce94fdc697d03c699cc09fe65f7f27022a))
+* **ingestion:** recover from merge conflicts during git pull in github_helper ([a484121](https://github.com/unoplat/unoplat-code-confluence/commit/a484121640bf9c6ab06d52c48226df29c5976f4d))
+* **query-engine:** add rest_api and scheduler to inbound feature mapping ([fef26e1](https://github.com/unoplat/unoplat-code-confluence/commit/fef26e1af4100ad90f4573b107c7163684af05a2))
+* **query-engine:** scope monorepo toolset to TypeScript and enforce repo-root-relative config_file paths ([18d7e95](https://github.com/unoplat/unoplat-code-confluence/commit/18d7e952720c7a1235494885029d7073f71a7916))
+* **refactor:** reorganize temporal into modular packages and update all imports ([98dd777](https://github.com/unoplat/unoplat-code-confluence/commit/98dd777e6afdada73c26d66c045d45a21de5eef3))
+* **schema:** rename grpc_server/client capability keys to rpc_server/client ([e10cb8b](https://github.com/unoplat/unoplat-code-confluence/commit/e10cb8bf344c8d0f31ffa84df7ac3a4b81b85da1))
+* **tests:** update test assertions for renamed capability keys ([83e2b31](https://github.com/unoplat/unoplat-code-confluence/commit/83e2b3121c790f01374b9c32322d0d3278af1133))
+* upgrade commons dependency to v0.47.0 (ingestion + query engine) ([3c390ef](https://github.com/unoplat/unoplat-code-confluence/commit/3c390efe5f6221da782d56d5d51600cb59360f65))
+
 ## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.18.0...unoplat-code-confluence-v0.19.0) (2025-11-21)
 
 
