@@ -3,6 +3,7 @@
     "sqlmodel": {
       "docs_url": "https://sqlmodel.tiangolo.com",
       "description": "SQLModel is a library for interacting with SQL databases from Python code, designed for simplicity, compatibility, and robustness. It combines SQLAlchemy and Pydantic for type-safe database operations with automatic validation.",
+<<<<<<< HEAD
       "capabilities": {
         "relational_database": {
           "description": "SQLModel ORM model definitions and relationships.",
@@ -21,6 +22,21 @@
               "base_confidence": 0.86
             }
           }
+=======
+      "features": {
+        "db_data_model": {
+          "description": "Base class for SQLModel models combining Pydantic and SQLAlchemy",
+          "absolute_paths": ["sqlmodel.SQLModel"],
+          "target_level": "class",
+          "concept": "Inheritance"
+        },
+        "relationship": {
+          "description": "Relationship definition between SQLModel models",
+          "absolute_paths": ["sqlmodel.Relationship"],
+          "target_level": "function",
+          "concept": "CallExpression",
+          "base_confidence": 0.86
+>>>>>>> origin/main
         }
       }
     }

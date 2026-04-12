@@ -9,7 +9,11 @@ from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output
     AgentsMdUpdaterOutput,
     UpdaterFileChange,
 )
+<<<<<<< HEAD
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.validators.agents_md_updater_validator import (
+=======
+from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
+>>>>>>> origin/main
     validate_agents_md_updater_output,
 )
 

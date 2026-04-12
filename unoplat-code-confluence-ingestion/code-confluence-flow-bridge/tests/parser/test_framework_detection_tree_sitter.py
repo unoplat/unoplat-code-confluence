@@ -1,7 +1,12 @@
 """Tests for tree-sitter based framework detection using schema definitions."""
 
+<<<<<<< HEAD
 from collections import defaultdict
 from functools import lru_cache
+=======
+from functools import lru_cache
+import json
+>>>>>>> origin/main
 from pathlib import Path
 from typing import List, cast
 
@@ -11,6 +16,7 @@ from src.code_confluence_flow_bridge.engine.programming_language.python.python_s
 from src.code_confluence_flow_bridge.engine.programming_language.python.python_tree_sitter_framework_detector import (
     PythonTreeSitterFrameworkDetector,
 )
+<<<<<<< HEAD
 from src.code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
@@ -21,6 +27,8 @@ from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_servi
     _build_feature_spec,
     _resolve_base_confidence,
 )
+=======
+>>>>>>> origin/main
 from unoplat_code_confluence_commons.base_models import (
     CallExpressionInfo,
     Concept,
@@ -33,6 +41,7 @@ from unoplat_code_confluence_commons.base_models import (
 
 @lru_cache(maxsize=1)
 def _load_python_feature_specs() -> List[FeatureSpec]:
+<<<<<<< HEAD
     """Load Python feature specs through the production normalization pipeline."""
     repo_root = Path(__file__).resolve().parents[2]
     definitions_dir = repo_root / "framework-definitions"
@@ -62,14 +71,44 @@ def _load_python_feature_specs() -> List[FeatureSpec]:
         feature_specs.append(
             _build_feature_spec(feature, feature_paths, base_confidence)
         )
+=======
+    repo_root = Path(__file__).resolve().parents[2]
+    definitions_dir = repo_root / "framework-definitions" / "python"
+    feature_specs: List[FeatureSpec] = []
+
+    for json_path in sorted(definitions_dir.glob("*.json")):
+        payload = json.loads(json_path.read_text(encoding="utf-8"))
+        language_data = payload.get("python", {})
+        for library_name, library_data in language_data.items():
+            features = library_data.get("features", {})
+            for feature_key, feature_data in features.items():
+                feature_specs.append(
+                    FeatureSpec(
+                        feature_key=feature_key,
+                        library=library_name,
+                        absolute_paths=feature_data.get("absolute_paths", []),
+                        target_level=TargetLevel(feature_data.get("target_level")),
+                        concept=Concept(feature_data.get("concept")),
+                        locator_strategy=LocatorStrategy.VARIABLE_BOUND,
+                        construct_query=feature_data.get("construct_query"),
+                        description=feature_data.get("description"),
+                        base_confidence=feature_data.get("base_confidence"),
+                        startpoint=feature_data.get("startpoint", False),
+                    )
+                )
+>>>>>>> origin/main
 
     return feature_specs
 
 
 def _build_pydantic_inheritance_spec() -> FeatureSpec:
     return FeatureSpec(
+<<<<<<< HEAD
         capability_key="data_model",
         operation_key="data_model",
+=======
+        feature_key="data_model",
+>>>>>>> origin/main
         library="pydantic",
         absolute_paths=["pydantic.BaseModel", "pydantic.main.BaseModel"],
         target_level=TargetLevel.CLASS,
@@ -81,8 +120,12 @@ def _build_pydantic_inheritance_spec() -> FeatureSpec:
 
 def _build_litellm_completion_spec() -> FeatureSpec:
     return FeatureSpec(
+<<<<<<< HEAD
         capability_key="llm_inference",
         operation_key="llm_completion",
+=======
+        feature_key="llm_completion",
+>>>>>>> origin/main
         library="litellm",
         absolute_paths=["litellm.completion", "litellm.main.completion"],
         target_level=TargetLevel.FUNCTION,
@@ -103,7 +146,11 @@ def test_fastapi_tree_sitter_detection_main_py() -> None:
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, feature_specs)
+<<<<<<< HEAD
     assert any(det.feature_key.startswith("rest_api.") for det in detections)
+=======
+    assert any(det.feature_key == "http_endpoint" for det in detections)
+>>>>>>> origin/main
 
 
 def test_fastapi_tree_sitter_detection_router_decorators() -> None:
@@ -125,7 +172,11 @@ async def health_check() -> dict[str, str]:
     detections = detector.detect(context, feature_specs)
 
     assert any(
+<<<<<<< HEAD
         det.feature_key == "rest_api.get"
+=======
+        det.feature_key == "http_endpoint"
+>>>>>>> origin/main
         and det.library == "fastapi"
         and "health" in det.match_text
         for det in detections
@@ -151,7 +202,11 @@ async def create_user() -> dict[str, bool]:
     detections = detector.detect(context, feature_specs)
 
     assert any(
+<<<<<<< HEAD
         det.feature_key == "rest_api.post"
+=======
+        det.feature_key == "http_endpoint"
+>>>>>>> origin/main
         and det.library == "fastapi"
         and "users" in det.match_text
         for det in detections
@@ -176,7 +231,11 @@ def test_pydantic_tree_sitter_detection_model_file() -> None:
 
     detections = detector.detect(context, feature_specs)
     assert any(
+<<<<<<< HEAD
         det.feature_key == "data_model.data_model" and det.library == "pydantic"
+=======
+        det.feature_key == "data_model" and det.library == "pydantic"
+>>>>>>> origin/main
         for det in detections
     )
 
@@ -207,11 +266,19 @@ def build():
 
     # field_definition removed from sqlmodel in schema v3
     assert any(
+<<<<<<< HEAD
         det.feature_key == "relational_database.relationship" and det.library == "sqlmodel"
         for det in detections
     )
     assert any(
         det.feature_key == "relational_database.db_data_model" and det.library == "sqlmodel"
+=======
+        det.feature_key == "relationship" and det.library == "sqlmodel"
+        for det in detections
+    )
+    assert any(
+        det.feature_key == "db_data_model" and det.library == "sqlmodel"
+>>>>>>> origin/main
         for det in detections
     )
 
@@ -234,7 +301,11 @@ def run() -> None:
     assert len(detections) == 1
     call_detection = cast(CallExpressionInfo, detections[0])
     assert call_detection.library == "litellm"
+<<<<<<< HEAD
     assert call_detection.feature_key == "llm_inference.llm_completion"
+=======
+    assert call_detection.feature_key == "llm_completion"
+>>>>>>> origin/main
     assert call_detection.callee == "llm.completion"
     assert call_detection.metadata["match_confidence"] == spec.base_confidence
     assert call_detection.metadata["call_match_kind"] == "module_member_exact"
@@ -302,6 +373,10 @@ class User(BM):
     assert len(detections) == 1
     inheritance_detection = cast(InheritanceInfo, detections[0])
     assert inheritance_detection.library == "pydantic"
+<<<<<<< HEAD
     assert inheritance_detection.feature_key == "data_model.data_model"
+=======
+    assert inheritance_detection.feature_key == "data_model"
+>>>>>>> origin/main
     assert inheritance_detection.subclass == "User"
     assert inheritance_detection.superclass == "BM"

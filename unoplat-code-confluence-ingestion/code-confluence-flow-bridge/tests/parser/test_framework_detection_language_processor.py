@@ -6,10 +6,17 @@ Tests verify custom_features_list is populated correctly when:
 3. Results include proper feature_key, library, and line numbers
 
 These tests cover all currently supported framework definitions:
+<<<<<<< HEAD
 - Pydantic (data_model.data_model via Inheritance)
 - SQLAlchemy (relational_database.db_data_model via Inheritance)
 - SQLModel (relational_database.db_data_model via Inheritance)
 - FastAPI (rest_api.* via AnnotationLike)
+=======
+- Pydantic (data_model via Inheritance)
+- SQLAlchemy (db_data_model via Inheritance)
+- SQLModel (db_data_model via Inheritance)
+- FastAPI (http_endpoint via AnnotationLike)
+>>>>>>> origin/main
 """
 
 # Standard Library
@@ -17,7 +24,10 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from fastapi.testclient import TestClient
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
 # Third Party
 import pytest
 
@@ -88,7 +98,11 @@ class TestFrameworkDetectionLanguageProcessor:
         self,
         language_processor_context: LanguageProcessorContext,
     ) -> None:
+<<<<<<< HEAD
         """Test Pydantic BaseModel detection produces data_model.data_model feature spans.
+=======
+        """Test Pydantic BaseModel detection produces data_model feature spans.
+>>>>>>> origin/main
 
         File: github_repo.py contains multiple Pydantic models:
         - GitHubOwner (BaseModel)
@@ -96,7 +110,11 @@ class TestFrameworkDetectionLanguageProcessor:
         - GitHubRepo (BaseModel)
         - RepositoryRequestConfiguration (BaseModel)
 
+<<<<<<< HEAD
         Expected: At least 3 pydantic data_model.data_model detections with valid line numbers.
+=======
+        Expected: At least 3 pydantic data_model detections with valid line numbers.
+>>>>>>> origin/main
         """
         processor = PythonLanguageProcessor(language_processor_context)
 
@@ -118,7 +136,11 @@ class TestFrameworkDetectionLanguageProcessor:
         pydantic_detections = [
             d
             for d in result.custom_features_list
+<<<<<<< HEAD
             if d.feature_key == "data_model.data_model" and d.library == "pydantic"
+=======
+            if d.feature_key == "data_model" and d.library == "pydantic"
+>>>>>>> origin/main
         ]
 
         # Log detections for debugging
@@ -147,6 +169,7 @@ class TestFrameworkDetectionLanguageProcessor:
         self,
         language_processor_context: LanguageProcessorContext,
     ) -> None:
+<<<<<<< HEAD
         """Test SQLAlchemy relational_database.db_data_model + Pydantic BaseModel in same file.
 
         File: github_app/models.py contains:
@@ -155,6 +178,16 @@ class TestFrameworkDetectionLanguageProcessor:
         - ManifestGenerationResponse (Pydantic BaseModel)
 
         Expected: Both SQLAlchemy relational_database.db_data_model and Pydantic data_model.data_model detections.
+=======
+        """Test SQLAlchemy db_data_model + Pydantic BaseModel in same file.
+
+        File: github_app/models.py contains:
+        - GithubAppManifestRecord (inherits from SQLBase - detected as db_data_model)
+        - ManifestGenerationRequest (Pydantic BaseModel)
+        - ManifestGenerationResponse (Pydantic BaseModel)
+
+        Expected: Both SQLAlchemy db_data_model and Pydantic data_model detections.
+>>>>>>> origin/main
         """
         processor = PythonLanguageProcessor(language_processor_context)
 
@@ -174,7 +207,11 @@ class TestFrameworkDetectionLanguageProcessor:
         sqlalchemy_detections = [
             d
             for d in result.custom_features_list
+<<<<<<< HEAD
             if d.feature_key == "relational_database.db_data_model" and d.library == "sqlalchemy"
+=======
+            if d.feature_key == "db_data_model" and d.library == "sqlalchemy"
+>>>>>>> origin/main
         ]
 
         # Log SQLAlchemy detections
@@ -185,7 +222,11 @@ class TestFrameworkDetectionLanguageProcessor:
             print(f"  Line range: {detection.start_line}-{detection.end_line}")
 
         assert len(sqlalchemy_detections) >= 1, (
+<<<<<<< HEAD
             f"Expected SQLAlchemy relational_database.db_data_model detections, "
+=======
+            f"Expected SQLAlchemy db_data_model detections, "
+>>>>>>> origin/main
             f"got {len(sqlalchemy_detections)}"
         )
 
@@ -193,7 +234,11 @@ class TestFrameworkDetectionLanguageProcessor:
         pydantic_detections = [
             d
             for d in result.custom_features_list
+<<<<<<< HEAD
             if d.feature_key == "data_model.data_model" and d.library == "pydantic"
+=======
+            if d.feature_key == "data_model" and d.library == "pydantic"
+>>>>>>> origin/main
         ]
 
         # Log Pydantic detections
@@ -212,12 +257,20 @@ class TestFrameworkDetectionLanguageProcessor:
         self,
         language_processor_context: LanguageProcessorContext,
     ) -> None:
+<<<<<<< HEAD
         """Test pure SQLAlchemy file detects relational_database.db_data_model via Inheritance.
+=======
+        """Test pure SQLAlchemy file detects db_data_model via Inheritance.
+>>>>>>> origin/main
 
         File: relational_models/unoplat_code_confluence.py contains:
         - Multiple SQLAlchemy models inheriting from SQLBase
 
+<<<<<<< HEAD
         Expected: SQLAlchemy relational_database.db_data_model detections for each model class.
+=======
+        Expected: SQLAlchemy db_data_model detections for each model class.
+>>>>>>> origin/main
         """
         processor = PythonLanguageProcessor(language_processor_context)
 
@@ -237,7 +290,11 @@ class TestFrameworkDetectionLanguageProcessor:
         sqlalchemy_detections = [
             d
             for d in result.custom_features_list
+<<<<<<< HEAD
             if d.library == "sqlalchemy" and d.feature_key == "relational_database.db_data_model"
+=======
+            if d.library == "sqlalchemy" and d.feature_key == "db_data_model"
+>>>>>>> origin/main
         ]
 
         # Log SQLAlchemy detections
@@ -249,7 +306,11 @@ class TestFrameworkDetectionLanguageProcessor:
 
         # File should have multiple SQLAlchemy model classes inheriting from SQLBase
         assert len(sqlalchemy_detections) >= 1, (
+<<<<<<< HEAD
             f"Expected at least 1 SQLAlchemy relational_database.db_data_model detection, "
+=======
+            f"Expected at least 1 SQLAlchemy db_data_model detection, "
+>>>>>>> origin/main
             f"got {len(sqlalchemy_detections)}"
         )
 
@@ -258,12 +319,21 @@ class TestFrameworkDetectionLanguageProcessor:
         self,
         language_processor_context: LanguageProcessorContext,
     ) -> None:
+<<<<<<< HEAD
         """Test FastAPI rest_api.* detection through PythonLanguageProcessor.
 
         File: main.py contains FastAPI application with @app.get(), @app.post()
         decorators that should be detected as rest_api.* features.
 
         Expected: At least 1 FastAPI rest_api.* detection with valid line numbers.
+=======
+        """Test FastAPI http_endpoint detection through PythonLanguageProcessor.
+
+        File: main.py contains FastAPI application with @app.get(), @app.post()
+        decorators that should be detected as http_endpoint features.
+
+        Expected: At least 1 FastAPI http_endpoint detection with valid line numbers.
+>>>>>>> origin/main
         """
         processor = PythonLanguageProcessor(language_processor_context)
 
@@ -276,11 +346,19 @@ class TestFrameworkDetectionLanguageProcessor:
         assert result is not None, "extract_file_data returned None"
         assert result.custom_features_list is not None, "custom_features_list is None"
 
+<<<<<<< HEAD
         # Find FastAPI rest_api detections
         fastapi_detections = [
             d
             for d in result.custom_features_list
             if d.feature_key.startswith("rest_api.") and d.library == "fastapi"
+=======
+        # Find FastAPI http_endpoint detections
+        fastapi_detections = [
+            d
+            for d in result.custom_features_list
+            if d.feature_key == "http_endpoint" and d.library == "fastapi"
+>>>>>>> origin/main
         ]
 
         # Log FastAPI detections

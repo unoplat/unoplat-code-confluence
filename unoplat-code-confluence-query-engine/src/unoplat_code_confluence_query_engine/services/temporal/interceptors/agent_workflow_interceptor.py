@@ -43,10 +43,17 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
 
+<<<<<<< HEAD
     from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.codebase_workflow_db_activity import (
         CodebaseWorkflowDbActivity,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.repository_workflow_db_activity import (
+=======
+    from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_db_activity import (
+        CodebaseWorkflowDbActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_db_activity import (
+>>>>>>> origin/main
         RepositoryWorkflowDbActivity,
     )
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_outbound_interceptor import (

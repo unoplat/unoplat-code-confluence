@@ -244,9 +244,15 @@ class TestDeleteRepositoryEndpoint:
                 client = await Client.connect(temporal_address)
                 handle = client.get_workflow_handle(workflow_id, run_id=run_id)
                 await handle.terminate(reason="test cleanup - workflow timed out")
+<<<<<<< HEAD
                 logger.warning("Terminated workflow {} due to timeout", workflow_id)
             except Exception as e:
                 logger.warning("Failed to terminate timed-out workflow: {}", e)
+=======
+                logger.warning(f"Terminated workflow {workflow_id} due to timeout")
+            except Exception as e:
+                logger.warning(f"Failed to terminate timed-out workflow: {e}")
+>>>>>>> origin/main
 
             # Continue with deletion test anyway
             logger.warning(
@@ -268,8 +274,13 @@ class TestDeleteRepositoryEndpoint:
             framework_catalog_before = get_framework_catalog_counts(session)
 
         # Log pre-deletion state for debugging
+<<<<<<< HEAD
         logger.info("Pre-deletion state for {}:", repo_qualified_name)
         logger.info("  Relational counts: {}", pre_deletion_snapshot['counts'])
+=======
+        logger.info(f"Pre-deletion state for {repo_qualified_name}:")
+        logger.info(f"  Relational counts: {pre_deletion_snapshot['counts']}")
+>>>>>>> origin/main
 
         # Sanity check: Ensure we have content to delete
         files_count = pre_deletion_snapshot["counts"].get("files", 0)
@@ -310,7 +321,11 @@ class TestDeleteRepositoryEndpoint:
         assert deletion_response.get("relational_deletion_status") == "deleted"
         assert "neo4j_deletion_stats" not in deletion_response
 
+<<<<<<< HEAD
         logger.info("Deletion response: {}", deletion_response)
+=======
+        logger.info(f"Deletion response: {deletion_response}")
+>>>>>>> origin/main
 
         # ------------------------------------------------------------------
         # 9️⃣  Verify repository is no longer in ingested repositories list

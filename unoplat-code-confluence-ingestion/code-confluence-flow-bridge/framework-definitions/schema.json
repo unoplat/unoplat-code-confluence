@@ -1,5 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+<<<<<<< HEAD
   "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v4.json",
   "title": "Code-Confluence Multi-Language Library Feature Schema v4",
   "description": "Framework / library feature signatures grouped by programming language using capability-operation hierarchy.",
@@ -13,10 +14,24 @@
     }
   },
   "additionalProperties": false,
+=======
+  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v3.json",
+  "title": "Code-Confluence Multi-Language Library Feature Schema v3",
+  "description": "Framework / library feature signatures grouped by programming language.",
+  "type": "object",
+
+  "propertyNames": { "$ref": "#/$defs/languageEnum" },
+  "patternProperties": {
+    "^[a-z]+$": { "$ref": "#/$defs/languageBlock" }
+  },
+  "additionalProperties": false,
+
+>>>>>>> origin/main
   "$defs": {
     "languageEnum": {
       "type": "string",
       "description": "Allowed lower-case language identifiers.",
+<<<<<<< HEAD
       "enum": [
         "python",
         "javascript",
@@ -24,23 +39,34 @@
         "java",
         "go"
       ]
+=======
+      "enum": ["python", "javascript", "typescript", "java", "go"]
+>>>>>>> origin/main
     },
     "languageBlock": {
       "type": "object",
       "description": "All libraries / frameworks implemented in a single language.",
       "patternProperties": {
+<<<<<<< HEAD
         "^.+$": {
           "$ref": "#/$defs/libraryDef"
         }
+=======
+        "^.+$": { "$ref": "#/$defs/libraryDef" }
+>>>>>>> origin/main
       },
       "additionalProperties": false
     },
     "libraryDef": {
       "type": "object",
+<<<<<<< HEAD
       "required": [
         "docs_url",
         "capabilities"
       ],
+=======
+      "required": ["docs_url", "features"],
+>>>>>>> origin/main
       "properties": {
         "docs_url": {
           "type": "string",
@@ -49,12 +75,17 @@
         },
         "description": {
           "type": "string",
+<<<<<<< HEAD
           "description": "Human-readable description of the library."
+=======
+          "description": "Human-readable description of the library. This is a short description of the library that is used to describe the library in the documentation."
+>>>>>>> origin/main
         },
         "version": {
           "type": "string",
           "description": "Library version used to verify patterns (optional)."
         },
+<<<<<<< HEAD
         "capabilities": {
           "type": "object",
           "minProperties": 1,
@@ -67,11 +98,19 @@
               "$ref": "#/$defs/capabilityDef"
             }
           },
+=======
+        "features": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Discoverable features keyed by contributor-chosen identifier.",
+          "patternProperties": { "^.+$": { "$ref": "#/$defs/featureDef" } },
+>>>>>>> origin/main
           "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
+<<<<<<< HEAD
     "capabilityFamilyEnum": {
       "type": "string",
       "description": "Allowed canonical capability family identifiers.",
@@ -163,6 +202,25 @@
           "format": "uri",
           "description": "Operation-specific documentation URL (optional)."
         },
+=======
+
+    "featureDef": {
+      "type": "object",
+      "required": ["description", "absolute_paths", "target_level", "concept"],
+
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable explanation of the feature."
+        },
+
+        "docs_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Feature-specific documentation URL (optional)."
+        },
+
+>>>>>>> origin/main
         "absolute_paths": {
           "type": "array",
           "minItems": 1,
@@ -173,6 +231,7 @@
             "pattern": "^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$"
           }
         },
+<<<<<<< HEAD
         "target_level": {
           "$ref": "#/$defs/targetLevelEnum"
         },
@@ -182,10 +241,18 @@
         "construct_query": {
           "$ref": "#/$defs/constructQueryDef"
         },
+=======
+        "target_level": { "$ref": "#/$defs/targetLevelEnum" },
+        "concept": { "$ref": "#/$defs/conceptEnum" },
+
+        "construct_query": { "$ref": "#/$defs/constructQueryDef" },
+
+>>>>>>> origin/main
         "base_confidence": {
           "type": "number",
           "minimum": 0.0,
           "maximum": 1.0,
+<<<<<<< HEAD
           "description": "Contributor-authored confidence for CallExpression operation definitions only; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
         },
         "startpoint": {
@@ -193,12 +260,24 @@
           "description": "Indicates whether this operation represents a starting point or entry point in the application, such as API endpoints (e.g., FastAPI routes) or message consumers (e.g., Kafka listeners).",
           "default": false
         },
+=======
+          "description": "Contributor-authored confidence for CallExpression feature definitions only; lower values indicate higher ambiguity and should include disambiguation guidance in notes."
+        },
+
+        "startpoint": {
+          "type": "boolean",
+          "description": "Indicates whether this feature represents a starting point or entry point in the application, such as API endpoints (e.g., FastAPI routes) or message consumers (e.g., Kafka listeners).",
+          "default": false
+        },
+
+>>>>>>> origin/main
         "notes": {
           "type": "string",
           "description": "Contributor notes, caveats, links."
         }
       },
       "additionalProperties": false,
+<<<<<<< HEAD
       "allOf": [
         {
           "if": {
@@ -217,19 +296,33 @@
             "required": [
               "base_confidence"
             ]
+=======
+
+      "allOf": [
+        {
+          "if": { "properties": { "concept": { "const": "CallExpression" } } },
+          "then": {
+            "properties": { "target_level": { "const": "function" } },
+            "required": ["base_confidence"]
+>>>>>>> origin/main
           }
         },
         {
           "if": {
             "properties": {
+<<<<<<< HEAD
               "concept": {
                 "const": "CallExpression"
               },
+=======
+              "concept": { "const": "CallExpression" },
+>>>>>>> origin/main
               "base_confidence": {
                 "type": "number",
                 "exclusiveMaximum": 0.7
               }
             },
+<<<<<<< HEAD
             "required": [
               "concept",
               "base_confidence"
@@ -239,6 +332,12 @@
             "required": [
               "notes"
             ],
+=======
+            "required": ["concept", "base_confidence"]
+          },
+          "then": {
+            "required": ["notes"],
+>>>>>>> origin/main
             "properties": {
               "notes": {
                 "type": "string",
@@ -251,6 +350,7 @@
           "if": {
             "properties": {
               "concept": {
+<<<<<<< HEAD
                 "not": {
                   "const": "CallExpression"
                 }
@@ -265,10 +365,21 @@
               "required": [
                 "base_confidence"
               ]
+=======
+                "not": { "const": "CallExpression" }
+              }
+            },
+            "required": ["concept"]
+          },
+          "then": {
+            "not": {
+              "required": ["base_confidence"]
+>>>>>>> origin/main
             }
           }
         },
         {
+<<<<<<< HEAD
           "if": {
             "properties": {
               "concept": {
@@ -310,6 +421,24 @@
       ],
       "description": "Granularity of the code element that owns the operation."
     },
+=======
+          "if": { "properties": { "concept": { "const": "Inheritance" } } },
+          "then": { "properties": { "target_level": { "const": "class" } } }
+        },
+        {
+          "if": { "properties": { "concept": { "const": "FunctionDefinition" } } },
+          "then": { "properties": { "target_level": { "const": "function" } } }
+        }
+      ]
+    },
+
+    "targetLevelEnum": {
+      "type": "string",
+      "enum": ["function", "class"],
+      "description": "Granularity of the code element that owns the feature."
+    },
+
+>>>>>>> origin/main
     "conceptEnum": {
       "type": "string",
       "enum": [
@@ -320,6 +449,7 @@
       ],
       "description": "Language-agnostic construct category."
     },
+<<<<<<< HEAD
     "constructQueryDef": {
       "type": "object",
       "description": "Optional refinements to the auto-generated Tree-sitter query. Allowed keys depend on the operation's concept.",
@@ -345,6 +475,22 @@
         "export_name_regex": {
           "type": "string"
         }
+=======
+
+    "constructQueryDef": {
+      "type": "object",
+      "description": "Optional refinements to the auto-generated Tree-sitter query. Allowed keys depend on the feature's concept.",
+      "properties": {
+        "method_regex": { "type": "string" },
+        "annotation_name_regex": { "type": "string" },
+        "attribute_regex": { "type": "string" },
+
+        "callee_regex": { "type": "string" },
+
+        "superclass_regex": { "type": "string" },
+        "function_name_regex": { "type": "string" },
+        "export_name_regex": { "type": "string" }
+>>>>>>> origin/main
       },
       "additionalProperties": false
     }

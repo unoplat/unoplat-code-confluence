@@ -1,16 +1,56 @@
 ---
 title: FastAPI
+<<<<<<< HEAD
 description: "Static FastAPI coverage reference powered by DIDS framework definitions"
+=======
+description: "Static FastAPI feature catalog powered by DIDS framework definitions"
+>>>>>>> origin/main
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { FastApiFeatureCatalog } from '../../../../src/components/fastapi-feature-catalog';
 
+<<<<<<< HEAD
 <Callout type="info" title="Source of Truth">
   - Current file shown here: [`/framework-definitions/python/fastapi.json`](/framework-definitions/python/fastapi.json)
 </Callout>
 
+=======
+# FastAPI Feature Catalog (Python)
+
+This page provides a static, contributor-friendly view of FastAPI features currently covered by the Deterministic Interface Discovery Schema (DIDS).
+
+<Callout type="info" title="Source of Truth">
+  - Canonical definitions live in ingestion: [framework-definitions directory](https://github.com/unoplat/unoplat-code-confluence/tree/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions)
+  - Canonical FastAPI file: [framework-definitions/python/fastapi.json](https://github.com/unoplat/unoplat-code-confluence/blob/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions/python/fastapi.json)
+  - Docs consume generated static assets from: `/framework-definitions`
+  - Current file shown here: [`/framework-definitions/python/fastapi.json`](/framework-definitions/python/fastapi.json)
+</Callout>
+
+## Why this catalog exists
+
+This catalog makes deterministic discovery transparent for contributors and reviewers:
+
+1. You can see exactly which FastAPI features are supported today.
+2. You can understand how each feature maps to interface extraction behavior.
+3. You can propose precise updates through definition-file pull requests.
+
+## Construct mapping examples
+
+- `inbound_constructs`: route handlers and router-mounted endpoints (for example `@app.get`, `router.post`).
+- `outbound_constructs`: outbound work initiated by handlers (for example HTTP clients and storage writes).
+- `internal_constructs`: framework usage that shapes behavior without being a boundary interface (for example dependency wiring, background task setup).
+
+>>>>>>> origin/main
 ## Current FastAPI coverage
 
 <FastApiFeatureCatalog />
 
+<<<<<<< HEAD
+=======
+## How to update this page's data
+
+1. Update FastAPI definitions in ingestion source.
+2. Run `bun run sync:framework-definitions` from `unoplat-code-confluence-docs`.
+3. Commit both source definition changes and generated docs artifacts.
+>>>>>>> origin/main

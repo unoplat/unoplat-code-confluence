@@ -154,7 +154,11 @@ async def delete_flag(
     except HTTPException:
         raise
     except Exception as e:
+<<<<<<< HEAD
         logger.error("Error deleting flag {}: {}", flag_name, e)
+=======
+        logger.error(f"Error deleting flag {flag_name}: {e}")
+>>>>>>> origin/main
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete flag {flag_name}",

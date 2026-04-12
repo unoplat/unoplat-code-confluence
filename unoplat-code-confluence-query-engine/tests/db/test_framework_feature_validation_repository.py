@@ -39,12 +39,17 @@ TEST_CODEBASE_PATH = "/tmp/validator-codebase"
 TEST_FILE_PATH = "/tmp/validator-codebase/app/main.py"
 TEST_FEATURE_LANGUAGE = "python"
 TEST_FEATURE_LIBRARY = "validatorlib"
+<<<<<<< HEAD
 TEST_SOURCE_CAPABILITY_KEY = "database"
 TEST_SOURCE_OPERATION_KEY = "db_sql"
 TEST_SOURCE_FEATURE_KEY = "database.db_sql"
 TEST_CORRECTED_CAPABILITY_KEY = "http_client"
 TEST_CORRECTED_OPERATION_KEY = "send_request"
 TEST_CORRECTED_FEATURE_KEY = "http_client.send_request"
+=======
+TEST_SOURCE_FEATURE_KEY = "db_sql"
+TEST_CORRECTED_FEATURE_KEY = "http_client"
+>>>>>>> origin/main
 
 TEST_TS_REPOSITORY_QUALIFIED_NAME = "validator-owner/validator-repo-typescript"
 TEST_TS_CODEBASE_QUALIFIED_NAME = (
@@ -54,9 +59,13 @@ TEST_TS_CODEBASE_PATH = "/tmp/validator-typescript-codebase"
 TEST_TS_FILE_PATH = "/tmp/validator-typescript-codebase/src/app.ts"
 TEST_TS_FEATURE_LANGUAGE = "typescript"
 TEST_TS_FEATURE_LIBRARY = "swr"
+<<<<<<< HEAD
 TEST_TS_CAPABILITY_KEY = "data_fetch"
 TEST_TS_OPERATION_KEY = "fetch_data"
 TEST_TS_FEATURE_KEY = "data_fetch.fetch_data"
+=======
+TEST_TS_FEATURE_KEY = "data_fetch"
+>>>>>>> origin/main
 
 TEST_TS_LOW_CONF_REPOSITORY_QUALIFIED_NAME = "validator-owner/validator-repo-ts-lowconf"
 TEST_TS_LOW_CONF_CODEBASE_QUALIFIED_NAME = (
@@ -65,6 +74,7 @@ TEST_TS_LOW_CONF_CODEBASE_QUALIFIED_NAME = (
 TEST_TS_LOW_CONF_CODEBASE_PATH = "/tmp/validator-ts-lowconf-codebase"
 TEST_TS_LOW_CONF_FILE_PATH = "/tmp/validator-ts-lowconf-codebase/src/api.ts"
 TEST_TS_LOW_CONF_FEATURE_LIBRARY = "swr"
+<<<<<<< HEAD
 TEST_TS_LOW_CONF_CAPABILITY_KEY = "data_fetch"
 TEST_TS_LOW_CONF_OPERATION_KEY = "fetch_data_lowconf"
 TEST_TS_LOW_CONF_FEATURE_KEY = "data_fetch.fetch_data_lowconf"
@@ -80,6 +90,9 @@ TEST_APP_INTERFACE_FILE_PATH = "/tmp/validator-app-interface-codebase/app/interf
 TEST_APP_INTERFACE_LANGUAGE = "python"
 TEST_APP_INTERFACE_DATA_MODEL_LIBRARY = "validator-pydantic"
 TEST_APP_INTERFACE_HTTP_LIBRARY = "validator-fastapi"
+=======
+TEST_TS_LOW_CONF_FEATURE_KEY = "data_fetch_lowconf"
+>>>>>>> origin/main
 
 
 def _build_feature_definition(concept: str) -> dict[str, Any]:
@@ -94,16 +107,24 @@ def _build_feature_definition(concept: str) -> dict[str, Any]:
     }
 
 
+<<<<<<< HEAD
 def _build_usage_identity(
     capability_key: str,
     operation_key: str,
 ) -> FrameworkFeatureUsageIdentity:
+=======
+def _build_usage_identity(feature_key: str) -> FrameworkFeatureUsageIdentity:
+>>>>>>> origin/main
     return FrameworkFeatureUsageIdentity(
         file_path=TEST_FILE_PATH,
         feature_language=TEST_FEATURE_LANGUAGE,
         feature_library=TEST_FEATURE_LIBRARY,
+<<<<<<< HEAD
         feature_capability_key=capability_key,
         feature_operation_key=operation_key,
+=======
+        feature_key=feature_key,
+>>>>>>> origin/main
         start_line=10,
         end_line=12,
     )
@@ -184,8 +205,12 @@ def seeded_framework_usage(service_ports, test_database_tables, db_connections):
             FrameworkFeature(
                 language=TEST_FEATURE_LANGUAGE,
                 library=TEST_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 capability_key=TEST_SOURCE_CAPABILITY_KEY,
                 operation_key=TEST_SOURCE_OPERATION_KEY,
+=======
+                feature_key=TEST_SOURCE_FEATURE_KEY,
+>>>>>>> origin/main
                 feature_definition=_build_feature_definition("CallExpression"),
             )
         )
@@ -193,8 +218,12 @@ def seeded_framework_usage(service_ports, test_database_tables, db_connections):
             FrameworkFeature(
                 language=TEST_FEATURE_LANGUAGE,
                 library=TEST_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 capability_key=TEST_CORRECTED_CAPABILITY_KEY,
                 operation_key=TEST_CORRECTED_OPERATION_KEY,
+=======
+                feature_key=TEST_CORRECTED_FEATURE_KEY,
+>>>>>>> origin/main
                 feature_definition=_build_feature_definition("CallExpression"),
             )
         )
@@ -202,8 +231,12 @@ def seeded_framework_usage(service_ports, test_database_tables, db_connections):
             FeatureAbsolutePath(
                 language=TEST_FEATURE_LANGUAGE,
                 library=TEST_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 capability_key=TEST_SOURCE_CAPABILITY_KEY,
                 operation_key=TEST_SOURCE_OPERATION_KEY,
+=======
+                feature_key=TEST_SOURCE_FEATURE_KEY,
+>>>>>>> origin/main
                 absolute_path="validatorlib.Client",
             )
         )
@@ -211,8 +244,12 @@ def seeded_framework_usage(service_ports, test_database_tables, db_connections):
             FeatureAbsolutePath(
                 language=TEST_FEATURE_LANGUAGE,
                 library=TEST_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 capability_key=TEST_CORRECTED_CAPABILITY_KEY,
                 operation_key=TEST_CORRECTED_OPERATION_KEY,
+=======
+                feature_key=TEST_CORRECTED_FEATURE_KEY,
+>>>>>>> origin/main
                 absolute_path="validatorlib.HttpClient",
             )
         )
@@ -222,8 +259,12 @@ def seeded_framework_usage(service_ports, test_database_tables, db_connections):
                 file_path=TEST_FILE_PATH,
                 feature_language=TEST_FEATURE_LANGUAGE,
                 feature_library=TEST_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 feature_capability_key=TEST_SOURCE_CAPABILITY_KEY,
                 feature_operation_key=TEST_SOURCE_OPERATION_KEY,
+=======
+                feature_key=TEST_SOURCE_FEATURE_KEY,
+>>>>>>> origin/main
                 start_line=10,
                 end_line=12,
                 match_text="db.execute(query)",
@@ -321,8 +362,12 @@ def seeded_typescript_framework_usage(
             FrameworkFeature(
                 language=TEST_TS_FEATURE_LANGUAGE,
                 library=TEST_TS_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 capability_key=TEST_TS_CAPABILITY_KEY,
                 operation_key=TEST_TS_OPERATION_KEY,
+=======
+                feature_key=TEST_TS_FEATURE_KEY,
+>>>>>>> origin/main
                 feature_definition=_build_typescript_feature_definition(),
             )
         )
@@ -330,8 +375,12 @@ def seeded_typescript_framework_usage(
             FeatureAbsolutePath(
                 language=TEST_TS_FEATURE_LANGUAGE,
                 library=TEST_TS_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 capability_key=TEST_TS_CAPABILITY_KEY,
                 operation_key=TEST_TS_OPERATION_KEY,
+=======
+                feature_key=TEST_TS_FEATURE_KEY,
+>>>>>>> origin/main
                 absolute_path="swr.default",
             )
         )
@@ -340,8 +389,12 @@ def seeded_typescript_framework_usage(
                 file_path=TEST_TS_FILE_PATH,
                 feature_language=TEST_TS_FEATURE_LANGUAGE,
                 feature_library=TEST_TS_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 feature_capability_key=TEST_TS_CAPABILITY_KEY,
                 feature_operation_key=TEST_TS_OPERATION_KEY,
+=======
+                feature_key=TEST_TS_FEATURE_KEY,
+>>>>>>> origin/main
                 start_line=5,
                 end_line=5,
                 match_text="useSWR('/api/search', fetcher)",
@@ -380,6 +433,7 @@ def seeded_typescript_framework_usage(
         )
 
 
+<<<<<<< HEAD
 @pytest.fixture
 def seeded_app_interface_data_model_and_http_usage(
     service_ports, test_database_tables, db_connections
@@ -544,6 +598,11 @@ def _get_usage_row(
     postgresql_port: int,
     capability_key: str,
     operation_key: str,
+=======
+def _get_usage_row(
+    postgresql_port: int,
+    feature_key: str,
+>>>>>>> origin/main
 ) -> dict[str, object] | None:
     with get_sync_postgres_session(postgresql_port) as session:
         stmt = (
@@ -563,6 +622,7 @@ def _get_usage_row(
                 UnoplatCodeConfluenceFileFrameworkFeature.feature_library
                 == TEST_FEATURE_LIBRARY
             )
+<<<<<<< HEAD
             .where(
                 UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key
                 == capability_key
@@ -571,6 +631,9 @@ def _get_usage_row(
                 UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key
                 == operation_key
             )
+=======
+            .where(UnoplatCodeConfluenceFileFrameworkFeature.feature_key == feature_key)
+>>>>>>> origin/main
             .where(UnoplatCodeConfluenceFileFrameworkFeature.start_line == 10)
             .where(UnoplatCodeConfluenceFileFrameworkFeature.end_line == 12)
         )
@@ -591,7 +654,11 @@ async def test_upsert_validation_evidence_updates_source_row(
     seeded_framework_usage,
 ) -> None:
     request = FrameworkFeatureValidationEvidenceUpsertRequest(
+<<<<<<< HEAD
         identity=_build_usage_identity(TEST_SOURCE_CAPABILITY_KEY, TEST_SOURCE_OPERATION_KEY),
+=======
+        identity=_build_usage_identity(TEST_SOURCE_FEATURE_KEY),
+>>>>>>> origin/main
         decision=FrameworkFeatureValidationDecision.CONFIRM,
         final_confidence=0.81,
         evidence_json={"reason": "Symbol resolves to framework client"},
@@ -607,8 +674,12 @@ async def test_upsert_validation_evidence_updates_source_row(
 
     updated_row = _get_usage_row(
         seeded_framework_usage["postgresql_port"],
+<<<<<<< HEAD
         TEST_SOURCE_CAPABILITY_KEY,
         TEST_SOURCE_OPERATION_KEY,
+=======
+        TEST_SOURCE_FEATURE_KEY,
+>>>>>>> origin/main
     )
     assert updated_row is not None
     assert updated_row["match_confidence"] == pytest.approx(0.81)
@@ -625,12 +696,20 @@ async def test_upsert_validation_evidence_correct_decision_upserts_corrected_row
     seeded_framework_usage,
 ) -> None:
     request = FrameworkFeatureValidationEvidenceUpsertRequest(
+<<<<<<< HEAD
         identity=_build_usage_identity(TEST_SOURCE_CAPABILITY_KEY, TEST_SOURCE_OPERATION_KEY),
         decision=FrameworkFeatureValidationDecision.CORRECT,
         final_confidence=0.9,
         evidence_json={"reason": "Call belongs to HTTP client"},
         updated_feature_capability_key=TEST_CORRECTED_CAPABILITY_KEY,
         updated_feature_operation_key=TEST_CORRECTED_OPERATION_KEY,
+=======
+        identity=_build_usage_identity(TEST_SOURCE_FEATURE_KEY),
+        decision=FrameworkFeatureValidationDecision.CORRECT,
+        final_confidence=0.9,
+        evidence_json={"reason": "Call belongs to HTTP client"},
+        updated_feature_key=TEST_CORRECTED_FEATURE_KEY,
+>>>>>>> origin/main
     )
 
     result = await db_upsert_framework_feature_validation_evidence(
@@ -645,8 +724,12 @@ async def test_upsert_validation_evidence_correct_decision_upserts_corrected_row
 
     corrected_row = _get_usage_row(
         seeded_framework_usage["postgresql_port"],
+<<<<<<< HEAD
         TEST_CORRECTED_CAPABILITY_KEY,
         TEST_CORRECTED_OPERATION_KEY,
+=======
+        TEST_CORRECTED_FEATURE_KEY,
+>>>>>>> origin/main
     )
     assert corrected_row is not None
     assert corrected_row["validation_status"] == "completed"
@@ -656,15 +739,23 @@ async def test_upsert_validation_evidence_correct_decision_upserts_corrected_row
     assert evidence_json is not None
     corrected_from = evidence_json["corrected_from"]
     assert isinstance(corrected_from, dict)
+<<<<<<< HEAD
     assert corrected_from["feature_capability_key"] == TEST_SOURCE_CAPABILITY_KEY
     assert corrected_from["feature_operation_key"] == TEST_SOURCE_OPERATION_KEY
+=======
+    assert corrected_from["feature_key"] == TEST_SOURCE_FEATURE_KEY
+>>>>>>> origin/main
 
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_status_transition_enforces_completed_terminal_behavior(
     seeded_framework_usage,
 ) -> None:
+<<<<<<< HEAD
     identity = _build_usage_identity(TEST_SOURCE_CAPABILITY_KEY, TEST_SOURCE_OPERATION_KEY)
+=======
+    identity = _build_usage_identity(TEST_SOURCE_FEATURE_KEY)
+>>>>>>> origin/main
 
     transition_result = await db_set_framework_feature_validation_status(
         codebase_path=seeded_framework_usage["codebase_path"],
@@ -704,14 +795,18 @@ async def test_low_confidence_candidate_query_returns_pending_call_expression_on
     assert len(candidates) == 1
     candidate = candidates[0]
     assert candidate.identity.feature_key == TEST_SOURCE_FEATURE_KEY
+<<<<<<< HEAD
     assert candidate.identity.feature_capability_key == TEST_SOURCE_CAPABILITY_KEY
     assert candidate.identity.feature_operation_key == TEST_SOURCE_OPERATION_KEY
+=======
+>>>>>>> origin/main
     assert candidate.match_confidence == pytest.approx(0.55)
     assert candidate.validation_status == ValidationStatus.PENDING
     assert candidate.absolute_paths == ["validatorlib.Client"]
 
 
 @pytest.mark.asyncio(loop_scope="session")
+<<<<<<< HEAD
 async def test_low_confidence_candidate_query_excludes_completed_call_expression(
     seeded_framework_usage,
 ) -> None:
@@ -733,6 +828,8 @@ async def test_low_confidence_candidate_query_excludes_completed_call_expression
 
 
 @pytest.mark.asyncio(loop_scope="session")
+=======
+>>>>>>> origin/main
 async def test_app_interface_fetch_excludes_low_confidence_call_expression_until_completed(
     seeded_framework_usage,
 ) -> None:
@@ -742,7 +839,11 @@ async def test_app_interface_fetch_excludes_low_confidence_call_expression_until
     )
     assert initial_rows == []
 
+<<<<<<< HEAD
     identity = _build_usage_identity(TEST_SOURCE_CAPABILITY_KEY, TEST_SOURCE_OPERATION_KEY)
+=======
+    identity = _build_usage_identity(TEST_SOURCE_FEATURE_KEY)
+>>>>>>> origin/main
     await db_upsert_framework_feature_validation_evidence(
         codebase_path=seeded_framework_usage["codebase_path"],
         request=FrameworkFeatureValidationEvidenceUpsertRequest(
@@ -773,7 +874,11 @@ async def test_app_interface_fetch_excludes_low_confidence_call_expression_until
 async def test_app_interface_fetch_excludes_revalidated_pending_row_even_if_confidence_high(
     seeded_framework_usage,
 ) -> None:
+<<<<<<< HEAD
     identity = _build_usage_identity(TEST_SOURCE_CAPABILITY_KEY, TEST_SOURCE_OPERATION_KEY)
+=======
+    identity = _build_usage_identity(TEST_SOURCE_FEATURE_KEY)
+>>>>>>> origin/main
     await db_upsert_framework_feature_validation_evidence(
         codebase_path=seeded_framework_usage["codebase_path"],
         request=FrameworkFeatureValidationEvidenceUpsertRequest(
@@ -795,7 +900,11 @@ async def test_app_interface_fetch_excludes_revalidated_pending_row_even_if_conf
 async def test_app_interface_fetch_excludes_source_row_after_correct_decision(
     seeded_framework_usage,
 ) -> None:
+<<<<<<< HEAD
     source_identity = _build_usage_identity(TEST_SOURCE_CAPABILITY_KEY, TEST_SOURCE_OPERATION_KEY)
+=======
+    source_identity = _build_usage_identity(TEST_SOURCE_FEATURE_KEY)
+>>>>>>> origin/main
     await db_upsert_framework_feature_validation_evidence(
         codebase_path=seeded_framework_usage["codebase_path"],
         request=FrameworkFeatureValidationEvidenceUpsertRequest(
@@ -803,8 +912,12 @@ async def test_app_interface_fetch_excludes_source_row_after_correct_decision(
             decision=FrameworkFeatureValidationDecision.CORRECT,
             final_confidence=0.9,
             evidence_json={"reason": "belongs to corrected feature key"},
+<<<<<<< HEAD
             updated_feature_capability_key=TEST_CORRECTED_CAPABILITY_KEY,
             updated_feature_operation_key=TEST_CORRECTED_OPERATION_KEY,
+=======
+            updated_feature_key=TEST_CORRECTED_FEATURE_KEY,
+>>>>>>> origin/main
         ),
     )
     await db_set_framework_feature_validation_status(
@@ -825,6 +938,7 @@ async def test_app_interface_fetch_excludes_source_row_after_correct_decision(
 
 
 @pytest.mark.asyncio(loop_scope="session")
+<<<<<<< HEAD
 async def test_app_interface_fetch_excludes_namespaced_data_model_family_rows(
     seeded_app_interface_data_model_and_http_usage,
 ) -> None:
@@ -839,6 +953,8 @@ async def test_app_interface_fetch_excludes_namespaced_data_model_family_rows(
 
 
 @pytest.mark.asyncio(loop_scope="session")
+=======
+>>>>>>> origin/main
 async def test_get_all_framework_features_supports_typescript_language_filter(
     seeded_typescript_framework_usage,
 ) -> None:
@@ -916,8 +1032,12 @@ def seeded_typescript_low_confidence_framework_usage(
             FrameworkFeature(
                 language=TEST_TS_FEATURE_LANGUAGE,
                 library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 capability_key=TEST_TS_LOW_CONF_CAPABILITY_KEY,
                 operation_key=TEST_TS_LOW_CONF_OPERATION_KEY,
+=======
+                feature_key=TEST_TS_LOW_CONF_FEATURE_KEY,
+>>>>>>> origin/main
                 feature_definition=_build_typescript_feature_definition(
                     base_confidence=0.5,
                 ),
@@ -927,8 +1047,12 @@ def seeded_typescript_low_confidence_framework_usage(
             FeatureAbsolutePath(
                 language=TEST_TS_FEATURE_LANGUAGE,
                 library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 capability_key=TEST_TS_LOW_CONF_CAPABILITY_KEY,
                 operation_key=TEST_TS_LOW_CONF_OPERATION_KEY,
+=======
+                feature_key=TEST_TS_LOW_CONF_FEATURE_KEY,
+>>>>>>> origin/main
                 absolute_path="swr.default",
             )
         )
@@ -937,8 +1061,12 @@ def seeded_typescript_low_confidence_framework_usage(
                 file_path=TEST_TS_LOW_CONF_FILE_PATH,
                 feature_language=TEST_TS_FEATURE_LANGUAGE,
                 feature_library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+<<<<<<< HEAD
                 feature_capability_key=TEST_TS_LOW_CONF_CAPABILITY_KEY,
                 feature_operation_key=TEST_TS_LOW_CONF_OPERATION_KEY,
+=======
+                feature_key=TEST_TS_LOW_CONF_FEATURE_KEY,
+>>>>>>> origin/main
                 start_line=3,
                 end_line=3,
                 match_text="useSWR('/api/data', fetcher)",
@@ -990,8 +1118,11 @@ async def test_low_confidence_typescript_candidate_query_returns_pending_call_ex
     assert len(candidates) == 1
     candidate = candidates[0]
     assert candidate.identity.feature_key == TEST_TS_LOW_CONF_FEATURE_KEY
+<<<<<<< HEAD
     assert candidate.identity.feature_capability_key == TEST_TS_LOW_CONF_CAPABILITY_KEY
     assert candidate.identity.feature_operation_key == TEST_TS_LOW_CONF_OPERATION_KEY
+=======
+>>>>>>> origin/main
     assert candidate.match_confidence == pytest.approx(0.55)
     assert candidate.validation_status == ValidationStatus.PENDING
     assert candidate.absolute_paths == ["swr.default"]
@@ -1012,8 +1143,12 @@ async def test_app_interface_fetch_excludes_low_confidence_typescript_until_comp
         file_path=TEST_TS_LOW_CONF_FILE_PATH,
         feature_language=TEST_TS_FEATURE_LANGUAGE,
         feature_library=TEST_TS_LOW_CONF_FEATURE_LIBRARY,
+<<<<<<< HEAD
         feature_capability_key=TEST_TS_LOW_CONF_CAPABILITY_KEY,
         feature_operation_key=TEST_TS_LOW_CONF_OPERATION_KEY,
+=======
+        feature_key=TEST_TS_LOW_CONF_FEATURE_KEY,
+>>>>>>> origin/main
         start_line=3,
         end_line=3,
     )

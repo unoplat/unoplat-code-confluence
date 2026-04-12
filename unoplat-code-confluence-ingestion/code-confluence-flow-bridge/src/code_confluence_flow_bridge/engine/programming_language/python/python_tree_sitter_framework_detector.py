@@ -360,8 +360,12 @@ class PythonTreeSitterFrameworkDetector:
 
             detections.append(
                 AnnotationLikeInfo(
+<<<<<<< HEAD
                     capability_key=spec.capability_key,
                     operation_key=spec.operation_key,
+=======
+                    feature_key=spec.feature_key,
+>>>>>>> origin/main
                     library=spec.library,
                     match_text=match_text,
                     start_line=start_line,
@@ -415,8 +419,12 @@ class PythonTreeSitterFrameworkDetector:
 
             detections.append(
                 CallExpressionInfo(
+<<<<<<< HEAD
                     capability_key=spec.capability_key,
                     operation_key=spec.operation_key,
+=======
+                    feature_key=spec.feature_key,
+>>>>>>> origin/main
                     library=spec.library,
                     match_text=match_text,
                     start_line=call_expression.start_point[0] + 1,
@@ -462,8 +470,12 @@ class PythonTreeSitterFrameworkDetector:
 
             detections.append(
                 InheritanceInfo(
+<<<<<<< HEAD
                     capability_key=spec.capability_key,
                     operation_key=spec.operation_key,
+=======
+                    feature_key=spec.feature_key,
+>>>>>>> origin/main
                     library=spec.library,
                     match_text=_extract_node_text(
                         context.source_bytes, class_definition

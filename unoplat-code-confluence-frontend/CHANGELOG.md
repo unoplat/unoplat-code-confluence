@@ -1,5 +1,6 @@
 # Changelog
 
+<<<<<<< HEAD
 ## [1.51.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.2...unoplat-code-confluence-frontend-v1.51.0) (2026-04-12)
 
 
@@ -68,6 +69,8 @@
 * **ui-dependencies:** reduce dependency token churn by introducing fa… ([a66310b](https://github.com/unoplat/unoplat-code-confluence/commit/a66310bb3aa3403850ccdf3a22e9ea32034798fa))
 * **user-managed-accordion:** remove auto-expand so agent sections start collapsed ([5434277](https://github.com/unoplat/unoplat-code-confluence/commit/5434277b6906cf8da887f9c90b3a85c10d4bc5df))
 
+=======
+>>>>>>> origin/main
 ## [1.50.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.1...unoplat-code-confluence-frontend-v1.50.2) (2026-03-21)
 
 

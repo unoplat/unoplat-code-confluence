@@ -3,6 +3,7 @@
     "sqlalchemy": {
       "docs_url": "https://docs.sqlalchemy.org",
       "description": "SQLAlchemy is the Database Toolkit for Python, providing a comprehensive suite of tools for working with databases including an Object Relational Mapper (ORM) and Core expression language for SQL operations.",
+<<<<<<< HEAD
       "capabilities": {
         "relational_database": {
           "description": "SQLAlchemy ORM declarative model definitions.",
@@ -18,6 +19,18 @@
               "concept": "Inheritance"
             }
           }
+=======
+      "features": {
+        "db_data_model": {
+          "description": "Base class for SQLAlchemy declarative models",
+          "absolute_paths": [
+            "sqlalchemy.ext.declarative.declarative_base",
+            "sqlalchemy.orm.declarative_base",
+            "unoplat_code_confluence_commons.base_models.sql_base.SQLBase"
+          ],
+          "target_level": "class",
+          "concept": "Inheritance"
+>>>>>>> origin/main
         }
       }
     }

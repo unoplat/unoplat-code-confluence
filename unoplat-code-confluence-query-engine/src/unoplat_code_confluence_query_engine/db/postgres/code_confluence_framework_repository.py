@@ -7,7 +7,11 @@ from datetime import datetime, timezone
 from typing import Dict, List, Mapping, Set, cast
 
 from loguru import logger
+<<<<<<< HEAD
 from sqlalchemy import and_, not_, select
+=======
+from sqlalchemy import select
+>>>>>>> origin/main
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from unoplat_code_confluence_commons.base_models import (
@@ -34,6 +38,7 @@ from unoplat_code_confluence_query_engine.models.repository.framework_feature_va
 
 LOW_CONFIDENCE_VALIDATION_THRESHOLD = 0.70
 VALIDATOR_ACCEPT_DECISIONS: frozenset[str] = frozenset({"confirm"})
+<<<<<<< HEAD
 _DATA_MODEL_CAPABILITY_KEYS: tuple[str, ...] = (
     "data_model",
     "relational_database",
@@ -57,6 +62,8 @@ def _data_model_family_predicate(
         capability_column.in_(_DATA_MODEL_CAPABILITY_KEYS),
         operation_column.in_(_DATA_MODEL_OPERATION_KEYS),
     )
+=======
+>>>>>>> origin/main
 
 
 def _copy_mapping(payload: Mapping[str, object]) -> dict[str, object]:
@@ -68,17 +75,26 @@ def _build_validator_payload(
     decision: FrameworkFeatureValidationDecision,
     final_confidence: float,
     evidence_json: Mapping[str, object],
+<<<<<<< HEAD
     updated_feature_capability_key: str | None,
     updated_feature_operation_key: str | None,
+=======
+    updated_feature_key: str | None,
+>>>>>>> origin/main
 ) -> dict[str, object]:
     payload = _copy_mapping(evidence_json)
     payload["decision"] = decision.value
     payload["final_confidence"] = float(final_confidence)
     payload["recorded_at_utc"] = datetime.now(timezone.utc).isoformat()
+<<<<<<< HEAD
     if updated_feature_capability_key:
         payload["updated_feature_capability_key"] = updated_feature_capability_key
     if updated_feature_operation_key:
         payload["updated_feature_operation_key"] = updated_feature_operation_key
+=======
+    if updated_feature_key:
+        payload["updated_feature_key"] = updated_feature_key
+>>>>>>> origin/main
     return payload
 
 
@@ -204,12 +220,17 @@ async def _get_framework_usage_row(
             == identity.feature_library
         )
         .where(
+<<<<<<< HEAD
             UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key
             == identity.feature_capability_key
         )
         .where(
             UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key
             == identity.feature_operation_key
+=======
+            UnoplatCodeConfluenceFileFrameworkFeature.feature_key
+            == identity.feature_key
+>>>>>>> origin/main
         )
         .where(
             UnoplatCodeConfluenceFileFrameworkFeature.start_line == identity.start_line
@@ -225,18 +246,29 @@ async def _ensure_framework_feature_exists(
     identity: FrameworkFeatureUsageIdentity,
 ) -> None:
     stmt = (
+<<<<<<< HEAD
         select(FrameworkFeature.capability_key, FrameworkFeature.operation_key)
         .where(FrameworkFeature.language == identity.feature_language)
         .where(FrameworkFeature.library == identity.feature_library)
         .where(FrameworkFeature.capability_key == identity.feature_capability_key)
         .where(FrameworkFeature.operation_key == identity.feature_operation_key)
+=======
+        select(FrameworkFeature.feature_key)
+        .where(FrameworkFeature.language == identity.feature_language)
+        .where(FrameworkFeature.library == identity.feature_library)
+        .where(FrameworkFeature.feature_key == identity.feature_key)
+>>>>>>> origin/main
     )
     result = await session.execute(stmt)
     if result.scalar_one_or_none() is None:
         raise ValueError(
             "Framework feature definition does not exist for identity: "
+<<<<<<< HEAD
             f"{identity.feature_language}/{identity.feature_library}/"
             f"{identity.feature_capability_key}.{identity.feature_operation_key}"
+=======
+            f"{identity.feature_language}/{identity.feature_library}/{identity.feature_key}"
+>>>>>>> origin/main
         )
 
 
@@ -247,6 +279,7 @@ async def db_get_framework_with_features(
 ) -> Dict[str, object]:
     """Fetch framework features and usage locations for a codebase/library.
 
+<<<<<<< HEAD
     Returns a dict compatible with legacy consumers while carrying structured identity:
     {
       "library": str,
@@ -260,6 +293,10 @@ async def db_get_framework_with_features(
         }
       ],
     }
+=======
+    Returns a dict shaped like the legacy graph repository:
+    {"library": str, "features": [{"feature_key": str, "startpoint": bool, "usages": [...] }]}
+>>>>>>> origin/main
     """
     if not codebase_path or not library:
         return {"library": library, "features": []}
@@ -267,8 +304,12 @@ async def db_get_framework_with_features(
     async with get_startup_session() as session:
         stmt = (
             select(
+<<<<<<< HEAD
                 FrameworkFeature.capability_key,
                 FrameworkFeature.operation_key,
+=======
+                FrameworkFeature.feature_key,
+>>>>>>> origin/main
                 FrameworkFeature.startpoint_sql_expression().label("startpoint"),
                 UnoplatCodeConfluenceFileFrameworkFeature.file_path,
                 UnoplatCodeConfluenceFileFrameworkFeature.start_line,
@@ -286,12 +327,17 @@ async def db_get_framework_with_features(
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_library
                     )
                     & (
+<<<<<<< HEAD
                         FrameworkFeature.capability_key
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key
                     )
                     & (
                         FrameworkFeature.operation_key
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key
+=======
+                        FrameworkFeature.feature_key
+                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_key
+>>>>>>> origin/main
                     )
                 ),
             )
@@ -307,6 +353,7 @@ async def db_get_framework_with_features(
             )
             .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
             .where(FrameworkFeature.library == library)
+<<<<<<< HEAD
             .where(
                 not_(
                     _data_model_family_predicate(
@@ -315,6 +362,9 @@ async def db_get_framework_with_features(
                     )
                 )
             )
+=======
+            .where(~FrameworkFeature.feature_key.in_(["data_model", "db_data_model"]))
+>>>>>>> origin/main
         )
 
         if programming_language:
@@ -329,6 +379,7 @@ async def db_get_framework_with_features(
     feature_map: Dict[str, Dict[str, object]] = {}
     usage_seen: Dict[str, Set[tuple[str, int, int]]] = defaultdict(set)
 
+<<<<<<< HEAD
     for capability_key, operation_key, startpoint, file_path, start_line, end_line in rows:
         feature_key_value = _compose_feature_key(
             str(capability_key),
@@ -346,6 +397,18 @@ async def db_get_framework_with_features(
                 "feature_capability_key": str(capability_key),
                 "feature_operation_key": str(operation_key),
                 "feature_key": feature_key_value,
+=======
+    for feature_key, startpoint, file_path, start_line, end_line in rows:
+        if not isinstance(startpoint, bool):
+            raise TypeError(
+                f"Invalid startpoint value for feature '{feature_key}': {startpoint!r}"
+            )
+
+        feature_entry = feature_map.setdefault(
+            feature_key,
+            {
+                "feature_key": feature_key,
+>>>>>>> origin/main
                 "startpoint": startpoint,
                 "usages": [],
             },
@@ -355,10 +418,17 @@ async def db_get_framework_with_features(
             continue
 
         usage_key = (file_path, int(start_line), int(end_line))
+<<<<<<< HEAD
         if usage_key in usage_seen[feature_key_value]:
             continue
 
         usage_seen[feature_key_value].add(usage_key)
+=======
+        if usage_key in usage_seen[feature_key]:
+            continue
+
+        usage_seen[feature_key].add(usage_key)
+>>>>>>> origin/main
         usages = cast(List[Dict[str, int | str]], feature_entry["usages"])
         usages.append(
             {
@@ -390,10 +460,15 @@ async def db_get_all_framework_features_for_codebase(
         programming_language: Programming language filter (default: python)
 
     Returns:
+<<<<<<< HEAD
         List of dicts containing library, structured feature identity
         (`feature_capability_key`, `feature_operation_key`), display
         `feature_key`, startpoint, file_path, start_line, end_line,
         and match_text for each feature usage.
+=======
+        List of dicts containing library, feature_key, startpoint, file_path,
+        start_line, end_line, and match_text for each feature usage.
+>>>>>>> origin/main
     """
     if not codebase_path:
         return []
@@ -402,8 +477,12 @@ async def db_get_all_framework_features_for_codebase(
         stmt = (
             select(
                 FrameworkFeature.library,
+<<<<<<< HEAD
                 FrameworkFeature.capability_key,
                 FrameworkFeature.operation_key,
+=======
+                FrameworkFeature.feature_key,
+>>>>>>> origin/main
                 FrameworkFeature.concept_sql_expression().label("concept"),
                 FrameworkFeature.startpoint_sql_expression().label("startpoint"),
                 UnoplatCodeConfluenceFileFrameworkFeature.file_path,
@@ -426,12 +505,17 @@ async def db_get_all_framework_features_for_codebase(
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_library
                     )
                     & (
+<<<<<<< HEAD
                         FrameworkFeature.capability_key
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key
                     )
                     & (
                         FrameworkFeature.operation_key
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key
+=======
+                        FrameworkFeature.feature_key
+                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_key
+>>>>>>> origin/main
                     )
                 ),
             )
@@ -447,6 +531,7 @@ async def db_get_all_framework_features_for_codebase(
             )
             .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
             .where(FrameworkFeature.language == programming_language)
+<<<<<<< HEAD
             .where(
                 not_(
                     _data_model_family_predicate(
@@ -455,6 +540,9 @@ async def db_get_all_framework_features_for_codebase(
                     )
                 )
             )
+=======
+            .where(~FrameworkFeature.feature_key.in_(["data_model", "db_data_model"]))
+>>>>>>> origin/main
         )
 
         result = await session.execute(stmt)
@@ -471,8 +559,12 @@ async def db_get_all_framework_features_for_codebase(
     features: list[dict[str, object]] = []
     for (
         library,
+<<<<<<< HEAD
         capability_key,
         operation_key,
+=======
+        feature_key,
+>>>>>>> origin/main
         concept,
         startpoint,
         file_path,
@@ -483,6 +575,7 @@ async def db_get_all_framework_features_for_codebase(
         validation_status,
         evidence_json,
     ) in rows:
+<<<<<<< HEAD
         feature_capability_key = str(capability_key)
         feature_operation_key = str(operation_key)
         feature_key_value = _compose_feature_key(
@@ -493,6 +586,11 @@ async def db_get_all_framework_features_for_codebase(
         if not isinstance(startpoint, bool):
             raise TypeError(
                 f"Invalid startpoint value for feature '{feature_key_value}': {startpoint!r}"
+=======
+        if not isinstance(startpoint, bool):
+            raise TypeError(
+                f"Invalid startpoint value for feature '{feature_key}': {startpoint!r}"
+>>>>>>> origin/main
             )
 
         concept_value = str(concept)
@@ -513,9 +611,13 @@ async def db_get_all_framework_features_for_codebase(
         features.append(
             {
                 "library": library,
+<<<<<<< HEAD
                 "feature_capability_key": feature_capability_key,
                 "feature_operation_key": feature_operation_key,
                 "feature_key": feature_key_value,
+=======
+                "feature_key": feature_key,
+>>>>>>> origin/main
                 "startpoint": startpoint,
                 "file_path": file_path,
                 "start_line": int(start_line),
@@ -562,12 +664,17 @@ async def db_get_low_confidence_call_expression_candidates(
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_library
                     )
                     & (
+<<<<<<< HEAD
                         FrameworkFeature.capability_key
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key
                     )
                     & (
                         FrameworkFeature.operation_key
                         == UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key
+=======
+                        FrameworkFeature.feature_key
+                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_key
+>>>>>>> origin/main
                     )
                 ),
             )
@@ -641,8 +748,12 @@ async def db_get_low_confidence_call_expression_candidates(
                         file_path=usage.file_path,
                         feature_language=usage.feature_language,
                         feature_library=usage.feature_library,
+<<<<<<< HEAD
                         feature_capability_key=usage.feature_capability_key,
                         feature_operation_key=usage.feature_operation_key,
+=======
+                        feature_key=usage.feature_key,
+>>>>>>> origin/main
                         start_line=usage.start_line,
                         end_line=usage.end_line,
                     ),
@@ -690,8 +801,12 @@ async def db_upsert_framework_feature_validation_evidence(
             decision=request.decision,
             final_confidence=request.final_confidence,
             evidence_json=request.evidence_json,
+<<<<<<< HEAD
             updated_feature_capability_key=request.updated_feature_capability_key,
             updated_feature_operation_key=request.updated_feature_operation_key,
+=======
+            updated_feature_key=request.updated_feature_key,
+>>>>>>> origin/main
         )
         source_row.match_confidence = request.final_confidence
         source_row.evidence_json = _merge_evidence_json(
@@ -704,12 +819,19 @@ async def db_upsert_framework_feature_validation_evidence(
 
         if (
             request.decision == FrameworkFeatureValidationDecision.CORRECT
+<<<<<<< HEAD
             and request.updated_feature_capability_key is not None
             and request.updated_feature_operation_key is not None
         ):
             corrected_identity = request.identity.with_feature_identity(
                 request.updated_feature_capability_key,
                 request.updated_feature_operation_key,
+=======
+            and request.updated_feature_key is not None
+        ):
+            corrected_identity = request.identity.with_feature_key(
+                request.updated_feature_key
+>>>>>>> origin/main
             )
             await _ensure_framework_feature_exists(session, corrected_identity)
 
@@ -721,8 +843,12 @@ async def db_upsert_framework_feature_validation_evidence(
 
             corrected_evidence = {
                 "corrected_from": {
+<<<<<<< HEAD
                     "feature_capability_key": request.identity.feature_capability_key,
                     "feature_operation_key": request.identity.feature_operation_key,
+=======
+                    "feature_key": request.identity.feature_key,
+>>>>>>> origin/main
                 },
                 "validator": {
                     "decision": FrameworkFeatureValidationDecision.CONFIRM.value,
@@ -737,8 +863,12 @@ async def db_upsert_framework_feature_validation_evidence(
                     file_path=corrected_identity.file_path,
                     feature_language=corrected_identity.feature_language,
                     feature_library=corrected_identity.feature_library,
+<<<<<<< HEAD
                     feature_capability_key=corrected_identity.feature_capability_key,
                     feature_operation_key=corrected_identity.feature_operation_key,
+=======
+                    feature_key=corrected_identity.feature_key,
+>>>>>>> origin/main
                     start_line=corrected_identity.start_line,
                     end_line=corrected_identity.end_line,
                     match_text=source_row.match_text,

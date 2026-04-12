@@ -1,5 +1,6 @@
 # Changelog
 
+<<<<<<< HEAD
 ## [0.40.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.40.0...unoplat-code-confluence-query-engine-v0.40.1) (2026-04-12)
 
 
@@ -111,6 +112,8 @@
 
 * **agents:** split dependency guides into dedicated overview files ([b63ab1c](https://github.com/unoplat/unoplat-code-confluence/commit/b63ab1c89f8e89e34095f16632e769b1af04a727))
 
+=======
+>>>>>>> origin/main
 ## [0.39.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.39.0...unoplat-code-confluence-query-engine-v0.39.1) (2026-03-17)
 
 

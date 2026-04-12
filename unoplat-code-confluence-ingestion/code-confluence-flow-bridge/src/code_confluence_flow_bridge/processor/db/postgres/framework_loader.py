@@ -84,6 +84,7 @@ class FrameworkDefinitionLoader:
             f"Settings framework_definitions_path: {env_settings.framework_definitions_path}"
         )
         logger.info(
+<<<<<<< HEAD
             "FrameworkDefinitionLoader initialized with path: {}",
             self.definitions_path,
         )
@@ -94,6 +95,17 @@ class FrameworkDefinitionLoader:
     def load_framework_definitions(self) -> Dict[str, Any]:
         """Load and combine all framework definition JSON files."""
         logger.info("Loading framework definitions from: {}", self.definitions_path)
+=======
+            f"FrameworkDefinitionLoader initialized with path: {self.definitions_path}"
+        )
+        logger.debug(f"Current working directory: {os.getcwd()}")
+        logger.debug(f"Absolute definitions path: {self.definitions_path.resolve()}")
+        logger.debug(f"Path exists: {self.definitions_path.exists()}")
+
+    def load_framework_definitions(self) -> Dict[str, Any]:
+        """Load and combine all framework definition JSON files."""
+        logger.info(f"Loading framework definitions from: {self.definitions_path}")
+>>>>>>> origin/main
 
         if not self.definitions_path.exists():
             raise FileNotFoundError(
@@ -114,17 +126,29 @@ class FrameworkDefinitionLoader:
 
         language_dirs = sorted({json_file.parent.name for json_file in json_files})
         logger.info(
+<<<<<<< HEAD
             "Loading framework definitions from {} files across languages: {}",
             len(json_files),
             ", ".join(language_dirs),
+=======
+            f"Loading framework definitions from {len(json_files)} files across languages: "
+            f"{', '.join(language_dirs)}"
+>>>>>>> origin/main
         )
 
         for json_file in json_files:
             try:
+<<<<<<< HEAD
                 logger.debug("Loading framework definition from {}", json_file)
                 file_data = json.loads(json_file.read_text())
 
                 # Merge data from each file (language -> library -> capabilities -> operations structure)
+=======
+                logger.debug(f"Loading framework definition from {json_file}")
+                file_data = json.loads(json_file.read_text())
+
+                # Merge data from each file (language -> library -> features structure)
+>>>>>>> origin/main
                 for language, language_data in file_data.items():
                     if language not in combined_data:
                         combined_data[language] = {}
@@ -154,7 +178,11 @@ class FrameworkDefinitionLoader:
 
         logger.debug("Parsing framework definitions into SQLModel objects")
 
+<<<<<<< HEAD
         # Parse new schema structure: language -> library -> capabilities -> operations
+=======
+        # Parse new schema structure: language -> library -> features
+>>>>>>> origin/main
         for language, language_data_raw in data.items():
             language_data = cast(dict[str, dict[str, Any]], language_data_raw)
             for library_name, library_data in language_data.items():
@@ -174,6 +202,7 @@ class FrameworkDefinitionLoader:
                     )
                     seen_frameworks.add(framework_key)
 
+<<<<<<< HEAD
                 # Process capabilities -> operations
                 capabilities_data = cast(
                     dict[str, dict[str, Any]],
@@ -220,6 +249,45 @@ class FrameworkDefinitionLoader:
                                 )
                             )
 
+=======
+                # Process features
+                features_data = cast(
+                    dict[str, dict[str, Any]],
+                    library_data.get("features", {}),
+                )
+                for feature_key, feature_data in features_data.items():
+                    normalized_payload = self._normalize_feature_payload(feature_data)
+                    feature_definition: dict[str, object] = (
+                        normalized_payload.model_dump(mode="json", exclude_none=False)
+                    )
+                    if feature_definition.get("concept") != "CallExpression":
+                        feature_definition.pop("base_confidence", None)
+                    elif feature_definition.get("base_confidence") is None:
+                        feature_definition.pop("base_confidence", None)
+
+                    # Create FrameworkFeature record with new schema fields
+                    features.append(
+                        FrameworkFeature(
+                            language=language,
+                            library=library_name,
+                            feature_key=feature_key,
+                            feature_definition=feature_definition,
+                        )
+                    )
+
+                    # Create FeatureAbsolutePath records for each absolute path
+                    absolute_paths_data = normalized_payload.absolute_paths
+                    for absolute_path in absolute_paths_data:
+                        absolute_paths.append(
+                            FeatureAbsolutePath(
+                                language=language,
+                                library=library_name,
+                                feature_key=feature_key,
+                                absolute_path=absolute_path,
+                            )
+                        )
+
+>>>>>>> origin/main
         logger.info(
             f"Parsed {len(frameworks)} frameworks, {len(features)} features, {len(absolute_paths)} absolute paths"
         )
@@ -319,5 +387,9 @@ class FrameworkDefinitionLoader:
             "absolute_paths_count": len(absolute_paths),
         }
 
+<<<<<<< HEAD
         logger.info("Framework definitions loaded successfully: {}", metrics)
+=======
+        logger.info(f"Framework definitions loaded successfully: {metrics}")
+>>>>>>> origin/main
         return metrics

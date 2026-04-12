@@ -169,8 +169,12 @@ class SimplifiedPythonDetector:
                     continue
 
             detection = AnnotationLikeInfo(
+<<<<<<< HEAD
                 capability_key=spec.capability_key,
                 operation_key=spec.operation_key,
+=======
+                feature_key=spec.feature_key,
+>>>>>>> origin/main
                 library=spec.library,
                 match_text=full_decorator,
                 start_line=func.start_line,
@@ -210,8 +214,12 @@ class SimplifiedPythonDetector:
                 # Check if this call matches any of our absolute paths
                 if self._matches_call_pattern(call, spec, aliases):
                     detection = CallExpressionInfo(
+<<<<<<< HEAD
                         capability_key=spec.capability_key,
                         operation_key=spec.operation_key,
+=======
+                        feature_key=spec.feature_key,
+>>>>>>> origin/main
                         library=spec.library,
                         match_text=call,
                         start_line=func.start_line,
@@ -280,8 +288,12 @@ class SimplifiedPythonDetector:
                     class_name = self._extract_class_name(class_info.signature)
 
                     detection = InheritanceInfo(
+<<<<<<< HEAD
                         capability_key=spec.capability_key,
                         operation_key=spec.operation_key,
+=======
+                        feature_key=spec.feature_key,
+>>>>>>> origin/main
                         library=spec.library,
                         match_text=class_info.signature,
                         start_line=class_info.start_line,

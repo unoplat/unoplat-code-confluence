@@ -163,7 +163,11 @@ class ModelFactory:
                 else:
                     # Fall back to environment variable OPENAI_API_KEY
                     model = OpenAIChatModel(config.model_name)
+<<<<<<< HEAD
                 logger.info("Created OpenAI model: {}", config.model_name)
+=======
+                logger.info(f"Created OpenAI model: {config.model_name}")
+>>>>>>> origin/main
 
             case "codex_openai":
                 codex_client = create_codex_async_openai_client(settings)
@@ -185,8 +189,12 @@ class ModelFactory:
                     settings=codex_model_settings,
                 )
                 logger.info(
+<<<<<<< HEAD
                     "Created Codex OpenAI Responses model via OAuth transport: {}",
                     config.model_name,
+=======
+                    f"Created Codex OpenAI Responses model via OAuth transport: {config.model_name}"
+>>>>>>> origin/main
                 )
 
             case "anthropic":
@@ -203,7 +211,11 @@ class ModelFactory:
                 else:
                     # Fall back to environment variable ANTHROPIC_API_KEY
                     model = AnthropicModel(config.model_name)
+<<<<<<< HEAD
                 logger.info("Created Anthropic model: {}", config.model_name)
+=======
+                logger.info(f"Created Anthropic model: {config.model_name}")
+>>>>>>> origin/main
 
             case "google":
                 if model_api_key:
@@ -213,7 +225,11 @@ class ModelFactory:
                 else:
                     # Fall back to environment variable GOOGLE_API_KEY
                     model = GoogleModel(config.model_name)
+<<<<<<< HEAD
                 logger.info("Created Google model: {}", config.model_name)
+=======
+                logger.info(f"Created Google model: {config.model_name}")
+>>>>>>> origin/main
 
             case "groq":
                 if model_api_key:
@@ -229,7 +245,11 @@ class ModelFactory:
                 else:
                     # Fall back to environment variable GROQ_API_KEY
                     model = GroqModel(config.model_name)
+<<<<<<< HEAD
                 logger.info("Created Groq model: {}", config.model_name)
+=======
+                logger.info(f"Created Groq model: {config.model_name}")
+>>>>>>> origin/main
 
             case "mistral":
                 if model_api_key:
@@ -245,7 +265,11 @@ class ModelFactory:
                 else:
                     # Fall back to environment variable MISTRAL_API_KEY
                     model = MistralModel(config.model_name)
+<<<<<<< HEAD
                 logger.info("Created Mistral model: {}", config.model_name)
+=======
+                logger.info(f"Created Mistral model: {config.model_name}")
+>>>>>>> origin/main
 
             case "cohere":
                 if model_api_key:
@@ -261,7 +285,11 @@ class ModelFactory:
                 else:
                     # Fall back to environment variable CO_API_KEY
                     model = CohereModel(config.model_name)
+<<<<<<< HEAD
                 logger.info("Created Cohere model: {}", config.model_name)
+=======
+                logger.info(f"Created Cohere model: {config.model_name}")
+>>>>>>> origin/main
 
             case "huggingface":
                 # Get provider_name from extra_config, default to None (uses default HF inference)
@@ -383,7 +411,11 @@ class ModelFactory:
                     provider=provider,
                     settings=bedrock_model_settings if bedrock_model_settings else None,
                 )
+<<<<<<< HEAD
                 logger.info("Created Bedrock model: {}", config.model_name)
+=======
+                logger.info(f"Created Bedrock model: {config.model_name}")
+>>>>>>> origin/main
 
             # OpenAI-compatible providers
             case "deepseek":
@@ -396,7 +428,11 @@ class ModelFactory:
                 else:
                     provider = DeepSeekProvider(api_key=model_api_key)
                 model = OpenAIChatModel(config.model_name, provider=provider)
+<<<<<<< HEAD
                 logger.info("Created DeepSeek model: {}", config.model_name)
+=======
+                logger.info(f"Created DeepSeek model: {config.model_name}")
+>>>>>>> origin/main
 
             case "openrouter":
                 if not model_api_key:
@@ -408,7 +444,11 @@ class ModelFactory:
                 else:
                     provider = OpenRouterProvider(api_key=model_api_key)
                 model = OpenAIChatModel(config.model_name, provider=provider)
+<<<<<<< HEAD
                 logger.info("Created OpenRouter model: {}", config.model_name)
+=======
+                logger.info(f"Created OpenRouter model: {config.model_name}")
+>>>>>>> origin/main
 
             case "fireworks":
                 if not model_api_key:
@@ -420,7 +460,11 @@ class ModelFactory:
                 else:
                     provider = FireworksProvider(api_key=model_api_key)
                 model = OpenAIChatModel(config.model_name, provider=provider)
+<<<<<<< HEAD
                 logger.info("Created Fireworks model: {}", config.model_name)
+=======
+                logger.info(f"Created Fireworks model: {config.model_name}")
+>>>>>>> origin/main
 
             case "together":
                 if not model_api_key:
@@ -432,7 +476,11 @@ class ModelFactory:
                 else:
                     provider = TogetherProvider(api_key=model_api_key)
                 model = OpenAIChatModel(config.model_name, provider=provider)
+<<<<<<< HEAD
                 logger.info("Created Together AI model: {}", config.model_name)
+=======
+                logger.info(f"Created Together AI model: {config.model_name}")
+>>>>>>> origin/main
 
             case "github":
                 # GitHub now uses unified model_api_key
@@ -445,7 +493,11 @@ class ModelFactory:
                 else:
                     provider = GitHubProvider(api_key=model_api_key)
                 model = OpenAIChatModel(config.model_name, provider=provider)
+<<<<<<< HEAD
                 logger.info("Created GitHub model: {}", config.model_name)
+=======
+                logger.info(f"Created GitHub model: {config.model_name}")
+>>>>>>> origin/main
 
             case "vercel":
                 if not model_api_key:
@@ -457,7 +509,11 @@ class ModelFactory:
                 else:
                     provider = VercelProvider(api_key=model_api_key)
                 model = OpenAIChatModel(config.model_name, provider=provider)
+<<<<<<< HEAD
                 logger.info("Created Vercel model: {}", config.model_name)
+=======
+                logger.info(f"Created Vercel model: {config.model_name}")
+>>>>>>> origin/main
 
             case "grok":
                 if not model_api_key:
@@ -465,7 +521,11 @@ class ModelFactory:
                 # XaiProvider uses native xAI SDK (gRPC-based) and does not support http_client
                 provider = XaiProvider(api_key=model_api_key)
                 model = XaiModel(config.model_name, provider=provider)
+<<<<<<< HEAD
                 logger.info("Created xAI model: {}", config.model_name)
+=======
+                logger.info(f"Created xAI model: {config.model_name}")
+>>>>>>> origin/main
 
             case "azure":
                 if not model_api_key:
@@ -494,7 +554,11 @@ class ModelFactory:
                         api_key=model_api_key,
                     )
                 model = OpenAIChatModel(config.model_name, provider=provider)
+<<<<<<< HEAD
                 logger.info("Created Azure OpenAI model: {}", config.model_name)
+=======
+                logger.info(f"Created Azure OpenAI model: {config.model_name}")
+>>>>>>> origin/main
 
             case "ollama":
                 # Ollama doesn't require API key but needs base_url
@@ -502,7 +566,11 @@ class ModelFactory:
                 model = OpenAIChatModel(
                     config.model_name, provider=OpenAIProvider(base_url=base_url)
                 )
+<<<<<<< HEAD
                 logger.info("Created Ollama model at {}: {}", base_url, config.model_name)
+=======
+                logger.info(f"Created Ollama model at {base_url}: {config.model_name}")
+>>>>>>> origin/main
 
             case _:
                 raise ValueError(f"Unknown provider: {config.provider_key}")

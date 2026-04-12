@@ -35,6 +35,7 @@ def test_loader_reads_all_language_directories(tmp_path: Path) -> None:
   "python": {
     "fastapi": {
       "docs_url": "https://fastapi.tiangolo.com",
+<<<<<<< HEAD
       "capabilities": {
         "rest_api": {
           "description": "HTTP endpoint capability.",
@@ -48,6 +49,14 @@ def test_loader_reads_all_language_directories(tmp_path: Path) -> None:
               "startpoint": true
             }
           }
+=======
+      "features": {
+        "http_endpoint": {
+          "description": "HTTP endpoint",
+          "absolute_paths": ["fastapi.FastAPI"],
+          "target_level": "function",
+          "concept": "AnnotationLike"
+>>>>>>> origin/main
         }
       }
     }
@@ -63,6 +72,7 @@ def test_loader_reads_all_language_directories(tmp_path: Path) -> None:
   "typescript": {
     "nextjs": {
       "docs_url": "https://nextjs.org/docs",
+<<<<<<< HEAD
       "capabilities": {
         "rest_api": {
           "description": "Route handler capability.",
@@ -78,6 +88,17 @@ def test_loader_reads_all_language_directories(tmp_path: Path) -> None:
               },
               "startpoint": true
             }
+=======
+      "features": {
+        "route_handler_export": {
+          "description": "Route handler",
+          "absolute_paths": ["next/server.NextResponse"],
+          "target_level": "function",
+          "concept": "FunctionDefinition",
+          "construct_query": {
+            "function_name_regex": "^(GET|POST)$",
+            "export_name_regex": "^(GET|POST)$"
+>>>>>>> origin/main
           }
         }
       }
@@ -105,6 +126,7 @@ def test_parse_json_data_preserves_function_export_regexes(tmp_path: Path) -> No
             "nextjs": {
                 "docs_url": "https://nextjs.org/docs",
                 "description": "Next.js",
+<<<<<<< HEAD
                 "capabilities": {
                     "rest_api": {
                         "description": "Route handler capability.",
@@ -119,6 +141,17 @@ def test_parse_json_data_preserves_function_export_regexes(tmp_path: Path) -> No
                                     "export_name_regex": "^(GET|POST)$",
                                 },
                             }
+=======
+                "features": {
+                    "route_handler_export": {
+                        "description": "Route handler",
+                        "absolute_paths": ["next/server.NextResponse"],
+                        "target_level": "function",
+                        "concept": "AnnotationLike",
+                        "construct_query": {
+                            "function_name_regex": "^(GET|POST)$",
+                            "export_name_regex": "^(GET|POST)$",
+>>>>>>> origin/main
                         },
                     }
                 },
@@ -130,7 +163,10 @@ def test_parse_json_data_preserves_function_export_regexes(tmp_path: Path) -> No
 
     assert len(features) == 1
     feature = features[0]
+<<<<<<< HEAD
     assert feature.feature_key == "rest_api.get"
+=======
+>>>>>>> origin/main
     assert feature.concept == Concept.ANNOTATION_LIKE
     assert feature.target_level.value == "function"
     assert feature.construct_query is not None
@@ -146,6 +182,7 @@ def test_parse_json_data_normalizes_base_confidence(tmp_path: Path) -> None:
         "python": {
             "customlib": {
                 "docs_url": "https://example.com/docs",
+<<<<<<< HEAD
                 "capabilities": {
                     "http_client": {
                         "description": "Client capability.",
@@ -159,6 +196,16 @@ def test_parse_json_data_normalizes_base_confidence(tmp_path: Path) -> None:
                             }
                         },
                     }
+=======
+                "features": {
+                    "valid_confidence": {
+                        "description": "Valid confidence",
+                        "absolute_paths": ["customlib.valid"],
+                        "target_level": "function",
+                        "concept": "CallExpression",
+                        "base_confidence": 0.41,
+                    },
+>>>>>>> origin/main
                 },
             }
         }
@@ -168,13 +215,18 @@ def test_parse_json_data_normalizes_base_confidence(tmp_path: Path) -> None:
 
     feature_by_key = {feature.feature_key: feature for feature in features}
     assert (
+<<<<<<< HEAD
         feature_by_key["http_client.valid_confidence"].feature_definition["base_confidence"] == 0.41
+=======
+        feature_by_key["valid_confidence"].feature_definition["base_confidence"] == 0.41
+>>>>>>> origin/main
     )
 
     invalid_framework_data = {
         "python": {
             "customlib": {
                 "docs_url": "https://example.com/docs",
+<<<<<<< HEAD
                 "capabilities": {
                     "http_client": {
                         "description": "Client capability.",
@@ -187,6 +239,15 @@ def test_parse_json_data_normalizes_base_confidence(tmp_path: Path) -> None:
                                 "base_confidence": 3.2,
                             }
                         },
+=======
+                "features": {
+                    "invalid_confidence": {
+                        "description": "Invalid confidence",
+                        "absolute_paths": ["customlib.invalid"],
+                        "target_level": "function",
+                        "concept": "CallExpression",
+                        "base_confidence": 3.2,
+>>>>>>> origin/main
                     }
                 },
             }
@@ -210,6 +271,7 @@ def test_parse_json_data_rejects_base_confidence_for_non_call_expression(
         "python": {
             "customlib": {
                 "docs_url": "https://example.com/docs",
+<<<<<<< HEAD
                 "capabilities": {
                     "rest_api": {
                         "description": "Endpoint capability.",
@@ -222,6 +284,15 @@ def test_parse_json_data_rejects_base_confidence_for_non_call_expression(
                                 "base_confidence": 0.92,
                             }
                         },
+=======
+                "features": {
+                    "http_endpoint": {
+                        "description": "HTTP endpoint",
+                        "absolute_paths": ["customlib.Endpoint"],
+                        "target_level": "function",
+                        "concept": "AnnotationLike",
+                        "base_confidence": 0.92,
+>>>>>>> origin/main
                     }
                 },
             }

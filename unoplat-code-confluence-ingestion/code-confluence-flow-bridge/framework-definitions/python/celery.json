@@ -3,6 +3,7 @@
     "celery": {
       "docs_url": "https://docs.celeryq.dev/en/stable/",
       "description": "Celery distributed task queue patterns for background workers and scheduled jobs.",
+<<<<<<< HEAD
       "capabilities": {
         "background_worker": {
           "description": "Celery task-decorated functions acting as distributed worker entry points.",
@@ -40,6 +41,35 @@
               "notes": "Validator should confirm the call target is imported from `celery.schedules` (or an alias bound to it). Treat generic local helpers like `schedule(...)` as non-matches unless the import provenance clearly resolves to Celery's scheduling APIs."
             }
           }
+=======
+      "features": {
+        "task_definition": {
+          "description": "Celery task-decorated functions that act as worker/beat entry points.",
+          "absolute_paths": [
+            "celery.app.base.Celery.task",
+            "celery.shared_task",
+            "celery.app.task.Task"
+          ],
+          "target_level": "function",
+          "concept": "AnnotationLike",
+          "construct_query": {
+            "method_regex": "^(task)$",
+            "annotation_name_regex": "^(task|shared_task)$"
+          },
+          "startpoint": true
+        },
+        "periodic_task_schedule": {
+          "description": "Celery Beat periodic schedule expressions (crontab/schedule/solar).",
+          "absolute_paths": [
+            "celery.schedules.crontab",
+            "celery.schedules.schedule",
+            "celery.schedules.solar"
+          ],
+          "target_level": "function",
+          "concept": "CallExpression",
+          "base_confidence": 0.69,
+          "notes": "Validator should confirm the call target is imported from `celery.schedules` (or an alias bound to it). Treat generic local helpers like `schedule(...)` as non-matches unless the import provenance clearly resolves to Celery's scheduling APIs."
+>>>>>>> origin/main
         }
       }
     }
