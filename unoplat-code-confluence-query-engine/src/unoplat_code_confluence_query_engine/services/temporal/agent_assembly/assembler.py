@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, TypeVar
 
 from pydantic_ai.durable_exec.temporal import TemporalAgent
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
+    AgentDependencies,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
 )
@@ -26,6 +29,8 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.searc
     SearchRuntimePolicy,
     resolve_search_runtime_policy,
 )
+
+OutputT = TypeVar("OutputT")
 
 
 def create_assembly_context(
@@ -63,7 +68,7 @@ def build_search_runtime_policy(
 
 def resolve_temporal_activity_bundle(
     *,
-    build_result: AgentBuildResult[Any],
+    build_result: AgentBuildResult[OutputT],
     context: AgentAssemblyContext,
 ) -> ResolvedTemporalActivityConfig:
     """Resolve the Temporal activity config bundle for one built agent."""
@@ -81,9 +86,9 @@ def resolve_temporal_activity_bundle(
 
 def build_temporal_agent(
     *,
-    build_result: AgentBuildResult[Any],
+    build_result: AgentBuildResult[OutputT],
     activity_config: ResolvedTemporalActivityConfig,
-) -> TemporalAgent[Any, Any]:
+) -> TemporalAgent[AgentDependencies, OutputT]:
     """Build one TemporalAgent from a concrete built agent and config."""
 
     return TemporalAgent(
@@ -96,9 +101,9 @@ def build_temporal_agent(
 
 
 def assemble_temporal_agent(
-    builder: Callable[[AgentAssemblyContext], AgentBuildResult[Any]],
+    builder: Callable[[AgentAssemblyContext], AgentBuildResult[OutputT]],
     context: AgentAssemblyContext,
-) -> TemporalAgent[Any, Any]:
+) -> TemporalAgent[AgentDependencies, OutputT]:
     """Build one concrete agent for durable execution."""
 
     build_result = builder(context)
