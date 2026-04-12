@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.75.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.75.0...code-confluence-flow-bridge-v0.75.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* **common-version-ingestion:** upgrade commons dependency to v0.47.0 ([6b722d9](https://github.com/unoplat/unoplat-code-confluence/commit/6b722d9d178b203ac5514079556773874df35549))
+* upgrade commons dependency to v0.47.0 (ingestion + query engine) ([3c390ef](https://github.com/unoplat/unoplat-code-confluence/commit/3c390efe5f6221da782d56d5d51600cb59360f65))
+
 ## [0.75.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.74.1...code-confluence-flow-bridge-v0.75.0) (2026-04-12)
 
 
