@@ -140,8 +140,10 @@ def _normalize_path(path: str) -> str:
             candidate = candidate.lstrip("/")
 
     normalized = PurePosixPath(candidate).as_posix()
-    if normalized == "." or normalized.startswith("../") or "/../" in normalized:
-        raise ValueError(f"invalid repo-relative path: {path}")
+    if normalized == ".":
+        raise ValueError(
+            f"config_file '{path}' resolves to the current directory, not a file"
+        )
 
     return normalized
 

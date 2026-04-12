@@ -25,7 +25,11 @@ def build_development_workflow_exa_toolset() -> AbstractToolset[AgentDependencie
 def maybe_get_typescript_monorepo_toolset(
     ctx: RunContext[AgentDependencies],
 ) -> AbstractToolset[AgentDependencies] | None:
-    if ctx.deps.codebase_metadata.codebase_package_manager_provenance == "inherited":
+    metadata = ctx.deps.codebase_metadata
+    if (
+        metadata.codebase_programming_language.lower() == "typescript"
+        and metadata.codebase_package_manager_provenance == "inherited"
+    ):
         return create_typescript_monorepo_toolset(TS_MONOREPO_TOOLSET_ID)
     return None
 
@@ -33,7 +37,11 @@ def maybe_get_typescript_monorepo_toolset(
 async def maybe_get_typescript_monorepo_instructions(
     ctx: RunContext[AgentDependencies],
 ) -> str | None:
-    if ctx.deps.codebase_metadata.codebase_package_manager_provenance != "inherited":
+    metadata = ctx.deps.codebase_metadata
+    if (
+        metadata.codebase_programming_language.lower() != "typescript"
+        or metadata.codebase_package_manager_provenance != "inherited"
+    ):
         return None
     toolset = create_typescript_monorepo_toolset(TS_MONOREPO_TOOLSET_ID)
     return await toolset.get_instructions(ctx)

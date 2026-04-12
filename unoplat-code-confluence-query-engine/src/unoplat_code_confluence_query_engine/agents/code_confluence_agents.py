@@ -6,6 +6,7 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
     AgentDependencies,
 )
 
+
 def get_engineering_citation_instructions() -> str:
     """Return stable citation-validation instructions for the engineering workflow agent."""
     return (
@@ -40,7 +41,8 @@ async def per_language_development_workflow_prompt(
         package_manager_provenance_line = f"Package manager provenance: {provenance}\n"
 
     monorepo_context = ""
-    if provenance == "inherited":
+    is_typescript = lang.lower() == "typescript"
+    if provenance == "inherited" and is_typescript:
         monorepo_context = (
             "<monorepo_context>\nThis codebase is a workspace member in a monorepo.\n"
         )
@@ -63,22 +65,21 @@ async def per_language_development_workflow_prompt(
     return (
         f"You are the Development Workflow Guide for {lang} projects.\n"
         f"Package manager: {package_manager}\n"
-        f"{package_manager_provenance_line}\n"
-        + monorepo_context
-        + "<task>\n"
-        "Analyze the codebase and return a canonical engineering_workflow JSON object only.\n"
+        f"{package_manager_provenance_line}\n" + monorepo_context + "<task>\n"
+        "Analyze the codebase and return an  engineering_workflow JSON object only.\n"
         "commands MUST NOT be empty.\n"
         "</task>\n\n"
         "<file_path_requirements>\n"
         "When using tools, pass ABSOLUTE filesystem paths only.\n"
         f"The codebase root path is: {codebase_path}\n"
         "If monorepo context indicates inherited ownership, you may inspect absolute parent directories above the codebase root to locate the owning workspace root.\n"
-        "In FINAL OUTPUT, every config_file path MUST be repo-relative (never absolute).\n"
+        "In FINAL OUTPUT, every config_file path MUST be repository-root-relative (never absolute).\n"
+        "Never use codebase-relative '..' segments in config_file paths.\n"
         "</file_path_requirements>\n\n"
         "<output_contract>\n"
         "Return ONLY JSON with this exact top-level shape:\n"
         '{"commands":[{"command":"<runnable command>","stage":"install|build|dev|test|lint|type_check",'
-        '"config_file":"<repo-relative path or unknown>","confidence":0.0,'
+        '"config_file":"<repository-root-relative path or unknown>","confidence":0.0,'
         '"working_directory":"<repo-relative dir: omit/null=codebase root, .=repo root, path=workspace root>"}]}\n'
         "Do not include markdown, prose, or extra keys.\n"
         "</output_contract>\n\n"
@@ -95,7 +96,7 @@ async def per_language_development_workflow_prompt(
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"
         "- Emit only the keys defined in output_contract and nothing else.\n"
-        "- config_file is the single most relevant configuration file for this command (repo-relative path or 'unknown').\n"
+        "- config_file is the single most relevant configuration file for this command (repository-root-relative path or 'unknown').\n"
         "- confidence is a float between 0.0 and 1.0.\n"
         "- Commands with confidence <= 0.70 will be filtered out.\n"
         "- working_directory: omit or null to run from codebase root, '.' to run from repo root, or a repo-relative path for a specific workspace root.\n"
@@ -104,22 +105,11 @@ async def per_language_development_workflow_prompt(
         "Example (Python + uv):\n"
         '{"commands":['
         '{"command":"uv sync --group dev --group test","stage":"install","config_file":"pyproject.toml","confidence":0.95},'
-        '{"command":"uv run fastapi dev --port 8001","stage":"dev","config_file":"pyproject.toml","confidence":0.85},'
-        '{"command":"uv run --group test pytest -v","stage":"test","config_file":"pyproject.toml","confidence":0.90},'
-        '{"command":"uv run --group dev ruff check src/","stage":"lint","config_file":"ruff.toml","confidence":0.90},'
-        '{"command":"uv run --group dev basedpyright src/","stage":"type_check","config_file":"pyproject.toml","confidence":0.85}]}\n'
         "Example (TypeScript):\n"
         '{"commands":['
         '{"command":"npm ci","stage":"install","config_file":"package.json","confidence":0.95},'
-        '{"command":"npm run dev","stage":"dev","config_file":"package.json","confidence":0.90},'
-        '{"command":"npm run build","stage":"build","config_file":"package.json","confidence":0.90},'
-        '{"command":"npm run test","stage":"test","config_file":"package.json","confidence":0.85},'
-        '{"command":"npm run lint","stage":"lint","config_file":"package.json","confidence":0.85}]}\n'
         "Example (TypeScript monorepo workspace member):\n"
         '{"commands":['
         '{"command":"pnpm install","stage":"install","config_file":"infra/services/pnpm-workspace.yaml","confidence":0.95,"working_directory":"infra/services"},'
-        '{"command":"pnpm run build --filter api","stage":"build","config_file":"infra/services/package.json","confidence":0.85,"working_directory":"infra/services"},'
-        '{"command":"pnpm run test","stage":"test","config_file":"infra/services/apps/api/package.json","confidence":0.85},'
-        '{"command":"pnpm run lint","stage":"lint","config_file":"infra/services/apps/api/package.json","confidence":0.85}]}\n'
         "</examples>\n"
     )

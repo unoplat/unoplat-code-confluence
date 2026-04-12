@@ -25,11 +25,7 @@ def validate_engineering_development_workflow_output(
             raise ModelRetry(
                 "Found command with empty command string. Return non-empty runnable commands."
             )
-        if command.config_file.startswith("/") or command.config_file.startswith("../"):
-            raise ModelRetry(
-                f"config_file '{command.config_file}' must be repo-relative without leading '/' or '../'. "
-                "Use 'unknown' if no config file applies."
-            )
+
         if command.confidence < 0.0 or command.confidence > 1.0:
             raise ModelRetry(
                 f"confidence {command.confidence} for command '{command.command}' must be between 0.0 and 1.0."

@@ -23,7 +23,7 @@ class EngineeringWorkflowCommand(BaseModel):
     command: str = Field(..., description="Runnable command")
     stage: EngineeringWorkflowStage = Field(..., description="Execution stage")
     config_file: str = Field(
-        ..., description="Repo-relative path to the most relevant config file, or 'unknown'"
+        ..., description="Repository-root-relative path to the most relevant config file, or 'unknown'"
     )
     confidence: float = Field(
         ..., ge=0.0, le=1.0, description="Citation-validated confidence score"
@@ -31,7 +31,7 @@ class EngineeringWorkflowCommand(BaseModel):
     working_directory: Optional[str] = Field(
         default=None,
         description=(
-            "Repo-relative directory from which command should execute. "
+            "Repository-root-relative directory from which command should execute. "
             "None/omitted = codebase root, '.' = repository root, "
             "nested path = specific workspace root."
         ),
