@@ -2,10 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-<<<<<<< HEAD
 import { Separator } from "@/components/ui/separator";
-=======
->>>>>>> origin/main
 
 type FeatureTargetLevel = "function" | "class";
 
@@ -17,7 +14,6 @@ interface FeatureDefinition {
   locator_strategy?: string;
   construct_query?: Record<string, string>;
   startpoint?: boolean;
-<<<<<<< HEAD
   base_confidence?: number;
   notes?: string;
 }
@@ -25,31 +21,22 @@ interface FeatureDefinition {
 interface CapabilityDefinition {
   description?: string;
   operations?: Record<string, FeatureDefinition>;
-=======
->>>>>>> origin/main
 }
 
 interface LibraryDefinition {
   docs_url?: string;
   description?: string;
   version?: string;
-<<<<<<< HEAD
   features?: Record<string, FeatureDefinition>;
   capabilities?: Record<string, CapabilityDefinition>;
-=======
-  features: Record<string, FeatureDefinition>;
->>>>>>> origin/main
 }
 
 type FrameworkDefinitionFile = Record<string, Record<string, LibraryDefinition>>;
 
 interface FeatureRow {
   featureKey: string;
-<<<<<<< HEAD
   capabilityKey?: string;
   operationKey?: string;
-=======
->>>>>>> origin/main
   feature: FeatureDefinition;
 }
 
@@ -128,11 +115,7 @@ export function FrameworkFeatureCatalog({
         );
 
         if (!selectedLibrary) {
-<<<<<<< HEAD
           throw new Error(`${label} definition is missing from the static framework definition payload.`);
-=======
-          throw new Error(`${label} definition is missing from static catalog payload.`);
->>>>>>> origin/main
         }
 
         setLibraryDefinition(selectedLibrary);
@@ -146,11 +129,7 @@ export function FrameworkFeatureCatalog({
           return;
         }
 
-<<<<<<< HEAD
         setErrorMessage(`Unknown error while loading the ${label} coverage reference.`);
-=======
-        setErrorMessage(`Unknown error while loading ${label} catalog.`);
->>>>>>> origin/main
       } finally {
         if (!abortController.signal.aborted) {
           setIsLoading(false);
@@ -170,7 +149,6 @@ export function FrameworkFeatureCatalog({
       return [];
     }
 
-<<<<<<< HEAD
     const rowsFromFeatures = Object.entries(libraryDefinition.features ?? {}).map(
       ([featureKey, feature]) => ({
         featureKey,
@@ -192,27 +170,14 @@ export function FrameworkFeatureCatalog({
     const rows = rowsFromCapabilities.length > 0 ? rowsFromCapabilities : rowsFromFeatures;
 
     return rows.sort((left, right) => left.featureKey.localeCompare(right.featureKey));
-=======
-    return Object.entries(libraryDefinition.features)
-      .map(([featureKey, feature]) => ({
-        featureKey,
-        feature,
-      }))
-      .sort((left, right) => left.featureKey.localeCompare(right.featureKey));
->>>>>>> origin/main
   }, [libraryDefinition]);
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-<<<<<<< HEAD
           <CardTitle>Loading {label} coverage reference...</CardTitle>
           <CardDescription>Reading static framework definition asset from /framework-definitions.</CardDescription>
-=======
-          <CardTitle>Loading {label} catalog...</CardTitle>
-          <CardDescription>Reading static catalog asset from /framework-definitions.</CardDescription>
->>>>>>> origin/main
         </CardHeader>
       </Card>
     );
@@ -222,11 +187,7 @@ export function FrameworkFeatureCatalog({
     return (
       <Card>
         <CardHeader>
-<<<<<<< HEAD
           <CardTitle>Unable to load {label} coverage reference</CardTitle>
-=======
-          <CardTitle>Unable to load {label} catalog</CardTitle>
->>>>>>> origin/main
           <CardDescription>{errorMessage}</CardDescription>
         </CardHeader>
       </Card>
@@ -237,7 +198,6 @@ export function FrameworkFeatureCatalog({
     return (
       <Card>
         <CardHeader>
-<<<<<<< HEAD
           <CardTitle>{label} coverage reference is empty</CardTitle>
           <CardDescription>
             No {label} definitions were found in the static framework definition payload.
@@ -254,11 +214,6 @@ export function FrameworkFeatureCatalog({
           <CardTitle>{label} coverage reference is empty</CardTitle>
           <CardDescription>
             No {label} definitions were found in the published framework definition payload.
-=======
-          <CardTitle>{label} catalog is empty</CardTitle>
-          <CardDescription>
-            No {label} features were found in the static catalog payload.
->>>>>>> origin/main
           </CardDescription>
         </CardHeader>
       </Card>
@@ -270,11 +225,7 @@ export function FrameworkFeatureCatalog({
       <div className="flex flex-wrap items-center gap-3">
         <Badge variant="secondary">{normalizedLanguage}</Badge>
         <Badge variant="outline">{label}</Badge>
-<<<<<<< HEAD
         <Badge variant="outline">{featureRows.length} definitions</Badge>
-=======
-        <Badge variant="outline">{featureRows.length} features</Badge>
->>>>>>> origin/main
         {libraryDefinition.docs_url ? (
           <a
             className="text-sm text-primary hover:underline"
@@ -291,7 +242,6 @@ export function FrameworkFeatureCatalog({
         <p className="text-sm text-muted-foreground">{libraryDefinition.description}</p>
       ) : null}
 
-<<<<<<< HEAD
       <div className="space-y-4">
         <div className="overflow-x-auto pb-2">
           <table className="w-full min-w-[980px] text-sm">
@@ -345,55 +295,6 @@ export function FrameworkFeatureCatalog({
         </div>
 
         <Separator className="my-2" />
-=======
-      <div className="overflow-x-auto rounded-lg border border-fd-border">
-        <table className="w-full min-w-[980px] text-sm">
-          <thead className="bg-fd-muted/50 text-left">
-            <tr>
-              <th className="px-3 py-2 font-semibold">feature_key</th>
-              <th className="px-3 py-2 font-semibold">description</th>
-              <th className="px-3 py-2 font-semibold">concept</th>
-              <th className="px-3 py-2 font-semibold">target_level</th>
-              <th className="px-3 py-2 font-semibold">startpoint</th>
-              <th className="px-3 py-2 font-semibold">absolute_paths</th>
-              <th className="px-3 py-2 font-semibold">construct_query</th>
-            </tr>
-          </thead>
-          <tbody>
-            {featureRows.map((row) => (
-              <tr className="border-t border-fd-border align-top" key={row.featureKey}>
-                <td className="px-3 py-3 font-mono text-xs">{row.featureKey}</td>
-                <td className="px-3 py-3 text-xs text-fd-muted-foreground">{row.feature.description}</td>
-                <td className="px-3 py-3 font-mono text-xs">{row.feature.concept}</td>
-                <td className="px-3 py-3 font-mono text-xs">{row.feature.target_level}</td>
-                <td className="px-3 py-3 text-xs">
-                  {row.feature.startpoint ? (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      true
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                      false
-                    </span>
-                  )}
-                </td>
-                <td className="px-3 py-3">
-                  <ul className="list-disc space-y-1 pl-4">
-                    {row.feature.absolute_paths.map((absolutePath) => (
-                      <li className="font-mono text-xs" key={absolutePath}>
-                        {absolutePath}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="px-3 py-3 font-mono text-xs">
-                  {formatConstructQuery(row.feature.construct_query)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
->>>>>>> origin/main
       </div>
     </div>
   );

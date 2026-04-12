@@ -3,11 +3,7 @@
 This tool returns a mapping of file paths to detected data model definitions
 with the precise line spans that should be read. Detections combine:
 - Files directly marked as data model files (has_data_model=true)
-<<<<<<< HEAD
 - Framework features in the data-model family using structured capability/operation identity (for example `data_model.data_model` and `relational_database.db_data_model`) captured via USES_FEATURE
-=======
-- Framework features 'data_model' or 'db_data_model' captured via USES_FEATURE
->>>>>>> origin/main
 
 Each entry contains the data model identifier (class name, match text, etc.)
 paired with a tuple of (start_line, end_line).

@@ -3,7 +3,6 @@
     "zustand": {
       "docs_url": "https://zustand.docs.pmnd.rs/",
       "description": "Zustand lightweight client state container and vanilla store APIs.",
-<<<<<<< HEAD
       "capabilities": {
         "key_value_store": {
           "description": "Zustand store creation and Immer middleware patterns.",
@@ -31,30 +30,6 @@
               "notes": "Validator should confirm the `immer` call is imported from `zustand/middleware/immer` (or a bound alias) and used in Zustand store composition. Reject unrelated Immer helpers without matching import provenance."
             }
           }
-=======
-      "features": {
-        "store_definition": {
-          "description": "Zustand store creation using create/createStore APIs.",
-          "absolute_paths": [
-            "zustand.create",
-            "zustand.createStore",
-            "zustand/vanilla.createStore"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression",
-          "base_confidence": 0.69,
-          "notes": "Validator should confirm the callee is imported from `zustand` or `zustand/vanilla` (or an alias bound to those modules). Generic calls like `create(...)` or `api.createStore(...)` should be rejected unless import provenance clearly resolves to Zustand."
-        },
-        "immer_store": {
-          "description": "Zustand store mutators configured with Immer middleware.",
-          "absolute_paths": [
-            "zustand/middleware/immer.immer"
-          ],
-          "target_level": "function",
-          "concept": "CallExpression",
-          "base_confidence": 0.69,
-          "notes": "Validator should confirm the `immer` call is imported from `zustand/middleware/immer` (or a bound alias) and used in Zustand store composition. Reject unrelated Immer helpers without matching import provenance."
->>>>>>> origin/main
         }
       }
     }

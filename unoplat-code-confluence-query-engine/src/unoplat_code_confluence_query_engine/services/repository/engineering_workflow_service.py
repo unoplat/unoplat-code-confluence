@@ -34,11 +34,7 @@ _STAGE_ALIASES: dict[str, str] = {
     "typing": "type_check",
 }
 
-<<<<<<< HEAD
 CONFIDENCE_THRESHOLD: float = 0.70
-=======
-CONFIDENCE_THRESHOLD: float = 0.35
->>>>>>> origin/main
 
 
 def _normalize_repo_relative_posix_directory(
@@ -144,15 +140,10 @@ def _normalize_path(path: str) -> str:
             candidate = candidate.lstrip("/")
 
     normalized = PurePosixPath(candidate).as_posix()
-<<<<<<< HEAD
     if normalized == ".":
         raise ValueError(
             f"config_file '{path}' resolves to the current directory, not a file"
         )
-=======
-    if normalized == "." or normalized.startswith("../") or "/../" in normalized:
-        raise ValueError(f"invalid repo-relative path: {path}")
->>>>>>> origin/main
 
     return normalized
 
@@ -225,11 +216,7 @@ def normalize_commands(
             )
 
     # Filter by confidence threshold
-<<<<<<< HEAD
     filtered = [cmd for cmd in dedup.values() if cmd.confidence > CONFIDENCE_THRESHOLD]
-=======
-    filtered = [cmd for cmd in dedup.values() if cmd.confidence >= CONFIDENCE_THRESHOLD]
->>>>>>> origin/main
 
     return sorted(
         filtered,

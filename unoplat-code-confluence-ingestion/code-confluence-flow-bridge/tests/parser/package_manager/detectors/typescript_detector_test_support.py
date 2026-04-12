@@ -9,19 +9,13 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 )
 
 T3CODE_GIT_URL = "https://github.com/pingdotgg/t3code"
-<<<<<<< HEAD
 T3CODE_REF = "f9019cd63f3bc409344418a662d73a8ef065f439"
-=======
->>>>>>> origin/main
 EXPECTED_T3CODE_CODEBASE_FOLDERS = {
     "apps/desktop",
     "apps/marketing",
     "apps/server",
     "apps/web",
-<<<<<<< HEAD
     "packages/client-runtime",
-=======
->>>>>>> origin/main
     "packages/contracts",
     "packages/shared",
     "scripts",
@@ -31,10 +25,7 @@ EXPECTED_T3CODE_PROJECT_NAMES: dict[str, str] = {
     "apps/marketing": "@t3tools/marketing",
     "apps/server": "t3",
     "apps/web": "@t3tools/web",
-<<<<<<< HEAD
     "packages/client-runtime": "@t3tools/client-runtime",
-=======
->>>>>>> origin/main
     "packages/contracts": "@t3tools/contracts",
     "packages/shared": "@t3tools/shared",
     "scripts": "@t3tools/scripts",
@@ -44,10 +35,7 @@ EXPECTED_T3CODE_WORKSPACE_ROOTS: dict[str, str] = {
 }
 
 NX_REACT_TEMPLATE_GIT_URL = "https://github.com/nrwl/react-template"
-<<<<<<< HEAD
 NX_REACT_TEMPLATE_REF = "84a433ecc37c406bed2804b59a7fcfebb613b784"
-=======
->>>>>>> origin/main
 EXPECTED_NX_REACT_TEMPLATE_CODEBASE_FOLDERS = {
     "apps/api",
     "apps/shop",
@@ -77,10 +65,7 @@ EXPECTED_NX_REACT_TEMPLATE_WORKSPACE_ROOTS: dict[str, str] = {
 }
 
 HOPPSCOTCH_GIT_URL = "https://github.com/hoppscotch/hoppscotch"
-<<<<<<< HEAD
 HOPPSCOTCH_REF = "2837ef789a0e3955fbc0963f4c5a40f4fb7c3493"
-=======
->>>>>>> origin/main
 EXPECTED_HOPPSCOTCH_CODEBASE_FOLDERS = {
     "packages/codemirror-lang-graphql",
     "packages/hoppscotch-agent",
@@ -132,10 +117,7 @@ EXPECTED_HOPPSCOTCH_WORKSPACE_ROOTS.update(
 )
 
 BUN_RUNTIME_GIT_URL = "https://github.com/oven-sh/bun"
-<<<<<<< HEAD
 BUN_RUNTIME_REF = "f96981cee4a51f6fffbda73812daf9973d2597c8"
-=======
->>>>>>> origin/main
 EXPECTED_BUN_RUNTIME_CODEBASE_FOLDERS = {
     "bench",
     "packages/bun-debug-adapter-protocol",
@@ -205,10 +187,7 @@ EXPECTED_BUN_RUNTIME_WORKSPACE_ROOTS.update(
 )
 
 PRINTDESK_GIT_URL = "https://github.com/declanlscott/printdesk"
-<<<<<<< HEAD
 PRINTDESK_REF = "bebaabffa354d1a336b4300a18ca5b8deef6693d"
-=======
->>>>>>> origin/main
 EXPECTED_PRINTDESK_CODEBASE_FOLDERS = {
     "packages/clients/edge-proxy/frontend",
     "packages/clients/web",
@@ -234,10 +213,7 @@ EXPECTED_PRINTDESK_WORKSPACE_ROOTS: dict[str, str] = {
 }
 
 APOLLO_SERVER_GIT_URL = "https://github.com/apollographql/apollo-server"
-<<<<<<< HEAD
 APOLLO_SERVER_REF = "64c0e1bb5d79d571bf448c35aea0b31097e6ce9d"
-=======
->>>>>>> origin/main
 EXPECTED_APOLLO_SERVER_CODEBASE_FOLDERS = {
     "packages/cache-control-types",
     "packages/gateway-interface",
@@ -275,10 +251,7 @@ EXPECTED_APOLLO_SERVER_WORKSPACE_ROOTS.update(
 )
 
 SOCKETIO_GIT_URL = "https://github.com/socketio/socket.io"
-<<<<<<< HEAD
 SOCKETIO_REF = "4f7edb46ecff64f523ef14a1aa560fae9d7f431c"
-=======
->>>>>>> origin/main
 EXPECTED_SOCKETIO_CODEBASE_FOLDERS = {
     # Workspace members (from explicit paths in root package.json "workspaces")
     "packages/engine.io",

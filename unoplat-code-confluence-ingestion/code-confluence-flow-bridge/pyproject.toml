@@ -1,10 +1,6 @@
 [project]
 name = "code-confluence-flow-bridge"
-<<<<<<< HEAD
 version = "0.75.1"
-=======
-version = "0.74.1"
->>>>>>> origin/main
 description = "Bridge between Code Confluence User and Ingestion Workflow"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -66,13 +62,8 @@ dev = [
 
 [tool.uv.sources]
 #NOTE: use it for local development to instantly see changes in the schema and its impact
-<<<<<<< HEAD
 #unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
 unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.47.0" }
-=======
-unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
-#unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.46.0" }
->>>>>>> origin/main
 
 [tool.basedpyright]
 typeCheckingMode = "strict"

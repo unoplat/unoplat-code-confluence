@@ -217,22 +217,14 @@ class CodeConfluenceRelationalIngestion:
                 "file_path": file_path,
                 "feature_language": feature_row["feature_language"],
                 "feature_library": feature_row["feature_library"],
-<<<<<<< HEAD
                 "feature_capability_key": feature_row["feature_capability_key"],
                 "feature_operation_key": feature_row["feature_operation_key"],
-=======
-                "feature_key": feature_row["feature_key"],
->>>>>>> origin/main
                 "start_line": feature_row["start_line"],
                 "end_line": feature_row["end_line"],
                 "match_text": feature_row.get("match_text"),
                 "match_confidence": feature_row.get("match_confidence", 1.0),
-<<<<<<< HEAD
                 "validation_status": feature_row.get("validation_status")
                 or "completed",
-=======
-                "validation_status": feature_row.get("validation_status", "pending"),
->>>>>>> origin/main
                 "evidence_json": feature_row.get("evidence_json"),
             }
             stmt = insert(UnoplatCodeConfluenceFileFrameworkFeature).values(**payload)
@@ -241,12 +233,8 @@ class CodeConfluenceRelationalIngestion:
                     "file_path",
                     "feature_language",
                     "feature_library",
-<<<<<<< HEAD
                     "feature_capability_key",
                     "feature_operation_key",
-=======
-                    "feature_key",
->>>>>>> origin/main
                     "start_line",
                     "end_line",
                 ]
@@ -260,7 +248,6 @@ class CodeConfluenceRelationalIngestion:
 
     async def get_framework_features_for_language(
         self, language: str
-<<<<<<< HEAD
     ) -> List[tuple[str, str, str]]:
         stmt = select(
             FrameworkFeature.library,
@@ -269,11 +256,3 @@ class CodeConfluenceRelationalIngestion:
         ).where(FrameworkFeature.language == language)
         result = await self.session.execute(stmt)
         return [(row[0], row[1], row[2]) for row in result.all()]
-=======
-    ) -> List[tuple[str, str]]:
-        stmt = select(FrameworkFeature.library, FrameworkFeature.feature_key).where(
-            FrameworkFeature.language == language
-        )
-        result = await self.session.execute(stmt)
-        return [(row[0], row[1]) for row in result.all()]
->>>>>>> origin/main

@@ -7,11 +7,7 @@ from typing import DefaultDict, Dict, Iterable, List, Mapping, Sequence, Tuple
 
 from loguru import logger
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
-<<<<<<< HEAD
 from sqlalchemy import and_, select
-=======
-from sqlalchemy import select
->>>>>>> origin/main
 from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluenceCodebase,
     UnoplatCodeConfluenceFile,
@@ -20,7 +16,6 @@ from unoplat_code_confluence_commons.relational_models import (
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 
-<<<<<<< HEAD
 _DATA_MODEL_CAPABILITY_KEYS: tuple[str, ...] = (
     "data_model",
     "relational_database",
@@ -45,8 +40,6 @@ def _data_model_family_predicate(
         operation_column.in_(_DATA_MODEL_OPERATION_KEYS),
     )
 
-=======
->>>>>>> origin/main
 DataModelSpanMap = Dict[str, Dict[str, Tuple[int, int]]]
 
 
@@ -162,12 +155,8 @@ async def db_get_data_model_files(codebase_path: str) -> DataModelSpanMap:
                 UnoplatCodeConfluenceFileFrameworkFeature.start_line,
                 UnoplatCodeConfluenceFileFrameworkFeature.end_line,
                 UnoplatCodeConfluenceFileFrameworkFeature.match_text,
-<<<<<<< HEAD
                 UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key,
                 UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key,
-=======
-                UnoplatCodeConfluenceFileFrameworkFeature.feature_key,
->>>>>>> origin/main
             )
             .join(
                 UnoplatCodeConfluenceFile,
@@ -181,19 +170,13 @@ async def db_get_data_model_files(codebase_path: str) -> DataModelSpanMap:
             )
             .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
             .where(
-<<<<<<< HEAD
                 _data_model_family_predicate(
                     UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key,
                     UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key,
-=======
-                UnoplatCodeConfluenceFileFrameworkFeature.feature_key.in_(
-                    ["data_model", "db_data_model"]
->>>>>>> origin/main
                 )
             )
         )
         feature_result = await session.execute(feature_stmt)
-<<<<<<< HEAD
         for (
             file_path,
             start_line,
@@ -206,20 +189,11 @@ async def db_get_data_model_files(codebase_path: str) -> DataModelSpanMap:
                 str(feature_capability_key),
                 str(feature_operation_key),
             )
-=======
-        for file_path, start_line, end_line, match_text, feature_key in (
-            feature_result.tuples().all()
-        ):
->>>>>>> origin/main
             if start_line is None or end_line is None:
                 continue
             identifier = (match_text or "").strip()
             if not identifier:
-<<<<<<< HEAD
                 identifier = f"feature:{feature_key_str}:{start_line}"
-=======
-                identifier = f"feature:{feature_key}:{start_line}"
->>>>>>> origin/main
             spans.append(
                 _DataModelSpan(
                     file_path=file_path,

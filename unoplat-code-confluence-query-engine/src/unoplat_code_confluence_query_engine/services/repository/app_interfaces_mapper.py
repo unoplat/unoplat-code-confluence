@@ -14,7 +14,6 @@ from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     OutboundKind,
 )
 
-<<<<<<< HEAD
 _DATA_MODEL_CAPABILITY_KEYS: frozenset[str] = frozenset(
     {
         "data_model",
@@ -35,17 +34,6 @@ INBOUND_FEATURE_MAPPING: dict[str, InboundKind] = {
     "webhook_receiver": InboundKind.WEBHOOK,
     "message_consumer": InboundKind.MSG_CONSUMER,
     "scheduler": InboundKind.SCHEDULE,
-=======
-# Mapping from feature_key to InboundKind
-INBOUND_FEATURE_MAPPING: dict[str, InboundKind] = {
-    "http_endpoint": InboundKind.HTTP,
-    "api_router": InboundKind.HTTP,
-    "graphql_resolver": InboundKind.GRAPHQL,
-    "grpc_service": InboundKind.GRPC,
-    "websocket_endpoint": InboundKind.WEBSOCKET,
-    "webhook_receiver": InboundKind.WEBHOOK,
-    "message_consumer": InboundKind.MSG_CONSUMER,
->>>>>>> origin/main
     "scheduler_trigger": InboundKind.SCHEDULE,
     "task_definition": InboundKind.SCHEDULE,
     "cli_command": InboundKind.CLI,
@@ -58,11 +46,7 @@ INBOUND_FEATURE_MAPPING: dict[str, InboundKind] = {
     "mcp_resource": InboundKind.MCP_SERVER,
 }
 
-<<<<<<< HEAD
 # Mapping from structured capability/operation values to OutboundKind
-=======
-# Mapping from feature_key to OutboundKind
->>>>>>> origin/main
 OUTBOUND_FEATURE_MAPPING: dict[str, OutboundKind] = {
     "http_client": OutboundKind.HTTP,
     "db_sql": OutboundKind.DB_SQL,
@@ -71,12 +55,8 @@ OUTBOUND_FEATURE_MAPPING: dict[str, OutboundKind] = {
     "cache_operation": OutboundKind.CACHE,
     "task_queue_enqueue": OutboundKind.QUEUE_TASK,
     "graphql_client": OutboundKind.GRAPHQL,
-<<<<<<< HEAD
     "rpc_client": OutboundKind.RPC_GENERIC,
     "mcp_client": OutboundKind.MCP_CLIENT,
-=======
-    "grpc_client": OutboundKind.GRPC,
->>>>>>> origin/main
     "websocket_client": OutboundKind.WEBSOCKET_CLIENT,
     "file_storage": OutboundKind.FILE_STORAGE,
     "email_service": OutboundKind.EMAIL,
@@ -89,7 +69,6 @@ OUTBOUND_FEATURE_MAPPING: dict[str, OutboundKind] = {
 }
 
 
-<<<<<<< HEAD
 def _compose_feature_key(capability_key: str, operation_key: str) -> str:
     return f"{capability_key}.{operation_key}"
 
@@ -112,26 +91,6 @@ def convert_to_relative_path(absolute_path: str, codebase_path: str) -> str:
     normalized_codebase = codebase_path.rstrip("/")
 
     if absolute_path.startswith(normalized_codebase):
-=======
-def convert_to_relative_path(absolute_path: str, codebase_path: str) -> str:
-    """Convert absolute file path to codebase-relative path.
-
-    Args:
-        absolute_path: Absolute file path from database
-        codebase_path: Root path of the codebase
-
-    Returns:
-        Relative path from codebase root
-    """
-    if not absolute_path or not codebase_path:
-        return absolute_path
-
-    # Normalize paths by removing trailing slashes
-    normalized_codebase = codebase_path.rstrip("/")
-
-    if absolute_path.startswith(normalized_codebase):
-        # Remove codebase prefix and leading slash
->>>>>>> origin/main
         relative = absolute_path[len(normalized_codebase) :]
         return relative.lstrip("/")
 
@@ -139,42 +98,19 @@ def convert_to_relative_path(absolute_path: str, codebase_path: str) -> str:
 
 
 def get_match_identifier(
-<<<<<<< HEAD
-=======
-    feature_key: str,
->>>>>>> origin/main
     match_text: Optional[str],
     start_line: int,
     end_line: int,
 ) -> str:
-<<<<<<< HEAD
     """Get a match identifier preferring match_text, falling back to line span."""
     if match_text and match_text.strip():
         return f"L{start_line}: {match_text.strip()}"
 
-=======
-    """Get a match identifier preferring match_text, falling back to line span.
-
-    Args:
-        feature_key: The feature key for context
-        match_text: Optional match text from database
-        start_line: Start line number
-        end_line: End line number
-
-    Returns:
-        Match identifier string
-    """
-    if match_text and match_text.strip():
-        return f"L{start_line}: {match_text.strip()}"
-
-    # Fallback to line span format
->>>>>>> origin/main
     if start_line == end_line:
         return f"L{start_line}"
     return f"L{start_line}-L{end_line}"
 
 
-<<<<<<< HEAD
 def _resolve_inbound_kind(
     capability_key: str,
     operation_key: str,
@@ -197,27 +133,11 @@ def _resolve_outbound_kind(
     return None
 
 
-=======
->>>>>>> origin/main
 def build_interfaces_from_features(
     features: list[dict[str, object]],
     codebase_path: str,
 ) -> Interfaces:
-<<<<<<< HEAD
     """Build Interfaces model from framework features."""
-=======
-    """Build Interfaces model from framework features.
-
-    Args:
-        features: List of feature dicts from database query
-        codebase_path: Root path of the codebase for relative path conversion
-
-    Returns:
-        Interfaces model with inbound, outbound, and internal constructs
-    """
-    # Group features by classification and (library, kind)
-    # Use sets for deduplication per file
->>>>>>> origin/main
     inbound_groups: dict[tuple[str, InboundKind], dict[str, set[str]]] = defaultdict(
         lambda: defaultdict(set)
     )
@@ -229,7 +149,6 @@ def build_interfaces_from_features(
     )
 
     for feature in features:
-<<<<<<< HEAD
         capability_key = str(feature.get("feature_capability_key", "")).strip()
         operation_key = str(feature.get("feature_operation_key", "")).strip()
         if not capability_key or not operation_key:
@@ -238,9 +157,6 @@ def build_interfaces_from_features(
             continue
 
         feature_key = _compose_feature_key(capability_key, operation_key)
-=======
-        feature_key = str(feature.get("feature_key", ""))
->>>>>>> origin/main
         library = str(feature.get("library", "")) if feature.get("library") else None
         file_path = str(feature.get("file_path", ""))
         start_line = int(feature.get("start_line", 0))  # type: ignore[arg-type]
@@ -248,7 +164,6 @@ def build_interfaces_from_features(
         match_text_raw = feature.get("match_text")
         match_text = str(match_text_raw) if match_text_raw else None
 
-<<<<<<< HEAD
         relative_path = convert_to_relative_path(file_path, codebase_path)
         match_identifier = get_match_identifier(
             match_text,
@@ -271,31 +186,6 @@ def build_interfaces_from_features(
         key = (library or "", feature_key)
         internal_groups[key][relative_path].add(match_identifier)
 
-=======
-        # Convert to relative path
-        relative_path = convert_to_relative_path(file_path, codebase_path)
-
-        # Get match identifier
-        match_identifier = get_match_identifier(
-            feature_key, match_text, start_line, end_line
-        )
-
-        # Classify and group
-        if feature_key in INBOUND_FEATURE_MAPPING:
-            kind = INBOUND_FEATURE_MAPPING[feature_key]
-            key = (library or "", kind)
-            inbound_groups[key][relative_path].add(match_identifier)
-        elif feature_key in OUTBOUND_FEATURE_MAPPING:
-            kind = OUTBOUND_FEATURE_MAPPING[feature_key]
-            key = (library or "", kind)
-            outbound_groups[key][relative_path].add(match_identifier)
-        else:
-            # Internal construct (unmapped feature_key)
-            key = (library or "", feature_key)
-            internal_groups[key][relative_path].add(match_identifier)
-
-    # Build construct lists
->>>>>>> origin/main
     inbound_constructs: list[InboundConstruct] = []
     for (library, kind), file_matches in inbound_groups.items():
         match_pattern: dict[str, list[str]] = {
@@ -339,8 +229,4 @@ def build_interfaces_from_features(
         inbound_constructs=inbound_constructs,
         outbound_constructs=outbound_constructs,
         internal_constructs=internal_constructs,
-<<<<<<< HEAD
     )
-=======
-    )
->>>>>>> origin/main

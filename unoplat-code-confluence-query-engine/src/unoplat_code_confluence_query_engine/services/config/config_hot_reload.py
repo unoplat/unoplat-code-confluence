@@ -96,21 +96,13 @@ def _mark_if_config_changed(
             if changed:
                 session.info[_CHANGED_FLAG] = True
                 logger.debug(
-<<<<<<< HEAD
                     "AI config update detected (changed fields: {}), marking for rebuild",
                     changed,
-=======
-                    f"AI config update detected (changed fields: {changed}), marking for rebuild"
->>>>>>> origin/main
                 )
                 return
 
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Error in config change detection: {}", e)
-=======
-        logger.error(f"Error in config change detection: {e}")
->>>>>>> origin/main
         # Don't raise - event handlers should not break the transaction
 
 
@@ -145,11 +137,7 @@ def _invalidate_config_on_commit(session: Session) -> None:
             session.info.pop(_CHANGED_FLAG, None)
 
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Error in config invalidation: {}", e)
-=======
-        logger.error(f"Error in config invalidation: {e}")
->>>>>>> origin/main
         # Don't raise - event handlers should not break post-commit cleanup
 
 
@@ -218,11 +206,7 @@ async def get_current_model(
         return _current_model, _current_model_settings
 
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Error rebuilding AI model: {}", e)
-=======
-        logger.error(f"Error rebuilding AI model: {e}")
->>>>>>> origin/main
         _current_model = None
         _config_invalidated = False
         return None, None
@@ -263,11 +247,7 @@ def unregister_orm_events() -> None:
         logger.info("AI model config hot-reload events unregistered")
 
     except Exception as e:
-<<<<<<< HEAD
         logger.warning("Error unregistering ORM events: {}", e)
-=======
-        logger.warning(f"Error unregistering ORM events: {e}")
->>>>>>> origin/main
 
 
 async def update_app_agents(app: "FastAPI", session: AsyncSession) -> None:
@@ -298,11 +278,7 @@ async def update_app_agents(app: "FastAPI", session: AsyncSession) -> None:
         )
 
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Error checking model configuration: {}", e)
-=======
-        logger.error(f"Error checking model configuration: {e}")
->>>>>>> origin/main
         raise
 
 

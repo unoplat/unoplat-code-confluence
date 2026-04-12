@@ -48,21 +48,12 @@ from src.code_confluence_flow_bridge.models.detection.typescript.rules import (
     PnpmWorkspaceConfig,
     WorkspacePackagesConfig,
 )
-<<<<<<< HEAD
 from src.code_confluence_flow_bridge.parser.package_manager.shared.git_utils import (
     clone_repo_if_missing,
 )
 from src.code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
     OrderedDetector,
 )
-=======
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
-    OrderedDetector,
-)
-from src.code_confluence_flow_bridge.parser.package_manager.shared.git_utils import (
-    clone_repo_if_missing,
-)
->>>>>>> origin/main
 from src.code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
     find_files,
     find_files_with_content,
@@ -121,11 +112,7 @@ class TypeScriptRipgrepDetector:
         return await load_typescript_language_rules(self.rules_path)
 
     async def detect_codebases(
-<<<<<<< HEAD
         self, git_url: str, github_token: str, *, ref: Optional[str] = None
-=======
-        self, git_url: str, github_token: str
->>>>>>> origin/main
     ) -> list[CodebaseConfig]:
         """Detect all TypeScript codebases in a repository and return their configurations.
 
@@ -154,10 +141,7 @@ class TypeScriptRipgrepDetector:
                 git_url,
                 github_token,
                 depth=1,
-<<<<<<< HEAD
                 ref=ref,
-=======
->>>>>>> origin/main
             )
             repo_path = str(cloned_path)
 

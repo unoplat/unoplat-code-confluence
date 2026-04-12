@@ -89,11 +89,7 @@ def cleanup_postgresql_sync(session: Session) -> None:
             session.rollback()
             return
         session.rollback()
-<<<<<<< HEAD
         logger.error("Failed to cleanup PostgreSQL: {}", e)
-=======
-        logger.error(f"Failed to cleanup PostgreSQL: {e}")
->>>>>>> origin/main
         raise
 
 
@@ -113,11 +109,7 @@ def create_test_tables(port: int) -> None:
         SQLBase.metadata.create_all(engine)
         logger.debug("Created test database tables successfully")
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Failed to create test tables: {}", e)
-=======
-        logger.error(f"Failed to create test tables: {e}")
->>>>>>> origin/main
         raise
     finally:
         engine.dispose()

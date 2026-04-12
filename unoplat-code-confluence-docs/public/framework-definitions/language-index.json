@@ -1,11 +1,6 @@
 {
-<<<<<<< HEAD
-  "generated_at": "2026-04-10T12:38:17+05:30",
+  "generated_at": "2026-04-12T17:40:09+05:30",
   "schema_version": "v4",
-=======
-  "generated_at": "2026-03-08T09:57:08+05:30",
-  "schema_version": "v3",
->>>>>>> origin/main
   "languages": [
     {
       "language": "python",
@@ -22,12 +17,9 @@
     {
       "language": "typescript",
       "libraries": [
-<<<<<<< HEAD
         "firebase",
         "lit",
-=======
         "litellm",
->>>>>>> origin/main
         "nextjs",
         "swr",
         "zustand"

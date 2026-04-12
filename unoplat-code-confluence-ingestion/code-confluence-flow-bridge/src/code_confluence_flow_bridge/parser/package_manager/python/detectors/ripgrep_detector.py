@@ -25,12 +25,6 @@ from src.code_confluence_flow_bridge.models.detection.shared.inventory import Fi
 from src.code_confluence_flow_bridge.models.detection.shared.rules import (
     LanguageRules,
 )
-<<<<<<< HEAD
-=======
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
-    OrderedDetector,
-)
->>>>>>> origin/main
 from src.code_confluence_flow_bridge.parser.package_manager.python.detectors.ripgrep_utils import (
     find_python_mains,
 )
@@ -40,12 +34,9 @@ from src.code_confluence_flow_bridge.parser.package_manager.python.detectors.rul
 from src.code_confluence_flow_bridge.parser.package_manager.shared.git_utils import (
     clone_repo_if_missing,
 )
-<<<<<<< HEAD
 from src.code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
     OrderedDetector,
 )
-=======
->>>>>>> origin/main
 from src.code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
     find_files,
 )
@@ -89,11 +80,7 @@ class PythonRipgrepDetector:
         self._initialized = True
 
     async def detect_codebases(
-<<<<<<< HEAD
         self, git_url: str, github_token: str, *, ref: Optional[str] = None
-=======
-        self, git_url: str, github_token: str
->>>>>>> origin/main
     ) -> List[CodebaseConfig]:
         """
         Main detection method to detect Python codebases from a GitHub repository URL or local path.
@@ -123,10 +110,7 @@ class PythonRipgrepDetector:
                 git_url,
                 github_token,
                 depth=1,
-<<<<<<< HEAD
                 ref=ref,
-=======
->>>>>>> origin/main
             )
             repo_path = str(cloned_path)
 

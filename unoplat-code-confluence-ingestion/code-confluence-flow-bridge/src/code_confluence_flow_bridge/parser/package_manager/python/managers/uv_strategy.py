@@ -503,11 +503,7 @@ class UvStrategy(PackageManagerStrategy):
                     dependency.subdirectory = subdirectory
 
         except Exception as e:
-<<<<<<< HEAD
             logger.warning("Error processing git source for {}: {}", package_name, e)
-=======
-            logger.warning(f"Error processing git source for {package_name}: {str(e)}")
->>>>>>> origin/main
 
     def _ensure_group(
         self,

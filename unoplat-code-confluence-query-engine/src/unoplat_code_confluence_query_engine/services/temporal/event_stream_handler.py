@@ -211,11 +211,7 @@ async def event_stream_handler(
                 result_preview,
             )
         elif isinstance(event, FinalResultEvent):
-<<<<<<< HEAD
             logger.info("[{}] FINAL RESULT: tool_name={}", codebase, event.tool_name)
-=======
-            logger.info(f"[{codebase}] FINAL RESULT: tool_name={event.tool_name}")
->>>>>>> origin/main
 
         if _DEBUG_EVENT_TRACE:
             logger.debug(

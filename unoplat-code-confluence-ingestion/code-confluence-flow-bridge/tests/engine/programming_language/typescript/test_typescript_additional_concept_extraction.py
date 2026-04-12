@@ -2,22 +2,16 @@
 
 from typing import cast
 
-<<<<<<< HEAD
 from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_framework_query_builder import (
     TypeScriptFrameworkQueryBuilder,
 )
-=======
->>>>>>> origin/main
 from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
     TypeScriptSourceContext,
 )
 from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_tree_sitter_framework_detector import (
     TypeScriptTreeSitterFrameworkDetector,
 )
-<<<<<<< HEAD
 import tree_sitter
-=======
->>>>>>> origin/main
 from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
@@ -33,12 +27,8 @@ def _build_call_spec(
     *, feature_key: str, absolute_paths: list[str], library: str = "zustand"
 ) -> FeatureSpec:
     return FeatureSpec(
-<<<<<<< HEAD
         capability_key=feature_key,
         operation_key=feature_key,
-=======
-        feature_key=feature_key,
->>>>>>> origin/main
         library=library,
         description="Test call-expression feature",
         absolute_paths=absolute_paths,
@@ -49,7 +39,6 @@ def _build_call_spec(
     )
 
 
-<<<<<<< HEAD
 def _build_function_definition_spec() -> FeatureSpec:
     return FeatureSpec(
         capability_key="route",
@@ -64,8 +53,6 @@ def _build_function_definition_spec() -> FeatureSpec:
     )
 
 
-=======
->>>>>>> origin/main
 def test_detector_detects_named_import_call_expression() -> None:
     source_code = """
 import { createStore } from "zustand/vanilla"
@@ -85,10 +72,6 @@ const store = createStore(() => ({}))
     assert len(detections) == 1
     detection = detections[0]
     call_detection = cast(CallExpressionInfo, detection)
-<<<<<<< HEAD
-=======
-    assert detection.feature_key == "store_definition"
->>>>>>> origin/main
     assert detection.metadata["concept"] == "CallExpression"
     assert call_detection.callee == "createStore"
     assert detection.metadata["match_confidence"] == spec.base_confidence
@@ -98,7 +81,6 @@ const store = createStore(() => ({}))
     assert detection.metadata["call_match_policy_version"] == "v1_import_bound"
 
 
-<<<<<<< HEAD
 def test_function_definition_query_emits_single_raw_match_for_exported_function() -> (
     None
 ):
@@ -135,8 +117,6 @@ export async function GET(_request: NextRequest): Promise<Response> {
     assert export_statement.lstrip().startswith("export async function GET")
 
 
-=======
->>>>>>> origin/main
 def test_detector_rejects_unbound_member_collision_for_named_import() -> None:
     source_code = """
 import { createStore } from "zustand/vanilla"
@@ -199,12 +179,8 @@ const result = useSWR("/api/search", fetcher)
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
-<<<<<<< HEAD
         capability_key="data",
         operation_key="fetch",
-=======
-        feature_key="data_fetch",
->>>>>>> origin/main
         library="swr",
         description="SWR default export hook",
         absolute_paths=["swr.default"],
@@ -236,14 +212,9 @@ class SearchWidget extends LitElement {}
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
-<<<<<<< HEAD
         capability_key="web",
         operation_key="component",
         library="lit",
-=======
-        feature_key="web_component",
-        library="litellm",
->>>>>>> origin/main
         description="LitElement inheritance",
         absolute_paths=["lit.LitElement"],
         target_level=TargetLevel.CLASS,
@@ -269,14 +240,9 @@ class SearchWidget extends foo.LitElement {}
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
-<<<<<<< HEAD
         capability_key="web",
         operation_key="component",
         library="lit",
-=======
-        feature_key="web_component",
-        library="litellm",
->>>>>>> origin/main
         description="LitElement inheritance",
         absolute_paths=["lit.LitElement"],
         target_level=TargetLevel.CLASS,
@@ -299,14 +265,9 @@ class SearchWidget extends BaseElement {}
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
-<<<<<<< HEAD
         capability_key="web",
         operation_key="component",
         library="lit",
-=======
-        feature_key="web_component",
-        library="litellm",
->>>>>>> origin/main
         description="LitElement inheritance",
         absolute_paths=["lit.LitElement"],
         target_level=TargetLevel.CLASS,
@@ -335,14 +296,9 @@ class SearchWidget {
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
-<<<<<<< HEAD
         capability_key="reactive",
         operation_key="property",
         library="lit",
-=======
-        feature_key="reactive_property",
-        library="litellm",
->>>>>>> origin/main
         description="Lit decorators",
         absolute_paths=["lit/decorators.js.property", "lit/decorators.js.state"],
         target_level=TargetLevel.FUNCTION,

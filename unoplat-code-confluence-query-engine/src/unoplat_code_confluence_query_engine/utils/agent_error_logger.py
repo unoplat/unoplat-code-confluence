@@ -331,8 +331,4 @@ def log_agent_error(
                 summary,
             )
         except Exception as e:  # noqa: BLE001
-<<<<<<< HEAD
             logger.debug("Failed to serialize nodes for error context: {}", e)
-=======
-            logger.debug(f"Failed to serialize nodes for error context: {e}")
->>>>>>> origin/main

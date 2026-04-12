@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 """Unit tests for app interface structured feature mapping."""
-=======
-"""Unit tests for app interface feature-key mapping."""
->>>>>>> origin/main
 
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     InboundKind,
@@ -13,7 +9,6 @@ from unoplat_code_confluence_query_engine.services.repository.app_interfaces_map
 )
 
 
-<<<<<<< HEAD
 def test_build_interfaces_maps_structured_inbound_and_outbound_features() -> None:
     features = [
         {
@@ -29,28 +24,12 @@ def test_build_interfaces_maps_structured_inbound_and_outbound_features() -> Non
             "library": "fastmcp",
             "feature_capability_key": "mcp_server",
             "feature_operation_key": "mcp_tool",
-=======
-def test_build_interfaces_maps_new_inbound_and_outbound_feature_keys() -> None:
-    features = [
-        {
-            "library": "celery",
-            "feature_key": "task_definition",
-            "file_path": "/repo/tasks.py",
-            "start_line": 10,
-            "end_line": 12,
-            "match_text": "@shared_task",
-        },
-        {
-            "library": "fastmcp",
-            "feature_key": "mcp_tool",
->>>>>>> origin/main
             "file_path": "/repo/mcp_server.py",
             "start_line": 5,
             "end_line": 8,
             "match_text": "@mcp.tool()",
         },
         {
-<<<<<<< HEAD
             "library": "fastmcp",
             "feature_capability_key": "mcp_client",
             "feature_operation_key": "toolset_client",
@@ -63,16 +42,11 @@ def test_build_interfaces_maps_new_inbound_and_outbound_feature_keys() -> None:
             "library": "litellm",
             "feature_capability_key": "llm_inference",
             "feature_operation_key": "llm_completion",
-=======
-            "library": "litellm",
-            "feature_key": "llm_completion",
->>>>>>> origin/main
             "file_path": "/repo/llm.py",
             "start_line": 20,
             "end_line": 20,
             "match_text": "completion(model='gpt-4o-mini')",
         },
-<<<<<<< HEAD
         {
             "library": "httpx",
             "feature_capability_key": "http_client",
@@ -82,8 +56,6 @@ def test_build_interfaces_maps_new_inbound_and_outbound_feature_keys() -> None:
             "end_line": 31,
             "match_text": "await client.get('/api')",
         },
-=======
->>>>>>> origin/main
     ]
 
     interfaces = build_interfaces_from_features(features, "/repo")
@@ -97,7 +69,6 @@ def test_build_interfaces_maps_new_inbound_and_outbound_feature_keys() -> None:
         for construct in interfaces.outbound_constructs
     }
 
-<<<<<<< HEAD
     assert ("fastapi", InboundKind.HTTP) in inbound_pairs
     assert ("fastmcp", InboundKind.MCP_SERVER) in inbound_pairs
     assert ("fastmcp", OutboundKind.MCP_CLIENT) in outbound_pairs
@@ -132,23 +103,14 @@ def test_build_interfaces_drops_data_model_families() -> None:
     assert interfaces.inbound_constructs == []
     assert interfaces.outbound_constructs == []
     assert interfaces.internal_constructs == []
-=======
-    assert ("celery", InboundKind.SCHEDULE) in inbound_pairs
-    assert ("fastmcp", InboundKind.MCP_SERVER) in inbound_pairs
-    assert ("litellm", OutboundKind.LLM_INFERENCE) in outbound_pairs
->>>>>>> origin/main
 
 
 def test_build_interfaces_keeps_unmapped_feature_as_internal() -> None:
     features = [
         {
             "library": "custom",
-<<<<<<< HEAD
             "feature_capability_key": "custom_capability",
             "feature_operation_key": "unknown_feature",
-=======
-            "feature_key": "unknown_feature",
->>>>>>> origin/main
             "file_path": "/repo/custom.py",
             "start_line": 1,
             "end_line": 1,
@@ -161,8 +123,4 @@ def test_build_interfaces_keeps_unmapped_feature_as_internal() -> None:
     assert len(interfaces.inbound_constructs) == 0
     assert len(interfaces.outbound_constructs) == 0
     assert len(interfaces.internal_constructs) == 1
-<<<<<<< HEAD
     assert interfaces.internal_constructs[0].kind == "custom_capability.unknown_feature"
-=======
-    assert interfaces.internal_constructs[0].kind == "unknown_feature"
->>>>>>> origin/main

@@ -240,16 +240,11 @@ class GithubHelper:
                             repo_path,
                         )
                     except Exception as git_err:
-<<<<<<< HEAD
-=======
-                        # Log and re-raise for outer handler
->>>>>>> origin/main
                         logger.error(
                             "git pull failed | repo_path={} | error={} | status=failed",
                             repo_path,
                             str(git_err),
                         )
-<<<<<<< HEAD
                         # If pull created merge conflicts, recover by resetting to remote
                         if _has_unmerged_files(local_repo):
                             logger.warning(
@@ -263,9 +258,6 @@ class GithubHelper:
                             )
                         else:
                             raise
-=======
-                        raise
->>>>>>> origin/main
 
                     logger.info(
                         "Repository updated successfully | repo_path={} | status=success",

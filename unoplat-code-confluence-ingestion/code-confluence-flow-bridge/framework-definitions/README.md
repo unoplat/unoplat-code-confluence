@@ -1,20 +1,12 @@
 # Framework Definitions
 
-<<<<<<< HEAD
 This directory contains JSON definitions for programming language frameworks and libraries that follow the custom grammar schema (v4).
-=======
-This directory contains JSON definitions for programming language frameworks and libraries that follow the custom grammar schema (v3).
->>>>>>> origin/main
 
 ## Directory Structure
 
 ```
 framework-definitions/
-<<<<<<< HEAD
 ├── schema.json (JSON Schema v4 for validation)
-=======
-├── schema.json (JSON Schema v3 for validation)
->>>>>>> origin/main
 ├── python/
 │   ├── celery.json
 │   ├── fastapi.json
@@ -31,22 +23,15 @@ framework-definitions/
 └── README.md
 ```
 
-<<<<<<< HEAD
 ## Schema Format (v4)
 
 Each JSON file follows the `schema.json` schema with a capability-operation hierarchy:
-=======
-## Schema Format (v3)
-
-Each JSON file follows the `schema.json` schema with the structure:
->>>>>>> origin/main
 
 ```json
 {
   "language": {
     "library": {
       "docs_url": "https://...",
-<<<<<<< HEAD
       "capabilities": {
         "capability_key": {
           "description": "Capability description",
@@ -63,19 +48,6 @@ Each JSON file follows the `schema.json` schema with the structure:
                 "export_name_regex": "pattern"
               }
             }
-=======
-      "features": {
-        "feature_key": {
-          "description": "Human-readable description",
-          "absolute_paths": ["fully.qualified.symbol"],
-          "target_level": "function|class",
-          "concept": "AnnotationLike|CallExpression|Inheritance|FunctionDefinition",
-          "base_confidence": 0.85,
-          "construct_query": {
-            "method_regex": "pattern",
-            "function_name_regex": "pattern",
-            "export_name_regex": "pattern"
->>>>>>> origin/main
           }
         }
       }
@@ -84,7 +56,6 @@ Each JSON file follows the `schema.json` schema with the structure:
 }
 ```
 
-<<<<<<< HEAD
 ### Key v4 Concepts
 
 - **Capability families**: The `capability_key` is constrained by the `CapabilityFamily` enum (e.g. `http_endpoint`, `relational_database`, `llm_inference`, `data_validation`, `background_worker`). Each capability groups related operations under one logical family.
@@ -92,9 +63,6 @@ Each JSON file follows the `schema.json` schema with the structure:
 - **Operations as runtime contracts**: Each operation inside a capability represents one executable runtime contract -- a single decorator, call-expression, inheritance relationship, or function definition that the detection engine can match.
 
 ## Detection Heuristics (v4)
-=======
-## Detection Heuristics (v3)
->>>>>>> origin/main
 
 Detection is **import-gated** and **regex-based**:
 - `absolute_paths` must be present in the file imports for a match to occur

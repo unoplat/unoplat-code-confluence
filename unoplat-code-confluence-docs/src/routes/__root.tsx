@@ -54,7 +54,6 @@ const CustomLink = forwardRef<HTMLAnchorElement, CustomLinkProps>(
       );
     }
 
-<<<<<<< HEAD
     // Split hash fragment from href so TanStack Router receives it
     // via its dedicated `hash` prop instead of embedded in `to`
     const hashIndex = href.indexOf("#");
@@ -70,11 +69,6 @@ const CustomLink = forwardRef<HTMLAnchorElement, CustomLinkProps>(
         preload={prefetch ? "intent" : false}
         {...props}
       >
-=======
-    // Use TanStack Router Link for route navigation
-    return (
-      <Link ref={ref} to={href} preload={prefetch ? "intent" : false} {...props}>
->>>>>>> origin/main
         {children}
       </Link>
     );

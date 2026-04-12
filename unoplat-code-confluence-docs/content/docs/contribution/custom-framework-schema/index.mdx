@@ -48,11 +48,7 @@ For any coding task, an agent or human needs a reliable blueprint of the codebas
 4. **Weak verifiability**: behavior is hard to validate in CI because rules are implicit instead of contract-driven.
 5. **Lack of open standards**: without an open, versioned schema, definitions are harder to share, interoperate, and evolve safely.
 
-<<<<<<< HEAD
 We therefore need a deterministic, schema-first standard that defines framework and library capabilities and operations with explicit constraints and validation rules, enabling consistent interface discovery across any tech ecosystem.
-=======
-We therefore need a deterministic, schema-first standard that defines framework and library features with explicit constraints and validation rules, enabling consistent interface discovery across any tech ecosystem.
->>>>>>> origin/main
 
 
 ## Goals
@@ -284,11 +280,7 @@ Each **operation** is the precise detection contract that tree-sitter and downst
       type: 'enum',
     },
     CallExpression: {
-<<<<<<< HEAD
       description: 'Function or method calls that create, configure, or invoke behavior',
-=======
-      description: 'Function or method calls that create or configure objects',
->>>>>>> origin/main
       type: 'enum',
     },
     Inheritance: {
@@ -607,7 +599,6 @@ For the full maintained definition, see `framework-definitions/typescript/fireba
 
 ## Validation Rules
 
-<<<<<<< HEAD
 <Callout type="warn" title="Mandatory Constraints">
   The schema enforces these **mandatory constraints**:
   - Capability keys must match the [published capability enum](#published-capability-enum) (for example `rest_api`, `authentication`, `relational_database`)
@@ -620,13 +611,6 @@ For the full maintained definition, see `framework-definitions/typescript/fireba
   - **FunctionDefinition** operations *must* use `target_level: "function"`
   - `base_confidence` is **only** allowed on `CallExpression` operations; the schema rejects it on other concepts
 
-=======
-<Callout type="warn" title="Concept-Target Level Constraints">
-  The schema enforces these **mandatory constraints**:
-  - **CallExpression** features *must* use `target_level: "function"`
-  - **Inheritance** features *must* use `target_level: "class"`
-  
->>>>>>> origin/main
   Violations will cause schema validation to fail.
 </Callout>
 
@@ -636,7 +620,6 @@ For the full maintained definition, see `framework-definitions/typescript/fireba
   type={{
     absolute_paths: {
       description: 'Must follow the pattern: module.submodule.symbol (e.g., fastapi.FastAPI)',
-<<<<<<< HEAD
       type: 'regex: ^(?:@?[A-Za-z_][\\w-]*)(?:[./:][A-Za-z_][\\w-]*)*\\.[A-Za-z_][\\w]*$',
     },
     capability_keys: {
@@ -646,9 +629,6 @@ For the full maintained definition, see `framework-definitions/typescript/fireba
     operation_keys: {
       description: 'Contributor-chosen identifiers; any non-empty string is valid (e.g., get, post, db_data_model)',
       type: 'string (non-empty)',
-=======
-      type: 'regex: ^[A-Za-z_][\\w]*(\\.[A-Za-z_][\\w]*)+$',
->>>>>>> origin/main
     },
     language_keys: {
       description: 'Must be lowercase and match one of the supported languages',
@@ -663,136 +643,16 @@ For the full maintained definition, see `framework-definitions/typescript/fireba
 
 ---
 
-<<<<<<< HEAD
 ## Contributing Schema Updates
 
 <Callout type="info" title="Coming Soon">
   Detailed contribution guidelines including step-by-step instructions, validation commands, and testing workflows will be added here.
 </Callout>
-=======
-## Best Practices
-
-### 1. Comprehensive Coverage
-- Define **all major features** of a framework/library
-- Include both *common* and *advanced* usage patterns
-- Cover different ways the same concept might be expressed
-
-### 2. Accurate Paths
-- Use **fully-qualified import paths**
-- Test paths against actual library documentation
-- Include `version` information when patterns change between versions
-
-### 3. Clear Descriptions
-- Write **human-readable descriptions**
-- Explain the *purpose* and *context* of each feature
-- Include examples in `notes` when helpful
-
-### 4. Proper Categorization
-- Choose appropriate `concept` values based on *how the feature is used*
-- Use `startpoint: true` for **entry points** like API endpoints
-- Set correct `target_level` based on where the feature applies
-
-### 5. Strategic Regex Usage
-- Use `construct_query` regex patterns to **refine matches**
-- Test regex patterns against real code examples
-- Keep patterns *specific enough* to avoid false positives
-
----
-
-## Contributing Schema Updates
-
-To contribute new framework/library definitions:
-
-1. **Fork the repository** and create a feature branch
-2. **Update the schema file** at `/public/schemas/custom-framework-lib-schema.json`
-3. **Add comprehensive definitions** following the structure above
-4. **Test your definitions** against real codebases
-5. **Submit a pull request** with detailed examples and test cases
-
-### Testing Your Schema
-
-Before submitting, verify your schema definitions:
-
-1. **JSON Validation** — Ensure the file is valid JSON
-2. **Schema Validation** — Validate against the [JSON Schema specification](https://json-schema.org/specification)
-3. **Real-world Testing** — Test against actual codebases using the framework
-4. **Documentation** — Ensure all referenced URLs are accessible
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-<Accordions>
-  <Accordion title="Invalid absolute_paths" id="error-paths">
-    **Error Message:**
-    ```
-    Error: Pattern does not match required format
-    ```
-
-    **Cause:** The `absolute_paths` value doesn't follow the required pattern.
-
-    **Solution:** Ensure paths follow the format `module.submodule.symbol`:
-    - **Correct**: `fastapi.FastAPI`, `pydantic.BaseModel`
-    - **Incorrect**: `FastAPI`, `fastapi`, `fastapi/FastAPI`
-  </Accordion>
-
-  <Accordion title="Missing Required Fields" id="error-required">
-    **Error Message:**
-    ```
-    Error: Missing required property 'target_level'
-    ```
-
-    **Cause:** A feature definition is missing one or more required fields.
-
-    **Solution:** Include **all required fields** in every feature definition:
-    - `description`
-    - `absolute_paths`
-    - `target_level`
-    - `concept`
-
-  </Accordion>
-
-  <Accordion title="Concept-Target Level Mismatch" id="error-mismatch">
-    **Error Message:**
-    ```
-    Error: CallExpression requires target_level 'function'
-    ```
-
-    **Cause:** The `concept` and `target_level` values are incompatible.
-
-    **Solution:** Follow the concept-target level constraints:
-    - `CallExpression` → `target_level: "function"`
-    - `Inheritance` → `target_level: "class"`
-    - `AnnotationLike` → can be either `"function"` or `"class"`
-  </Accordion>
-
-  <Accordion title="Feature Not Detected" id="error-not-detected">
-    **Symptom:** Your schema is valid but the feature isn't being detected in code.
-
-    **Possible Causes:**
-    1. **Incorrect `absolute_paths`** — Verify the exact import path used in the library
-    2. **Missing `construct_query`** — Add regex patterns to narrow down matches
-    3. **Import not present** — Detection is import-gated; ensure the file imports the library
-
-    **Solution:** Test with a minimal code example and check the Tree-sitter output.
-  </Accordion>
-</Accordions>
->>>>>>> origin/main
 
 ---
 
 ## Future Enhancements
 
-<<<<<<< HEAD
 <Callout type="info" title="Coming Soon">
   Details on planned schema extensions — additional programming languages, capability-specific operation profiles, and richer qualifier metadata — will be documented here.
 </Callout>
-=======
-The schema is designed to be **extensible**. Future versions may include:
-- *Additional programming languages* (Rust, C#, Kotlin)
-- *More concept types* for different framework constructs
-- *Enhanced query refinement* options for complex patterns
-- *Version-aware detection* for handling breaking changes between library versions
->>>>>>> origin/main

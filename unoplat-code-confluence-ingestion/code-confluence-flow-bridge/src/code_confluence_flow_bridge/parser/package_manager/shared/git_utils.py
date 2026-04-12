@@ -28,7 +28,6 @@ def compute_local_repo_path(git_url: str, base_dir: Optional[Path] = None) -> Pa
     return Path(os.path.expanduser(str(base_dir))) / repo_name
 
 
-<<<<<<< HEAD
 def _ensure_ref(repo_path: Path, ref: str) -> None:
     """Fetch and checkout a specific commit SHA in a (possibly shallow) clone.
 
@@ -45,15 +44,12 @@ def _ensure_ref(repo_path: Path, ref: str) -> None:
     repo.git.checkout(ref)
 
 
-=======
->>>>>>> origin/main
 def clone_repo_if_missing(
     git_url: str,
     github_token: str,
     *,
     depth: int = 1,
     base_dir: Optional[Path] = None,
-<<<<<<< HEAD
     ref: Optional[str] = None,
 ) -> Path:
     """Clone the repository if it does not exist locally.
@@ -61,10 +57,6 @@ def clone_repo_if_missing(
     When *ref* is provided the working tree is moved to that exact commit,
     regardless of whether the clone was fresh or already cached.
     """
-=======
-) -> Path:
-    """Clone the repository if it does not exist locally."""
->>>>>>> origin/main
     local_repo_path = compute_local_repo_path(git_url, base_dir)
     local_repo_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -75,10 +67,7 @@ def clone_repo_if_missing(
             clone_url = git_url
         Repo.clone_from(clone_url, local_repo_path, depth=depth)
 
-<<<<<<< HEAD
     if ref is not None:
         _ensure_ref(local_repo_path, ref)
 
-=======
->>>>>>> origin/main
     return local_repo_path

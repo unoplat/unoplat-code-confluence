@@ -40,11 +40,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
         async with session.begin():
             yield session
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Session error: {}", e)
-=======
-        logger.error(f"Session error: {e}")
->>>>>>> origin/main
         raise
     finally:
         await session.close()
@@ -73,11 +69,7 @@ async def get_startup_session() -> AsyncGenerator[AsyncSession, None]:
         async with session.begin():
             yield session
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Session error: {}", e)
-=======
-        logger.error(f"Session error: {e}")
->>>>>>> origin/main
         raise
     finally:
         await session.close()
@@ -135,8 +127,4 @@ async def dispose_db_connections() -> None:
             await async_engine.dispose()
         logger.info("Database connections disposed successfully")
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Error disposing database connections: {}", e)
-=======
-        logger.error(f"Error disposing database connections: {e}")
->>>>>>> origin/main

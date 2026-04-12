@@ -65,12 +65,8 @@ def _definition_hash(feature_spec: FeatureSpec) -> str:
         A 64-character lowercase hex string uniquely identifying the spec.
     """
     payload = {
-<<<<<<< HEAD
         "capability_key": feature_spec.capability_key,
         "operation_key": feature_spec.operation_key,
-=======
-        "feature_key": feature_spec.feature_key,
->>>>>>> origin/main
         "library": feature_spec.library,
         "absolute_paths": feature_spec.absolute_paths,
         "target_level": feature_spec.target_level.value,

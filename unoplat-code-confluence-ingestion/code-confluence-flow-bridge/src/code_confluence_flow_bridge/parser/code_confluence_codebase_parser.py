@@ -10,10 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from unoplat_code_confluence_commons.base_models import (
     CallExpressionInfo,
     ProgrammingLanguageMetadata,
-<<<<<<< HEAD
     ValidationStatus,
-=======
->>>>>>> origin/main
 )
 
 from src.code_confluence_flow_bridge.engine.framework_detection_service import (
@@ -44,11 +41,8 @@ from src.code_confluence_flow_bridge.processor.db.postgres.code_confluence_relat
     CodeConfluenceRelationalIngestion,
 )
 
-<<<<<<< HEAD
 LOW_CONFIDENCE_CALL_EXPRESSION_THRESHOLD = 0.70
 
-=======
->>>>>>> origin/main
 
 def _resolve_match_confidence(detection: object) -> float:
     metadata = getattr(detection, "metadata", None)
@@ -68,7 +62,6 @@ def _resolve_match_confidence(detection: object) -> float:
     return 1.0
 
 
-<<<<<<< HEAD
 def _resolve_validation_status(
     detection: object,
     *,
@@ -83,8 +76,6 @@ def _resolve_validation_status(
     return ValidationStatus.COMPLETED.value
 
 
-=======
->>>>>>> origin/main
 def _build_evidence_json(detection: object) -> Optional[dict[str, object]]:
     evidence: dict[str, object] = {}
     metadata = getattr(detection, "metadata", None)
@@ -139,11 +130,7 @@ class CodeConfluenceCodebaseParser:
 
         self.files_processed = 0
         self._known_frameworks: Set[str] = set()
-<<<<<<< HEAD
         self._known_features: Set[tuple[str, str, str]] = set()
-=======
-        self._known_features: Set[tuple[str, str]] = set()
->>>>>>> origin/main
 
         self._initialize_components()
         self.language_processor: LanguageCodebaseProcessor = (
@@ -294,11 +281,8 @@ class CodeConfluenceCodebaseParser:
                 feature_rows: list[dict[str, object]] = []
                 for detection in detections:
                     library = detection.library
-<<<<<<< HEAD
                     capability_key = detection.capability_key
                     operation_key = detection.operation_key
-=======
->>>>>>> origin/main
                     feature_key = detection.feature_key
 
                     if library not in self._known_frameworks:
@@ -309,7 +293,6 @@ class CodeConfluenceCodebaseParser:
                         )
                         continue
 
-<<<<<<< HEAD
                     if (
                         library,
                         capability_key,
@@ -320,13 +303,6 @@ class CodeConfluenceCodebaseParser:
                             library,
                             capability_key,
                             operation_key,
-=======
-                    if (library, feature_key) not in self._known_features:
-                        logger.debug(
-                            "Skipping unknown feature | library={} | feature_key={} | file={}",
-                            library,
-                            feature_key,
->>>>>>> origin/main
                             file_data.file_path,
                         )
                         continue
@@ -340,15 +316,11 @@ class CodeConfluenceCodebaseParser:
                         detection.end_line,
                     )
 
-<<<<<<< HEAD
                     match_confidence = _resolve_match_confidence(detection)
-=======
->>>>>>> origin/main
                     feature_rows.append(
                         {
                             "feature_language": language,
                             "feature_library": library,
-<<<<<<< HEAD
                             "feature_capability_key": capability_key,
                             "feature_operation_key": operation_key,
                             "start_line": detection.start_line,
@@ -359,14 +331,6 @@ class CodeConfluenceCodebaseParser:
                                 detection,
                                 match_confidence=match_confidence,
                             ),
-=======
-                            "feature_key": feature_key,
-                            "start_line": detection.start_line,
-                            "end_line": detection.end_line,
-                            "match_text": detection.match_text,
-                            "match_confidence": _resolve_match_confidence(detection),
-                            "validation_status": "pending",
->>>>>>> origin/main
                             "evidence_json": _build_evidence_json(detection),
                         }
                     )

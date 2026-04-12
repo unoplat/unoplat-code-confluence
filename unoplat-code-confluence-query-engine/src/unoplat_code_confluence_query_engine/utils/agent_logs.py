@@ -88,9 +88,5 @@ async def save_nodes_to_json(
             )
         )
 
-<<<<<<< HEAD
     logger.info("Saved {} nodes to {}", len(serializable_nodes), output_file)
-=======
-    logger.info(f"Saved {len(serializable_nodes)} nodes to {output_file}")
->>>>>>> origin/main
     return str(output_file)
