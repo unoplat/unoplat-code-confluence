@@ -1,32 +1,16 @@
 ---
 title: SQLModel
-description: "Static SQLModel feature catalog powered by DIDS framework definitions"
+description: "Static SQLModel coverage reference powered by DIDS framework definitions"
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { FrameworkFeatureCatalog } from '../../../../src/components/framework-feature-catalog';
 
-# SQLModel Feature Catalog (Python)
-
-This page provides a static, contributor-friendly view of SQLModel features currently covered by the Deterministic Interface Discovery Schema (DIDS).
-
 <Callout type="info" title="Source of Truth">
-  - Canonical definitions live in ingestion: [framework-definitions directory](https://github.com/unoplat/unoplat-code-confluence/tree/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions)
-  - Canonical SQLModel file: [framework-definitions/python/sqlmodel.json](https://github.com/unoplat/unoplat-code-confluence/blob/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions/python/sqlmodel.json)
-  - Docs consume generated static assets from: `/framework-definitions`
   - Current file shown here: [`/framework-definitions/python/sqlmodel.json`](/framework-definitions/python/sqlmodel.json)
 </Callout>
-
-## Why this catalog exists
-
-This catalog makes deterministic model-layer feature coverage visible so contributors can evolve SQLModel-based interface discovery safely.
 
 ## Current SQLModel coverage
 
 <FrameworkFeatureCatalog displayName="SQLModel" language="python" library="sqlmodel" />
 
-## How to update this page's data
-
-1. Update SQLModel definitions in ingestion source.
-2. Run `bun run sync:framework-definitions` from `unoplat-code-confluence-docs`.
-3. Commit both source definition changes and generated docs artifacts.

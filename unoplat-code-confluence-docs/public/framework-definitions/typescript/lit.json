@@ -1,0 +1,36 @@
+{
+  "typescript": {
+    "lit": {
+      "docs_url": "https://lit.dev/docs/",
+      "description": "Lit web component base class and reactive decorator patterns.",
+      "capabilities": {
+        "web_component": {
+          "description": "Lit custom element classes and reactive property decorators.",
+          "operations": {
+            "web_component": {
+              "description": "Custom element classes extending LitElement.",
+              "absolute_paths": [
+                "lit.LitElement",
+                "lit-element.LitElement"
+              ],
+              "target_level": "class",
+              "concept": "Inheritance"
+            },
+            "reactive_property": {
+              "description": "Lit reactive decorators for public and internal component state.",
+              "absolute_paths": [
+                "lit/decorators.js.property",
+                "lit/decorators.js.state"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "annotation_name_regex": "^(property|state)$"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

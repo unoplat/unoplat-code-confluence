@@ -1,7 +1,8 @@
 {
   "title": "Typescript",
   "pages": [
-    "litellm",
+    "firebase",
+    "lit",
     "nextjs",
     "swr",
     "zustand"

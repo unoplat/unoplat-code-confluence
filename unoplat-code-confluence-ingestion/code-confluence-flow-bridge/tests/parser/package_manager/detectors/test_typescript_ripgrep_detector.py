@@ -12,7 +12,9 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 
 from tests.parser.package_manager.detectors.typescript_detector_test_support import (
     APOLLO_SERVER_GIT_URL,
+    APOLLO_SERVER_REF,
     BUN_RUNTIME_GIT_URL,
+    BUN_RUNTIME_REF,
     EXPECTED_APOLLO_SERVER_CODEBASE_FOLDERS,
     EXPECTED_APOLLO_SERVER_PACKAGE_MANAGER_PROVENANCE,
     EXPECTED_APOLLO_SERVER_PROJECT_NAMES,
@@ -41,12 +43,17 @@ from tests.parser.package_manager.detectors.typescript_detector_test_support imp
     EXPECTED_T3CODE_PROJECT_NAMES,
     EXPECTED_T3CODE_WORKSPACE_ROOTS,
     HOPPSCOTCH_GIT_URL,
+    HOPPSCOTCH_REF,
     NX_REACT_TEMPLATE_GIT_URL,
+    NX_REACT_TEMPLATE_REF,
     PNPM_WORKSPACE_FIXTURE_DIR,
     PRINTDESK_GIT_URL,
+    PRINTDESK_REF,
     SOCKETIO_GIT_URL,
+    SOCKETIO_REF,
     STANDALONE_FIXTURE_DIR,
     T3CODE_GIT_URL,
+    T3CODE_REF,
     format_detected_codebases,
     map_codebases_by_folder,
     write_package_json,
@@ -61,7 +68,7 @@ async def test_detect_codebases_t3code_turbo_monorepo_returns_workspace_members_
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
 
-    detected_codebases = await detector.detect_codebases(T3CODE_GIT_URL, "")
+    detected_codebases = await detector.detect_codebases(T3CODE_GIT_URL, "", ref=T3CODE_REF)
     detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
 
     # Root aggregator must NOT appear in detections
@@ -128,7 +135,7 @@ async def test_detect_codebases_nx_react_template_monorepo_returns_workspace_mem
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
 
-    detected_codebases = await detector.detect_codebases(NX_REACT_TEMPLATE_GIT_URL, "")
+    detected_codebases = await detector.detect_codebases(NX_REACT_TEMPLATE_GIT_URL, "", ref=NX_REACT_TEMPLATE_REF)
     detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
 
     # Root aggregator must NOT appear in detections
@@ -199,7 +206,7 @@ async def test_detect_codebases_hoppscotch_pnpm_workspace_returns_workspace_memb
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
 
-    detected_codebases = await detector.detect_codebases(HOPPSCOTCH_GIT_URL, "")
+    detected_codebases = await detector.detect_codebases(HOPPSCOTCH_GIT_URL, "", ref=HOPPSCOTCH_REF)
     detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
 
     # Root aggregator must NOT appear in detections
@@ -579,7 +586,7 @@ async def test_detect_codebases_bun_runtime_pure_workspace_returns_workspace_and
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
 
-    detected_codebases = await detector.detect_codebases(BUN_RUNTIME_GIT_URL, "")
+    detected_codebases = await detector.detect_codebases(BUN_RUNTIME_GIT_URL, "", ref=BUN_RUNTIME_REF)
     detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
 
     # Root aggregator must NOT appear in detections
@@ -668,7 +675,7 @@ async def test_detect_codebases_printdesk_bun_object_form_workspace_returns_work
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
 
-    detected_codebases = await detector.detect_codebases(PRINTDESK_GIT_URL, "")
+    detected_codebases = await detector.detect_codebases(PRINTDESK_GIT_URL, "", ref=PRINTDESK_REF)
     detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
 
     # Root aggregator must NOT appear in detections
@@ -755,7 +762,7 @@ async def test_detect_codebases_apollo_server_npm_workspace_glob_returns_workspa
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
 
-    detected_codebases = await detector.detect_codebases(APOLLO_SERVER_GIT_URL, "")
+    detected_codebases = await detector.detect_codebases(APOLLO_SERVER_GIT_URL, "", ref=APOLLO_SERVER_REF)
     detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
 
     # Root aggregator must NOT appear in detections
@@ -848,7 +855,7 @@ async def test_detect_codebases_socketio_npm_workspace_explicit_paths_returns_wo
     detector = TypeScriptRipgrepDetector()
     await detector.initialize_rules()
 
-    detected_codebases = await detector.detect_codebases(SOCKETIO_GIT_URL, "")
+    detected_codebases = await detector.detect_codebases(SOCKETIO_GIT_URL, "", ref=SOCKETIO_REF)
     detected_folders = {codebase.codebase_folder for codebase in detected_codebases}
 
     # Root aggregator must NOT appear in detections

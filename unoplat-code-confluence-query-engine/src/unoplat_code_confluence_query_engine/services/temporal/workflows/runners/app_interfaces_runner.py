@@ -1,0 +1,145 @@
+from __future__ import annotations
+
+from datetime import timedelta
+import traceback
+from typing import Any
+
+from temporalio import workflow
+
+with workflow.unsafe.imports_passed_through():
+    from loguru import logger
+
+    from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
+        SectionId,
+    )
+    from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
+        CodebaseMetadata,
+    )
+    from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
+        UsageStatistics,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.app_interfaces_activity import (
+        AppInterfacesActivity,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
+        DB_ACTIVITY_RETRY_POLICY,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.utils import (
+        enrich_agent_error_with_model_details,
+        raise_if_temporal_cancellation,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.call_expression_validation_runner import (
+        run_call_expression_validation,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.section_updater_runner import (
+        run_section_updater,
+    )
+    from unoplat_code_confluence_query_engine.utils.framework_feature_language_support import (
+        is_app_interfaces_supported,
+    )
+
+
+async def run_app_interfaces_agent(
+    temporal_agents,
+    repository_qualified_name: str,
+    codebase_metadata: CodebaseMetadata,
+    repository_workflow_run_id: str,
+    programming_language_metadata: dict[str, object],
+    results: dict[str, Any],
+    agent_stats: list[UsageStatistics],
+    agent_errors: list[dict[str, object]],
+) -> None:
+    """Build app interfaces and run the section updater when supported."""
+    if not is_app_interfaces_supported(codebase_metadata.codebase_programming_language):
+        logger.info(
+            "[workflow] app_interfaces_agent skipped (language: {})",
+            codebase_metadata.codebase_programming_language,
+        )
+        return
+
+    try:
+        candidate_payloads = await workflow.execute_activity(
+            AppInterfacesActivity.fetch_low_confidence_call_expression_candidates,
+            args=[
+                codebase_metadata.codebase_path,
+                codebase_metadata.codebase_programming_language,
+            ],
+            start_to_close_timeout=timedelta(minutes=2),
+            retry_policy=DB_ACTIVITY_RETRY_POLICY,
+        )
+
+        await run_call_expression_validation(
+            temporal_agents=temporal_agents,
+            codebase_metadata=codebase_metadata,
+            repository_qualified_name=repository_qualified_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            candidate_payloads=candidate_payloads,
+            agent_stats=agent_stats,
+            agent_errors=agent_errors,
+        )
+
+        logger.info(
+            "[workflow] Running app_interfaces_agent for {}",
+            codebase_metadata.codebase_name,
+        )
+        app_interfaces_result = await workflow.execute_activity(
+            AppInterfacesActivity.build_app_interfaces,
+            args=[
+                codebase_metadata.codebase_path,
+                codebase_metadata.codebase_programming_language,
+            ],
+            start_to_close_timeout=timedelta(minutes=2),
+            retry_policy=DB_ACTIVITY_RETRY_POLICY,
+        )
+        results["app_interfaces"] = app_interfaces_result.model_dump()
+
+        await workflow.execute_activity(
+            AppInterfacesActivity.emit_app_interfaces_completion,
+            args=[
+                repository_qualified_name,
+                repository_workflow_run_id,
+                codebase_metadata.codebase_name,
+                codebase_metadata.codebase_programming_language,
+            ],
+            start_to_close_timeout=timedelta(seconds=30),
+            retry_policy=DB_ACTIVITY_RETRY_POLICY,
+        )
+
+        logger.info(
+            "[workflow] app_interfaces_agent completed for {}",
+            codebase_metadata.codebase_name,
+        )
+
+        await run_section_updater(
+            temporal_agents=temporal_agents,
+            section_id=SectionId.APP_INTERFACES,
+            codebase_metadata=codebase_metadata,
+            repository_qualified_name=repository_qualified_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            programming_language_metadata=programming_language_metadata,
+            section_data=results["app_interfaces"],
+            agent_stats=agent_stats,
+            agent_errors=agent_errors,
+            updater_runs=results["agents_md_updater_runs"],
+        )
+    except Exception as e:
+        raise_if_temporal_cancellation(e)
+        logger.error(
+            "[workflow] app_interfaces_agent failed for {}: {}",
+            codebase_metadata.codebase_name,
+            e,
+        )
+        logger.exception("[workflow] Full traceback:")
+        app_interfaces_error: dict[str, object] = {
+            "agent": "app_interfaces_agent",
+            "codebase": codebase_metadata.codebase_name,
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        app_interfaces_error = enrich_agent_error_with_model_details(
+            app_interfaces_error,
+            e,
+            "app_interfaces_agent",
+            codebase_metadata.codebase_name,
+        )
+        agent_errors.append(app_interfaces_error)

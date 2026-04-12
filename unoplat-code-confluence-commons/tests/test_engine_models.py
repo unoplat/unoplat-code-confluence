@@ -1,10 +1,10 @@
 """Tests for commons engine models used by framework detection."""
 
 from pydantic import ValidationError
-
 from unoplat_code_confluence_commons.base_models import (
     Concept,
     ConstructQueryConfig,
+    Detection,
     FeatureSpec,
     FeatureUsagePayload,
     LocatorStrategy,
@@ -31,7 +31,8 @@ def test_construct_query_config_accepts_function_export_regex_keys() -> None:
 
 def test_feature_spec_construct_query_typed_supports_new_regexes() -> None:
     spec = FeatureSpec(
-        feature_key="route_handler_export",
+        capability_key="rest_api",
+        operation_key="route_handler_export",
         library="nextjs",
         absolute_paths=["next/server.NextResponse"],
         target_level=TargetLevel.FUNCTION,
@@ -48,12 +49,14 @@ def test_feature_spec_construct_query_typed_supports_new_regexes() -> None:
     assert typed is not None
     assert typed.function_name_regex == "^(GET|POST)$"
     assert typed.export_name_regex == "^(GET|POST)$"
+    assert spec.feature_key == "rest_api.route_handler_export"
 
 
 def test_feature_spec_requires_base_confidence_for_call_expression() -> None:
     try:
         FeatureSpec(
-            feature_key="relationship",
+            capability_key="relational_database",
+            operation_key="relationship",
             library="sqlalchemy",
             absolute_paths=["sqlalchemy.orm.relationship"],
             target_level=TargetLevel.FUNCTION,
@@ -70,7 +73,8 @@ def test_feature_spec_requires_base_confidence_for_call_expression() -> None:
 def test_feature_spec_rejects_base_confidence_for_non_call_expression() -> None:
     try:
         FeatureSpec(
-            feature_key="http_endpoint",
+            capability_key="rest_api",
+            operation_key="http_endpoint",
             library="fastapi",
             absolute_paths=["fastapi.FastAPI"],
             target_level=TargetLevel.FUNCTION,
@@ -87,7 +91,8 @@ def test_feature_spec_rejects_base_confidence_for_non_call_expression() -> None:
 
 def test_feature_spec_accepts_base_confidence_for_call_expression() -> None:
     spec = FeatureSpec(
-        feature_key="relationship",
+        capability_key="relational_database",
+        operation_key="relationship",
         library="sqlalchemy",
         absolute_paths=["sqlalchemy.orm.relationship"],
         target_level=TargetLevel.FUNCTION,
@@ -98,13 +103,14 @@ def test_feature_spec_accepts_base_confidence_for_call_expression() -> None:
     )
 
     assert spec.base_confidence == 0.61
+    assert spec.feature_key == "relational_database.relationship"
 
 
 def test_feature_usage_payload_defaults() -> None:
     payload = FeatureUsagePayload.model_validate({})
 
     assert payload.match_confidence == 1.0
-    assert payload.validation_status == ValidationStatus.PENDING
+    assert payload.validation_status == ValidationStatus.COMPLETED
     assert payload.evidence_json is None
 
 
@@ -120,3 +126,16 @@ def test_feature_usage_payload_accepts_completed_status() -> None:
     assert payload.match_confidence == 0.64
     assert payload.validation_status == ValidationStatus.COMPLETED
     assert payload.evidence_json == {"decision": "confirm"}
+
+
+def test_detection_feature_key_is_computed_from_structured_identity() -> None:
+    detection = Detection(
+        capability_key="rest_api",
+        operation_key="get",
+        library="fastapi",
+        match_text="@app.get('/items')",
+        start_line=10,
+        end_line=10,
+    )
+
+    assert detection.feature_key == "rest_api.get"

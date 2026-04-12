@@ -14,18 +14,39 @@ from unoplat_code_confluence_commons.base_models import (
 )
 
 
-def _build_nextjs_feature_spec() -> FeatureSpec:
+def _build_nextjs_get_spec() -> FeatureSpec:
     return FeatureSpec(
-        feature_key="http_endpoint",
+        feature_key="rest_api.get",
+        capability_key="rest_api",
+        operation_key="get",
         library="nextjs",
-        description="Next.js App Router HTTP method export",
+        description="Next.js App Router GET handler",
         absolute_paths=["next/server.NextRequest", "next/server.NextResponse"],
         target_level=TargetLevel.FUNCTION,
         concept=Concept.FUNCTION_DEFINITION,
         locator_strategy=LocatorStrategy.VARIABLE_BOUND,
         construct_query={
-            "function_name_regex": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS)$",
-            "export_name_regex": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS)$",
+            "function_name_regex": "^GET$",
+            "export_name_regex": "^GET$",
+        },
+        startpoint=True,
+    )
+
+
+def _build_nextjs_post_spec() -> FeatureSpec:
+    return FeatureSpec(
+        feature_key="rest_api.post",
+        capability_key="rest_api",
+        operation_key="post",
+        library="nextjs",
+        description="Next.js App Router POST handler",
+        absolute_paths=["next/server.NextRequest", "next/server.NextResponse"],
+        target_level=TargetLevel.FUNCTION,
+        concept=Concept.FUNCTION_DEFINITION,
+        locator_strategy=LocatorStrategy.VARIABLE_BOUND,
+        construct_query={
+            "function_name_regex": "^POST$",
+            "export_name_regex": "^POST$",
         },
         startpoint=True,
     )
@@ -57,11 +78,11 @@ export async function GET(request: NextRequest) {
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
 
-    detections = detector.detect(context, [_build_nextjs_feature_spec()])
+    detections = detector.detect(context, [_build_nextjs_get_spec()])
 
     assert len(detections) == 1
     detection = detections[0]
-    assert detection.feature_key == "http_endpoint"
+    assert detection.feature_key == "rest_api.get"
     assert detection.library == "nextjs"
     assert "export async function GET" in detection.match_text
     assert detection.metadata["function_name"] == "GET"
@@ -78,7 +99,7 @@ export async function GET() {
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
 
-    detections = detector.detect(context, [_build_nextjs_feature_spec()])
+    detections = detector.detect(context, [_build_nextjs_get_spec()])
 
     assert detections == []
 
@@ -95,7 +116,7 @@ export async function handler(request: NextRequest) {
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
 
-    detections = detector.detect(context, [_build_nextjs_feature_spec()])
+    detections = detector.detect(context, [_build_nextjs_get_spec(), _build_nextjs_post_spec()])
 
     assert detections == []
 
@@ -112,7 +133,7 @@ export function POST() {
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
 
-    detections = detector.detect(context, [_build_nextjs_feature_spec()])
+    detections = detector.detect(context, [_build_nextjs_post_spec()])
 
     assert len(detections) == 1
     assert detections[0].metadata["function_name"] == "POST"
@@ -130,6 +151,6 @@ export async function GET() {
     context = TypeScriptSourceContext.from_source(source_code)
     detector = TypeScriptTreeSitterFrameworkDetector()
 
-    detections = detector.detect(context, [_build_nextjs_feature_spec()])
+    detections = detector.detect(context, [_build_nextjs_get_spec()])
 
     assert detections == []

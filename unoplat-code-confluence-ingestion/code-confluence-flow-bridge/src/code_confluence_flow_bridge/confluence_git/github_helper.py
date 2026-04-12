@@ -240,13 +240,24 @@ class GithubHelper:
                             repo_path,
                         )
                     except Exception as git_err:
-                        # Log and re-raise for outer handler
                         logger.error(
                             "git pull failed | repo_path={} | error={} | status=failed",
                             repo_path,
                             str(git_err),
                         )
-                        raise
+                        # If pull created merge conflicts, recover by resetting to remote
+                        if _has_unmerged_files(local_repo):
+                            logger.warning(
+                                "Pull caused merge conflicts, recovering via reset | repo_path={} | status=recovering",
+                                repo_path,
+                            )
+                            _reset_to_remote(local_repo, default_branch, repo_path)
+                            logger.info(
+                                "Repository recovered after pull conflict | repo_path={} | status=success",
+                                repo_path,
+                            )
+                        else:
+                            raise
 
                     logger.info(
                         "Repository updated successfully | repo_path={} | status=success",

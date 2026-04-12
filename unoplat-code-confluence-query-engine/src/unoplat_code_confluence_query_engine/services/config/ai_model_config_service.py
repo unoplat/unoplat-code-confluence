@@ -350,8 +350,8 @@ class AiModelConfigService:
             return (await session.get(AiModelConfig, 1)) is not None
 
         except SQLAlchemyError as e:
-            logger.error(f"Database error checking AI model config existence: {e}")
+            logger.error("Database error checking AI model config existence: {}", e)
             raise
         except Exception as e:
-            logger.error(f"Unexpected error checking AI model config existence: {e}")
+            logger.error("Unexpected error checking AI model config existence: {}", e)
             raise

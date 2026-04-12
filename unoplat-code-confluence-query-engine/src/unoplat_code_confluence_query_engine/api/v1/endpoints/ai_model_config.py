@@ -217,7 +217,7 @@ async def _handle_worker_versioning(
 
     # Case 1: Worker not running - start it
     if not worker_manager.is_running:
-        logger.info(f"Starting Temporal worker with build ID: {new_build_id}")
+        logger.info("Starting Temporal worker with build ID: {}", new_build_id)
         try:
             await worker_manager.start(settings=settings, config=config)
             request.app.state.temporal_worker_manager = worker_manager
@@ -443,7 +443,7 @@ async def get_provider_schema(provider_key: str) -> ProviderSchema:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting provider schema for {provider_key}: {e}")
+        logger.error("Error getting provider schema for {}: {}", provider_key, e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve provider schema",

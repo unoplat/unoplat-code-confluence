@@ -66,14 +66,14 @@ class DockerComposeWithCleanup(DockerCompose):
             try:
                 volume = self._docker_client.volumes.get(volume_name)
                 volume.remove(force=True)
-                logger.info(f"Removed volume: {volume_name}")
+                logger.info("Removed volume: {}", volume_name)
                 cleaned_count += 1
             except NotFound:
-                logger.debug(f"Volume {volume_name} not found (may already be removed)")
+                logger.debug("Volume {} not found (may already be removed)", volume_name)
             except APIError as e:
-                logger.warning(f"Could not remove volume {volume_name}: {e}")
+                logger.warning("Could not remove volume {}: {}", volume_name, e)
 
-        logger.info(f"Cleaned up {cleaned_count} volumes")
+        logger.info("Cleaned up {} volumes", cleaned_count)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -133,7 +133,7 @@ def docker_compose():
     if not COMPOSE_FILE.exists():
         raise FileNotFoundError(f"Docker compose file not found: {COMPOSE_FILE}")
 
-    logger.info(f"Starting docker-compose from {COMPOSE_FILE}")
+    logger.info("Starting docker-compose from {}", COMPOSE_FILE)
 
     # Use our custom DockerCompose class
     compose = DockerComposeWithCleanup(
@@ -168,7 +168,7 @@ def docker_compose():
                 logger.info("Elasticsearch is ready")
 
             except Exception as e:
-                logger.error(f"Service health check failed: {e}")
+                logger.error("Service health check failed: {}", e)
                 raise
 
             # Additional wait for services to stabilize
@@ -192,10 +192,11 @@ def docker_compose():
             pruned = client.volumes.prune()
             if pruned["VolumesDeleted"]:
                 logger.info(
-                    f"Pruned {len(pruned['VolumesDeleted'])} additional dangling volumes"
+                    "Pruned {} additional dangling volumes",
+                    len(pruned["VolumesDeleted"]),
                 )
         except Exception as e:
-            logger.warning(f"Error pruning volumes: {e}")
+            logger.warning("Error pruning volumes: {}", e)
 
         logger.info("Docker compose stopped and all resources cleaned up")
 

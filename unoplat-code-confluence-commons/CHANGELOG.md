@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.46.0...unoplat-code-confluence-commons-v0.47.0) (2026-04-12)
+
+
+### Features
+
+* **call-expression-validation:** trust definition confidence and validate TS app interfaces ([add97d1](https://github.com/unoplat/unoplat-code-confluence/commit/add97d1449a033351cbe845d833f2692e69af721))
+* **cancellation:** implement agent workflow cancellation across backend stack ([3fbf331](https://github.com/unoplat/unoplat-code-confluence/commit/3fbf331efe4d8ba08ef4b5372e9cf45b3feb45c6))
+* **commons:** add capability_key and operation_key to FeatureSpec and FrameworkFeaturePayload ([5620b4d](https://github.com/unoplat/unoplat-code-confluence/commit/5620b4d069bd2a60290b7fe3e938dc871f780cd8))
+* **commons:** add PrMetadata model and pr_metadata column to snapshot ([164b21e](https://github.com/unoplat/unoplat-code-confluence/commit/164b21e2fb4a933577f72aca15fbf1ae91b6eb00))
+* **commons:** replace framework feature_key with structured capability_key + operation_key identity ([a2ef841](https://github.com/unoplat/unoplat-code-confluence/commit/a2ef841633ec492781d8252ac414b3842405285b))
+* **confidence:** add schema and ingestion contracts for usage confidence metadata ([7596267](https://github.com/unoplat/unoplat-code-confluence/commit/7596267baabf9c902144b5bf4baa5c647cb3a7b5))
+* **migration-to-postgres:** knowledge graph with minimal traversals in postgres. Removal of neo4j related models/schema ([d8aa2ba](https://github.com/unoplat/unoplat-code-confluence/commit/d8aa2ba3bbdf0a8f18eb2edce28d439b73939dcc))
+* **tool-support:** support mcp tools auth through schema ([3fbd17e](https://github.com/unoplat/unoplat-code-confluence/commit/3fbd17e190767b1f21d1d8930a6b1f9bfac3241a))
+* **tool-support:** support mcp tools auth through schema ([db07e98](https://github.com/unoplat/unoplat-code-confluence/commit/db07e98335e39a7e45052d04fc0edb04c8e39182))
+
+
+### Bug Fixes
+
+* **codebase-detection:** add workspace metadata enums and fields to commons library ([c03c44f](https://github.com/unoplat/unoplat-code-confluence/commit/c03c44f673db80f1075a434f1404f15a437d9cb2))
+* **dependencies:** get rid of unused dependencies - neomodel ([1684a3f](https://github.com/unoplat/unoplat-code-confluence/commit/1684a3fd7c5cf9378d58009ad24c60ad6075a119))
+* **dependencies:** get rid of unused dependencies - neomodel ([72705c0](https://github.com/unoplat/unoplat-code-confluence/commit/72705c077769d7b1f893d059156a36a90cc01f7c))
+* **dependencies:** split dependency guides into dedicated overview files ([2c7b347](https://github.com/unoplat/unoplat-code-confluence/commit/2c7b347b92ae2ba9018c4d7ee03131fe182b4a57))
+* **optimise-framework-schema:** move framework feature fields to JSON… ([be83568](https://github.com/unoplat/unoplat-code-confluence/commit/be83568da4f16b6f9b6a3524307e4d2912eea5c6))
+* **optimise-framework-schema:** move framework feature fields to JSONB payload ([0efe0a1](https://github.com/unoplat/unoplat-code-confluence/commit/0efe0a15f5230bb8f2b68f4aeee663c32a9f2492))
+* **perf:** virtual list and 3-phase schema for realtime sync using electric sql ([d4db047](https://github.com/unoplat/unoplat-code-confluence/commit/d4db047c9b8096f0ac5ecb3f3d9748907dcc78e9))
+* **refactor:** move from structural signature based detection of fram… ([91179bf](https://github.com/unoplat/unoplat-code-confluence/commit/91179bfffd6427c82493eb99604e8d6d51c2fe7c))
+* **refactor:** move from structural signature based detection of framework/libs to direct source code and import based and also remove variable bound strategy from schema as it is brittle and can easily break. ([ff0f761](https://github.com/unoplat/unoplat-code-confluence/commit/ff0f7619256c6f1f03cea5fb38eecea8f030f3c4))
+* **typescript:** add concept enum in schema to support more typescript ([9bd1861](https://github.com/unoplat/unoplat-code-confluence/commit/9bd1861df81ce67135e3cb0d1a3a96dfc7ffc548))
+* **typescript:** add concept enum in schema to support more typescript ([6642161](https://github.com/unoplat/unoplat-code-confluence/commit/66421610f5f7d68e378e8bdd4c41ec204b59a1a6))
+* **ui-dependencies:** reduce dependency token churn by introducing fa… ([a66310b](https://github.com/unoplat/unoplat-code-confluence/commit/a66310bb3aa3403850ccdf3a22e9ea32034798fa))
+
+
+### Documentation
+
+* **agents:** split dependency guides into dedicated overview files ([b63ab1c](https://github.com/unoplat/unoplat-code-confluence/commit/b63ab1c89f8e89e34095f16632e769b1af04a727))
+
 ## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.45.1...unoplat-code-confluence-commons-v0.46.0) (2026-03-13)
 
 
