@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.40.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.40.0...unoplat-code-confluence-query-engine-v0.40.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* **common-version-query-engine:** upgrade commons dependency to v0.47.0 ([c7844d4](https://github.com/unoplat/unoplat-code-confluence/commit/c7844d451dca86836aa24dd7cf95714f666765cd))
+* upgrade commons dependency to v0.47.0 (ingestion + query engine) ([3c390ef](https://github.com/unoplat/unoplat-code-confluence/commit/3c390efe5f6221da782d56d5d51600cb59360f65))
+
 ## [0.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.39.1...unoplat-code-confluence-query-engine-v0.40.0) (2026-04-12)
 
 
