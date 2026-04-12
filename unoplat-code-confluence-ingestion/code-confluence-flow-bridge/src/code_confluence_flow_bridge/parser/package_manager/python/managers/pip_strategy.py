@@ -450,7 +450,7 @@ class PipStrategy(PackageManagerStrategy):
         all_requirements: list[ParsedRequirementLine] = []
 
         if not abs_path.exists():
-            logger.warning(f"Requirements file not found: {abs_path}")
+            logger.warning("Requirements file not found: {}", abs_path)
             return all_requirements
 
         try:

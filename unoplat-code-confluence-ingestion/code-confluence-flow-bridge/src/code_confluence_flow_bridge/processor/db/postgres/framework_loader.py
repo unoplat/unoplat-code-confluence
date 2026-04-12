@@ -84,15 +84,16 @@ class FrameworkDefinitionLoader:
             f"Settings framework_definitions_path: {env_settings.framework_definitions_path}"
         )
         logger.info(
-            f"FrameworkDefinitionLoader initialized with path: {self.definitions_path}"
+            "FrameworkDefinitionLoader initialized with path: {}",
+            self.definitions_path,
         )
-        logger.debug(f"Current working directory: {os.getcwd()}")
-        logger.debug(f"Absolute definitions path: {self.definitions_path.resolve()}")
-        logger.debug(f"Path exists: {self.definitions_path.exists()}")
+        logger.debug("Current working directory: {}", os.getcwd())
+        logger.debug("Absolute definitions path: {}", self.definitions_path.resolve())
+        logger.debug("Path exists: {}", self.definitions_path.exists())
 
     def load_framework_definitions(self) -> Dict[str, Any]:
         """Load and combine all framework definition JSON files."""
-        logger.info(f"Loading framework definitions from: {self.definitions_path}")
+        logger.info("Loading framework definitions from: {}", self.definitions_path)
 
         if not self.definitions_path.exists():
             raise FileNotFoundError(
@@ -113,13 +114,14 @@ class FrameworkDefinitionLoader:
 
         language_dirs = sorted({json_file.parent.name for json_file in json_files})
         logger.info(
-            f"Loading framework definitions from {len(json_files)} files across languages: "
-            f"{', '.join(language_dirs)}"
+            "Loading framework definitions from {} files across languages: {}",
+            len(json_files),
+            ", ".join(language_dirs),
         )
 
         for json_file in json_files:
             try:
-                logger.debug(f"Loading framework definition from {json_file}")
+                logger.debug("Loading framework definition from {}", json_file)
                 file_data = json.loads(json_file.read_text())
 
                 # Merge data from each file (language -> library -> capabilities -> operations structure)
@@ -317,5 +319,5 @@ class FrameworkDefinitionLoader:
             "absolute_paths_count": len(absolute_paths),
         }
 
-        logger.info(f"Framework definitions loaded successfully: {metrics}")
+        logger.info("Framework definitions loaded successfully: {}", metrics)
         return metrics
