@@ -68,14 +68,14 @@ class DockerComposeWithCleanup(DockerCompose):
             try:
                 volume = self._docker_client.volumes.get(volume_name)
                 volume.remove(force=True)
-                logger.info(f"Removed volume: {volume_name}")
+                logger.info("Removed volume: {}", volume_name)
                 cleaned_count += 1
             except NotFound:
-                logger.debug(f"Volume {volume_name} not found (may already be removed)")
+                logger.debug("Volume {} not found (may already be removed)", volume_name)
             except APIError as e:
-                logger.warning(f"Could not remove volume {volume_name}: {e}")
+                logger.warning("Could not remove volume {}: {}", volume_name, e)
 
-        logger.info(f"Cleaned up {cleaned_count} volumes")
+        logger.info("Cleaned up {} volumes", cleaned_count)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ def docker_compose():
     if not COMPOSE_FILE.exists():
         raise FileNotFoundError(f"Docker compose file not found: {COMPOSE_FILE}")
 
-    logger.info(f"Starting docker-compose from {COMPOSE_FILE}")
+    logger.info("Starting docker-compose from {}", COMPOSE_FILE)
 
     # Use our custom DockerCompose class
     # Enable pulling in CI environments (GitHub Actions, etc.) where images aren't cached
@@ -168,10 +168,10 @@ def docker_compose():
                     _wait_for_port("localhost", flow_bridge_port, timeout=60)
                     logger.info("Code Confluence Flow Bridge is available")
                 except Exception as e:
-                    logger.warning(f"Code Confluence Flow Bridge not available (optional): {e}")
+                    logger.warning("Code Confluence Flow Bridge not available (optional): {}", e)
 
             except Exception as e:
-                logger.error(f"Service health check failed: {e}")
+                logger.error("Service health check failed: {}", e)
                 raise
 
             # Additional wait for services to stabilize
@@ -194,9 +194,9 @@ def docker_compose():
         try:
             pruned = client.volumes.prune()
             if pruned['VolumesDeleted']:
-                logger.info(f"Pruned {len(pruned['VolumesDeleted'])} additional dangling volumes")
+                logger.info("Pruned {} additional dangling volumes", len(pruned['VolumesDeleted']))
         except Exception as e:
-            logger.warning(f"Error pruning volumes: {e}")
+            logger.warning("Error pruning volumes: {}", e)
 
         logger.info("Docker compose stopped and all resources cleaned up")
 
@@ -221,7 +221,7 @@ def service_ports(docker_compose: DockerCompose) -> Dict[str, int]:
             docker_compose.get_service_port("code-confluence-flow-bridge", 8000)
         )
     except Exception as e:
-        logger.warning(f"code-confluence-flow-bridge port not available: {e}")
+        logger.warning("code-confluence-flow-bridge port not available: {}", e)
 
     return ports
 

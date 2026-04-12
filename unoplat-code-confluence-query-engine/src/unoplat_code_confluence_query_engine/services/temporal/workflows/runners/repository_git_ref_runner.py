@@ -7,7 +7,9 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.models.output.git_ref_info import GitRefInfo
+    from unoplat_code_confluence_query_engine.models.output.git_ref_info import (
+        GitRefInfo,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.git_ref_resolution_activity import (
         GitRefResolutionActivity,
     )
@@ -28,8 +30,9 @@ async def resolve_repository_git_ref(
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
-    except Exception:
+    except Exception as e:
         logger.warning(
-            "[workflow] Git ref resolution failed, proceeding without freshness metadata"
+            "[workflow] Git ref resolution failed, proceeding without freshness metadata: {}",
+            e,
         )
         return None
