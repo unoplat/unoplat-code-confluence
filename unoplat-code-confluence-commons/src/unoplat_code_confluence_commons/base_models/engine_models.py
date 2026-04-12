@@ -91,10 +91,24 @@ def _validate_base_confidence_scope(
         )
 
 
+def _compose_feature_key(capability_key: str, operation_key: str) -> str:
+    """Build the dotted convenience key from structured identity parts."""
+    return f"{capability_key}.{operation_key}"
+
+
 class FeatureSpec(BaseModel):
     """Strongly-typed feature specification from schema."""
 
-    feature_key: str = Field(..., description="Unique feature identifier")
+    capability_key: str = Field(
+        ...,
+        min_length=1,
+        description="Capability family this feature belongs to",
+    )
+    operation_key: str = Field(
+        ...,
+        min_length=1,
+        description="Operation identifier within the capability",
+    )
     library: str = Field(
         ..., description="Library/framework name this feature belongs to"
     )
@@ -144,6 +158,11 @@ class FeatureSpec(BaseModel):
         description="Indicates whether this feature represents a starting point or entry point in the application",
     )
 
+    @property
+    def feature_key(self) -> str:
+        """Return the dotted convenience key derived from structured identity."""
+        return _compose_feature_key(self.capability_key, self.operation_key)
+
     @model_validator(mode="after")
     def validate_base_confidence_scope(self) -> Self:
         _validate_base_confidence_scope(self.concept, self.base_confidence)
@@ -184,8 +203,10 @@ class FrameworkFeaturePayload(BaseModel):
         default=False,
         description="Feature is a starting point",
     )
+    notes: Optional[str] = Field(default=None, description="Contributor notes, caveats, disambiguation guidance")
+    docs_url: Optional[str] = Field(default=None, description="Operation-specific documentation URL")
 
-    model_config = ConfigDict(extra="allow", use_enum_values=True)
+    model_config = ConfigDict(extra="forbid", use_enum_values=True)
 
     @model_validator(mode="after")
     def validate_base_confidence_scope(self) -> Self:
@@ -203,7 +224,7 @@ class FeatureUsagePayload(BaseModel):
         description="Confidence score for a single detected usage",
     )
     validation_status: ValidationStatus = Field(
-        default=ValidationStatus.PENDING,
+        default=ValidationStatus.COMPLETED,
         description="Validation lifecycle state for the usage row",
     )
     evidence_json: Optional[Dict[str, Any]] = Field(
@@ -217,7 +238,16 @@ class FeatureUsagePayload(BaseModel):
 class Detection(BaseModel):
     """Result of feature detection in source code."""
 
-    feature_key: str = Field(..., description="Feature that was detected")
+    capability_key: str = Field(
+        ...,
+        min_length=1,
+        description="Capability family for the detected feature",
+    )
+    operation_key: str = Field(
+        ...,
+        min_length=1,
+        description="Operation identifier for the detected feature",
+    )
     library: str = Field(
         ..., description="Library/framework name this feature belongs to"
     )
@@ -227,6 +257,11 @@ class Detection(BaseModel):
     metadata: Dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata"
     )
+
+    @property
+    def feature_key(self) -> str:
+        """Return the dotted convenience key derived from structured identity."""
+        return _compose_feature_key(self.capability_key, self.operation_key)
 
 
 class DetectionResult(BaseModel):

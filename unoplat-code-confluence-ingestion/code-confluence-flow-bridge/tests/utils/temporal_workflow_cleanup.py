@@ -33,9 +33,9 @@ async def terminate_all_running_workflows(
     """
     try:
         client = await Client.connect(temporal_address, namespace=namespace)
-        logger.debug(f"Connected to Temporal server at {temporal_address}")
+        logger.debug("Connected to Temporal server at {}", temporal_address)
     except Exception as e:
-        logger.error(f"Failed to connect to Temporal server at {temporal_address}: {e}")
+        logger.error("Failed to connect to Temporal server at {}: {}", temporal_address, e)
         raise ConnectionError(f"Cannot connect to Temporal: {e}")
 
     terminated_count = 0
@@ -45,7 +45,7 @@ async def terminate_all_running_workflows(
         # List all running workflows using execution status filter
         # This includes RUNNING and CONTINUED_AS_NEW statuses
         query = "ExecutionStatus IN ('Running', 'ContinuedAsNew')"
-        logger.debug(f"Querying workflows with: {query}")
+        logger.debug("Querying workflows with: {}", query)
 
         async for workflow in client.list_workflows(query):
             try:
@@ -60,25 +60,25 @@ async def terminate_all_running_workflows(
                 )
                 terminated_count += 1
                 logger.debug(
-                    f"TERMINATED workflow: {workflow.id} (run: {workflow.run_id})"
+                    "TERMINATED workflow: {} (run: {})", workflow.id, workflow.run_id
                 )
 
             except Exception as e:
-                error_msg = f"Failed to terminate workflow {workflow.id}: {e}"
+                error_msg = "Failed to terminate workflow {}: {}".format(workflow.id, e)
                 logger.warning(error_msg)
                 failed_terminations.append((workflow.id, workflow.run_id, str(e)))
                 continue
 
     except Exception as e:
-        logger.error(f"Failed to list workflows: {e}")
+        logger.error("Failed to list workflows: {}", e)
         raise RuntimeError(f"Workflow listing failed: {e}")
 
     # Log summary
     if terminated_count > 0:
-        logger.info(f"Successfully TERMINATED {terminated_count} running workflows")
+        logger.info("Successfully TERMINATED {} running workflows", terminated_count)
     if failed_terminations:
         logger.warning(
-            f"Failed to terminate {len(failed_terminations)} workflows: {failed_terminations}"
+            "Failed to terminate {} workflows: {}", len(failed_terminations), failed_terminations
         )
 
     return terminated_count
@@ -101,7 +101,7 @@ async def terminate_workflows_by_type(
     try:
         client = await Client.connect(temporal_address, namespace=namespace)
     except Exception as e:
-        logger.error(f"Failed to connect to Temporal server: {e}")
+        logger.error("Failed to connect to Temporal server: {}", e)
         raise ConnectionError(f"Cannot connect to Temporal: {e}")
 
     terminated_count = 0
@@ -117,11 +117,11 @@ async def terminate_workflows_by_type(
                 reason=f"Test cleanup - terminating {workflow_type} workflows"
             )
             terminated_count += 1
-            logger.debug(f"TERMINATED {workflow_type} workflow: {workflow.id}")
+            logger.debug("TERMINATED {} workflow: {}", workflow_type, workflow.id)
 
         except Exception as e:
             logger.warning(
-                f"Failed to terminate {workflow_type} workflow {workflow.id}: {e}"
+                "Failed to terminate {} workflow {}: {}", workflow_type, workflow.id, e
             )
             continue
 

@@ -30,3 +30,34 @@ You MUST read the overview resource to understand the complete workflow. The inf
 </CRITICAL_INSTRUCTION>
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `add-firebase-discovery` at commit `37583f31bdfacc9cc83eef0b71ac3a555889238d` (2026-04-02). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+- **Launch all MCP tools**: `task launch-all-mcp` (config: `Taskfile.yml`) — starts browser-tools and think-mcp servers in background.
+- **Launch browser tools (foreground)**: `task launch-browser-tools` (config: `Taskfile.yml`).
+- **Launch browser tools (background)**: `task launch-browser-tools-bg` (config: `Taskfile.yml`).
+- **Stop browser tools**: `task stop-browser-tools` (config: `Taskfile.yml`).
+- **Launch think MCP (foreground)**: `task launch-think-mcp` (config: `Taskfile.yml`).
+- **Launch think MCP (background)**: `task launch-think-mcp-bg` (config: `Taskfile.yml`).
+- **Stop think MCP**: `task stop-think-mcp` (config: `Taskfile.yml`).
+- **Stop all MCP tools**: `task stop-all-mcp` (config: `Taskfile.yml`).
+- **Install act**: `task install-act` (config: `Taskfile.yml`) — installs act for local GitHub Actions testing.
+- **List CI jobs**: `task act-list-jobs` (config: `Taskfile.yml`).
+- **Run CI tests locally**: `task act-test-uv-projects` (config: `Taskfile.yml`) — requires Docker + `GITHUB_PAT_TOKEN`.
+- **Dry-run CI tests**: `task act-test-uv-projects-dry` (config: `Taskfile.yml`).
+- **Verbose CI tests**: `task act-test-uv-projects-verbose` (config: `Taskfile.yml`).
+- **Setup CI env file**: `task act-setup-env` (config: `Taskfile.yml`) — creates `.env` template for act.
+
+## Dependency Guide
+
+## Business Logic Domain
+
+## App Interfaces
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->

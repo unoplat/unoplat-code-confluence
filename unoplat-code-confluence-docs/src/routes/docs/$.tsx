@@ -21,6 +21,17 @@ import { TypeTable } from "fumadocs-ui/components/type-table";
 import { ImageZoom } from "fumadocs-ui/components/image-zoom";
 import { seo, canonicalLink } from "@/lib/seo";
 
+const DIDS_LABEL = "Deterministic Interface Discovery Schema (DIDS)";
+const DIDS_DOCS_SLUG = "contribution/custom-framework-schema";
+
+interface DocsPageLoaderData {
+  pageTree: Awaited<ReturnType<typeof source.serializePageTree>>;
+  path: string;
+  url: string;
+  title: string;
+  description: string;
+}
+
 // Server function to load page data - runs on server during dev, pre-rendered for static build if static middleware present
 const serverLoader = createServerFn({
   method: "GET",
@@ -42,6 +53,13 @@ const serverLoader = createServerFn({
 
 export const Route = createFileRoute("/docs/$")({
   component: Page,
+  loader: async ({ params }): Promise<DocsPageLoaderData> => {
+    const raw = params._splat;
+    const slugs = raw && raw.length > 0 ? raw.split("/") : [];
+    const data = await serverLoader({ data: slugs });
+    await clientLoader.preload(data.path);
+    return data;
+  },
   head: ({ loaderData }) => ({
     meta: loaderData
       ? seo({
@@ -52,22 +70,43 @@ export const Route = createFileRoute("/docs/$")({
       : [],
     links: loaderData ? [canonicalLink(loaderData.url)] : [],
   }),
-  loader: async ({ params }) => {
-    const raw = params._splat;
-    const slugs = raw && raw.length > 0 ? raw.split("/") : [];
-    const data = await serverLoader({ data: slugs });
-    await clientLoader.preload(data.path);
-    return data;
-  },
 });
+
+function renderDescription(description: string) {
+  if (!description.includes(DIDS_LABEL)) return description;
+
+  const [before, after] = description.split(DIDS_LABEL);
+
+  return (
+    <>
+      {before}
+      <Link
+        to="/docs/$"
+        params={{ _splat: DIDS_DOCS_SLUG }}
+        className="font-medium underline underline-offset-4"
+      >
+        <span>{DIDS_LABEL}</span>
+      </Link>
+      {after}
+    </>
+  );
+}
 
 const clientLoader = browserCollections.docs.createClientLoader<Record<string, never>>({
   id: "docs",
   component({ toc, frontmatter, default: MDX }) {
+    const description =
+      typeof frontmatter.description === "string" ? frontmatter.description : "";
+    const hideDescription =
+      "hideDescription" in frontmatter &&
+      (frontmatter as Record<string, unknown>).hideDescription === true;
+
     return (
       <DocsPage toc={toc}>
         <DocsTitle>{frontmatter.title}</DocsTitle>
-        <DocsDescription>{frontmatter.description}</DocsDescription>
+        {!hideDescription && description ? (
+          <DocsDescription>{renderDescription(description)}</DocsDescription>
+        ) : null}
         <DocsBody>
           <MDX
             components={{

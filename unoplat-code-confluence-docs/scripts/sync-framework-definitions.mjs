@@ -19,7 +19,7 @@ const SCHEMA_PATH = path.resolve(
   DOCS_ROOT,
   "public",
   "schemas",
-  "custom-framework-lib-schema.json",
+  "custom-framework-lib-schema-v4.json",
 );
 const DIDS_CATALOG_ROOT = path.resolve(
   DOCS_ROOT,

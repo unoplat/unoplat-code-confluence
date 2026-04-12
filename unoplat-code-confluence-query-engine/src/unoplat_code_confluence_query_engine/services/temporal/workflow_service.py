@@ -16,7 +16,7 @@ from unoplat_code_confluence_query_engine.services.temporal.service_registry imp
 from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
     TASK_QUEUE,
 )
-from unoplat_code_confluence_query_engine.services.temporal.temporal_workflows import (
+from unoplat_code_confluence_query_engine.services.temporal.workflows import (
     RepositoryAgentWorkflow,
 )
 from unoplat_code_confluence_query_engine.services.workflow.workflow_run_initializer import (

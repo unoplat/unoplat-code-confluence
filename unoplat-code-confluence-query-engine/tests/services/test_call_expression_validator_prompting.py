@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-# pyright: reportPrivateUsage=false
 from unoplat_code_confluence_commons.base_models import ValidationStatus
 
 from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
     FrameworkFeatureUsageIdentity,
     FrameworkFeatureValidationCandidate,
 )
-from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
-    _get_call_expression_validator_instructions,
-)
-from unoplat_code_confluence_query_engine.services.temporal.temporal_workflows import (
-    _build_call_expression_validator_prompt,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_call_expression_validator import (
+    build_call_expression_validator_instructions,
+    build_call_expression_validator_prompt,
 )
 
 
@@ -21,7 +18,8 @@ def _build_candidate() -> FrameworkFeatureValidationCandidate:
             file_path="/tmp/repo/src/app.ts",
             feature_language="typescript",
             feature_library="zustand",
-            feature_key="store_definition",
+            feature_capability_key="state_management",
+            feature_operation_key="store_definition",
             start_line=10,
             end_line=12,
         ),
@@ -48,7 +46,7 @@ def _build_candidate() -> FrameworkFeatureValidationCandidate:
 
 
 def test_call_expression_validator_instructions_are_metadata_aware() -> None:
-    instructions = _get_call_expression_validator_instructions(
+    instructions = build_call_expression_validator_instructions(
         docs_instruction="Read official docs first.",
         docs_workflow="- Search docs\n- Verify API shape",
     )
@@ -67,7 +65,7 @@ def test_call_expression_validator_instructions_are_metadata_aware() -> None:
 
 
 def test_call_expression_validator_prompt_describes_docs_first_review_order() -> None:
-    prompt = _build_call_expression_validator_prompt(_build_candidate())
+    prompt = build_call_expression_validator_prompt(_build_candidate())
 
     assert "Candidate payload guide:" in prompt
     assert "expected CallExpression evidence_json keys" in prompt
