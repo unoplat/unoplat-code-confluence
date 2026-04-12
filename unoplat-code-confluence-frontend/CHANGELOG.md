@@ -1,5 +1,73 @@
 # Changelog
 
+## [1.51.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.2...unoplat-code-confluence-frontend-v1.51.0) (2026-04-12)
+
+
+### Features
+
+* **add-model-provider:** add aws bedrock model provider (manually tested) and added native web search for all providers who do not support native web search or user has not configured exa ([6b2b4a1](https://github.com/unoplat/unoplat-code-confluence/commit/6b2b4a1f6990bcc79b214da749e0ce0d2e245388))
+* **Add-model-provider:** aws bedrock support and enhanced cache for … ([aab9fe0](https://github.com/unoplat/unoplat-code-confluence/commit/aab9fe00022af711c9c0255ebc19a7d440518c52))
+* **app-feedback:** allow user to submit feedback for feature/bug/general ([c863ad0](https://github.com/unoplat/unoplat-code-confluence/commit/c863ad0adc1a5bd21a932f27e74f4b1b2d8ddaf9))
+* **codex-oauth:** implement ChatGPT OAuth PKCE flow for Codex provider ([20f209d](https://github.com/unoplat/unoplat-code-confluence/commit/20f209d7c30b56cad1b6c11d09e048c7719f0d74))
+* **command-palette:** control centre for easier navigation ([e718744](https://github.com/unoplat/unoplat-code-confluence/commit/e718744d805807698de7f98639faeb548003fb1b))
+* **command-palette:** control centre for easier navigation ([5ab83e6](https://github.com/unoplat/unoplat-code-confluence/commit/5ab83e6b817ecdf235f73ee15a1aea90219abad6))
+* **delete-model-config:** add UI to delete active model provider configuration ([227f030](https://github.com/unoplat/unoplat-code-confluence/commit/227f0307f89dbb4b6c6745cf586d7c983abd9e8f))
+* **engineering-workflow-section-changes:** ui changes for agent harness changes ([e62f927](https://github.com/unoplat/unoplat-code-confluence/commit/e62f9278636a24ab9db1754c942460eb0d3b3276))
+* **engineering-workflow:** simplify output schema and improve system prompts ([feaf516](https://github.com/unoplat/unoplat-code-confluence/commit/feaf5164551e8db16cc91ffb554cb6cc4a1ab5a6))
+* **frontend-dependency-guide-agent:** introduce dependency guide to ensure coding agent knows what to use based on task at hand ([a33427c](https://github.com/unoplat/unoplat-code-confluence/commit/a33427cdbe6aeacf4b6588345e92522f525547c1))
+* **frontend-tool-route-page:** mcp tool update/read/delete operations ([bdf9bf6](https://github.com/unoplat/unoplat-code-confluence/commit/bdf9bf6ce7d9f724d2e5448b5ae3dcfe129dd535))
+* **frontend:** add cancel workflow action and CANCELLED status to operations UI ([6af88cc](https://github.com/unoplat/unoplat-code-confluence/commit/6af88cc2dcc70b851e80a51aa43e17e4f1756b74))
+* **frontend:** add PR creation UI with persisted status ([0c16436](https://github.com/unoplat/unoplat-code-confluence/commit/0c16436b806c1b272efc2972e8e61d7da1b44b13))
+* **frontend:** add tool call/result pairing in agent event display ([66b6041](https://github.com/unoplat/unoplat-code-confluence/commit/66b6041307fbd4a5625f47bedc2c904f126ec21d))
+* **improve-sidebar-logo:** sidebar logo improvements ([972aa2b](https://github.com/unoplat/unoplat-code-confluence/commit/972aa2be4f444bff0d6fece6c83e9736630f5d7f))
+* **mcp-tool-section:** enable mcp tool section for agent md operations ([ca06c0a](https://github.com/unoplat/unoplat-code-confluence/commit/ca06c0a281b7591b2e07aae1cddce96de3f7c868))
+* prevent duplicate repository ingestion with 409 guard ([db1d10c](https://github.com/unoplat/unoplat-code-confluence/commit/db1d10cc103f823092e3995353cfbadd63f06cea))
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD … ([e52f294](https://github.com/unoplat/unoplat-code-confluence/commit/e52f2941e15c22122b9dd2a5d23036b2ef04eae5))
+* **seo:** add comprehensive SEO meta tags, canonical links, JSON-LD schema, and robots.txt ([f157052](https://github.com/unoplat/unoplat-code-confluence/commit/f157052ec6a23075e35744c70d35e0517510283b))
+* **support-app-interface:** inbound, outbound and internal interface… ([c272467](https://github.com/unoplat/unoplat-code-confluence/commit/c272467a4a7ec96db11d61b4e06d8cc1221e3d21))
+* **support-app-interface:** inbound, outbound and internal interfaces detection ([124e602](https://github.com/unoplat/unoplat-code-confluence/commit/124e602408e9dd890f7970f2e61f31a3df646efa))
+* **web-search:** support built-in web search for providers with native capability ([15a7558](https://github.com/unoplat/unoplat-code-confluence/commit/15a7558c6c4557c2d6612b45f6ab2a1768590fe4))
+
+
+### Bug Fixes
+
+* **agent-events:** derive live status from latest event ([c2c50f7](https://github.com/unoplat/unoplat-code-confluence/commit/c2c50f708de63f0610440c5dc361f81bce9bb0ec))
+* **agent-feedback:** replace emoji sheet with thumbs dialog and redesign preview ([f2fe40f](https://github.com/unoplat/unoplat-code-confluence/commit/f2fe40fe9fdc3019a6866b52113d334fd0c3d861))
+* **alpha:** ui-ux for alpha status near app name ([2e51235](https://github.com/unoplat/unoplat-code-confluence/commit/2e5123552d4a177dd2f8f423fa7ee47dfd092e99))
+* **alpha:** ui-ux for alpha status near app name ([ed7d599](https://github.com/unoplat/unoplat-code-confluence/commit/ed7d599d6a299c3b25571f0a31d908b791be0253))
+* **app-name-enhancements:** consistent app name aesthetics across light and dark mode ([63f2aa6](https://github.com/unoplat/unoplat-code-confluence/commit/63f2aa6fc050240d333573657a7f449f40e1e559))
+* **assets:** new brand assets ([b05e788](https://github.com/unoplat/unoplat-code-confluence/commit/b05e788c7372b6b6dbbe86ffbfa581da35745a80))
+* **backend-error:** intutive error display for agent md operations ([1f503e1](https://github.com/unoplat/unoplat-code-confluence/commit/1f503e116465d1b7ed9eaceacb3b05fa353aceae))
+* **codebase-dropdown:** improve trigger visibility and adaptive sizing ([f2a6c6d](https://github.com/unoplat/unoplat-code-confluence/commit/f2a6c6d83fbc018061ed25ab2caaaf6f3f27d11e))
+* **command-palette:** move to right position in top bar's right section ([5026b45](https://github.com/unoplat/unoplat-code-confluence/commit/5026b458f79972f88398cc850f7cb3a69f442b93))
+* **dependencies:** split dependency guides into dedicated overview files ([2c7b347](https://github.com/unoplat/unoplat-code-confluence/commit/2c7b347b92ae2ba9018c4d7ee03131fe182b4a57))
+* **design:** align design-system tokens and primitives ([4d83eb6](https://github.com/unoplat/unoplat-code-confluence/commit/4d83eb6081ad5114e06e37f3c3341e6a284c354c))
+* **design:** align design-system tokens and primitives with tweakcn ([a5bf29d](https://github.com/unoplat/unoplat-code-confluence/commit/a5bf29d2ce8207c9cc68e22da3b4a9d470ebf912))
+* **discord-links:** discord links were broken across docs/app/readme ([bdbcfd7](https://github.com/unoplat/unoplat-code-confluence/commit/bdbcfd7c6ccc57bfbe2890148c9482b6ac90180b))
+* **discord-links:** discord links were broken across docs/app/readme ([fa13e12](https://github.com/unoplat/unoplat-code-confluence/commit/fa13e12c09bcdcd62abff09efe0b287141fbdca6))
+* **duplicate-row-key:** github repos rows were using name now they use git url so no state corruption while filtering ([821b774](https://github.com/unoplat/unoplat-code-confluence/commit/821b774eb326c76b7a4f200d966dd9464e34218e))
+* **font:** improve tool call/result readability with larger fonts and monospace ([d59de38](https://github.com/unoplat/unoplat-code-confluence/commit/d59de38ae47882866c7dfb306adb563b855510c9))
+* **frontend-progress:** label validator before app interfaces ([17d1dfb](https://github.com/unoplat/unoplat-code-confluence/commit/17d1dfb2e6be4af40a410e327af472cae10020af))
+* **frontend:** add package description ([bf36ae5](https://github.com/unoplat/unoplat-code-confluence/commit/bf36ae5f7a29184dd286dc8a5a461961985c524f))
+* **frontend:** remove duplicate object property in ModelConfigForm ([5456c4e](https://github.com/unoplat/unoplat-code-confluence/commit/5456c4e8dd899dd174f34492f6d161194e27923b))
+* **frontend:** update sidebar logo imports and add "Made with love from India" footer ([c14b89a](https://github.com/unoplat/unoplat-code-confluence/commit/c14b89a647d26ee03b5840defde7c19f4d1078dd))
+* **mdxeditor-fixes:** removed ai slop for unnecessary applying classes for mdx editor and not following root based styling ([511c56c](https://github.com/unoplat/unoplat-code-confluence/commit/511c56cb6699af11caecd82c1ef073c97a122ff1))
+* **overhaul-events-view:** make it intuitve and store upto 100k of to… ([8821089](https://github.com/unoplat/unoplat-code-confluence/commit/8821089369d70bbc7ed55514fb6747691b329753))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([ec62f7f](https://github.com/unoplat/unoplat-code-confluence/commit/ec62f7ff904af8b789635000fe2e27ef843bded6))
+* **overhaul-events-view:** make it intuitve and store upto 100k of tool result calls ([49fa302](https://github.com/unoplat/unoplat-code-confluence/commit/49fa302695585b9fcbaf5b103f835de11ef032e7))
+* **perf:** virtual list and 3-phase schema for realtime sync using electric sql ([d4db047](https://github.com/unoplat/unoplat-code-confluence/commit/d4db047c9b8096f0ac5ecb3f3d9748907dcc78e9))
+* **preview-result:** preview result shows up during partial errors ([426849c](https://github.com/unoplat/unoplat-code-confluence/commit/426849c26cb29a79c2b733521b1e6a3457cd9f7b))
+* **preview-result:** preview result shows up during partial errors ([6733a43](https://github.com/unoplat/unoplat-code-confluence/commit/6733a43d3fccb3bb1571fac941a00090fe588032))
+* **timeout:** increase axios client timeout from 10s to 120s ([c3b43ca](https://github.com/unoplat/unoplat-code-confluence/commit/c3b43caa2cc94125b67a2194eee9624d04921d8a))
+* toast notifications for duplicate request for repository for ing… ([4de9da5](https://github.com/unoplat/unoplat-code-confluence/commit/4de9da5bf42b95f2c0878ef02040444cbf84e930))
+* toast notifications for duplicate request for repository for ingestion ([48fde3e](https://github.com/unoplat/unoplat-code-confluence/commit/48fde3e19a552b193af0af000cfcb5cc559fed83))
+* **tool-call-result-ui-ux:** change colors according to design system ([7028631](https://github.com/unoplat/unoplat-code-confluence/commit/7028631d1935759bbc001fde3340cef26cfd6065))
+* **tool-call-result-ui-ux:** change colors according to design system ([d991499](https://github.com/unoplat/unoplat-code-confluence/commit/d99149907c6cb98a28c59f4d40aa0730e749044b))
+* **tool-configuration-timestamp:** timestamp fixes with offset ([697f0a4](https://github.com/unoplat/unoplat-code-confluence/commit/697f0a49c739b2737c8c805cf787db23ef7b791b))
+* **tool-dialog:** use CVA variants for responsive dialog sizing ([8072502](https://github.com/unoplat/unoplat-code-confluence/commit/80725020f47b465b824e69812460fbbbea9dda38))
+* **ui-dependencies:** reduce dependency token churn by introducing fa… ([a66310b](https://github.com/unoplat/unoplat-code-confluence/commit/a66310bb3aa3403850ccdf3a22e9ea32034798fa))
+* **user-managed-accordion:** remove auto-expand so agent sections start collapsed ([5434277](https://github.com/unoplat/unoplat-code-confluence/commit/5434277b6906cf8da887f9c90b3a85c10d4bc5df))
+
 ## [1.50.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.1...unoplat-code-confluence-frontend-v1.50.2) (2026-03-21)
 
 
