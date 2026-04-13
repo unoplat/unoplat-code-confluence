@@ -28,9 +28,9 @@ export interface BannerConfig {
 
 export const bannerConfig: BannerConfig = {
   enabled: true,
-  id: "v0-28-0",
-  message: "AGENTS.md now has PR creation. Keep your AI agent guides always in sync. ",
-  linkUrl: "/changelog#v0.28.0",
-  linkText: " See what's new!",
+  id: "v0-34-0",
+  message: "Release v0.34.0 adds capability-operation schema v4, FastMCP client support, and Firebase detection.",
+  linkUrl: "/changelog#v0.34.0",
+  linkText: "Read release notes",
   variant: "rainbow",
 };
