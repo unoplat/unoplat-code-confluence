@@ -60,7 +60,7 @@ async def read_file_content(
         )
 
     if not await path.is_file():
-        logger.debug(f"File read failed - path is not a file: {file_path}")
+        logger.debug("File read failed - path is not a file: {}", file_path)
         raise ModelRetry(
             f"The path '{file_path}' is not a file. Please provide a valid file path."
         )
@@ -120,7 +120,10 @@ async def read_file_content(
                 # Check if start_line is beyond file length
                 if start_line and not lines and line_num > 0:
                     logger.debug(
-                        f"File read failed - start_line {start_line} exceeds file length {line_num} for: {file_path}"
+                        "File read failed - start_line {} exceeds file length {} for: {}",
+                        start_line,
+                        line_num,
+                        file_path,
                     )
                     raise ModelRetry(
                         f"The file has only {line_num} lines, but you requested to start from line {start_line}. Please adjust the line range."
@@ -138,7 +141,7 @@ async def read_file_content(
                 return result
 
     except PermissionError:
-        logger.debug(f"File read failed - permission denied: {file_path}")
+        logger.debug("File read failed - permission denied: {}", file_path)
         raise ModelRetry(
             f"Permission denied reading file: {file_path}. Please check file permissions or choose a different file."
         )
@@ -150,7 +153,7 @@ async def read_file_content(
             f"Unable to decode file as UTF-8: {file_path}. The file might be binary or use a different encoding. Please try a different file."
         )
     except Exception as e:
-        logger.debug(f"File read failed - unexpected error for: {file_path} ({e})")
+        logger.debug("File read failed - unexpected error for: {} ({})", file_path, e)
         raise ModelRetry(
             f"Unexpected error reading file {file_path}: {str(e)}. Please try again or choose a different file."
         )

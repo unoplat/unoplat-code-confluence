@@ -21,11 +21,17 @@ class FrameworkFeatureUsageIdentity(BaseModel):
     file_path: str
     feature_language: str
     feature_library: str
-    feature_key: str
+    feature_capability_key: str
+    feature_operation_key: str
     start_line: int = Field(ge=1)
     end_line: int = Field(ge=1)
 
     model_config = ConfigDict(frozen=True)
+
+    @property
+    def feature_key(self) -> str:
+        """Display-only dotted convenience key."""
+        return f"{self.feature_capability_key}.{self.feature_operation_key}"
 
     @model_validator(mode="after")
     def validate_line_span(self) -> FrameworkFeatureUsageIdentity:
@@ -33,9 +39,18 @@ class FrameworkFeatureUsageIdentity(BaseModel):
             raise ValueError("end_line must be greater than or equal to start_line")
         return self
 
-    def with_feature_key(self, feature_key: str) -> FrameworkFeatureUsageIdentity:
-        """Return a copy with a different feature key."""
-        return self.model_copy(update={"feature_key": feature_key})
+    def with_feature_identity(
+        self,
+        feature_capability_key: str,
+        feature_operation_key: str,
+    ) -> FrameworkFeatureUsageIdentity:
+        """Return a copy with a different structured feature identity."""
+        return self.model_copy(
+            update={
+                "feature_capability_key": feature_capability_key,
+                "feature_operation_key": feature_operation_key,
+            }
+        )
 
 
 class FrameworkFeatureValidationEvidenceUpsertRequest(BaseModel):
@@ -45,20 +60,30 @@ class FrameworkFeatureValidationEvidenceUpsertRequest(BaseModel):
     decision: FrameworkFeatureValidationDecision
     final_confidence: float = Field(ge=0.0, le=1.0)
     evidence_json: dict[str, object] = Field(default_factory=dict)
-    updated_feature_key: str | None = None
+    updated_feature_capability_key: str | None = None
+    updated_feature_operation_key: str | None = None
 
     @model_validator(mode="after")
     def validate_correct_decision_fields(
         self,
     ) -> FrameworkFeatureValidationEvidenceUpsertRequest:
         if self.decision == FrameworkFeatureValidationDecision.CORRECT:
-            if not self.updated_feature_key:
+            if not self.updated_feature_capability_key:
                 raise ValueError(
-                    "updated_feature_key is required when decision='correct'"
+                    "updated_feature_capability_key is required when decision='correct'"
                 )
-            if self.updated_feature_key == self.identity.feature_key:
+            if not self.updated_feature_operation_key:
                 raise ValueError(
-                    "updated_feature_key must differ from identity.feature_key"
+                    "updated_feature_operation_key is required when decision='correct'"
+                )
+            if (
+                self.updated_feature_capability_key
+                == self.identity.feature_capability_key
+                and self.updated_feature_operation_key
+                == self.identity.feature_operation_key
+            ):
+                raise ValueError(
+                    "Updated structured feature identity must differ from identity fields"
                 )
         return self
 
@@ -109,19 +134,29 @@ class CallExpressionValidationAgentOutput(BaseModel):
     decision: FrameworkFeatureValidationDecision
     final_confidence: float = Field(ge=0.0, le=1.0)
     target_status: ValidationStatus
-    updated_feature_key: str | None = None
+    updated_feature_capability_key: str | None = None
+    updated_feature_operation_key: str | None = None
     summary: str
 
     @model_validator(mode="after")
     def validate_decision_contract(self) -> CallExpressionValidationAgentOutput:
         if self.decision == FrameworkFeatureValidationDecision.CORRECT:
-            if not self.updated_feature_key:
+            if not self.updated_feature_capability_key:
                 raise ValueError(
-                    "updated_feature_key is required when decision='correct'"
+                    "updated_feature_capability_key is required when decision='correct'"
                 )
-            if self.updated_feature_key == self.identity.feature_key:
+            if not self.updated_feature_operation_key:
                 raise ValueError(
-                    "updated_feature_key must differ from identity.feature_key"
+                    "updated_feature_operation_key is required when decision='correct'"
+                )
+            if (
+                self.updated_feature_capability_key
+                == self.identity.feature_capability_key
+                and self.updated_feature_operation_key
+                == self.identity.feature_operation_key
+            ):
+                raise ValueError(
+                    "Updated structured feature identity must differ from identity fields"
                 )
 
         if self.decision == FrameworkFeatureValidationDecision.NEEDS_REVIEW:

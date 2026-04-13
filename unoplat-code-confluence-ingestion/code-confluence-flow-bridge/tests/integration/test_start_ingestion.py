@@ -256,7 +256,7 @@ class TestStartIngestionEndpoint:
                     reason="test cleanup - workflow did not complete normally"
                 )
             except Exception as e:
-                logger.warning(f"Failed to terminate workflow during cleanup: {e}")
+                logger.warning("Failed to terminate workflow during cleanup: {}", e)
 
     @pytest.mark.asyncio(loop_scope="session")  # type: ignore[var-annotated]
     async def test_duplicate_ingestion_returns_409(

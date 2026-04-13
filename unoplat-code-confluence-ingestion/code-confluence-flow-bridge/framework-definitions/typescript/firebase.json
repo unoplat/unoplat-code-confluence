@@ -1,0 +1,327 @@
+{
+  "typescript": {
+    "firebase": {
+      "docs_url": "https://firebase.google.com/docs/reference/js",
+      "description": "Firebase TypeScript SDK capabilities across auth, data, storage, telemetry, and Cloud Functions client/server patterns.",
+      "capabilities": {
+        "authentication": {
+          "description": "Firebase Authentication sign-in, account lifecycle, and auth state observation flows.",
+          "operations": {
+            "sign_in": {
+              "description": "Signs users in through Firebase Authentication providers and credential flows.",
+              "absolute_paths": [
+                "firebase/auth.signInWithEmailAndPassword",
+                "firebase/auth.signInWithPopup",
+                "firebase/auth.signInWithRedirect",
+                "firebase/auth.signInWithPhoneNumber",
+                "firebase/auth.signInWithCustomToken",
+                "firebase/auth.signInWithCredential",
+                "firebase/auth.signInAnonymously"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.93
+            },
+            "create_user": {
+              "description": "Creates a Firebase Authentication user account.",
+              "absolute_paths": [
+                "firebase/auth.createUserWithEmailAndPassword"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95
+            },
+            "sign_out": {
+              "description": "Signs the current authenticated user out.",
+              "absolute_paths": [
+                "firebase/auth.signOut"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95
+            },
+            "observe_state": {
+              "description": "Observes auth/session state transitions for the current user.",
+              "absolute_paths": [
+                "firebase/auth.onAuthStateChanged",
+                "firebase/auth.onIdTokenChanged"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.9
+            }
+          }
+        },
+        "document_database": {
+          "description": "Cloud Firestore document CRUD, query, and real-time subscription operations.",
+          "operations": {
+            "create": {
+              "description": "Creates Firestore documents.",
+              "absolute_paths": [
+                "firebase/firestore.addDoc",
+                "firebase/firestore.setDoc"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.9
+            },
+            "read": {
+              "description": "Reads single or multiple Firestore documents.",
+              "absolute_paths": [
+                "firebase/firestore.getDoc",
+                "firebase/firestore.getDocs"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.91
+            },
+            "update": {
+              "description": "Updates existing Firestore documents.",
+              "absolute_paths": [
+                "firebase/firestore.updateDoc"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.93
+            },
+            "delete": {
+              "description": "Deletes Firestore documents.",
+              "absolute_paths": [
+                "firebase/firestore.deleteDoc"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.93
+            },
+            "query": {
+              "description": "Builds constrained Firestore queries.",
+              "absolute_paths": [
+                "firebase/firestore.query",
+                "firebase/firestore.where",
+                "firebase/firestore.orderBy",
+                "firebase/firestore.limit",
+                "firebase/firestore.startAfter",
+                "firebase/firestore.startAt",
+                "firebase/firestore.endAt",
+                "firebase/firestore.endBefore"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.86
+            },
+            "listen": {
+              "description": "Subscribes to real-time Firestore updates.",
+              "absolute_paths": [
+                "firebase/firestore.onSnapshot"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.92
+            }
+          }
+        },
+        "object_storage": {
+          "description": "Cloud Storage file upload, retrieval, and delete operations.",
+          "operations": {
+            "upload": {
+              "description": "Uploads binary or encoded content to Cloud Storage.",
+              "absolute_paths": [
+                "firebase/storage.uploadBytes",
+                "firebase/storage.uploadBytesResumable",
+                "firebase/storage.uploadString"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.9
+            },
+            "download": {
+              "description": "Retrieves Cloud Storage download content and URLs.",
+              "absolute_paths": [
+                "firebase/storage.getDownloadURL",
+                "firebase/storage.getBlob",
+                "firebase/storage.getBytes"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.9
+            },
+            "delete": {
+              "description": "Deletes Cloud Storage objects.",
+              "absolute_paths": [
+                "firebase/storage.deleteObject"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.94
+            }
+          }
+        },
+        "telemetry": {
+          "description": "Firebase Analytics event and user telemetry instrumentation.",
+          "operations": {
+            "log_event": {
+              "description": "Logs analytics events.",
+              "absolute_paths": [
+                "firebase/analytics.logEvent"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95
+            },
+            "set_user": {
+              "description": "Associates analytics events with a user identifier.",
+              "absolute_paths": [
+                "firebase/analytics.setUserId"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95
+            },
+            "set_user_properties": {
+              "description": "Sets user properties for analytics segmentation.",
+              "absolute_paths": [
+                "firebase/analytics.setUserProperties"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95
+            }
+          }
+        },
+        "rpc_server": {
+          "description": "Cloud Functions callable RPC handlers.",
+          "operations": {
+            "call": {
+              "description": "Defines callable function handlers via Cloud Functions.",
+              "absolute_paths": [
+                "firebase-functions/v2/https.onCall"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            }
+          }
+        },
+        "rest_api": {
+          "description": "Cloud Functions HTTP request handlers.",
+          "operations": {
+            "request": {
+              "description": "Defines HTTP request handlers via Cloud Functions.",
+              "absolute_paths": [
+                "firebase-functions/v2/https.onRequest"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            }
+          }
+        },
+        "rpc_client": {
+          "description": "Callable function RPC invocation from Firebase client SDK.",
+          "operations": {
+            "invoke": {
+              "description": "Invokes callable Cloud Functions by name.",
+              "absolute_paths": [
+                "firebase/functions.httpsCallable"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.9
+            }
+          }
+        },
+        "http_client": {
+          "description": "URL-based callable function invocation over HTTP.",
+          "operations": {
+            "request": {
+              "description": "Invokes callable Cloud Functions using endpoint URLs.",
+              "absolute_paths": [
+                "firebase/functions.httpsCallableFromURL"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.89
+            }
+          }
+        },
+        "scheduler": {
+          "description": "Cloud Functions scheduled job handlers.",
+          "operations": {
+            "schedule": {
+              "description": "Defines cron-like scheduled Cloud Functions.",
+              "absolute_paths": [
+                "firebase-functions/v2/scheduler.onSchedule"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            }
+          }
+        },
+        "change_data_capture": {
+          "description": "Cloud Functions triggers reacting to Firestore data changes.",
+          "operations": {
+            "create": {
+              "description": "Handles Firestore document creation events.",
+              "absolute_paths": [
+                "firebase-functions/v2/firestore.onDocumentCreated"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            },
+            "update": {
+              "description": "Handles Firestore document update events.",
+              "absolute_paths": [
+                "firebase-functions/v2/firestore.onDocumentUpdated"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            },
+            "delete": {
+              "description": "Handles Firestore document delete events.",
+              "absolute_paths": [
+                "firebase-functions/v2/firestore.onDocumentDeleted"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            },
+            "write": {
+              "description": "Handles Firestore document write events.",
+              "absolute_paths": [
+                "firebase-functions/v2/firestore.onDocumentWritten"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            }
+          }
+        },
+        "job_queue": {
+          "description": "Cloud Functions task queue handlers.",
+          "operations": {
+            "dispatch": {
+              "description": "Defines task queue dispatched handlers.",
+              "absolute_paths": [
+                "firebase-functions/v2/tasks.onTaskDispatched"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "startpoint": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

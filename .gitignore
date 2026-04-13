@@ -356,3 +356,4 @@ experiments/
 .superset/
 .dmux/
 .dmux-hooks/
+.coverage*

@@ -188,5 +188,5 @@ class RequirementsUtils:
             )
             return tuple_dependency
         except Exception as e:
-            logger.error(f"Error converting requirement {req.line}: {str(e)}")
+            logger.error("Error converting requirement {}: {}", req.line, e)
             return None

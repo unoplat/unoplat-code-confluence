@@ -38,6 +38,14 @@ description: >-
 - working_directory = "." when command must run from repository root
 - If both workspace-level and leaf-level commands exist for same stage, emit both with distinct working_directory
 
+### Config File Path Rules
+- config_file must always be repository-root-relative
+- Never use absolute paths in config_file
+- Never use codebase-relative `..` segments in config_file
+- For workspace-owned configs above the leaf, emit the full repository-root path, for example:
+  - `infra/services/turbo.json`
+  - `infra/services/pnpm-workspace.yaml`
+
 ### Upward Discovery Example
 - Given `codebase_path = /opt/unoplat/repositories/acme/infra/services/apps/api` and inherited provenance with no `workspace_root`
 - Inspect `/opt/unoplat/repositories/acme/infra/services/apps/api`, then `/opt/unoplat/repositories/acme/infra/services/apps`, then `/opt/unoplat/repositories/acme/infra/services`

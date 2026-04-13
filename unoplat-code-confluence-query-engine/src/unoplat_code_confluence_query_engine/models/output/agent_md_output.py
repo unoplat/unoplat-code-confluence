@@ -55,6 +55,7 @@ class OutboundKind(str, Enum):
     GRAPHQL = "graphql_client"  # GraphQL queries/mutations
     GRPC = "grpc_client"  # gRPC client
     RPC_GENERIC = "rpc_client"  # Thrift / JSON-RPC / XML-RPC clients
+    MCP_CLIENT = "mcp_client"  # Model Context Protocol client/toolset connections
     SOAP = "soap_client"  # SOAP over HTTP client
     WEBSOCKET_CLIENT = "websocket_client"  # Outbound WS connections
     # Note: Use MSG_PRODUCER for classic pub/sub to a broker; use DB_STREAM
@@ -111,95 +112,6 @@ class FrontendRenderingStrategyType(str, Enum):
     ISR = "incremental static regeneration"
     STREAMING_SSR = "streaming server side rendering"
     PARTIAL_HYDRATION = "partial hydration - islands architecture"
-
-
-class TargetLevel(str, Enum):
-    """Target level for library feature analysis."""
-
-    FUNCTION = "function"
-    CLASS = "class"
-
-
-class Concept(str, Enum):
-    """Semantic concept for library feature analysis."""
-
-    ANNOTATION_LIKE = "AnnotationLike"
-    CALL_EXPRESSION = "CallExpression"
-    INHERITANCE = "Inheritance"
-    IMPORT = "Import"
-    VARIABLE_ASSIGNMENT = "VariableAssignment"
-    DECORATOR = "Decorator"
-    ATTRIBUTE_ACCESS = "AttributeAccess"
-    METHOD_CALL = "MethodCall"
-    CLASS_DEFINITION = "ClassDefinition"
-    FUNCTION_DEFINITION = "FunctionDefinition"
-
-
-class LocatorStrategy(str, Enum):
-    """Locator strategy for library feature analysis."""
-
-    VARIABLE_BOUND = "VariableBound"
-    DIRECT = "Direct"
-
-
-# ──────────────────────────────────────────────
-# 🔄 Supporting Models
-# ──────────────────────────────────────────────
-
-
-class ConstructQueryConfigKey(str, Enum):
-    """Typed construct query configuration matching JSON schema structure."""
-
-    method_regex = "method_regex"
-    annotation_name_regex = "annotation_name_regex"
-    attribute_regex = "attribute_regex"
-    callee_regex = "callee_regex"
-    superclass_regex = "superclass_regex"
-    function_name_regex = "function_name_regex"
-    export_name_regex = "export_name_regex"
-
-    model_config = ConfigDict(extra="forbid")
-
-
-class LibraryFeatureSummary(BaseModel):
-    """
-    Human-readable feature summary with typed capability hints.
-    No file locations here (avoid duplication with Interfaces).
-    """
-
-    feature_key: str = Field(
-        ..., description="Stable key (e.g., 'fastapi.routing', 'sqlalchemy.orm')"
-    )
-    summary: str = Field(
-        ..., description="2–3 line human summary of what this feature provides/does"
-    )
-    absolute_import_paths: List[str] = Field(
-        ..., min_length=1, description="Fully qualified import paths"
-    )
-    target_level: TargetLevel = Field(..., description="function or class")
-    concept: Concept = Field(
-        ...,
-        description="Semantic concept (AnnotationLike, CallExpression, Inheritance, etc.)",
-    )
-    locator_strategy: LocatorStrategy = Field(
-        ..., description="VariableBound or Direct"
-    )
-    construct_query: Optional[Dict[ConstructQueryConfigKey, str]] = Field(
-        default=None,
-        description="Optional map of construct filters with regex patterns for matching program elements",
-    )
-
-    model_config = ConfigDict(extra="forbid")
-
-
-class FrameworkLibraryOutput(BaseModel):
-    name: str
-    description: str
-    version: Optional[str] = None
-    documentation_url: Optional[str] = None
-    features_used: List[LibraryFeatureSummary]
-
-    model_config = ConfigDict(extra="forbid")
 
 
 class CoreFile(BaseModel):
@@ -367,11 +279,6 @@ class AgentMdOutput(BaseModel):
     engineering_workflow: EngineeringWorkflow = Field(
         default_factory=EngineeringWorkflow,
         description="Canonical engineering workflow with config and command inventory",
-    )
-    # TODO: remove optional when ready
-    frameworks_and_libraries: Optional[List[FrameworkLibraryOutput]] = Field(
-        default=None,
-        description="frameworks and libraries used and the overview of the functionality they provide.",
     )
     dependency_guide: Optional[DependencyGuide] = Field(
         default=None,
