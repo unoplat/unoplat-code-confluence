@@ -136,6 +136,17 @@ class ModelFactory:
             base_model_settings["top_p"] = params["top_p"]
         if params.get("max_tokens") is not None:
             base_model_settings["max_tokens"] = params["max_tokens"]
+
+        # Unified thinking level. Default to 'high' when unset; pydantic-ai
+        # silently drops the key on non-reasoning models via profile gating,
+        # and maps closest-supported value per provider (e.g. Qwen collapses
+        # to high/low). Explicit False disables thinking where supported
+        # (Anthropic) and is skipped on providers that reject 'none'.
+        thinking_value = params.get("thinking")
+        if thinking_value is None:
+            thinking_value = "high"
+        base_model_settings["thinking"] = thinking_value
+
         if base_model_settings:
             model_settings = base_model_settings
 
@@ -178,6 +189,7 @@ class ModelFactory:
                     codex_model_settings["top_p"] = params["top_p"]
                 if params.get("max_tokens") is not None:
                     codex_model_settings["max_tokens"] = params["max_tokens"]
+                codex_model_settings["thinking"] = thinking_value
                 model_settings = codex_model_settings
                 model = OpenAIResponsesModel(
                     config.model_name,
@@ -369,6 +381,7 @@ class ModelFactory:
                     bedrock_model_settings["top_p"] = params["top_p"]
                 if params.get("max_tokens") is not None:
                     bedrock_model_settings["max_tokens"] = params["max_tokens"]
+                bedrock_model_settings["thinking"] = thinking_value
 
                 if _is_anthropic_bedrock_model(config.model_name):
                     bedrock_model_settings["bedrock_cache_instructions"] = True
