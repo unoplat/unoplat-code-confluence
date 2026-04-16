@@ -83,15 +83,6 @@ async def per_language_development_workflow_prompt(
         '"working_directory":"<repo-relative dir: omit/null=codebase root, .=repo root, path=workspace root>"}]}\n'
         "Do not include markdown, prose, or extra keys.\n"
         "</output_contract>\n\n"
-        "<command_discovery_requirements>\n"
-        "You MUST inspect likely command sources before final output:\n"
-        "- Python: pyproject.toml, Taskfile.yml, Makefile, tox.ini, noxfile.py, pytest.ini, ruff.toml, mypy.ini\n"
-        "- TypeScript/JavaScript: package.json scripts, Taskfile.yml, Makefile, turbo/nx configs\n"
-        "- Rust: Cargo.toml / cargo aliases\n"
-        "- Go: Makefile/taskfile/go toolchain conventions\n"
-        "If install/bootstrap/setup commands exist, include them with stage=install.\n"
-        "If build/test/lint/type_check commands exist, include them too.\n"
-        "</command_discovery_requirements>\n\n"
         "<rules>\n"
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"
@@ -101,15 +92,4 @@ async def per_language_development_workflow_prompt(
         "- Commands with confidence <= 0.70 will be filtered out.\n"
         "- working_directory: omit or null to run from codebase root, '.' to run from repo root, or a repo-relative path for a specific workspace root.\n"
         "</rules>\n"
-        "<examples>\n"
-        "Example (Python + uv):\n"
-        '{"commands":['
-        '{"command":"uv sync --group dev --group test","stage":"install","config_file":"pyproject.toml","confidence":0.95},'
-        "Example (TypeScript):\n"
-        '{"commands":['
-        '{"command":"npm ci","stage":"install","config_file":"package.json","confidence":0.95},'
-        "Example (TypeScript monorepo workspace member):\n"
-        '{"commands":['
-        '{"command":"pnpm install","stage":"install","config_file":"infra/services/pnpm-workspace.yaml","confidence":0.95,"working_directory":"infra/services"},'
-        "</examples>\n"
     )
