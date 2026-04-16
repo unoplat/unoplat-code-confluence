@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic_ai import Agent, Tool
-from pydantic_ai.builtin_tools import AbstractBuiltinTool
+from pydantic_ai.tools import AgentBuiltinTool
 
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
@@ -45,9 +45,12 @@ def build_business_domain_agent(
         build_get_data_model_files_tool(),
         build_read_file_content_tool(),
     ]
-    builtin_tools: tuple[AbstractBuiltinTool, ...] = resolve_builtin_search_tools(
-        allow_builtin_web_search=True,
-        runtime_policy=context.search_policy,
+    builtin_tools: tuple[AgentBuiltinTool[AgentDependencies], ...] = (
+        resolve_builtin_search_tools(
+            allow_builtin_web_search=True,
+            allow_builtin_web_fetch=True,
+            runtime_policy=context.search_policy,
+        )
     )
 
     agent = Agent(

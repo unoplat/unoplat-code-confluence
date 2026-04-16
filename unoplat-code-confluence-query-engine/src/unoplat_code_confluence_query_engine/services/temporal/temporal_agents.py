@@ -31,12 +31,17 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly import (
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.assembler import (
+    assemble_enabled_temporal_agents,
+    create_assembly_context,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.catalog import (
     DEFAULT_ENABLED_AGENT_TYPES,
     AgentType,
-    assemble_enabled_temporal_agents,
     build_enabled_agent_builders,
-    create_assembly_context,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.search import (
+    provider_supports_builtin_web_fetch,
     provider_supports_builtin_web_search,
 )
 
@@ -104,13 +109,14 @@ def create_temporal_agents(
         exa_configured=exa_configured,
     )
     logger.info(
-        "Agent external search wiring resolved: provider_key={}, exa_configured={}, supports_builtin_web_search={}, use_exa_tools={}, use_builtin_web_search={}, use_duckduckgo_search={}",
+        "Agent external web-tool wiring resolved: provider_key={}, exa_configured={}, supports_builtin_web_search={}, supports_builtin_web_fetch={}, use_exa_toolsets={}, use_prepared_builtin_web_search={}, use_prepared_builtin_web_fetch={}",
         provider_key,
         exa_configured,
         provider_supports_builtin_web_search(provider_key),
+        provider_supports_builtin_web_fetch(provider_key),
         assembly_context.search_policy.include_exa_toolsets,
-        assembly_context.search_policy.include_builtin_web_search,
-        assembly_context.search_policy.include_duckduckgo_fallback,
+        assembly_context.search_policy.include_prepared_builtin_web_search,
+        assembly_context.search_policy.include_prepared_builtin_web_fetch,
     )
     assembled_agents = assemble_enabled_temporal_agents(
         agent_builders=build_enabled_agent_builders(ENABLED_AGENTS),
