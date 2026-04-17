@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic_ai import Agent, Tool
+from pydantic_ai import Agent
 from pydantic_ai.tools import AgentBuiltinTool
 from pydantic_ai.toolsets.abstract import AbstractToolset
 
@@ -17,6 +17,9 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agent
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.validators.development_workflow_validator import (
     validate_engineering_development_workflow_output,
 )
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.development_workflow import (
+    build_audited_console_capability,
+)
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
     DEVELOPMENT_WORKFLOW_EXA_TOOLSET_ID,
     TS_MONOREPO_DYNAMIC_TOOLSET_ID,
@@ -29,15 +32,6 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.runti
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.search import (
     resolve_builtin_search_tools,
     should_include_exa_toolsets,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.get_directory_tree import (
-    build_get_directory_tree_tool,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.read_file_content import (
-    build_read_file_content_tool,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.search_across_codebase import (
-    build_search_across_codebase_tool,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.toolsets.development_workflow import (
     build_development_workflow_exa_toolset,
@@ -67,11 +61,7 @@ def configure_engineering_workflow_agent(
 def build_development_workflow_agent(
     context: AgentAssemblyContext,
 ) -> AgentBuildResult[EngineeringWorkflow]:
-    function_tools: list[Tool[AgentDependencies]] = [
-        build_get_directory_tree_tool(),
-        build_read_file_content_tool(),
-        build_search_across_codebase_tool(),
-    ]
+    console_capability = build_audited_console_capability()
     builtin_tools: tuple[AgentBuiltinTool[AgentDependencies], ...] = (
         resolve_builtin_search_tools(
             allow_builtin_web_search=True,
@@ -96,9 +86,9 @@ def build_development_workflow_agent(
         name="development_workflow_guide",
         instructions=build_development_workflow_instructions(),
         deps_type=AgentDependencies,
-        tools=tuple(function_tools),
         builtin_tools=builtin_tools,
         toolsets=tuple(toolsets),
+        capabilities=[console_capability],
         output_type=EngineeringWorkflow,
         output_retries=2,
         model_settings=context.model_settings,
@@ -108,7 +98,7 @@ def build_development_workflow_agent(
 
     return AgentBuildResult(
         agent=agent,
-        function_tool_names=tuple(tool.name for tool in function_tools),
+        function_tool_names=(),
         toolset_ids=(
             *toolset_ids,
             TS_MONOREPO_DYNAMIC_TOOLSET_ID,
