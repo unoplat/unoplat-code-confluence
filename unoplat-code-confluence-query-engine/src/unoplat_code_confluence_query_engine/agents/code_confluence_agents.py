@@ -8,20 +8,17 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 
 
 def get_engineering_citation_instructions() -> str:
-    """Return stable citation-validation instructions for the engineering workflow agent."""
+    """Return console-inspection and execution-backed validation instructions for the engineering workflow agent."""
     return (
-        "<citation_validation>\n"
-        "For EVERY command you emit, verify it against official documentation using the available documentation/search capability together with repository evidence.\n"
-        "Prefer official or vendor-authored documentation for the tool or framework behind each command.\n"
-        "Confirm the command syntax, flags, scope, and usage before emitting it.\n\n"
-        "Confidence scoring guidance:\n"
-        "- 0.90-1.00: exact match with official documentation or strong repository/config evidence\n"
-        "- 0.71-0.89: strong evidence and acceptable to emit\n"
-        "- 0.50-0.70: partially supported or inferred; do NOT emit\n"
-        "- Below 0.50: speculative; do NOT emit\n\n"
-        "Only emit commands when confidence is > 0.70.\n"
-        "If official documentation cannot be verified, rely on repository evidence only and remain conservative.\n"
-        "</citation_validation>\n"
+        "<verification_strategy>\n"
+        "Use console capability tools to inspect the codebase before emitting commands.\n"
+        "Prefer `glob`, `grep`, and `read_file` for discovering configuration files and scripts.\n"
+        "Use `execute` to verify install, build, test, lint, and type-check commands inside the sandbox before returning them.\n\n"
+        "Command selection criteria:\n"
+        "- Only emit commands that were executed successfully in the sandbox OR are directly supported by repository configuration evidence.\n"
+        "- Cross-check command syntax, flags, and scope against official documentation when available via web search/fetch.\n"
+        "- If a command cannot be executed or verified, do NOT emit it.\n"
+        "</verification_strategy>\n"
     )
 
 
@@ -79,17 +76,17 @@ async def per_language_development_workflow_prompt(
         "<output_contract>\n"
         "Return ONLY JSON with this exact top-level shape:\n"
         '{"commands":[{"command":"<runnable command>","stage":"install|build|dev|test|lint|type_check",'
-        '"config_file":"<repository-root-relative path or unknown>","confidence":0.0,'
+        '"config_file":"<repository-root-relative path or unknown>",'
         '"working_directory":"<repo-relative dir: omit/null=codebase root, .=repo root, path=workspace root>"}]}\n'
         "Do not include markdown, prose, or extra keys.\n"
         "</output_contract>\n\n"
         "<rules>\n"
+        "- Use console tools (`glob`, `grep`, `read_file`) to discover configuration files, scripts, and project structure before emitting commands.\n"
+        "- Use `execute` to run candidate commands in the sandbox and verify they succeed before including them.\n"
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"
         "- Emit only the keys defined in output_contract and nothing else.\n"
         "- config_file is the single most relevant configuration file for this command (repository-root-relative path or 'unknown').\n"
-        "- confidence is a float between 0.0 and 1.0.\n"
-        "- Commands with confidence <= 0.70 will be filtered out.\n"
         "- working_directory: omit or null to run from codebase root, '.' to run from repo root, or a repo-relative path for a specific workspace root.\n"
         "</rules>\n"
     )

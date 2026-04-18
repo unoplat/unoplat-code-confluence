@@ -40,6 +40,7 @@ DEPENDENCY_OVERVIEW_ARTIFACT = "dependencies_overview.md"
 BUSINESS_LOGIC_REFERENCES_ARTIFACT = "business_logic_references.md"
 APP_INTERFACES_ARTIFACT = "app_interfaces.md"
 
+DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID = "console__development_workflow_guide"
 DEVELOPMENT_WORKFLOW_EXA_TOOLSET_ID = "exa__development_workflow_guide"
 DEPENDENCY_GUIDE_EXA_TOOLSET_ID = "exa__dependency_guide"
 CALL_EXPRESSION_VALIDATOR_EXA_TOOLSET_ID = "exa__call_expression_validator"

@@ -42,9 +42,6 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
     )
-    from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
-        normalize_engineering_workflow,
-    )
     from unoplat_code_confluence_query_engine.services.temporal.activities.app_interfaces_activity import (
         AppInterfacesActivity,
     )
@@ -487,13 +484,7 @@ class CodebaseAgentWorkflow:
                 )
                 logger.debug("[workflow] development_workflow_guide.run() returned")
 
-                raw_engineering_workflow = workflow_result.output.model_dump(
-                    mode="json"
-                )
-                normalized_workflow = normalize_engineering_workflow(
-                    raw_engineering_workflow
-                )
-                results["engineering_workflow"] = normalized_workflow.model_dump()
+                results["engineering_workflow"] = workflow_result.output.model_dump()
 
                 # Emit completion event for deterministic progress tracking.
                 await workflow.execute_activity(

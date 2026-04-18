@@ -87,7 +87,23 @@ class TemporalAgentRegistry(BaseModel):
         return len(self.enabled_agent_names())
 
 
-ENABLED_AGENTS: frozenset[AgentType] = DEFAULT_ENABLED_AGENT_TYPES
+def _resolve_enabled_agents(raw: str) -> frozenset[AgentType]:
+    """Parse the ENABLED_AGENTS env string into a frozenset of AgentType.
+
+    Empty string → all agents enabled (DEFAULT_ENABLED_AGENT_TYPES).
+    """
+    if not raw.strip():
+        return DEFAULT_ENABLED_AGENT_TYPES
+    selected: set[AgentType] = set()
+    for token in raw.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        try:
+            selected.add(AgentType(token))
+        except ValueError:
+            logger.warning("Ignoring unknown agent type in ENABLED_AGENTS: '{}'", token)
+    return frozenset(selected) if selected else DEFAULT_ENABLED_AGENT_TYPES
 
 
 def create_temporal_agents(
@@ -96,10 +112,11 @@ def create_temporal_agents(
     model_settings: ModelSettings | None = None,
     provider_key: str | None = None,
     exa_configured: bool = False,
+    enabled_agents: frozenset[AgentType] | None = None,
 ) -> TemporalAgentRegistry:
     """Create enabled agents wrapped with TemporalAgent for durable execution.
 
-    Only creates agents that are listed in ENABLED_AGENTS.
+    Only creates agents that are in *enabled_agents* (defaults to all).
     """
     assembly_context = create_assembly_context(
         model=model,
@@ -118,8 +135,9 @@ def create_temporal_agents(
         assembly_context.search_policy.include_prepared_builtin_web_search,
         assembly_context.search_policy.include_prepared_builtin_web_fetch,
     )
+    effective_agents = enabled_agents if enabled_agents is not None else DEFAULT_ENABLED_AGENT_TYPES
     assembled_agents = assemble_enabled_temporal_agents(
-        agent_builders=build_enabled_agent_builders(ENABLED_AGENTS),
+        agent_builders=build_enabled_agent_builders(effective_agents),
         context=assembly_context,
     )
     agents = TemporalAgentRegistry.model_validate(
@@ -175,12 +193,16 @@ def initialize_temporal_agents(
     _cached_model_settings = model_settings
     _cached_usage_limits = UsageLimits(request_limit=effective_limit)
 
+    resolved_agents = _resolve_enabled_agents(settings.enabled_agents)
+    logger.info("Resolved enabled agents from settings: {}", [a.value for a in resolved_agents])
+
     _temporal_agents = create_temporal_agents(
         model,
         retry_config,
         model_settings,
         provider_key=provider_key,
         exa_configured=exa_configured,
+        enabled_agents=resolved_agents,
     )
 
     logger.info(

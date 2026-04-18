@@ -9,6 +9,20 @@ interface AgentMdToMarkdownOptions {
   title?: string;
 }
 
+function formatEngineeringWorkflowCommand(command: {
+  command: string;
+  config_file: string;
+  working_directory?: string | null;
+}): string {
+  const metadata = [command.config_file];
+
+  if (command.working_directory) {
+    metadata.push(`cwd: ${command.working_directory}`);
+  }
+
+  return `\`${command.command}\` (${metadata.join(", ")})`;
+}
+
 function buildMatchPatternLines(
   matchPattern: Record<string, string[]>,
 ): string[] {
@@ -124,7 +138,7 @@ export function agentMdOutputToMarkdown(
       stage: string;
       command: string;
       config_file: string;
-      confidence: number;
+      working_directory?: string | null;
     }[]
   > = {};
   for (const cmd of agent?.engineering_workflow?.commands ?? []) {
@@ -134,10 +148,7 @@ export function agentMdOutputToMarkdown(
   for (const stage of stageOrder.filter((value) => byStage[value]?.length)) {
     entries.push({ h3: stage.replace(/_/g, " ").toUpperCase() });
     entries.push({
-      ol: byStage[stage].map(
-        (c) =>
-          `\`${c.command}\` (${c.config_file}, confidence: ${Math.round(c.confidence * 100)}%)`,
-      ),
+      ol: byStage[stage].map((c) => formatEngineeringWorkflowCommand(c)),
     });
   }
 
@@ -203,7 +214,7 @@ export function codebasesToMarkdown(
         stage: string;
         command: string;
         config_file: string;
-        confidence: number;
+        working_directory?: string | null;
       }[]
     > = {};
     for (const cmd of agent?.engineering_workflow?.commands ?? []) {
@@ -220,10 +231,7 @@ export function codebasesToMarkdown(
     for (const stage of stageOrder.filter((value) => byStage[value]?.length)) {
       entries.push({ h4: stage.replace(/_/g, " ").toUpperCase() });
       entries.push({
-        ol: byStage[stage].map(
-          (c) =>
-            `\`${c.command}\` (${c.config_file}, confidence: ${Math.round(c.confidence * 100)}%)`,
-        ),
+        ol: byStage[stage].map((c) => formatEngineeringWorkflowCommand(c)),
       });
     }
 

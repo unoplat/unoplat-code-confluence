@@ -15,6 +15,7 @@ dependencies = [
     "loguru>=0.7.3",
     "markdown-it-py>=4.0.0",
     "pydantic-ai>=1.83.0",
+    "pydantic-ai-backend[docker]>=0.2.4",
     "pydantic-ai-skills>=0.1.0",
     "pydantic-ai-slim[bedrock,duckduckgo,retries]>=1.83.0",
     "qs-codec>=1.1.1",

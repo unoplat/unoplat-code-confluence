@@ -21,6 +21,7 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capab
     build_audited_console_capability,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
+    DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID,
     DEVELOPMENT_WORKFLOW_EXA_TOOLSET_ID,
     TS_MONOREPO_DYNAMIC_TOOLSET_ID,
     TS_MONOREPO_TOOLSET_ID,
@@ -62,6 +63,15 @@ def build_development_workflow_agent(
     context: AgentAssemblyContext,
 ) -> AgentBuildResult[EngineeringWorkflow]:
     console_capability = build_audited_console_capability()
+    console_toolset = console_capability.get_toolset()
+    if (
+        console_toolset is None
+        or console_toolset.id != DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID
+    ):
+        raise ValueError(
+            "Development workflow console capability must expose a Temporal-safe toolset ID"
+        )
+
     builtin_tools: tuple[AgentBuiltinTool[AgentDependencies], ...] = (
         resolve_builtin_search_tools(
             allow_builtin_web_search=True,
@@ -100,6 +110,7 @@ def build_development_workflow_agent(
         agent=agent,
         function_tool_names=(),
         toolset_ids=(
+            DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID,
             *toolset_ids,
             TS_MONOREPO_DYNAMIC_TOOLSET_ID,
             TS_MONOREPO_TOOLSET_ID,

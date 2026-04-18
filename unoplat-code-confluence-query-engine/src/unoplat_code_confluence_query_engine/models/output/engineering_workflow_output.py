@@ -18,15 +18,12 @@ class EngineeringWorkflowStage(str, Enum):
 
 
 class EngineeringWorkflowCommand(BaseModel):
-    """Canonical workflow command entry with citation-validated confidence."""
+    """Canonical workflow command entry."""
 
     command: str = Field(..., description="Runnable command")
     stage: EngineeringWorkflowStage = Field(..., description="Execution stage")
     config_file: str = Field(
         ..., description="Repository-root-relative path to the most relevant config file, or 'unknown'"
-    )
-    confidence: float = Field(
-        ..., ge=0.0, le=1.0, description="Citation-validated confidence score"
     )
     working_directory: Optional[str] = Field(
         default=None,
