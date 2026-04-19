@@ -67,6 +67,9 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.repositor
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.repository_workflow_db_activity import (
     RepositoryWorkflowDbActivity,
 )
+from unoplat_code_confluence_query_engine.services.temporal.agent_backend_lifecycle import (
+    AgentBackendLifecycle,
+)
 from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
     DEPLOYMENT_NAME,
     compute_credential_hash,
@@ -82,12 +85,12 @@ from unoplat_code_confluence_query_engine.services.temporal.temporal_agents impo
     get_temporal_agents,
     initialize_temporal_agents,
 )
+from unoplat_code_confluence_query_engine.services.temporal.version_management import (
+    set_current_version,
+)
 from unoplat_code_confluence_query_engine.services.temporal.workflows import (
     CodebaseAgentWorkflow,
     RepositoryAgentWorkflow,
-)
-from unoplat_code_confluence_query_engine.services.temporal.version_management import (
-    set_current_version,
 )
 
 if TYPE_CHECKING:
@@ -113,6 +116,7 @@ class TemporalWorkerManager:
         self._worker: Worker | None = None
         self._worker_task: asyncio.Task[None] | None = None
         self._registry: ServiceRegistry | None = None
+        self._backend_lifecycle: AgentBackendLifecycle | None = None
         self._started: bool = False
         self._current_build_id: str | None = None
 
@@ -186,12 +190,16 @@ class TemporalWorkerManager:
         # Initialize service registry with MCP config
         self._registry = ServiceRegistry.get_instance()
         await self._registry.initialize(
-            settings=settings,
             mcp_config_path=settings.mcp_servers_config_path,
         )
         logger.info(
             f"[temporal_worker_manager] Service registry initialized with MCP config: {settings.mcp_servers_config_path}"
         )
+
+        # Initialize backend lifecycle (Docker sandbox management)
+        self._backend_lifecycle = AgentBackendLifecycle.get_instance()
+        self._backend_lifecycle.initialize(settings)
+        logger.info("[temporal_worker_manager] Agent backend lifecycle initialized")
 
         # Inject Exa API key into MCP server config (static for worker lifecycle)
         async with get_startup_session() as session:
@@ -487,6 +495,10 @@ class TemporalWorkerManager:
             except asyncio.CancelledError:
                 pass
 
+        # Shutdown backend lifecycle (Docker sandboxes) before service registry
+        if self._backend_lifecycle:
+            self._backend_lifecycle.shutdown()
+
         # Shutdown service registry
         if self._registry:
             await self._registry.shutdown()
@@ -495,6 +507,7 @@ class TemporalWorkerManager:
         self._worker_task = None
         self._client = None
         self._registry = None
+        self._backend_lifecycle = None
         self._started = False
         self._current_build_id = None
 

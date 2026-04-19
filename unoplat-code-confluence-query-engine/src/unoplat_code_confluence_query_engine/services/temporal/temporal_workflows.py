@@ -457,16 +457,16 @@ class CodebaseAgentWorkflow:
 
         # Step 1: Development Workflow Guide
         if "development_workflow_guide" in temporal_agents:
+            engineering_workflow_deps = AgentDependencies(
+                repository_qualified_name=repository_qualified_name,
+                codebase_metadata=codebase_metadata,
+                repository_workflow_run_id=repository_workflow_run_id,
+                agent_name="development_workflow_guide",
+            )
             try:
                 logger.info(
                     "[workflow] Running development_workflow_guide for {}",
                     codebase_metadata.codebase_name,
-                )
-                engineering_workflow_deps = AgentDependencies(
-                    repository_qualified_name=repository_qualified_name,
-                    codebase_metadata=codebase_metadata,
-                    repository_workflow_run_id=repository_workflow_run_id,
-                    agent_name="development_workflow_guide",
                 )
                 logger.debug(
                     "[workflow] Calling temporal_agents['development_workflow_guide'].run()..."
@@ -542,6 +542,8 @@ class CodebaseAgentWorkflow:
                 )
                 agent_errors.append(engineering_error)
                 agent_stats.append(create_zero_usage_statistics())
+            finally:
+                engineering_workflow_deps.release_backend()
         else:
             logger.info(
                 "[workflow] development_workflow_guide is disabled, skipping for {}",
