@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.42.0...unoplat-code-confluence-docs-v0.43.0) (2026-04-13)
+
+
+### Features
+
+* **update-changelog:** add changelogs for v0.32.0–v0.34.0 and update banner to v0.34.0 ([510c401](https://github.com/unoplat/unoplat-code-confluence/commit/510c4013b642ca4dc31f3e63a4c5fdfc411c2e73))
+* **update-changelog:** add changelogs for v0.32.0–v0.34.0 and update… ([c651b63](https://github.com/unoplat/unoplat-code-confluence/commit/c651b63448b59a9dd1a840d23643e8bae6944f83))
+
 ## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.41.0...unoplat-code-confluence-docs-v0.42.0) (2026-04-12)
 
 
