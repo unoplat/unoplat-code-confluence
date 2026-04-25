@@ -3,7 +3,6 @@
   "pages": [
     "firebase",
     "lit",
-    "litellm",
     "nextjs",
     "swr",
     "zustand"
