@@ -1,52 +1,44 @@
 """Single public entrypoint for agent backend acquisition and release.
 
-Centralises backend-kind dispatch so that all agent-to-backend policy
-is auditable in one mapping. Readonly/local agents are resolved
-statelessly; Docker-backed agents delegate lifecycle operations to
-``agent_backend_lifecycle`` and runtime selection to
-``development_workflow_runtime``.
-
-Shared path helpers are imported from ``agent_backend_paths`` and
-re-exported here so callers can continue to use the resolver as the
-public backend entrypoint without creating circular imports.
+All current agent backends resolve to local filesystem backends scoped to the
+active repository. Readonly agents get inspection-only access; direct AGENTS.md
+section owners get markdown-scoped editing for their owned sections, and the
+development workflow agent also gets shell execution.
 """
 
 from __future__ import annotations
 
 from typing import Literal
 
-from pydantic_ai_backends import DockerSandbox
 from pydantic_ai_backends.backends.local import LocalBackend
-from pydantic_ai_backends.permissions.presets import READONLY_RULESET
+from pydantic_ai_backends.permissions.types import PermissionRuleset
 from pydantic_ai_backends.protocol import BackendProtocol
 
 from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     CodebaseMetadata,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_backend_lifecycle import (
-    AgentBackendLifecycle,
-    make_backend_key,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
+    MARKDOWN_READ_WRITE_EXECUTE_RULESET,
+    MARKDOWN_READ_WRITE_RULESET,
+    READ_AND_EXECUTE_RULESET,
+    READONLY_CONSOLE_RULESET,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_backend_paths import (
     resolve_repository_root,
     resolve_work_dir,
 )
-from unoplat_code_confluence_query_engine.services.temporal.development_workflow_runtime import (
-    resolve_development_workflow_repository_mounts,
-    resolve_development_workflow_runtime,
-)
 
-AgentBackendKind = Literal["readonly_local", "development_workflow_docker"]
+AgentBackendKind = Literal[
+    "readonly_local", "execute_local", "markdown_local", "markdown_execute_local"
+]
 
 _AGENT_BACKEND_KIND: dict[str, AgentBackendKind] = {
-    "business_domain_guide": "readonly_local",
-    "development_workflow_guide": "development_workflow_docker",
+    "business_domain_guide": "markdown_local",
+    "call_expression_validator": "readonly_local",
+    "dependency_guide": "readonly_local",
+    "dependency_guide_item": "readonly_local",
+    "development_workflow_guide": "markdown_execute_local",
 }
-
-
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
 
 
 def _resolve_agent_backend_kind(agent_name: str) -> AgentBackendKind:
@@ -57,40 +49,22 @@ def _resolve_agent_backend_kind(agent_name: str) -> AgentBackendKind:
     return kind
 
 
-def _build_readonly_local_backend(metadata: CodebaseMetadata) -> LocalBackend:
-    """Build a read-only local-filesystem backend scoped to the repository."""
+def _build_local_backend(
+    metadata: CodebaseMetadata,
+    *,
+    enable_execute: bool,
+    permissions: PermissionRuleset,
+) -> LocalBackend:
+    """Build a repository-scoped local backend with explicit permissions."""
     work_dir = resolve_work_dir(metadata)
     repository_root = resolve_repository_root(metadata)
     return LocalBackend(
         root_dir=work_dir,
         allowed_directories=[repository_root],
-        enable_execute=False,
-        permissions=READONLY_RULESET,
+        enable_execute=enable_execute,
+        permissions=permissions,
+        ask_fallback="deny",
     )
-
-
-def _resolve_development_workflow_backend(
-    *,
-    agent_name: str,
-    metadata: CodebaseMetadata,
-    workflow_run_id: str,
-) -> DockerSandbox:
-    """Build or reuse a Docker sandbox for development-workflow agents."""
-    lifecycle = AgentBackendLifecycle.get_instance()
-
-    key = make_backend_key(workflow_run_id, agent_name, metadata)
-    runtime = resolve_development_workflow_runtime(metadata, lifecycle.settings)
-    volumes = resolve_development_workflow_repository_mounts(metadata)
-    return lifecycle.get_or_start_docker_backend(
-        key=key,
-        runtime=runtime,
-        volumes=volumes,
-    )
-
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 
 def resolve_agent_backend(
@@ -99,19 +73,31 @@ def resolve_agent_backend(
     metadata: CodebaseMetadata,
     workflow_run_id: str,
 ) -> BackendProtocol:
-    """Resolve the correct backend implementation for the given agent.
-
-    Business-domain agents get a read-only local backend.
-    Development-workflow agents get a Docker sandbox via the lifecycle
-    manager.  Unknown agents raise ``ValueError``.
-    """
+    """Resolve the correct backend implementation for the given agent."""
+    _ = workflow_run_id
     kind = _resolve_agent_backend_kind(agent_name)
     if kind == "readonly_local":
-        return _build_readonly_local_backend(metadata)
-    return _resolve_development_workflow_backend(
-        agent_name=agent_name,
-        metadata=metadata,
-        workflow_run_id=workflow_run_id,
+        return _build_local_backend(
+            metadata,
+            enable_execute=False,
+            permissions=READONLY_CONSOLE_RULESET,
+        )
+    if kind == "execute_local":
+        return _build_local_backend(
+            metadata,
+            enable_execute=True,
+            permissions=READ_AND_EXECUTE_RULESET,
+        )
+    if kind == "markdown_execute_local":
+        return _build_local_backend(
+            metadata,
+            enable_execute=True,
+            permissions=MARKDOWN_READ_WRITE_EXECUTE_RULESET,
+        )
+    return _build_local_backend(
+        metadata,
+        enable_execute=False,
+        permissions=MARKDOWN_READ_WRITE_RULESET,
     )
 
 
@@ -123,11 +109,10 @@ def release_agent_backend(
 ) -> None:
     """Release the backend for the given agent.
 
-    No-op for readonly local backends.  Stops and removes the Docker
-    sandbox for development-workflow backends.
+    Local backends are process-local lightweight objects with no external
+    lifecycle to tear down, so release is currently a no-op.
     """
-    key = make_backend_key(workflow_run_id, agent_name, metadata)
-    AgentBackendLifecycle.get_instance().release_backend(key=key)
+    _ = (agent_name, metadata, workflow_run_id)
 
 
 # Shared path helpers are re-exported from agent_backend_paths.

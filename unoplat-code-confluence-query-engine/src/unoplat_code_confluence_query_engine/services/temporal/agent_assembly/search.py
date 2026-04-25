@@ -2,18 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pydantic_ai import RunContext
-from pydantic_ai.builtin_tools import WebFetchTool, WebSearchTool
-from pydantic_ai.tools import AgentBuiltinTool
+from pydantic_ai.capabilities import (
+    AbstractCapability,
+    CombinedCapability,
+    WebFetch,
+    WebSearch,
+)
+from pydantic_ai.toolsets.function import FunctionToolset
 
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
-
-WEB_SEARCH_BUILTIN_PROVIDER_KEYS = frozenset(
-    {"anthropic", "codex_openai", "google", "grok", "groq", "openrouter"}
-)
-WEB_FETCH_BUILTIN_PROVIDER_KEYS = frozenset({"anthropic", "google"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,122 +20,83 @@ class SearchRuntimePolicy:
     """Resolved external web-tool policy for a Temporal assembly run."""
 
     include_exa_toolsets: bool = False
-    include_prepared_builtin_web_search: bool = False
-    include_prepared_builtin_web_fetch: bool = False
-
-
-@dataclass(frozen=True, slots=True)
-class PreparedWebSearchTool:
-    """Prepared builtin helper that resolves to a web-search tool or None."""
-
-    enabled: bool = False
-
-    async def __call__(
-        self,
-        ctx: RunContext[AgentDependencies],
-    ) -> WebSearchTool | None:
-        _ = ctx
-        if not self.enabled:
-            return None
-        return WebSearchTool()
-
-
-@dataclass(frozen=True, slots=True)
-class PreparedWebFetchTool:
-    """Prepared builtin helper that resolves to a web-fetch tool or None."""
-
-    enabled: bool = False
-
-    async def __call__(
-        self,
-        ctx: RunContext[AgentDependencies],
-    ) -> WebFetchTool | None:
-        _ = ctx
-        if not self.enabled:
-            return None
-        return WebFetchTool()
-
-
-def provider_supports_builtin_web_search(provider_key: str | None) -> bool:
-    """Return whether the provider can use PydanticAI's builtin web-search tool."""
-
-    return provider_key in WEB_SEARCH_BUILTIN_PROVIDER_KEYS
-
-
-def provider_supports_builtin_web_fetch(provider_key: str | None) -> bool:
-    """Return whether the provider can use PydanticAI's builtin web-fetch tool."""
-
-    return provider_key in WEB_FETCH_BUILTIN_PROVIDER_KEYS
 
 
 def resolve_search_runtime_policy(
     provider_key: str | None,
     exa_configured: bool,
 ) -> SearchRuntimePolicy:
-    """Resolve the shared runtime web-tool policy for assembled Temporal agents."""
+    """Resolve the shared runtime web-tool policy for assembled Temporal agents.
 
-    return SearchRuntimePolicy(
-        include_exa_toolsets=exa_configured,
-        include_prepared_builtin_web_search=(
-            not exa_configured and provider_supports_builtin_web_search(provider_key)
-        ),
-        include_prepared_builtin_web_fetch=provider_supports_builtin_web_fetch(
-            provider_key
-        ),
-    )
+    ``provider_key`` is accepted for API compatibility and logging context only.
+    Web capability availability is delegated to provider-adaptive Pydantic AI
+    capabilities rather than a query-engine allowlist.
+    """
+
+    _ = provider_key
+    return SearchRuntimePolicy(include_exa_toolsets=exa_configured)
 
 
-def should_include_prepared_builtin_web_search(
+def _build_local_web_search_toolset(toolset_id: str) -> FunctionToolset[AgentDependencies]:
+    """Return a Temporal-safe local fallback toolset for web search."""
+
+    from pydantic_ai.common_tools.duckduckgo import duckduckgo_search_tool
+
+    return FunctionToolset([duckduckgo_search_tool()], id=toolset_id)
+
+
+
+def _build_local_web_fetch_toolset(toolset_id: str) -> FunctionToolset[AgentDependencies]:
+    """Return a Temporal-safe local fallback toolset for web fetch."""
+
+    from pydantic_ai.common_tools.web_fetch import web_fetch_tool
+
+    return FunctionToolset([web_fetch_tool()], id=toolset_id)
+
+
+
+def resolve_search_capability(
     *,
     allow_builtin_web_search: bool,
-    runtime_policy: SearchRuntimePolicy,
-) -> bool:
-    """Return whether prepared builtin web search should resolve to a tool."""
-
-    return (
-        allow_builtin_web_search
-        and runtime_policy.include_prepared_builtin_web_search
-    )
-
-
-def should_include_prepared_builtin_web_fetch(
-    *,
-    allow_builtin_web_fetch: bool,
-    runtime_policy: SearchRuntimePolicy,
-) -> bool:
-    """Return whether prepared builtin web fetch should resolve to a tool."""
-
-    return allow_builtin_web_fetch and runtime_policy.include_prepared_builtin_web_fetch
-
-
-def resolve_builtin_search_tools(
-    *,
-    allow_builtin_web_search: bool,
-    runtime_policy: SearchRuntimePolicy,
     allow_builtin_web_fetch: bool = False,
-) -> tuple[AgentBuiltinTool[AgentDependencies], ...]:
-    """Return shared prepared builtin web tools for the assembled agent."""
+    local_web_search_toolset_id: str | None = None,
+    local_web_fetch_toolset_id: str | None = None,
+) -> AbstractCapability[AgentDependencies] | None:
+    """Return direct WebSearch/WebFetch capabilities for an agent.
 
-    builtin_tools: list[AgentBuiltinTool[AgentDependencies]] = []
+    We intentionally attach the Pydantic AI capabilities directly so builtin-tool
+    support and local fallback behavior stay owned by the library rather than a
+    query-engine-side runtime wrapper.
+
+    Because these agents run through Temporal, any local fallback toolset must be
+    a leaf toolset with a stable ID so Temporal can register deterministic
+    activity names at worker startup.
+    """
+
+    capabilities: list[AbstractCapability[AgentDependencies]] = []
     if allow_builtin_web_search:
-        builtin_tools.append(
-            PreparedWebSearchTool(
-                enabled=should_include_prepared_builtin_web_search(
-                    allow_builtin_web_search=allow_builtin_web_search,
-                    runtime_policy=runtime_policy,
-                )
+        if not local_web_search_toolset_id:
+            raise ValueError(
+                "local_web_search_toolset_id is required when web search is enabled"
+            )
+        capabilities.append(
+            WebSearch(
+                local=_build_local_web_search_toolset(local_web_search_toolset_id)
             )
         )
     if allow_builtin_web_fetch:
-        builtin_tools.append(
-            PreparedWebFetchTool(
-                enabled=should_include_prepared_builtin_web_fetch(
-                    allow_builtin_web_fetch=allow_builtin_web_fetch,
-                    runtime_policy=runtime_policy,
-                )
+        if not local_web_fetch_toolset_id:
+            raise ValueError(
+                "local_web_fetch_toolset_id is required when web fetch is enabled"
             )
+        capabilities.append(
+            WebFetch(local=_build_local_web_fetch_toolset(local_web_fetch_toolset_id))
         )
-    return tuple(builtin_tools)
+    if not capabilities:
+        return None
+    if len(capabilities) == 1:
+        return capabilities[0]
+    return CombinedCapability(capabilities)
 
 
 def should_include_exa_toolsets(runtime_policy: SearchRuntimePolicy) -> bool:

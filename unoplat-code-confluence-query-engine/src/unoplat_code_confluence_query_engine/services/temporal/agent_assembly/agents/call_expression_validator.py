@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic_ai import Agent, Tool
-from pydantic_ai.tools import AgentBuiltinTool
+from pydantic_ai.capabilities import AbstractCapability
 from pydantic_ai.toolsets.abstract import AbstractToolset
 
 from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
@@ -13,22 +13,22 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_call_expression_validator import (
     build_call_expression_validator_instructions,
 )
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
+    build_readonly_console_capability,
+)
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
+    CALL_EXPRESSION_VALIDATOR_CONSOLE_TOOLSET_ID,
     CALL_EXPRESSION_VALIDATOR_EXA_TOOLSET_ID,
+    CALL_EXPRESSION_VALIDATOR_LOCAL_WEB_FETCH_TOOLSET_ID,
+    CALL_EXPRESSION_VALIDATOR_LOCAL_WEB_SEARCH_TOOLSET_ID,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.runtime import (
     AgentAssemblyContext,
     AgentBuildResult,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.search import (
-    resolve_builtin_search_tools,
+    resolve_search_capability,
     should_include_exa_toolsets,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.read_file_content import (
-    build_read_file_content_tool,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.search_across_codebase import (
-    build_search_across_codebase_tool,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.set_framework_feature_validation_status import (
     build_set_framework_feature_validation_status_tool,
@@ -48,20 +48,29 @@ def build_call_expression_validator_agent(
     context: AgentAssemblyContext,
 ) -> AgentBuildResult[CallExpressionValidationAgentOutput]:
     function_tools: list[Tool[AgentDependencies]] = [
-        build_read_file_content_tool(),
-        build_search_across_codebase_tool(),
         build_upsert_framework_feature_validation_evidence_tool(),
         build_set_framework_feature_validation_status_tool(),
     ]
-    builtin_tools: tuple[AgentBuiltinTool[AgentDependencies], ...] = (
-        resolve_builtin_search_tools(
-            allow_builtin_web_search=True,
-            allow_builtin_web_fetch=True,
-            runtime_policy=context.search_policy,
-        )
+    search_capability = resolve_search_capability(
+        allow_builtin_web_search=True,
+        allow_builtin_web_fetch=True,
+        local_web_search_toolset_id=CALL_EXPRESSION_VALIDATOR_LOCAL_WEB_SEARCH_TOOLSET_ID,
+        local_web_fetch_toolset_id=CALL_EXPRESSION_VALIDATOR_LOCAL_WEB_FETCH_TOOLSET_ID,
     )
     toolsets: list[AbstractToolset[AgentDependencies]] = []
     toolset_ids: list[str] = []
+
+    console_capability = build_readonly_console_capability(
+        CALL_EXPRESSION_VALIDATOR_CONSOLE_TOOLSET_ID
+    )
+    console_toolset = console_capability.get_toolset()
+    if (
+        console_toolset is None
+        or console_toolset.id != CALL_EXPRESSION_VALIDATOR_CONSOLE_TOOLSET_ID
+    ):
+        raise ValueError(
+            "Call expression validator console capability must expose a Temporal-safe toolset ID"
+        )
 
     if should_include_exa_toolsets(context.search_policy):
         exa_toolset = build_call_expression_validator_exa_toolset()
@@ -72,14 +81,18 @@ def build_call_expression_validator_agent(
         toolsets.append(exa_toolset)
         toolset_ids.append(CALL_EXPRESSION_VALIDATOR_EXA_TOOLSET_ID)
 
+    capabilities: list[AbstractCapability[AgentDependencies]] = [console_capability]
+    if search_capability is not None:
+        capabilities.append(search_capability)
+
     agent = Agent(
         context.model,
         name="call_expression_validator",
         instructions=build_call_expression_validator_instructions(),
         deps_type=AgentDependencies,
         tools=tuple(function_tools),
-        builtin_tools=builtin_tools,
         toolsets=tuple(toolsets),
+        capabilities=capabilities,
         output_type=CallExpressionValidationAgentOutput,
         output_retries=2,
         model_settings=context.model_settings,
@@ -89,5 +102,10 @@ def build_call_expression_validator_agent(
     return AgentBuildResult(
         agent=agent,
         function_tool_names=tuple(tool.name for tool in function_tools),
-        toolset_ids=tuple(toolset_ids),
+        toolset_ids=(
+            CALL_EXPRESSION_VALIDATOR_CONSOLE_TOOLSET_ID,
+            CALL_EXPRESSION_VALIDATOR_LOCAL_WEB_SEARCH_TOOLSET_ID,
+            CALL_EXPRESSION_VALIDATOR_LOCAL_WEB_FETCH_TOOLSET_ID,
+            *toolset_ids,
+        ),
     )
