@@ -99,3 +99,40 @@ task code-quality                 # Run all checks (lint + typecheck + schema va
 **API Verification**: Before implementing framework/library features, verify API methods with official documentation using Context7 tool.
 
 **Post-Implementation**: ALWAYS run `task typecheck` after implementation. Fix all type errors before considering work complete.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+### Install
+- `uv sync` (Taskfile.yml, `.`)
+### Build
+- Not detected
+### Dev
+- `DB_HOST=localhost DB_PORT=5432 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=code_confluence NEO4J_HOST=localhost NEO4J_PORT=7687 NEO4J_USERNAME=neo4j NEO4J_PASSWORD=password TEMPORAL_SERVER_ADDRESS=localhost:7233 OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4317 OTEL_EXPORTER_OTLP_PROTOCOL=grpc OTEL_SERVICE_NAME=code-confluence-flow-bridge OTEL_PROPAGATORS='tracecontext,baggage' FRAMEWORK_DEFINITIONS_PATH='../../framework-definitions' TEMPORAL_MAX_CONCURRENT_ACTIVITIES=3 REPOSITORIES_BASE_PATH=/opt/unoplat/repositories TOKEN_ENCRYPTION_KEY='0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ=' GITHUB_APP_OWNER_TYPE=organization GITHUB_APP_OWNER=unoplat uv run fastapi dev` (Taskfile.yml, `src/code_confluence_flow_bridge`)
+### Test
+- `uv sync --group test && uv run --python 3.13 --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v` (Taskfile.yml, `.`)
+### Lint
+- `uv run ruff check src/` (Taskfile.yml, `.`)
+### Type Check
+- `uv run --group dev basedpyright src/` (Taskfile.yml, `.`)
+
+## Dependency Guide
+See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
+
+## Business Domain
+### Description
+This service centers on repository ingestion and code intelligence for GitHub projects. It parses Python and TypeScript code, extracts imports and structural signatures, detects package managers and workspace layouts, and packages repository/codebase metadata for downstream processing. It also tracks Temporal workflow state, GitHub App onboarding, and issue/feedback submission around that ingestion pipeline.
+
+### References
+
+See [`business_domain_references.md`](./business_domain_references.md) for the supporting source references used to derive this domain summary.
+
+## App Interfaces
+See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->
