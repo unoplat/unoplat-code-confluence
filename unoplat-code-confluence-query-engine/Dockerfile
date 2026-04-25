@@ -85,13 +85,15 @@ RUN apt-get update && \
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /usr/local/bin/
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 -
 
-# Copy Node.js toolchain and enable Corepack for npm/pnpm/yarn workflows
+# Copy Node.js toolchain and enable Corepack for npm/pnpm/yarn workflows.
+# npm, npx, and corepack are symlinks in the official Node image; copying them
+# directly dereferences the symlinks and breaks their relative module imports.
 COPY --from=node-stage /usr/local/bin/node /usr/local/bin/node
-COPY --from=node-stage /usr/local/bin/npm /usr/local/bin/npm
-COPY --from=node-stage /usr/local/bin/npx /usr/local/bin/npx
-COPY --from=node-stage /usr/local/bin/corepack /usr/local/bin/corepack
 COPY --from=node-stage /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN corepack enable
+RUN ln -sf ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -sf ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
+    ln -sf ../lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack && \
+    corepack enable
 
 WORKDIR /app
 
