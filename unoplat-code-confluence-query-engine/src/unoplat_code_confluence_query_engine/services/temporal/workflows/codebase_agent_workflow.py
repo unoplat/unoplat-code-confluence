@@ -87,7 +87,6 @@ class CodebaseAgentWorkflow:
             "dependency_guide": None,
             "business_logic_domain": None,
             "app_interfaces": None,
-            "agents_md_updater_runs": [],
         }
 
         agent_stats: list[UsageStatistics] = []
@@ -96,7 +95,6 @@ class CodebaseAgentWorkflow:
         await run_managed_block_bootstrap(
             codebase_metadata=codebase_metadata,
             git_ref_info=git_ref_info,
-            updater_runs=results["agents_md_updater_runs"],
         )
         await run_development_workflow_agent(
             temporal_agents=temporal_agents,

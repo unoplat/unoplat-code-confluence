@@ -9,9 +9,6 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
-        SectionId,
-    )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
     )
@@ -42,9 +39,6 @@ with workflow.unsafe.imports_passed_through():
         enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.section_updater_runner import (
-        run_section_updater,
-    )
 
 
 async def run_business_domain_agent(
@@ -57,7 +51,8 @@ async def run_business_domain_agent(
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
 ) -> None:
-    """Run the business-domain agent, post-process result, and update section."""
+    """Run the business-domain agent and deterministic reference post-processing."""
+    _ = programming_language_metadata
     business_domain_agent = temporal_agents.business_domain_guide
     if business_domain_agent is None:
         logger.info(
@@ -102,17 +97,9 @@ async def run_business_domain_agent(
         )
         agent_stats.append(extract_usage_statistics(domain_result.usage()))
 
-        await run_section_updater(
-            temporal_agents=temporal_agents,
-            section_id=SectionId.BUSINESS_DOMAIN,
-            codebase_metadata=codebase_metadata,
-            repository_qualified_name=repository_qualified_name,
-            repository_workflow_run_id=repository_workflow_run_id,
-            programming_language_metadata=programming_language_metadata,
-            section_data=results["business_logic_domain"],
-            agent_stats=agent_stats,
-            agent_errors=agent_errors,
-            updater_runs=results["agents_md_updater_runs"],
+        logger.debug(
+            "[workflow] business_domain_guide directly owns AGENTS.md / ## Business Domain / ### Description; "
+            "business_domain_references.md was rendered during post-processing"
         )
     except Exception as e:
         raise_if_temporal_cancellation(e)

@@ -16,9 +16,6 @@ from unoplat_code_confluence_query_engine.config.settings import EnvironmentSett
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     DependencyGuideEntry,
 )
-from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
-    AgentsMdUpdaterOutput,
-)
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
 )
@@ -40,10 +37,6 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.catal
     AgentType,
     build_enabled_agent_builders,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.search import (
-    provider_supports_builtin_web_fetch,
-    provider_supports_builtin_web_search,
-)
 
 
 class TemporalAgentRegistry(BaseModel):
@@ -58,9 +51,6 @@ class TemporalAgentRegistry(BaseModel):
         None
     )
     business_domain_guide: TemporalAgent[AgentDependencies, str] | None = None
-    agents_md_updater: TemporalAgent[AgentDependencies, AgentsMdUpdaterOutput] | None = (
-        None
-    )
     call_expression_validator: (
         TemporalAgent[AgentDependencies, CallExpressionValidationAgentOutput] | None
     ) = None
@@ -126,14 +116,12 @@ def create_temporal_agents(
         exa_configured=exa_configured,
     )
     logger.info(
-        "Agent external web-tool wiring resolved: provider_key={}, exa_configured={}, supports_builtin_web_search={}, supports_builtin_web_fetch={}, use_exa_toolsets={}, use_prepared_builtin_web_search={}, use_prepared_builtin_web_fetch={}",
+        "Agent external web-tool wiring resolved: provider_key={}, exa_configured={}, use_exa_toolsets={}, direct_web_search_capability={}, direct_web_fetch_capability={}",
         provider_key,
         exa_configured,
-        provider_supports_builtin_web_search(provider_key),
-        provider_supports_builtin_web_fetch(provider_key),
         assembly_context.search_policy.include_exa_toolsets,
-        assembly_context.search_policy.include_prepared_builtin_web_search,
-        assembly_context.search_policy.include_prepared_builtin_web_fetch,
+        True,
+        True,
     )
     effective_agents = enabled_agents if enabled_agents is not None else DEFAULT_ENABLED_AGENT_TYPES
     assembled_agents = assemble_enabled_temporal_agents(
