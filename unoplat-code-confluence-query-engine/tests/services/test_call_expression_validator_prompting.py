@@ -57,26 +57,25 @@ def test_call_expression_validator_instructions_are_metadata_aware() -> None:
     assert "matched_absolute_path" in instructions
     assert "matched_alias" in instructions
     assert "call_match_policy_version" in instructions
-    assert "1. Read official docs first." in instructions
+    assert "3. Read official docs first." in instructions
     assert (
-        "Compare official docs expectations against candidate metadata" in instructions
+        "4. Compare your findings against candidate metadata and evidence_json."
+        in instructions
     )
     assert "gap analysis" in instructions
 
 
-def test_call_expression_validator_prompt_describes_docs_first_review_order() -> None:
-    prompt = build_call_expression_validator_prompt(_build_candidate())
+def test_call_expression_validator_prompt_carries_runtime_context_only() -> None:
+    prompt = build_call_expression_validator_prompt(
+        "/tmp/repo",
+        _build_candidate(),
+    )
 
-    assert "Candidate payload guide:" in prompt
-    assert "expected CallExpression evidence_json keys" in prompt
-    assert "Review official framework documentation first" in prompt
-    assert (
-        "Compare docs expectations against candidate metadata/evidence_json" in prompt
-    )
-    assert "Record gaps/mismatches before deciding" in prompt
-    assert (
-        "documentation findings, metadata review, local code findings, gap analysis"
-        in prompt
-    )
+    assert "Codebase path: /tmp/repo" in prompt
+    assert "corrected_file_path must stay within this codebase path" in prompt
+    assert "If evidence appears to point to a different codebase" in prompt
+    assert "Candidate payload JSON:" in prompt
     assert '"call_match_kind": "symbol_exact"' in prompt
     assert '"matched_absolute_path": "zustand/vanilla.createStore"' in prompt
+    assert "Candidate payload guide:" not in prompt
+    assert "Review official framework documentation as supporting evidence" not in prompt

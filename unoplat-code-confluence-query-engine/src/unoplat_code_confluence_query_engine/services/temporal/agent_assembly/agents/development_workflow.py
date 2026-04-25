@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic_ai import Agent
-from pydantic_ai.tools import AgentBuiltinTool
+from pydantic_ai.capabilities import AbstractCapability
 from pydantic_ai.toolsets.abstract import AbstractToolset
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
@@ -17,12 +17,14 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agent
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.validators.development_workflow_validator import (
     validate_engineering_development_workflow_output,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.development_workflow import (
-    build_audited_console_capability,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
+    build_markdown_execute_console_capability,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
     DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID,
     DEVELOPMENT_WORKFLOW_EXA_TOOLSET_ID,
+    DEVELOPMENT_WORKFLOW_LOCAL_WEB_FETCH_TOOLSET_ID,
+    DEVELOPMENT_WORKFLOW_LOCAL_WEB_SEARCH_TOOLSET_ID,
     TS_MONOREPO_DYNAMIC_TOOLSET_ID,
     TS_MONOREPO_TOOLSET_ID,
 )
@@ -31,7 +33,7 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.runti
     AgentBuildResult,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.search import (
-    resolve_builtin_search_tools,
+    resolve_search_capability,
     should_include_exa_toolsets,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.toolsets.development_workflow import (
@@ -62,7 +64,9 @@ def configure_engineering_workflow_agent(
 def build_development_workflow_agent(
     context: AgentAssemblyContext,
 ) -> AgentBuildResult[EngineeringWorkflow]:
-    console_capability = build_audited_console_capability()
+    console_capability = build_markdown_execute_console_capability(
+        DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID
+    )
     console_toolset = console_capability.get_toolset()
     if (
         console_toolset is None
@@ -72,13 +76,15 @@ def build_development_workflow_agent(
             "Development workflow console capability must expose a Temporal-safe toolset ID"
         )
 
-    builtin_tools: tuple[AgentBuiltinTool[AgentDependencies], ...] = (
-        resolve_builtin_search_tools(
-            allow_builtin_web_search=True,
-            allow_builtin_web_fetch=True,
-            runtime_policy=context.search_policy,
-        )
+    search_capability = resolve_search_capability(
+        allow_builtin_web_search=True,
+        allow_builtin_web_fetch=True,
+        local_web_search_toolset_id=DEVELOPMENT_WORKFLOW_LOCAL_WEB_SEARCH_TOOLSET_ID,
+        local_web_fetch_toolset_id=DEVELOPMENT_WORKFLOW_LOCAL_WEB_FETCH_TOOLSET_ID,
     )
+    capabilities: list[AbstractCapability[AgentDependencies]] = [console_capability]
+    if search_capability is not None:
+        capabilities.append(search_capability)
     toolsets: list[AbstractToolset[AgentDependencies]] = []
     toolset_ids: list[str] = []
 
@@ -96,9 +102,8 @@ def build_development_workflow_agent(
         name="development_workflow_guide",
         instructions=build_development_workflow_instructions(),
         deps_type=AgentDependencies,
-        builtin_tools=builtin_tools,
         toolsets=tuple(toolsets),
-        capabilities=[console_capability],
+        capabilities=capabilities,
         output_type=EngineeringWorkflow,
         output_retries=2,
         model_settings=context.model_settings,
@@ -111,6 +116,8 @@ def build_development_workflow_agent(
         function_tool_names=(),
         toolset_ids=(
             DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID,
+            DEVELOPMENT_WORKFLOW_LOCAL_WEB_SEARCH_TOOLSET_ID,
+            DEVELOPMENT_WORKFLOW_LOCAL_WEB_FETCH_TOOLSET_ID,
             *toolset_ids,
             TS_MONOREPO_DYNAMIC_TOOLSET_ID,
             TS_MONOREPO_TOOLSET_ID,

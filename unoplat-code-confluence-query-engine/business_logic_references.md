@@ -1,7 +1,7 @@
 # Business Logic References
 
 ## Domain Summary
-The query/analysis engine coordinates AI agents to inspect repositories, capture events and outputs, and persist workflow results. It models provider configuration (including OAuth connectivity), tool/MCP setup, repository metadata, structured analysis outputs (business logic domains, interfaces, AGENTS.md updates, engineering workflows), and usage/cost statistics to support LLM-driven processing across codebases.
+The query/analysis engine coordinates AI agents to inspect repositories, capture events and outputs, and persist workflow results. It models provider configuration (including OAuth connectivity), tool/MCP setup, repository metadata, structured analysis outputs (business logic domains, interfaces, managed markdown artifacts, engineering workflows), and usage/cost statistics to support LLM-driven processing across codebases.
 
 ## Core Modules and Responsibilities
 
@@ -17,7 +17,6 @@ The query/analysis engine coordinates AI agents to inspect repositories, capture
 | Models/config | `src/unoplat_code_confluence_query_engine/models/config/mcp_config.py` | MCP/tool server configuration schemas. |
 | Models/events | `src/unoplat_code_confluence_query_engine/models/events/agent_events.py` | Agent event payload definitions. |
 | Models/output | `src/unoplat_code_confluence_query_engine/models/output/agent_md_output.py` | Markdown output schema for agent responses. |
-| Models/output | `src/unoplat_code_confluence_query_engine/models/output/agents_md_updater_output.py` | Structured output schema for AGENTS.md updater runs. |
 | Models/output | `src/unoplat_code_confluence_query_engine/models/output/engineering_workflow_output.py` | Engineering workflow output schema. |
 | Models/repository | `src/unoplat_code_confluence_query_engine/models/repository/repository_ruleset_metadata.py` | Repository ruleset metadata model. |
 | Models/runtime | `src/unoplat_code_confluence_query_engine/models/runtime/agent_dependencies.py` | Runtime dependency definitions for agents. |
@@ -25,5 +24,4 @@ The query/analysis engine coordinates AI agents to inspect repositories, capture
 | Services/config | `src/unoplat_code_confluence_query_engine/services/config/codex_oauth_service.py` | OAuth configuration and token handling for providers. |
 | Services/config | `src/unoplat_code_confluence_query_engine/services/config/provider_catalog.py` | Registry of available model providers and capabilities. |
 | Services/workflow | `src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py` | Temporal workflow envelope/payload helpers for orchestration. |
-| Tools | `src/unoplat_code_confluence_query_engine/tools/agents_md_updater_tools.py` | Tooling for updating AGENTS.md content based on structured outputs. |
 | Tools | `src/unoplat_code_confluence_query_engine/tools/search_across_codebase.py` | Search tool for scanning repositories and aggregating results. |

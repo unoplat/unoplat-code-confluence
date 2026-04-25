@@ -11,8 +11,8 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agent
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.validators.business_domain_validator import (
     validate_business_logic_domain_output,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.business_domain import (
-    build_readonly_console_capability,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
+    build_markdown_console_capability,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
     BUSINESS_DOMAIN_CONSOLE_TOOLSET_ID,
@@ -43,7 +43,9 @@ def build_business_domain_agent(
     function_tools: list[Tool[AgentDependencies]] = [
         build_get_data_model_files_tool(),
     ]
-    console_capability = build_readonly_console_capability()
+    console_capability = build_markdown_console_capability(
+        BUSINESS_DOMAIN_CONSOLE_TOOLSET_ID
+    )
 
     agent: Agent[AgentDependencies, str] = Agent(
         context.model,

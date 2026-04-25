@@ -1,42 +1,35 @@
-from pydantic_ai_backends import RuntimeConfig
+from __future__ import annotations
 
-from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
+import asyncio
+from pathlib import Path
+from typing import cast
+
+from pydantic_ai import RunContext
+from pydantic_ai.tools import ToolDefinition
+from pydantic_ai_backends.backends.local import LocalBackend
+
 from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     CodebaseMetadata,
 )
-from unoplat_code_confluence_query_engine.services.temporal.development_workflow_runtime import (
-    resolve_development_workflow_repository_mounts,
-    resolve_development_workflow_repository_root,
-    resolve_development_workflow_runtime,
-    resolve_development_workflow_work_dir,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_development_workflow import (
+    build_development_workflow_instructions,
 )
-from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
-    ServiceRegistry,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
+    MARKDOWN_READ_WRITE_EXECUTE_RULESET,
+    build_markdown_execute_console_capability,
 )
-
-PYTHON_IMAGE = (
-    "ghcr.io/unoplat/unoplat-code-confluence/"
-    "code-confluence-dev-workflow-python:0.1.0"
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
+    DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID,
 )
-TYPESCRIPT_IMAGE = (
-    "ghcr.io/unoplat/unoplat-code-confluence/"
-    "code-confluence-dev-workflow-typescript:0.1.0"
+from unoplat_code_confluence_query_engine.services.temporal.agent_backend_resolver import (
+    resolve_agent_backend,
 )
-
-
-def _build_settings() -> EnvironmentSettings:
-    return EnvironmentSettings.model_construct(
-        dev_workflow_python_image=PYTHON_IMAGE,
-        dev_workflow_typescript_image=TYPESCRIPT_IMAGE,
-        dev_workflow_idle_timeout_seconds=3600,
-        dev_workflow_network_mode="bridge",
-    )
 
 
 def _build_metadata(
     *,
-    language: str,
-    package_manager: str,
+    language: str = "python",
+    package_manager: str = "uv",
     codebase_name: str = "apps/api",
     codebase_path: str = "/opt/unoplat/repositories/acme-repo/apps/api",
 ) -> CodebaseMetadata:
@@ -51,106 +44,58 @@ def _build_metadata(
     )
 
 
-def test_resolve_python_runtime_uses_prebuilt_image_and_codebase_work_dir() -> None:
-    metadata = _build_metadata(language="python", package_manager="poetry")
+def test_development_workflow_backend_uses_local_backend_with_execute_enabled() -> None:
+    metadata = _build_metadata()
 
-    runtime = resolve_development_workflow_runtime(metadata, _build_settings())
-
-    assert runtime == RuntimeConfig(
-        name="unoplat-python-poetry",
-        description=(
-            "Python development workflow runtime from a prebuilt sandbox image "
-            "with poetry support"
-        ),
-        image=PYTHON_IMAGE,
-        package_manager="pip",
-        work_dir="/opt/unoplat/repositories/acme-repo/apps/api",
+    backend = resolve_agent_backend(
+        agent_name="development_workflow_guide",
+        metadata=metadata,
+        workflow_run_id="run-123",
     )
 
+    assert isinstance(backend, LocalBackend)
+    assert backend.root_dir == Path("/opt/unoplat/repositories/acme-repo/apps/api")
+    assert backend.execute_enabled is True
+    assert backend.permissions == MARKDOWN_READ_WRITE_EXECUTE_RULESET
+    assert backend.permission_checker is not None
+    assert backend.permission_checker.check_sync("read", metadata.codebase_path) == "allow"
+    assert backend.permission_checker.check_sync("execute", "uv run pytest") == "allow"
+    assert backend.permission_checker.check_sync("write", "AGENTS.md") == "allow"
+    assert backend.permission_checker.check_sync("edit", "AGENTS.md") == "allow"
+    assert backend.permission_checker.check_sync("write", "src/app.py") == "deny"
+    assert backend.permission_checker.check_sync("edit", "src/app.py") == "deny"
 
-def test_resolve_typescript_runtime_uses_prebuilt_image_and_codebase_work_dir() -> None:
-    metadata = _build_metadata(language="typescript", package_manager="pnpm")
 
-    runtime = resolve_development_workflow_runtime(metadata, _build_settings())
+def test_development_workflow_console_capability_keeps_execute_and_markdown_editing() -> None:
+    capability = build_markdown_execute_console_capability(DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID)
 
-    assert runtime == RuntimeConfig(
-        name="unoplat-typescript-pnpm",
-        description=(
-            "TypeScript development workflow runtime from a prebuilt sandbox image "
-            "with pnpm support"
-        ),
-        image=TYPESCRIPT_IMAGE,
-        package_manager="npm",
-        work_dir="/opt/unoplat/repositories/acme-repo/apps/api",
+    toolset = capability.get_toolset()
+    assert toolset is not None
+    assert toolset.id == DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID
+
+    tool_defs = [
+        ToolDefinition(name="read_file"),
+        ToolDefinition(name="write_file"),
+        ToolDefinition(name="edit_file"),
+        ToolDefinition(name="execute"),
+    ]
+    visible_tool_defs = asyncio.run(
+        capability.prepare_tools(cast(RunContext[object], None), tool_defs)
     )
 
-
-def test_resolve_default_runtime_falls_back_to_python_image() -> None:
-    metadata = _build_metadata(language="go", package_manager="go modules")
-
-    runtime = resolve_development_workflow_runtime(metadata, _build_settings())
-
-    assert runtime == RuntimeConfig(
-        name="unoplat-default",
-        description="Fallback development workflow runtime from a prebuilt sandbox image",
-        image=PYTHON_IMAGE,
-        work_dir="/opt/unoplat/repositories/acme-repo/apps/api",
-    )
+    assert [tool.name for tool in visible_tool_defs] == [
+        "read_file",
+        "write_file",
+        "edit_file",
+        "execute",
+    ]
 
 
-def test_resolve_work_dir_requires_absolute_codebase_path() -> None:
-    metadata = _build_metadata(
-        language="python",
-        package_manager="pip",
-        codebase_path="apps/api",
-    )
+def test_development_workflow_instructions_describe_direct_agents_md_section_ownership() -> None:
+    instructions = build_development_workflow_instructions()
 
-    try:
-        resolve_development_workflow_work_dir(metadata)
-    except ValueError as exc:
-        assert "absolute codebase_path" in str(exc)
-    else:
-        raise AssertionError("Expected ValueError for non-absolute codebase_path")
-
-
-def test_resolve_repository_root_and_mounts_use_active_repository_only() -> None:
-    metadata = _build_metadata(language="python", package_manager="pip")
-
-    assert resolve_development_workflow_repository_root(metadata) == (
-        "/opt/unoplat/repositories/acme-repo"
-    )
-    assert resolve_development_workflow_repository_mounts(metadata) == {
-        "/opt/unoplat/repositories/acme-repo": "/opt/unoplat/repositories/acme-repo"
-    }
-
-
-def test_resolve_repository_root_returns_codebase_path_when_codebase_is_repo_root() -> None:
-    metadata = _build_metadata(
-        language="python",
-        package_manager="pip",
-        codebase_name=".",
-        codebase_path="/opt/unoplat/repositories/acme-repo",
-    )
-
-    assert resolve_development_workflow_repository_root(metadata) == (
-        "/opt/unoplat/repositories/acme-repo"
-    )
-
-
-def test_service_registry_runtime_resolution_delegates_to_helper() -> None:
-    metadata = _build_metadata(language="python", package_manager="uv")
-    registry = ServiceRegistry()
-    registry._settings = _build_settings()
-
-    assert registry._resolve_runtime(metadata) == resolve_development_workflow_runtime(
-        metadata,
-        registry._settings,
-    )
-
-
-def test_service_registry_mount_resolution_delegates_to_helper() -> None:
-    metadata = _build_metadata(language="python", package_manager="uv")
-
-    assert ServiceRegistry._resolve_repository_mounts(metadata) == {
-        "/opt/unoplat/repositories/acme-repo": "/opt/unoplat/repositories/acme-repo"
-    }
+    assert "Local repository inspection tools available in this run: ls, read_file, glob, grep." in instructions
+    assert "Local command verification tool available in this run: execute." in instructions
+    assert "Markdown editing tools available in this run: write_file and edit_file for Markdown files only." in instructions
+    assert "AGENTS.md / ## Engineering Workflow" in instructions
+    assert "dependencies_overview.md, business_domain_references.md, app_interfaces.md" in instructions

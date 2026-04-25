@@ -276,6 +276,12 @@ class ModelFactory:
                 logger.info("Created Cohere model: {}", config.model_name)
 
             case "huggingface":
+                # HuggingFace inference routers default max_tokens to a small value
+                # that reasoning traces (thinking="high") exhaust before the model
+                # emits visible output. Apply a 16k floor when operator left it unset.
+                base_model_settings.setdefault("max_tokens", 16000)
+                model_settings = base_model_settings
+
                 # Get provider_name from extra_config, default to None (uses default HF inference)
                 provider_name = config.extra_config.get("provider_name")
 

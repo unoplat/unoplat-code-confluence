@@ -1,6 +1,11 @@
 # syntax=docker/dockerfile:1.7
 
 ########################################
+# ---------- node stage --------------
+########################################
+FROM node:22-bookworm-slim AS node-stage
+
+########################################
 # ---------- bun stage ---------------
 ########################################
 FROM oven/bun:1 AS bun-stage
@@ -61,13 +66,32 @@ RUN useradd --uid ${APP_UID} --create-home --shell /usr/sbin/nologin ${APP_USER}
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/app/.venv/bin:$PATH"
+    PATH="/opt/poetry/bin:/app/.venv/bin:$PATH"
 
-# Install minimal runtime dependencies
+# Install runtime dependencies needed for local execute workflows
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        curl unzip git ripgrep eza \
+        bash \
+        build-essential \
+        ca-certificates \
+        curl \
+        eza \
+        git \
+        ripgrep \
+        unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Install uv and Poetry for Python workflow command verification
+COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /usr/local/bin/
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 -
+
+# Copy Node.js toolchain and enable Corepack for npm/pnpm/yarn workflows
+COPY --from=node-stage /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-stage /usr/local/bin/npm /usr/local/bin/npm
+COPY --from=node-stage /usr/local/bin/npx /usr/local/bin/npx
+COPY --from=node-stage /usr/local/bin/corepack /usr/local/bin/corepack
+COPY --from=node-stage /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN corepack enable
 
 WORKDIR /app
 

@@ -8,12 +8,16 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 
 
 def get_engineering_citation_instructions() -> str:
-    """Return console-inspection and execution-backed validation instructions for the engineering workflow agent."""
+    """Return command-verification policy for the engineering workflow agent."""
     return (
         "<verification_strategy>\n"
         "Use console capability tools to inspect the codebase before emitting commands.\n"
         "Prefer `glob`, `grep`, and `read_file` for discovering configuration files and scripts.\n"
-        "Use `execute` to verify install, build, test, lint, and type-check commands inside the sandbox before returning them.\n\n"
+        "Use `execute` only to verify commands against the current repository state before returning them.\n\n"
+        "Stage-specific execution policy:\n"
+        "- Verify `install`, `build`, `test`, `lint`, and `type_check` commands by running them to completion when feasible.\n"
+        "- Verify `dev` commands with a bounded startup check only: start the command, wait just long enough to confirm startup, make at most one lightweight probe if needed, capture the evidence, then stop the entire process tree immediately.\n"
+        "- Never leave dev servers, watchers, or background jobs running after verification. Do not rely on shell job-control cleanup patterns like trailing `&`, `jobs`, or `kill %1` as the main cleanup strategy.\n\n"
         "Command selection criteria:\n"
         "- Only emit commands that were executed successfully in the sandbox OR are directly supported by repository configuration evidence.\n"
         "- Cross-check command syntax, flags, and scope against official documentation when available via web search/fetch.\n"
@@ -67,7 +71,7 @@ async def per_language_development_workflow_prompt(
         "commands MUST NOT be empty.\n"
         "</task>\n\n"
         "<file_path_requirements>\n"
-        "When using tools, pass ABSOLUTE filesystem paths only.\n"
+        "When using file-related tools, pass ABSOLUTE filesystem paths only.\n"
         f"The codebase root path is: {codebase_path}\n"
         "If monorepo context indicates inherited ownership, you may inspect absolute parent directories above the codebase root to locate the owning workspace root.\n"
         "In FINAL OUTPUT, every config_file path MUST be repository-root-relative (never absolute).\n"
@@ -82,7 +86,7 @@ async def per_language_development_workflow_prompt(
         "</output_contract>\n\n"
         "<rules>\n"
         "- Use console tools (`glob`, `grep`, `read_file`) to discover configuration files, scripts, and project structure before emitting commands.\n"
-        "- Use `execute` to run candidate commands in the sandbox and verify they succeed before including them.\n"
+        "- Follow the shared verification strategy when deciding whether a command is verified enough to include.\n"
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"
         "- Emit only the keys defined in output_contract and nothing else.\n"

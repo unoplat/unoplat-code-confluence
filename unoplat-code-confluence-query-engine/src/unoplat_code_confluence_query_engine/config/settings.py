@@ -165,48 +165,6 @@ class EnvironmentSettings(BaseSettings):
 
     environment: str = Field(default="development", alias="ENVIRONMENT")
 
-    # Development Workflow Docker Sandbox Settings
-    dev_workflow_network_mode: str = Field(
-        default="bridge",
-        alias="DEV_WORKFLOW_NETWORK_MODE",
-        description=(
-            "Docker network mode for development workflow sandboxes "
-            '("bridge", "none", "host", or "container:<name|id>"). '
-            "Defaults to bridge so sandboxes can install packages and verify build commands."
-        ),
-    )
-    dev_workflow_idle_timeout_seconds: int = Field(
-        default=3600,
-        alias="DEV_WORKFLOW_IDLE_TIMEOUT_SECONDS",
-        description="Idle timeout in seconds for ephemeral Docker sandbox cleanup",
-        ge=60,
-        le=86400,
-    )
-    dev_workflow_python_image: str = Field(
-        default=(
-            "ghcr.io/unoplat/unoplat-code-confluence/"
-            "code-confluence-dev-workflow-python:0.1.0"
-        ),
-        alias="DEV_WORKFLOW_PYTHON_IMAGE",
-        description=(
-            "Prebuilt Docker image used for Python development workflow sandboxes. "
-            "Defaults to the repo-scoped GHCR package for unoplat/unoplat-code-confluence; "
-            "override the tag or digest via environment when needed."
-        ),
-    )
-    dev_workflow_typescript_image: str = Field(
-        default=(
-            "ghcr.io/unoplat/unoplat-code-confluence/"
-            "code-confluence-dev-workflow-typescript:0.1.0"
-        ),
-        alias="DEV_WORKFLOW_TYPESCRIPT_IMAGE",
-        description=(
-            "Prebuilt Docker image used for TypeScript/JavaScript development workflow sandboxes. "
-            "Defaults to the repo-scoped GHCR package for unoplat/unoplat-code-confluence; "
-            "override the tag or digest via environment when needed."
-        ),
-    )
-
     # Agent Selection
     enabled_agents: str = Field(
         default="",
@@ -214,7 +172,7 @@ class EnvironmentSettings(BaseSettings):
         description=(
             "Comma-separated list of agent types to enable. "
             "Valid values: development_workflow_guide, dependency_guide, "
-            "business_domain_guide, agents_md_updater, call_expression_validator. "
+            "business_domain_guide, call_expression_validator. "
             "Empty string means all agents are enabled."
         ),
     )
