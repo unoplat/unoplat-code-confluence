@@ -72,7 +72,6 @@ export const agentMdBusinessLogicSchema = z.object({
 export const agentMdDependencyGuideEntrySchema = z.object({
   name: z.string(),
   purpose: z.string(),
-  usage: z.string(),
 });
 
 export type AgentMdDependencyGuideEntry = z.infer<

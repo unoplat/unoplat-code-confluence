@@ -157,7 +157,7 @@ export function agentMdOutputToMarkdown(
   if (agent?.dependency_guide?.dependencies?.length) {
     entries.push({
       ul: agent.dependency_guide.dependencies.map(
-        (d) => `**${d.name}** — ${d.purpose}\n\n  ${d.usage}`,
+        (d) => `**${d.name}** — ${d.purpose}`,
       ),
     });
   } else {
@@ -240,7 +240,7 @@ export function codebasesToMarkdown(
     if (agent?.dependency_guide?.dependencies?.length) {
       entries.push({
         ul: agent.dependency_guide.dependencies.map(
-          (d) => `**${d.name}** — ${d.purpose}\n\n  ${d.usage}`,
+          (d) => `**${d.name}** — ${d.purpose}`,
         ),
       });
     } else {
