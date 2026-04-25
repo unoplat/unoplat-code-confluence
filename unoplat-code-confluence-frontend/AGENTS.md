@@ -12,25 +12,6 @@ bun run lint # ([bun.sh](https://bun.sh/docs/cli/run?utm_source=openai))
 - **Overview**: Full dependency descriptions are maintained in `dependencies_overview.md`.
 - **Usage**: Keep this section concise and treat `dependencies_overview.md` as the source-of-truth dependency catalog.
 
-## Business Logic Domain
-- **Summary**: This frontend models a Code Confluence platform that connects GitHub/GitLab repositories, collects metadata for ingestion jobs, and tracks workflow runs plus codebase status. It surfaces AI “agent” snapshot outputs (engineering workflows, dependency guides, business logic summaries, app interface scans) and stores user feedback tied to those runs. Supporting domains include credential/provider onboarding, model provider configuration (including OAuth), and tool configuration for integrations.
-- **Key domains**:
-  - Repository onboarding, provider credential handling, and multi-repository routing/metadata state.
-  - Workflow run tracking, agent snapshot storage, and presentation of Agent MD artifacts.
-  - Agent MD artifact formatting and markdown conversion for UI display.
-  - Model provider configuration, OAuth-based connections, and tool configuration for analysis pipelines.
-  - Feedback capture, rating/comment submission, and downstream issue reporting.
-- **Key data models & modules**:
-  - Agent feedback: `src/features/agent-feedback/api.ts`, `src/features/agent-feedback/schema.ts`, `src/features/agent-feedback/store.ts`, `src/types/agent-feedback.ts`.
-  - Agent snapshots & events: `src/features/repository-agent-snapshots/collection.ts`, `src/features/repository-agent-snapshots/hooks.ts`, `src/features/repository-agent-snapshots/schema.ts`, `src/features/repository-agent-snapshots/transformers.ts`, `src/types/agent-events.ts`.
-  - Agent MD artifacts: `src/lib/agent-md-to-markdown.ts`.
-  - Model configuration & OAuth: `src/features/model-config/provider-schema.ts`, `src/features/model-config/schema-generator.ts`, `src/features/model-config/types.ts`, `src/hooks/useCodexOauth.ts`, `src/hooks/useSaveModelConfig.ts`.
-  - Tool configuration: `src/features/tool-config/types.ts`, `src/hooks/useSaveToolConfig.ts`.
-  - Repository/provider APIs & routing: `src/lib/api.ts`, `src/lib/api/repositories-api.ts`, `src/lib/api/repository-provider-api.ts`, `src/lib/utils/provider-route-utils.ts`, `src/lib/utils/provider-utils.ts`, `src/types/repository-provider.ts`, `src/routeTree.gen.ts`.
-  - Credentials & auth state: `src/lib/validation/credential-schemas.ts`, `src/types/credential-enums.ts`, `src/lib/github-token-utils.ts`, `src/lib/env.ts`, `src/stores/useAuthStore.ts`.
-  - UI state & shared types: `src/hooks/use-data-table.ts`, `src/forms/types.ts`, `src/stores/useDevModeStore.ts`, `src/stores/useThemeStore.ts`, `src/types/data-table.ts`, `src/types/index.ts`, `src/types.ts`.
-- **Reference**: See `business_logic_references.md` for a detailed index of domain artifacts.
-
 ## Commands
 ```bash
 bun install                      # Install dependencies
@@ -90,3 +71,41 @@ skills:
   - task: "Adding optimistic mutations to TanStack DB collections (insert, update, delete, transactions)"
     load: "node_modules/@tanstack/db/skills/db-core/mutations-optimistic/SKILL.md"
 <!-- intent-skills:end -->
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+### Install
+- `bun install` — defined by `packageManager: bun@1.3.1` in `package.json`.
+
+### Build
+- `bun run build` — runs `tsc -b && vite build` from `package.json`.
+
+### Dev
+- `bun run dev -- --host 127.0.0.1` — Vite dev server; verified on `http://127.0.0.1:5173/`.
+
+### Test
+- Not detected.
+
+### Lint
+- `bun run lint` — runs `eslint .` from `package.json`.
+
+### Type Check
+- `bunx tsc -b` — uses the project references from `tsconfig.json`.
+
+## Dependency Guide
+See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
+
+## Business Logic Domain
+- This frontend centers on a code intelligence/confluence platform that connects GitHub/GitLab repositories, ingests codebases, and tracks workflow runs, repository status, and agent snapshot outputs.
+- It also manages model/provider and tool credentials/OAuth setup, plus app and agent feedback flows that submit ratings, comments, and GitHub issues.
+
+## App Interfaces
+See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->

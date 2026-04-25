@@ -17,13 +17,40 @@
 - **Overview**: Full dependency descriptions are maintained in `dependencies_overview.md`.
 - **Usage**: Keep this section concise and treat `dependencies_overview.md` as the source-of-truth dependency catalog.
 
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+### Install
+- `bun install` (config: `package.json`, working directory: repo root)
+
+### Build
+- `bun run build` (config: `package.json`, working directory: repo root)
+
+### Dev
+- `bun run dev` (config: `package.json`, working directory: repo root)
+
+### Test
+- Not detected
+
+### Lint
+- Not detected
+
+### Type Check
+- `bun run types:check` (config: `package.json`, working directory: repo root)
+
+## Dependency Guide
+See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
+
 ## Business Logic Domain
 
-The data models describe a documentation website’s content and presentation metadata. They cover configurable announcement banners (messaging, links, variants), changelog entries for product releases (titles, versions, dates, and GitHub release references), and SEO options for pages (title, description, path, and type). Overall, the domain centers on managing a docs site’s release communications, user-facing announcements, and search visibility.
+The codebase primarily models a documentation site for Unoplat Code Confluence, centered on release communications and page metadata: banner announcements, changelog entries, SEO/canonical tags, and TanStack route structure for docs, changelog, and search pages. It also includes a reusable data-table filtering domain for typed column configs, operators, and faceted filtering across text, number, date, and option-based columns.
 
-Key data models:
-- `src/lib/banner-config.ts`: Announcement banner configuration (messaging, link metadata, and visual variants).
-- `src/lib/changelog-utils.ts`: Structured changelog entries (titles, versions, dates, and GitHub release references).
-- `src/lib/seo.ts`: SEO metadata for pages (title, description, path, and page type).
+## App Interfaces
+See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
 
-Reference details: see `business_logic_references.md`.
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->
