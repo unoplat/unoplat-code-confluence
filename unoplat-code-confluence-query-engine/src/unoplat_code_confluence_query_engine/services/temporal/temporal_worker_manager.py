@@ -67,9 +67,6 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.repositor
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.repository_workflow_db_activity import (
     RepositoryWorkflowDbActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_backend_lifecycle import (
-    AgentBackendLifecycle,
-)
 from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
     DEPLOYMENT_NAME,
     compute_credential_hash,
@@ -116,7 +113,6 @@ class TemporalWorkerManager:
         self._worker: Worker | None = None
         self._worker_task: asyncio.Task[None] | None = None
         self._registry: ServiceRegistry | None = None
-        self._backend_lifecycle: AgentBackendLifecycle | None = None
         self._started: bool = False
         self._current_build_id: str | None = None
 
@@ -195,11 +191,6 @@ class TemporalWorkerManager:
         logger.info(
             f"[temporal_worker_manager] Service registry initialized with MCP config: {settings.mcp_servers_config_path}"
         )
-
-        # Initialize backend lifecycle (Docker sandbox management)
-        self._backend_lifecycle = AgentBackendLifecycle.get_instance()
-        self._backend_lifecycle.initialize(settings)
-        logger.info("[temporal_worker_manager] Agent backend lifecycle initialized")
 
         # Inject Exa API key into MCP server config (static for worker lifecycle)
         async with get_startup_session() as session:
@@ -353,11 +344,13 @@ class TemporalWorkerManager:
                 codebase_db_activity.update_codebase_workflow_status,
                 snapshot_activity.persist_agent_snapshot_complete,
                 business_logic_post_process_activity.post_process_business_logic,
+                dependency_guide_completion_activity.write_dependency_overview,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
                 dependency_guide_fetch_activity.fetch_codebase_dependencies,
                 engineering_workflow_completion_activity.emit_engineering_workflow_completion,
                 app_interfaces_activity.fetch_low_confidence_call_expression_candidates,
                 app_interfaces_activity.build_app_interfaces,
+                app_interfaces_activity.write_app_interfaces,
                 app_interfaces_activity.emit_app_interfaces_completion,
                 git_ref_resolution_activity.resolve_git_ref,
                 managed_block_activity.bootstrap,
@@ -495,10 +488,6 @@ class TemporalWorkerManager:
             except asyncio.CancelledError:
                 pass
 
-        # Shutdown backend lifecycle (Docker sandboxes) before service registry
-        if self._backend_lifecycle:
-            self._backend_lifecycle.shutdown()
-
         # Shutdown service registry
         if self._registry:
             await self._registry.shutdown()
@@ -507,7 +496,6 @@ class TemporalWorkerManager:
         self._worker_task = None
         self._client = None
         self._registry = None
-        self._backend_lifecycle = None
         self._started = False
         self._current_build_id = None
 
