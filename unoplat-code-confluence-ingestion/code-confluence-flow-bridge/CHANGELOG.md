@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.76.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.75.1...code-confluence-flow-bridge-v0.76.0) (2026-04-25)
+
+
+### Features
+
+* **productivity:** add Tiltfile, docker-compose, and dev Dockerfiles for local setup ([c698032](https://github.com/unoplat/unoplat-code-confluence/commit/c6980322c457b05ce00cfe1501629657248a6647))
+
+
+### Bug Fixes
+
+* **ingestion:** add authenticated git clone for private GitHub repos ([4976bd5](https://github.com/unoplat/unoplat-code-confluence/commit/4976bd52985ebf4889e382ce9c1fbefee4a8e59d))
+
 ## [0.75.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.75.0...code-confluence-flow-bridge-v0.75.1) (2026-04-12)
 
 
