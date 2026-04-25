@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import PurePosixPath
 import traceback
 from typing import Any, Dict, List, Optional
+from urllib.parse import quote, urlsplit, urlunsplit
 
 from git import Repo
 from github import Auth, Github
@@ -54,6 +55,46 @@ def _relative_manifest_path(
     except ValueError:
         name = manifest.name
         return name if name else manifest.as_posix()
+
+
+def _build_authenticated_url(repo_url: str, github_token: str) -> str:
+    """Return a GitHub URL that can authenticate non-interactive git commands.
+
+    The returned URL is intended to be used only as an in-memory command argument.
+    Do not persist it to git remote configuration or logs.
+    """
+    if not github_token:
+        return repo_url
+
+    quoted_token = quote(github_token, safe="")
+
+    if repo_url.startswith("git@github.com:"):
+        repo_path = repo_url.split("git@github.com:", 1)[1]
+        return f"https://x-access-token:{quoted_token}@github.com/{repo_path}"
+
+    parsed = urlsplit(repo_url)
+    if parsed.scheme not in {"http", "https"} or parsed.hostname != "github.com":
+        return repo_url
+
+    netloc = f"x-access-token:{quoted_token}@{parsed.hostname}"
+    if parsed.port:
+        netloc = f"{netloc}:{parsed.port}"
+
+    return urlunsplit((parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment))
+
+
+def _sanitize_token(value: object, github_token: str) -> str:
+    """Convert a value to string and redact token material before logging/raising."""
+    text = str(value)
+    if github_token:
+        text = text.replace(github_token, "***REDACTED***")
+        text = text.replace(quote(github_token, safe=""), "***REDACTED***")
+    return text
+
+
+def _git_non_interactive_env() -> Dict[str, str]:
+    """Environment variables that prevent git from prompting for credentials."""
+    return {"GIT_TERMINAL_PROMPT": "0", "GIT_ASKPASS": "/bin/echo"}
 
 
 def _has_unmerged_files(repo: Repo) -> bool:
@@ -125,6 +166,8 @@ class GithubHelper:
 
         # Get repository URL from settings and prepare repo_path and repo_name
         repo_url: str = repo_request.repository_git_url
+        authenticated_repo_url = _build_authenticated_url(repo_url, github_token)
+        git_env = _git_non_interactive_env()
         if repo_url.startswith("git@"):
             # Handle SSH format: git@github.com:org/repo.git
             repo_path: str = repo_url.split("github.com:")[-1]
@@ -156,7 +199,8 @@ class GithubHelper:
                     "Repository not found locally, cloning | repo_path={} | status=cloning",
                     repo_path,
                 )
-                Repo.clone_from(repo_url, repo_path)
+                cloned_repo = Repo.clone_from(authenticated_repo_url, repo_path, env=git_env)
+                cloned_repo.git.remote("set-url", "origin", repo_url)
                 logger.info(
                     "Repository cloned successfully | repo_path={} | status=success",
                     repo_path,
@@ -169,11 +213,16 @@ class GithubHelper:
 
                 # Open existing repository
                 local_repo = Repo(repo_path)
+                local_repo.git.remote("set-url", "origin", repo_url)
 
                 try:
                     # Fetch first - we need remote refs for reset/pull operations
                     logger.debug("Fetching from remote | repo_path={}", repo_path)
-                    local_repo.git.fetch("origin")
+                    local_repo.git.update_environment(**git_env)
+                    local_repo.git.fetch(
+                        authenticated_repo_url,
+                        "+refs/heads/*:refs/remotes/origin/*",
+                    )
 
                     # Get default branch (needed for reset or checkout)
                     default_branch = github_repo.default_branch
@@ -232,7 +281,7 @@ class GithubHelper:
                     try:
                         # Git (>=2.34) requires an explicit reconciliation strategy
                         pull_output: str = local_repo.git.pull(
-                            "--no-rebase", "origin", default_branch
+                            "--no-rebase", authenticated_repo_url, default_branch
                         )
                         logger.debug(
                             "Pull output | output={} | repo_path={}",
@@ -243,7 +292,7 @@ class GithubHelper:
                         logger.error(
                             "git pull failed | repo_path={} | error={} | status=failed",
                             repo_path,
-                            str(git_err),
+                            _sanitize_token(git_err, github_token),
                         )
                         # If pull created merge conflicts, recover by resetting to remote
                         if _has_unmerged_files(local_repo):
@@ -268,7 +317,7 @@ class GithubHelper:
                     logger.error(
                         "Failed to update repository | repo_path={} | error={} | status=failed",
                         repo_path,
-                        str(pull_error),
+                        _sanitize_token(pull_error, github_token),
                     )
                     # Re-raise to be caught by outer exception handler
                     raise
@@ -402,15 +451,15 @@ class GithubHelper:
             logger.error(
                 "Failed to clone repository | git_url={} | error={} | status=failed",
                 repo_url,
-                str(e),
+                _sanitize_token(e, github_token),
             )
             # Capture the traceback string
-            tb_str = traceback.format_exc()
+            tb_str = _sanitize_token(traceback.format_exc(), github_token)
 
             raise ApplicationError(
-                f"Failed to clone repository: {str(e)}",
+                f"Failed to clone repository: {_sanitize_token(e, github_token)}",
                 {"repository": repo_url},
-                {"error": str(e)},
+                {"error": _sanitize_token(e, github_token)},
                 {"error_type": type(e).__name__},
                 {"traceback": tb_str},
                 {"workflow_id": workflow_id_var.get("")},
