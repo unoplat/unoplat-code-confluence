@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.52.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.51.0...unoplat-code-confluence-frontend-v1.52.0) (2026-04-25)
+
+
+### Features
+
+* **dev-workflow:** replace confidence scoring with sandbox verification ([b21598c](https://github.com/unoplat/unoplat-code-confluence/commit/b21598c893de3ce3d2dd16bf584a734a275e77d8))
+* **frontend:** update schema and utils for new agent output structure ([d4b5909](https://github.com/unoplat/unoplat-code-confluence/commit/d4b59094ede71eb54bec370f2a74e5f5e5932d77))
+* **productivity:** add Tiltfile, docker-compose, and dev Dockerfiles for local setup ([c698032](https://github.com/unoplat/unoplat-code-confluence/commit/c6980322c457b05ce00cfe1501629657248a6647))
+
 ## [1.51.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.2...unoplat-code-confluence-frontend-v1.51.0) (2026-04-12)
 
 
