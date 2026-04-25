@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1.7
+# Development image for Tilt hot-reload workflow.
+#
+# - Dependencies are installed first for cache reuse.
+# - Runtime app files are also copied so the first `tilt up` can start before
+#   any live_update sync occurs.
+# - Vite's dev server provides HMR for subsequent synced edits.
+FROM oven/bun:1.3.1
+
+WORKDIR /app
+
+# Install the dependency closure first so dependency changes stay cacheable.
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+# Copy the runtime app so the container is bootable on the initial Tilt build.
+COPY . /app
+
+EXPOSE 5173
+
+# --host 0.0.0.0 is required so the dev server is reachable from the host
+# browser through the container's port mapping.
+CMD ["bun", "run", "dev", "--host", "0.0.0.0", "--port", "5173"]

@@ -1,0 +1,706 @@
+{
+  "codebase_path": "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons",
+  "file_count": 54,
+  "files": {
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/_pytest/_code/code.py": {
+      "ExceptionChainRepr": [
+        1122,
+        1143
+      ],
+      "ExceptionRepr": [
+        1104,
+        1118
+      ],
+      "FormattedExcinfo": [
+        793,
+        1082
+      ],
+      "ReprEntry": [
+        1201,
+        1282
+      ],
+      "ReprEntryNative": [
+        1191,
+        1197
+      ],
+      "ReprExceptionInfo": [
+        1147,
+        1153
+      ],
+      "ReprFileLocation": [
+        1286,
+        1302
+      ],
+      "ReprFuncArgs": [
+        1315,
+        1334
+      ],
+      "ReprLocals": [
+        1306,
+        1311
+      ],
+      "ReprTraceback": [
+        1157,
+        1180
+      ],
+      "TerminalRepr": [
+        1086,
+        1099
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/_pytest/compat.py": {
+      "_PytestWrapper": [
+        214,
+        222
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/_pytest/fixtures.py": {
+      "FixtureArgKey": [
+        172,
+        176
+      ],
+      "FuncFixtureInfo": [
+        297,
+        352
+      ],
+      "PseudoFixtureDef": [
+        116,
+        118
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/_pytest/main.py": {
+      "CollectionArgument": [
+        999,
+        1004
+      ],
+      "_bestrelpath_cache": [
+        479,
+        487
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/_pytest/mark/expression.py": {
+      "MatcherNameAdapter": [
+        271,
+        279
+      ],
+      "Token": [
+        60,
+        64
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/_pytest/mark/structures.py": {
+      "MarkDecorator": [
+        268,
+        358
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/_pytest/skipping.py": {
+      "Skip": [
+        161,
+        164
+      ],
+      "Xfail": [
+        196,
+        204
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/_pytest/terminal.py": {
+      "WarningReport": [
+        333,
+        358
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/cryptography/hazmat/primitives/serialization/ssh.py": {
+      "_SSHCipher": [
+        93,
+        100
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/mypy/test/data.py": {
+      "TestItem": [
+        437,
+        456
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/mypy/test/meta/_pytest.py": {
+      "PytestResult": [
+        14,
+        18
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/packaging/_tokenizer.py": {
+      "Token": [
+        12,
+        15
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pathspec/_backends/hyperscan/_base.py": {
+      "HyperscanExprDat": [
+        34,
+        62
+      ],
+      "HyperscanExprDebug": [
+        66,
+        78
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pathspec/_backends/re2/_base.py": {
+      "Re2RegexDat": [
+        51,
+        79
+      ],
+      "Re2RegexDebug": [
+        83,
+        95
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pathspec/pattern.py": {
+      "RegexMatchResult": [
+        242,
+        256
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pathspec/util.py": {
+      "CheckResult": [
+        700,
+        728
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/_internal/_decorators.py": {
+      "Decorator": [
+        217,
+        287
+      ],
+      "DecoratorInfos": [
+        413,
+        515
+      ],
+      "FieldSerializerDecoratorInfo": [
+        91,
+        110
+      ],
+      "FieldValidatorDecoratorInfo": [
+        54,
+        73
+      ],
+      "ModelSerializerDecoratorInfo": [
+        114,
+        129
+      ],
+      "ModelValidatorDecoratorInfo": [
+        133,
+        143
+      ],
+      "PydanticDescriptorProxy": [
+        163,
+        210
+      ],
+      "RootValidatorDecoratorInfo": [
+        77,
+        87
+      ],
+      "ValidatorDecoratorInfo": [
+        30,
+        50
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/_internal/_forward_ref.py": {
+      "PydanticRecursiveRef": [
+        8,
+        23
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/_internal/_model_construction.py": {
+      "ModelMetaclass": [
+        79,
+        333
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/_internal/_schema_gather.py": {
+      "GatherContext": [
+        36,
+        60
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/_internal/_utils.py": {
+      "SafeGetItemProxy": [
+        372,
+        394
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/aliases.py": {
+      "AliasChoices": [
+        58,
+        85
+      ],
+      "AliasGenerator": [
+        89,
+        135
+      ],
+      "AliasPath": [
+        16,
+        54
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/experimental/pipeline.py": {
+      "_Constraint": [
+        109,
+        110
+      ],
+      "_Eq": [
+        69,
+        70
+      ],
+      "_In": [
+        79,
+        80
+      ],
+      "_NotEq": [
+        74,
+        75
+      ],
+      "_NotIn": [
+        84,
+        85
+      ],
+      "_Pipeline": [
+        129,
+        353
+      ],
+      "_PipelineAnd": [
+        63,
+        65
+      ],
+      "_PipelineOr": [
+        57,
+        59
+      ],
+      "_Transform": [
+        52,
+        53
+      ],
+      "_ValidateAs": [
+        37,
+        39
+      ],
+      "_ValidateAsDefer": [
+        43,
+        48
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/fields.py": {
+      "ComputedFieldInfo": [
+        1283,
+        1322
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/functional_serializers.py": {
+      "PlainSerializer": [
+        19,
+        85
+      ],
+      "SerializeAsAny": [
+        433,
+        450
+      ],
+      "WrapSerializer": [
+        89,
+        188
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/functional_validators.py": {
+      "AfterValidator": [
+        28,
+        85
+      ],
+      "BeforeValidator": [
+        89,
+        153
+      ],
+      "InstanceOf": [
+        737,
+        794
+      ],
+      "PlainValidator": [
+        157,
+        250
+      ],
+      "SkipValidation": [
+        802,
+        828
+      ],
+      "WrapValidator": [
+        254,
+        326
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/json_schema.py": {
+      "SkipJsonSchema": [
+        2629,
+        2686
+      ],
+      "WithJsonSchema": [
+        2486,
+        2517
+      ],
+      "_DefinitionsRemapping": [
+        136,
+        213
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/networks.py": {
+      "UrlConstraints": [
+        71,
+        120
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/types.py": {
+      "AllowInfNan": [
+        387,
+        408
+      ],
+      "Discriminator": [
+        2980,
+        3126
+      ],
+      "EncodedBytes": [
+        2477,
+        2572
+      ],
+      "EncodedStr": [
+        2576,
+        2671
+      ],
+      "FailFast": [
+        3256,
+        3285
+      ],
+      "GetPydanticSchema": [
+        2848,
+        2891
+      ],
+      "PathType": [
+        1286,
+        1341
+      ],
+      "Strict": [
+        117,
+        140
+      ],
+      "StringConstraints": [
+        694,
+        746
+      ],
+      "Tag": [
+        2895,
+        2976
+      ],
+      "UuidVersion": [
+        1139,
+        1180
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/pydantic/v1/main.py": {
+      "ModelMetaclass": [
+        121,
+        310
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/oracle/vector.py": {
+      "VectorIndexConfig": [
+        99,
+        176
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/ranges.py": {
+      "Range": [
+        60,
+        712
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlalchemy/engine/reflection.py": {
+      "_ReflectionInfo": [
+        2083,
+        2102
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlalchemy/ext/automap.py": {
+      "_Bookkeeping": [
+        1415,
+        1418
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlalchemy/orm/attributes.py": {
+      "AdHocHasEntityNamespace": [
+        573,
+        586
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlalchemy/orm/decl_api.py": {
+      "DCTransformDeclarative": [
+        168,
+        169
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlalchemy/orm/relationships.py": {
+      "_RelationshipArg": [
+        250,
+        276
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlalchemy/pool/base.py": {
+      "PoolResetState": [
+        49,
+        90
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlmodel/_compat.py": {
+      "ObjectWithUpdateWrapper": [
+        49,
+        58
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/.venv/lib/python3.13/site-packages/sqlmodel/main.py": {
+      "SQLModelMetaclass": [
+        477,
+        643
+      ],
+      "class SQLModel(BaseModel, metaclass=SQLModelMetaclass, registry=default_registry):\n    # SQLAlchemy needs to set weakref(s), Pydantic will set the other slots values\n    __slots__ = (\"__weakref__\",)\n    __tablename__: ClassVar[Union[str, Callable[..., str]]]\n    __sqlmodel_relationships__: ClassVar[Dict[str, RelationshipProperty[Any]]]\n    __name__: ClassVar[str]\n    metadata: ClassVar[MetaData]\n    __allow_unmapped__ = True  # https://docs.sqlalchemy.org/en/20/changelog/migration_20.html#migration-20-step-six\n\n    if IS_PYDANTIC_V2:\n        model_config = SQLModelConfig(from_attributes=True)\n    else:\n\n        class Config:\n            orm_mode = True\n\n    def __new__(cls, *args: Any, **kwargs: Any) -> Any:\n        new_object = super().__new__(cls)\n        # SQLAlchemy doesn't call __init__ on the base class when querying from DB\n        # Ref: https://docs.sqlalchemy.org/en/14/orm/constructors.html\n        # Set __fields_set__ here, that would have been set when calling __init__\n        # in the Pydantic model so that when SQLAlchemy sets attributes that are\n        # added (e.g. when querying from DB) to the __fields_set__, this already exists\n        init_pydantic_private_attrs(new_object)\n        return new_object\n\n    def __init__(__pydantic_self__, **data: Any) -> None:\n        # Uses something other than `self` the first arg to allow \"self\" as a\n        # settable attribute\n\n        # SQLAlchemy does very dark black magic and modifies the __init__ method in\n        # sqlalchemy.orm.instrumentation._generate_init()\n        # so, to make SQLAlchemy work, it's needed to explicitly call __init__ to\n        # trigger all the SQLAlchemy logic, it doesn't work using cls.__new__, setting\n        # attributes obj.__dict__, etc. The __init__ method has to be called. But\n        # there are cases where calling all the default logic is not ideal, e.g.\n        # when calling Model.model_validate(), as the validation is done outside\n        # of instance creation.\n        # At the same time, __init__ is what users would normally call, by creating\n        # a new instance, which should have validation and all the default logic.\n        # So, to be able to set up the internal SQLAlchemy logic alone without\n        # executing the rest, and support things like Model.model_validate(), we\n        # use a contextvar to know if we should execute everything.\n        if finish_init.get():\n            sqlmodel_init(self=__pydantic_self__, data=data)\n\n    def __setattr__(self, name: str, value: Any) -> None:\n        if name in {\"_sa_instance_state\"}:\n            self.__dict__[name] = value\n            return\n        else:\n            # Set in SQLAlchemy, before Pydantic to trigger events and updates\n            if is_table_model_class(self.__class__) and is_instrumented(self, name):  # type: ignore[no-untyped-call]\n                set_attribute(self, name, value)\n            # Set in Pydantic model to trigger possible validation changes, only for\n            # non relationship values\n            if name not in self.__sqlmodel_relationships__:\n                super().__setattr__(name, value)\n\n    def __repr_args__(self) -> Sequence[Tuple[Optional[str], Any]]:\n        # Don't show SQLAlchemy private attributes\n        return [\n            (k, v)\n            for k, v in super().__repr_args__()\n            if not (isinstance(k, str) and k.startswith(\"_sa_\"))\n        ]\n\n    @declared_attr  # type: ignore\n    def __tablename__(cls) -> str:\n        return cls.__name__.lower()\n\n    @classmethod\n    def model_validate(\n        cls: Type[_TSQLModel],\n        obj: Any,\n        *,\n        strict: Union[bool, None] = None,\n        from_attributes: Union[bool, None] = None,\n        context: Union[Dict[str, Any], None] = None,\n        update: Union[Dict[str, Any], None] = None,\n    ) -> _TSQLModel:\n        return sqlmodel_validate(\n            cls=cls,\n            obj=obj,\n            strict=strict,\n            from_attributes=from_attributes,\n            context=context,\n            update=update,\n        )\n\n    def model_dump(\n        self,\n        *,\n        mode: Union[Literal[\"json\", \"python\"], str] = \"python\",\n        include: Union[IncEx, None] = None,\n        exclude: Union[IncEx, None] = None,\n        context: Union[Dict[str, Any], None] = None,\n        by_alias: bool = False,\n        exclude_unset: bool = False,\n        exclude_defaults: bool = False,\n        exclude_none: bool = False,\n        round_trip: bool = False,\n        warnings: Union[bool, Literal[\"none\", \"warn\", \"error\"]] = True,\n        serialize_as_any: bool = False,\n    ) -> Dict[str, Any]:\n        if PYDANTIC_MINOR_VERSION >= (2, 7):\n            extra_kwargs: Dict[str, Any] = {\n                \"context\": context,\n                \"serialize_as_any\": serialize_as_any,\n            }\n        else:\n            extra_kwargs = {}\n        if IS_PYDANTIC_V2:\n            return super().model_dump(\n                mode=mode,\n                include=include,\n                exclude=exclude,\n                by_alias=by_alias,\n                exclude_unset=exclude_unset,\n                exclude_defaults=exclude_defaults,\n                exclude_none=exclude_none,\n                round_trip=round_trip,\n                warnings=warnings,\n                **extra_kwargs,\n            )\n        else:\n            return super().dict(\n                include=include,\n                exclude=exclude,\n                by_alias=by_alias,\n                exclude_unset=exclude_unset,\n                exclude_defaults=exclude_defaults,\n                exclude_none=exclude_none,\n            )\n\n    @deprecated(\n        \"\"\"\n        \ud83d\udea8 `obj.dict()` was deprecated in SQLModel 0.0.14, you should\n        instead use `obj.model_dump()`.\n        \"\"\"\n    )\n    def dict(\n        self,\n        *,\n        include: Union[IncEx, None] = None,\n        exclude: Union[IncEx, None] = None,\n        by_alias: bool = False,\n        exclude_unset: bool = False,\n        exclude_defaults: bool = False,\n        exclude_none: bool = False,\n    ) -> Dict[str, Any]:\n        return self.model_dump(\n            include=include,\n            exclude=exclude,\n            by_alias=by_alias,\n            exclude_unset=exclude_unset,\n            exclude_defaults=exclude_defaults,\n            exclude_none=exclude_none,\n        )\n\n    @classmethod\n    @deprecated(\n        \"\"\"\n        \ud83d\udea8 `obj.from_orm(data)` was deprecated in SQLModel 0.0.14, you should\n        instead use `obj.model_validate(data)`.\n        \"\"\"\n    )\n    def from_orm(\n        cls: Type[_TSQLModel], obj: Any, update: Optional[Dict[str, Any]] = None\n    ) -> _TSQLModel:\n        return cls.model_validate(obj, update=update)\n\n    @classmethod\n    @deprecated(\n        \"\"\"\n        \ud83d\udea8 `obj.parse_obj(data)` was deprecated in SQLModel 0.0.14, you should\n        instead use `obj.model_validate(data)`.\n        \"\"\"\n    )\n    def parse_obj(\n        cls: Type[_TSQLModel], obj: Any, update: Optional[Dict[str, Any]] = None\n    ) -> _TSQLModel:\n        if not IS_PYDANTIC_V2:\n            obj = cls._enforce_dict_if_root(obj)  # type: ignore[attr-defined] # noqa\n        return cls.model_validate(obj, update=update)\n\n    # From Pydantic, override to only show keys from fields, omit SQLAlchemy attributes\n    @deprecated(\n        \"\"\"\n        \ud83d\udea8 You should not access `obj._calculate_keys()` directly.\n\n        It is only useful for Pydantic v1.X, you should probably upgrade to\n        Pydantic v2.X.\n        \"\"\",\n        category=None,\n    )\n    def _calculate_keys(\n        self,\n        include: Optional[Mapping[Union[int, str], Any]],\n        exclude: Optional[Mapping[Union[int, str], Any]],\n        exclude_unset: bool,\n        update: Optional[Dict[str, Any]] = None,\n    ) -> Optional[AbstractSet[str]]:\n        return _calculate_keys(\n            self,\n            include=include,\n            exclude=exclude,\n            exclude_unset=exclude_unset,\n            update=update,\n        )\n\n    def sqlmodel_update(\n        self: _TSQLModel,\n        obj: Union[Dict[str, Any], BaseModel],\n        *,\n        update: Union[Dict[str, Any], None] = None,\n    ) -> _TSQLModel:\n        use_update = (update or {}).copy()\n        if isinstance(obj, dict):\n            for key, value in {**obj, **use_update}.items():\n                if key in get_model_fields(self):\n                    setattr(self, key, value)\n        elif isinstance(obj, BaseModel):\n            for key in get_model_fields(obj):\n                if key in use_update:\n                    value = use_update.pop(key)\n                else:\n                    value = getattr(obj, key)\n                setattr(self, key, value)\n            for remaining_key in use_update:\n                if remaining_key in get_model_fields(self):\n                    value = use_update.pop(remaining_key)\n                    setattr(self, remaining_key, value)\n        else:\n            raise ValueError(\n                \"Can't use sqlmodel_update() with something that \"\n                f\"is not a dict or SQLModel or Pydantic model: {obj}\"\n            )\n        return self": [
+        770,
+        1008
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/data_model_position.py": {
+      "class DataModelPosition(BaseModel):\n    \"\"\"Represents positions of data models detected in a file.\"\"\"\n\n    positions: Dict[str, Tuple[int, int]] = Field(\n        default_factory=dict,\n        description=\"Map of data model names to their (start_position, end_position) in the file\",\n    )": [
+        8,
+        14
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py": {
+      "class ConstructQueryConfig(BaseModel):\n    \"\"\"Typed construct query configuration matching JSON schema structure.\"\"\"\n\n    method_regex: Optional[str] = Field(\n        None, description=\"Regex for method names (AnnotationLike)\"\n    )\n    annotation_name_regex: Optional[str] = Field(\n        None, description=\"Regex for annotation names\"\n    )\n    attribute_regex: Optional[str] = Field(\n        None, description=\"Regex for attribute patterns\"\n    )\n    callee_regex: Optional[str] = Field(\n        None, description=\"Regex for call expression callees\"\n    )\n    superclass_regex: Optional[str] = Field(\n        None, description=\"Regex for superclass names (Inheritance)\"\n    )\n    function_name_regex: Optional[str] = Field(\n        None, description=\"Regex for function declaration names (FunctionDefinition)\"\n    )\n    export_name_regex: Optional[str] = Field(\n        None, description=\"Regex for exported symbol names (FunctionDefinition)\"\n    )\n\n    model_config = ConfigDict(extra=\"forbid\")": [
+        51,
+        76
+      ],
+      "class Detection(BaseModel):\n    \"\"\"Result of feature detection in source code.\"\"\"\n\n    capability_key: str = Field(\n        ...,\n        min_length=1,\n        description=\"Capability family for the detected feature\",\n    )\n    operation_key: str = Field(\n        ...,\n        min_length=1,\n        description=\"Operation identifier for the detected feature\",\n    )\n    library: str = Field(\n        ..., description=\"Library/framework name this feature belongs to\"\n    )\n    match_text: str = Field(..., description=\"The actual text that matched\")\n    start_line: int = Field(..., description=\"Starting line number (1-indexed)\")\n    end_line: int = Field(..., description=\"Ending line number (1-indexed)\")\n    metadata: Dict[str, Any] = Field(\n        default_factory=dict, description=\"Additional metadata\"\n    )\n\n    @property\n    def feature_key(self) -> str:\n        \"\"\"Return the dotted convenience key derived from structured identity.\"\"\"\n        return _compose_feature_key(self.capability_key, self.operation_key)": [
+        238,
+        264
+      ],
+      "class DetectionResult(BaseModel):\n    \"\"\"Complete detection result returned by an engine run.\"\"\"\n\n    success: bool = Field(..., description=\"Whether detection completed successfully\")\n    detections: Dict[str, List[Detection]] = Field(\n        default_factory=dict,\n        description=\"Feature key to list of detections\",\n    )\n    errors: List[str] = Field(\n        default_factory=list,\n        description=\"Critical errors that prevented detection\",\n    )\n    warnings: List[str] = Field(\n        default_factory=list,\n        description=\"Non-critical issues encountered during detection\",\n    )\n    unsupported_features: List[str] = Field(\n        default_factory=list,\n        description=\"Features that couldn't be processed by the engine\",\n    )": [
+        267,
+        286
+      ],
+      "class FeatureSpec(BaseModel):\n    \"\"\"Strongly-typed feature specification from schema.\"\"\"\n\n    capability_key: str = Field(\n        ...,\n        min_length=1,\n        description=\"Capability family this feature belongs to\",\n    )\n    operation_key: str = Field(\n        ...,\n        min_length=1,\n        description=\"Operation identifier within the capability\",\n    )\n    library: str = Field(\n        ..., description=\"Library/framework name this feature belongs to\"\n    )\n    absolute_paths: List[str] = Field(\n        ..., min_length=1, description=\"Fully qualified import paths\"\n    )\n    target_level: TargetLevel = Field(..., description=\"function or class\")\n    concept: Concept = Field(\n        ...,\n        description=\"Semantic concept (AnnotationLike, CallExpression, Inheritance, etc.)\",\n    )\n    locator_strategy: LocatorStrategy = Field(\n        ..., description=\"VariableBound or Direct\"\n    )\n    construct_query: Optional[Dict[str, Any]] = Field(\n        default=None,\n        description=\"Language-specific tweaks for ConceptQuery construction (new schema field)\",\n    )\n\n    @property\n    def construct_query_typed(self) -> Optional[ConstructQueryConfig]:\n        \"\"\"Get construct_query as typed configuration.\"\"\"\n        if not self.construct_query:\n            return None\n        try:\n            return ConstructQueryConfig.model_validate(self.construct_query)\n        except Exception:\n            return None\n\n    @construct_query_typed.setter\n    def construct_query_typed(self, value: Optional[ConstructQueryConfig]) -> None:\n        \"\"\"Set construct_query from typed configuration.\"\"\"\n        if value is None:\n            self.construct_query = None\n        else:\n            self.construct_query = value.model_dump(exclude_none=True)\n\n    description: Optional[str] = Field(None, description=\"Human-readable description\")\n    base_confidence: Optional[float] = Field(\n        default=None,\n        ge=0.0,\n        le=1.0,\n        description=\"Baseline confidence for CallExpression feature definitions\",\n    )\n    startpoint: bool = Field(\n        default=False,\n        description=\"Indicates whether this feature represents a starting point or entry point in the application\",\n    )\n\n    @property\n    def feature_key(self) -> str:\n        \"\"\"Return the dotted convenience key derived from structured identity.\"\"\"\n        return _compose_feature_key(self.capability_key, self.operation_key)\n\n    @model_validator(mode=\"after\")\n    def validate_base_confidence_scope(self) -> Self:\n        _validate_base_confidence_scope(self.concept, self.base_confidence)\n        return self": [
+        99,
+        169
+      ],
+      "class FeatureUsagePayload(BaseModel):\n    \"\"\"Typed payload for detected feature usage confidence metadata.\"\"\"\n\n    match_confidence: float = Field(\n        default=1.0,\n        ge=0.0,\n        le=1.0,\n        description=\"Confidence score for a single detected usage\",\n    )\n    validation_status: ValidationStatus = Field(\n        default=ValidationStatus.COMPLETED,\n        description=\"Validation lifecycle state for the usage row\",\n    )\n    evidence_json: Optional[Dict[str, Any]] = Field(\n        default=None,\n        description=\"Structured evidence payload supporting usage classification\",\n    )\n\n    model_config = ConfigDict(use_enum_values=True)": [
+        217,
+        235
+      ],
+      "class FrameworkFeaturePayload(BaseModel):\n    \"\"\"JSONB payload shape for framework_feature.feature_definition.\"\"\"\n\n    description: Optional[str] = Field(None, description=\"Human-readable description\")\n    absolute_paths: List[str] = Field(\n        default_factory=list,\n        description=\"Fully qualified import paths\",\n    )\n    target_level: TargetLevel = Field(\n        default=TargetLevel.FUNCTION,\n        description=\"function or class\",\n    )\n    concept: Concept = Field(\n        default=Concept.ANNOTATION_LIKE,\n        description=\"Semantic concept\",\n    )\n    locator_strategy: LocatorStrategy = Field(\n        default=LocatorStrategy.VARIABLE_BOUND,\n        description=\"VariableBound or Direct\",\n    )\n    construct_query: Optional[Dict[str, Any]] = Field(\n        default=None,\n        description=\"Language-specific tweaks for ConceptQuery construction\",\n    )\n    base_confidence: Optional[float] = Field(\n        default=None,\n        ge=0.0,\n        le=1.0,\n        description=\"Baseline confidence for CallExpression feature definitions\",\n    )\n    startpoint: bool = Field(\n        default=False,\n        description=\"Feature is a starting point\",\n    )\n    notes: Optional[str] = Field(default=None, description=\"Contributor notes, caveats, disambiguation guidance\")\n    docs_url: Optional[str] = Field(default=None, description=\"Operation-specific documentation URL\")\n\n    model_config = ConfigDict(extra=\"forbid\", use_enum_values=True)\n\n    @model_validator(mode=\"after\")\n    def validate_base_confidence_scope(self) -> Self:\n        _validate_base_confidence_scope(self.concept, self.base_confidence)\n        return self": [
+        172,
+        214
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/framework_models.py": {
+      "class FeatureAbsolutePath(SQLBase):\n    \"\"\"Maps each absolute import path to its feature.\"\"\"\n\n    __tablename__ = \"feature_absolute_path\"\n    __table_args__ = (\n        ForeignKeyConstraint(  # FK \u2192 FrameworkFeature\n            [\"language\", \"library\", \"capability_key\", \"operation_key\"],\n            [\n                \"framework_feature.language\",\n                \"framework_feature.library\",\n                \"framework_feature.capability_key\",\n                \"framework_feature.operation_key\",\n            ],\n            ondelete=\"CASCADE\",\n        ),\n        # Fast lookup by path + covering columns for an index-only probe\n        Index(\n            \"path_lookup_idx\",\n            \"absolute_path\",\n            postgresql_include=(\n                \"language\",\n                \"library\",\n                \"capability_key\",\n                \"operation_key\",\n            ),\n        ),\n        {\"extend_existing\": True},\n    )\n\n    # Composite PK = language + library + capability_key + operation_key + absolute_path\n    language: Mapped[str] = mapped_column(primary_key=True)\n    library: Mapped[str] = mapped_column(primary_key=True)\n    capability_key: Mapped[str] = mapped_column(primary_key=True)\n    operation_key: Mapped[str] = mapped_column(primary_key=True)\n    absolute_path: Mapped[str] = mapped_column(primary_key=True, comment=\"Import path\")\n\n    @property\n    def feature_key(self) -> str:\n        \"\"\"Return the dotted convenience key derived from structured identity.\"\"\"\n        return _compose_feature_key(self.capability_key, self.operation_key)\n\n    # Relationship back to metadata\n    feature: Mapped[FrameworkFeature] = relationship(back_populates=\"absolute_paths\")": [
+        223,
+        265
+      ],
+      "class Framework(SQLBase):\n    \"\"\"Language-library combo (\"python-fastapi\", etc.).\"\"\"\n\n    __tablename__ = \"framework\"\n    __table_args__ = {\"extend_existing\": True}\n\n    language: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"Programming language\"\n    )\n    library: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"Library / framework\"\n    )\n    docs_url: Mapped[Optional[str]] = mapped_column(default=None, comment=\"Docs URL\")\n    description: Mapped[Optional[str]] = mapped_column(\n        default=None, comment=\"Framework/library description\"\n    )\n\n    # Relationships\n    features: Mapped[List[\"FrameworkFeature\"]] = relationship(\n        back_populates=\"framework\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n    )": [
+        32,
+        54
+      ],
+      "class FrameworkFeature(SQLBase):\n    \"\"\"Per-feature metadata keyed by capability + operation.\"\"\"\n\n    __tablename__ = \"framework_feature\"\n    __table_args__ = (\n        ForeignKeyConstraint(  # FK \u2192 Framework\n            [\"language\", \"library\"],\n            [\"framework.language\", \"framework.library\"],\n            ondelete=\"CASCADE\",\n        ),\n        Index(\n            \"framework_feature_definition_gin_idx\",\n            \"feature_definition\",\n            postgresql_using=\"gin\",\n            postgresql_ops={\"feature_definition\": \"jsonb_path_ops\"},\n        ),\n        Index(\n            \"framework_feature_startpoint_bool_idx\",\n            text(\"coalesce((feature_definition['startpoint'])::boolean, false)\"),\n        ),\n        {\"extend_existing\": True},\n    )\n\n    # Composite PK = language + library + capability_key + operation_key\n    language: Mapped[str] = mapped_column(primary_key=True)\n    library: Mapped[str] = mapped_column(primary_key=True)\n    capability_key: Mapped[str] = mapped_column(\n        primary_key=True,\n        comment=\"Capability family this feature belongs to\",\n    )\n    operation_key: Mapped[str] = mapped_column(\n        primary_key=True,\n        comment=\"Operation identifier within the capability\",\n    )\n\n    feature_definition: Mapped[dict[str, object]] = mapped_column(\n        JSONB,\n        nullable=False,\n        default=dict,\n        server_default=text(\"'{}'::jsonb\"),\n        comment=\"Source-of-truth JSONB payload for feature schema fields\",\n    )\n\n    # Relationships\n    framework: Mapped[Framework] = relationship(back_populates=\"features\")\n    absolute_paths: Mapped[List[\"FeatureAbsolutePath\"]] = relationship(\n        back_populates=\"feature\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n    )\n\n    @property\n    def feature_key(self) -> str:\n        \"\"\"Return the dotted convenience key derived from structured identity.\"\"\"\n        return _compose_feature_key(self.capability_key, self.operation_key)\n\n    @property\n    def description(self) -> Optional[str]:\n        \"\"\"Return description from feature_definition.\"\"\"\n        value = self.feature_definition.get(\"description\")\n        if value is None:\n            return None\n        if isinstance(value, str):\n            return value\n        raise TypeError(\"feature_definition.description must be a string\")\n\n    @property\n    def target_level(self) -> TargetLevel:\n        \"\"\"Return target level from feature_definition.\"\"\"\n        value = self.feature_definition[\"target_level\"]\n        if isinstance(value, TargetLevel):\n            return value\n        if isinstance(value, str):\n            return TargetLevel(value)\n        raise TypeError(\"feature_definition.target_level must be a string enum value\")\n\n    @property\n    def concept(self) -> Concept:\n        \"\"\"Return concept from feature_definition.\"\"\"\n        value = self.feature_definition[\"concept\"]\n        if isinstance(value, Concept):\n            return value\n        if isinstance(value, str):\n            return Concept(value)\n        raise TypeError(\"feature_definition.concept must be a string enum value\")\n\n    @property\n    def locator_strategy(self) -> LocatorStrategy:\n        \"\"\"Return locator strategy from feature_definition.\"\"\"\n        value = self.feature_definition[\"locator_strategy\"]\n        if isinstance(value, LocatorStrategy):\n            return value\n        if isinstance(value, str):\n            return LocatorStrategy(value)\n        raise TypeError(\n            \"feature_definition.locator_strategy must be a string enum value\"\n        )\n\n    @property\n    def construct_query(self) -> Optional[dict[str, object]]:\n        \"\"\"Return construct_query from feature_definition.\"\"\"\n        value = self.feature_definition.get(\"construct_query\")\n        if value is None:\n            return None\n        if isinstance(value, dict):\n            return value\n        raise TypeError(\"feature_definition.construct_query must be an object\")\n\n    @property\n    def startpoint(self) -> bool:\n        \"\"\"Return startpoint from feature_definition.\"\"\"\n        value = self.feature_definition[\"startpoint\"]\n        if isinstance(value, bool):\n            return value\n        raise TypeError(\"feature_definition.startpoint must be a boolean\")\n\n    @property\n    def base_confidence(self) -> float | None:\n        \"\"\"Return base confidence from feature_definition when present.\"\"\"\n        value = self.feature_definition.get(\"base_confidence\")\n        if value is None:\n            return None\n        if isinstance(value, (int, float)) and not isinstance(value, bool):\n            return float(value)\n        raise TypeError(\"feature_definition.base_confidence must be a number\")\n\n    @classmethod\n    def concept_sql_expression(cls) -> ColumnElement[str]:\n        \"\"\"SQL expression for concept reads/grouping.\"\"\"\n        return cls.feature_definition[\"concept\"].astext\n\n    @classmethod\n    def startpoint_sql_expression(cls) -> ColumnElement[bool]:\n        \"\"\"SQL expression for startpoint reads/filtering.\"\"\"\n        return func.coalesce(cls.feature_definition[\"startpoint\"].as_boolean(), False)\n\n    @property\n    def construct_query_typed(self) -> Optional[ConstructQueryConfig]:\n        \"\"\"Get construct_query as typed configuration.\"\"\"\n        construct_query = self.construct_query\n        if not construct_query:\n            return None\n        try:\n            return ConstructQueryConfig.model_validate(construct_query)\n        except Exception:\n            return None\n\n    @construct_query_typed.setter\n    def construct_query_typed(self, value: Optional[ConstructQueryConfig]) -> None:\n        \"\"\"Set construct_query from typed configuration.\"\"\"\n        updated_feature_definition = dict(self.feature_definition)\n        if value is None:\n            updated_feature_definition.pop(\"construct_query\", None)\n        else:\n            updated_feature_definition[\"construct_query\"] = value.model_dump(\n                exclude_none=True\n            )\n        self.feature_definition = updated_feature_definition": [
+        60,
+        217
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/python_structural_signature.py": {
+      "class PythonClassInfo(BaseModel):\n    \"\"\"Information about a class definition.\"\"\"\n    start_line: int = Field(..., description=\"Line number where the class starts\")\n    end_line: int = Field(..., description=\"Line number where the class ends\")\n    signature: str = Field(..., description=\"Complete class declaration including decorators and inheritance\")\n    docstring: Optional[str] = Field(None, description=\"Class docstring\")\n    vars: List[PythonVariableInfo] = Field(default_factory=list, description=\"Class and instance variables\")\n    methods: List[PythonFunctionInfo] = Field(default_factory=list, description=\"Class methods\")\n    nested_classes: List['PythonClassInfo'] = Field(default_factory=list, description=\"Nested class declarations\")": [
+        29,
+        37
+      ],
+      "class PythonFunctionInfo(BaseModel):\n    \"\"\"Information about a function or method.\"\"\"\n    start_line: int = Field(..., description=\"Line number where the function starts\")\n    end_line: int = Field(..., description=\"Line number where the function ends\")\n    signature: str = Field(..., description=\"Complete function declaration including decorators, def/async def, parameters, return type\")\n    docstring: Optional[str] = Field(None, description=\"Function docstring\")\n    function_calls: List[str] = Field(default_factory=list, description=\"Fully-qualified names of function calls inside the function body, in order of appearance\")\n    nested_functions: List['PythonFunctionInfo'] = Field(default_factory=list, description=\"Nested functions declarations\")\n    instance_variables: List['PythonVariableInfo'] = Field(default_factory=list, description=\"Instance variable assignments (self.*) within this method\")": [
+        18,
+        26
+      ],
+      "class PythonStructuralSignature(BaseModel):\n    \"\"\"\n    Structural signature of a Python source code file.\n\n    This model captures the high-level structure and outline of a source file,\n    including module-level constructs, functions, classes, and their\n    positions within the file.\n    \"\"\"\n    module_docstring: Optional[str] = Field(None, description=\"Module-level docstring\")\n    global_variables: List[PythonVariableInfo] = Field(default_factory=list, description=\"Module-level variables\")\n    functions: List[PythonFunctionInfo] = Field(default_factory=list, description=\"Module-level functions\")\n    classes: List[PythonClassInfo] = Field(default_factory=list, description=\"Class definitions\")": [
+        40,
+        51
+      ],
+      "class PythonVariableInfo(BaseModel):\n    \"\"\"Information about a global variable declaration.\"\"\"\n    start_line: int = Field(..., description=\"Starting line number of variable declaration\")\n    end_line: int = Field(..., description=\"Ending line number of variable declaration\")\n    signature: str = Field(..., description=\"Complete variable declaration line(s)\")": [
+        11,
+        15
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/typescript_structural_signature.py": {
+      "class TypeScriptClassInfo(BaseModel):\n    \"\"\"Information about a class definition.\"\"\"\n\n    start_line: Optional[int] = Field(\n        default=None, description=\"Line number where the class starts\"\n    )\n    end_line: Optional[int] = Field(\n        default=None, description=\"Line number where the class ends\"\n    )\n    signature: Optional[str] = Field(\n        default=None,\n        description=\"Complete class declaration including decorators, abstract modifier, type parameters, implements, and extends clauses\",\n    )\n    docstring: Optional[str] = Field(None, description=\"Class JSDoc or TSDoc comment\")\n    #todo: enable later not in scope right now\n    #is_abstract: bool = Field(default=False, description=\"Whether class is abstract\")\n    decorators: List[str] = Field(default_factory=list, description=\"Class decorator names\")\n    # properties: List[TypeScriptPropertyInfo] = Field(\n    #     default_factory=list, description=\"Class properties and fields\"\n    # )\n    methods: List[TypeScriptMethodInfo] = Field(\n        default_factory=list, description=\"Class methods including constructor\"\n    )\n    nested_classes: List[\"TypeScriptClassInfo\"] = Field(\n        default_factory=list, description=\"Nested class declarations\"\n    )": [
+        144,
+        169
+      ],
+      "class TypeScriptEnumInfo(BaseModel):\n    \"\"\"Information about a TypeScript enum definition.\"\"\"\n\n    start_line: Optional[int] = Field(\n        default=None, description=\"Line number where the enum starts\"\n    )\n    end_line: Optional[int] = Field(\n        default=None, description=\"Line number where the enum ends\"\n    )\n    signature: Optional[str] = Field(\n        default=None, description=\"Complete enum declaration\"\n    )\n    docstring: Optional[str] = Field(None, description=\"Enum TSDoc comment\")\n    is_const: bool = Field(default=False, description=\"Whether enum is const\")\n    members: List[TypeScriptEnumMemberInfo] = Field(\n        default_factory=list, description=\"Enum members\"\n    )": [
+        179,
+        195
+      ],
+      "class TypeScriptEnumMemberInfo(BaseModel):\n    \"\"\"Information about enum member.\"\"\"\n\n    name: str = Field(..., description=\"Enum member name\")\n    value: Optional[str] = Field(None, description=\"Enum member value if present\")": [
+        172,
+        176
+      ],
+      "class TypeScriptExportInfo(BaseModel):\n    \"\"\"Information about export statements.\"\"\"\n\n    export_type: str = Field(\n        ..., description=\"Export type: named, default, all, or declaration\"\n    )\n    exported_names: List[str] = Field(default_factory=list, description=\"Exported identifier names\")\n    source: Optional[str] = Field(None, description=\"Source module for re-exports\")": [
+        216,
+        223
+      ],
+      "class TypeScriptFunctionInfo(BaseModel):\n    \"\"\"Information about a function or method.\"\"\"\n\n    start_line: Optional[int] = Field(\n        default=None, description=\"Line number where the function starts\"\n    )\n    end_line: Optional[int] = Field(\n        default=None, description=\"Line number where the function ends\"\n    )\n    signature: Optional[str] = Field(\n        default=None,\n        description=\"Complete function declaration including async/function/arrow syntax, type parameters, parameters, return type\",\n    )\n    docstring: Optional[str] = Field(None, description=\"JSDoc or TSDoc comment\")\n    #is_async: bool = Field(default=False, description=\"Whether function is async\")\n    nested_functions: List[\"TypeScriptFunctionInfo\"] = Field(\n        default_factory=list, description=\"Nested function declarations\"\n    )": [
+        37,
+        54
+      ],
+      "class TypeScriptImportInfo(BaseModel):\n    \"\"\"Information about import statements.\"\"\"\n\n    import_type: str = Field(\n        ..., description=\"Import type: named, default, namespace, or side-effect\"\n    )\n    imported_names: List[str] = Field(default_factory=list, description=\"Imported identifier names\")\n    source: str = Field(..., description=\"Source module path\")": [
+        226,
+        233
+      ],
+      "class TypeScriptInterfaceInfo(BaseModel):\n    \"\"\"Information about a TypeScript interface definition.\"\"\"\n\n    start_line: Optional[int] = Field(\n        default=None, description=\"Line number where the interface starts\"\n    )\n    end_line: Optional[int] = Field(\n        default=None, description=\"Line number where the interface ends\"\n    )\n    signature: Optional[str] = Field(\n        default=None,\n        description=\"Complete interface declaration including type parameters and extends clause\",\n    )\n    docstring: Optional[str] = Field(None, description=\"Interface TSDoc comment\")\n    properties: List[TypeScriptInterfacePropertyInfo] = Field(\n        default_factory=list, description=\"Interface property signatures\"\n    )\n    methods: List[TypeScriptInterfaceMethodInfo] = Field(\n        default_factory=list, description=\"Interface method signatures\"\n    )": [
+        107,
+        126
+      ],
+      "class TypeScriptInterfaceMethodInfo(BaseModel):\n    \"\"\"Information about interface method signatures.\"\"\"\n\n    name: str = Field(..., description=\"Method name\")\n    signature: Optional[str] = Field(\n        default=None, description=\"Complete method signature with parameters and return type\"\n    )": [
+        98,
+        104
+      ],
+      "class TypeScriptInterfacePropertyInfo(BaseModel):\n    \"\"\"Information about interface property signatures.\"\"\"\n\n    name: str = Field(..., description=\"Property name\")\n    signature: Optional[str] = Field(\n        default=None, description=\"Complete property signature with type\"\n    )": [
+        89,
+        95
+      ],
+      "class TypeScriptMethodInfo(BaseModel):\n    \"\"\"Information about class methods.\"\"\"\n\n    start_line: Optional[int] = Field(\n        default=None, description=\"Line number where the method starts\"\n    )\n    end_line: Optional[int] = Field(\n        default=None, description=\"Line number where the method ends\"\n    )\n    signature: Optional[str] = Field(\n        default=None,\n        description=\"Complete method declaration including modifiers, type parameters, parameters, return type\",\n    )\n    docstring: Optional[str] = Field(None, description=\"JSDoc or TSDoc comment\")\n    #todo: enable later not in scope right now\n    #is_async: bool = Field(default=False, description=\"Whether method is async\")": [
+        71,
+        86
+      ],
+      "class TypeScriptNamespaceInfo(BaseModel):\n    \"\"\"Information about a TypeScript namespace/module declaration.\"\"\"\n\n    start_line: Optional[int] = Field(\n        default=None, description=\"Line number where the namespace starts\"\n    )\n    end_line: Optional[int] = Field(\n        default=None, description=\"Line number where the namespace ends\"\n    )\n    signature: Optional[str] = Field(\n        default=None, description=\"Complete namespace declaration\"\n    )\n    docstring: Optional[str] = Field(None, description=\"Namespace TSDoc comment\")\n    is_ambient: bool = Field(\n        default=False, description=\"Whether namespace is ambient (declare namespace)\"\n    )": [
+        198,
+        213
+      ],
+      "class TypeScriptParameterInfo(BaseModel):\n    \"\"\"Information about function/method parameters.\"\"\"\n\n    name: str = Field(..., description=\"Parameter name\")\n    type_annotation: Optional[str] = Field(None, description=\"Type annotation if present\")\n    optional: bool = Field(default=False, description=\"Whether parameter is optional\")\n    default_value: Optional[str] = Field(None, description=\"Default value if present\")": [
+        28,
+        34
+      ],
+      "class TypeScriptStructuralSignature(BaseModel):\n    \"\"\"\n    Structural signature of a TypeScript/JavaScript source code file.\n\n    This model captures the high-level structure and outline of a source file,\n    including module-level constructs, functions, classes, interfaces, types,\n    enums, namespaces, and their positions within the file.\n\n    Based on tree-sitter-typescript grammar patterns.\n    \"\"\"\n\n    module_docstring: Optional[str] = Field(\n        None, description=\"Module-level JSDoc or TSDoc comment\"\n    )\n    imports: List[TypeScriptImportInfo] = Field(\n        default_factory=list, description=\"Import statements\"\n    )\n    exports: List[TypeScriptExportInfo] = Field(\n        default_factory=list, description=\"Export statements\"\n    )\n    global_variables: List[TypeScriptVariableInfo] = Field(\n        default_factory=list, description=\"Module-level variables (const, let, var)\"\n    )\n    functions: List[TypeScriptFunctionInfo] = Field(\n        default_factory=list, description=\"Module-level functions\"\n    )\n    classes: List[TypeScriptClassInfo] = Field(\n        default_factory=list, description=\"Class definitions\"\n    )\n    interfaces: List[TypeScriptInterfaceInfo] = Field(\n        default_factory=list, description=\"TypeScript interface definitions\"\n    )\n    type_aliases: List[TypeScriptTypeAliasInfo] = Field(\n        default_factory=list, description=\"TypeScript type alias definitions\"\n    )\n    enums: List[TypeScriptEnumInfo] = Field(\n        default_factory=list, description=\"TypeScript enum definitions\"\n    )\n    namespaces: List[TypeScriptNamespaceInfo] = Field(\n        default_factory=list, description=\"TypeScript namespace/module declarations\"\n    )": [
+        236,
+        276
+      ],
+      "class TypeScriptTypeAliasInfo(BaseModel):\n    \"\"\"Information about a TypeScript type alias.\"\"\"\n\n    start_line: Optional[int] = Field(\n        default=None, description=\"Line number where the type alias starts\"\n    )\n    end_line: Optional[int] = Field(\n        default=None, description=\"Line number where the type alias ends\"\n    )\n    signature: Optional[str] = Field(\n        default=None, description=\"Complete type alias declaration including type parameters\"\n    )\n    docstring: Optional[str] = Field(None, description=\"Type alias TSDoc comment\")": [
+        129,
+        141
+      ],
+      "class TypeScriptVariableInfo(BaseModel):\n    \"\"\"Information about a variable declaration (const, let, var).\"\"\"\n\n    start_line: Optional[int] = Field(\n        default=None, description=\"Starting line number of variable declaration\"\n    )\n    end_line: Optional[int] = Field(\n        default=None, description=\"Ending line number of variable declaration\"\n    )\n    signature: Optional[str] = Field(\n        default=None, description=\"Complete variable declaration including type annotation\"\n    )\n    kind: Optional[str] = Field(\n        default=None, description=\"Variable kind: const, let, or var\"\n    )": [
+        11,
+        25
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/configuration_models.py": {
+      "class CodebaseConfig(BaseModel):\n    \"\"\"Pydantic model for codebase configuration in JSON config files.\"\"\"\n    codebase_folder: str  \n    root_packages: Optional[list[str]] = Field(\n        default=None,\n        description=(\n            \"Relative paths (POSIX) to each root package inside codebase_folder.\"\n        ),\n    )\n    programming_language_metadata: ProgrammingLanguageMetadata": [
+        10,
+        19
+      ],
+      "class RepositorySettings(BaseModel):\n    \"\"\"Pydantic model for repository settings in JSON config files.\"\"\"\n    git_url: str\n    output_path: str\n    codebases: List[CodebaseConfig]": [
+        22,
+        26
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/credentials.py": {
+      "class Credentials(SQLBase):\n    \"\"\"Model for storing encrypted credentials with support for multiple credential types.\"\"\"\n\n    __tablename__ = \"credentials\"\n    __table_args__ = (\n        # Add unique constraint on credential_key for multi-key credential support\n        Index(\n            \"uq_credentials_namespace_provider_secret\",\n            \"namespace\",\n            \"provider_key\",\n            \"secret_kind\",\n            unique=True,\n        ),\n        # Keep existing unique constraint on token_hash for backward compatibility\n    )\n    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)\n    namespace: Mapped[CredentialNamespace] = mapped_column(nullable=False)\n    provider_key: Mapped[ProviderKey] = mapped_column(nullable=False)\n    secret_kind: Mapped[SecretKind] = mapped_column(nullable=False)\n    token_hash: Mapped[str] = mapped_column(comment=\"Encrypted credential value\")\n    metadata_json: Mapped[Optional[dict[str, Any]]] = mapped_column(\n        JSONB, default=None, comment=\"Provider specific metadata\", nullable=True\n    )\n    created_at: Mapped[Optional[datetime]] = mapped_column(\n        DateTime(timezone=True), default=None\n    )\n    updated_at: Mapped[Optional[datetime]] = mapped_column(\n        DateTime(timezone=True), default=None\n    )": [
+        20,
+        48
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/flags.py": {
+      "class Flag(SQLBase):\n    \"\"\"Model for storing feature flags.\"\"\"\n    \n    __tablename__ = \"flag\"\n    \n    id: Mapped[int] = mapped_column(primary_key=True)\n    name: Mapped[str] = mapped_column(unique=True, index=True)\n    status: Mapped[bool] = mapped_column(default=False)": [
+        8,
+        15
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/pr_metadata_model.py": {
+      "class PrMetadata(BaseModel):\n    \"\"\"Persisted metadata for a manual AGENTS.md PR publication.\n\n    Stored as JSONB on RepositoryAgentMdSnapshot.pr_metadata.\n    One row per (owner, repo, workflow_run_id) \u2014 one-shot semantics\n    mean the first successful publish writes this; subsequent calls\n    for the same run are no-ops.\n    \"\"\"\n\n    pr_number: int | None = Field(default=None)\n    pr_url: str | None = Field(default=None)\n    branch_name: str | None = Field(default=None)\n    status: Literal[\"modified\", \"no_changes\"] = Field(...)\n    changed_files: list[str] = Field(default_factory=list)\n    message: str = Field(...)\n    created_at: AwareDatetime = Field(\n        default_factory=lambda: datetime.now(timezone.utc),\n    )\n    updated_at: AwareDatetime = Field(\n        default_factory=lambda: datetime.now(timezone.utc),\n    )": [
+        7,
+        27
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/programming_language_metadata.py": {
+      "class ProgrammingLanguageMetadata(BaseModel):\n    language: ProgrammingLanguage\n    package_manager: Optional[PackageManagerType] = None\n    language_version: Optional[str] = None\n    manifest_path: Optional[str] = None\n    project_name: Optional[str] = None\n    package_manager_provenance: Optional[PackageManagerProvenance] = None\n    workspace_root: Optional[str] = None\n    workspace_orchestrator: Optional[WorkspaceOrchestratorType] = None\n    workspace_orchestrator_config_path: Optional[str] = None": [
+        32,
+        41
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/relational_models/unoplat_code_confluence.py": {
+      "class UnoplatCodeConfluenceCodebase(SQLBase):\n    \"\"\"Codebase stored in PostgreSQL for Code Confluence.\"\"\"\n\n    __tablename__ = \"code_confluence_codebase\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"repository_qualified_name\"],\n            [\"code_confluence_git_repository.qualified_name\"],\n            ondelete=\"CASCADE\",\n        ),\n        {\"extend_existing\": True},\n    )\n\n    qualified_name: Mapped[str] = mapped_column(primary_key=True)\n    repository_qualified_name: Mapped[str] = mapped_column(nullable=False)\n    name: Mapped[str] = mapped_column(nullable=False)\n    readme: Mapped[Optional[str]] = mapped_column(default=None)\n    root_packages: Mapped[Optional[List[str]]] = mapped_column(JSONB, default=None)\n    codebase_path: Mapped[str] = mapped_column(nullable=False)\n    codebase_folder: Mapped[Optional[str]] = mapped_column(default=None)\n    programming_language: Mapped[Optional[str]] = mapped_column(default=None)\n\n    repository: Mapped[UnoplatCodeConfluenceGitRepository] = relationship(\n        back_populates=\"codebases\"\n    )\n    package_manager_metadata: Mapped[\n        Optional[\"UnoplatCodeConfluencePackageManagerMetadata\"]\n    ] = relationship(\n        back_populates=\"codebase\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n        uselist=False,\n    )\n    files: Mapped[List[\"UnoplatCodeConfluenceFile\"]] = relationship(\n        back_populates=\"codebase\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n    )\n    frameworks: Mapped[List[\"UnoplatCodeConfluenceCodebaseFramework\"]] = relationship(\n        back_populates=\"codebase\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n    )": [
+        39,
+        81
+      ],
+      "class UnoplatCodeConfluenceCodebaseFramework(SQLBase):\n    \"\"\"Join table linking codebases to frameworks.\"\"\"\n\n    __tablename__ = \"code_confluence_codebase_framework\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"codebase_qualified_name\"],\n            [\"code_confluence_codebase.qualified_name\"],\n            ondelete=\"CASCADE\",\n        ),\n        ForeignKeyConstraint(\n            [\"framework_language\", \"framework_library\"],\n            [\"framework.language\", \"framework.library\"],\n            ondelete=\"CASCADE\",\n        ),\n        {\"extend_existing\": True},\n    )\n\n    codebase_qualified_name: Mapped[str] = mapped_column(primary_key=True)\n    framework_language: Mapped[str] = mapped_column(primary_key=True)\n    framework_library: Mapped[str] = mapped_column(primary_key=True)\n\n    codebase: Mapped[UnoplatCodeConfluenceCodebase] = relationship(\n        back_populates=\"frameworks\"\n    )": [
+        149,
+        173
+      ],
+      "class UnoplatCodeConfluenceFile(SQLBase):\n    \"\"\"Source file stored in PostgreSQL for Code Confluence.\"\"\"\n\n    __tablename__ = \"code_confluence_file\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"codebase_qualified_name\"],\n            [\"code_confluence_codebase.qualified_name\"],\n            ondelete=\"CASCADE\",\n        ),\n        {\"extend_existing\": True},\n    )\n\n    file_path: Mapped[str] = mapped_column(primary_key=True)\n    codebase_qualified_name: Mapped[str] = mapped_column(nullable=False)\n    checksum: Mapped[Optional[str]] = mapped_column(default=None)\n    structural_signature: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB, default=None\n    )\n    imports: Mapped[List[str]] = mapped_column(JSONB, default=list)\n    has_data_model: Mapped[bool] = mapped_column(default=False)\n    data_model_positions: Mapped[Dict[str, Any]] = mapped_column(JSONB, default=dict)\n\n    codebase: Mapped[UnoplatCodeConfluenceCodebase] = relationship(\n        back_populates=\"files\"\n    )\n    framework_features: Mapped[List[\"UnoplatCodeConfluenceFileFrameworkFeature\"]] = (\n        relationship(\n            back_populates=\"file\",\n            cascade=\"all, delete-orphan\",\n            passive_deletes=True,\n        )\n    )": [
+        114,
+        146
+      ],
+      "class UnoplatCodeConfluenceFileFrameworkFeature(SQLBase):\n    \"\"\"Join table linking files to framework features with span metadata.\"\"\"\n\n    __tablename__ = \"code_confluence_file_framework_feature\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"file_path\"],\n            [\"code_confluence_file.file_path\"],\n            ondelete=\"CASCADE\",\n        ),\n        ForeignKeyConstraint(\n            [\n                \"feature_language\",\n                \"feature_library\",\n                \"feature_capability_key\",\n                \"feature_operation_key\",\n            ],\n            [\n                \"framework_feature.language\",\n                \"framework_feature.library\",\n                \"framework_feature.capability_key\",\n                \"framework_feature.operation_key\",\n            ],\n            ondelete=\"CASCADE\",\n        ),\n        {\"extend_existing\": True},\n    )\n\n    file_path: Mapped[str] = mapped_column(primary_key=True)\n    feature_language: Mapped[str] = mapped_column(primary_key=True)\n    feature_library: Mapped[str] = mapped_column(primary_key=True)\n    feature_capability_key: Mapped[str] = mapped_column(primary_key=True)\n    feature_operation_key: Mapped[str] = mapped_column(primary_key=True)\n    start_line: Mapped[int] = mapped_column(primary_key=True)\n    end_line: Mapped[int] = mapped_column(primary_key=True)\n    match_text: Mapped[Optional[str]] = mapped_column(Text, default=None)\n    match_confidence: Mapped[float] = mapped_column(default=1.0)\n    validation_status: Mapped[str] = mapped_column(\n        default=ValidationStatus.COMPLETED.value,\n    )\n    evidence_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB,\n        default=None,\n    )\n\n    @property\n    def feature_key(self) -> str:\n        \"\"\"Return the dotted convenience key derived from structured identity.\"\"\"\n        return _compose_feature_key(\n            self.feature_capability_key,\n            self.feature_operation_key,\n        )\n\n    file: Mapped[UnoplatCodeConfluenceFile] = relationship(\n        back_populates=\"framework_features\"\n    )": [
+        181,
+        236
+      ],
+      "class UnoplatCodeConfluenceGitRepository(SQLBase):\n    \"\"\"Git repository stored in PostgreSQL for Code Confluence.\"\"\"\n\n    __tablename__ = \"code_confluence_git_repository\"\n    __table_args__ = (\n        Index(\"uq_cc_git_repo_url\", \"repository_url\", unique=True),\n        {\"extend_existing\": True},\n    )\n\n    qualified_name: Mapped[str] = mapped_column(primary_key=True)\n    repository_url: Mapped[str] = mapped_column(nullable=False)\n    repository_name: Mapped[str] = mapped_column(nullable=False)\n    repository_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB, default=None\n    )\n    readme: Mapped[Optional[str]] = mapped_column(default=None)\n    domain: Mapped[Optional[str]] = mapped_column(default=None)\n    github_organization: Mapped[Optional[str]] = mapped_column(default=None)\n\n    codebases: Mapped[List[\"UnoplatCodeConfluenceCodebase\"]] = relationship(\n        back_populates=\"repository\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n    )": [
+        13,
+        36
+      ],
+      "class UnoplatCodeConfluencePackageManagerMetadata(SQLBase):\n    \"\"\"Package manager metadata stored in PostgreSQL for Code Confluence.\"\"\"\n\n    __tablename__ = \"code_confluence_package_manager_metadata\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"codebase_qualified_name\"],\n            [\"code_confluence_codebase.qualified_name\"],\n            ondelete=\"CASCADE\",\n        ),\n        Index(\n            \"uq_cc_pkg_metadata_codebase\",\n            \"codebase_qualified_name\",\n            unique=True,\n        ),\n        {\"extend_existing\": True},\n    )\n\n    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)\n    codebase_qualified_name: Mapped[str] = mapped_column(nullable=False)\n    dependencies: Mapped[Dict[str, Any]] = mapped_column(JSONB, default=dict)\n    other_metadata: Mapped[Dict[str, Any]] = mapped_column(JSONB, default=dict)\n    package_manager: Mapped[str] = mapped_column(nullable=False)\n    programming_language: Mapped[str] = mapped_column(nullable=False)\n\n    codebase: Mapped[UnoplatCodeConfluenceCodebase] = relationship(\n        back_populates=\"package_manager_metadata\"\n    )": [
+        84,
+        111
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/repo_models.py": {
+      "class CodebaseConfig(SQLBase):\n    \"\"\"SQLModel for codebase_config table in code_confluence schema.\"\"\"\n\n    __tablename__ = \"codebase_config\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"repository_name\", \"repository_owner_name\"],\n            [\"repository.repository_name\", \"repository.repository_owner_name\"],\n            ondelete=\"CASCADE\",\n        ),\n    )\n\n    repository_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository\"\n    )\n    repository_owner_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository owner\"\n    )\n    codebase_folder: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"Path to codebase folder relative to repo root\"\n    )\n    root_packages: Mapped[Optional[List[str]]] = mapped_column(\n        JSONB, default=None, comment=\"List of root packages within the codebase folder\"\n    )\n    programming_language_metadata: Mapped[Dict[str, Any]] = mapped_column(\n        JSONB,\n        nullable=False,\n        comment=\"Language-specific metadata for this codebase like programming language, package manager etc\",\n    )\n\n    # Relationships\n    repository: Mapped[Repository] = relationship(back_populates=\"configs\")\n    workflow_runs: Mapped[List[\"CodebaseWorkflowRun\"]] = relationship(\n        back_populates=\"codebase_config\",\n        viewonly=True,\n        overlaps=\"repository_workflow_run,workflow_runs\",\n    )": [
+        79,
+        115
+      ],
+      "class CodebaseWorkflowRun(SQLBase):\n    \"\"\"SQLModel for codebase_workflow_run table in code_confluence schema.\"\"\"\n\n    __tablename__ = \"codebase_workflow_run\"\n    __table_args__ = (\n        CheckConstraint(\n            \"status IN ('SUBMITTED','RUNNING','FAILED','TIMED_OUT','COMPLETED','RETRYING','ERROR','CANCELLED')\",\n            name=\"codebase_status_check\",\n        ),\n        ForeignKeyConstraint(\n            [\"repository_name\", \"repository_owner_name\", \"codebase_folder\"],\n            [\n                \"codebase_config.repository_name\",\n                \"codebase_config.repository_owner_name\",\n                \"codebase_config.codebase_folder\",\n            ],\n            ondelete=\"CASCADE\",\n        ),\n        ForeignKeyConstraint(\n            [\"repository_name\", \"repository_owner_name\", \"repository_workflow_run_id\"],\n            [\n                \"repository_workflow_run.repository_name\",\n                \"repository_workflow_run.repository_owner_name\",\n                \"repository_workflow_run.repository_workflow_run_id\",\n            ],\n            ondelete=\"CASCADE\",\n        ),\n    )\n\n    repository_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository\"\n    )\n    repository_owner_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository owner\"\n    )\n    codebase_folder: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"FK to codebase_config - path to codebase folder\"\n    )\n    codebase_workflow_run_id: Mapped[str] = mapped_column(\n        primary_key=True,\n        comment=\"Unique identifier for this specific run of the codebase workflow\",\n    )\n    codebase_workflow_id: Mapped[str] = mapped_column(\n        comment=\"The ID of the codebase workflow\"\n    )\n    repository_workflow_run_id: Mapped[str] = mapped_column(\n        comment=\"Link back to parent repository workflow run\"\n    )\n    status: Mapped[str] = mapped_column(\n        String,\n        nullable=False,\n        comment=\"Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING, ERROR, CANCELLED.\",\n    )\n    error_report: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB, default=None, comment=\"Error report if the workflow run failed\"\n    )\n    issue_tracking: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB,\n        default=None,\n        comment=\"GitHub issue tracking info for this codebase workflow run\",\n    )\n\n    started_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        nullable=False,\n        comment=\"Timestamp when the workflow run started\",\n    )\n    completed_at: Mapped[Optional[datetime]] = mapped_column(\n        DateTime(timezone=True),\n        nullable=True,\n        default=None,\n        comment=\"Timestamp when the workflow run completed\",\n    )\n\n    # Relationships\n    codebase_config: Mapped[CodebaseConfig] = relationship(\n        back_populates=\"workflow_runs\"\n    )\n    repository_workflow_run: Mapped[RepositoryWorkflowRun] = relationship(\n        back_populates=\"codebase_workflow_runs\"\n    )": [
+        197,
+        277
+      ],
+      "class Repository(SQLBase):\n    \"\"\"SQLModel for repository table in code_confluence schema.\"\"\"\n\n    __tablename__ = \"repository\"\n\n    repository_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository\"\n    )\n    repository_owner_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository owner\"\n    )\n    repository_provider: Mapped[ProviderKey] = mapped_column(\n        SQLEnum(ProviderKey, name=\"repository_provider_type\", native_enum=False),\n        default=ProviderKey.GITHUB_OPEN,\n        nullable=False,\n        comment=\"Provider key for this repository (e.g., GITHUB_OPEN, GITHUB_ENTERPRISE, GITLAB_CE, GITLAB_ENTERPRISE)\",\n    )\n\n    # Relationships - will be populated after class definitions\n    workflow_runs: Mapped[List[\"RepositoryWorkflowRun\"]] = relationship(\n        back_populates=\"repository\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n    )\n    configs: Mapped[List[\"CodebaseConfig\"]] = relationship(\n        back_populates=\"repository\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n    )\n    agent_md_snapshot: Mapped[Optional[\"RepositoryAgentMdSnapshot\"]] = relationship(\n        back_populates=\"repository\",\n        cascade=\"all, delete-orphan\",\n        passive_deletes=True,\n        uselist=False,\n    )": [
+        42,
+        76
+      ],
+      "class RepositoryAgentCodebaseProgress(SQLBase):\n    \"\"\"Live per-codebase progress row for repository agent execution.\"\"\"\n\n    __tablename__ = \"repository_agent_codebase_progress\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"repository_name\", \"repository_owner_name\"],\n            [\"repository.repository_name\", \"repository.repository_owner_name\"],\n            ondelete=\"CASCADE\",\n        ),\n        ForeignKeyConstraint(\n            [\n                \"repository_name\",\n                \"repository_owner_name\",\n                \"repository_workflow_run_id\",\n            ],\n            [\n                \"repository_workflow_run.repository_name\",\n                \"repository_workflow_run.repository_owner_name\",\n                \"repository_workflow_run.repository_workflow_run_id\",\n            ],\n            ondelete=\"CASCADE\",\n        ),\n        Index(\n            \"ix_repository_agent_codebase_progress_run\",\n            \"repository_owner_name\",\n            \"repository_name\",\n            \"repository_workflow_run_id\",\n        ),\n    )\n\n    repository_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository\"\n    )\n    repository_owner_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository owner\"\n    )\n    repository_workflow_run_id: Mapped[str] = mapped_column(\n        primary_key=True,\n        comment=\"The run ID of the repository workflow this progress row belongs to\",\n    )\n    codebase_name: Mapped[str] = mapped_column(\n        primary_key=True,\n        comment=\"Codebase identifier/path relative to the repository root\",\n    )\n    next_event_id: Mapped[int] = mapped_column(\n        Integer,\n        nullable=False,\n        default=1,\n        comment=\"Next monotonic event ID to allocate for this codebase stream\",\n    )\n    latest_event_id: Mapped[Optional[int]] = mapped_column(\n        Integer,\n        nullable=True,\n        default=None,\n        comment=\"Most recently allocated event ID for this codebase stream\",\n    )\n    event_count: Mapped[int] = mapped_column(\n        Integer,\n        nullable=False,\n        default=0,\n        comment=\"Number of persisted events for this codebase stream\",\n    )\n    progress: Mapped[Decimal] = mapped_column(\n        Numeric(5, 2),\n        nullable=False,\n        default=0,\n        comment=\"Progress percentage for this codebase stream\",\n    )\n    completed_namespaces: Mapped[List[str]] = mapped_column(\n        JSONB,\n        nullable=False,\n        default=list,\n        comment=\"Sorted list of completion namespaces already finished for this codebase\",\n    )\n    latest_event_at: Mapped[Optional[datetime]] = mapped_column(\n        DateTime(timezone=True),\n        nullable=True,\n        default=None,\n        comment=\"Timestamp of the most recent persisted event for this codebase\",\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=func.now(),\n        nullable=False,\n        comment=\"Timestamp when the row was first inserted\",\n    )\n    modified_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=func.now(),\n        onupdate=func.now(),\n        nullable=False,\n        comment=\"Timestamp when the row was last updated\",\n    )": [
+        280,
+        373
+      ],
+      "class RepositoryAgentEvent(SQLBase):\n    \"\"\"Durable append-only repository agent event history row.\"\"\"\n\n    __tablename__ = \"repository_agent_event\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"repository_name\", \"repository_owner_name\"],\n            [\"repository.repository_name\", \"repository.repository_owner_name\"],\n            ondelete=\"CASCADE\",\n        ),\n        ForeignKeyConstraint(\n            [\n                \"repository_name\",\n                \"repository_owner_name\",\n                \"repository_workflow_run_id\",\n            ],\n            [\n                \"repository_workflow_run.repository_name\",\n                \"repository_workflow_run.repository_owner_name\",\n                \"repository_workflow_run.repository_workflow_run_id\",\n            ],\n            ondelete=\"CASCADE\",\n        ),\n        ForeignKeyConstraint(\n            [\n                \"repository_name\",\n                \"repository_owner_name\",\n                \"repository_workflow_run_id\",\n                \"codebase_name\",\n            ],\n            [\n                \"repository_agent_codebase_progress.repository_name\",\n                \"repository_agent_codebase_progress.repository_owner_name\",\n                \"repository_agent_codebase_progress.repository_workflow_run_id\",\n                \"repository_agent_codebase_progress.codebase_name\",\n            ],\n            ondelete=\"CASCADE\",\n        ),\n        Index(\n            \"ix_repository_agent_event_run_codebase_order\",\n            \"repository_owner_name\",\n            \"repository_name\",\n            \"repository_workflow_run_id\",\n            \"codebase_name\",\n            \"event_id\",\n        ),\n    )\n\n    repository_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository\"\n    )\n    repository_owner_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository owner\"\n    )\n    repository_workflow_run_id: Mapped[str] = mapped_column(\n        primary_key=True,\n        comment=\"The run ID of the repository workflow this event belongs to\",\n    )\n    codebase_name: Mapped[str] = mapped_column(\n        primary_key=True,\n        comment=\"Codebase identifier/path relative to the repository root\",\n    )\n    event_id: Mapped[int] = mapped_column(\n        Integer,\n        primary_key=True,\n        comment=\"Monotonic event ID within a repository workflow run and codebase\",\n    )\n    event: Mapped[str] = mapped_column(\n        String,\n        nullable=False,\n        comment=\"Event namespace or agent name that emitted this row\",\n    )\n    phase: Mapped[str] = mapped_column(\n        String,\n        nullable=False,\n        comment=\"Lifecycle phase for the event (tool.call, tool.result, result)\",\n    )\n    message: Mapped[Optional[str]] = mapped_column(\n        String,\n        nullable=True,\n        default=None,\n        comment=\"Human-readable event message when present\",\n    )\n    tool_name: Mapped[Optional[str]] = mapped_column(\n        String,\n        nullable=True,\n        default=None,\n        comment=\"Tool name for tool-related events when present\",\n    )\n    tool_call_id: Mapped[Optional[str]] = mapped_column(\n        String,\n        nullable=True,\n        default=None,\n        comment=\"Tool call identifier when present\",\n    )\n    tool_args: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB,\n        nullable=True,\n        default=None,\n        comment=\"Structured tool arguments when available\",\n    )\n    tool_result_content: Mapped[Optional[str]] = mapped_column(\n        String,\n        nullable=True,\n        default=None,\n        comment=\"Captured tool result content when available\",\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=func.now(),\n        nullable=False,\n        comment=\"Timestamp when the event row was inserted\",\n    )": [
+        376,
+        488
+      ],
+      "class RepositoryAgentMdSnapshot(SQLBase):\n    \"\"\"SQLModel for repository_agent_md_snapshot table in code_confluence schema.\"\"\"\n\n    __tablename__ = \"repository_agent_md_snapshot\"\n    __table_args__ = (\n        ForeignKeyConstraint(\n            [\"repository_name\", \"repository_owner_name\"],\n            [\"repository.repository_name\", \"repository.repository_owner_name\"],\n            ondelete=\"CASCADE\",\n        ),\n        ForeignKeyConstraint(\n            [\n                \"repository_name\",\n                \"repository_owner_name\",\n                \"repository_workflow_run_id\",\n            ],\n            [\n                \"repository_workflow_run.repository_name\",\n                \"repository_workflow_run.repository_owner_name\",\n                \"repository_workflow_run.repository_workflow_run_id\",\n            ],\n            ondelete=\"CASCADE\",\n        ),\n    )\n\n    repository_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository\"\n    )\n    repository_owner_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository owner\"\n    )\n    repository_workflow_run_id: Mapped[str] = mapped_column(\n        primary_key=True,\n        comment=\"The run ID of the repository workflow this snapshot belongs to\",\n    )\n    agent_md_output: Mapped[Dict[str, Any]] = mapped_column(\n        JSONB,\n        nullable=False,\n        comment=\"Complete final payload from agent execution containing per-codebase agent data\",\n    )\n    statistics: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB,\n        nullable=True,\n        default=None,\n        comment=\"Aggregated usage and pricing statistics for the latest agent workflow\",\n    )\n    overall_progress: Mapped[Optional[Decimal]] = mapped_column(\n        Numeric(5, 2),\n        nullable=True,\n        default=None,\n        comment=\"Cached overall progress percentage for fast polling\",\n    )\n    latest_event_at: Mapped[Optional[datetime]] = mapped_column(\n        DateTime(timezone=True),\n        nullable=True,\n        default=None,\n        comment=\"Timestamp of the most recent appended event for this run\",\n    )\n    created_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=func.now(),\n        nullable=False,\n        comment=\"Timestamp when the row was first inserted\",\n    )\n    modified_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        default=func.now(),\n        onupdate=func.now(),\n        nullable=False,\n        comment=\"Timestamp when the latest overwrite occurred\",\n    )\n    pr_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB,\n        nullable=True,\n        default=None,\n        comment=\"Persisted PR metadata from manual AGENTS.md PR creation/update\",\n    )\n\n    # Relationships\n    repository: Mapped[\"Repository\"] = relationship(back_populates=\"agent_md_snapshot\")": [
+        491,
+        570
+      ],
+      "class RepositoryWorkflowRun(SQLBase):\n    \"\"\"SQLModel for repository_workflow_run table in code_confluence schema.\"\"\"\n\n    __tablename__ = \"repository_workflow_run\"\n    __table_args__ = (\n        CheckConstraint(\n            \"status IN ('SUBMITTED','RUNNING','FAILED','TIMED_OUT','COMPLETED','RETRYING','ERROR','CANCELLED')\",\n            name=\"status_check\",\n        ),\n        ForeignKeyConstraint(\n            [\"repository_name\", \"repository_owner_name\"],\n            [\"repository.repository_name\", \"repository.repository_owner_name\"],\n            ondelete=\"CASCADE\",\n        ),\n    )\n\n    repository_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository\"\n    )\n    repository_owner_name: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The name of the repository owner\"\n    )\n    repository_workflow_run_id: Mapped[str] = mapped_column(\n        primary_key=True, comment=\"The run ID of the repository workflow\"\n    )\n    repository_workflow_id: Mapped[str] = mapped_column(\n        comment=\"The ID of the repository workflow\"\n    )\n    operation: Mapped[RepositoryWorkflowOperation] = mapped_column(\n        SQLEnum(\n            RepositoryWorkflowOperation,\n            name=\"repository_workflow_operation_type\",\n            native_enum=False,\n        ),\n        default=RepositoryWorkflowOperation.INGESTION,\n        nullable=False,\n        comment=\"Operation this workflow run performs (e.g., INGESTION, AGENTS_GENERATION, AGENT_MD_UPDATE)\",\n    )\n    status: Mapped[str] = mapped_column(\n        String,\n        nullable=False,\n        comment=\"Status of the workflow run. One of: SUBMITTED, RUNNING, FAILED, TIMED_OUT, COMPLETED, RETRYING, ERROR, CANCELLED.\",\n    )\n    error_report: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB, default=None, comment=\"Error report if the workflow run failed\"\n    )\n    issue_tracking: Mapped[Optional[Dict[str, Any]]] = mapped_column(\n        JSONB,\n        default=None,\n        comment=\"GitHub issue tracking info for this repository workflow run\",\n    )\n    feedback_issue_url: Mapped[Optional[str]] = mapped_column(\n        String,\n        default=None,\n        nullable=True,\n        comment=\"GitHub issue URL for user feedback on agent generation\",\n    )\n\n    started_at: Mapped[datetime] = mapped_column(\n        DateTime(timezone=True),\n        nullable=False,\n        comment=\"Timestamp when the workflow run started\",\n    )\n    completed_at: Mapped[Optional[datetime]] = mapped_column(\n        DateTime(timezone=True),\n        nullable=True,\n        default=None,\n        comment=\"Timestamp when the workflow run completed\",\n    )\n\n    # Relationships\n    repository: Mapped[Repository] = relationship(back_populates=\"workflow_runs\")\n    codebase_workflow_runs: Mapped[List[\"CodebaseWorkflowRun\"]] = relationship(\n        back_populates=\"repository_workflow_run\",\n        viewonly=True,\n        overlaps=\"codebase_config,workflow_runs\",\n    )": [
+        118,
+        194
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/workflow_envelopes.py": {
+      "class CodebaseWorkflowDbActivityEnvelope(BaseModel):\n    \"\"\"Envelope for codebase workflow status DB updates.\"\"\"\n\n    repository_name: str = Field(..., description=\"The name of the repository\")\n    repository_owner_name: str = Field(\n        ..., description=\"The name of the repository owner\"\n    )\n    codebase_folder: str = Field(\n        ..., description=\"Path to codebase folder (same as codebase_name for POC)\"\n    )\n    repository_workflow_run_id: str = Field(\n        ..., description=\"Parent repository workflow run ID\"\n    )\n    codebase_workflow_id: str = Field(..., description=\"Temporal workflow ID\")\n    codebase_workflow_run_id: str = Field(..., description=\"Unique codebase run ID\")\n    status: str = Field(..., description=\"JobStatus value\")\n    error_report: Optional[ErrorReport] = Field(\n        default=None, description=\"Error details if workflow failed\"\n    )\n    trace_id: str = Field(default=\"\", description=\"Trace ID for distributed tracing\")\n    model_config = ConfigDict(extra=\"allow\")\n\n    @property\n    def extras(self) -> dict[str, Any]:\n        \"\"\"Return any extra fields passed to the model (required for Temporal).\"\"\"\n        return dict(self.model_extra or {})": [
+        50,
+        75
+      ],
+      "class ParentWorkflowDbActivityEnvelope(BaseModel):\n    \"\"\"Envelope for parent workflow status DB updates.\"\"\"\n\n    repository_name: str = Field(..., description=\"The name of the repository\")\n    repository_owner_name: str = Field(\n        ..., description=\"The name of the repository owner\"\n    )\n    workflow_id: Optional[str] = Field(\n        default=None, description=\"Temporal workflow ID\"\n    )\n    workflow_run_id: str = Field(..., description=\"Unique workflow run ID\")\n    status: str = Field(..., description=\"JobStatus value\")\n    operation: RepositoryWorkflowOperation = Field(\n        default=RepositoryWorkflowOperation.INGESTION,\n        description=\"Operation type for this workflow run\",\n    )\n    error_report: Optional[ErrorReport] = Field(\n        default=None, description=\"Error details if workflow failed\"\n    )\n    trace_id: Optional[str] = Field(\n        default=None, description=\"Trace ID for distributed tracing\"\n    )\n    repository_metadata: Optional[List[CodebaseConfig]] = Field(\n        default=None, description=\"List of codebase configurations for the repository\"\n    )\n    provider_key: ProviderKey = Field(\n        default=ProviderKey.GITHUB_OPEN,\n        description=\"Provider key for credential and repository provider lookup\",\n    )\n    model_config = ConfigDict(extra=\"allow\")\n\n    @property\n    def extras(self) -> dict[str, Any]:\n        \"\"\"Return any extra fields passed to the model (required for Temporal).\"\"\"\n        return dict(self.model_extra or {})": [
+        13,
+        47
+      ]
+    },
+    "/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/workflow_models.py": {
+      "class ErrorReport(BaseModel):\n    \"\"\"Detailed error report capturing context of workflow failure.\"\"\"\n\n    error_message: str = Field(..., description=\"Error message\")\n    stack_trace: Optional[str] = Field(\n        default=None, description=\"Stack trace of the error, if available\"\n    )\n    metadata: Optional[dict[str, object]] = Field(\n        default=None, description=\"Additional error metadata\"\n    )": [
+        22,
+        31
+      ]
+    }
+  }
+}
