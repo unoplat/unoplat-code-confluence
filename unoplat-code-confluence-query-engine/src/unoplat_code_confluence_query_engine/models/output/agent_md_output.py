@@ -114,12 +114,26 @@ class FrontendRenderingStrategyType(str, Enum):
     PARTIAL_HYDRATION = "partial hydration - islands architecture"
 
 
+class CoreFileReference(BaseModel):
+    """Line-level reference for a data model detected in a core file."""
+
+    identifier: str = Field(..., description="Detected data model identifier")
+    start_line: int = Field(..., description="1-indexed inclusive start line")
+    end_line: int = Field(..., description="1-indexed inclusive end line")
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class CoreFile(BaseModel):
     """Core business logic data model details."""
 
     path: str = Field(..., description="File path")
     responsibility: Optional[str] = Field(
         None, description="Responsibilities of data models covered in the file"
+    )
+    references: List[CoreFileReference] = Field(
+        default_factory=list,
+        description="Line-level data model references detected in the file",
     )
 
     model_config = ConfigDict(extra="forbid")
@@ -144,10 +158,6 @@ class DependencyGuideEntry(BaseModel):
         ...,
         description="1-2 lines from official docs describing what this library does",
     )
-    usage: str = Field(
-        ...,
-        description="Exactly 2 sentences describing core features and capabilities",
-    )
 
     model_config = ConfigDict(extra="forbid")
 
@@ -157,7 +167,7 @@ class DependencyGuide(BaseModel):
 
     dependencies: List[DependencyGuideEntry] = Field(
         default_factory=list,
-        description="List of documented dependencies with purpose and usage information",
+        description="List of documented dependencies with purpose information",
     )
 
     model_config = ConfigDict(extra="forbid")
@@ -282,7 +292,7 @@ class AgentMdOutput(BaseModel):
     )
     dependency_guide: Optional[DependencyGuide] = Field(
         default=None,
-        description="Documentation entries for codebase dependencies with purpose and usage",
+        description="Documentation entries for codebase dependencies with purpose",
     )
     business_logic: BusinessLogicDomain = Field(
         ..., description="Critical business logic domains"
