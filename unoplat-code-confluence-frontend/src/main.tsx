@@ -1,3 +1,4 @@
+// build trigger
 import "wicg-inert";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
