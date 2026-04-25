@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.76.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.76.0...code-confluence-flow-bridge-v0.76.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **stale-framework-files:** remove litellm typescript framework definition ([37c2235](https://github.com/unoplat/unoplat-code-confluence/commit/37c2235cbd385a579344d1e50a5c2746bdc1704a))
+
 ## [0.76.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.75.1...code-confluence-flow-bridge-v0.76.0) (2026-04-25)
 
 

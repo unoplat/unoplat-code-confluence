@@ -2,7 +2,7 @@
   "name": "unoplat-code-confluence-frontend",
   "description": "Frontend for Unoplat Code Confluence",
   "private": true,
-  "version": "1.52.0",
+  "version": "1.52.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.43.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.43.0...unoplat-code-confluence-docs-v0.43.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **stale-framework-files:** remove litellm typescript framework definition ([37c2235](https://github.com/unoplat/unoplat-code-confluence/commit/37c2235cbd385a579344d1e50a5c2746bdc1704a))
+
 ## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.42.0...unoplat-code-confluence-docs-v0.43.0) (2026-04-13)
 
 
