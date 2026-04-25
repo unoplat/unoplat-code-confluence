@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-12T17:40:09+05:30",
+  "generated_at": "2026-04-12T18:05:49+05:30",
   "schema_version": "v4",
   "languages": [
     {
@@ -19,7 +19,6 @@
       "libraries": [
         "firebase",
         "lit",
-        "litellm",
         "nextjs",
         "swr",
         "zustand"
