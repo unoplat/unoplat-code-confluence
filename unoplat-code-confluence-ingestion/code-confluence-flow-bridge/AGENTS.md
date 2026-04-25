@@ -39,7 +39,7 @@
 - **validate-pyproject**: Validation library and CLI tool for checking pyproject.toml files using JSON Schema, ensuring compliance with packaging standards and PEPs. It validates pyproject.toml content against JSON Schema definitions covering PEP 517, PEP 518, and PEP 621 and can be extended with additional schemas. It offers a command-line interface as well as a Python API centered on a Validator class for programmatic validation.
 - **grpcio**: grpcio is the gRPC runtime package for Python used to build gRPC client and server applications, installable via pip. It lets you define services in Protocol Buffers and uses protoc with the gRPC plugin to generate Python client and server code. It provides a high-performance RPC framework with features such as streaming and pluggable authentication, load balancing, tracing, and health checking for connecting services across environments.
 
-## Business Logic Domain
+## Domain Overview
 
 - The domain models describe the Git repository ingestion pipeline, including repositories, codebases, files, imports, structural signatures, and package-manager metadata across languages.
 - Workflow/run tracking models capture orchestration state, ingestion status, and issue/feedback records used for monitoring and follow-up actions.
@@ -99,3 +99,43 @@ task code-quality                 # Run all checks (lint + typecheck + schema va
 **API Verification**: Before implementing framework/library features, verify API methods with official documentation using Context7 tool.
 
 **Post-Implementation**: ALWAYS run `task typecheck` after implementation. Fix all type errors before considering work complete.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+### Install
+- `uv sync` (source: `pyproject.toml` / `Taskfile.yml`)
+
+### Build
+- Not detected
+
+### Dev
+- `uv run fastapi dev` from `src/code_confluence_flow_bridge` (source: `Taskfile.yml`)
+
+### Test
+- `uv run --python 3.13 --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v` (source: `Taskfile.yml`)
+
+### Lint
+- `uv run ruff check src/` (source: `Taskfile.yml`)
+
+### Type Check
+- `uv run --group dev basedpyright src/` (source: `Taskfile.yml`)
+
+## Dependency Guide
+See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
+
+## Business Logic Domain
+
+- The core domain is repository ingestion and codebase analysis for GitHub projects, modeling repositories, codebases, source files, imports, structural signatures, package manager metadata, and framework/package detection across Python and TypeScript.
+- Workflow models track ingestion, agent-generation, and markdown-update runs, including status, progress, errors, issue links, and feedback handling.
+- GitHub App manifest/onboarding models and repository metadata schemas support connecting providers, registering apps, and persisting ingested repository configuration.
+
+## App Interfaces
+See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->
