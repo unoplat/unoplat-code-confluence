@@ -130,8 +130,7 @@ async def test_upsert_tool_returns_typed_result(
         assert request.decision == FrameworkFeatureValidationDecision.CONFIRM
         return FrameworkFeatureValidationEvidenceUpsertResult(
             source_row_updated=True,
-            corrected_row_upserted=False,
-            corrected_identity=None,
+            current_identity=request.identity,
         )
 
     monkeypatch.setattr(
@@ -154,7 +153,7 @@ async def test_upsert_tool_returns_typed_result(
 
     assert isinstance(result, FrameworkFeatureValidationEvidenceUpsertResult)
     assert result.source_row_updated is True
-    assert result.corrected_row_upserted is False
+    assert result.current_identity == request.identity
 
 
 @pytest.mark.asyncio
