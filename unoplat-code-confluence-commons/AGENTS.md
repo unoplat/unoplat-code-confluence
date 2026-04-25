@@ -22,3 +22,41 @@
 - **Outbound interfaces:** None documented.
 - **Internal interfaces:** None documented.
 - **References:** See `app_interfaces.md` for the tracked interface inventory.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+### Install
+- `uv sync` (config: `pyproject.toml`, `Taskfile.yml`)
+### Build
+- `uv build` (config: `pyproject.toml`)
+### Dev
+- Not detected
+### Test
+- `uv run pytest -v tests/` (config: `pyproject.toml`, `Taskfile.yml`)
+### Lint
+- Not detected
+### Type Check
+- Not detected
+
+## Dependency Guide
+See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
+
+## Business Domain
+### Description
+
+This package supports Code Confluence, a repository ingestion and code-intelligence platform. Its models track Git repositories, codebases, workflow runs, credentials, and agent progress while storing structural signatures, framework features, and detected source-code spans across Python and TypeScript. It also carries metadata for AGENTS.md publication and repository-level status/event tracking.
+
+### References
+
+See [`business_domain_references.md`](./business_domain_references.md) for the supporting source references used to derive this domain summary.
+
+## App Interfaces
+See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->

@@ -68,3 +68,40 @@ These guides cover:
 - MCP tools reference
 
 You MUST read the overview resource to understand the complete workflow. The information is NOT summarized here.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+### Install
+- `uv sync` (repo root; `pyproject.toml`)
+### Build
+- Not detected
+### Dev
+- `uv run fastapi dev --port 8001` (from `src/unoplat_code_confluence_query_engine`; `Taskfile.yml` defines the env vars used by the dev task)
+### Test
+- `uv run --group test pytest tests/services tests/test_app_interfaces_mapper.py tests/tools -v` (repo root; `pyproject.toml`)
+### Lint
+- `uv run --group dev ruff check src/` (repo root; `pyproject.toml`)
+### Type Check
+- `uv run --group dev basedpyright src/` (repo root; `pyproject.toml`)
+
+## Dependency Guide
+See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
+
+## Business Domain
+### Description
+This service is an AI-assisted codebase analysis and repository automation engine. It manages model/provider and tool credentials, launches Temporal workflows that inspect repositories, generate engineering and dependency guidance, validate framework usage, and produce/update AGENTS.md artifacts and pull requests. It also supports Codex OAuth, feedback submission, and feature flags for operating the agent runtime.
+
+### References
+
+See [`business_domain_references.md`](./business_domain_references.md) for the supporting source references used to derive this domain summary.
+
+## App Interfaces
+See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->

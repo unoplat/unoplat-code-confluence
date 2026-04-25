@@ -90,3 +90,45 @@ skills:
   - task: "Adding optimistic mutations to TanStack DB collections (insert, update, delete, transactions)"
     load: "node_modules/@tanstack/db/skills/db-core/mutations-optimistic/SKILL.md"
 <!-- intent-skills:end -->
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+### Install
+- `bun install` — repository root; config: `package.json` and `Taskfile.yml`
+
+### Build
+- `bun run build` — repository root; config: `package.json` (`tsc -b && vite build`)
+
+### Dev
+- `bun run dev -- --host 127.0.0.1` — repository root; config: `package.json` (Vite dev server)
+
+### Test
+- Not detected
+
+### Lint
+- `bun run lint` — repository root; config: `package.json`
+
+### Type Check
+- `bunx tsc -b` — repository root; config: `tsconfig.json`
+
+## Dependency Guide
+See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
+
+## Business Domain
+### Description
+This frontend is for a code analysis and repository operations platform centered on onboarding GitHub/GitLab repositories, ingesting them into workflow runs, and displaying AI agent snapshot outputs such as engineering workflows, dependency guides, business logic summaries, and app interface scans. It also covers model-provider and tool configuration, OAuth and credential handling, and feedback flows that turn app or agent feedback into GitHub issues.
+
+### References
+
+See [`business_domain_references.md`](./business_domain_references.md) for the supporting source references used to derive this domain summary.
+
+## App Interfaces
+See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->
