@@ -11,13 +11,6 @@
 - **Overview**: Full dependency descriptions are maintained in `dependencies_overview.md`.
 - **Usage**: Keep this section concise and treat `dependencies_overview.md` as the source-of-truth dependency catalog.
 
-## Business Logic Domain
-- **Overview**: AI-driven codebase analysis service that orchestrates repository workflows to generate structured documentation outputs and track execution across codebases.
-- **Core data focus**: Provider configuration (including OAuth flows), model parameters/catalogs, tool/MCP server setup, repository rulesets/metadata, and agent runtime dependencies.
-- **Workflow telemetry**: Agent events, workflow envelopes, and usage/cost statistics capture lifecycle and execution monitoring.
-- **Structured outputs**: Typed schemas for agent markdown responses, AGENTS.md updates, engineering workflows, and business logic summaries.
-- **Primary references**: See `business_logic_references.md` for the source-of-truth module map.
-
 ## App Interfaces
 - **Protocol**: FastAPI HTTP endpoints under `src/unoplat_code_confluence_query_engine/api/v1/endpoints`.
 - **Surface area**: Model configuration + provider/OAuth flows, feature flag CRUD, repository agent rules/snapshots/markdown PR endpoints, and tool configuration management.
@@ -68,3 +61,37 @@ These guides cover:
 - MCP tools reference
 
 You MUST read the overview resource to understand the complete workflow. The information is NOT summarized here.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
+<CRITICAL_INSTRUCTION>
+
+> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+
+</CRITICAL_INSTRUCTION>
+
+## Engineering Workflow
+### Install
+- `uv sync --group dev --group test` (repo root; config: `Taskfile.yml`)
+### Build
+- Not detected
+### Dev
+- `CODE_CONFLUENCE_BRIDGE_URL=http://localhost:8000 TOKEN_ENCRYPTION_KEY=0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ= MCP_SERVERS_CONFIG_PATH=../../mcp-servers.json CODEX_OPENAI_CALLBACK_PORT=1455 CODEX_OPENAI_REDIRECT_URI=http://localhost:1455/auth/callback uv run fastapi dev --port 8001` (working directory: `src/unoplat_code_confluence_query_engine`; config: `Taskfile.yml`)
+### Test
+- `uv run --python 3.13 --group test pytest --cov=src/unoplat_code_confluence_query_engine --cov-report=html:coverage_reports tests/ -v` (repo root; config: `Taskfile.yml`)
+### Lint
+- `uv run --group dev ruff check src/` (repo root; config: `Taskfile.yml`)
+### Type Check
+- `uv run --group dev basedpyright src/` (repo root; config: `Taskfile.yml`)
+
+## Dependency Guide
+See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
+
+## Business Logic Domain
+- **Overview**: AI-assisted codebase analysis and repository workflow orchestration for generating structured documentation, AGENTS.md updates, and validation outputs.
+- **Core data focus**: AI provider/model configuration, OAuth and tool/MCP setup, repository metadata/rulesets, Temporal agent dependencies, workflow envelopes, event telemetry, and usage statistics.
+- **Artifacts**: Canonical outputs include engineering workflows, dependency guides, business-domain summaries, and framework-feature validation records.
+
+## App Interfaces
+See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->
