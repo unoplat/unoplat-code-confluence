@@ -1,13 +1,15 @@
 # App Interfaces
 
-## Overview
-No app interface constructs have been documented for this codebase yet.
+Format: `path: L<line>: <match_text>` where path is codebase-relative.
 
-## Inbound Interfaces
-None documented.
+## Inbound Constructs
 
-## Outbound Interfaces
-None documented.
+No inbound constructs detected.
 
-## Internal Interfaces
-None documented.
+## Outbound Constructs
+
+No outbound constructs detected.
+
+## Internal Constructs
+
+No internal constructs detected.
