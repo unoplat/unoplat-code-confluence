@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.52.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.52.0...unoplat-code-confluence-frontend-v1.52.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **comments:** add build trigger ([1600174](https://github.com/unoplat/unoplat-code-confluence/commit/16001745cd8ed52bebb1418a07f4d5920a73c42c))
+
 ## [1.52.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.51.0...unoplat-code-confluence-frontend-v1.52.0) (2026-04-25)
 
 

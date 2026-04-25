@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.41.0...unoplat-code-confluence-query-engine-v0.41.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **query-engine:** fix Node.js symlink dereferencing in Docker ([db3667c](https://github.com/unoplat/unoplat-code-confluence/commit/db3667cca2fc756fcca2349b1d5f0f62c43f36af))
+
 ## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.40.1...unoplat-code-confluence-query-engine-v0.41.0) (2026-04-25)
 
 
