@@ -9,6 +9,7 @@ from __future__ import annotations
 from base64 import b64decode, b64encode
 from collections.abc import Mapping
 from pathlib import Path
+import subprocess
 from typing import TYPE_CHECKING, Literal, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -45,6 +46,11 @@ from unoplat_code_confluence_query_engine.services.github.github_api_helpers imp
 )
 from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
     fetch_repository_metadata,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
+    APP_INTERFACES_ARTIFACT,
+    BUSINESS_DOMAIN_REFERENCES_ARTIFACT,
+    DEPENDENCY_OVERVIEW_ARTIFACT,
 )
 from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
     get_worker_manager,
@@ -116,6 +122,13 @@ CANCELLABLE_REPOSITORY_WORKFLOW_OPERATIONS: set[RepositoryWorkflowOperation] = {
     RepositoryWorkflowOperation.AGENT_MD_UPDATE,
 }
 
+MANAGED_MARKDOWN_ARTIFACTS: tuple[str, ...] = (
+    "AGENTS.md",
+    DEPENDENCY_OVERVIEW_ARTIFACT,
+    BUSINESS_DOMAIN_REFERENCES_ARTIFACT,
+    APP_INTERFACES_ARTIFACT,
+)
+
 
 def _is_terminal_repository_workflow_status(status: str) -> bool:
     return status in TERMINAL_REPOSITORY_WORKFLOW_STATUSES
@@ -161,42 +174,90 @@ def _get_codebase_file_rel_path(codebase_name: str, file_relative: str) -> str:
     return f"{clean}/{file_relative}"
 
 
-def _collect_changed_files_from_runs(
-    updater_runs: list[Mapping[str, object]],
-) -> set[str]:
-    """Extract actually-changed absolute file paths from section-scoped updater run records.
+def _collect_changed_managed_markdown_files(codebase_root: Path) -> list[Path]:
+    """Return existing managed markdown artifacts changed in the git working tree.
 
-    Uses output.file_changes where changed == true as the sole authoritative source.
-    Returns a deduplicated set — the same file modified by multiple section runs
-    (e.g. AGENTS.md) appears only once.
-
-    Returns:
-        Set of absolute file path strings that were actually modified.
+    The workflow now has direct artifact owners instead of section-updater run
+    records. Publishing therefore discovers files from the fixed managed target
+    set and lets git working-tree status decide which ones are candidates.
     """
-    changed_paths: set[str] = set()
+    existing_targets = [
+        artifact
+        for artifact in MANAGED_MARKDOWN_ARTIFACTS
+        if (codebase_root / artifact).is_file()
+    ]
+    if not existing_targets:
+        return []
 
-    for run_record in updater_runs:
-        output = run_record.get("output")
-        if not isinstance(output, Mapping):
+    try:
+        status_result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(codebase_root),
+                "status",
+                "--porcelain",
+                "--",
+                *existing_targets,
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError) as status_error:
+        logger.warning(
+            "Unable to inspect git status for managed markdown in '{}': {}. "
+            "Falling back to existing managed artifacts.",
+            codebase_root,
+            status_error,
+        )
+        return [codebase_root / artifact for artifact in existing_targets]
+
+    if status_result.returncode != 0:
+        logger.warning(
+            "git status failed for managed markdown in '{}': {}. "
+            "Falling back to existing managed artifacts.",
+            codebase_root,
+            status_result.stderr.strip(),
+        )
+        return [codebase_root / artifact for artifact in existing_targets]
+
+    changed_artifacts = _parse_changed_artifacts_from_porcelain(
+        status_result.stdout,
+        set(existing_targets),
+    )
+    return [
+        codebase_root / artifact
+        for artifact in existing_targets
+        if artifact in changed_artifacts
+    ]
+
+
+def _parse_changed_artifacts_from_porcelain(
+    porcelain_output: str,
+    expected_artifacts: set[str],
+) -> set[str]:
+    """Parse `git status --porcelain` output for known managed artifacts.
+
+    Git porcelain output reports paths relative to the repository root, even when
+    the status command is executed with ``git -C`` from a codebase subdirectory.
+    Managed artifacts are direct children of the codebase root, so normalize each
+    porcelain path to its filename before comparing against the expected artifact
+    names and return those bare artifact names.
+    """
+    changed: set[str] = set()
+    for raw_line in porcelain_output.splitlines():
+        if len(raw_line) < 4:
             continue
-        output_map = cast(Mapping[str, object], output)
-
-        file_changes_raw = output_map.get("file_changes")
-        if not isinstance(file_changes_raw, list):
-            continue
-        file_changes = cast(list[object], file_changes_raw)
-
-        for fc_item in file_changes:
-            if not isinstance(fc_item, Mapping):
-                continue
-            fc = cast(Mapping[str, object], fc_item)
-            if fc.get("changed") is not True:
-                continue
-            path = fc.get("path")
-            if isinstance(path, str) and path.strip():
-                changed_paths.add(path.strip())
-
-    return changed_paths
+        path_part = raw_line[3:].strip()
+        if " -> " in path_part:
+            path_part = path_part.rsplit(" -> ", 1)[1].strip()
+        path_part = path_part.strip('"')
+        artifact_name = Path(path_part).name
+        if artifact_name in expected_artifacts:
+            changed.add(artifact_name)
+    return changed
 
 
 def _decode_remote_content(encoded_content: str) -> str | None:
@@ -660,16 +721,9 @@ async def create_repository_agent_md_pr(
     }
 
     files_to_publish: list[tuple[str, str]] = []
-    # Explicit deduplication: same file can appear across multiple section runs
-    # (e.g., AGENTS.md is touched by every section updater)
     seen_rel_paths: set[str] = set()
 
     for codebase_name in codebases_payload.keys():
-        codebase_result_raw = codebases_payload.get(codebase_name)
-        if not isinstance(codebase_result_raw, Mapping):
-            continue
-        codebase_result = cast(Mapping[str, object], codebase_result_raw)
-
         codebase_root = codebase_path_map.get(codebase_name)
         if not codebase_root:
             logger.warning(
@@ -677,56 +731,19 @@ async def create_repository_agent_md_pr(
             )
             continue
 
-        updater_runs_raw = codebase_result.get("agents_md_updater_runs")
-        if not isinstance(updater_runs_raw, list) or not updater_runs_raw:
-            logger.info("Skipping codebase '{}': no updater run records", codebase_name)
-            continue
-
-        # Validate and cast: each run record should be a Mapping from workflow serialization
-        updater_runs: list[Mapping[str, object]] = [
-            cast(Mapping[str, object], r)
-            for r in cast(list[object], updater_runs_raw)
-            if isinstance(r, Mapping)
-        ]
-
-        # Collect only actually-changed file paths (not merely touched/read)
-        changed_paths = _collect_changed_files_from_runs(updater_runs)
-        if not changed_paths:
+        codebase_root_path = Path(codebase_root)
+        changed_managed_files = _collect_changed_managed_markdown_files(
+            codebase_root_path
+        )
+        if not changed_managed_files:
             logger.info(
-                "Skipping codebase '{}': no files actually changed", codebase_name
+                "Skipping codebase '{}': no managed markdown files changed",
+                codebase_name,
             )
             continue
 
-        # Read each changed file from disk and compute repo-relative path
-        codebase_root_path = Path(codebase_root)
-        for abs_path_str in sorted(changed_paths):
-            local_path = Path(abs_path_str)
-
-            # Skip non-absolute paths early
-            if not local_path.is_absolute():
-                logger.warning(
-                    "Skipping artifact '{}': path is not absolute",
-                    abs_path_str,
-                )
-                continue
-
-            if not local_path.exists() or not local_path.is_file():
-                logger.info(
-                    "Skipping changed artifact '{}': file not found on disk",
-                    abs_path_str,
-                )
-                continue
-
-            # Path-safety: skip files outside codebase root (no basename fallback)
-            try:
-                file_relative = str(local_path.relative_to(codebase_root_path))
-            except ValueError:
-                logger.warning(
-                    "Skipping artifact '{}': path is outside codebase root '{}'",
-                    abs_path_str,
-                    codebase_root,
-                )
-                continue
+        for local_path in changed_managed_files:
+            file_relative = str(local_path.relative_to(codebase_root_path))
 
             try:
                 local_content = local_path.read_text(encoding="utf-8")
@@ -738,7 +755,7 @@ async def create_repository_agent_md_pr(
 
             rel_path = _get_codebase_file_rel_path(codebase_name, file_relative)
 
-            # Deduplicate: same file (e.g. AGENTS.md) appears in multiple section runs
+            # Deduplicate defensively across codebase payload entries.
             if rel_path in seen_rel_paths:
                 continue
             seen_rel_paths.add(rel_path)

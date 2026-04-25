@@ -1,0 +1,26 @@
+# App Interfaces
+
+Format: `path: L<line>: <match_text>` where path is codebase-relative.
+
+{% for section in sections %}
+## {{ section.title }}
+
+{% if section.constructs %}
+{% for construct in section.constructs %}
+### {{ construct.kind }} ({{ construct.library }})
+
+{% if construct.references %}
+{% for reference in construct.references %}
+- {{ reference }}
+{% endfor %}
+{{ "" }}
+{% else %}
+No matches detected.
+
+{% endif %}
+{% endfor %}
+{% else %}
+{{ section.empty_message }}
+
+{% endif %}
+{% endfor %}

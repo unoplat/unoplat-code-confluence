@@ -23,11 +23,6 @@ export const AgentType = {
 const AGENT_ALIASES: Record<string, string> = {
   app_interface_validator: "call_expression_validator",
   dependency_guide_item: "dependency_guide",
-  // Section-scoped updater events merge into parent guide sections
-  development_workflow_agents_md_updater: "development_workflow_guide",
-  dependency_guide_agents_md_updater: "dependency_guide",
-  business_domain_agents_md_updater: "business_domain_guide",
-  app_interfaces_agents_md_updater: "app_interfaces_agent",
 };
 
 export type AgentTypeValue = (typeof AgentType)[keyof typeof AgentType];

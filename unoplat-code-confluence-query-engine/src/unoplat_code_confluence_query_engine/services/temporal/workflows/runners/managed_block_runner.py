@@ -7,9 +7,6 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
-        ManagedBlockRunRecord,
-    )
     from unoplat_code_confluence_query_engine.models.output.git_ref_info import (
         GitRefInfo,
     )
@@ -27,11 +24,10 @@ with workflow.unsafe.imports_passed_through():
 async def run_managed_block_bootstrap(
     codebase_metadata: CodebaseMetadata,
     git_ref_info: GitRefInfo | None,
-    updater_runs: list[dict[str, object]],
 ) -> None:
     """Bootstrap the managed block with markers and freshness metadata."""
     try:
-        bootstrap_output = await workflow.execute_activity(
+        changed = await workflow.execute_activity(
             ManagedBlockActivity.bootstrap,
             args=[
                 codebase_metadata.codebase_path,
@@ -41,11 +37,10 @@ async def run_managed_block_bootstrap(
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
-        bootstrap_record = ManagedBlockRunRecord(
-            lifecycle_step="bootstrap",
-            agent_name="managed_block_bootstrap",
-            output=bootstrap_output,
+        logger.info(
+            "[workflow] Managed block bootstrap finished for {} changed={}",
+            codebase_metadata.codebase_name,
+            changed,
         )
-        updater_runs.append(bootstrap_record.model_dump(mode="json"))
     except Exception as e:
         logger.error("[workflow] Managed block bootstrap failed: {}", e)

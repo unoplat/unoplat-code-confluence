@@ -1,79 +1,102 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 
-from pydantic_ai.builtin_tools import AbstractBuiltinTool, WebSearchTool
-
-WEB_SEARCH_BUILTIN_PROVIDER_KEYS = frozenset(
-    {"codex_openai", "anthropic", "grok", "groq"}
+from pydantic_ai.capabilities import (
+    AbstractCapability,
+    CombinedCapability,
+    WebFetch,
+    WebSearch,
 )
+from pydantic_ai.toolsets.function import FunctionToolset
 
-
-class ExternalSearchMode(str, Enum):
-    """Single search boundary selected for a Temporal assembly run."""
-
-    EXA = "exa"
-    BUILTIN_WEB_SEARCH = "builtin_web_search"
-    DUCKDUCKGO = "duckduckgo"
+from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
+    AgentDependencies,
+)
 
 
 @dataclass(frozen=True, slots=True)
 class SearchRuntimePolicy:
-    """Resolved runtime choice between Exa, builtin web search, and DuckDuckGo."""
+    """Resolved external web-tool policy for a Temporal assembly run."""
 
-    mode: ExternalSearchMode
     include_exa_toolsets: bool = False
-    include_builtin_web_search: bool = False
-    include_duckduckgo_fallback: bool = False
-
-
-def provider_supports_builtin_web_search(provider_key: str | None) -> bool:
-    """Return whether the provider can use PydanticAI's builtin web-search tool."""
-
-    return provider_key in WEB_SEARCH_BUILTIN_PROVIDER_KEYS
 
 
 def resolve_search_runtime_policy(
     provider_key: str | None,
     exa_configured: bool,
 ) -> SearchRuntimePolicy:
-    """Resolve the single runtime search mode for assembled Temporal agents."""
+    """Resolve the shared runtime web-tool policy for assembled Temporal agents.
 
-    if exa_configured:
-        return SearchRuntimePolicy(
-            mode=ExternalSearchMode.EXA,
-            include_exa_toolsets=True,
-        )
-    if provider_supports_builtin_web_search(provider_key):
-        return SearchRuntimePolicy(
-            mode=ExternalSearchMode.BUILTIN_WEB_SEARCH,
-            include_builtin_web_search=True,
-        )
-    return SearchRuntimePolicy(
-        mode=ExternalSearchMode.DUCKDUCKGO,
-        include_duckduckgo_fallback=True,
-    )
+    ``provider_key`` is accepted for API compatibility and logging context only.
+    Web capability availability is delegated to provider-adaptive Pydantic AI
+    capabilities rather than a query-engine allowlist.
+    """
+
+    _ = provider_key
+    return SearchRuntimePolicy(include_exa_toolsets=exa_configured)
 
 
-def resolve_builtin_search_tools(
+def _build_local_web_search_toolset(toolset_id: str) -> FunctionToolset[AgentDependencies]:
+    """Return a Temporal-safe local fallback toolset for web search."""
+
+    from pydantic_ai.common_tools.duckduckgo import duckduckgo_search_tool
+
+    return FunctionToolset([duckduckgo_search_tool()], id=toolset_id)
+
+
+
+def _build_local_web_fetch_toolset(toolset_id: str) -> FunctionToolset[AgentDependencies]:
+    """Return a Temporal-safe local fallback toolset for web fetch."""
+
+    from pydantic_ai.common_tools.web_fetch import web_fetch_tool
+
+    return FunctionToolset([web_fetch_tool()], id=toolset_id)
+
+
+
+def resolve_search_capability(
     *,
     allow_builtin_web_search: bool,
-    runtime_policy: SearchRuntimePolicy,
-) -> tuple[AbstractBuiltinTool, ...]:
-    """Return builtin search tools permitted by both runtime and agent logic."""
+    allow_builtin_web_fetch: bool = False,
+    local_web_search_toolset_id: str | None = None,
+    local_web_fetch_toolset_id: str | None = None,
+) -> AbstractCapability[AgentDependencies] | None:
+    """Return direct WebSearch/WebFetch capabilities for an agent.
 
-    if runtime_policy.include_builtin_web_search and allow_builtin_web_search:
-        return (WebSearchTool(),)
-    return ()
+    We intentionally attach the Pydantic AI capabilities directly so builtin-tool
+    support and local fallback behavior stay owned by the library rather than a
+    query-engine-side runtime wrapper.
 
+    Because these agents run through Temporal, any local fallback toolset must be
+    a leaf toolset with a stable ID so Temporal can register deterministic
+    activity names at worker startup.
+    """
 
-def should_include_duckduckgo_search(
-    runtime_policy: SearchRuntimePolicy,
-) -> bool:
-    """Return whether the DuckDuckGo fallback tool should be attached."""
-
-    return runtime_policy.include_duckduckgo_fallback
+    capabilities: list[AbstractCapability[AgentDependencies]] = []
+    if allow_builtin_web_search:
+        if not local_web_search_toolset_id:
+            raise ValueError(
+                "local_web_search_toolset_id is required when web search is enabled"
+            )
+        capabilities.append(
+            WebSearch(
+                local=_build_local_web_search_toolset(local_web_search_toolset_id)
+            )
+        )
+    if allow_builtin_web_fetch:
+        if not local_web_fetch_toolset_id:
+            raise ValueError(
+                "local_web_fetch_toolset_id is required when web fetch is enabled"
+            )
+        capabilities.append(
+            WebFetch(local=_build_local_web_fetch_toolset(local_web_fetch_toolset_id))
+        )
+    if not capabilities:
+        return None
+    if len(capabilities) == 1:
+        return capabilities[0]
+    return CombinedCapability(capabilities)
 
 
 def should_include_exa_toolsets(runtime_policy: SearchRuntimePolicy) -> bool:

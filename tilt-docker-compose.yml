@@ -1,0 +1,232 @@
+# Tilt-oriented compose file for local hot-reload development.
+#
+# Differences from local-docker-compose.yml:
+# - This file is meant to be loaded by `tilt up`; use local-docker-compose.yml
+#   for standalone Docker Compose workflows.
+# - The three actively-developed services are matched to Tilt `docker_build()`
+#   image names instead of declaring Compose-managed builds here.
+# - Dev images are bootable on first start, and Tilt live_update handles later
+#   source edits.
+# - Frontend is served by Vite's dev server on 5173 (HMR enabled), not nginx.
+# - Infra services (postgres, elasticsearch, temporal, etc.) are identical to
+#   local-docker-compose.yml.
+
+configs:
+  temporal-dynamic-config:
+    content: |
+      system.forceSearchAttributesCacheRefreshOnRead:
+        - value: true
+          constraints: {}
+      limit.maxIDLength:
+        - value: 255
+          constraints: {}
+
+services:
+  elasticsearch:
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m
+    image: docker.io/opensearchproject/opensearch:2.14.0
+    networks:
+      - temporal-network
+    expose:
+      - 9200
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  postgresql:
+    image: docker.io/library/postgres:17.2
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=code_confluence
+    command: >
+      postgres
+      -c wal_level=logical
+      -c listen_addresses=*
+      -c max_connections=200
+      -c idle_in_transaction_session_timeout=300000
+      -c tcp_keepalives_idle=60
+      -c tcp_keepalives_interval=10
+      -c tcp_keepalives_count=6
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      - temporal-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  electric:
+    image: docker.io/electricsql/electric:1.4.13
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgresql:5432/code_confluence?sslmode=disable
+      ELECTRIC_INSECURE: true
+    ports:
+      - "3001:3000"
+    networks:
+      - temporal-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
+  temporal:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=postgres
+      - POSTGRES_SEEDS=postgresql
+      - ENABLE_ES=true
+      - ES_SEEDS=elasticsearch
+      - ES_VERSION=v7
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: docker.io/temporalio/auto-setup:1.29.1
+    networks:
+      - temporal-network
+    ports:
+      - 7233:7233
+    configs:
+      - source: temporal-dynamic-config
+        target: /etc/temporal/config/dynamicconfig/development-sql.yaml
+    healthcheck:
+      test: ["CMD-SHELL", "tctl cluster health | grep -i SERVING || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  temporal-admin-tools:
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: docker.io/temporalio/admin-tools:1.29.1-tctl-1.18.4-cli-1.5.0
+    networks:
+      - temporal-network
+    stdin_open: true
+    tty: true
+
+  temporal-ui:
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173
+      - TEMPORAL_CSRF_COOKIE_INSECURE=True
+    image: docker.io/temporalio/ui:2.43.3
+    networks:
+      - temporal-network
+    ports:
+      - 8081:8080
+
+  code-confluence-flow-bridge:
+    # `image:` is matched by docker_build() in the Tiltfile.
+    image: unoplat/code-confluence-flow-bridge-dev
+    environment:
+      - TEMPORAL_SERVER_ADDRESS=temporal:7233
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8001,http://127.0.0.1:3000,http://127.0.0.1:5173
+      - DB_HOST=postgresql
+      - TEMPORAL_DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - TOKEN_ENCRYPTION_KEY=0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ=
+      - REPOSITORIES_BASE_PATH=/opt/unoplat/repositories
+      - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
+      - LOG_DIR=/tmp/logs
+      - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
+      - GITHUB_APP_MANIFEST_TEMPLATE_PATH=/opt/unoplat/github-app-config/manifest-template.json
+      - GITHUB_APP_NAME=Unoplat Code Confluence
+      - GITHUB_APP_REDIRECT_PATH=/integrations/github/app-manifest/callback
+      - GITHUB_APP_WEBHOOK_PATH=/integrations/github/webhook
+      - GITHUB_APP_OWNER_TYPE=user
+    depends_on:
+      temporal:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - repositories_data:/opt/unoplat/repositories
+      - flow_bridge_logs:/app/logs
+      # GitHub App onboarding still expects a developer-provided
+      # config/github-app/manifest-template.json on the host.
+      - ./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/config/github-app:/opt/unoplat/github-app-config:ro
+    networks:
+      - temporal-network
+    stdin_open: true
+    tty: true
+
+  unoplat-code-confluence-query-engine:
+    image: unoplat/code-confluence-query-engine-dev
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=code_confluence
+      - TOKEN_ENCRYPTION_KEY=0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ=
+      - MCP_SERVERS_CONFIG_PATH=/app/mcp-servers.json
+      - CODEX_OPENAI_CALLBACK_PORT=1455
+      - CODEX_OPENAI_CALLBACK_HOSTS=0.0.0.0
+      - CODEX_OPENAI_REDIRECT_URI=http://localhost:1455/auth/callback
+    ports:
+      - "127.0.0.1:8001:8000"
+      - "127.0.0.1:1455:1455"
+    volumes:
+      - query_engine_logs:/app/logs
+      - repositories_data:/opt/unoplat/repositories
+    networks:
+      - temporal-network
+    depends_on:
+      temporal:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+
+  unoplat-code-confluence-frontend:
+    image: unoplat/code-confluence-frontend-dev
+    depends_on:
+      - code-confluence-flow-bridge
+    ports:
+      # Vite dev server on 5173 — HMR websocket uses the same port.
+      - "5173:5173"
+    networks:
+      - temporal-network
+
+networks:
+  temporal-network:
+    driver: bridge
+    name: temporal-network
+
+volumes:
+  postgresql_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  repositories_data:
+    driver: local
+  query_engine_logs:
+    driver: local
+  flow_bridge_logs:
+    driver: local

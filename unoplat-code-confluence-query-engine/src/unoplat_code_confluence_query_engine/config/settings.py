@@ -165,6 +165,18 @@ class EnvironmentSettings(BaseSettings):
 
     environment: str = Field(default="development", alias="ENVIRONMENT")
 
+    # Agent Selection
+    enabled_agents: str = Field(
+        default="",
+        alias="ENABLED_AGENTS",
+        description=(
+            "Comma-separated list of agent types to enable. "
+            "Valid values: development_workflow_guide, dependency_guide, "
+            "business_domain_guide, call_expression_validator. "
+            "Empty string means all agents are enabled."
+        ),
+    )
+
     # Mock SSE Settings
     mock_sse_enabled: bool = Field(
         default=False,

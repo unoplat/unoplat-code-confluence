@@ -1,0 +1,21 @@
+# Business Domain References
+
+## Domain Summary
+{{ description }}
+
+## Data Model References
+{% if data_models %}
+{% for model in data_models %}
+### `{{ model.path }}`
+{% if model.references %}
+{% for reference in model.references -%}
+- `{{ reference.path_with_lines }}`
+{% endfor %}
+{% else %}
+- {{ model.responsibility }}
+{% endif %}
+
+{% endfor %}
+{% else %}
+No data model files were detected for this codebase.
+{% endif %}

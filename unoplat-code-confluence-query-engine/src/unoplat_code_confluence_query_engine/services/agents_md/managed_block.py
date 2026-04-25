@@ -3,25 +3,38 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-import hashlib
 from pathlib import Path
 
 import aiofiles
 
-from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
-    AgentsMdUpdaterOutput,
-    UpdaterFileChange,
-)
-
 MANAGED_BLOCK_BEGIN = "<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->"
 MANAGED_BLOCK_END = "<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->"
+
+BUSINESS_DOMAIN_SECTION = "## Business Domain"
+BUSINESS_DOMAIN_DESCRIPTION_HEADING = "### Description"
+BUSINESS_DOMAIN_REFERENCES_HEADING = "### References"
+BUSINESS_DOMAIN_REFERENCES_TEXT = (
+    "See [`business_domain_references.md`](./business_domain_references.md) "
+    "for the supporting source references used to derive this domain summary."
+)
 
 SECTION_HEADINGS: list[str] = [
     "## Engineering Workflow",
     "## Dependency Guide",
-    "## Business Logic Domain",
+    BUSINESS_DOMAIN_SECTION,
     "## App Interfaces",
 ]
+
+_SECTION_POINTER_TEMPLATES: dict[str, str] = {
+    "## Dependency Guide": (
+        "See [`dependencies_overview.md`](./dependencies_overview.md) "
+        "for the full dependency catalog and usage notes."
+    ),
+    "## App Interfaces": (
+        "See [`app_interfaces.md`](./app_interfaces.md) "
+        "for the canonical interface and endpoint reference."
+    ),
+}
 
 
 def _build_freshness_line(
@@ -34,6 +47,57 @@ def _build_freshness_line(
         f"> Generated from branch `{default_branch}` at commit "
         f"`{head_commit_sha}` ({today}). Content may become stale as new commits land."
     )
+
+
+def _extract_business_domain_description(existing_content: str) -> str:
+    """Extract agent-authored text from the canonical Business Domain description."""
+    lines = existing_content.splitlines()
+    description_lines: list[str] = []
+    in_description = False
+
+    for line in lines:
+        stripped = line.strip()
+        if not in_description:
+            if stripped == BUSINESS_DOMAIN_DESCRIPTION_HEADING:
+                in_description = True
+            continue
+
+        if stripped.startswith("### "):
+            break
+        description_lines.append(line)
+
+    return "\n".join(description_lines).strip()
+
+
+def _compose_business_domain_content(existing_content: str = "") -> str:
+    """Compose the canonical Business Domain section content."""
+    description = _extract_business_domain_description(existing_content)
+    lines = [BUSINESS_DOMAIN_DESCRIPTION_HEADING, ""]
+
+    if description:
+        lines.append(description)
+        lines.append("")
+
+    lines.extend(
+        [
+            BUSINESS_DOMAIN_REFERENCES_HEADING,
+            "",
+            BUSINESS_DOMAIN_REFERENCES_TEXT,
+        ]
+    )
+    return "\n".join(lines).strip()
+
+
+def _compose_section_content(heading: str, existing_content: str = "") -> str:
+    """Compose canonical content for a managed-block section."""
+    if heading == BUSINESS_DOMAIN_SECTION:
+        return _compose_business_domain_content(existing_content)
+
+    pointer_content = _SECTION_POINTER_TEMPLATES.get(heading)
+    if pointer_content is not None:
+        return pointer_content
+
+    return existing_content.strip()
 
 
 def _build_managed_block(
@@ -52,6 +116,9 @@ def _build_managed_block(
 
     for heading in SECTION_HEADINGS:
         lines.append(heading)
+        section_content = _compose_section_content(heading)
+        if section_content:
+            lines.append(section_content)
         lines.append("")
 
     lines.append(MANAGED_BLOCK_END)
@@ -81,8 +148,7 @@ def _rebuild_block_internals(
     """Rebuild the managed block internals while preserving existing section content.
 
     Refreshes the CRITICAL_INSTRUCTION/freshness metadata and ensures all
-    four section headings exist in correct order. Existing content under
-    headings is preserved.
+    four section headings exist in correct order.
     """
     # Extract content between markers
     inner_start = existing_block.find(MANAGED_BLOCK_BEGIN) + len(MANAGED_BLOCK_BEGIN)
@@ -127,7 +193,10 @@ def _rebuild_block_internals(
 
     for heading in SECTION_HEADINGS:
         lines.append(heading)
-        section_content = existing_sections.get(heading, "")
+        section_content = _compose_section_content(
+            heading,
+            existing_sections.get(heading, ""),
+        )
         if section_content:
             lines.append(section_content)
         lines.append("")
@@ -140,7 +209,7 @@ async def bootstrap_managed_block(
     codebase_path: str,
     default_branch: str | None = None,
     head_commit_sha: str | None = None,
-) -> AgentsMdUpdaterOutput:
+) -> bool:
     """Ensure AGENTS.md has managed block with markers, CRITICAL_INSTRUCTION, and freshness metadata.
 
     Cases:
@@ -155,10 +224,9 @@ async def bootstrap_managed_block(
         head_commit_sha: HEAD commit SHA. None to omit freshness.
 
     Returns:
-        AgentsMdUpdaterOutput with status reflecting whether content changed.
+        True when AGENTS.md content changed, otherwise False.
     """
     agents_md_path = Path(codebase_path) / "AGENTS.md"
-    abs_path = str(agents_md_path)
 
     existing_content: str | None = None
     if agents_md_path.exists():
@@ -170,21 +238,7 @@ async def bootstrap_managed_block(
         new_content = _build_managed_block(default_branch, head_commit_sha) + "\n"
         async with aiofiles.open(agents_md_path, mode="w", encoding="utf-8") as f:
             await f.write(new_content)
-        return AgentsMdUpdaterOutput(
-            status="updated",
-            touched_file_paths=[abs_path],
-            file_changes=[
-                UpdaterFileChange(
-                    path=abs_path,
-                    changed=True,
-                    change_type="created",
-                    change_summary="Created AGENTS.md with managed block skeleton",
-                    content_sha256=hashlib.sha256(
-                        new_content.encode("utf-8")
-                    ).hexdigest(),
-                )
-            ],
-        )
+        return True
 
     block_range = _extract_managed_block_range(existing_content)
 
@@ -201,21 +255,7 @@ async def bootstrap_managed_block(
         new_content = existing_content + separator + managed_block + "\n"
         async with aiofiles.open(agents_md_path, mode="w", encoding="utf-8") as f:
             await f.write(new_content)
-        return AgentsMdUpdaterOutput(
-            status="updated",
-            touched_file_paths=[abs_path],
-            file_changes=[
-                UpdaterFileChange(
-                    path=abs_path,
-                    changed=True,
-                    change_type="updated",
-                    change_summary="Appended managed block to existing AGENTS.md",
-                    content_sha256=hashlib.sha256(
-                        new_content.encode("utf-8")
-                    ).hexdigest(),
-                )
-            ],
-        )
+        return True
 
     # Case 3: AGENTS.md exists with markers — update internals
     begin_offset, end_offset = block_range
@@ -225,34 +265,11 @@ async def bootstrap_managed_block(
     )
 
     if existing_block == rebuilt_block:
-        return AgentsMdUpdaterOutput(
-            status="no_changes",
-            touched_file_paths=[abs_path],
-            file_changes=[
-                UpdaterFileChange(
-                    path=abs_path,
-                    changed=False,
-                    change_type="unchanged",
-                    change_summary="Managed block already matches expected structure",
-                )
-            ],
-        )
+        return False
 
     new_content = (
         existing_content[:begin_offset] + rebuilt_block + existing_content[end_offset:]
     )
     async with aiofiles.open(agents_md_path, mode="w", encoding="utf-8") as f:
         await f.write(new_content)
-    return AgentsMdUpdaterOutput(
-        status="updated",
-        touched_file_paths=[abs_path],
-        file_changes=[
-            UpdaterFileChange(
-                path=abs_path,
-                changed=True,
-                change_type="updated",
-                change_summary="Updated managed block internals (freshness/headings)",
-                content_sha256=hashlib.sha256(new_content.encode("utf-8")).hexdigest(),
-            )
-        ],
-    )
+    return True

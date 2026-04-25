@@ -94,6 +94,9 @@ def _extract_tool_args(event: AgentStreamEvent) -> dict[str, Any] | None:
         if isinstance(args, dict):
             return args
         if isinstance(args, str):
+            if not args:
+                empty_args: dict[str, Any] = {}
+                return empty_args
             try:
                 parsed_args = json.loads(args)
             except json.JSONDecodeError:

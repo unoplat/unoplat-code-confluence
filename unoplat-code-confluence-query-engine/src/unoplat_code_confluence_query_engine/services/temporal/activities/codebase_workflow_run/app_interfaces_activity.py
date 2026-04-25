@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from loguru import logger
 from temporalio import activity
 
@@ -12,8 +14,14 @@ from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     Interfaces,
 )
+from unoplat_code_confluence_query_engine.services.agents_md.rendering.app_interfaces.renderer import (
+    write_app_interfaces_if_changed,
+)
 from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
     build_interfaces_from_features,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
+    APP_INTERFACES_ARTIFACT,
 )
 from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler import (
     get_completion_namespaces,
@@ -72,6 +80,34 @@ class AppInterfacesActivity:
         )
 
         return interfaces
+
+    @activity.defn
+    async def write_app_interfaces(
+        self,
+        codebase_path: str,
+        app_interfaces: dict[str, Any],
+    ) -> bool:
+        """Render and write app_interfaces.md when canonical content changes.
+
+        Args:
+            codebase_path: Path to the codebase root where app_interfaces.md lives.
+            app_interfaces: Serialized Interfaces model produced by build_app_interfaces.
+
+        Returns:
+            True when app_interfaces.md was created or updated, otherwise False.
+        """
+        interfaces = Interfaces.model_validate(app_interfaces)
+        changed = write_app_interfaces_if_changed(
+            codebase_path=codebase_path,
+            interfaces=interfaces,
+        )
+        logger.info(
+            "[app_interfaces_activity] {} for {} changed={}",
+            APP_INTERFACES_ARTIFACT,
+            codebase_path,
+            changed,
+        )
+        return changed
 
     @activity.defn
     async def fetch_low_confidence_call_expression_candidates(

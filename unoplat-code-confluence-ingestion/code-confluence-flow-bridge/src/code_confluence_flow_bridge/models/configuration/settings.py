@@ -1,5 +1,5 @@
 # Standard Library
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 # Third Party
 from pydantic import BaseModel, Field
@@ -155,6 +155,12 @@ class EnvironmentSettings(BaseSettings):
         description="Maximum number of files to process concurrently during parsing. Controls memory usage and CPU utilization.",
         ge=1,  # minimum 1 file at a time
         le=50,  # maximum 50 concurrent files
+    )
+
+    codebase_parser_ignored_directories: List[str] = Field(
+        default_factory=list,
+        alias="CODEBASE_PARSER_IGNORED_DIRECTORIES",
+        description="Additional directory names to skip during codebase source file discovery, merged with the parser's built-in default ignore set.",
     )
 
     # GitHub App manifest onboarding configuration

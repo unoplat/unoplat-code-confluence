@@ -10,6 +10,10 @@ from unoplat_code_confluence_query_engine.db.postgres.code_confluence_business_l
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     BusinessLogicDomain,
     CoreFile,
+    CoreFileReference,
+)
+from unoplat_code_confluence_query_engine.services.agents_md.rendering.business_references.renderer import (
+    write_business_domain_references_if_changed,
 )
 from unoplat_code_confluence_query_engine.services.post_processors.post_processor_base import (
     PostProcessorProtocol,
@@ -23,7 +27,8 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
     The agent returns only a description string. This processor:
     1. Fetches all data model files from PostgreSQL
     2. Creates CoreFile entries for each file path
-    3. Returns complete BusinessLogicDomain with description + data_models
+    3. Builds a complete BusinessLogicDomain with description + data_models
+    4. Deterministically renders business_domain_references.md when content differs
     """
 
     async def process(
@@ -52,16 +57,40 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
                 )
                 span_map = {}
 
-            file_paths = sorted(span_map.keys())
-            data_models = [
-                CoreFile(path=file_path, responsibility=None)
-                for file_path in file_paths
-            ]
+            data_models: list[CoreFile] = []
+            for file_path, model_spans in sorted(span_map.items()):
+                references = [
+                    CoreFileReference(
+                        identifier=identifier,
+                        start_line=start_line,
+                        end_line=end_line,
+                    )
+                    for identifier, (start_line, end_line) in sorted(
+                        model_spans.items(),
+                        key=lambda item: (item[1][0], item[1][1], item[0]),
+                    )
+                ]
+                data_models.append(
+                    CoreFile(
+                        path=file_path,
+                        responsibility=None,
+                        references=references,
+                    )
+                )
 
-            return BusinessLogicDomain(
+            domain = BusinessLogicDomain(
                 description=description,
                 data_models=data_models,
             )
+            references_changed = write_business_domain_references_if_changed(
+                deps.codebase_path,
+                domain,
+            )
+            logger.info(
+                "business_domain_references.md canonical render changed={}",
+                references_changed,
+            )
+            return domain
 
         except Exception as e:
             logger.error("Error in BusinessLogicDomainPostProcessor: {}", e)
@@ -70,4 +99,12 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
                 if agent_output
                 else "Business logic domain"
             )
-            return BusinessLogicDomain(description=description, data_models=[])
+            domain = BusinessLogicDomain(description=description, data_models=[])
+            try:
+                write_business_domain_references_if_changed(deps.codebase_path, domain)
+            except Exception as render_error:
+                logger.warning(
+                    "Could not render business_domain_references.md after post-processing failure: {}",
+                    render_error,
+                )
+            return domain
