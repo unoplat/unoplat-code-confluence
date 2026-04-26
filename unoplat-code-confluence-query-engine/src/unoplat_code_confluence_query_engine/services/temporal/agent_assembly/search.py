@@ -14,6 +14,13 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
     AgentDependencies,
 )
 
+WEB_TOOL_MAX_RETRIES = 4
+"""Retries granted to local web_search/web_fetch tools.
+
+The pydantic_ai default is 1, which is too tight when the model has to
+self-correct hallucinated URLs or refine a search query.
+"""
+
 
 @dataclass(frozen=True, slots=True)
 class SearchRuntimePolicy:
@@ -42,7 +49,9 @@ def _build_local_web_search_toolset(toolset_id: str) -> FunctionToolset[AgentDep
 
     from pydantic_ai.common_tools.duckduckgo import duckduckgo_search_tool
 
-    return FunctionToolset([duckduckgo_search_tool()], id=toolset_id)
+    tool = duckduckgo_search_tool()
+    tool.max_retries = WEB_TOOL_MAX_RETRIES
+    return FunctionToolset([tool], id=toolset_id)
 
 
 
@@ -51,7 +60,9 @@ def _build_local_web_fetch_toolset(toolset_id: str) -> FunctionToolset[AgentDepe
 
     from pydantic_ai.common_tools.web_fetch import web_fetch_tool
 
-    return FunctionToolset([web_fetch_tool()], id=toolset_id)
+    tool = web_fetch_tool()
+    tool.max_retries = WEB_TOOL_MAX_RETRIES
+    return FunctionToolset([tool], id=toolset_id)
 
 
 

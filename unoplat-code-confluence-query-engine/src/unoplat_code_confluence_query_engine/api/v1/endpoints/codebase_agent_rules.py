@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from ghapi.core import GhApi
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from temporalio.service import RPCError, RPCStatusCode
 from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.pr_metadata_model import PrMetadata
@@ -559,51 +559,100 @@ async def cancel_repository_agent_run(
 async def get_repository_agent_snapshot(
     owner_name: str = Query(..., description="Repository owner name"),
     repo_name: str = Query(..., description="Repository name"),
-    repository_workflow_run_id: str = Query(
-        ..., description="Repository workflow run ID to query"
+    repository_workflow_run_id: str | None = Query(
+        None,
+        description=(
+            "Repository workflow run ID to query. If omitted, returns the latest "
+            "COMPLETED agent snapshot for the repository."
+        ),
     ),
 ) -> dict[str, object]:
-    """Retrieve the agent snapshot output for a specific workflow run.
+    """Retrieve an agent snapshot output for a repository workflow run.
 
-    Note: Workflow status is tracked by Temporal via RepositoryWorkflowRun,
-    not in the snapshot. Use the Temporal API or RepositoryWorkflowRun table
-    to query workflow status.
+    When ``repository_workflow_run_id`` is provided, the endpoint returns that
+    exact snapshot. When it is omitted, the endpoint returns the latest completed
+    agent snapshot for the repository according to ``RepositoryWorkflowRun``.
 
     Args:
         owner_name: Repository owner name
         repo_name: Repository name
-        repository_workflow_run_id: The specific workflow run ID to query
+        repository_workflow_run_id: Optional specific workflow run ID to query
 
     Returns:
-        Dictionary with agent_md_output for the specified workflow run
+        Dictionary with the resolved repository_workflow_run_id and agent_md_output.
     """
     try:
         async with get_startup_session() as session:
-            stmt = select(RepositoryAgentMdSnapshot).where(
-                RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-                RepositoryAgentMdSnapshot.repository_name == repo_name,
-                RepositoryAgentMdSnapshot.repository_workflow_run_id
-                == repository_workflow_run_id,
-            )
-            result = await session.execute(stmt)
-            snapshot = result.scalar_one_or_none()
-
-            if snapshot is None:
-                raise HTTPException(
-                    status_code=404,
-                    detail=(
-                        f"No agent snapshot found for repository {owner_name}/{repo_name} "
-                        f"with run_id={repository_workflow_run_id}"
-                    ),
+            if repository_workflow_run_id is not None:
+                stmt = select(RepositoryAgentMdSnapshot).where(
+                    RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
+                    RepositoryAgentMdSnapshot.repository_name == repo_name,
+                    RepositoryAgentMdSnapshot.repository_workflow_run_id
+                    == repository_workflow_run_id,
                 )
+                result = await session.execute(stmt)
+                snapshot = result.scalar_one_or_none()
+
+                if snapshot is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=(
+                            f"No agent snapshot found for repository {owner_name}/{repo_name} "
+                            f"with run_id={repository_workflow_run_id}"
+                        ),
+                    )
+            else:
+                stmt = (
+                    select(RepositoryAgentMdSnapshot)
+                    .join(
+                        RepositoryWorkflowRun,
+                        and_(
+                            RepositoryWorkflowRun.repository_owner_name
+                            == RepositoryAgentMdSnapshot.repository_owner_name,
+                            RepositoryWorkflowRun.repository_name
+                            == RepositoryAgentMdSnapshot.repository_name,
+                            RepositoryWorkflowRun.repository_workflow_run_id
+                            == RepositoryAgentMdSnapshot.repository_workflow_run_id,
+                        ),
+                    )
+                    .where(
+                        RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
+                        RepositoryAgentMdSnapshot.repository_name == repo_name,
+                        RepositoryWorkflowRun.status == JobStatus.COMPLETED.value,
+                        RepositoryWorkflowRun.operation.in_(
+                            (
+                                RepositoryWorkflowOperation.AGENTS_GENERATION,
+                                RepositoryWorkflowOperation.AGENT_MD_UPDATE,
+                            )
+                        ),
+                    )
+                    .order_by(
+                        RepositoryWorkflowRun.completed_at.desc().nulls_last(),
+                        RepositoryWorkflowRun.started_at.desc(),
+                        RepositoryWorkflowRun.repository_workflow_run_id.desc(),
+                    )
+                    .limit(1)
+                )
+                result = await session.execute(stmt)
+                snapshot = result.scalar_one_or_none()
+
+                if snapshot is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=(
+                            "No completed agent snapshot found for repository "
+                            f"{owner_name}/{repo_name}"
+                        ),
+                    )
 
             logger.info(
                 "Retrieved agent snapshot for repository {}/{} run_id={}",
                 owner_name,
                 repo_name,
-                repository_workflow_run_id,
+                snapshot.repository_workflow_run_id,
             )
             return {
+                "repository_workflow_run_id": snapshot.repository_workflow_run_id,
                 "agent_md_output": snapshot.agent_md_output,
             }
 

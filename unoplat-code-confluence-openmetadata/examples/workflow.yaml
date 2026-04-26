@@ -1,0 +1,27 @@
+source:
+  type: customDatabase
+  serviceName: code_confluence_repository
+  serviceConnection:
+    config:
+      type: CustomDatabase
+      sourcePythonClass: unoplat_code_confluence_openmetadata.source.CodeConfluenceSource
+      connectionOptions:
+        codeConfluenceApiBaseUrl: "http://host.docker.internal:8001"
+        repositoryOwnerName: "unoplat"
+        repositoryName: "unoplat-code-confluence"
+        timeoutSeconds: "30"
+  sourceConfig:
+    config:
+      type: DatabaseMetadata
+
+sink:
+  type: metadata-rest
+  config: {}
+
+workflowConfig:
+  loggerLevel: INFO
+  openMetadataServerConfig:
+    hostPort: "http://openmetadata-server:8585/api"
+    authProvider: openmetadata
+    securityConfig:
+      jwtToken: "<OPENMETADATA_PERSONAL_ACCESS_TOKEN>"

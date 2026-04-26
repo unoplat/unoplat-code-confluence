@@ -1,0 +1,180 @@
+{
+  "agent_md_output": {
+    "repository": "unoplat/unoplat-code-confluence",
+    "codebases": {
+      "unoplat-code-confluence-query-engine": {
+        "codebase_name": "unoplat-code-confluence-query-engine",
+        "programming_language_metadata": {
+          "primary_language": "Python",
+          "package_manager": "uv"
+        },
+        "engineering_workflow": {
+          "commands": [
+            {
+              "command": "uv sync",
+              "stage": "install",
+              "config_file": "unoplat-code-confluence-query-engine/pyproject.toml",
+              "working_directory": "unoplat-code-confluence-query-engine"
+            },
+            {
+              "command": "uv run pytest",
+              "stage": "test",
+              "config_file": "unoplat-code-confluence-query-engine/pyproject.toml",
+              "working_directory": "unoplat-code-confluence-query-engine"
+            },
+            {
+              "command": "uv run basedpyright",
+              "stage": "type_check",
+              "config_file": "unoplat-code-confluence-query-engine/pyproject.toml",
+              "working_directory": "unoplat-code-confluence-query-engine"
+            }
+          ]
+        },
+        "dependency_guide": {
+          "dependencies": [
+            {
+              "name": "fastapi",
+              "purpose": "FastAPI is used to expose versioned HTTP APIs for repository workflows and snapshot retrieval."
+            },
+            {
+              "name": "sqlalchemy",
+              "purpose": "SQLAlchemy is used for database access to repository workflow and snapshot tables."
+            },
+            {
+              "name": "temporalio",
+              "purpose": "Temporal's Python SDK orchestrates long-running repository and codebase agent workflows."
+            }
+          ]
+        },
+        "business_logic_domain": {
+          "description": "Coordinates repository analysis workflows, persists completed agent snapshots, and exposes query APIs for downstream consumers.",
+          "data_models": [
+            {
+              "path": "src/unoplat_code_confluence_query_engine/api/v1/endpoints/codebase_agent_rules.py",
+              "responsibility": "Defines repository workflow API endpoints, including snapshot retrieval for completed agent runs.",
+              "references": [
+                {
+                  "identifier": "get_repository_agent_snapshot",
+                  "start_line": 558,
+                  "end_line": 618
+                }
+              ]
+            },
+            {
+              "path": "src/unoplat_code_confluence_query_engine/services/tracking/repository_agent_snapshot_service.py",
+              "responsibility": "Persists workflow completion payloads into repository_agent_md_snapshot.",
+              "references": [
+                {
+                  "identifier": "RepositoryAgentSnapshotWriter",
+                  "start_line": 1,
+                  "end_line": 340
+                }
+              ]
+            }
+          ]
+        },
+        "app_interfaces": {
+          "inbound_constructs": [
+            {
+              "kind": "http_endpoint",
+              "library": "fastapi",
+              "match_pattern": {
+                "src/unoplat_code_confluence_query_engine/api/v1/endpoints/codebase_agent_rules.py": [
+                  "@router.get(\"/repository-agent-snapshot\")",
+                  "async def get_repository_agent_snapshot"
+                ]
+              }
+            }
+          ],
+          "outbound_constructs": [
+            {
+              "kind": "db_sql",
+              "library": "sqlalchemy",
+              "match_pattern": {
+                "src/unoplat_code_confluence_query_engine/api/v1/endpoints/codebase_agent_rules.py": [
+                  "select(RepositoryAgentMdSnapshot)",
+                  "await session.execute(stmt)"
+                ]
+              }
+            }
+          ],
+          "internal_constructs": [
+            {
+              "kind": "temporal_workflow_orchestration",
+              "library": "temporalio",
+              "match_pattern": {
+                "src/unoplat_code_confluence_query_engine/services/temporal/workflows/repository_agent_workflow.py": [
+                  "class RepositoryAgentWorkflow",
+                  "await persist_repository_snapshot_completion"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "unoplat-code-confluence-commons": {
+        "codebase_name": "unoplat-code-confluence-commons",
+        "programming_language_metadata": {
+          "primary_language": "Python",
+          "package_manager": "uv"
+        },
+        "engineering_workflow": {
+          "commands": [
+            {
+              "command": "uv sync",
+              "stage": "install",
+              "config_file": "unoplat-code-confluence-commons/pyproject.toml",
+              "working_directory": "unoplat-code-confluence-commons"
+            },
+            {
+              "command": "uv run pytest",
+              "stage": "test",
+              "config_file": "unoplat-code-confluence-commons/pyproject.toml",
+              "working_directory": "unoplat-code-confluence-commons"
+            }
+          ]
+        },
+        "dependency_guide": {
+          "dependencies": [
+            {
+              "name": "pydantic",
+              "purpose": "Pydantic models define shared repository, workflow, credential, and metadata contracts."
+            }
+          ]
+        },
+        "business_logic_domain": {
+          "description": "Provides shared data contracts used by ingestion, query engine, and workflow components.",
+          "data_models": [
+            {
+              "path": "src/unoplat_code_confluence_commons/repo_models.py",
+              "responsibility": "Defines repository and workflow persistence models shared across services.",
+              "references": [
+                {
+                  "identifier": "RepositoryAgentMdSnapshot",
+                  "start_line": 1,
+                  "end_line": 260
+                }
+              ]
+            }
+          ]
+        },
+        "app_interfaces": {
+          "inbound_constructs": [],
+          "outbound_constructs": [],
+          "internal_constructs": [
+            {
+              "kind": "shared_model_contracts",
+              "library": "pydantic",
+              "match_pattern": {
+                "src/unoplat_code_confluence_commons/repo_models.py": [
+                  "class RepositoryAgentMdSnapshot",
+                  "class RepositoryWorkflowRun"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
