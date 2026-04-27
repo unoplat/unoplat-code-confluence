@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.41.1...unoplat-code-confluence-query-engine-v0.42.0) (2026-04-26)
+
+
+### Features
+
+* **openmetadata:** add Code Confluence→OpenMetadata connector packag… ([96030e2](https://github.com/unoplat/unoplat-code-confluence/commit/96030e294aa29e175eedd57dc5b1d790169b77d8))
+* **openmetadata:** add Code Confluence→OpenMetadata connector package and optional snapshot lookup ([229ffd0](https://github.com/unoplat/unoplat-code-confluence/commit/229ffd034860dc38083b44ec99f959f53336add1))
+
 ## [0.41.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.41.0...unoplat-code-confluence-query-engine-v0.41.1) (2026-04-25)
 
 
