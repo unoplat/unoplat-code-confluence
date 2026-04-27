@@ -1,3 +1,20 @@
+# Run unoplat Code Confluence 
+
+Directory Location: Root
+
+```bash
+tilt up
+```
+
+# Run Openmetadata Servicer
+
+Directory Location: unoplat-code-confluence-openmetadata/deployment/
+
+```bash
+docker compose -f docker-compose.yml up --detach
+```
+
+
 # Run Workflow YAML
 
 This workflow runs the Code Confluence OpenMetadata connector from the `openmetadata_ingestion` container.
