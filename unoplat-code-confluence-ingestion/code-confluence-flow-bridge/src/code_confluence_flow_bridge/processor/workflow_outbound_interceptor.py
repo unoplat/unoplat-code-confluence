@@ -20,7 +20,9 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
     are properly forwarded to all activity calls.
     """
 
-    def start_activity(self, input: StartActivityInput) -> workflow.ActivityHandle:
+    def start_activity(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, input: StartActivityInput
+    ) -> workflow.ActivityHandle[object]:
         # Get headers from context
         headers = workflow_headers_var.get()
 
@@ -38,9 +40,9 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
 
         return super().start_activity(input)
 
-    async def start_child_workflow(
+    async def start_child_workflow(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, input: StartChildWorkflowInput
-    ) -> workflow.ChildWorkflowHandle:
+    ) -> workflow.ChildWorkflowHandle[object, object]:
         try:
             # Get headers from context
             headers = workflow_headers_var.get()

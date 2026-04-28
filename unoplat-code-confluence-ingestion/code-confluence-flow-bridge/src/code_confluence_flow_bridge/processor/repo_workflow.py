@@ -101,7 +101,7 @@ class RepoWorkflow:
                 len(git_repo_metadata.codebases),
             )
             # track child handles so we can await them later
-            child_handles: list[ChildWorkflowHandle] = []
+            child_handles: list[ChildWorkflowHandle[CodebaseChildWorkflow, None]] = []
 
             for codebase_qualified_name, unoplat_codebase in zip(
                 parent_child_clone_metadata.codebase_qualified_names,
@@ -132,7 +132,7 @@ class RepoWorkflow:
                         trace_id=trace_id,
                         parent_workflow_run_id=workflow_run_id,
                     )
-                    child_handle: ChildWorkflowHandle = (
+                    child_handle: ChildWorkflowHandle[CodebaseChildWorkflow, None] = (
                         await workflow.start_child_workflow(
                             CodebaseChildWorkflow.run,
                             args=[child_workflow_envelope],
