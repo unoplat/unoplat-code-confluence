@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.53.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.52.1...unoplat-code-confluence-frontend-v1.53.0) (2026-04-28)
+
+
+### Features
+
+* **agent-events:** virtualize agent group events with sticky auto-scroll ([f71a5c9](https://github.com/unoplat/unoplat-code-confluence/commit/f71a5c9fc8eca9036167766e7b24879c94a09bfa))
+* **agent-events:** virtualize agent group events with sticky auto-scroll ([d558972](https://github.com/unoplat/unoplat-code-confluence/commit/d558972de48c6866e007b4c1b0aa193b8c00d8d2))
+
 ## [1.52.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.52.0...unoplat-code-confluence-frontend-v1.52.1) (2026-04-25)
 
 
