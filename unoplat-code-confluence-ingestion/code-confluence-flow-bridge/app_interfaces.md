@@ -1,35 +1,38 @@
 # App Interfaces
 
-## FastAPI Inbound HTTP Endpoints
+Format: `path: L<line>: <match_text>` where path is codebase-relative.
 
-### Ingestion & Repository Operations (`src/code_confluence_flow_bridge/main.py`)
-- `POST /start-ingestion` — start ingestion workflow.
-- `GET /repository-status` — retrieve repository status (response: `GithubRepoStatus`).
-- `GET /repository-data` — fetch repository configuration (response: `GitHubRepoResponseConfiguration`).
-- `GET /codebase-metadata` — list codebase metadata (response: `CodebaseMetadataListResponse`).
-- `GET /parent-workflow-jobs` — list parent workflow jobs with cancellability metadata for operations UI gating (response: `ParentWorkflowJobListResponse`).
-- `GET /get/ingestedRepositories` — list ingested repositories (response: `IngestedRepositoriesListResponse`).
-- `POST /refresh-repository` — refresh repository ingestion (response: `RefreshRepositoryResponse`).
-- `DELETE /delete-repository` — delete repository from tracking.
+## Inbound Constructs
 
-### Token & Repository Provider Management (`src/code_confluence_flow_bridge/main.py`)
-- `POST /ingest-token` — store access token for ingestion.
-- `PUT /update-token` — update stored access token.
-- `DELETE /delete-token` — remove stored token.
-- `GET /repository-providers` — list supported repository providers (response: `RepositoryProvidersResponse`).
-- `GET /repos` — list repositories (response: `PaginatedResponse`).
+### http_endpoint (fastapi)
 
-### Feature Flags & User (`src/code_confluence_flow_bridge/main.py`)
-- `GET /flags/{flag_name}` — fetch a single feature flag.
-- `GET /flags` — list feature flags.
-- `PUT /flags/{flag_name}` — update a feature flag.
-- `GET /user-details` — retrieve user details.
+- `src/code_confluence_flow_bridge/github_app/router.py`: L144: @router.get( "/app-manifest/callback", response_model=ManifestConversionResponse, status_code=status.HTTP_200_OK, )
+- `src/code_confluence_flow_bridge/github_app/router.py`: L245: @router.post( "/webhook", status_code=status.HTTP_202_ACCEPTED, )
+- `src/code_confluence_flow_bridge/github_app/router.py`: L55: @router.post( "/app-manifest", response_model=ManifestGenerationResponse, status_code=status.HTTP_201_CREATED, )
+- `src/code_confluence_flow_bridge/main.py`: L410: @app.post("/start-ingestion", status_code=201)
+- `src/code_confluence_flow_bridge/routers/credentials/router.py`: L23: @router.post("/ingest-token", status_code=201)
+- `src/code_confluence_flow_bridge/routers/credentials/router.py`: L55: @router.put("/update-token", status_code=200)
+- `src/code_confluence_flow_bridge/routers/credentials/router.py`: L87: @router.delete("/delete-token", status_code=200)
+- `src/code_confluence_flow_bridge/routers/flags/router.py`: L14: @router.get("/flags/{flag_name}", status_code=200)
+- `src/code_confluence_flow_bridge/routers/flags/router.py`: L34: @router.get("/flags", status_code=200)
+- `src/code_confluence_flow_bridge/routers/flags/router.py`: L48: @router.put("/flags/{flag_name}", status_code=200)
+- `src/code_confluence_flow_bridge/routers/github_issues/router.py`: L203: @router.post("/feedback", response_model=IssueTracking)
+- `src/code_confluence_flow_bridge/routers/github_issues/router.py`: L49: @router.post("/issues", response_model=IssueTracking)
+- `src/code_confluence_flow_bridge/routers/operations/router.py`: L32: @router.get( "/parent-workflow-jobs", response_model=ParentWorkflowJobListResponse, description="Get all parent workflow jobs data without pagination", )
+- `src/code_confluence_flow_bridge/routers/operations/router.py`: L84: @router.get( "/get/ingestedRepositories", response_model=IngestedRepositoriesListResponse, description="Get all ingested repositories without pagination", )
+- `src/code_confluence_flow_bridge/routers/providers/router.py`: L22: @router.get("/repository-providers", response_model=RepositoryProvidersResponse)
+- `src/code_confluence_flow_bridge/routers/providers/router.py`: L36: @router.get("/repos", response_model=PaginatedResponse)
+- `src/code_confluence_flow_bridge/routers/providers/router.py`: L63: @router.get("/user-details", status_code=200)
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L151: @router.get( "/repository-data", response_model=GitHubRepoResponseConfiguration, )
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L209: @router.get( "/codebase-metadata", response_model=CodebaseMetadataListResponse, )
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L273: @router.delete("/delete-repository", status_code=200)
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L363: @router.post( "/refresh-repository", response_model=RefreshRepositoryResponse, status_code=201 )
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L76: @router.get( "/repository-status", response_model=GithubRepoStatus, )
 
-### GitHub App (`src/code_confluence_flow_bridge/github_app/router.py`)
-- `POST /app-manifest` — create GitHub App manifest (response: `ManifestGenerationResponse`).
-- `GET /app-manifest/callback` — GitHub App manifest callback (response: `ManifestConversionResponse`).
-- `POST /webhook` — GitHub App webhook receiver.
+## Outbound Constructs
 
-### GitHub Issues Feedback (`src/code_confluence_flow_bridge/routers/github_issues/router.py`)
-- `POST /issues` — create issue feedback (response: `IssueTracking`).
-- `POST /feedback` — create feedback issue (response: `IssueTracking`).
+No outbound constructs detected.
+
+## Internal Constructs
+
+No internal constructs detected.

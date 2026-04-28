@@ -130,7 +130,7 @@ services:
     ports:
       - 8081:8080
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.75.1
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.77.0
     environment:
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001,http://localhost:5173,http://127.0.0.1:3000
@@ -155,7 +155,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.40.1
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.42.0
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - DB_HOST=postgresql
@@ -182,7 +182,7 @@ services:
         condition: service_healthy
 
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.50.2
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.53.0
     depends_on:
       - code-confluence-flow-bridge
     ports:

@@ -8,9 +8,6 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
-        SectionId,
-    )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
     )
@@ -19,9 +16,6 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
-    )
-    from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
-        normalize_engineering_workflow,
     )
     from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.engineering_workflow_completion_activity import (
         EngineeringWorkflowCompletionActivity,
@@ -44,9 +38,6 @@ with workflow.unsafe.imports_passed_through():
         enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.section_updater_runner import (
-        run_section_updater,
-    )
 
 
 async def run_development_workflow_agent(
@@ -59,7 +50,8 @@ async def run_development_workflow_agent(
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
 ) -> None:
-    """Run the development workflow agent and section updater."""
+    """Run the development workflow agent with direct AGENTS.md section ownership."""
+    _ = programming_language_metadata
     development_workflow_agent = temporal_agents.development_workflow_guide
     if development_workflow_agent is None:
         logger.info(
@@ -69,16 +61,16 @@ async def run_development_workflow_agent(
         agent_stats.append(create_zero_usage_statistics())
         return
 
+    engineering_workflow_deps = AgentDependencies(
+        repository_qualified_name=repository_qualified_name,
+        codebase_metadata=codebase_metadata,
+        repository_workflow_run_id=repository_workflow_run_id,
+        agent_name="development_workflow_guide",
+    )
     try:
         logger.info(
             "[workflow] Running development_workflow_guide for {}",
             codebase_metadata.codebase_name,
-        )
-        engineering_workflow_deps = AgentDependencies(
-            repository_qualified_name=repository_qualified_name,
-            codebase_metadata=codebase_metadata,
-            repository_workflow_run_id=repository_workflow_run_id,
-            agent_name="development_workflow_guide",
         )
         logger.debug("[workflow] Calling development_workflow_guide.run()...")
         workflow_result = await development_workflow_agent.run(
@@ -92,9 +84,7 @@ async def run_development_workflow_agent(
         )
         logger.debug("[workflow] development_workflow_guide.run() returned")
 
-        raw_engineering_workflow = workflow_result.output.model_dump(mode="json")
-        normalized_workflow = normalize_engineering_workflow(raw_engineering_workflow)
-        results["engineering_workflow"] = normalized_workflow.model_dump()
+        results["engineering_workflow"] = workflow_result.output.model_dump()
 
         await workflow.execute_activity(
             EngineeringWorkflowCompletionActivity.emit_engineering_workflow_completion,
@@ -114,18 +104,6 @@ async def run_development_workflow_agent(
         )
         agent_stats.append(extract_usage_statistics(workflow_result.usage()))
 
-        await run_section_updater(
-            temporal_agents=temporal_agents,
-            section_id=SectionId.ENGINEERING_WORKFLOW,
-            codebase_metadata=codebase_metadata,
-            repository_qualified_name=repository_qualified_name,
-            repository_workflow_run_id=repository_workflow_run_id,
-            programming_language_metadata=programming_language_metadata,
-            section_data=results["engineering_workflow"],
-            agent_stats=agent_stats,
-            agent_errors=agent_errors,
-            updater_runs=results["agents_md_updater_runs"],
-        )
     except Exception as e:
         raise_if_temporal_cancellation(e)
         logger.error(
@@ -148,3 +126,5 @@ async def run_development_workflow_agent(
         )
         agent_errors.append(engineering_error)
         agent_stats.append(create_zero_usage_statistics())
+    finally:
+        engineering_workflow_deps.release_backend()

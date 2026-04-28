@@ -1,5 +1,9 @@
-
+.claude
+.opencode
 .cosine
+.pytest_cache
+.ruff_cache
+.turbo
 scanner_cli-2.1.4-all.jar
 data
 .cosine

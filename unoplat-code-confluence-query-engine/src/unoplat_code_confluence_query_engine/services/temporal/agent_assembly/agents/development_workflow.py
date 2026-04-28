@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pydantic_ai import Agent, Tool
-from pydantic_ai.builtin_tools import AbstractBuiltinTool
+from pydantic_ai import Agent
+from pydantic_ai.capabilities import AbstractCapability
 from pydantic_ai.toolsets.abstract import AbstractToolset
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
@@ -17,8 +17,14 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agent
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.validators.development_workflow_validator import (
     validate_engineering_development_workflow_output,
 )
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
+    build_markdown_execute_console_capability,
+)
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
+    DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID,
     DEVELOPMENT_WORKFLOW_EXA_TOOLSET_ID,
+    DEVELOPMENT_WORKFLOW_LOCAL_WEB_FETCH_TOOLSET_ID,
+    DEVELOPMENT_WORKFLOW_LOCAL_WEB_SEARCH_TOOLSET_ID,
     TS_MONOREPO_DYNAMIC_TOOLSET_ID,
     TS_MONOREPO_TOOLSET_ID,
 )
@@ -27,21 +33,8 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.runti
     AgentBuildResult,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.search import (
-    resolve_builtin_search_tools,
-    should_include_duckduckgo_search,
+    resolve_search_capability,
     should_include_exa_toolsets,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.duckduckgo_search import (
-    build_duckduckgo_search_tool,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.get_directory_tree import (
-    build_get_directory_tree_tool,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.read_file_content import (
-    build_read_file_content_tool,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools.search_across_codebase import (
-    build_search_across_codebase_tool,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.toolsets.development_workflow import (
     build_development_workflow_exa_toolset,
@@ -71,20 +64,29 @@ def configure_engineering_workflow_agent(
 def build_development_workflow_agent(
     context: AgentAssemblyContext,
 ) -> AgentBuildResult[EngineeringWorkflow]:
-    function_tools: list[Tool[AgentDependencies]] = [
-        build_get_directory_tree_tool(),
-        build_read_file_content_tool(),
-        build_search_across_codebase_tool(),
-    ]
-    builtin_tools: tuple[AbstractBuiltinTool, ...] = resolve_builtin_search_tools(
-        allow_builtin_web_search=True,
-        runtime_policy=context.search_policy,
+    console_capability = build_markdown_execute_console_capability(
+        DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID
     )
+    console_toolset = console_capability.get_toolset()
+    if (
+        console_toolset is None
+        or console_toolset.id != DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID
+    ):
+        raise ValueError(
+            "Development workflow console capability must expose a Temporal-safe toolset ID"
+        )
+
+    search_capability = resolve_search_capability(
+        allow_builtin_web_search=True,
+        allow_builtin_web_fetch=True,
+        local_web_search_toolset_id=DEVELOPMENT_WORKFLOW_LOCAL_WEB_SEARCH_TOOLSET_ID,
+        local_web_fetch_toolset_id=DEVELOPMENT_WORKFLOW_LOCAL_WEB_FETCH_TOOLSET_ID,
+    )
+    capabilities: list[AbstractCapability[AgentDependencies]] = [console_capability]
+    if search_capability is not None:
+        capabilities.append(search_capability)
     toolsets: list[AbstractToolset[AgentDependencies]] = []
     toolset_ids: list[str] = []
-
-    if should_include_duckduckgo_search(context.search_policy):
-        function_tools.append(build_duckduckgo_search_tool())
 
     if should_include_exa_toolsets(context.search_policy):
         exa_toolset = build_development_workflow_exa_toolset()
@@ -100,9 +102,8 @@ def build_development_workflow_agent(
         name="development_workflow_guide",
         instructions=build_development_workflow_instructions(),
         deps_type=AgentDependencies,
-        tools=tuple(function_tools),
-        builtin_tools=builtin_tools,
         toolsets=tuple(toolsets),
+        capabilities=capabilities,
         output_type=EngineeringWorkflow,
         output_retries=2,
         model_settings=context.model_settings,
@@ -112,8 +113,11 @@ def build_development_workflow_agent(
 
     return AgentBuildResult(
         agent=agent,
-        function_tool_names=tuple(tool.name for tool in function_tools),
+        function_tool_names=(),
         toolset_ids=(
+            DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID,
+            DEVELOPMENT_WORKFLOW_LOCAL_WEB_SEARCH_TOOLSET_ID,
+            DEVELOPMENT_WORKFLOW_LOCAL_WEB_FETCH_TOOLSET_ID,
             *toolset_ids,
             TS_MONOREPO_DYNAMIC_TOOLSET_ID,
             TS_MONOREPO_TOOLSET_ID,

@@ -16,9 +16,6 @@ from unoplat_code_confluence_query_engine.config.settings import EnvironmentSett
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     DependencyGuideEntry,
 )
-from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
-    AgentsMdUpdaterOutput,
-)
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
 )
@@ -31,13 +28,14 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly import (
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.assembler import (
+    assemble_enabled_temporal_agents,
+    create_assembly_context,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.catalog import (
     DEFAULT_ENABLED_AGENT_TYPES,
     AgentType,
-    assemble_enabled_temporal_agents,
     build_enabled_agent_builders,
-    create_assembly_context,
-    provider_supports_builtin_web_search,
 )
 
 
@@ -53,9 +51,6 @@ class TemporalAgentRegistry(BaseModel):
         None
     )
     business_domain_guide: TemporalAgent[AgentDependencies, str] | None = None
-    agents_md_updater: TemporalAgent[AgentDependencies, AgentsMdUpdaterOutput] | None = (
-        None
-    )
     call_expression_validator: (
         TemporalAgent[AgentDependencies, CallExpressionValidationAgentOutput] | None
     ) = None
@@ -82,7 +77,23 @@ class TemporalAgentRegistry(BaseModel):
         return len(self.enabled_agent_names())
 
 
-ENABLED_AGENTS: frozenset[AgentType] = DEFAULT_ENABLED_AGENT_TYPES
+def _resolve_enabled_agents(raw: str) -> frozenset[AgentType]:
+    """Parse the ENABLED_AGENTS env string into a frozenset of AgentType.
+
+    Empty string → all agents enabled (DEFAULT_ENABLED_AGENT_TYPES).
+    """
+    if not raw.strip():
+        return DEFAULT_ENABLED_AGENT_TYPES
+    selected: set[AgentType] = set()
+    for token in raw.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        try:
+            selected.add(AgentType(token))
+        except ValueError:
+            logger.warning("Ignoring unknown agent type in ENABLED_AGENTS: '{}'", token)
+    return frozenset(selected) if selected else DEFAULT_ENABLED_AGENT_TYPES
 
 
 def create_temporal_agents(
@@ -91,10 +102,11 @@ def create_temporal_agents(
     model_settings: ModelSettings | None = None,
     provider_key: str | None = None,
     exa_configured: bool = False,
+    enabled_agents: frozenset[AgentType] | None = None,
 ) -> TemporalAgentRegistry:
     """Create enabled agents wrapped with TemporalAgent for durable execution.
 
-    Only creates agents that are listed in ENABLED_AGENTS.
+    Only creates agents that are in *enabled_agents* (defaults to all).
     """
     assembly_context = create_assembly_context(
         model=model,
@@ -104,16 +116,16 @@ def create_temporal_agents(
         exa_configured=exa_configured,
     )
     logger.info(
-        "Agent external search wiring resolved: provider_key={}, exa_configured={}, supports_builtin_web_search={}, use_exa_tools={}, use_builtin_web_search={}, use_duckduckgo_search={}",
+        "Agent external web-tool wiring resolved: provider_key={}, exa_configured={}, use_exa_toolsets={}, direct_web_search_capability={}, direct_web_fetch_capability={}",
         provider_key,
         exa_configured,
-        provider_supports_builtin_web_search(provider_key),
         assembly_context.search_policy.include_exa_toolsets,
-        assembly_context.search_policy.include_builtin_web_search,
-        assembly_context.search_policy.include_duckduckgo_fallback,
+        True,
+        True,
     )
+    effective_agents = enabled_agents if enabled_agents is not None else DEFAULT_ENABLED_AGENT_TYPES
     assembled_agents = assemble_enabled_temporal_agents(
-        agent_builders=build_enabled_agent_builders(ENABLED_AGENTS),
+        agent_builders=build_enabled_agent_builders(effective_agents),
         context=assembly_context,
     )
     agents = TemporalAgentRegistry.model_validate(
@@ -169,12 +181,16 @@ def initialize_temporal_agents(
     _cached_model_settings = model_settings
     _cached_usage_limits = UsageLimits(request_limit=effective_limit)
 
+    resolved_agents = _resolve_enabled_agents(settings.enabled_agents)
+    logger.info("Resolved enabled agents from settings: {}", [a.value for a in resolved_agents])
+
     _temporal_agents = create_temporal_agents(
         model,
         retry_config,
         model_settings,
         provider_key=provider_key,
         exa_configured=exa_configured,
+        enabled_agents=resolved_agents,
     )
 
     logger.info(

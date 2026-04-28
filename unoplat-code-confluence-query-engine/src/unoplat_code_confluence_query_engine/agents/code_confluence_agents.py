@@ -8,20 +8,21 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 
 
 def get_engineering_citation_instructions() -> str:
-    """Return stable citation-validation instructions for the engineering workflow agent."""
+    """Return command-verification policy for the engineering workflow agent."""
     return (
-        "<citation_validation>\n"
-        "For EVERY command you emit, verify it against official documentation using the available documentation/search capability together with repository evidence.\n"
-        "Prefer official or vendor-authored documentation for the tool or framework behind each command.\n"
-        "Confirm the command syntax, flags, scope, and usage before emitting it.\n\n"
-        "Confidence scoring guidance:\n"
-        "- 0.90-1.00: exact match with official documentation or strong repository/config evidence\n"
-        "- 0.71-0.89: strong evidence and acceptable to emit\n"
-        "- 0.50-0.70: partially supported or inferred; do NOT emit\n"
-        "- Below 0.50: speculative; do NOT emit\n\n"
-        "Only emit commands when confidence is > 0.70.\n"
-        "If official documentation cannot be verified, rely on repository evidence only and remain conservative.\n"
-        "</citation_validation>\n"
+        "<verification_strategy>\n"
+        "Use console capability tools to inspect the codebase before emitting commands.\n"
+        "Prefer `glob`, `grep`, and `read_file` for discovering configuration files and scripts.\n"
+        "Use `execute` only to verify commands against the current repository state before returning them.\n\n"
+        "Stage-specific execution policy:\n"
+        "- Verify `install`, `build`, `test`, `lint`, and `type_check` commands by running them to completion when feasible.\n"
+        "- Verify `dev` commands with a bounded startup check only: start the command, wait just long enough to confirm startup, make at most one lightweight probe if needed, capture the evidence, then stop the entire process tree immediately.\n"
+        "- Never leave dev servers, watchers, or background jobs running after verification. Do not rely on shell job-control cleanup patterns like trailing `&`, `jobs`, or `kill %1` as the main cleanup strategy.\n\n"
+        "Command selection criteria:\n"
+        "- Only emit commands that were executed successfully in the sandbox OR are directly supported by repository configuration evidence.\n"
+        "- Cross-check command syntax, flags, and scope against official documentation when available via web search/fetch.\n"
+        "- If a command cannot be executed or verified, do NOT emit it.\n"
+        "</verification_strategy>\n"
     )
 
 
@@ -70,7 +71,7 @@ async def per_language_development_workflow_prompt(
         "commands MUST NOT be empty.\n"
         "</task>\n\n"
         "<file_path_requirements>\n"
-        "When using tools, pass ABSOLUTE filesystem paths only.\n"
+        "When using file-related tools, pass ABSOLUTE filesystem paths only.\n"
         f"The codebase root path is: {codebase_path}\n"
         "If monorepo context indicates inherited ownership, you may inspect absolute parent directories above the codebase root to locate the owning workspace root.\n"
         "In FINAL OUTPUT, every config_file path MUST be repository-root-relative (never absolute).\n"
@@ -79,37 +80,17 @@ async def per_language_development_workflow_prompt(
         "<output_contract>\n"
         "Return ONLY JSON with this exact top-level shape:\n"
         '{"commands":[{"command":"<runnable command>","stage":"install|build|dev|test|lint|type_check",'
-        '"config_file":"<repository-root-relative path or unknown>","confidence":0.0,'
+        '"config_file":"<repository-root-relative path or unknown>",'
         '"working_directory":"<repo-relative dir: omit/null=codebase root, .=repo root, path=workspace root>"}]}\n'
         "Do not include markdown, prose, or extra keys.\n"
         "</output_contract>\n\n"
-        "<command_discovery_requirements>\n"
-        "You MUST inspect likely command sources before final output:\n"
-        "- Python: pyproject.toml, Taskfile.yml, Makefile, tox.ini, noxfile.py, pytest.ini, ruff.toml, mypy.ini\n"
-        "- TypeScript/JavaScript: package.json scripts, Taskfile.yml, Makefile, turbo/nx configs\n"
-        "- Rust: Cargo.toml / cargo aliases\n"
-        "- Go: Makefile/taskfile/go toolchain conventions\n"
-        "If install/bootstrap/setup commands exist, include them with stage=install.\n"
-        "If build/test/lint/type_check commands exist, include them too.\n"
-        "</command_discovery_requirements>\n\n"
         "<rules>\n"
+        "- Use console tools (`glob`, `grep`, `read_file`) to discover configuration files, scripts, and project structure before emitting commands.\n"
+        "- Follow the shared verification strategy when deciding whether a command is verified enough to include.\n"
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"
         "- Emit only the keys defined in output_contract and nothing else.\n"
         "- config_file is the single most relevant configuration file for this command (repository-root-relative path or 'unknown').\n"
-        "- confidence is a float between 0.0 and 1.0.\n"
-        "- Commands with confidence <= 0.70 will be filtered out.\n"
         "- working_directory: omit or null to run from codebase root, '.' to run from repo root, or a repo-relative path for a specific workspace root.\n"
         "</rules>\n"
-        "<examples>\n"
-        "Example (Python + uv):\n"
-        '{"commands":['
-        '{"command":"uv sync --group dev --group test","stage":"install","config_file":"pyproject.toml","confidence":0.95},'
-        "Example (TypeScript):\n"
-        '{"commands":['
-        '{"command":"npm ci","stage":"install","config_file":"package.json","confidence":0.95},'
-        "Example (TypeScript monorepo workspace member):\n"
-        '{"commands":['
-        '{"command":"pnpm install","stage":"install","config_file":"infra/services/pnpm-workspace.yaml","confidence":0.95,"working_directory":"infra/services"},'
-        "</examples>\n"
     )

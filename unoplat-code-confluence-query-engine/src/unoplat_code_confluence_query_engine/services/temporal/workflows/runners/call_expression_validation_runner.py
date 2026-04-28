@@ -79,7 +79,10 @@ async def run_call_expression_validation(
             repository_workflow_run_id=repository_workflow_run_id,
             agent_name="call_expression_validator",
         )
-        validator_prompt = build_call_expression_validator_prompt(candidate)
+        validator_prompt = build_call_expression_validator_prompt(
+            codebase_metadata.codebase_path,
+            candidate,
+        )
 
         try:
             validator_result = await validator_agent.run(

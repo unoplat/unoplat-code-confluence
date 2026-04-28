@@ -82,12 +82,12 @@ from unoplat_code_confluence_query_engine.services.temporal.temporal_agents impo
     get_temporal_agents,
     initialize_temporal_agents,
 )
+from unoplat_code_confluence_query_engine.services.temporal.version_management import (
+    set_current_version,
+)
 from unoplat_code_confluence_query_engine.services.temporal.workflows import (
     CodebaseAgentWorkflow,
     RepositoryAgentWorkflow,
-)
-from unoplat_code_confluence_query_engine.services.temporal.version_management import (
-    set_current_version,
 )
 
 if TYPE_CHECKING:
@@ -186,7 +186,6 @@ class TemporalWorkerManager:
         # Initialize service registry with MCP config
         self._registry = ServiceRegistry.get_instance()
         await self._registry.initialize(
-            settings=settings,
             mcp_config_path=settings.mcp_servers_config_path,
         )
         logger.info(
@@ -345,11 +344,13 @@ class TemporalWorkerManager:
                 codebase_db_activity.update_codebase_workflow_status,
                 snapshot_activity.persist_agent_snapshot_complete,
                 business_logic_post_process_activity.post_process_business_logic,
+                dependency_guide_completion_activity.write_dependency_overview,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
                 dependency_guide_fetch_activity.fetch_codebase_dependencies,
                 engineering_workflow_completion_activity.emit_engineering_workflow_completion,
                 app_interfaces_activity.fetch_low_confidence_call_expression_candidates,
                 app_interfaces_activity.build_app_interfaces,
+                app_interfaces_activity.write_app_interfaces,
                 app_interfaces_activity.emit_app_interfaces_completion,
                 git_ref_resolution_activity.resolve_git_ref,
                 managed_block_activity.bootstrap,

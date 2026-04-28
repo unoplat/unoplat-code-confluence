@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, Set, cast
 
@@ -42,6 +43,41 @@ from src.code_confluence_flow_bridge.processor.db.postgres.code_confluence_relat
 )
 
 LOW_CONFIDENCE_CALL_EXPRESSION_THRESHOLD = 0.70
+
+DEFAULT_IGNORED_DIRECTORY_NAMES: frozenset[str] = frozenset(
+    {
+        # Python virtualenvs and dependency installs
+        ".venv",
+        "venv",
+        "env",
+        ".env",
+        "site-packages",
+        # JS / TS dependency installs
+        "node_modules",
+        "vendor",
+        # VCS metadata
+        ".git",
+        ".hg",
+        ".svn",
+        # Caches and tool outputs
+        "__pycache__",
+        ".pytest_cache",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".tox",
+        # Build / generated artifact directories
+        "dist",
+        "build",
+        ".next",
+        "coverage",
+        # Test fixture directories (never application code)
+        "test_data",
+        "testdata",
+        "fixtures",
+        "__fixtures__",
+        "__snapshots__",
+    }
+)
 
 
 def _resolve_match_confidence(detection: object) -> float:
@@ -136,6 +172,13 @@ class CodeConfluenceCodebaseParser:
         self.language_processor: LanguageCodebaseProcessor = (
             self._initialize_language_processor()
         )
+        self.ignored_directory_names: frozenset[str] = (
+            DEFAULT_IGNORED_DIRECTORY_NAMES.union(
+                name.strip()
+                for name in self.config.codebase_parser_ignored_directories
+                if name and name.strip()
+            )
+        )
 
         logger.info(
             "Parser initialized | codebase_name={} | language={}",
@@ -191,6 +234,8 @@ class CodeConfluenceCodebaseParser:
         return processor
 
     def _should_ignore_file(self, file_path: Path) -> bool:
+        if any(part in self.ignored_directory_names for part in file_path.parts):
+            return True
         return self.language_processor.should_ignore(file_path)
 
     def discover_source_files(self) -> List[str]:
@@ -205,16 +250,23 @@ class CodeConfluenceCodebaseParser:
         supported_extensions = self.language_processor.supported_extensions
         discovered_files: List[str] = []
 
-        for file_path in root_path.rglob("*"):
-            if not file_path.is_file():
-                continue
-            if file_path.suffix not in supported_extensions:
-                continue
-            if self._should_ignore_file(file_path):
-                logger.debug("Ignoring file: {}", file_path)
-                continue
+        for current_root, dirnames, filenames in os.walk(root_path):
+            dirnames[:] = [
+                dirname
+                for dirname in dirnames
+                if dirname not in self.ignored_directory_names
+            ]
 
-            discovered_files.append(str(file_path.resolve()))
+            current_root_path = Path(current_root)
+            for filename in filenames:
+                file_path = current_root_path / filename
+                if file_path.suffix not in supported_extensions:
+                    continue
+                if self._should_ignore_file(file_path):
+                    logger.debug("Ignoring file: {}", file_path)
+                    continue
+
+                discovered_files.append(str(file_path.resolve()))
 
         discovered_files.sort()
 

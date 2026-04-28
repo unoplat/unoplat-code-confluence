@@ -43,7 +43,7 @@ export const agentMdEngineeringWorkflowCommandSchema = z.object({
   command: z.string(),
   stage: z.enum(["install", "build", "dev", "test", "lint", "type_check"]),
   config_file: z.string(),
-  confidence: z.number().min(0).max(1),
+  working_directory: z.string().nullable().optional(),
 });
 
 export type AgentMdEngineeringWorkflowCommand = z.infer<
@@ -72,7 +72,6 @@ export const agentMdBusinessLogicSchema = z.object({
 export const agentMdDependencyGuideEntrySchema = z.object({
   name: z.string(),
   purpose: z.string(),
-  usage: z.string(),
 });
 
 export type AgentMdDependencyGuideEntry = z.infer<

@@ -4,9 +4,10 @@ Activities (tools) access services via this registry rather than through
 AgentDependencies, since deps must be Pydantic-serializable for Temporal.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
-from unoplat_code_confluence_query_engine.config.settings import EnvironmentSettings
 from unoplat_code_confluence_query_engine.services.mcp.mcp_server_manager import (
     MCPServerManager,
 )
@@ -22,7 +23,6 @@ class ServiceRegistry:
     _initialized: bool = False
 
     def __init__(self) -> None:
-        self._settings: EnvironmentSettings | None = None
         self._mcp_server_manager: MCPServerManager | None = None
         self._snapshot_writer: RepositoryAgentSnapshotWriter | None = None
 
@@ -35,19 +35,15 @@ class ServiceRegistry:
 
     async def initialize(
         self,
-        settings: EnvironmentSettings | None = None,
         mcp_config_path: str | Path | None = None,
     ) -> None:
         """Initialize services. Called by worker at startup.
 
         Args:
-            settings: Optional environment settings. Uses defaults if not provided.
             mcp_config_path: Optional path to MCP servers config JSON file.
         """
         if self._initialized:
             return
-
-        self._settings = settings or EnvironmentSettings()
 
         # Initialize MCP server manager
         self._mcp_server_manager = MCPServerManager()

@@ -27,11 +27,12 @@ async def upsert_framework_feature_validation_evidence(
     Args:
         request: Typed validation payload containing usage-row identity,
             validator decision, final confidence, evidence payload, and optional
-            corrected structured feature identity for `correct` decisions.
+            corrected file/span location and match_text for `correct`
+            decisions on the same usage row.
 
     Returns:
-        Typed summary describing whether the source row was updated and whether
-        a corrected row was upserted.
+        Typed summary describing whether the source row was updated and what
+        the row's current identity is after any in-place location correction.
     """
     codebase_path = ctx.deps.codebase_metadata.codebase_path
     try:

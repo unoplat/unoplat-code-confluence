@@ -1,0 +1,47 @@
+---
+title: "Release v0.34.0"
+description: "Capability-operation schema v4, FastMCP client support, Firebase detection, structured feature identities, and docs/catalog hardening"
+version: "0.34.0"
+releaseDate: "2026-04-12"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.34.0"
+---
+
+## Highlights
+
+This release introduces the v4 capability-operation detection model, expands framework and MCP coverage, adopts structured feature identity across the platform, and hardens the docs and ingestion pipelines to match the new hierarchy.
+
+## What's New
+
+### Capability-Operation Schema v4
+
+- Introduced the v4 detection schema with a capability-operation-detector hierarchy
+- Migrated framework definitions and schema contracts to the new structured hierarchy
+- Replaced flat framework feature identifiers with canonical `capability_key` and `operation_key` fields
+
+### Expanded Platform Coverage
+
+- Added FastMCP client support with `mcp_client` capability and FastMCP toolset client definitions
+- Added Firebase TypeScript framework detection
+- Expanded canonical capability families and renamed capability identifiers to match the new schema model
+
+### Platform-Wide Structured Feature Identity
+
+- Adopted structured framework feature identity across commons, ingestion, and query engine components
+- Flattened capability-operation pairs into composite feature keys during ingestion where needed for downstream compatibility
+- Added deterministic commit SHA pinning for network clone tests
+
+### Docs and Agent Assembly
+
+- Updated the docs route and framework feature catalog to render the new capability-operation hierarchy
+- Added `hideDescription` support and improved DIDS link rendering in the docs UI
+- Added a Temporal `agent_assembly` package with catalog, assembler, and agent definitions
+
+## Bug Fixes
+
+- Raised the agent confidence threshold to `0.70`
+- Guarded the docs catalog against null feature entries
+- Fixed docs project typecheck and build failures
+- Split hash fragments into a dedicated prop for TanStack Router links
+- Aligned ingestion definitions, query engine mappings, tests, and schema names with canonical capability keys
+- Improved ingestion recovery during `git pull` merge conflicts
+- Upgraded commons dependencies to `v0.47.0` across ingestion and query engine services

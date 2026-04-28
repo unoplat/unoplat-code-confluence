@@ -2,12 +2,16 @@
 import os
 import json
 from pathlib import Path
+from urllib.parse import quote
 
 from dotenv import load_dotenv
 
 # Third Party
 import pytest
-from src.code_confluence_flow_bridge.confluence_git.github_helper import GithubHelper
+from src.code_confluence_flow_bridge.confluence_git.github_helper import (
+    GithubHelper,
+    _build_authenticated_url,
+)
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRequestConfiguration,
 )
@@ -75,6 +79,17 @@ def github_pat_token():
     return token
 
 
+def _assert_token_not_persisted(repo_path: str, github_pat_token: str) -> None:
+    """Ensure authenticated git URLs are not persisted to local git config."""
+    git_config_path = Path(repo_path) / ".git" / "config"
+    assert git_config_path.exists()
+
+    git_config = git_config_path.read_text()
+    assert github_pat_token not in git_config
+    assert quote(github_pat_token, safe="") not in git_config
+    assert "x-access-token" not in git_config
+
+
 def repository_settings_to_github_request(
     settings: RepositorySettings,
 ) -> RepositoryRequestConfiguration:
@@ -101,6 +116,27 @@ def repository_settings_to_github_request(
 
 
 class TestGithubHelper:
+    def test_build_authenticated_url_uses_token_for_https_and_ssh_urls(self) -> None:
+        token = "ghp_example/token:with@special chars"
+
+        https_url = _build_authenticated_url(
+            "https://github.com/unoplat/unoplat-code-confluence.git", token
+        )
+        assert https_url == (
+            "https://x-access-token:"
+            "ghp_example%2Ftoken%3Awith%40special%20chars"
+            "@github.com/unoplat/unoplat-code-confluence.git"
+        )
+
+        ssh_url = _build_authenticated_url(
+            "git@github.com:unoplat/unoplat-code-confluence.git", token
+        )
+        assert ssh_url == (
+            "https://x-access-token:"
+            "ghp_example%2Ftoken%3Awith%40special%20chars"
+            "@github.com/unoplat/unoplat-code-confluence.git"
+        )
+
     def test_clone_repository(
         self,
         github_helper: GithubHelper,
@@ -180,6 +216,14 @@ class TestGithubHelper:
         assert repo.readme is not None
         assert len(repo.readme) > 0
 
+        repo_base = os.path.join(
+            os.path.expanduser("~"),
+            ".unoplat",
+            "repositories",
+            "unoplat-code-confluence",
+        )
+        _assert_token_not_persisted(repo_base, github_pat_token)
+
     def test_clone_nested_repository(
         self,
         github_helper: GithubHelper,
@@ -258,6 +302,14 @@ class TestGithubHelper:
         # Check README
         assert repo.readme is not None
         assert len(repo.readme) > 0
+
+        repo_base = os.path.join(
+            os.path.expanduser("~"),
+            ".unoplat",
+            "repositories",
+            "unoplat-code-confluence",
+        )
+        _assert_token_not_persisted(repo_base, github_pat_token)
 
     def test_github_connection(self, github_pat_token):
         """Test GitHub connection - remains synchronous as it just validates the token"""

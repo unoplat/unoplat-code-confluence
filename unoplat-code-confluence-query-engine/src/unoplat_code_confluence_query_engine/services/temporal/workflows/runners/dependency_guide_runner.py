@@ -9,9 +9,6 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
-        SectionId,
-    )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
     )
@@ -49,9 +46,6 @@ with workflow.unsafe.imports_passed_through():
         enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.section_updater_runner import (
-        run_section_updater,
-    )
 
 
 async def run_dependency_guide_agent(
@@ -64,7 +58,9 @@ async def run_dependency_guide_agent(
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
 ) -> None:
-    """Run dependency-guide target fetch, agent synthesis, and section update."""
+    """Run dependency-guide target fetch, agent synthesis, and artifact write."""
+    _ = programming_language_metadata
+
     dependency_guide_agent = temporal_agents.dependency_guide
     if dependency_guide_agent is None:
         logger.info(
@@ -96,13 +92,13 @@ async def run_dependency_guide_agent(
         dependency_agent_stats: list[UsageStatistics] = []
 
         for dependency_target in dependency_targets:
+            deps = AgentDependencies(
+                repository_qualified_name=repository_qualified_name,
+                codebase_metadata=codebase_metadata,
+                repository_workflow_run_id=repository_workflow_run_id,
+                agent_name="dependency_guide_item",
+            )
             try:
-                deps = AgentDependencies(
-                    repository_qualified_name=repository_qualified_name,
-                    codebase_metadata=codebase_metadata,
-                    repository_workflow_run_id=repository_workflow_run_id,
-                    agent_name="dependency_guide_item",
-                )
                 result = await dependency_guide_agent.run(
                     build_dependency_guide_prompt(
                         dependency_target=dependency_target,
@@ -129,6 +125,17 @@ async def run_dependency_guide_agent(
         results["dependency_guide"] = {"dependencies": dependency_entries}
 
         await workflow.execute_activity(
+            DependencyGuideCompletionActivity.write_dependency_overview,
+            args=[
+                codebase_metadata.codebase_path,
+                dependency_entries,
+                codebase_metadata.codebase_package_manager,
+            ],
+            start_to_close_timeout=timedelta(seconds=30),
+            retry_policy=DB_ACTIVITY_RETRY_POLICY,
+        )
+
+        await workflow.execute_activity(
             DependencyGuideCompletionActivity.emit_dependency_guide_completion,
             args=[
                 repository_qualified_name,
@@ -149,19 +156,6 @@ async def run_dependency_guide_agent(
             "[workflow] dependency_guide completed for {}: {} entries",
             codebase_metadata.codebase_name,
             len(dependency_entries),
-        )
-
-        await run_section_updater(
-            temporal_agents=temporal_agents,
-            section_id=SectionId.DEPENDENCY_GUIDE,
-            codebase_metadata=codebase_metadata,
-            repository_qualified_name=repository_qualified_name,
-            repository_workflow_run_id=repository_workflow_run_id,
-            programming_language_metadata=programming_language_metadata,
-            section_data=results["dependency_guide"],
-            agent_stats=agent_stats,
-            agent_errors=agent_errors,
-            updater_runs=results["agents_md_updater_runs"],
         )
     except Exception as e:
         raise_if_temporal_cancellation(e)

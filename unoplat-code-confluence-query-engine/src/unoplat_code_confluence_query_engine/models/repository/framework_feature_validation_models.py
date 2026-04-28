@@ -52,6 +52,107 @@ class FrameworkFeatureUsageIdentity(BaseModel):
             }
         )
 
+    def with_location_corrections(
+        self,
+        *,
+        file_path: str | None = None,
+        start_line: int | None = None,
+        end_line: int | None = None,
+    ) -> FrameworkFeatureUsageIdentity:
+        """Return a copy with corrected location fields."""
+        return self.model_copy(
+            update={
+                "file_path": file_path or self.file_path,
+                "start_line": start_line if start_line is not None else self.start_line,
+                "end_line": end_line if end_line is not None else self.end_line,
+            }
+        )
+
+
+def _has_location_update(
+    corrected_file_path: str | None,
+    corrected_start_line: int | None,
+    corrected_end_line: int | None,
+) -> bool:
+    return (
+        corrected_file_path is not None
+        or corrected_start_line is not None
+        or corrected_end_line is not None
+    )
+
+
+def _has_any_update_fields(
+    *,
+    corrected_file_path: str | None,
+    corrected_start_line: int | None,
+    corrected_end_line: int | None,
+    corrected_match_text: str | None,
+) -> bool:
+    return (
+        _has_location_update(
+            corrected_file_path,
+            corrected_start_line,
+            corrected_end_line,
+        )
+        or corrected_match_text is not None
+    )
+
+
+def _build_updated_identity(
+    *,
+    identity: FrameworkFeatureUsageIdentity,
+    corrected_file_path: str | None,
+    corrected_start_line: int | None,
+    corrected_end_line: int | None,
+) -> FrameworkFeatureUsageIdentity:
+    return identity.with_location_corrections(
+        file_path=corrected_file_path,
+        start_line=corrected_start_line,
+        end_line=corrected_end_line,
+    )
+
+
+def _validate_update_contract(
+    *,
+    decision: FrameworkFeatureValidationDecision,
+    identity: FrameworkFeatureUsageIdentity,
+    corrected_file_path: str | None,
+    corrected_start_line: int | None,
+    corrected_end_line: int | None,
+    corrected_match_text: str | None,
+) -> None:
+    has_any_update_fields = _has_any_update_fields(
+        corrected_file_path=corrected_file_path,
+        corrected_start_line=corrected_start_line,
+        corrected_end_line=corrected_end_line,
+        corrected_match_text=corrected_match_text,
+    )
+
+    if decision != FrameworkFeatureValidationDecision.CORRECT:
+        if has_any_update_fields:
+            raise ValueError(
+                "corrected_* fields are only allowed when decision='correct'"
+            )
+        return
+
+    if not has_any_update_fields:
+        raise ValueError(
+            "decision='correct' requires corrected file_path/start_line/end_line "
+            "and/or corrected_match_text"
+        )
+
+    updated_identity = _build_updated_identity(
+        identity=identity,
+        corrected_file_path=corrected_file_path,
+        corrected_start_line=corrected_start_line,
+        corrected_end_line=corrected_end_line,
+    )
+
+    if corrected_match_text is None and updated_identity == identity:
+        raise ValueError(
+            "Corrected location must differ from identity fields when corrected_match_text is not provided"
+        )
+
 
 class FrameworkFeatureValidationEvidenceUpsertRequest(BaseModel):
     """Repository input for evidence/confidence upsert operation."""
@@ -60,40 +161,40 @@ class FrameworkFeatureValidationEvidenceUpsertRequest(BaseModel):
     decision: FrameworkFeatureValidationDecision
     final_confidence: float = Field(ge=0.0, le=1.0)
     evidence_json: dict[str, object] = Field(default_factory=dict)
-    updated_feature_capability_key: str | None = None
-    updated_feature_operation_key: str | None = None
+    corrected_file_path: str | None = None
+    corrected_start_line: int | None = Field(default=None, ge=1)
+    corrected_end_line: int | None = Field(default=None, ge=1)
+    corrected_match_text: str | None = None
 
     @model_validator(mode="after")
     def validate_correct_decision_fields(
         self,
     ) -> FrameworkFeatureValidationEvidenceUpsertRequest:
-        if self.decision == FrameworkFeatureValidationDecision.CORRECT:
-            if not self.updated_feature_capability_key:
-                raise ValueError(
-                    "updated_feature_capability_key is required when decision='correct'"
-                )
-            if not self.updated_feature_operation_key:
-                raise ValueError(
-                    "updated_feature_operation_key is required when decision='correct'"
-                )
-            if (
-                self.updated_feature_capability_key
-                == self.identity.feature_capability_key
-                and self.updated_feature_operation_key
-                == self.identity.feature_operation_key
-            ):
-                raise ValueError(
-                    "Updated structured feature identity must differ from identity fields"
-                )
+        _validate_update_contract(
+            decision=self.decision,
+            identity=self.identity,
+            corrected_file_path=self.corrected_file_path,
+            corrected_start_line=self.corrected_start_line,
+            corrected_end_line=self.corrected_end_line,
+            corrected_match_text=self.corrected_match_text,
+        )
         return self
+
+    def build_updated_identity(self) -> FrameworkFeatureUsageIdentity:
+        """Return the row identity after applying any location corrections."""
+        return _build_updated_identity(
+            identity=self.identity,
+            corrected_file_path=self.corrected_file_path,
+            corrected_start_line=self.corrected_start_line,
+            corrected_end_line=self.corrected_end_line,
+        )
 
 
 class FrameworkFeatureValidationEvidenceUpsertResult(BaseModel):
     """Result summary for evidence/confidence upsert operations."""
 
     source_row_updated: bool
-    corrected_row_upserted: bool
-    corrected_identity: FrameworkFeatureUsageIdentity | None = None
+    current_identity: FrameworkFeatureUsageIdentity
 
 
 class FrameworkFeatureValidationStatusTransitionRequest(BaseModel):
@@ -134,30 +235,22 @@ class CallExpressionValidationAgentOutput(BaseModel):
     decision: FrameworkFeatureValidationDecision
     final_confidence: float = Field(ge=0.0, le=1.0)
     target_status: ValidationStatus
-    updated_feature_capability_key: str | None = None
-    updated_feature_operation_key: str | None = None
+    corrected_file_path: str | None = None
+    corrected_start_line: int | None = Field(default=None, ge=1)
+    corrected_end_line: int | None = Field(default=None, ge=1)
+    corrected_match_text: str | None = None
     summary: str
 
     @model_validator(mode="after")
     def validate_decision_contract(self) -> CallExpressionValidationAgentOutput:
-        if self.decision == FrameworkFeatureValidationDecision.CORRECT:
-            if not self.updated_feature_capability_key:
-                raise ValueError(
-                    "updated_feature_capability_key is required when decision='correct'"
-                )
-            if not self.updated_feature_operation_key:
-                raise ValueError(
-                    "updated_feature_operation_key is required when decision='correct'"
-                )
-            if (
-                self.updated_feature_capability_key
-                == self.identity.feature_capability_key
-                and self.updated_feature_operation_key
-                == self.identity.feature_operation_key
-            ):
-                raise ValueError(
-                    "Updated structured feature identity must differ from identity fields"
-                )
+        _validate_update_contract(
+            decision=self.decision,
+            identity=self.identity,
+            corrected_file_path=self.corrected_file_path,
+            corrected_start_line=self.corrected_start_line,
+            corrected_end_line=self.corrected_end_line,
+            corrected_match_text=self.corrected_match_text,
+        )
 
         if self.decision == FrameworkFeatureValidationDecision.NEEDS_REVIEW:
             if self.target_status != ValidationStatus.NEEDS_REVIEW:

@@ -4,9 +4,6 @@ from collections.abc import Callable, Set as AbstractSet
 from enum import Enum
 from typing import Any
 
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.agents_md_updater import (
-    build_agents_md_updater_agent,
-)
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.business_domain import (
     build_business_domain_agent,
 )
@@ -34,7 +31,6 @@ class AgentType(str, Enum):
     DEVELOPMENT_WORKFLOW = "development_workflow_guide"
     DEPENDENCY = "dependency_guide"
     BUSINESS_DOMAIN = "business_domain_guide"
-    AGENTS_MD_UPDATER = "agents_md_updater"
     CALL_EXPRESSION_VALIDATOR = "call_expression_validator"
 
 
@@ -43,7 +39,6 @@ DEFAULT_ENABLED_AGENT_TYPES = frozenset(
         AgentType.DEVELOPMENT_WORKFLOW,
         AgentType.DEPENDENCY,
         AgentType.BUSINESS_DOMAIN,
-        AgentType.AGENTS_MD_UPDATER,
         AgentType.CALL_EXPRESSION_VALIDATOR,
     }
 )
@@ -61,7 +56,6 @@ AGENT_BUILDERS: dict[
     AgentType.DEVELOPMENT_WORKFLOW: build_development_workflow_agent,
     AgentType.DEPENDENCY: build_dependency_guide_agent,
     AgentType.BUSINESS_DOMAIN: build_business_domain_agent,
-    AgentType.AGENTS_MD_UPDATER: build_agents_md_updater_agent,
     AgentType.CALL_EXPRESSION_VALIDATOR: build_call_expression_validator_agent,
 }
 

@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1.7
+# Development image for Tilt hot-reload workflow.
+#
+# - Dependencies are baked into the image first for good layer reuse.
+# - Runtime source is also copied so the very first `tilt up` can boot before
+#   any live_update sync occurs.
+# - Tilt live_update still handles subsequent source edits quickly.
+# - `fastapi dev` provides auto-reload via watchfiles/inotify.
+FROM python:3.13-slim
+
+COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH=/app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git build-essential libpq-dev ripgrep \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install the dependency closure first so source edits do not invalidate it.
+COPY pyproject.toml uv.lock README.md ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project
+
+# Copy runtime source so the container is bootable on the initial Tilt build.
+COPY . /app
+
+# Ensure the data dir that the app writes to exists.
+RUN mkdir -p /opt/unoplat/repositories
+
+EXPOSE 8000
+
+# Work from the package dir so `fastapi dev` watches src/ only (not .venv).
+WORKDIR /app/src/code_confluence_flow_bridge
+CMD ["uv", "run", "fastapi", "dev", "main.py", "--host", "0.0.0.0", "--port", "8000"]

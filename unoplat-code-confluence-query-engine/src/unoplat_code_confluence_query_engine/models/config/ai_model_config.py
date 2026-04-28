@@ -2,9 +2,19 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Literal, Optional, Union, cast
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+ThinkingLevelIn = Union[bool, Literal["minimal", "low", "medium", "high", "xhigh"]]
+"""Unified thinking/reasoning level accepted by pydantic-ai ``ModelSettings``.
+
+Pydantic-ai translates this per provider. On Bedrock it auto-routes to the
+Anthropic (``thinking.budget_tokens``), OpenAI (``reasoning_effort``), or
+Qwen (``reasoning_config``) request shape based on the model ID prefix, and
+silently ignores the value on non-reasoning models via
+``profile.supports_thinking``.
+"""
 
 
 class ProviderKind(str, Enum):
@@ -21,6 +31,7 @@ class ModelParams(BaseModel):
     top_p: Optional[float] = Field(None, ge=0.0, le=1.0)
     max_tokens: Optional[int] = Field(None, gt=0)
     request_limit: Optional[int] = Field(None, gt=0, le=1000)
+    thinking: Optional[ThinkingLevelIn] = None
 
 
 class AiModelConfigBase(BaseModel):

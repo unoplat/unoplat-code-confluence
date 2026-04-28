@@ -33,7 +33,7 @@ from unoplat_code_confluence_query_engine.models.repository.framework_feature_va
 )
 
 LOW_CONFIDENCE_VALIDATION_THRESHOLD = 0.70
-VALIDATOR_ACCEPT_DECISIONS: frozenset[str] = frozenset({"confirm"})
+VALIDATOR_ACCEPT_DECISIONS: frozenset[str] = frozenset({"confirm", "correct"})
 _DATA_MODEL_CAPABILITY_KEYS: tuple[str, ...] = (
     "data_model",
     "relational_database",
@@ -68,17 +68,23 @@ def _build_validator_payload(
     decision: FrameworkFeatureValidationDecision,
     final_confidence: float,
     evidence_json: Mapping[str, object],
-    updated_feature_capability_key: str | None,
-    updated_feature_operation_key: str | None,
+    corrected_file_path: str | None = None,
+    corrected_start_line: int | None = None,
+    corrected_end_line: int | None = None,
+    corrected_match_text: str | None = None,
 ) -> dict[str, object]:
     payload = _copy_mapping(evidence_json)
     payload["decision"] = decision.value
     payload["final_confidence"] = float(final_confidence)
     payload["recorded_at_utc"] = datetime.now(timezone.utc).isoformat()
-    if updated_feature_capability_key:
-        payload["updated_feature_capability_key"] = updated_feature_capability_key
-    if updated_feature_operation_key:
-        payload["updated_feature_operation_key"] = updated_feature_operation_key
+    if corrected_file_path is not None:
+        payload["corrected_file_path"] = corrected_file_path
+    if corrected_start_line is not None:
+        payload["corrected_start_line"] = corrected_start_line
+    if corrected_end_line is not None:
+        payload["corrected_end_line"] = corrected_end_line
+    if corrected_match_text is not None:
+        payload["corrected_match_text"] = corrected_match_text
     return payload
 
 
@@ -220,26 +226,6 @@ async def _get_framework_usage_row(
     return result.scalar_one_or_none()
 
 
-async def _ensure_framework_feature_exists(
-    session: AsyncSession,
-    identity: FrameworkFeatureUsageIdentity,
-) -> None:
-    stmt = (
-        select(FrameworkFeature.capability_key, FrameworkFeature.operation_key)
-        .where(FrameworkFeature.language == identity.feature_language)
-        .where(FrameworkFeature.library == identity.feature_library)
-        .where(FrameworkFeature.capability_key == identity.feature_capability_key)
-        .where(FrameworkFeature.operation_key == identity.feature_operation_key)
-    )
-    result = await session.execute(stmt)
-    if result.scalar_one_or_none() is None:
-        raise ValueError(
-            "Framework feature definition does not exist for identity: "
-            f"{identity.feature_language}/{identity.feature_library}/"
-            f"{identity.feature_capability_key}.{identity.feature_operation_key}"
-        )
-
-
 async def db_get_framework_with_features(
     codebase_path: str,
     library: str,
@@ -329,7 +315,14 @@ async def db_get_framework_with_features(
     feature_map: Dict[str, Dict[str, object]] = {}
     usage_seen: Dict[str, Set[tuple[str, int, int]]] = defaultdict(set)
 
-    for capability_key, operation_key, startpoint, file_path, start_line, end_line in rows:
+    for (
+        capability_key,
+        operation_key,
+        startpoint,
+        file_path,
+        start_line,
+        end_line,
+    ) in rows:
         feature_key_value = _compose_feature_key(
             str(capability_key),
             str(operation_key),
@@ -674,7 +667,7 @@ async def db_upsert_framework_feature_validation_evidence(
     codebase_path: str,
     request: FrameworkFeatureValidationEvidenceUpsertRequest,
 ) -> FrameworkFeatureValidationEvidenceUpsertResult:
-    """Persist validator evidence/confidence and optionally upsert corrected row."""
+    """Persist validator evidence/confidence and apply in-place location corrections."""
     async with get_startup_session() as session:
         source_row = await _get_framework_usage_row(
             session,
@@ -686,78 +679,53 @@ async def db_upsert_framework_feature_validation_evidence(
                 "Framework usage row not found for provided identity/codebase context"
             )
 
+        current_identity = request.identity
+        if request.decision == FrameworkFeatureValidationDecision.CORRECT:
+            current_identity = request.build_updated_identity()
+            if current_identity != request.identity:
+                conflicting_row = await _get_framework_usage_row(
+                    session,
+                    codebase_path,
+                    current_identity,
+                )
+                if conflicting_row is not None:
+                    raise ValueError(
+                        "Corrected location already exists on a different framework usage row"
+                    )
+
         validator_payload = _build_validator_payload(
             decision=request.decision,
             final_confidence=request.final_confidence,
             evidence_json=request.evidence_json,
-            updated_feature_capability_key=request.updated_feature_capability_key,
-            updated_feature_operation_key=request.updated_feature_operation_key,
+            corrected_file_path=request.corrected_file_path,
+            corrected_start_line=request.corrected_start_line,
+            corrected_end_line=request.corrected_end_line,
+            corrected_match_text=request.corrected_match_text,
         )
+        if request.decision == FrameworkFeatureValidationDecision.CORRECT:
+            validator_payload["corrected_from"] = {
+                "file_path": request.identity.file_path,
+                "start_line": request.identity.start_line,
+                "end_line": request.identity.end_line,
+                "match_text": source_row.match_text,
+            }
+
         source_row.match_confidence = request.final_confidence
         source_row.evidence_json = _merge_evidence_json(
             source_row.evidence_json,
             validator_payload,
         )
 
-        corrected_identity: FrameworkFeatureUsageIdentity | None = None
-        corrected_row_upserted = False
-
-        if (
-            request.decision == FrameworkFeatureValidationDecision.CORRECT
-            and request.updated_feature_capability_key is not None
-            and request.updated_feature_operation_key is not None
-        ):
-            corrected_identity = request.identity.with_feature_identity(
-                request.updated_feature_capability_key,
-                request.updated_feature_operation_key,
-            )
-            await _ensure_framework_feature_exists(session, corrected_identity)
-
-            corrected_row = await _get_framework_usage_row(
-                session,
-                codebase_path,
-                corrected_identity,
-            )
-
-            corrected_evidence = {
-                "corrected_from": {
-                    "feature_capability_key": request.identity.feature_capability_key,
-                    "feature_operation_key": request.identity.feature_operation_key,
-                },
-                "validator": {
-                    "decision": FrameworkFeatureValidationDecision.CONFIRM.value,
-                    "source_decision": FrameworkFeatureValidationDecision.CORRECT.value,
-                    "final_confidence": request.final_confidence,
-                    "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
-                },
-            }
-
-            if corrected_row is None:
-                corrected_row = UnoplatCodeConfluenceFileFrameworkFeature(
-                    file_path=corrected_identity.file_path,
-                    feature_language=corrected_identity.feature_language,
-                    feature_library=corrected_identity.feature_library,
-                    feature_capability_key=corrected_identity.feature_capability_key,
-                    feature_operation_key=corrected_identity.feature_operation_key,
-                    start_line=corrected_identity.start_line,
-                    end_line=corrected_identity.end_line,
-                    match_text=source_row.match_text,
-                    match_confidence=request.final_confidence,
-                    validation_status=ValidationStatus.COMPLETED.value,
-                    evidence_json=corrected_evidence,
-                )
-                session.add(corrected_row)
-            else:
-                corrected_row.match_confidence = request.final_confidence
-                corrected_row.validation_status = ValidationStatus.COMPLETED.value
-                corrected_row.evidence_json = corrected_evidence
-
-            corrected_row_upserted = True
+        if request.decision == FrameworkFeatureValidationDecision.CORRECT:
+            source_row.file_path = current_identity.file_path
+            source_row.start_line = current_identity.start_line
+            source_row.end_line = current_identity.end_line
+            if request.corrected_match_text is not None:
+                source_row.match_text = request.corrected_match_text
 
         return FrameworkFeatureValidationEvidenceUpsertResult(
             source_row_updated=True,
-            corrected_row_upserted=corrected_row_upserted,
-            corrected_identity=corrected_identity,
+            current_identity=current_identity,
         )
 
 

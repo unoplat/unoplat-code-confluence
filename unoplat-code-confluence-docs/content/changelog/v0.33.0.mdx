@@ -1,0 +1,29 @@
+---
+title: "Release v0.33.0"
+description: "Framework catalog table improvements, filtering and pagination, contribution workflow updates, and docs synchronization fixes"
+version: "0.33.0"
+releaseDate: "2026-03-17"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.33.0"
+---
+
+## Highlights
+
+This release upgrades the framework catalog experience with a richer table, better filtering and pagination, and a smoother contribution workflow, while tightening synchronization between docs data and generated artifacts.
+
+## What's New
+
+### Framework Catalog Experience
+
+- Added a framework catalog table that makes supported frameworks and capabilities easier to browse
+- Introduced filtering and pagination so larger catalogs remain navigable as coverage grows
+
+### Contribution Workflow
+
+- Added a GitHub issue template to make framework requests and contribution feedback more structured
+
+## Bug Fixes
+
+- Fixed duplicated information across generated artifacts and `AGENTS.md`
+- Corrected numeric filter synchronization so parent state updates propagate properly
+- Ensured the prebuild step generates catalog JSON consistently
+- Refreshed Python `uv` lockfiles before CI lock validation runs

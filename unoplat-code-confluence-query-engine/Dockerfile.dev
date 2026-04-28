@@ -1,0 +1,80 @@
+# syntax=docker/dockerfile:1.7
+# Development image for Tilt hot-reload workflow.
+#
+# - Dependencies are baked into the image first for cache reuse.
+# - Runtime source and MCP config are also copied so the first `tilt up`
+#   starts cleanly before any live_update sync occurs.
+# - `fastapi dev` provides auto-reload for subsequent synced edits.
+# - Keeps the full language toolchain (node/bun/poetry/uv/git) because the
+#   query engine shells out to these tools while executing agents.
+#
+# Node/Bun are installed via their officially supported setup flows:
+#   - Node.js: NodeSource APT repo (`setup_22.x`) — installs node, npm, npx,
+#     and corepack with the correct symlink layout under /usr/bin -> /usr/lib.
+#   - Bun: upstream `bun.sh/install` script with BUN_INSTALL=/usr/local.
+# An earlier iteration cherry-picked individual binaries via `COPY --from=`
+# from the official images, but BuildKit dereferences symlinks on
+# single-file copies, which left npm/npx/corepack unable to locate their
+# companion module trees (`Cannot find module './lib/corepack.cjs'`).
+
+FROM python:3.13-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    PATH="/opt/poetry/bin:/app/.venv/bin:$PATH" \
+    PYTHONPATH=/app/src \
+    MCP_SERVERS_CONFIG_PATH=/app/mcp-servers.json \
+    BUN_INSTALL=/usr/local \
+    COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        build-essential \
+        ca-certificates \
+        curl \
+        eza \
+        git \
+        gnupg \
+        ripgrep \
+        unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# uv (package manager) and uvx
+COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /usr/local/bin/
+
+# Poetry — needed by the agent subprocesses that verify Python workflow commands.
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 -
+
+# Node.js 22 via the official NodeSource APT repository. This installs
+# node/npm/npx/corepack with correct symlink layout so Corepack, pnpm, and
+# yarn shims all resolve. `corepack enable` installs the pnpm/yarn launchers
+# in /usr/bin.
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/* && \
+    corepack enable
+
+# Bun via the upstream installer. BUN_INSTALL=/usr/local lands the binaries
+# at /usr/local/bin/bun and /usr/local/bin/bunx.
+RUN curl -fsSL https://bun.sh/install | bash
+
+WORKDIR /app
+
+# Install the dependency closure first so source edits do not invalidate it.
+COPY pyproject.toml uv.lock README.md ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project
+
+# Copy runtime source/config so the container is bootable on the initial build.
+COPY . /app
+
+RUN mkdir -p /app/logs /opt/unoplat/repositories
+
+EXPOSE 8000
+
+# Watch src/unoplat_code_confluence_query_engine only (not .venv).
+WORKDIR /app/src/unoplat_code_confluence_query_engine
+CMD ["uv", "run", "fastapi", "dev", "main.py", "--host", "0.0.0.0", "--port", "8000"]

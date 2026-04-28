@@ -1,0 +1,35 @@
+---
+title: "Release v0.33.1"
+description: "Structured codebase detection upgrades, TypeScript monorepo support, backend modularization, and reliability fixes"
+version: "0.33.1"
+releaseDate: "2026-03-27"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.33.1"
+---
+
+## Highlights
+
+This patch release substantially hardens detection and ingestion by introducing structured codebase detection models, improving TypeScript monorepo support, and refactoring backend services into clearer modules while also polishing alpha UI messaging and CI behavior.
+
+## Bug Fixes
+
+### Codebase Detection
+
+- Added structured detection data models for rules, evidence, results, and workspace metadata
+- Added TypeScript monorepo detection and reorganized detection logic into clearer language-specific namespaces
+- Extracted shared parser infrastructure and modernized structured logging types
+- Propagated workspace metadata through query engine services, models, and tests
+- Removed legacy flat-layout files superseded by the namespace reorganization
+
+### Backend and Framework Support
+
+- Added APIRouter support to FastAPI framework definitions
+- Improved TypeScript workspace detection for monorepos
+- Added `pnpm-workspace.yaml` support and negation glob handling
+- Extracted repository, operations, credential, provider, and flag routers plus shared utilities from `main.py`
+- Relaxed GitHub helper language assertions to better tolerate valid repository states
+
+### Reliability and UX
+
+- Scoped PR concurrency by head repository and refreshed nested `uv` lockfiles explicitly in CI
+- Added vendored turbo monorepo fixture files to strengthen test coverage
+- Updated the alpha status treatment near the app name for clearer UI signaling

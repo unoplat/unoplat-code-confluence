@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from temporalio import activity
 
-from unoplat_code_confluence_query_engine.models.output.agents_md_updater_output import (
-    AgentsMdUpdaterOutput,
-)
 from unoplat_code_confluence_query_engine.services.agents_md.managed_block import (
     bootstrap_managed_block,
 )
@@ -21,7 +18,7 @@ class ManagedBlockActivity:
         codebase_path: str,
         default_branch: str | None = None,
         head_commit_sha: str | None = None,
-    ) -> AgentsMdUpdaterOutput:
+    ) -> bool:
         """Bootstrap managed block with markers, CRITICAL_INSTRUCTION, and freshness metadata.
 
         Args:
@@ -30,7 +27,7 @@ class ManagedBlockActivity:
             head_commit_sha: HEAD commit SHA for freshness line (optional).
 
         Returns:
-            AgentsMdUpdaterOutput indicating whether AGENTS.md was created/updated.
+            True when AGENTS.md was created or updated, otherwise False.
         """
         return await bootstrap_managed_block(
             codebase_path, default_branch, head_commit_sha

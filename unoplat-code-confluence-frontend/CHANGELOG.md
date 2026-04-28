@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.53.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.52.1...unoplat-code-confluence-frontend-v1.53.0) (2026-04-28)
+
+
+### Features
+
+* **agent-events:** virtualize agent group events with sticky auto-scroll ([f71a5c9](https://github.com/unoplat/unoplat-code-confluence/commit/f71a5c9fc8eca9036167766e7b24879c94a09bfa))
+* **agent-events:** virtualize agent group events with sticky auto-scroll ([d558972](https://github.com/unoplat/unoplat-code-confluence/commit/d558972de48c6866e007b4c1b0aa193b8c00d8d2))
+
+## [1.52.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.52.0...unoplat-code-confluence-frontend-v1.52.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **comments:** add build trigger ([1600174](https://github.com/unoplat/unoplat-code-confluence/commit/16001745cd8ed52bebb1418a07f4d5920a73c42c))
+
+## [1.52.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.51.0...unoplat-code-confluence-frontend-v1.52.0) (2026-04-25)
+
+
+### Features
+
+* **dev-workflow:** replace confidence scoring with sandbox verification ([b21598c](https://github.com/unoplat/unoplat-code-confluence/commit/b21598c893de3ce3d2dd16bf584a734a275e77d8))
+* **frontend:** update schema and utils for new agent output structure ([d4b5909](https://github.com/unoplat/unoplat-code-confluence/commit/d4b59094ede71eb54bec370f2a74e5f5e5932d77))
+* **productivity:** add Tiltfile, docker-compose, and dev Dockerfiles for local setup ([c698032](https://github.com/unoplat/unoplat-code-confluence/commit/c6980322c457b05ce00cfe1501629657248a6647))
+
 ## [1.51.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.50.2...unoplat-code-confluence-frontend-v1.51.0) (2026-04-12)
 
 

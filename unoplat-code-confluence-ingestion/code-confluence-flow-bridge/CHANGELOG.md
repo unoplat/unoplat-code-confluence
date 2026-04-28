@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.77.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.76.1...code-confluence-flow-bridge-v0.77.0) (2026-04-26)
+
+
+### Features
+
+* **openmetadata:** add Code Confluence→OpenMetadata connector packag… ([96030e2](https://github.com/unoplat/unoplat-code-confluence/commit/96030e294aa29e175eedd57dc5b1d790169b77d8))
+* **openmetadata:** add Code Confluence→OpenMetadata connector package and optional snapshot lookup ([229ffd0](https://github.com/unoplat/unoplat-code-confluence/commit/229ffd034860dc38083b44ec99f959f53336add1))
+
+## [0.76.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.76.0...code-confluence-flow-bridge-v0.76.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **stale-framework-files:** remove litellm typescript framework definition ([37c2235](https://github.com/unoplat/unoplat-code-confluence/commit/37c2235cbd385a579344d1e50a5c2746bdc1704a))
+
+## [0.76.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.75.1...code-confluence-flow-bridge-v0.76.0) (2026-04-25)
+
+
+### Features
+
+* **productivity:** add Tiltfile, docker-compose, and dev Dockerfiles for local setup ([c698032](https://github.com/unoplat/unoplat-code-confluence/commit/c6980322c457b05ce00cfe1501629657248a6647))
+
+
+### Bug Fixes
+
+* **ingestion:** add authenticated git clone for private GitHub repos ([4976bd5](https://github.com/unoplat/unoplat-code-confluence/commit/4976bd52985ebf4889e382ce9c1fbefee4a8e59d))
+
 ## [0.75.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.75.0...code-confluence-flow-bridge-v0.75.1) (2026-04-12)
 
 
