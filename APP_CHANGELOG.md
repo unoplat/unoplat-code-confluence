@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.35.0...unoplat-code-confluence-v0.36.0) (2026-04-29)
+
+
+### Features
+
+* **agent-events:** anchor-based scroll restoration for older history via imperative handle ([c59cdd5](https://github.com/unoplat/unoplat-code-confluence/commit/c59cdd5b909563c533977807dbac4c3eb122461f))
+* **search-backend-temporal:** move from opensearch to postgresql for basic workflow search operations to reduce memory footprint by ~700-900 mb ([9ea5d67](https://github.com/unoplat/unoplat-code-confluence/commit/9ea5d67a6e90ea0efbe53e900839ff3124b8d51a))
+
+
+### Bug Fixes
+
+* **agent-events-utils:** always skip tool.result events in display item building ([c1727cb](https://github.com/unoplat/unoplat-code-confluence/commit/c1727cb08dfe6e7a3a65fe1e6b774cb9384103f1))
+* **ci:** refresh package uv lockfiles before python lock checks run ([674276a](https://github.com/unoplat/unoplat-code-confluence/commit/674276a0ab52913df2f440479c177b11b4185824))
+* **flow-bridge:** use Any type for workflow interceptor return types ([eee7c97](https://github.com/unoplat/unoplat-code-confluence/commit/eee7c97861a4d18bc1a5dac27db04183c4e59abd))
+* **frontend:** use useLayoutEffect for scroll snap reset on codebase change ([5fb9b4a](https://github.com/unoplat/unoplat-code-confluence/commit/5fb9b4aba960d01f7b9f3a86d376699e420acfa5))
+
 ## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.34.0...unoplat-code-confluence-v0.35.0) (2026-04-28)
 
 
