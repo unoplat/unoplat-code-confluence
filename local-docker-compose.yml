@@ -1,38 +1,4 @@
-# Add default config
-configs:
-  temporal-dynamic-config:
-    content: |
-      system.forceSearchAttributesCacheRefreshOnRead:
-        - value: true
-          constraints: {}
-      limit.maxIDLength:
-        - value: 255
-          constraints: {}
-
 services:
-  elasticsearch:
-    # container_name: temporal-elasticsearch
-    environment:
-      - cluster.routing.allocation.disk.threshold_enabled=true
-      - cluster.routing.allocation.disk.watermark.low=512mb
-      - cluster.routing.allocation.disk.watermark.high=256mb
-      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
-      - discovery.type=single-node
-      - DISABLE_SECURITY_PLUGIN=true
-      - OPENSEARCH_JAVA_OPTS=-Xms256m -Xmx256m
-    image: docker.io/opensearchproject/opensearch:2.14.0
-    networks:
-      - temporal-network
-    expose:
-      - 9200
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
   postgresql:
     image: docker.io/library/postgres:17.2
     # container_name: code-confluence-postgresql
@@ -79,8 +45,6 @@ services:
   temporal:
     # container_name: temporal
     depends_on:
-      elasticsearch:
-        condition: service_healthy
       postgresql:
         condition: service_healthy
 
@@ -90,9 +54,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PWD=postgres
       - POSTGRES_SEEDS=postgresql
-      - ENABLE_ES=true
-      - ES_SEEDS=elasticsearch
-      - ES_VERSION=v7
       # - SKIP_SCHEMA_SETUP=false
       - TEMPORAL_CLI_ADDRESS=temporal:7233
     image: docker.io/temporalio/auto-setup:1.29.1
@@ -100,9 +61,6 @@ services:
       - temporal-network
     ports:
       - 7233:7233
-    configs:
-      - source: temporal-dynamic-config
-        target: /etc/temporal/config/dynamicconfig/development-sql.yaml
     healthcheck:
       test: ["CMD-SHELL", "tctl cluster health | grep -i SERVING || exit 1"]
       interval: 10s
@@ -219,8 +177,6 @@ networks:
 #     name: temporal-shared-data  # Optional: explicitly name the volume
 volumes:
   postgresql_data:
-    driver: local
-  elasticsearch_data:
     driver: local
   repositories_data:
     driver: local

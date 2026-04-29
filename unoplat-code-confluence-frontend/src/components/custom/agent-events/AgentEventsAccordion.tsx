@@ -13,22 +13,98 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { buildEventDisplayItems, groupEventsByAgent } from "@/lib/agent-events-utils";
 import type { RepositoryAgentEvent } from "@/features/repository-agent-snapshots/schema";
-import type { AgentEventsAccordionProps, ToolDetailItem } from "@/types/agent-events";
+import type {
+  AgentEventDisplayItem,
+  AgentEventsAccordionProps,
+  ToolDetailItem,
+} from "@/types/agent-events";
 
 const ROW_ESTIMATE_PX = 96;
 const ROW_OVERSCAN = 5;
 const NEAR_BOTTOM_ROW_TOLERANCE = 2;
 
+export interface OlderHistoryAnchor {
+  groupId: string;
+  anchorKey: string;
+  fallbackEventIds: number[];
+}
+
+export interface AgentEventsAccordionHandle {
+  captureOlderHistoryAnchors: () => OlderHistoryAnchor[];
+  restoreOlderHistoryAnchors: (anchors: OlderHistoryAnchor[]) => void;
+}
+
+interface OlderHistoryItemAnchor {
+  anchorKey: string;
+  fallbackEventIds: number[];
+}
+
+interface VirtualizedAgentGroupEventsHandle {
+  getFirstVisibleAnchor: () => OlderHistoryItemAnchor | null;
+  restoreToAnchor: (anchor: OlderHistoryAnchor) => void;
+}
+
+type RegisterGroupHandle = (
+  groupId: string,
+  handle: VirtualizedAgentGroupEventsHandle | null,
+) => void;
+
+function getDisplayItemEventIds(item: AgentEventDisplayItem): number[] {
+  if (item.type === "tool-pair") {
+    return item.resultEvent
+      ? [item.callEvent.event_id, item.resultEvent.event_id]
+      : [item.callEvent.event_id];
+  }
+
+  return [item.event.event_id];
+}
+
+function getDisplayItemAnchor(
+  item: AgentEventDisplayItem,
+): OlderHistoryItemAnchor {
+  return {
+    anchorKey: item.key,
+    fallbackEventIds: getDisplayItemEventIds(item),
+  };
+}
+
+function findAnchorIndex(
+  items: AgentEventDisplayItem[],
+  anchor: OlderHistoryAnchor,
+): number {
+  const exactKeyIndex = items.findIndex((item) => item.key === anchor.anchorKey);
+  if (exactKeyIndex !== -1) {
+    return exactKeyIndex;
+  }
+
+  const fallbackEventIds = new Set(anchor.fallbackEventIds);
+  if (fallbackEventIds.size === 0) {
+    return -1;
+  }
+
+  return items.findIndex((item) =>
+    getDisplayItemEventIds(item).some((eventId) =>
+      fallbackEventIds.has(eventId),
+    ),
+  );
+}
+
 interface VirtualizedAgentGroupEventsProps {
+  groupId: string;
   events: RepositoryAgentEvent[];
   onViewDetails: (item: ToolDetailItem) => void;
+  registerHandle: RegisterGroupHandle;
 }
 
 function VirtualizedAgentGroupEvents({
+  groupId,
   events,
   onViewDetails,
+  registerHandle,
 }: VirtualizedAgentGroupEventsProps): React.ReactElement {
   const items = React.useMemo(() => buildEventDisplayItems(events), [events]);
+  const itemsRef = React.useRef<AgentEventDisplayItem[]>(items);
+  itemsRef.current = items;
   const viewportRef = React.useRef<HTMLDivElement | null>(null);
 
   const rowVirtualizer = useVirtualizer({
@@ -39,14 +115,60 @@ function VirtualizedAgentGroupEvents({
     getItemKey: (index) => items[index]?.key ?? index,
     useFlushSync: false,
   });
+  const rowVirtualizerRef = React.useRef(rowVirtualizer);
+  rowVirtualizerRef.current = rowVirtualizer;
 
   const previousItemsCountRef = React.useRef<number>(0);
+  const previousFirstItemKeyRef = React.useRef<string | null>(null);
   const isNearBottomRef = React.useRef<boolean>(true);
   const itemsCountRef = React.useRef<number>(items.length);
 
   React.useLayoutEffect(() => {
     itemsCountRef.current = items.length;
   }, [items.length]);
+
+  React.useEffect(() => {
+    const handle: VirtualizedAgentGroupEventsHandle = {
+      getFirstVisibleAnchor: () => {
+        const viewport = viewportRef.current;
+        if (!viewport) {
+          return null;
+        }
+        const virtualizer = rowVirtualizerRef.current;
+        const visibleVirtualItems = virtualizer.getVirtualItems();
+        const currentItems = itemsRef.current;
+        if (visibleVirtualItems.length === 0 || currentItems.length === 0) {
+          return null;
+        }
+        const scrollOffset = viewport.scrollTop;
+        const firstVisible =
+          visibleVirtualItems.find((vi) => vi.end > scrollOffset) ??
+          visibleVirtualItems[0];
+        if (!firstVisible) {
+          return null;
+        }
+        const item = currentItems[firstVisible.index];
+        return item ? getDisplayItemAnchor(item) : null;
+      },
+      restoreToAnchor: (anchor: OlderHistoryAnchor) => {
+        requestAnimationFrame(() => {
+          const currentItems = itemsRef.current;
+          const targetIndex = findAnchorIndex(currentItems, anchor);
+          if (targetIndex === -1) {
+            return;
+          }
+          rowVirtualizerRef.current.scrollToIndex(targetIndex, {
+            align: "start",
+          });
+          isNearBottomRef.current = false;
+        });
+      },
+    };
+    registerHandle(groupId, handle);
+    return () => {
+      registerHandle(groupId, null);
+    };
+  }, [groupId, registerHandle]);
 
   React.useEffect(() => {
     const viewport = viewportRef.current;
@@ -76,7 +198,10 @@ function VirtualizedAgentGroupEvents({
 
   React.useEffect(() => {
     const previousCount = previousItemsCountRef.current;
+    const previousFirstKey = previousFirstItemKeyRef.current;
+    const currentFirstKey = items[0]?.key ?? null;
     previousItemsCountRef.current = items.length;
+    previousFirstItemKeyRef.current = currentFirstKey;
 
     if (items.length === 0) {
       return undefined;
@@ -84,7 +209,12 @@ function VirtualizedAgentGroupEvents({
 
     const isInitialMount = previousCount === 0;
     const grew = items.length > previousCount;
-    const shouldFollow = isInitialMount || (grew && isNearBottomRef.current);
+    const prepended =
+      previousFirstKey !== null &&
+      currentFirstKey !== null &&
+      previousFirstKey !== currentFirstKey;
+    const shouldFollow =
+      isInitialMount || (grew && !prepended && isNearBottomRef.current);
 
     if (!shouldFollow) {
       return undefined;
@@ -99,7 +229,7 @@ function VirtualizedAgentGroupEvents({
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [items.length, rowVirtualizer]);
+  }, [items, rowVirtualizer]);
 
   if (items.length === 0) {
     return (
@@ -151,10 +281,13 @@ function VirtualizedAgentGroupEvents({
   );
 }
 
-export function AgentEventsAccordion({
-  events,
-  completedNamespaces,
-}: AgentEventsAccordionProps): React.ReactElement {
+export const AgentEventsAccordion = React.forwardRef<
+  AgentEventsAccordionHandle,
+  AgentEventsAccordionProps
+>(function AgentEventsAccordion(
+  { events, completedNamespaces },
+  ref,
+): React.ReactElement {
   const agentGroups = React.useMemo(
     () => groupEventsByAgent(events, completedNamespaces),
     [events, completedNamespaces],
@@ -162,13 +295,64 @@ export function AgentEventsAccordion({
   const [detailItem, setDetailItem] = React.useState<ToolDetailItem | null>(null);
   const [expandedGroups, setExpandedGroups] = React.useState<string[]>([]);
 
-  React.useEffect(() => {
-    const nextGroupIds = agentGroups.map((group) => group.agentId);
+  const validGroupIds = React.useMemo(
+    () => new Set(agentGroups.map((group) => group.agentId)),
+    [agentGroups],
+  );
 
-    setExpandedGroups((currentExpandedGroups) =>
-      currentExpandedGroups.filter((groupId) => nextGroupIds.includes(groupId)),
-    );
-  }, [agentGroups]);
+  const visibleExpandedGroups = React.useMemo(
+    () => expandedGroups.filter((groupId) => validGroupIds.has(groupId)),
+    [expandedGroups, validGroupIds],
+  );
+
+  const handleExpandedGroupsChange = React.useCallback(
+    (nextValue: string[]): void => {
+      setExpandedGroups(
+        nextValue.filter((groupId) => validGroupIds.has(groupId)),
+      );
+    },
+    [validGroupIds],
+  );
+
+  const groupHandlesRef = React.useRef<
+    Map<string, VirtualizedAgentGroupEventsHandle>
+  >(new Map());
+
+  const registerHandle = React.useCallback<RegisterGroupHandle>(
+    (groupId, handle) => {
+      if (handle) {
+        groupHandlesRef.current.set(groupId, handle);
+      } else {
+        groupHandlesRef.current.delete(groupId);
+      }
+    },
+    [],
+  );
+
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      captureOlderHistoryAnchors: () => {
+        const anchors: OlderHistoryAnchor[] = [];
+        groupHandlesRef.current.forEach((handle, groupId) => {
+          const anchor = handle.getFirstVisibleAnchor();
+          if (anchor !== null) {
+            anchors.push({ groupId, ...anchor });
+          }
+        });
+        return anchors;
+      },
+      restoreOlderHistoryAnchors: (anchors) => {
+        for (const anchor of anchors) {
+          const handle = groupHandlesRef.current.get(anchor.groupId);
+          if (handle) {
+            handle.restoreToAnchor(anchor);
+          }
+        }
+      },
+    }),
+    [],
+  );
 
   if (agentGroups.length === 0) {
     return (
@@ -182,8 +366,8 @@ export function AgentEventsAccordion({
     <>
       <Accordion
         type="multiple"
-        value={expandedGroups}
-        onValueChange={setExpandedGroups}
+        value={visibleExpandedGroups}
+        onValueChange={handleExpandedGroupsChange}
         className="w-full"
       >
         {agentGroups.map((group) => {
@@ -202,8 +386,10 @@ export function AgentEventsAccordion({
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-3 pt-1">
                 <VirtualizedAgentGroupEvents
+                  groupId={group.agentId}
                   events={group.events}
                   onViewDetails={setDetailItem}
+                  registerHandle={registerHandle}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -222,4 +408,4 @@ export function AgentEventsAccordion({
       />
     </>
   );
-}
+});

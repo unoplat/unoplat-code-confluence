@@ -108,7 +108,6 @@ docker_build(
 # Resource grouping in the Tilt UI (http://localhost:10350)
 # ---------------------------------------------------------------------------
 dc_resource("postgresql", labels=["infra"])
-dc_resource("elasticsearch", labels=["infra"])
 dc_resource("electric", labels=["infra"])
 dc_resource("temporal", labels=["infra"])
 dc_resource("temporal-admin-tools", labels=["infra"])

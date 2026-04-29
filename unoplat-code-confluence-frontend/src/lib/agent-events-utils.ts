@@ -245,10 +245,7 @@ export function buildEventDisplayItems(
       continue;
     }
 
-    if (
-      event.phase === "tool.result" &&
-      consumedResultIds.has(event.event_id)
-    ) {
+    if (event.phase === "tool.result") {
       continue;
     }
 
