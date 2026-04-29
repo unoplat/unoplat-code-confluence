@@ -1,4 +1,5 @@
 import contextvars
+from typing import Any
 
 from temporalio import workflow
 from temporalio.worker._interceptor import (
@@ -20,9 +21,9 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
     are properly forwarded to all activity calls.
     """
 
-    def start_activity(  # pyright: ignore[reportIncompatibleMethodOverride]
+    def start_activity(
         self, input: StartActivityInput
-    ) -> workflow.ActivityHandle[object]:
+    ) -> workflow.ActivityHandle[Any]:
         # Get headers from context
         headers = workflow_headers_var.get()
 
@@ -40,9 +41,9 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
 
         return super().start_activity(input)
 
-    async def start_child_workflow(  # pyright: ignore[reportIncompatibleMethodOverride]
+    async def start_child_workflow(
         self, input: StartChildWorkflowInput
-    ) -> workflow.ChildWorkflowHandle[object, object]:
+    ) -> workflow.ChildWorkflowHandle[Any, Any]:
         try:
             # Get headers from context
             headers = workflow_headers_var.get()
