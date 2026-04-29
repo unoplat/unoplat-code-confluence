@@ -219,7 +219,7 @@ export function GenerateAgentsProgressLive({
   const isSingleRootCodebase =
     codebaseNames.length === 1 && codebaseNames[0] === ".";
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     shouldSnapToBottomRef.current = true;
     isNearBottomRef.current = true;
     pendingOlderHistoryAnchorsRef.current = null;
