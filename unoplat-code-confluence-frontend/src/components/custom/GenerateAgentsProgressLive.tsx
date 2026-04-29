@@ -2,7 +2,11 @@
 import React from "react";
 import { ArrowDown, Loader2 } from "lucide-react";
 
-import { AgentEventsAccordion } from "@/components/custom/agent-events";
+import {
+  AgentEventsAccordion,
+  type AgentEventsAccordionHandle,
+  type OlderHistoryAnchor,
+} from "@/components/custom/agent-events";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -25,14 +29,14 @@ import type { ParsedRepositoryAgentSnapshot } from "@/features/repository-agent-
 
 const bottomFollowThreshold = 48;
 
-interface PendingScrollRestore {
-  scrollHeight: number;
-  scrollTop: number;
-}
-
 interface EventBounds {
   newestEventId: number | null;
   oldestEventId: number | null;
+}
+
+interface LoadedBoundsChange {
+  olderHistoryPrepended: boolean;
+  latestEventAppended: boolean;
 }
 
 interface GenerateAgentsProgressLiveProps {
@@ -74,6 +78,22 @@ function getLoadedEventBounds(eventIds: number[]): EventBounds {
   };
 }
 
+function getLoadedBoundsChange(
+  previousBounds: EventBounds,
+  nextBounds: EventBounds,
+): LoadedBoundsChange {
+  return {
+    olderHistoryPrepended:
+      previousBounds.oldestEventId !== null &&
+      nextBounds.oldestEventId !== null &&
+      nextBounds.oldestEventId < previousBounds.oldestEventId,
+    latestEventAppended:
+      previousBounds.newestEventId !== null &&
+      nextBounds.newestEventId !== null &&
+      nextBounds.newestEventId > previousBounds.newestEventId,
+  };
+}
+
 function isViewportNearBottom(viewport: HTMLDivElement): boolean {
   return (
     viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <=
@@ -90,14 +110,6 @@ function scrollViewportToBottom(viewport: HTMLDivElement | null): void {
     top: viewport.scrollHeight,
     behavior: "auto",
   });
-}
-
-function restoreOlderHistoryScroll(
-  viewport: HTMLDivElement,
-  pendingRestore: PendingScrollRestore,
-): void {
-  const scrollHeightDelta = viewport.scrollHeight - pendingRestore.scrollHeight;
-  viewport.scrollTop = pendingRestore.scrollTop + scrollHeightDelta;
 }
 
 function getActiveCodebaseName(
@@ -157,22 +169,30 @@ export function GenerateAgentsProgressLive({
   const [activeCodebaseName, setActiveCodebaseName] = React.useState<string>(
     codebaseNames[0] ?? "",
   );
+  const resolvedActiveCodebaseName = getActiveCodebaseName(
+    activeCodebaseName,
+    codebaseNames,
+  );
+  const [previousResolvedCodebaseName, setPreviousResolvedCodebaseName] =
+    React.useState<string>(resolvedActiveCodebaseName);
   const viewportRef = React.useRef<HTMLDivElement | null>(null);
+  const accordionRef = React.useRef<AgentEventsAccordionHandle | null>(null);
+  const pendingOlderHistoryAnchorsRef = React.useRef<
+    OlderHistoryAnchor[] | null
+  >(null);
   const isNearBottomRef = React.useRef<boolean>(true);
   const shouldSnapToBottomRef = React.useRef<boolean>(true);
-  const pendingScrollRestoreRef = React.useRef<PendingScrollRestore | null>(
-    null,
-  );
   const previousLoadedBoundsRef = React.useRef<EventBounds>({
     newestEventId: null,
     oldestEventId: null,
   });
   const [hasUnseenLatest, setHasUnseenLatest] = React.useState<boolean>(false);
 
-  const resolvedActiveCodebaseName = getActiveCodebaseName(
-    activeCodebaseName,
-    codebaseNames,
-  );
+  if (previousResolvedCodebaseName !== resolvedActiveCodebaseName) {
+    setPreviousResolvedCodebaseName(resolvedActiveCodebaseName);
+    setHasUnseenLatest(false);
+  }
+
   const activeProgressRow =
     progressRows.find(
       (row) => row.codebase_name === resolvedActiveCodebaseName,
@@ -188,8 +208,10 @@ export function GenerateAgentsProgressLive({
   const progress = activeProgressRow?.progress ?? 0;
   const overallProgress =
     snapshot?.overallProgress ?? getAverageProgress(progressRows);
-  const eventIds = events.map((event) => event.event_id);
-  const loadedBounds = getLoadedEventBounds(eventIds);
+  const loadedBounds = React.useMemo(
+    () => getLoadedEventBounds(events.map((event) => event.event_id)),
+    [events],
+  );
   const completedNamespaces = activeProgressRow?.completed_namespaces ?? [];
   const agentGroups = groupEventsByAgent(events, completedNamespaces);
   const codebaseAgentSummary = getCodebaseAgentSummary(agentGroups);
@@ -198,25 +220,13 @@ export function GenerateAgentsProgressLive({
     codebaseNames.length === 1 && codebaseNames[0] === ".";
 
   React.useEffect(() => {
-    const nextActiveCodebaseName = getActiveCodebaseName(
-      activeCodebaseName,
-      codebaseNames,
-    );
-
-    if (nextActiveCodebaseName !== activeCodebaseName) {
-      setActiveCodebaseName(nextActiveCodebaseName);
-    }
-  }, [activeCodebaseName, codebaseNames]);
-
-  React.useEffect(() => {
     shouldSnapToBottomRef.current = true;
     isNearBottomRef.current = true;
-    pendingScrollRestoreRef.current = null;
+    pendingOlderHistoryAnchorsRef.current = null;
     previousLoadedBoundsRef.current = {
       newestEventId: null,
       oldestEventId: null,
     };
-    setHasUnseenLatest(false);
   }, [resolvedActiveCodebaseName]);
 
   React.useEffect(() => {
@@ -254,56 +264,52 @@ export function GenerateAgentsProgressLive({
     }
 
     const previousLoadedBounds = previousLoadedBoundsRef.current;
+    const boundsChange = getLoadedBoundsChange(
+      previousLoadedBounds,
+      loadedBounds,
+    );
 
     if (
-      pendingScrollRestoreRef.current &&
-      previousLoadedBounds.oldestEventId !== null &&
-      loadedBounds.oldestEventId !== null &&
-      loadedBounds.oldestEventId < previousLoadedBounds.oldestEventId &&
+      pendingOlderHistoryAnchorsRef.current &&
+      boundsChange.olderHistoryPrepended &&
       !isFetchingOlderHistory
     ) {
-      restoreOlderHistoryScroll(viewport, pendingScrollRestoreRef.current);
-      pendingScrollRestoreRef.current = null;
+      const anchors = pendingOlderHistoryAnchorsRef.current;
+      pendingOlderHistoryAnchorsRef.current = null;
+      accordionRef.current?.restoreOlderHistoryAnchors(anchors);
     }
+
+    let nextHasUnseenLatest: boolean | null = null;
 
     if (shouldSnapToBottomRef.current) {
       scrollViewportToBottom(viewport);
       shouldSnapToBottomRef.current = false;
       isNearBottomRef.current = true;
-      setHasUnseenLatest(false);
-      previousLoadedBoundsRef.current = loadedBounds;
-      return;
-    }
-
-    if (
-      previousLoadedBounds.newestEventId !== null &&
-      loadedBounds.newestEventId !== null &&
-      loadedBounds.newestEventId > previousLoadedBounds.newestEventId
-    ) {
+      nextHasUnseenLatest = false;
+    } else if (boundsChange.latestEventAppended) {
       if (isNearBottomRef.current || isViewportNearBottom(viewport)) {
         scrollViewportToBottom(viewport);
         isNearBottomRef.current = true;
-        setHasUnseenLatest(false);
+        nextHasUnseenLatest = false;
       } else {
-        setHasUnseenLatest(true);
+        nextHasUnseenLatest = true;
       }
     }
 
     previousLoadedBoundsRef.current = loadedBounds;
-  }, [events, isFetchingOlderHistory, loadedBounds]);
+
+    if (nextHasUnseenLatest !== null) {
+      setHasUnseenLatest(nextHasUnseenLatest);
+    }
+  }, [isFetchingOlderHistory, loadedBounds]);
 
   function handleCodebaseChange(nextCodebaseName: string): void {
     setActiveCodebaseName(nextCodebaseName);
   }
 
   function handleLoadOlderHistory(): void {
-    const viewport = viewportRef.current;
-    if (viewport) {
-      pendingScrollRestoreRef.current = {
-        scrollHeight: viewport.scrollHeight,
-        scrollTop: viewport.scrollTop,
-      };
-    }
+    const anchors = accordionRef.current?.captureOlderHistoryAnchors() ?? [];
+    pendingOlderHistoryAnchorsRef.current = anchors;
     loadOlderHistory();
   }
 
@@ -390,7 +396,11 @@ export function GenerateAgentsProgressLive({
                   {getWaitingMessage(isSyncing, isHistoryLoading)}
                 </p>
               ) : (
-                <AgentEventsAccordion events={events} completedNamespaces={completedNamespaces} />
+                <AgentEventsAccordion
+                  ref={accordionRef}
+                  events={events}
+                  completedNamespaces={completedNamespaces}
+                />
               )}
             </ScrollArea>
 
