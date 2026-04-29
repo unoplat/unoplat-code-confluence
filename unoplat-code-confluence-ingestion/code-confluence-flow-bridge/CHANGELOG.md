@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.78.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.77.0...code-confluence-flow-bridge-v0.78.0) (2026-04-29)
+
+
+### Features
+
+* **search-backend-temporal:** move from opensearch to postgresql for basic workflow search operations to reduce memory footprint by ~700-900 mb ([9ea5d67](https://github.com/unoplat/unoplat-code-confluence/commit/9ea5d67a6e90ea0efbe53e900839ff3124b8d51a))
+
+
+### Bug Fixes
+
+* **flow-bridge:** use Any type for workflow interceptor return types ([eee7c97](https://github.com/unoplat/unoplat-code-confluence/commit/eee7c97861a4d18bc1a5dac27db04183c4e59abd))
+
 ## [0.77.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.76.1...code-confluence-flow-bridge-v0.77.0) (2026-04-26)
 
 

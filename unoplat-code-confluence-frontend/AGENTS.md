@@ -65,30 +65,13 @@ bun eslint src/path/file.tsx    # Lint single file
 2. When in read mode always remember to raise access from user for any command that you want to execute.
 
 <!-- intent-skills:start -->
-# Skill mappings — when working in these areas, load the linked skill file into context.
-skills:
-  - task: "Using TanStack DB React hooks (useLiveQuery, useLiveSuspenseQuery, useLiveInfiniteQuery, usePacedMutations) for live collections and optimistic updates"
-    load: "node_modules/@tanstack/react-db/skills/react-db/SKILL.md"
-  - task: "Configuring Electric ShapeStream options for syncing Postgres tables"
-    load: "node_modules/@electric-sql/client/skills/electric-shapes/SKILL.md"
-  - task: "Designing Postgres schemas and Electric shape WHERE clauses for new synced features"
-    load: "node_modules/@electric-sql/client/skills/electric-schema-shapes/SKILL.md"
-  - task: "Adding a new real-time synced feature end-to-end with Electric and TanStack DB"
-    load: "node_modules/@electric-sql/client/skills/electric-new-feature/SKILL.md"
-  - task: "Debugging Electric sync issues (shapes not updating, stale cache, proxy buffering)"
-    load: "node_modules/@electric-sql/client/skills/electric-debugging/SKILL.md"
-  - task: "Deploying or configuring Electric SQL via Docker or Docker Compose"
-    load: "node_modules/@electric-sql/client/skills/electric-deployment/SKILL.md"
-  - task: "Setting up server-side Electric proxy routes, CORS headers, or auth for shapes"
-    load: "node_modules/@electric-sql/client/skills/electric-proxy-auth/SKILL.md"
-  - task: "Securing Postgres for Electric deployment (replication roles, SELECT grants, REPLICA IDENTITY, publication config)"
-    load: "node_modules/@electric-sql/client/skills/electric-postgres-security/SKILL.md"
-  - task: "Creating or modifying TanStack DB collections with Electric adapter options"
-    load: "node_modules/@tanstack/db/skills/db-core/collection-setup/SKILL.md"
-  - task: "Writing TanStack DB live queries with the query builder (from, where, join, select, orderBy)"
-    load: "node_modules/@tanstack/db/skills/db-core/live-queries/SKILL.md"
-  - task: "Adding optimistic mutations to TanStack DB collections (insert, update, delete, transactions)"
-    load: "node_modules/@tanstack/db/skills/db-core/mutations-optimistic/SKILL.md"
+## Skill Loading
+
+Before substantial work:
+- Skill check: run `npx @tanstack/intent@latest list`, or use skills already listed in context.
+- Skill guidance: if one local skill clearly matches the task, run `npx @tanstack/intent@latest load <package>#<skill>` and follow the returned `SKILL.md`.
+- Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
+- Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.
 <!-- intent-skills:end -->
 
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->

@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.54.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.53.0...unoplat-code-confluence-frontend-v1.54.0) (2026-04-29)
+
+
+### Features
+
+* **agent-events:** anchor-based scroll restoration for older history via imperative handle ([c59cdd5](https://github.com/unoplat/unoplat-code-confluence/commit/c59cdd5b909563c533977807dbac4c3eb122461f))
+
+
+### Bug Fixes
+
+* **agent-events-utils:** always skip tool.result events in display item building ([c1727cb](https://github.com/unoplat/unoplat-code-confluence/commit/c1727cb08dfe6e7a3a65fe1e6b774cb9384103f1))
+* **frontend:** use useLayoutEffect for scroll snap reset on codebase change ([5fb9b4a](https://github.com/unoplat/unoplat-code-confluence/commit/5fb9b4aba960d01f7b9f3a86d376699e420acfa5))
+
 ## [1.53.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.52.1...unoplat-code-confluence-frontend-v1.53.0) (2026-04-28)
 
 

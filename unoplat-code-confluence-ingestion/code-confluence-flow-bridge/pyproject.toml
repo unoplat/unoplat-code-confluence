@@ -1,6 +1,6 @@
 [project]
 name = "code-confluence-flow-bridge"
-version = "0.77.0"
+version = "0.78.0"
 description = "Bridge between Code Confluence User and Ingestion Workflow"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -8,7 +8,7 @@ dependencies = [
 "fastapi[standard]>=0.115.6",
     "pydantic-settings>=2.7.0",
     "pydantic>=2.10.4",
-    "temporalio>=1.9.0",
+    "temporalio>=1.26.0",
     "loguru>=0.7.3",
     "gitpython>=3.1.43",
     "pygithub>=2.5.0",

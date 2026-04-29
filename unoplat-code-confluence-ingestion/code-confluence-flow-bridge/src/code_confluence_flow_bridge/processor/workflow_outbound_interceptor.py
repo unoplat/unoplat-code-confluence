@@ -1,4 +1,5 @@
 import contextvars
+from typing import Any
 
 from temporalio import workflow
 from temporalio.worker._interceptor import (
@@ -20,7 +21,9 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
     are properly forwarded to all activity calls.
     """
 
-    def start_activity(self, input: StartActivityInput) -> workflow.ActivityHandle:
+    def start_activity(
+        self, input: StartActivityInput
+    ) -> workflow.ActivityHandle[Any]:
         # Get headers from context
         headers = workflow_headers_var.get()
 
@@ -40,7 +43,7 @@ class ParentWorkflowOutboundInterceptor(WorkflowOutboundInterceptor):
 
     async def start_child_workflow(
         self, input: StartChildWorkflowInput
-    ) -> workflow.ChildWorkflowHandle:
+    ) -> workflow.ChildWorkflowHandle[Any, Any]:
         try:
             # Get headers from context
             headers = workflow_headers_var.get()
