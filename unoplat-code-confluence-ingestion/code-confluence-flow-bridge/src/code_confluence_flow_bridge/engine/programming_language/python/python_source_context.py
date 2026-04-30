@@ -151,7 +151,6 @@ class PythonSourceContext(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    source_code: str
     source_bytes: bytes
     tree: tree_sitter.Tree
     root_node: tree_sitter.Node
@@ -159,15 +158,13 @@ class PythonSourceContext(BaseModel):
     import_aliases: Dict[str, str]
 
     @classmethod
-    def from_source(cls, source_code: str) -> "PythonSourceContext":
-        source_bytes = source_code.encode("utf-8", errors="ignore")
+    def from_bytes(cls, source_bytes: bytes) -> "PythonSourceContext":
         parser = get_parser("python")
         tree = parser.parse(source_bytes)
         root_node = tree.root_node
         imports = _extract_imports_from_tree(root_node, source_bytes)
         import_aliases = build_import_aliases(imports)
         return cls(
-            source_code=source_code,
             source_bytes=source_bytes,
             tree=tree,
             root_node=root_node,
