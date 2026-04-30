@@ -70,6 +70,17 @@ tasks:
       - task: start-dependencies-without-flow-bridge
       - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-core
 
+  run-memory-profile-ingestion-local:
+    desc: Start dependencies and launch flow-bridge (ingestion backend) under memray live-remote profiler (port 12345). In a second terminal run `task memray-tui-ingestion` to attach the heap TUI.
+    cmds:
+      - task: start-dependencies-without-flow-bridge
+      - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-memray
+
+  memray-tui-ingestion:
+    desc: Attach memray live TUI to the profiled flow-bridge (ingestion) worker on port 12345 (delegates to flow-bridge venv where memray is installed).
+    cmds:
+      - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task memray-tui
+
   mock-sse:
     desc: Run mock SSE server (replays docs/sse-agent-results.txt) on port 8002
     dir: experiments
