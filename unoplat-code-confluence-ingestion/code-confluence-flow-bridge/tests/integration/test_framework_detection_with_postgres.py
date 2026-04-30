@@ -10,11 +10,11 @@ import tempfile
 
 from fastapi.testclient import TestClient
 import pytest
-from src.code_confluence_flow_bridge.engine.programming_language.python.import_alias_extractor import (
-    extract_imports_from_source,
-)
 from src.code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
+)
+from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+    PythonSourceContext,
 )
 
 
@@ -56,8 +56,9 @@ class TestFrameworkDetectionWithPostgres:
                 main_source_code = source_code
 
             detections = await detection_service.detect_features(
-                source_code=source_code,
-                imports=extract_imports_from_source(source_code),
+                source_context=PythonSourceContext.from_bytes(
+                    source_code.encode("utf-8", errors="ignore")
+                ),
                 structural_signature=None,
                 programming_language="python",
             )
@@ -124,12 +125,11 @@ class MyApp:
 
         try:
             # Extract imports
-            import_strings = extract_imports_from_source(test_source)
-
             # Run framework detection (keep async business logic)
             detections = await detection_service.detect_features(
-                source_code=test_source,
-                imports=import_strings,
+                source_context=PythonSourceContext.from_bytes(
+                    test_source.encode("utf-8", errors="ignore")
+                ),
                 structural_signature=None,
                 programming_language="python",
             )
@@ -194,12 +194,11 @@ class Product(BaseModel):
             temp_path = f.name
 
         try:
-            import_strings = extract_imports_from_source(test_source)
-
             # Run framework detection (keep async business logic)
             detections = await detection_service.detect_features(
-                source_code=test_source,
-                imports=import_strings,
+                source_context=PythonSourceContext.from_bytes(
+                    test_source.encode("utf-8", errors="ignore")
+                ),
                 structural_signature=None,
                 programming_language="python",
             )
@@ -265,12 +264,11 @@ async def create_user(user: UserModel, db=Depends(get_db)):
             temp_path = f.name
 
         try:
-            import_strings = extract_imports_from_source(test_source)
-
             # Run framework detection (keep async business logic)
             detections = await detection_service.detect_features(
-                source_code=test_source,
-                imports=import_strings,
+                source_context=PythonSourceContext.from_bytes(
+                    test_source.encode("utf-8", errors="ignore")
+                ),
                 structural_signature=None,
                 programming_language="python",
             )

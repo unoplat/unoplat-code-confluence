@@ -99,7 +99,7 @@ def test_fastapi_tree_sitter_detection_main_py() -> None:
     source_code = main_py_path.read_text(encoding="utf-8")
 
     feature_specs = _load_python_feature_specs()
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, feature_specs)
@@ -119,7 +119,7 @@ async def health_check() -> dict[str, str]:
 """
 
     feature_specs = _load_python_feature_specs()
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, feature_specs)
@@ -145,7 +145,7 @@ async def create_user() -> dict[str, bool]:
 """
 
     feature_specs = _load_python_feature_specs()
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, feature_specs)
@@ -171,7 +171,7 @@ def test_pydantic_tree_sitter_detection_model_file() -> None:
     source_code = model_path.read_text(encoding="utf-8")
 
     feature_specs = _load_python_feature_specs()
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, feature_specs)
@@ -200,7 +200,7 @@ def build():
 """
 
     feature_specs = _load_python_feature_specs()
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, feature_specs)
@@ -225,7 +225,7 @@ def run() -> None:
     llm.completion(model="gpt-4o-mini", messages=[])
 """
 
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
     spec = _build_litellm_completion_spec()
 
@@ -260,7 +260,7 @@ def run() -> str:
     return api.completion("hello")
 """
 
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, [_build_litellm_completion_spec()])
@@ -277,7 +277,7 @@ class User(foo.BaseModel):
     pass
 """
 
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, [_build_pydantic_inheritance_spec()])
@@ -294,7 +294,7 @@ class User(BM):
     pass
 """
 
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = PythonTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, [_build_pydantic_inheritance_spec()])
