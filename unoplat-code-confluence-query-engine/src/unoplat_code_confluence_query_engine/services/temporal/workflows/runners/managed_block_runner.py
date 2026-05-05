@@ -19,6 +19,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
         DB_ACTIVITY_RETRY_POLICY,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.utils import (
+        raise_if_temporal_cancellation,
+    )
 
 
 async def run_managed_block_bootstrap(
@@ -43,4 +46,5 @@ async def run_managed_block_bootstrap(
             changed,
         )
     except Exception as e:
+        raise_if_temporal_cancellation(e)
         logger.error("[workflow] Managed block bootstrap failed: {}", e)
