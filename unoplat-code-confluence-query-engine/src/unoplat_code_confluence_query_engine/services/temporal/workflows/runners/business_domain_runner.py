@@ -85,6 +85,10 @@ async def run_business_domain_agent(
             metadata=build_agent_run_metadata(business_logic_deps),
         )
         logger.debug("[workflow] business_domain_guide.run() returned")
+        
+        # Append stats before fallible activity to preserve real usage data
+        agent_stats.append(extract_usage_statistics(domain_result.usage()))
+        
         business_logic_result = await workflow.execute_activity(
             BusinessLogicPostProcessActivity.post_process_business_logic,
             args=[
@@ -105,7 +109,6 @@ async def run_business_domain_agent(
             "[workflow] business_domain_guide completed for {}",
             codebase_metadata.codebase_name,
         )
-        agent_stats.append(extract_usage_statistics(domain_result.usage()))
 
         logger.debug(
             "[workflow] business_domain_guide directly owns AGENTS.md / ## Business Domain / ### Description; "
