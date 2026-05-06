@@ -124,6 +124,12 @@ async def run_dependency_guide_agent(
 
         results["dependency_guide"] = {"dependencies": dependency_entries}
 
+        # Append stats before fallible activities to preserve real usage data
+        if dependency_agent_stats:
+            agent_stats.append(aggregate_usage_statistics(dependency_agent_stats))
+        else:
+            agent_stats.append(create_zero_usage_statistics())
+
         await workflow.execute_activity(
             DependencyGuideCompletionActivity.write_dependency_overview,
             args=[
@@ -146,11 +152,6 @@ async def run_dependency_guide_agent(
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
-
-        if dependency_agent_stats:
-            agent_stats.append(aggregate_usage_statistics(dependency_agent_stats))
-        else:
-            agent_stats.append(create_zero_usage_statistics())
 
         logger.info(
             "[workflow] dependency_guide completed for {}: {} entries",
