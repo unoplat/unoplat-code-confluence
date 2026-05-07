@@ -592,10 +592,9 @@ async def db_get_low_confidence_call_expression_candidates(
         )
 
         result = await session.execute(stmt)
-        rows = result.all()
 
         candidates: list[FrameworkFeatureValidationCandidate] = []
-        for feature, usage in rows:
+        for feature, usage in result:
             feature_definition = (
                 cast(dict[str, object], feature.feature_definition)
                 if isinstance(feature.feature_definition, dict)

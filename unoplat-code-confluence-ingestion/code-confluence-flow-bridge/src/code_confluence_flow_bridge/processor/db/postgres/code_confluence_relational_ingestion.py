@@ -244,7 +244,7 @@ class CodeConfluenceRelationalIngestion:
     async def get_framework_libraries_for_language(self, language: str) -> List[str]:
         stmt = select(Framework.library).where(Framework.language == language)
         result = await self.session.execute(stmt)
-        return [row[0] for row in result.all()]
+        return [row[0] for row in result]
 
     async def get_framework_features_for_language(
         self, language: str
@@ -255,4 +255,4 @@ class CodeConfluenceRelationalIngestion:
             FrameworkFeature.operation_key,
         ).where(FrameworkFeature.language == language)
         result = await self.session.execute(stmt)
-        return [(row[0], row[1], row[2]) for row in result.all()]
+        return [(row[0], row[1], row[2]) for row in result]
