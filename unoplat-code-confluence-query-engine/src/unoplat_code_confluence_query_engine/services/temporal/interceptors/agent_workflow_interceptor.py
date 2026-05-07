@@ -37,6 +37,10 @@ from unoplat_code_confluence_query_engine.services.temporal.cancellation_helpers
 
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
+
+    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
+        debug_timeout,
+    )
     from unoplat_code_confluence_commons.workflow_envelopes import (
         CodebaseWorkflowDbActivityEnvelope,
         ParentWorkflowDbActivityEnvelope,
@@ -226,7 +230,10 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         await workflow.execute_activity(
             RepositoryWorkflowDbActivity.update_repository_workflow_status,
             args=[running_envelope],
-            start_to_close_timeout=timedelta(minutes=1),
+            start_to_close_timeout=debug_timeout(
+                timedelta(minutes=1),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         bound_logger.debug(
@@ -273,7 +280,10 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             await workflow.execute_activity(
                 RepositoryWorkflowDbActivity.update_repository_workflow_status,
                 args=[final_envelope],
-                start_to_close_timeout=timedelta(minutes=1),
+                start_to_close_timeout=debug_timeout(
+                timedelta(minutes=1),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
                 retry_policy=DB_ACTIVITY_RETRY_POLICY,
             )
             bound_logger.debug(
@@ -365,7 +375,10 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         await workflow.execute_activity(
             CodebaseWorkflowDbActivity.update_codebase_workflow_status,
             args=[running_envelope],
-            start_to_close_timeout=timedelta(minutes=1),
+            start_to_close_timeout=debug_timeout(
+                timedelta(minutes=1),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         bound_logger.debug(
@@ -414,7 +427,10 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             await workflow.execute_activity(
                 CodebaseWorkflowDbActivity.update_codebase_workflow_status,
                 args=[final_envelope],
-                start_to_close_timeout=timedelta(minutes=1),
+                start_to_close_timeout=debug_timeout(
+                timedelta(minutes=1),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
                 retry_policy=DB_ACTIVITY_RETRY_POLICY,
             )
             bound_logger.debug(
@@ -441,7 +457,10 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 await workflow.execute_activity(
                     RepositoryWorkflowDbActivity.update_repository_workflow_status,
                     args=[parent_failed_envelope],
-                    start_to_close_timeout=timedelta(minutes=1),
+                    start_to_close_timeout=debug_timeout(
+                timedelta(minutes=1),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
                     retry_policy=DB_ACTIVITY_RETRY_POLICY,
                 )
                 bound_logger.info(

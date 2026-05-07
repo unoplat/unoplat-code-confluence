@@ -18,6 +18,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.app_interfaces_activity import (
         AppInterfacesActivity,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
+        debug_timeout,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
         DB_ACTIVITY_RETRY_POLICY,
     )
@@ -60,7 +63,10 @@ async def run_app_interfaces_agent(
                 codebase_metadata.codebase_path,
                 codebase_metadata.codebase_programming_language,
             ],
-            start_to_close_timeout=timedelta(minutes=2),
+            start_to_close_timeout=debug_timeout(
+                timedelta(minutes=2),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
 
@@ -84,24 +90,29 @@ async def run_app_interfaces_agent(
                 codebase_metadata.codebase_path,
                 codebase_metadata.codebase_programming_language,
             ],
-            start_to_close_timeout=timedelta(minutes=2),
+            start_to_close_timeout=debug_timeout(
+                timedelta(minutes=2),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         results["app_interfaces"] = app_interfaces_result.model_dump()
 
-        app_interfaces_changed = await workflow.execute_activity(
+        await workflow.execute_activity(
             AppInterfacesActivity.write_app_interfaces,
             args=[
                 codebase_metadata.codebase_path,
                 results["app_interfaces"],
             ],
-            start_to_close_timeout=timedelta(seconds=30),
+            start_to_close_timeout=debug_timeout(
+                timedelta(seconds=30),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         logger.info(
-            "[workflow] app_interfaces.md render completed for {} changed={}",
+            "[workflow] app_interfaces.md render completed for {}",
             codebase_metadata.codebase_name,
-            app_interfaces_changed,
         )
 
         await workflow.execute_activity(
@@ -112,7 +123,10 @@ async def run_app_interfaces_agent(
                 codebase_metadata.codebase_name,
                 codebase_metadata.codebase_programming_language,
             ],
-            start_to_close_timeout=timedelta(seconds=30),
+            start_to_close_timeout=debug_timeout(
+                timedelta(seconds=30),
+                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
+            ),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
 
