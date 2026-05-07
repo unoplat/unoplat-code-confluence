@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Dict, List, Mapping, Set, cast
+from typing import AsyncIterator, Dict, List, Mapping, Set, cast
 
 from loguru import logger
 from sqlalchemy import and_, not_, select
@@ -30,6 +30,9 @@ from unoplat_code_confluence_query_engine.models.repository.framework_feature_va
     FrameworkFeatureValidationEvidenceUpsertResult,
     FrameworkFeatureValidationStatusTransitionRequest,
     FrameworkFeatureValidationStatusTransitionResult,
+)
+from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
+    AppInterfaceFeatureRow,
 )
 
 LOW_CONFIDENCE_VALIDATION_THRESHOLD = 0.70
@@ -372,24 +375,21 @@ async def db_get_framework_with_features(
     return {"library": library, "features": features}
 
 
-async def db_get_all_framework_features_for_codebase(
+async def db_stream_all_framework_features_for_codebase(
     codebase_path: str,
     programming_language: str = "python",
-) -> list[dict[str, object]]:
-    """Fetch all framework features with usage locations for a codebase.
+) -> AsyncIterator[AppInterfaceFeatureRow]:
+    """Stream app-interface-relevant framework feature usage rows for a codebase.
 
-    Args:
-        codebase_path: Path to the codebase for lookup
-        programming_language: Programming language filter (default: python)
-
-    Returns:
-        List of dicts containing library, structured feature identity
-        (`feature_capability_key`, `feature_operation_key`), display
-        `feature_key`, startpoint, file_path, start_line, end_line,
-        and match_text for each feature usage.
+    This replaces the previous list materialization path. Rows are fetched through
+    SQLAlchemy async streaming and yielded only after repository-level validation
+    and app-interface inclusion filtering.
     """
     if not codebase_path:
-        return []
+        return
+
+    streamed_rows = 0
+    yielded_rows = 0
 
     async with get_startup_session() as session:
         stmt = (
@@ -450,81 +450,77 @@ async def db_get_all_framework_features_for_codebase(
             )
         )
 
-        result = await session.execute(stmt)
-        rows = result.all()
+        result = await session.stream(stmt)
+        try:
+            async for (
+                library,
+                capability_key,
+                operation_key,
+                concept,
+                startpoint,
+                file_path,
+                start_line,
+                end_line,
+                match_text,
+                match_confidence,
+                validation_status,
+                evidence_json,
+            ) in result:
+                streamed_rows += 1
+                feature_capability_key = str(capability_key)
+                feature_operation_key = str(operation_key)
+                feature_key_value = _compose_feature_key(
+                    feature_capability_key,
+                    feature_operation_key,
+                )
 
-    if not rows:
+                if not isinstance(startpoint, bool):
+                    raise TypeError(
+                        "Invalid startpoint value for feature "
+                        f"'{feature_key_value}': {startpoint!r}"
+                    )
+
+                if file_path is None or start_line is None or end_line is None:
+                    continue
+
+                if not _should_include_in_app_interface_mapping(
+                    concept=str(concept),
+                    match_confidence=float(match_confidence),
+                    validation_status=_coerce_validation_status_or_pending(
+                        validation_status
+                    ),
+                    evidence_json=evidence_json,
+                ):
+                    continue
+
+                yielded_rows += 1
+                yield AppInterfaceFeatureRow(
+                    library=str(library) if library else None,
+                    feature_capability_key=feature_capability_key,
+                    feature_operation_key=feature_operation_key,
+                    file_path=str(file_path),
+                    start_line=int(start_line),
+                    end_line=int(end_line),
+                    match_text=str(match_text) if match_text else None,
+                )
+        finally:
+            await result.close()
+
+    if streamed_rows == 0:
         logger.debug(
             "No framework features found for codebase_path={} language={}",
             codebase_path,
             programming_language,
         )
-        return []
-
-    features: list[dict[str, object]] = []
-    for (
-        library,
-        capability_key,
-        operation_key,
-        concept,
-        startpoint,
-        file_path,
-        start_line,
-        end_line,
-        match_text,
-        match_confidence,
-        validation_status,
-        evidence_json,
-    ) in rows:
-        feature_capability_key = str(capability_key)
-        feature_operation_key = str(operation_key)
-        feature_key_value = _compose_feature_key(
-            feature_capability_key,
-            feature_operation_key,
+    else:
+        logger.debug(
+            "Streamed {} framework feature rows and yielded {} app-interface rows "
+            "for codebase_path={} language={}",
+            streamed_rows,
+            yielded_rows,
+            codebase_path,
+            programming_language,
         )
-
-        if not isinstance(startpoint, bool):
-            raise TypeError(
-                f"Invalid startpoint value for feature '{feature_key_value}': {startpoint!r}"
-            )
-
-        concept_value = str(concept)
-        confidence_value = float(match_confidence)
-        status_value = _coerce_validation_status_or_pending(validation_status)
-
-        if not _should_include_in_app_interface_mapping(
-            concept=concept_value,
-            match_confidence=confidence_value,
-            validation_status=status_value,
-            evidence_json=evidence_json,
-        ):
-            continue
-
-        if file_path is None or start_line is None or end_line is None:
-            continue
-
-        features.append(
-            {
-                "library": library,
-                "feature_capability_key": feature_capability_key,
-                "feature_operation_key": feature_operation_key,
-                "feature_key": feature_key_value,
-                "startpoint": startpoint,
-                "file_path": file_path,
-                "start_line": int(start_line),
-                "end_line": int(end_line),
-                "match_text": match_text,
-            }
-        )
-
-    logger.debug(
-        "Fetched {} framework features for codebase_path={} language={}",
-        len(features),
-        codebase_path,
-        programming_language,
-    )
-
-    return features
 
 
 async def db_get_low_confidence_call_expression_candidates(
