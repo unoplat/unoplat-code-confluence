@@ -144,6 +144,22 @@ SAFE_SOURCE_NAME_OVERRIDES: list[str] = [
 ]
 
 
+COMMAND_DISCOVERY_ALLOW_PATTERNS: list[str] = [
+    "**--help",
+    "**--help **",
+    "**--help=**",
+    "** -h",
+    "** -h **",
+    "**--version",
+    "**--version **",
+    "**--version=**",
+    "** -v",
+    "** -v **",
+    "** help",
+    "** help **",
+]
+
+
 def _allow_rules(patterns: list[str], description: str) -> list[PermissionRule]:
     return [
         PermissionRule(pattern=pattern, action="allow", description=description)
@@ -160,6 +176,45 @@ def _read_permissions() -> OperationPermissions:
                 "Allow source files whose names collide with secret tokens",
             ),
             *_deny_rules(SECRETS_PATTERNS, "Protect sensitive files"),
+        ],
+    )
+
+
+def _execute_deny_rules() -> list[PermissionRule]:
+    return [
+        *_deny_rules(DANGEROUS_COMMANDS, "Block dangerous commands"),
+    ]
+
+
+def _execute_metadata_only_permissions() -> OperationPermissions:
+    """Publish execute to the model but emulate deny-by-default at call time.
+
+    `pydantic_ai_backends.create_console_toolset` removes the execute tool from
+    the toolset whenever `permissions.execute.default == "deny"` (the predicate
+    `_is_denied_by_ruleset` ignores allow-rules and looks only at `default`).
+    To keep the agent able to run CLI help/version probes — while still failing
+    safe for everything else — we set `default="allow"` so the tool is
+    advertised to the model, and order the rules so that:
+
+    1. Dangerous commands are denied first (defensive against pathological
+       inputs such as `rm -rf --help`).
+    2. CLI help/version forms (for example `bun --help`, `task help`, `vite -v`)
+       are explicitly allowed.
+    3. A catch-all `**` deny rule emulates the original default-deny posture
+       for any command that is neither dangerous nor a help/version probe.
+
+    `PermissionChecker` evaluates rules in order with first-match-wins
+    semantics, so this preserves identical runtime safety to the previous
+    deny-by-default ruleset while exposing the tool to the model.
+    """
+    return OperationPermissions(
+        default="allow",
+        rules=[
+            *_execute_deny_rules(),
+            *_allow_rules(
+                COMMAND_DISCOVERY_ALLOW_PATTERNS,
+                "Allow CLI help/version discovery commands only",
+            ),
         ],
     )
 
@@ -181,10 +236,7 @@ READ_AND_EXECUTE_RULESET = PermissionRuleset(
     read=_read_permissions(),
     write=OperationPermissions(default="deny"),
     edit=OperationPermissions(default="deny"),
-    execute=OperationPermissions(
-        default="allow",
-        rules=_deny_rules(DANGEROUS_COMMANDS, "Block dangerous commands"),
-    ),
+    execute=_execute_metadata_only_permissions(),
     glob=OperationPermissions(default="allow"),
     grep=OperationPermissions(default="allow"),
     ls=OperationPermissions(default="allow"),
@@ -222,10 +274,7 @@ MARKDOWN_READ_WRITE_EXECUTE_RULESET = PermissionRuleset(
     read=_read_permissions(),
     write=MARKDOWN_READ_WRITE_RULESET.write,
     edit=MARKDOWN_READ_WRITE_RULESET.edit,
-    execute=OperationPermissions(
-        default="allow",
-        rules=_deny_rules(DANGEROUS_COMMANDS, "Block dangerous commands"),
-    ),
+    execute=_execute_metadata_only_permissions(),
     glob=OperationPermissions(default="allow"),
     grep=OperationPermissions(default="allow"),
     ls=OperationPermissions(default="allow"),
@@ -238,7 +287,7 @@ GLOB_RELATIVE_DESCRIPTION = (
     "Absolute patterns (e.g., `/app/**/*.py`) are rejected by Python 3.13's pathlib "
     "with `NotImplementedError: Non-relative patterns are unsupported`. "
     "To search under a specific directory, set the `path` argument to that directory "
-    "and keep the `pattern` relative (e.g., `path=\"/app/src\"`, `pattern=\"**/*.py\"`)."
+    'and keep the `pattern` relative (e.g., `path="/app/src"`, `pattern="**/*.py"`).'
 )
 
 
@@ -334,7 +383,9 @@ def build_markdown_console_capability(toolset_id: str) -> LocalConsoleCapability
     )
 
 
-def build_markdown_execute_console_capability(toolset_id: str) -> LocalConsoleCapability:
+def build_markdown_execute_console_capability(
+    toolset_id: str,
+) -> LocalConsoleCapability:
     """Create a console capability with safe execute and markdown-only writes."""
     return build_local_console_capability(
         toolset_id=toolset_id,

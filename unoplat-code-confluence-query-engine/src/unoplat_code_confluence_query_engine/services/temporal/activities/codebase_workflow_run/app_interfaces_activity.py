@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from loguru import logger
 from temporalio import activity
 
@@ -15,7 +13,7 @@ from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     Interfaces,
 )
 from unoplat_code_confluence_query_engine.services.agents_md.rendering.app_interfaces.renderer import (
-    write_app_interfaces,
+    write_app_interfaces as write_app_interfaces_artifact,
 )
 from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
     build_interfaces_from_feature_rows,
@@ -78,18 +76,17 @@ class AppInterfacesActivity:
     async def write_app_interfaces(
         self,
         codebase_path: str,
-        app_interfaces: dict[str, Any],
+        app_interfaces: Interfaces,
     ) -> None:
         """Render and write app_interfaces.md from the supplied Interfaces payload.
 
         Args:
             codebase_path: Path to the codebase root where app_interfaces.md lives.
-            app_interfaces: Serialized Interfaces model produced by build_app_interfaces.
+            app_interfaces: Interfaces model produced by build_app_interfaces.
         """
-        interfaces = Interfaces.model_validate(app_interfaces)
-        write_app_interfaces(
+        write_app_interfaces_artifact(
             codebase_path=codebase_path,
-            interfaces=interfaces,
+            interfaces=app_interfaces,
         )
         logger.info(
             "[app_interfaces_activity] {} for {} written",

@@ -8,15 +8,12 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
-        debug_timeout,
-    )
-
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
     )
     from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
         AgentDependencies,
+        build_agent_run_metadata,
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
@@ -27,7 +24,10 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_development_workflow import (
         build_development_workflow_prompt,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
+    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
+        debug_timeout,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
         DB_ACTIVITY_RETRY_POLICY,
     )
     from unoplat_code_confluence_query_engine.services.temporal.statistics_helpers import (
@@ -42,6 +42,9 @@ with workflow.unsafe.imports_passed_through():
         enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
+        persist_codebase_snapshot_patch,
+    )
 
 
 async def run_development_workflow_agent(
@@ -49,8 +52,8 @@ async def run_development_workflow_agent(
     repository_qualified_name: str,
     codebase_metadata: CodebaseMetadata,
     repository_workflow_run_id: str,
+    codebase_workflow_run_id: str,
     programming_language_metadata: dict[str, object],
-    results: dict[str, object],
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
 ) -> None:
@@ -69,6 +72,7 @@ async def run_development_workflow_agent(
         repository_qualified_name=repository_qualified_name,
         codebase_metadata=codebase_metadata,
         repository_workflow_run_id=repository_workflow_run_id,
+        codebase_workflow_run_id=codebase_workflow_run_id,
         agent_name="development_workflow_guide",
     )
     try:
@@ -85,10 +89,17 @@ async def run_development_workflow_agent(
             ),
             deps=engineering_workflow_deps,
             usage_limits=get_cached_usage_limits(),
+            metadata=build_agent_run_metadata(engineering_workflow_deps),
         )
         logger.debug("[workflow] development_workflow_guide.run() returned")
 
-        results["engineering_workflow"] = workflow_result.output.model_dump()
+        engineering_workflow_output = workflow_result.output.model_dump()
+        await persist_codebase_snapshot_patch(
+            repository_qualified_name=repository_qualified_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            codebase_name=codebase_metadata.codebase_name,
+            codebase_patch={"engineering_workflow": engineering_workflow_output},
+        )
 
         await workflow.execute_activity(
             EngineeringWorkflowCompletionActivity.emit_engineering_workflow_completion,

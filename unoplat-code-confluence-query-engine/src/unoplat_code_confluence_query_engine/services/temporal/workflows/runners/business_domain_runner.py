@@ -2,22 +2,18 @@ from __future__ import annotations
 
 from datetime import timedelta
 import traceback
-from typing import Any
 
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
-        debug_timeout,
-    )
-
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
     )
     from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
         AgentDependencies,
+        build_agent_run_metadata,
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
@@ -28,7 +24,10 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_business_domain import (
         build_business_domain_prompt,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
+    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
+        debug_timeout,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
         DB_ACTIVITY_RETRY_POLICY,
     )
     from unoplat_code_confluence_query_engine.services.temporal.statistics_helpers import (
@@ -43,6 +42,9 @@ with workflow.unsafe.imports_passed_through():
         enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
+        persist_codebase_snapshot_patch,
+    )
 
 
 async def run_business_domain_agent(
@@ -50,8 +52,8 @@ async def run_business_domain_agent(
     repository_qualified_name: str,
     codebase_metadata: CodebaseMetadata,
     repository_workflow_run_id: str,
+    codebase_workflow_run_id: str,
     programming_language_metadata: dict[str, object],
-    results: dict[str, Any],
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
 ) -> None:
@@ -75,6 +77,7 @@ async def run_business_domain_agent(
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
             repository_workflow_run_id=repository_workflow_run_id,
+            codebase_workflow_run_id=codebase_workflow_run_id,
             agent_name="business_domain_guide",
         )
         logger.debug("[workflow] Calling business_domain_guide.run()...")
@@ -82,6 +85,7 @@ async def run_business_domain_agent(
             build_business_domain_prompt(codebase_metadata.codebase_path),
             deps=business_logic_deps,
             usage_limits=get_cached_usage_limits(),
+            metadata=build_agent_run_metadata(business_logic_deps),
         )
         logger.debug("[workflow] business_domain_guide.run() returned")
         business_logic_result = await workflow.execute_activity(
@@ -97,7 +101,12 @@ async def run_business_domain_agent(
             ),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
-        results["business_logic_domain"] = business_logic_result
+        await persist_codebase_snapshot_patch(
+            repository_qualified_name=repository_qualified_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            codebase_name=codebase_metadata.codebase_name,
+            codebase_patch={"business_logic_domain": business_logic_result},
+        )
         logger.info(
             "[workflow] business_domain_guide completed for {}",
             codebase_metadata.codebase_name,

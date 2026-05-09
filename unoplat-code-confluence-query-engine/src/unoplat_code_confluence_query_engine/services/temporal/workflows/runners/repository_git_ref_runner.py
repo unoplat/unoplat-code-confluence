@@ -17,7 +17,7 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.git_ref_resolution_activity import (
         GitRefResolutionActivity,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
+    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
         DB_ACTIVITY_RETRY_POLICY,
     )
 

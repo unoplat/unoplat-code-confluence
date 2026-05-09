@@ -90,9 +90,13 @@ class LanguageCodebaseProcessor(ABC):
             self.context.codebase_name,
         )
 
-        file_iter = iter(file_paths)
         concurrency_limit = self.context.concurrency_limit
+        if concurrency_limit <= 0:
+            raise ValueError(
+                f"Invalid concurrency_limit={concurrency_limit}; expected >= 1."
+            )
 
+        file_iter = iter(file_paths)
         active_tasks: set[asyncio.Task[Optional[UnoplatFile]]] = set()
         for _ in range(concurrency_limit):
             try:

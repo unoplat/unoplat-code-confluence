@@ -10,17 +10,11 @@ from loguru import logger
 from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     RepositoryRulesetMetadata,
 )
-from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
-    get_snapshot_writer,
-)
 from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
     TASK_QUEUE,
 )
 from unoplat_code_confluence_query_engine.services.temporal.workflows import (
     RepositoryAgentWorkflow,
-)
-from unoplat_code_confluence_query_engine.services.workflow.workflow_run_initializer import (
-    ensure_workflow_run_exists,
 )
 
 if TYPE_CHECKING:
@@ -30,20 +24,13 @@ if TYPE_CHECKING:
 class TemporalWorkflowService:
     """Service for starting Temporal workflows.
 
-    This service is used by the API endpoint to trigger Temporal workflows
-    with trace_id from the API level. It handles:
-    - Generating workflow IDs and run IDs
-    - Ensuring DB records exist (Repository, RepositoryWorkflowRun)
-    - Initializing snapshot tracking
-    - Starting the Temporal workflow
+    The Temporal workflow ID is generated before start for lifecycle operations,
+    while the repository workflow run ID returned to callers is Temporal's real
+    ``result_run_id``. Initial DB/snapshot rows are created by workflow
+    interceptors using ``workflow.info().run_id``.
     """
 
     def __init__(self, temporal_client: Client) -> None:
-        """Initialize the workflow service.
-
-        Args:
-            temporal_client: Connected Temporal client instance
-        """
         self._client = temporal_client
 
     async def start_workflow(
@@ -51,25 +38,10 @@ class TemporalWorkflowService:
         *,
         ruleset_metadata: RepositoryRulesetMetadata,
         trace_id: str,
-        repository_workflow_run_id: str | None = None,
     ) -> str:
-        """Start a RepositoryAgentWorkflow for the given repository.
-
-        Args:
-            ruleset_metadata: Repository metadata with codebase information
-            trace_id: Trace ID for distributed tracing (from API dependency)
-            repository_workflow_run_id: Optional pre-generated workflow run ID.
-                                       If not provided, a new UUID will be generated.
-
-        Returns:
-            The repository_workflow_run_id used for tracking
-
-        Raises:
-            Exception: If workflow fails to start
-        """
+        """Start a RepositoryAgentWorkflow and return Temporal's repository run ID."""
         bound_logger = logger.bind(app_trace_id=trace_id)
 
-        # Parse owner/repo from qualified name
         repository_qualified_name = ruleset_metadata.repository_qualified_name
         if "/" not in repository_qualified_name:
             raise ValueError(
@@ -78,82 +50,37 @@ class TemporalWorkflowService:
             )
 
         owner_name, repo_name = repository_qualified_name.split("/", maxsplit=1)
-
-        # Generate workflow run ID if not provided
-        if repository_workflow_run_id is None:
-            repository_workflow_run_id = uuid.uuid4().hex
-
-        bound_logger.info(
-            "[workflow_service] Starting workflow for {}/{} with run_id={}",
-            owner_name,
-            repo_name,
-            repository_workflow_run_id,
-        )
-
-        # Generate Temporal workflow ID up front so it can be persisted with the
-        # repository workflow run row for later lifecycle operations (cancel, describe).
         workflow_id = f"agent-{repository_qualified_name.replace('/', '-')}-{uuid.uuid4().hex[:8]}"
 
-        # Ensure parent records exist (Repository + RepositoryWorkflowRun)
-        # This satisfies foreign key constraints for RepositoryAgentMdSnapshot
-        await ensure_workflow_run_exists(
-            owner_name=owner_name,
-            repo_name=repo_name,
-            repository_workflow_run_id=repository_workflow_run_id,
-            repository_workflow_id=workflow_id,
-        )
-        bound_logger.info(
-            "[workflow_service] Ensured Repository and RepositoryWorkflowRun records exist"
-        )
-
-        # Initialize snapshot tracking with begin_run()
-        codebase_names = [
-            metadata.codebase_name for metadata in ruleset_metadata.codebase_metadata
-        ]
-        snapshot_writer = get_snapshot_writer()
-        await snapshot_writer.begin_run(
-            owner_name=owner_name,
-            repo_name=repo_name,
-            repository_qualified_name=repository_qualified_name,
-            repository_workflow_run_id=repository_workflow_run_id,
-            codebase_names=codebase_names,
-        )
-        bound_logger.info(
-            "[workflow_service] Snapshot tracking initialized for {} codebases",
-            len(codebase_names),
-        )
-
-        # Serialize codebase metadata for workflow args
         codebase_metadata_list = [
             metadata.model_dump() for metadata in ruleset_metadata.codebase_metadata
         ]
 
         bound_logger.info(
             "[workflow_service] Starting RepositoryAgentWorkflow with id={}, "
-            "repository={}, codebases={}, trace_id={}",
+            "repository={}/{}, codebases={}, trace_id={}",
             workflow_id,
-            repository_qualified_name,
+            owner_name,
+            repo_name,
             len(codebase_metadata_list),
             trace_id,
         )
 
-        # Start the workflow (non-blocking - returns immediately)
         workflow_handle = await self._client.start_workflow(
             RepositoryAgentWorkflow.run,
             args=[
                 repository_qualified_name,
                 codebase_metadata_list,
-                repository_workflow_run_id,
                 trace_id,
             ],
             id=workflow_id,
             task_queue=TASK_QUEUE,
         )
 
+        repository_workflow_run_id = workflow_handle.result_run_id
         bound_logger.info(
-            "[workflow_service] Workflow started successfully: workflow_id={}, temporal_run_id={}, run_id={}",
+            "[workflow_service] Workflow started successfully: workflow_id={}, temporal_run_id={}",
             workflow_handle.id,
-            workflow_handle.result_run_id,
             repository_workflow_run_id,
         )
 
