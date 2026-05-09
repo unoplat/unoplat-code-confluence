@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.78.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.78.0...code-confluence-flow-bridge-v0.78.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* **backend:** stream SQLAlchemy result rows and use set[str] for library names ([58dd684](https://github.com/unoplat/unoplat-code-confluence/commit/58dd684d468dab33c565168aa99d320c3fba2dd9))
+* **engine:** restrict dev-workflow execute to help probes and use direct pydantic envelopes in temporal runners ([a1d8e39](https://github.com/unoplat/unoplat-code-confluence/commit/a1d8e39780839d8b9f0878169bda39b0fdf238f1))
+* **engine:** thread pre-parsed source context through detection pipeline to eliminate redundant parses ([01c01f5](https://github.com/unoplat/unoplat-code-confluence/commit/01c01f5ccb4665736c731341a40cf5acc1ef96df))
+* **parser:** extract _iter_logical_lines to simplify pip requirements parsing ([4a7b32b](https://github.com/unoplat/unoplat-code-confluence/commit/4a7b32bb6c316b45e100c5e2a1c9057af73a98dd))
+* **parser:** stream file discovery as iterator to reduce peak memory ([dc72b3a](https://github.com/unoplat/unoplat-code-confluence/commit/dc72b3a0efa923c091b189738f39bbcf0bc3aecf))
+* **runtime:** stabilize workflow timeouts and source decoding ([6dc41d3](https://github.com/unoplat/unoplat-code-confluence/commit/6dc41d39fc7f32601afd4f0e114459ff2e3ebf32))
+* **tests:** update tests to use new source context API ([b209174](https://github.com/unoplat/unoplat-code-confluence/commit/b209174deb9ae8ada076eb45b428458d691e1a36))
+
 ## [0.78.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.77.0...code-confluence-flow-bridge-v0.78.0) (2026-04-29)
 
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.42.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.42.0...unoplat-code-confluence-query-engine-v0.42.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* **backend:** stream SQLAlchemy result rows and use set[str] for library names ([58dd684](https://github.com/unoplat/unoplat-code-confluence/commit/58dd684d468dab33c565168aa99d320c3fba2dd9))
+* **engine:** restrict dev-workflow execute to help probes and use direct pydantic envelopes in temporal runners ([a1d8e39](https://github.com/unoplat/unoplat-code-confluence/commit/a1d8e39780839d8b9f0878169bda39b0fdf238f1))
+* **engine:** stream framework features from postgres to reduce peak memory ([00ec264](https://github.com/unoplat/unoplat-code-confluence/commit/00ec264735ea687b2c297239de43080df207f35e))
+* **engine:** use pydantic-ai model API to render tool results in event stream ([5d97cec](https://github.com/unoplat/unoplat-code-confluence/commit/5d97cec834d87cadd70931a3aeda472f56f34b20))
+* **renderer:** always overwrite md artifacts; remove stale-check read ([f1e2550](https://github.com/unoplat/unoplat-code-confluence/commit/f1e255081ad4f25fb7f98e837cfacb33692ff81b))
+* **runtime:** stabilize workflow timeouts and source decoding ([6dc41d3](https://github.com/unoplat/unoplat-code-confluence/commit/6dc41d39fc7f32601afd4f0e114459ff2e3ebf32))
+* **temporal:** add env-var-overridable debug_timeout to all activity configs ([973785c](https://github.com/unoplat/unoplat-code-confluence/commit/973785c032ad77ba2778eea3294956de43e0b79e))
+* **temporal:** add missing debug_timeouts module imported by worker manager ([9c5bb96](https://github.com/unoplat/unoplat-code-confluence/commit/9c5bb9615b27e6d3c0b87eb0fe2e531307cfcdec))
+* **tests:** align dev-workflow execute prompt assertion with restricted help-probe wording ([55a82dc](https://github.com/unoplat/unoplat-code-confluence/commit/55a82dc911909fb42aac4de8f36e6f22db957899))
+* **tests:** migrate framework feature repo tests to streaming API ([dd8e283](https://github.com/unoplat/unoplat-code-confluence/commit/dd8e2838fb167d321954ea4d3b8e68a345788eca))
+
 ## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.41.1...unoplat-code-confluence-query-engine-v0.42.0) (2026-04-26)
 
 
