@@ -77,19 +77,19 @@ Before substantial work:
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `e1d9b8966ae6d91f530e642d0fb01662c3cf2760` (2026-05-09). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
 ## Engineering Workflow
 ### Install
-- `bun install` — repository root; config: `package.json` and `Taskfile.yml`
+- `bun install` — repository root; config: `package.json`, `bun.lock`
 
 ### Build
 - `bun run build` — repository root; config: `package.json` (`tsc -b && vite build`)
 
 ### Dev
-- `bun run dev -- --host 127.0.0.1` — repository root; config: `package.json` (Vite dev server)
+- `bun run dev` — repository root; config: `package.json` (`vite`)
 
 ### Test
 - Not detected
@@ -105,6 +105,7 @@ See [`dependencies_overview.md`](./dependencies_overview.md) for the full depend
 
 ## Business Domain
 ### Description
+
 This frontend is for a code analysis and repository operations platform centered on onboarding GitHub/GitLab repositories, ingesting them into workflow runs, and displaying AI agent snapshot outputs such as engineering workflows, dependency guides, business logic summaries, and app interface scans. It also covers model-provider and tool configuration, OAuth and credential handling, and feedback flows that turn app or agent feedback into GitHub issues.
 
 ### References
