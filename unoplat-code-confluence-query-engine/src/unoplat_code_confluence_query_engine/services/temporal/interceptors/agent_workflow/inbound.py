@@ -31,9 +31,6 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
 
-    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
-        debug_timeout,
-    )
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow.activity import (
         CodebaseWorkflowDbActivity,
         RepositoryAgentSnapshotActivity,
@@ -50,7 +47,9 @@ with workflow.unsafe.imports_passed_through():
         extract_model_error_from_details,
         extract_model_error_from_exception,
     )
-    from unoplat_code_confluence_query_engine.utils.trace_utils import seed_and_bind_logger
+    from unoplat_code_confluence_query_engine.utils.trace_utils import (
+        seed_and_bind_logger,
+    )
 
 
 DB_ACTIVITY_RETRY_POLICY = RetryPolicy(
@@ -59,18 +58,12 @@ DB_ACTIVITY_RETRY_POLICY = RetryPolicy(
     maximum_attempts=3,
     maximum_interval=timedelta(seconds=10),
 )
+DB_ACTIVITY_TIMEOUT = timedelta(minutes=1)
 
 WORKFLOW_EXECUTION_EXCEPTIONS: tuple[type[BaseException], ...] = (
     asyncio.CancelledError,
     Exception,
 )
-
-
-def _db_activity_timeout() -> timedelta:
-    return debug_timeout(
-        timedelta(minutes=1),
-        env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
-    )
 
 
 class AgentWorkflowStatusInterceptor(Interceptor):
@@ -158,7 +151,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         await workflow.execute_activity(
             RepositoryWorkflowDbActivity.update_repository_workflow_status,
             args=[running_envelope],
-            start_to_close_timeout=_db_activity_timeout(),
+            start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         bound_logger.debug(
@@ -184,7 +177,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             await workflow.execute_activity(
                 RepositoryAgentSnapshotActivity.persist_agent_snapshot_begin_run,
                 args=[begin_envelope],
-                start_to_close_timeout=_db_activity_timeout(),
+                start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
                 retry_policy=DB_ACTIVITY_RETRY_POLICY,
             )
             bound_logger.debug(
@@ -222,7 +215,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             await workflow.execute_activity(
                 RepositoryWorkflowDbActivity.update_repository_workflow_status,
                 args=[final_envelope],
-                start_to_close_timeout=_db_activity_timeout(),
+                start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
                 retry_policy=DB_ACTIVITY_RETRY_POLICY,
             )
             bound_logger.debug(
@@ -296,7 +289,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         await workflow.execute_activity(
             CodebaseWorkflowDbActivity.update_codebase_workflow_status,
             args=[running_envelope],
-            start_to_close_timeout=_db_activity_timeout(),
+            start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         bound_logger.debug(
@@ -341,7 +334,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             await workflow.execute_activity(
                 CodebaseWorkflowDbActivity.update_codebase_workflow_status,
                 args=[final_envelope],
-                start_to_close_timeout=_db_activity_timeout(),
+                start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
                 retry_policy=DB_ACTIVITY_RETRY_POLICY,
             )
             bound_logger.debug(
@@ -368,7 +361,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 await workflow.execute_activity(
                     RepositoryWorkflowDbActivity.update_repository_workflow_status,
                     args=[parent_failed_envelope],
-                    start_to_close_timeout=_db_activity_timeout(),
+                    start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
                     retry_policy=DB_ACTIVITY_RETRY_POLICY,
                 )
                 bound_logger.info(

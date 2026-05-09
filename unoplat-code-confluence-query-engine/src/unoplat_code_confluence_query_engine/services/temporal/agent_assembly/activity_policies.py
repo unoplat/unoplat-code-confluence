@@ -9,9 +9,6 @@ from temporalio.workflow import ActivityConfig
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
 )
-from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
-    debug_timeout,
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,31 +50,19 @@ def create_temporal_activity_defaults(
 
     return TemporalActivityDefaults(
         base=ActivityConfig(
-            start_to_close_timeout=debug_timeout(
-                timedelta(seconds=300),
-                env_name="QUERY_ENGINE_TEMPORAL_BASE_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(seconds=300),
             retry_policy=retry_config.base_retry_policy,
         ),
         model=ActivityConfig(
-            start_to_close_timeout=debug_timeout(
-                timedelta(seconds=300),
-                env_name="QUERY_ENGINE_TEMPORAL_MODEL_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(seconds=300),
             retry_policy=retry_config.model_retry_policy,
         ),
         toolset=ActivityConfig(
-            start_to_close_timeout=debug_timeout(
-                timedelta(seconds=120),
-                env_name="QUERY_ENGINE_TEMPORAL_TOOLSET_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(seconds=120),
             retry_policy=retry_config.toolset_retry_policy,
         ),
         tool=ActivityConfig(
-            start_to_close_timeout=debug_timeout(
-                timedelta(seconds=120),
-                env_name="QUERY_ENGINE_TEMPORAL_TOOL_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(seconds=120),
             retry_policy=retry_config.tool_retry_policy,
         ),
     )

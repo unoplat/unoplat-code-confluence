@@ -24,9 +24,6 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_development_workflow import (
         build_development_workflow_prompt,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
-        debug_timeout,
-    )
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
         DB_ACTIVITY_RETRY_POLICY,
     )
@@ -109,10 +106,7 @@ async def run_development_workflow_agent(
                 codebase_metadata.codebase_name,
                 codebase_metadata.codebase_programming_language,
             ],
-            start_to_close_timeout=debug_timeout(
-                timedelta(seconds=30),
-                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
 

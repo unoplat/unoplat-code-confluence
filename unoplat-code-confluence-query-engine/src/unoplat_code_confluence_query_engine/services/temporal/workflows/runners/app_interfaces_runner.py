@@ -17,9 +17,6 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.app_interfaces_activity import (
         AppInterfacesActivity,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
-        debug_timeout,
-    )
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
         DB_ACTIVITY_RETRY_POLICY,
     )
@@ -68,10 +65,7 @@ async def run_app_interfaces_agent(
                 codebase_metadata.codebase_path,
                 codebase_metadata.codebase_programming_language,
             ],
-            start_to_close_timeout=debug_timeout(
-                timedelta(minutes=2),
-                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(minutes=2),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
 
@@ -96,10 +90,7 @@ async def run_app_interfaces_agent(
                 codebase_metadata.codebase_path,
                 codebase_metadata.codebase_programming_language,
             ],
-            start_to_close_timeout=debug_timeout(
-                timedelta(minutes=2),
-                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(minutes=2),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         await workflow.execute_activity(
@@ -108,10 +99,7 @@ async def run_app_interfaces_agent(
                 codebase_metadata.codebase_path,
                 app_interfaces_result,
             ],
-            start_to_close_timeout=debug_timeout(
-                timedelta(seconds=30),
-                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         logger.info(
@@ -134,10 +122,7 @@ async def run_app_interfaces_agent(
                 codebase_metadata.codebase_name,
                 codebase_metadata.codebase_programming_language,
             ],
-            start_to_close_timeout=debug_timeout(
-                timedelta(seconds=30),
-                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
 

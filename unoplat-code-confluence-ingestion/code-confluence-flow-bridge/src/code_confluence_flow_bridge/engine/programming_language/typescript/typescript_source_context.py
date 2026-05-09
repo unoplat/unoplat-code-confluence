@@ -40,7 +40,9 @@ def _extract_imports_from_tree(
     for nodes in captures.values():
         for node in nodes:
             imports.append(
-                source_bytes[node.start_byte : node.end_byte].decode("utf-8")
+                source_bytes[node.start_byte : node.end_byte].decode(
+                    "utf-8", errors="ignore"
+                )
             )
 
     return imports
@@ -56,7 +58,9 @@ def _record_import_alias(
 
 def _get_string_value(node: tree_sitter.Node, source_bytes: bytes) -> str:
     """Extract the string value from a TypeScript string node (strips quotes)."""
-    text = source_bytes[node.start_byte : node.end_byte].decode("utf-8")
+    text = source_bytes[node.start_byte : node.end_byte].decode(
+        "utf-8", errors="ignore"
+    )
     return text.strip("'\"")
 
 

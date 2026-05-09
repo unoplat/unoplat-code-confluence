@@ -30,7 +30,9 @@ def _extract_imports_from_tree(
     for nodes in captures.values():
         for node in nodes:
             imports.append(
-                source_bytes[node.start_byte : node.end_byte].decode("utf-8")
+                source_bytes[node.start_byte : node.end_byte].decode(
+                    "utf-8", errors="ignore"
+                )
             )
 
     return imports

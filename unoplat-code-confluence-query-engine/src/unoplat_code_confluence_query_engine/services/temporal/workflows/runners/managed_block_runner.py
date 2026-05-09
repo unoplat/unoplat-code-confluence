@@ -7,10 +7,6 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
-        debug_timeout,
-    )
-
     from unoplat_code_confluence_query_engine.models.output.git_ref_info import (
         GitRefInfo,
     )
@@ -38,10 +34,7 @@ async def run_managed_block_bootstrap(
                 git_ref_info.default_branch if git_ref_info else None,
                 git_ref_info.head_commit_sha if git_ref_info else None,
             ],
-            start_to_close_timeout=debug_timeout(
-                timedelta(seconds=30),
-                env_name="QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS",
-            ),
+            start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
         logger.info(
