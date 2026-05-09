@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This frontend is for a code analysis and repository operations platform that onboards GitHub/GitLab repositories, ingests them into workflow runs, and tracks repository/codebase status and progress. It centers on AI agent outputs like engineering workflows, dependency guides, business logic summaries, and app interface scans, while also handling model/tool configuration, OAuth and credential setup, and feedback flows that create GitHub issues.
+This frontend belongs to a code intelligence and repository operations platform that onboards GitHub/GitLab repositories, ingests them into workflow runs, and tracks repository and codebase status. It centers on AI-generated agent snapshots and markdown outputs that document engineering workflows, dependency guidance, business logic, and app interfaces for each codebase. The product also manages model and tool provider configuration, OAuth and credential setup, and feedback flows that submit app or agent issues back to GitHub.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/agent-feedback/api.ts`
@@ -54,12 +54,12 @@ This frontend is for a code analysis and repository operations platform that onb
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L36-L38`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L49-L51`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L57-L59`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L78-L80`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L87-L89`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L95-L97`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L105-L107`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L122-L124`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L200-L202`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L77-L79`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L86-L88`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L94-L96`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L104-L106`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L121-L123`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L199-L201`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts#L10-L13`
@@ -86,7 +86,7 @@ This frontend is for a code analysis and repository operations platform that onb
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/hooks/useSaveToolConfig.ts#L14-L16`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-events-utils.ts`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-events-utils.ts#L321-L326`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-events-utils.ts#L313-L318`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-md-to-markdown.ts`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-md-to-markdown.ts#L8-L10`
