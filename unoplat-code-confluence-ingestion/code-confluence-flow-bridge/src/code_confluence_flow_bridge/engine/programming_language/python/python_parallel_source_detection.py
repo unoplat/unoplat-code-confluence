@@ -60,9 +60,9 @@ def _detect_dataclasses(context: PythonSourceContext) -> DataModelPosition:
 
 
 async def detect_python_source_features(
-    source_code: str, feature_specs: List[FeatureSpec]
+    source_bytes: bytes, feature_specs: List[FeatureSpec]
 ) -> Tuple[List[Detection], bool, DataModelPosition, PythonSourceContext]:
-    context = PythonSourceContext.from_source(source_code)
+    context = PythonSourceContext.from_bytes(source_bytes)
     detector = PythonTreeSitterFrameworkDetector()
 
     framework_task = asyncio.to_thread(detector.detect, context, feature_specs)

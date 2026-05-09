@@ -13,7 +13,7 @@ from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     CoreFileReference,
 )
 from unoplat_code_confluence_query_engine.services.agents_md.rendering.business_references.renderer import (
-    write_business_domain_references_if_changed,
+    write_business_domain_references,
 )
 from unoplat_code_confluence_query_engine.services.post_processors.post_processor_base import (
     PostProcessorProtocol,
@@ -82,13 +82,13 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
                 description=description,
                 data_models=data_models,
             )
-            references_changed = write_business_domain_references_if_changed(
+            write_business_domain_references(
                 deps.codebase_path,
                 domain,
             )
             logger.info(
-                "business_domain_references.md canonical render changed={}",
-                references_changed,
+                "business_domain_references.md rendered for {}",
+                deps.codebase_path,
             )
             return domain
 
@@ -101,7 +101,7 @@ class BusinessLogicDomainPostProcessor(PostProcessorProtocol[str, BusinessLogicD
             )
             domain = BusinessLogicDomain(description=description, data_models=[])
             try:
-                write_business_domain_references_if_changed(deps.codebase_path, domain)
+                write_business_domain_references(deps.codebase_path, domain)
             except Exception as render_error:
                 logger.warning(
                     "Could not render business_domain_references.md after post-processing failure: {}",

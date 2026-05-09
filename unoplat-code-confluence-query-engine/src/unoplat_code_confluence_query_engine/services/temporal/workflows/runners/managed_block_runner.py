@@ -16,7 +16,7 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.managed_block_activity import (
         ManagedBlockActivity,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
+    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
         DB_ACTIVITY_RETRY_POLICY,
     )
 

@@ -58,7 +58,7 @@ import { NextRequest, NextResponse as Resp } from "next/server"
 import type { NextFetchEvent } from "next/server"
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
 
     assert len(context.imports) == 2
     assert context.import_aliases["next/server.NextRequest"] == "NextRequest"
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 }
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, [_build_nextjs_get_spec()])
@@ -96,7 +96,7 @@ export async function GET() {
 }
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, [_build_nextjs_get_spec()])
@@ -113,7 +113,7 @@ export async function handler(request: NextRequest) {
 }
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, [_build_nextjs_get_spec(), _build_nextjs_post_spec()])
@@ -130,7 +130,7 @@ export function POST() {
 }
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, [_build_nextjs_post_spec()])
@@ -148,7 +148,7 @@ export async function GET() {
 }
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
 
     detections = detector.detect(context, [_build_nextjs_get_spec()])

@@ -23,6 +23,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
         get_temporal_agents,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
+        persist_codebase_snapshot_patch,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.app_interfaces_runner import (
         run_app_interfaces_agent,
     )
@@ -54,6 +57,7 @@ class CodebaseAgentWorkflow:
         git_ref_info: GitRefInfo | None = None,
     ) -> dict[str, Any]:
         """Execute all agents sequentially for a single codebase."""
+        codebase_workflow_run_id = workflow.info().run_id
         logger.debug("[workflow] CodebaseAgentWorkflow.run START")
         logger.debug("[workflow] Validating codebase_metadata_dict...")
         codebase_metadata = CodebaseMetadata.model_validate(codebase_metadata_dict)
@@ -77,20 +81,27 @@ class CodebaseAgentWorkflow:
             temporal_agents.enabled_agent_names(),
         )
 
-        results: dict[str, Any] = {
-            "codebase_name": codebase_metadata.codebase_name,
-            "programming_language_metadata": {
-                "primary_language": codebase_metadata.codebase_programming_language,
-                "package_manager": codebase_metadata.codebase_package_manager,
-            },
-            "engineering_workflow": None,
-            "dependency_guide": None,
-            "business_logic_domain": None,
-            "app_interfaces": None,
+        programming_language_metadata: dict[str, object] = {
+            "primary_language": codebase_metadata.codebase_programming_language,
+            "package_manager": codebase_metadata.codebase_package_manager,
         }
 
         agent_stats: list[UsageStatistics] = []
         agent_errors: list[dict[str, Any]] = []
+
+        await persist_codebase_snapshot_patch(
+            repository_qualified_name=repository_qualified_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            codebase_name=codebase_metadata.codebase_name,
+            codebase_patch={
+                "codebase_name": codebase_metadata.codebase_name,
+                "programming_language_metadata": programming_language_metadata,
+                "engineering_workflow": None,
+                "dependency_guide": None,
+                "business_logic_domain": None,
+                "app_interfaces": None,
+            },
+        )
 
         await run_managed_block_bootstrap(
             codebase_metadata=codebase_metadata,
@@ -101,8 +112,8 @@ class CodebaseAgentWorkflow:
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
             repository_workflow_run_id=repository_workflow_run_id,
-            programming_language_metadata=results["programming_language_metadata"],
-            results=results,
+            codebase_workflow_run_id=codebase_workflow_run_id,
+            programming_language_metadata=programming_language_metadata,
             agent_stats=agent_stats,
             agent_errors=agent_errors,
         )
@@ -111,8 +122,8 @@ class CodebaseAgentWorkflow:
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
             repository_workflow_run_id=repository_workflow_run_id,
-            programming_language_metadata=results["programming_language_metadata"],
-            results=results,
+            codebase_workflow_run_id=codebase_workflow_run_id,
+            programming_language_metadata=programming_language_metadata,
             agent_stats=agent_stats,
             agent_errors=agent_errors,
         )
@@ -121,8 +132,8 @@ class CodebaseAgentWorkflow:
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
             repository_workflow_run_id=repository_workflow_run_id,
-            programming_language_metadata=results["programming_language_metadata"],
-            results=results,
+            codebase_workflow_run_id=codebase_workflow_run_id,
+            programming_language_metadata=programming_language_metadata,
             agent_stats=agent_stats,
             agent_errors=agent_errors,
         )
@@ -131,14 +142,13 @@ class CodebaseAgentWorkflow:
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
             repository_workflow_run_id=repository_workflow_run_id,
-            programming_language_metadata=results["programming_language_metadata"],
-            results=results,
+            codebase_workflow_run_id=codebase_workflow_run_id,
+            programming_language_metadata=programming_language_metadata,
             agent_stats=agent_stats,
             agent_errors=agent_errors,
         )
 
         codebase_statistics = aggregate_usage_statistics(agent_stats)
-        results["statistics"] = codebase_statistics.model_dump()
 
         if agent_errors:
             error_summary = (
@@ -163,4 +173,4 @@ class CodebaseAgentWorkflow:
         )
         logger.debug("[workflow] CodebaseAgentWorkflow.run END")
 
-        return results
+        return codebase_statistics.model_dump()

@@ -149,6 +149,7 @@ services:
       - CODEX_OPENAI_CALLBACK_PORT=1455
       - CODEX_OPENAI_CALLBACK_HOSTS=0.0.0.0
       - CODEX_OPENAI_REDIRECT_URI=http://localhost:1455/auth/callback
+      - LOGFIRE_SDK_WRITE_KEY=pylf_v1_us_cyVrHcN4BMHTFfXpyLbxm6GSk94P8Vb46ZTPJBzgzsML
     ports:
       - "127.0.0.1:8001:8000"
       - "127.0.0.1:1455:1455"

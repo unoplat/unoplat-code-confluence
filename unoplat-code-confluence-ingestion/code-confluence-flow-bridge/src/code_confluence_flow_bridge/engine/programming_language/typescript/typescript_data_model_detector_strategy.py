@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 import tree_sitter
 from tree_sitter import QueryCursor
@@ -18,6 +18,14 @@ from unoplat_code_confluence_commons.base_models import (
 from src.code_confluence_flow_bridge.engine.detector.data_model_detector_strategy import (
     DataModelDetectorStrategy,
 )
+from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
+    TypeScriptSourceContext,
+)
+
+if TYPE_CHECKING:
+    from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+        PythonSourceContext,
+    )
 
 
 class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
@@ -28,8 +36,7 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
 
     def detect(
         self,
-        source_code: str,
-        imports: Optional[List[str]] = None,
+        source_context: "PythonSourceContext | TypeScriptSourceContext",
         structural_signature: Optional[object] = None,
     ) -> Tuple[bool, DataModelPosition]:
         """
@@ -40,8 +47,8 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
         supported so detection works in standalone contexts.
 
         Args:
-            source_code: The source code content
-            imports: Optional list of import statement strings
+            source_context: Pre-parsed TypeScript source context containing source
+                bytes, imports, import aliases, and the tree-sitter root.
             structural_signature: Optional structural signature for advanced detection
 
         Returns:
@@ -49,6 +56,9 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
                 - bool: True if TypeScript data models are detected
                 - DataModelPosition: Positions keyed by model name
         """
+        if not isinstance(source_context, TypeScriptSourceContext):
+            return False, DataModelPosition()
+
         positions: Dict[str, Tuple[int, int]] = {}
 
         if structural_signature is not None:
@@ -56,8 +66,12 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
                 self._detect_from_structural_signature(structural_signature)
             )
 
-        if not positions and source_code:
-            positions.update(self._detect_with_tree_sitter(source_code))
+        if not positions:
+            positions.update(
+                self._detect_from_root(
+                    source_context.root_node, source_context.source_bytes
+                )
+            )
 
         has_data_model = bool(positions)
         return (has_data_model, DataModelPosition(positions=positions))
@@ -112,22 +126,16 @@ class TypeScriptDataModelDetectorStrategy(DataModelDetectorStrategy):
 
         return positions
 
-    def _detect_with_tree_sitter(self, source_code: str) -> Dict[str, Tuple[int, int]]:
-        """Run the types.scm query to extract interface/type alias ranges.
-
-        Uses the modern tree-sitter Query API with QueryCursor for executing queries.
-        Reference: https://tree-sitter.github.io/py-tree-sitter/classes/tree_sitter.QueryCursor.html
-        """
+    def _detect_from_root(
+        self, root_node: tree_sitter.Node, source_bytes: bytes
+    ) -> Dict[str, Tuple[int, int]]:
+        """Run the types.scm query against an existing parsed root node."""
         try:
-            parser, query = _get_typescript_parser_and_query(
+            _, query = _get_typescript_parser_and_query(
                 self._TYPES_QUERY_PATH, self._LANGUAGE_NAME
             )
         except Exception:
             return {}
-
-        source_bytes = source_code.encode("utf-8", errors="ignore")
-        tree = parser.parse(source_bytes)
-        root_node = tree.root_node
 
         positions: Dict[str, Tuple[int, int]] = {}
 

@@ -5,7 +5,7 @@ Abstract base class for language-specific framework detection services.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from unoplat_code_confluence_commons.base_models import (
     Detection,
@@ -28,21 +28,18 @@ class FrameworkDetectionService(ABC):
     @abstractmethod
     async def detect_features(
         self,
-        source_code: Optional[str],
-        imports: List[str],
+        source_context: PythonSourceContext | TypeScriptSourceContext,
         structural_signature: PythonStructuralSignature | TypeScriptStructuralSignature | None,
         programming_language: str,
-        source_context: PythonSourceContext | TypeScriptSourceContext | None = None,
     ) -> List[Detection]:
         """
         Detect framework features in source code using imports and structural signature.
 
         Args:
-            source_code: Source code to analyze
-            imports: List of imports in the file
+            source_context: Parsed language-specific context containing source
+                bytes, imports, import aliases, and the tree-sitter root node.
             structural_signature: Structural signature of the file (optional)
             programming_language: Programming language (e.g., "python", "typescript")
-            source_context: Pre-parsed source context to avoid double-parsing (optional)
 
         Returns:
             List of Detection objects for framework features found

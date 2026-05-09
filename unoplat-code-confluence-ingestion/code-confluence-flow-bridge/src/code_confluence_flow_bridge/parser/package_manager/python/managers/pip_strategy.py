@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Literal, TypedDict
+from typing import Iterator, Literal, TextIO, TypedDict
 
 # Third Party
 from loguru import logger
@@ -420,6 +420,20 @@ class PipStrategy(PackageManagerStrategy):
             logger.warning("Failed to parse requirement line '{}': {}", line, str(e))
             return None
 
+    def _iter_logical_lines(self, f: TextIO) -> Iterator[str]:
+        """Yield logical requirement lines, joining backslash continuations."""
+        current_line = ""
+        for line in f:
+            stripped = line.rstrip()
+            if stripped.endswith("\\"):
+                current_line += stripped[:-1] + " "
+            else:
+                current_line += line
+                yield current_line
+                current_line = ""
+        if current_line:
+            yield current_line
+
     def _parse_requirement_file_recursive(
         self, file_path: Path, visited: set[Path] | None = None
     ) -> list[ParsedRequirementLine]:
@@ -455,46 +469,32 @@ class PipStrategy(PackageManagerStrategy):
 
         try:
             with open(abs_path, "r", encoding="utf-8") as f:
-                lines: list[str] = f.readlines()
+                for line in self._iter_logical_lines(f):
+                    parsed = self._parse_requirement_line(line)
 
-            # Handle line continuations (backslash)
-            combined_lines: list[str] = []
-            current_line = ""
-            for line in lines:
-                stripped = line.rstrip()
-                if stripped.endswith("\\"):
-                    current_line += stripped[:-1] + " "
-                else:
-                    current_line += line
-                    combined_lines.append(current_line)
-                    current_line = ""
+                    if parsed is None:
+                        continue
 
-            for line in combined_lines:
-                parsed = self._parse_requirement_line(line)
-
-                if parsed is None:
-                    continue
-
-                parsed_type = parsed.get("type")
-                if parsed_type is None:
-                    continue
-                include_path = parsed.get("path")
-                if parsed_type == "include" and include_path:
-                    # Recursively parse included file
-                    include_full_path = (abs_path.parent / include_path).resolve()
-                    try:
-                        included_reqs = self._parse_requirement_file_recursive(
-                            include_full_path,
-                            visited.copy(),  # Use copy to allow sibling includes
-                        )
-                        all_requirements.extend(included_reqs)
-                    except ValueError:
-                        # Re-raise ValueError for circular includes
-                        raise
-                else:
-                    # Track source file for group determination
-                    parsed["source_file"] = abs_path
-                    all_requirements.append(parsed)
+                    parsed_type = parsed.get("type")
+                    if parsed_type is None:
+                        continue
+                    include_path = parsed.get("path")
+                    if parsed_type == "include" and include_path:
+                        # Recursively parse included file
+                        include_full_path = (abs_path.parent / include_path).resolve()
+                        try:
+                            included_reqs = self._parse_requirement_file_recursive(
+                                include_full_path,
+                                visited.copy(),  # Use copy to allow sibling includes
+                            )
+                            all_requirements.extend(included_reqs)
+                        except ValueError:
+                            # Re-raise ValueError for circular includes
+                            raise
+                    else:
+                        # Track source file for group determination
+                        parsed["source_file"] = abs_path
+                        all_requirements.append(parsed)
 
         except ValueError:
             # Re-raise ValueError for circular includes

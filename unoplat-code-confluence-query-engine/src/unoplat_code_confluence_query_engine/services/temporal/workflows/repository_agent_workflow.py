@@ -38,10 +38,10 @@ class RepositoryAgentWorkflow:
         self,
         repository_qualified_name: str,
         codebase_metadata_list: list[dict[str, Any]],
-        repository_workflow_run_id: str,
         trace_id: str = "",
     ) -> dict[str, Any]:
         """Execute agents for all codebases in a repository."""
+        repository_workflow_run_id = workflow.info().run_id
         logger.debug("[workflow] RepositoryAgentWorkflow.run START")
         logger.info(
             "[workflow] Starting RepositoryAgentWorkflow for {} with {} codebases",
@@ -49,10 +49,6 @@ class RepositoryAgentWorkflow:
             len(codebase_metadata_list),
         )
 
-        results: dict[str, Any] = {
-            "repository": repository_qualified_name,
-            "codebases": {},
-        }
         codebase_statistics_map: dict[str, UsageStatistics] = {}
 
         git_ref_info = await resolve_repository_git_ref(repository_qualified_name)
@@ -67,16 +63,15 @@ class RepositoryAgentWorkflow:
         child_errors = await collect_codebase_child_results(
             repository_qualified_name=repository_qualified_name,
             child_handles=child_handles,
-            results=results,
             codebase_statistics_map=codebase_statistics_map,
         )
 
         workflow_statistics = build_workflow_statistics(codebase_statistics_map)
+        workflow_statistics_payload = workflow_statistics.model_dump()
         await persist_repository_snapshot_completion(
             repository_qualified_name=repository_qualified_name,
             repository_workflow_run_id=repository_workflow_run_id,
-            results=results,
-            statistics_payload=workflow_statistics.model_dump(),
+            statistics_payload=workflow_statistics_payload,
         )
 
         if child_errors:
@@ -95,4 +90,4 @@ class RepositoryAgentWorkflow:
             )
 
         logger.debug("[workflow] RepositoryAgentWorkflow.run END")
-        return results
+        return workflow_statistics_payload

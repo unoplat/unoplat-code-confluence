@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from loguru import logger
 from unoplat_code_confluence_commons.base_models import (
@@ -61,11 +61,9 @@ class TypeScriptFrameworkDetectionService(FrameworkDetectionService):
 
     async def detect_features(
         self,
-        source_code: Optional[str],
-        imports: List[str],
+        source_context: PythonSourceContext | TypeScriptSourceContext,
         structural_signature: PythonStructuralSignature | TypeScriptStructuralSignature | None,
         programming_language: str,
-        source_context: PythonSourceContext | TypeScriptSourceContext | None = None,
     ) -> List[Detection]:
         """
         Detect framework features in TypeScript source code using tree-sitter queries.
@@ -79,14 +77,11 @@ class TypeScriptFrameworkDetectionService(FrameworkDetectionService):
             )
             return []
 
-        # Reuse already-parsed context if caller provides it (avoids double parse)
-        if isinstance(source_context, TypeScriptSourceContext):
-            context = source_context
-        else:
-            if not source_code:
-                logger.debug("No source code provided for TypeScript framework detection")
-                return []
-            context = TypeScriptSourceContext.from_source(source_code)
+        if not isinstance(source_context, TypeScriptSourceContext):
+            logger.debug("TypeScript source context required for framework detection")
+            return []
+
+        context = source_context
 
         if not context.import_aliases:
             logger.debug("No import aliases found in TypeScript source")

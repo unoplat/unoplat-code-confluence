@@ -13,6 +13,7 @@ from typing import Literal
 from pydantic_ai_backends.backends.local import LocalBackend
 from pydantic_ai_backends.permissions.types import PermissionRuleset
 from pydantic_ai_backends.protocol import BackendProtocol
+from pydantic_ai_backends.types import ExecuteResponse
 
 from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     CodebaseMetadata,
@@ -27,6 +28,25 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_backend_paths 
     resolve_repository_root,
     resolve_work_dir,
 )
+
+EXECUTE_TIMEOUT_SECONDS_CAP: int = 30
+
+
+class ClampedTimeoutLocalBackend(LocalBackend):
+    """LocalBackend variant that caps execute() timeout at 30 seconds.
+
+    Upstream LocalBackend defaults to a 120-second subprocess timeout and will
+    honor any caller-provided timeout. Allowed metadata/help executions for the
+    development workflow agent must not be able to hang for two minutes or use
+    an agent-supplied larger value, so we clamp every call to 30 seconds.
+    """
+
+    def execute(
+        self, command: str, timeout: int | None = None
+    ) -> ExecuteResponse:
+        clamped = min(timeout or EXECUTE_TIMEOUT_SECONDS_CAP, EXECUTE_TIMEOUT_SECONDS_CAP)
+        return super().execute(command, timeout=clamped)
+
 
 AgentBackendKind = Literal[
     "readonly_local", "execute_local", "markdown_local", "markdown_execute_local"
@@ -55,10 +75,15 @@ def _build_local_backend(
     enable_execute: bool,
     permissions: PermissionRuleset,
 ) -> LocalBackend:
-    """Build a repository-scoped local backend with explicit permissions."""
+    """Build a repository-scoped local backend with explicit permissions.
+
+    When execute is enabled, return a ClampedTimeoutLocalBackend so that any
+    permitted command runs under a hard 30-second timeout ceiling.
+    """
     work_dir = resolve_work_dir(metadata)
     repository_root = resolve_repository_root(metadata)
-    return LocalBackend(
+    backend_cls = ClampedTimeoutLocalBackend if enable_execute else LocalBackend
+    return backend_cls(
         root_dir=work_dir,
         allowed_directories=[repository_root],
         enable_execute=enable_execute,

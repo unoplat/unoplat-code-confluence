@@ -4,7 +4,7 @@ Python-specific framework detection service implementation.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from loguru import logger
 from unoplat_code_confluence_commons.base_models import (
@@ -64,26 +64,22 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
 
     async def detect_features(
         self,
-        source_code: Optional[str],
-        imports: List[str],
+        source_context: PythonSourceContext | TypeScriptSourceContext,
         structural_signature: PythonStructuralSignature | TypeScriptStructuralSignature | None,
         programming_language: str,
-        source_context: PythonSourceContext | TypeScriptSourceContext | None = None,
     ) -> List[Detection]:
         """
         Detect framework features in Python source code using tree-sitter queries.
 
         Args:
-            source_code: Python source code to analyze
-            imports: List of imports in the file (unused - kept for interface compatibility)
+            source_context: Pre-parsed Python context. The existing tree is reused
+                instead of re-parsing source bytes.
             structural_signature: Structural signature of the file (unused)
             programming_language: Programming language (should be "python")
-            source_context: Pre-parsed source context (unused in Python path)
 
         Returns:
             List of Detection objects for framework features found
         """
-        _ = source_context  # unused in Python path
         if programming_language.lower() != "python":
             logger.warning(
                 "PythonFrameworkDetectionService called with language: {}",
@@ -91,12 +87,13 @@ class PythonFrameworkDetectionService(FrameworkDetectionService):
             )
             return []
 
-        if not source_code:
-            logger.debug("No source code provided for framework detection")
+        if not isinstance(source_context, PythonSourceContext):
+            logger.debug("Python source context required for framework detection")
             return []
 
+        context = source_context
+
         try:
-            context = PythonSourceContext.from_source(source_code)
             logger.opt(lazy=True).debug(
                 "Framework detection imports | count={} | aliases={}",
                 lambda: len(context.import_aliases),

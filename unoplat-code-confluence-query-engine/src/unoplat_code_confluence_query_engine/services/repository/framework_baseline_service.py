@@ -27,12 +27,12 @@ from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
 
 
 async def _fetch_framework_metadata_from_postgres(
-    library_names: List[str], language: str = "python"
+    library_names: set[str], language: str = "python"
 ) -> Dict[str, Dict[str, str]]:
     """Fetch framework metadata from PostgreSQL for given library names.
 
     Args:
-        library_names: List of library names to fetch metadata for
+        library_names: Set of unique library names to fetch metadata for
         language: Programming language (defaults to "python")
 
     Returns:
@@ -66,7 +66,7 @@ async def _fetch_framework_metadata_from_postgres(
 
 
 async def _fetch_feature_entrypoints_from_postgres(
-    library_names: List[str], language: str = "python"
+    library_names: set[str], language: str = "python"
 ) -> Dict[str, Dict[str, bool]]:
     """Fetch feature-level entry point flags from PostgreSQL.
 
@@ -96,9 +96,9 @@ async def _fetch_feature_entrypoints_from_postgres(
 
 async def _fetch_framework_libraries_for_codebase(
     codebase_path: str, programming_language: str | None = None
-) -> List[str]:
+) -> set[str]:
     if not codebase_path:
-        return []
+        return set()
 
     async with get_startup_session() as session:
         stmt = (
@@ -117,9 +117,9 @@ async def _fetch_framework_libraries_for_codebase(
             )
 
         result = await session.execute(stmt)
-        libraries = {row[0] for row in result.all() if row[0]}
+        libraries = {row[0] for row in result if row[0]}
 
-    return sorted(libraries)
+    return libraries
 
 
 async def fetch_baseline_frameworks_as_outputs(

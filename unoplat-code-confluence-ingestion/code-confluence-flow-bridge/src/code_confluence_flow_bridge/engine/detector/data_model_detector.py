@@ -6,7 +6,9 @@ language-specific detection logic via factory pattern. It identifies files that
 define data models such as dataclasses, entities, DTOs, schemas, etc.
 """
 
-from typing import List, Optional, Tuple
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, Tuple
 
 from unoplat_code_confluence_commons.base_models import DataModelPosition
 from unoplat_code_confluence_commons.programming_language_metadata import (
@@ -18,10 +20,17 @@ from src.code_confluence_flow_bridge.engine.detector.data_model_detector_factory
     UnsupportedLanguageForDataModelDetectionError,
 )
 
+if TYPE_CHECKING:
+    from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+        PythonSourceContext,
+    )
+    from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
+        TypeScriptSourceContext,
+    )
+
 
 def detect_data_model(
-    source_code: str,
-    imports: Optional[List[str]] = None,
+    source_context: "PythonSourceContext | TypeScriptSourceContext",
     language: str = "",
     structural_signature: Optional[object] = None,
 ) -> Tuple[bool, DataModelPosition]:
@@ -29,8 +38,8 @@ def detect_data_model(
     Detect if a file contains data model definitions for any supported language.
 
     Args:
-        source_code: The source code content
-        imports: Optional list of import statements (already extracted)
+        source_context: Pre-parsed language-specific source context containing
+            source bytes, imports, import aliases, and the tree-sitter root.
         language: Programming language (e.g., "python", "typescript")
         structural_signature: Optional structural signature (for future use)
 
@@ -55,8 +64,7 @@ def detect_data_model(
 
         # Delegate detection to language-specific strategy
         return strategy.detect(
-            source_code=source_code,
-            imports=imports,
+            source_context=source_context,
             structural_signature=structural_signature,
         )
     except UnsupportedLanguageForDataModelDetectionError:

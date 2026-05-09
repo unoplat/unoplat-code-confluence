@@ -146,7 +146,7 @@ async def db_get_data_model_files(codebase_path: str) -> DataModelSpanMap:
             .where(UnoplatCodeConfluenceFile.has_data_model.is_(True))
         )
         direct_result = await session.execute(direct_stmt)
-        for file_path, raw_positions in direct_result.tuples().all():
+        for file_path, raw_positions in direct_result.tuples():
             spans.extend(_parse_data_model_positions(file_path, raw_positions))
 
         feature_stmt = (
@@ -184,7 +184,7 @@ async def db_get_data_model_files(codebase_path: str) -> DataModelSpanMap:
             match_text,
             feature_capability_key,
             feature_operation_key,
-        ) in feature_result.tuples().all():
+        ) in feature_result.tuples():
             feature_key_str = _compose_feature_key(
                 str(feature_capability_key),
                 str(feature_operation_key),

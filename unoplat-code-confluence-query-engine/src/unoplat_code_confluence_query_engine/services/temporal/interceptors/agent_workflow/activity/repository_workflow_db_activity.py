@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from loguru import logger
 from sqlalchemy import select
 from temporalio import activity
-from unoplat_code_confluence_commons.repo_models import RepositoryWorkflowRun
+from unoplat_code_confluence_commons.repo_models import Repository, RepositoryWorkflowRun
 from unoplat_code_confluence_commons.workflow_envelopes import (
     ParentWorkflowDbActivityEnvelope,
 )
@@ -43,6 +43,24 @@ class RepositoryWorkflowDbActivity:
         )
 
         async with get_startup_session() as session:
+            repository = await session.get(
+                Repository,
+                (envelope.repository_name, envelope.repository_owner_name),
+            )
+            if repository is None:
+                repository = Repository(
+                    repository_name=envelope.repository_name,
+                    repository_owner_name=envelope.repository_owner_name,
+                    repository_provider=envelope.provider_key,
+                )
+                session.add(repository)
+                logger.debug(
+                    "[repository_workflow_db_activity] Created Repository row for {}/{} provider={}",
+                    envelope.repository_owner_name,
+                    envelope.repository_name,
+                    envelope.provider_key,
+                )
+
             # Query for existing record
             stmt = select(RepositoryWorkflowRun).where(
                 RepositoryWorkflowRun.repository_name == envelope.repository_name,

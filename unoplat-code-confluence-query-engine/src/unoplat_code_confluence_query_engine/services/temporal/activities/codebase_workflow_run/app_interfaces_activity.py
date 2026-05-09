@@ -2,23 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from loguru import logger
 from temporalio import activity
 
 from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_repository import (
-    db_get_all_framework_features_for_codebase,
     db_get_low_confidence_call_expression_candidates,
+    db_stream_all_framework_features_for_codebase,
 )
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     Interfaces,
 )
 from unoplat_code_confluence_query_engine.services.agents_md.rendering.app_interfaces.renderer import (
-    write_app_interfaces_if_changed,
+    write_app_interfaces as write_app_interfaces_artifact,
 )
 from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
-    build_interfaces_from_features,
+    build_interfaces_from_feature_rows,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
     APP_INTERFACES_ARTIFACT,
@@ -54,21 +52,14 @@ class AppInterfacesActivity:
             codebase_path,
         )
 
-        # Fetch all framework features from PostgreSQL
-        features = await db_get_all_framework_features_for_codebase(
+        # Stream framework features from PostgreSQL directly into the mapper.
+        feature_rows = db_stream_all_framework_features_for_codebase(
             codebase_path=codebase_path,
             programming_language=programming_language,
         )
 
-        logger.info(
-            "[app_interfaces_activity] Found {} framework features for codebase: {}",
-            len(features),
-            codebase_path,
-        )
-
-        # Build interfaces using mapper
-        interfaces = build_interfaces_from_features(
-            features=features,
+        interfaces = await build_interfaces_from_feature_rows(
+            feature_rows=feature_rows,
             codebase_path=codebase_path,
         )
 
@@ -85,29 +76,23 @@ class AppInterfacesActivity:
     async def write_app_interfaces(
         self,
         codebase_path: str,
-        app_interfaces: dict[str, Any],
-    ) -> bool:
-        """Render and write app_interfaces.md when canonical content changes.
+        app_interfaces: Interfaces,
+    ) -> None:
+        """Render and write app_interfaces.md from the supplied Interfaces payload.
 
         Args:
             codebase_path: Path to the codebase root where app_interfaces.md lives.
-            app_interfaces: Serialized Interfaces model produced by build_app_interfaces.
-
-        Returns:
-            True when app_interfaces.md was created or updated, otherwise False.
+            app_interfaces: Interfaces model produced by build_app_interfaces.
         """
-        interfaces = Interfaces.model_validate(app_interfaces)
-        changed = write_app_interfaces_if_changed(
+        write_app_interfaces_artifact(
             codebase_path=codebase_path,
-            interfaces=interfaces,
+            interfaces=app_interfaces,
         )
         logger.info(
-            "[app_interfaces_activity] {} for {} changed={}",
+            "[app_interfaces_activity] {} for {} written",
             APP_INTERFACES_ARTIFACT,
             codebase_path,
-            changed,
         )
-        return changed
 
     @activity.defn
     async def fetch_low_confidence_call_expression_candidates(
@@ -133,7 +118,8 @@ class AppInterfacesActivity:
             len(candidates),
             codebase_path,
         )
-        return [candidate.model_dump(mode="json") for candidate in candidates]
+        serialized_candidates = [candidate.model_dump(mode="json") for candidate in candidates]
+        return serialized_candidates
 
     @activity.defn
     async def emit_app_interfaces_completion(

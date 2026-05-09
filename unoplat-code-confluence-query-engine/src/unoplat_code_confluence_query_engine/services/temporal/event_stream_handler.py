@@ -15,6 +15,8 @@ from pydantic_ai.messages import (
     FinalResultEvent,
     FunctionToolCallEvent,
     FunctionToolResultEvent,
+    RetryPromptPart,
+    ToolReturnPart,
 )
 
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
@@ -33,7 +35,7 @@ BASE_COMPLETION_NAMESPACES: frozenset[str] = frozenset(
     }
 )
 
-_DEBUG_EVENT_TRACE = os.getenv("TEMPORAL_EVENT_DEBUG", "true").strip().lower() in {
+_DEBUG_EVENT_TRACE = os.getenv("TEMPORAL_EVENT_DEBUG", "false").strip().lower() in {
     "1",
     "true",
     "yes",
@@ -117,18 +119,31 @@ def _extract_tool_args(event: AgentStreamEvent) -> dict[str, Any] | None:
     return None
 
 
-def _extract_tool_result_content(event: AgentStreamEvent) -> str | None:
+def _render_tool_result_content(event: FunctionToolResultEvent) -> str:
+    """Render a PydanticAI tool result using its model-facing API."""
+    result = event.result
+    if isinstance(result, ToolReturnPart):
+        return result.model_response_str()
+    if isinstance(result, RetryPromptPart):
+        return result.model_response()
+
+
+def _extract_tool_result_content(rendered_tool_result_content: str | None) -> str | None:
     """Extract raw tool result content capped at 100_000 chars."""
-    if isinstance(event, FunctionToolResultEvent):
-        return str(event.result.content)[:100_000]
-    return None
+    if rendered_tool_result_content is None:
+        return None
+    return rendered_tool_result_content[:100_000]
 
 
-def _extract_event_message(event: AgentStreamEvent) -> str | None:
+def _extract_event_message(
+    event: AgentStreamEvent,
+    rendered_tool_result_content: str | None,
+) -> str | None:
     """Extract human-readable message from stream event.
 
     Args:
         event: The stream event
+        rendered_tool_result_content: Rendered result content for tool result events
 
     Returns:
         Message string or None
@@ -136,7 +151,7 @@ def _extract_event_message(event: AgentStreamEvent) -> str | None:
     if isinstance(event, FunctionToolCallEvent):
         return f"Calling {event.part.tool_name}"
     if isinstance(event, FunctionToolResultEvent):
-        preview = str(event.result.content)[:200]
+        preview = (rendered_tool_result_content or "")[:200]
         return f"Tool result: {preview}"
     if isinstance(event, FinalResultEvent):
         return (
@@ -191,30 +206,20 @@ async def event_stream_handler(
     async for event in event_stream:
         phase = _map_event_to_phase(event)
         if phase is None:
+            del event
             continue
 
-        message = _extract_event_message(event)
+        rendered_tool_result_content = (
+            _render_tool_result_content(event)
+            if isinstance(event, FunctionToolResultEvent)
+            else None
+        )
+        message = _extract_event_message(event, rendered_tool_result_content)
         tool_call_id = _extract_tool_call_id(event)
         tool_name = _extract_tool_name(event)
         tool_args = _extract_tool_args(event)
-        tool_result_content = _extract_tool_result_content(event)
+        tool_result_content = _extract_tool_result_content(rendered_tool_result_content)
         event_kind = type(event).__name__
-
-        # Always log for observability
-        if isinstance(event, FunctionToolCallEvent):
-            logger.info(
-                f"[{codebase}] TOOL CALL: name={event.part.tool_name}, args={event.part.args}, id={event.part.tool_call_id}"
-            )
-        elif isinstance(event, FunctionToolResultEvent):
-            result_preview = str(event.result.content)[:200]
-            logger.info(
-                "[{}] TOOL RESULT: id={}, result_preview={}",
-                codebase,
-                event.tool_call_id,
-                result_preview,
-            )
-        elif isinstance(event, FinalResultEvent):
-            logger.info("[{}] FINAL RESULT: tool_name={}", codebase, event.tool_name)
 
         if _DEBUG_EVENT_TRACE:
             logger.debug(
@@ -276,3 +281,6 @@ async def event_stream_handler(
                     tool_call_id,
                     deps.repository_workflow_run_id,
                 )
+
+        # Drop large per-event temporaries before awaiting the next stream event.
+        del event, rendered_tool_result_content, message, tool_args, tool_result_content

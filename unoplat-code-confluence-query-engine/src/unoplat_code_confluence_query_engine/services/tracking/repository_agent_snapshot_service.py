@@ -8,8 +8,8 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import TypedDict
 
 from loguru import logger
-from sqlalchemy import func, select, update
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import bindparam, func, select, text, update
+from sqlalchemy.dialects.postgresql import JSONB, insert
 from unoplat_code_confluence_commons.repo_models import (
     RepositoryAgentCodebaseProgress,
     RepositoryAgentEvent,
@@ -78,8 +78,6 @@ class RepositoryAgentSnapshotWriter:
         codebase_names: Sequence[str],
     ) -> None:
         """Initialize snapshot and normalized progress rows for a run."""
-        del repository_qualified_name
-
         async with get_startup_session() as session:
             snapshot_stmt = insert(RepositoryAgentMdSnapshot).values(
                 repository_owner_name=owner_name,
@@ -87,7 +85,10 @@ class RepositoryAgentSnapshotWriter:
                 repository_workflow_run_id=repository_workflow_run_id,
                 overall_progress=ZERO_DECIMAL,
                 latest_event_at=None,
-                agent_md_output={},
+                agent_md_output={
+                    "repository": repository_qualified_name,
+                    "codebases": {},
+                },
             )
             snapshot_stmt = snapshot_stmt.on_conflict_do_nothing(
                 index_elements=[
@@ -265,16 +266,70 @@ class RepositoryAgentSnapshotWriter:
 
             return allocated_event_id
 
+    async def patch_codebase_output(
+        self,
+        *,
+        owner_name: str,
+        repo_name: str,
+        repository_workflow_run_id: str,
+        codebase_name: str,
+        codebase_patch: dict[str, object],
+    ) -> None:
+        """Atomically merge a patch into one codebase's agent_md_output object."""
+        async with get_startup_session() as session:
+            stmt = text(
+                """
+                UPDATE repository_agent_md_snapshot
+                SET agent_md_output = jsonb_set(
+                    agent_md_output,
+                    ARRAY['codebases', :codebase_name]::text[],
+                    COALESCE(
+                        agent_md_output #> ARRAY['codebases', :codebase_name]::text[],
+                        '{}'::jsonb
+                    ) || :codebase_patch,
+                    true
+                ),
+                modified_at = NOW()
+                WHERE repository_owner_name = :owner_name
+                  AND repository_name = :repo_name
+                  AND repository_workflow_run_id = :repository_workflow_run_id
+                """
+            ).bindparams(bindparam("codebase_patch", type_=JSONB))
+            connection = await session.connection()
+            result = await connection.execute(
+                stmt,
+                {
+                    "owner_name": owner_name,
+                    "repo_name": repo_name,
+                    "repository_workflow_run_id": repository_workflow_run_id,
+                    "codebase_name": codebase_name,
+                    "codebase_patch": codebase_patch,
+                },
+            )
+
+            if result.rowcount == 0:
+                logger.error(
+                    "Snapshot row missing while patching {}/{} codebase={} run_id={}",
+                    owner_name,
+                    repo_name,
+                    codebase_name,
+                    repository_workflow_run_id,
+                )
+                raise ValueError(
+                    f"Snapshot row not found for {owner_name}/{repo_name} "
+                    f"run_id={repository_workflow_run_id}"
+                )
+
     async def complete_run(
         self,
         *,
         owner_name: str,
         repo_name: str,
         repository_workflow_run_id: str,
-        final_payload: dict[str, object],
+        final_payload: dict[str, object] | None = None,
         statistics_payload: dict[str, object] | None = None,
     ) -> None:
-        """Persist the final agent output and statistics."""
+        """Persist final statistics and optionally a legacy final agent output."""
         if statistics_payload:
             logger.info(
                 "Persisting statistics for {}/{} run_id={}: {} keys, has_cost={}",
@@ -292,6 +347,13 @@ class RepositoryAgentSnapshotWriter:
                 repository_workflow_run_id,
             )
 
+        values: dict[str, object] = {
+            "statistics": statistics_payload,
+            "modified_at": func.now(),
+        }
+        if final_payload is not None:
+            values["agent_md_output"] = final_payload
+
         async with get_startup_session() as session:
             stmt = (
                 update(RepositoryAgentMdSnapshot)
@@ -301,11 +363,7 @@ class RepositoryAgentSnapshotWriter:
                     RepositoryAgentMdSnapshot.repository_workflow_run_id
                     == repository_workflow_run_id,
                 )
-                .values(
-                    agent_md_output=final_payload,
-                    statistics=statistics_payload,
-                    modified_at=func.now(),
-                )
+                .values(**values)
             )
             await session.execute(stmt)
 

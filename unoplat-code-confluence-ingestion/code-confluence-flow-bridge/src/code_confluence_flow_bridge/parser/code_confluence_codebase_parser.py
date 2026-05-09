@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable, Iterator
+from itertools import chain
 from pathlib import Path
 from typing import Dict, List, Optional, Set, cast
 
@@ -238,7 +240,7 @@ class CodeConfluenceCodebaseParser:
             return True
         return self.language_processor.should_ignore(file_path)
 
-    def discover_source_files(self) -> List[str]:
+    def discover_source_files(self) -> Iterator[str]:
         logger.info(
             "Discovering source files | codebase_path={} | language={} | extensions={}",
             self.codebase_path,
@@ -248,7 +250,6 @@ class CodeConfluenceCodebaseParser:
 
         root_path = self.codebase_path.resolve()
         supported_extensions = self.language_processor.supported_extensions
-        discovered_files: List[str] = []
 
         for current_root, dirnames, filenames in os.walk(root_path):
             dirnames[:] = [
@@ -266,15 +267,7 @@ class CodeConfluenceCodebaseParser:
                     logger.debug("Ignoring file: {}", file_path)
                     continue
 
-                discovered_files.append(str(file_path.resolve()))
-
-        discovered_files.sort()
-
-        logger.info(
-            "Discovered source files | file_count={}",
-            len(discovered_files),
-        )
-        return discovered_files
+                yield str(file_path.resolve())
 
     def _increment_files_processed(self, count: int) -> None:
         self.files_processed += count
@@ -298,13 +291,15 @@ class CodeConfluenceCodebaseParser:
         try:
             logger.info("Starting codebase processing: {}", self.codebase_name)
 
-            file_paths = self.discover_source_files()
-            if not file_paths:
+            discovered_files = self.discover_source_files()
+            try:
+                first_file_path = next(discovered_files)
+            except StopIteration:
                 logger.warning("No source files found in {}", self.codebase_path)
                 return
 
             await self._load_framework_catalog()
-            await self.process_files(file_paths)
+            await self.process_files(chain([first_file_path], discovered_files))
 
             logger.info("Completed codebase processing: {} files", self.files_processed)
 
@@ -314,7 +309,7 @@ class CodeConfluenceCodebaseParser:
             )
             raise
 
-    async def process_files(self, file_paths: List[str]) -> None:
+    async def process_files(self, file_paths: Iterable[str]) -> None:
         frameworks_used: Set[tuple[str, str]] = set()
         language = self.programming_language_metadata.language.value
 

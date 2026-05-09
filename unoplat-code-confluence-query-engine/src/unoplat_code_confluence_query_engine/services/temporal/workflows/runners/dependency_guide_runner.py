@@ -14,6 +14,7 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
         AgentDependencies,
+        build_agent_run_metadata,
     )
     from unoplat_code_confluence_query_engine.models.runtime.dependency_guide_target import (
         DependencyGuideTarget,
@@ -30,7 +31,7 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_dependency_guide import (
         build_dependency_guide_prompt,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
+    from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
         DB_ACTIVITY_RETRY_POLICY,
     )
     from unoplat_code_confluence_query_engine.services.temporal.statistics_helpers import (
@@ -46,6 +47,9 @@ with workflow.unsafe.imports_passed_through():
         enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
+        persist_codebase_snapshot_patch,
+    )
 
 
 async def run_dependency_guide_agent(
@@ -53,8 +57,8 @@ async def run_dependency_guide_agent(
     repository_qualified_name: str,
     codebase_metadata: CodebaseMetadata,
     repository_workflow_run_id: str,
+    codebase_workflow_run_id: str,
     programming_language_metadata: dict[str, object],
-    results: dict[str, Any],
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
 ) -> None:
@@ -96,6 +100,7 @@ async def run_dependency_guide_agent(
                 repository_qualified_name=repository_qualified_name,
                 codebase_metadata=codebase_metadata,
                 repository_workflow_run_id=repository_workflow_run_id,
+                codebase_workflow_run_id=codebase_workflow_run_id,
                 agent_name="dependency_guide_item",
             )
             try:
@@ -106,6 +111,7 @@ async def run_dependency_guide_agent(
                     ),
                     deps=deps,
                     usage_limits=get_cached_usage_limits(),
+                    metadata=build_agent_run_metadata(deps),
                 )
 
                 entry_dict = result.output.model_dump()
@@ -122,7 +128,7 @@ async def run_dependency_guide_agent(
                 )
                 dependency_agent_stats.append(create_zero_usage_statistics())
 
-        results["dependency_guide"] = {"dependencies": dependency_entries}
+        dependency_guide_output = {"dependencies": dependency_entries}
 
         await workflow.execute_activity(
             DependencyGuideCompletionActivity.write_dependency_overview,
@@ -133,6 +139,13 @@ async def run_dependency_guide_agent(
             ],
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
+        )
+
+        await persist_codebase_snapshot_patch(
+            repository_qualified_name=repository_qualified_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            codebase_name=codebase_metadata.codebase_name,
+            codebase_patch={"dependency_guide": dependency_guide_output},
         )
 
         await workflow.execute_activity(

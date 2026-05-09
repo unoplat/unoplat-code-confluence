@@ -21,10 +21,13 @@ from unoplat_code_confluence_commons.relational_models import (
 
 from tests.utils.sync_db_utils import get_sync_postgres_session
 from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_repository import (
-    db_get_all_framework_features_for_codebase,
     db_get_low_confidence_call_expression_candidates,
     db_set_framework_feature_validation_status,
+    db_stream_all_framework_features_for_codebase,
     db_upsert_framework_feature_validation_evidence,
+)
+from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
+    AppInterfaceFeatureRow,
 )
 from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
     FrameworkFeatureUsageIdentity,
@@ -770,10 +773,13 @@ async def test_low_confidence_candidate_query_excludes_completed_call_expression
 async def test_app_interface_fetch_excludes_low_confidence_call_expression_until_completed(
     seeded_framework_usage,
 ) -> None:
-    initial_rows = await db_get_all_framework_features_for_codebase(
-        seeded_framework_usage["codebase_path"],
-        TEST_FEATURE_LANGUAGE,
-    )
+    initial_rows: list[AppInterfaceFeatureRow] = [
+        row
+        async for row in db_stream_all_framework_features_for_codebase(
+            seeded_framework_usage["codebase_path"],
+            TEST_FEATURE_LANGUAGE,
+        )
+    ]
     assert initial_rows == []
 
     identity = _build_usage_identity(TEST_SOURCE_CAPABILITY_KEY, TEST_SOURCE_OPERATION_KEY)
@@ -795,12 +801,18 @@ async def test_app_interface_fetch_excludes_low_confidence_call_expression_until
         ),
     )
 
-    updated_rows = await db_get_all_framework_features_for_codebase(
-        seeded_framework_usage["codebase_path"],
-        TEST_FEATURE_LANGUAGE,
-    )
+    updated_rows: list[AppInterfaceFeatureRow] = [
+        row
+        async for row in db_stream_all_framework_features_for_codebase(
+            seeded_framework_usage["codebase_path"],
+            TEST_FEATURE_LANGUAGE,
+        )
+    ]
     assert len(updated_rows) == 1
-    assert updated_rows[0]["feature_key"] == TEST_SOURCE_FEATURE_KEY
+    assert (
+        f"{updated_rows[0].feature_capability_key}.{updated_rows[0].feature_operation_key}"
+        == TEST_SOURCE_FEATURE_KEY
+    )
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -818,10 +830,13 @@ async def test_app_interface_fetch_excludes_revalidated_pending_row_even_if_conf
         ),
     )
 
-    rows = await db_get_all_framework_features_for_codebase(
-        seeded_framework_usage["codebase_path"],
-        TEST_FEATURE_LANGUAGE,
-    )
+    rows: list[AppInterfaceFeatureRow] = [
+        row
+        async for row in db_stream_all_framework_features_for_codebase(
+            seeded_framework_usage["codebase_path"],
+            TEST_FEATURE_LANGUAGE,
+        )
+    ]
     assert rows == []
 
 
@@ -851,16 +866,22 @@ async def test_app_interface_fetch_includes_in_place_corrected_row_after_correct
         ),
     )
 
-    rows = await db_get_all_framework_features_for_codebase(
-        seeded_framework_usage["codebase_path"],
-        TEST_FEATURE_LANGUAGE,
-    )
+    rows: list[AppInterfaceFeatureRow] = [
+        row
+        async for row in db_stream_all_framework_features_for_codebase(
+            seeded_framework_usage["codebase_path"],
+            TEST_FEATURE_LANGUAGE,
+        )
+    ]
     assert len(rows) == 1
-    assert rows[0]["feature_key"] == TEST_SOURCE_FEATURE_KEY
-    assert rows[0]["file_path"] == TEST_FILE_PATH
-    assert rows[0]["start_line"] == 11
-    assert rows[0]["end_line"] == 13
-    assert rows[0]["match_text"] == "db.execute(validated_query)"
+    assert (
+        f"{rows[0].feature_capability_key}.{rows[0].feature_operation_key}"
+        == TEST_SOURCE_FEATURE_KEY
+    )
+    assert rows[0].file_path == TEST_FILE_PATH
+    assert rows[0].start_line == 11
+    assert rows[0].end_line == 13
+    assert rows[0].match_text == "db.execute(validated_query)"
 
     updated_row = _get_usage_row(
         seeded_framework_usage["postgresql_port"],
@@ -877,12 +898,17 @@ async def test_app_interface_fetch_includes_in_place_corrected_row_after_correct
 async def test_app_interface_fetch_excludes_namespaced_data_model_family_rows(
     seeded_app_interface_data_model_and_http_usage,
 ) -> None:
-    rows = await db_get_all_framework_features_for_codebase(
-        seeded_app_interface_data_model_and_http_usage["codebase_path"],
-        TEST_APP_INTERFACE_LANGUAGE,
-    )
+    rows: list[AppInterfaceFeatureRow] = [
+        row
+        async for row in db_stream_all_framework_features_for_codebase(
+            seeded_app_interface_data_model_and_http_usage["codebase_path"],
+            TEST_APP_INTERFACE_LANGUAGE,
+        )
+    ]
 
-    feature_keys = {str(row["feature_key"]) for row in rows}
+    feature_keys = {
+        f"{row.feature_capability_key}.{row.feature_operation_key}" for row in rows
+    }
     assert "rest_api.get" in feature_keys
     assert "data_model.data_model" not in feature_keys
 
@@ -891,16 +917,22 @@ async def test_app_interface_fetch_excludes_namespaced_data_model_family_rows(
 async def test_get_all_framework_features_supports_typescript_language_filter(
     seeded_typescript_framework_usage,
 ) -> None:
-    rows = await db_get_all_framework_features_for_codebase(
-        seeded_typescript_framework_usage["codebase_path"],
-        TEST_TS_FEATURE_LANGUAGE,
-    )
+    rows: list[AppInterfaceFeatureRow] = [
+        row
+        async for row in db_stream_all_framework_features_for_codebase(
+            seeded_typescript_framework_usage["codebase_path"],
+            TEST_TS_FEATURE_LANGUAGE,
+        )
+    ]
 
     assert len(rows) == 1
     row = rows[0]
-    assert row["library"] == TEST_TS_FEATURE_LIBRARY
-    assert row["feature_key"] == TEST_TS_FEATURE_KEY
-    assert row["file_path"] == TEST_TS_FILE_PATH
+    assert row.library == TEST_TS_FEATURE_LIBRARY
+    assert (
+        f"{row.feature_capability_key}.{row.feature_operation_key}"
+        == TEST_TS_FEATURE_KEY
+    )
+    assert row.file_path == TEST_TS_FILE_PATH
 
 
 @pytest.fixture
@@ -1051,10 +1083,13 @@ async def test_app_interface_fetch_excludes_low_confidence_typescript_until_comp
     seeded_typescript_low_confidence_framework_usage,
 ) -> None:
     """Mirrors Python exclusion test — low-confidence TS rows excluded until validated."""
-    initial_rows = await db_get_all_framework_features_for_codebase(
-        seeded_typescript_low_confidence_framework_usage["codebase_path"],
-        TEST_TS_FEATURE_LANGUAGE,
-    )
+    initial_rows: list[AppInterfaceFeatureRow] = [
+        row
+        async for row in db_stream_all_framework_features_for_codebase(
+            seeded_typescript_low_confidence_framework_usage["codebase_path"],
+            TEST_TS_FEATURE_LANGUAGE,
+        )
+    ]
     assert initial_rows == []
 
     identity = FrameworkFeatureUsageIdentity(
@@ -1084,9 +1119,15 @@ async def test_app_interface_fetch_excludes_low_confidence_typescript_until_comp
         ),
     )
 
-    updated_rows = await db_get_all_framework_features_for_codebase(
-        seeded_typescript_low_confidence_framework_usage["codebase_path"],
-        TEST_TS_FEATURE_LANGUAGE,
-    )
+    updated_rows: list[AppInterfaceFeatureRow] = [
+        row
+        async for row in db_stream_all_framework_features_for_codebase(
+            seeded_typescript_low_confidence_framework_usage["codebase_path"],
+            TEST_TS_FEATURE_LANGUAGE,
+        )
+    ]
     assert len(updated_rows) == 1
-    assert updated_rows[0]["feature_key"] == TEST_TS_LOW_CONF_FEATURE_KEY
+    assert (
+        f"{updated_rows[0].feature_capability_key}.{updated_rows[0].feature_operation_key}"
+        == TEST_TS_LOW_CONF_FEATURE_KEY
+    )
