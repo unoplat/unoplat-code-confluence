@@ -26,7 +26,7 @@
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `e1d9b8966ae6d91f530e642d0fb01662c3cf2760` (2026-05-09). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -40,9 +40,9 @@
 ### Test
 - `uv run pytest -v tests/` (config: `pyproject.toml`, `Taskfile.yml`)
 ### Lint
-- Not detected
+- `uvx ruff check .` (config: `ruff.toml`)
 ### Type Check
-- Not detected
+- `uv run --with mypy mypy src/unoplat_code_confluence_commons` (config: `pyproject.toml`)
 
 ## Dependency Guide
 See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
@@ -50,7 +50,7 @@ See [`dependencies_overview.md`](./dependencies_overview.md) for the full depend
 ## Business Domain
 ### Description
 
-This package supports Code Confluence, a repository ingestion and code-intelligence platform. Its models track Git repositories, codebases, workflow runs, credentials, and agent progress while storing structural signatures, framework features, and detected source-code spans across Python and TypeScript. It also carries metadata for AGENTS.md publication and repository-level status/event tracking.
+This package supports Code Confluence, a repository ingestion and code-intelligence platform. Its models center on Git repositories, codebases, workflow runs, agent progress/events, credentials, feature flags, and AGENTS.md publication metadata. It also stores structural signatures, framework feature catalogs, and detected source-code spans across Python and TypeScript, along with language and package-manager metadata for analysis.
 
 ### References
 
