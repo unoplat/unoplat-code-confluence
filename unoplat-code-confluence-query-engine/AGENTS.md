@@ -72,7 +72,7 @@ You MUST read the overview resource to understand the complete workflow. The inf
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `e1d9b8966ae6d91f530e642d0fb01662c3cf2760` (2026-05-09). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -82,19 +82,20 @@ You MUST read the overview resource to understand the complete workflow. The inf
 ### Build
 - Not detected
 ### Dev
-- `uv run fastapi dev --port 8001` (from `src/unoplat_code_confluence_query_engine`; `Taskfile.yml` defines the env vars used by the dev task)
+- `task run-query-engine-backend-dev` (repo root; `Taskfile.yml`)
 ### Test
-- `uv run --group test pytest tests/services tests/test_app_interfaces_mapper.py tests/tools -v` (repo root; `pyproject.toml`)
+- `task test` (repo root; `Taskfile.yml`)
 ### Lint
-- `uv run --group dev ruff check src/` (repo root; `pyproject.toml`)
+- `task lint` (repo root; `Taskfile.yml`)
 ### Type Check
-- `uv run --group dev basedpyright src/` (repo root; `pyproject.toml`)
+- `task typecheck` (repo root; `Taskfile.yml`)
 
 ## Dependency Guide
 See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
 
 ## Business Domain
 ### Description
+
 This service is an AI-assisted codebase analysis and repository automation engine. It manages model/provider and tool credentials, launches Temporal workflows that inspect repositories, generate engineering and dependency guidance, validate framework usage, and produce/update AGENTS.md artifacts and pull requests. It also supports Codex OAuth, feedback submission, and feature flags for operating the agent runtime.
 
 ### References
