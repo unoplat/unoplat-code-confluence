@@ -1,7 +1,7 @@
 # Standard Library
 import asyncio
 import hashlib
-from typing import List, Optional, Set
+from typing import Optional, Set
 
 # Third Party
 from aiofile import async_open
@@ -71,29 +71,24 @@ class TypeScriptLanguageProcessor(LanguageCodebaseProcessor):
                 self._calculate_file_checksum, content_bytes
             )
 
-            content_text = content_bytes.decode("utf-8", errors="ignore")
-
             # Parse once with tree-sitter and reuse the context for all detection paths
-            ts_context = TypeScriptSourceContext.from_source(content_text)
+            ts_context = TypeScriptSourceContext.from_bytes(content_bytes)
 
             # Populate imports from parsed context
-            imports: Optional[List[str]] = ts_context.imports if ts_context.imports else None
+            imports = ts_context.imports or None
 
             has_data_model, data_model_positions = detect_data_model(
-                source_code=content_text,
-                imports=imports,
+                source_context=ts_context,
                 language=metadata.language.value,
                 structural_signature=None,
             )
 
-            custom_features_list: Optional[List[Detection]] = None
+            custom_features_list: Optional[list[Detection]] = None
             if self.context.framework_detection_service is not None:
                 detections = await self.context.framework_detection_service.detect_features(
-                    source_code=content_text,
-                    imports=imports or [],
+                    source_context=ts_context,
                     structural_signature=None,
                     programming_language=metadata.language.value,
-                    source_context=ts_context,
                 )
                 custom_features_list = detections or None
 

@@ -43,9 +43,6 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_
 from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.business_logic_post_process_activity import (
     BusinessLogicPostProcessActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.codebase_workflow_db_activity import (
-    CodebaseWorkflowDbActivity,
-)
 from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.dependency_guide_completion_activity import (
     DependencyGuideCompletionActivity,
 )
@@ -61,19 +58,21 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.git_ref_resolution_activity import (
     GitRefResolutionActivity,
 )
-from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.repository_agent_snapshot_activity import (
-    RepositoryAgentSnapshotActivity,
-)
-from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.repository_workflow_db_activity import (
-    RepositoryWorkflowDbActivity,
-)
 from unoplat_code_confluence_query_engine.services.temporal.build_id_generator import (
     DEPLOYMENT_NAME,
     compute_credential_hash,
     generate_build_id,
 )
-from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow_interceptor import (
+from unoplat_code_confluence_query_engine.services.temporal.debug_timeouts import (
+    temporal_debug_mode_enabled,
+)
+from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
     AgentWorkflowStatusInterceptor,
+)
+from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow.activity import (
+    CodebaseWorkflowDbActivity,
+    RepositoryAgentSnapshotActivity,
+    RepositoryWorkflowDbActivity,
 )
 from unoplat_code_confluence_query_engine.services.temporal.service_registry import (
     ServiceRegistry,
@@ -331,6 +330,13 @@ class TemporalWorkerManager:
             build_id,
         )
 
+        temporal_debug_mode = temporal_debug_mode_enabled()
+        if temporal_debug_mode:
+            logger.warning(
+                "[temporal_worker_manager] QUERY_ENGINE_TEMPORAL_DEBUG_MODE is enabled; "
+                "Temporal workflow deadlock detection is relaxed for profiling/debug runs only"
+            )
+
         # Create worker with workflows, activities, agent plugins, and interceptors
         self._worker = Worker(
             self._client,
@@ -342,7 +348,9 @@ class TemporalWorkerManager:
             activities=[
                 repo_db_activity.update_repository_workflow_status,
                 codebase_db_activity.update_codebase_workflow_status,
+                snapshot_activity.persist_agent_snapshot_begin_run,
                 snapshot_activity.persist_agent_snapshot_complete,
+                snapshot_activity.persist_agent_snapshot_codebase_patch,
                 business_logic_post_process_activity.post_process_business_logic,
                 dependency_guide_completion_activity.write_dependency_overview,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
@@ -358,6 +366,7 @@ class TemporalWorkerManager:
             plugins=agent_plugins,
             interceptors=all_interceptors,
             deployment_config=deployment_config,
+            debug_mode=temporal_debug_mode,
         )
 
         # Store build ID for tracking

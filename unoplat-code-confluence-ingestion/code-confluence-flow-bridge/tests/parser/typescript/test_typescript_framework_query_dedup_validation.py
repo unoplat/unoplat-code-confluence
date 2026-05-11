@@ -58,8 +58,8 @@ def typescript_source_context(
     typescript_ast_sample_path: Path,
 ) -> TypeScriptSourceContext:
     """Parsed TypeScript source context for query execution."""
-    return TypeScriptSourceContext.from_source(
-        typescript_ast_sample_path.read_text(encoding="utf-8")
+    return TypeScriptSourceContext.from_bytes(
+        typescript_ast_sample_path.read_bytes()
     )
 
 

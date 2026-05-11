@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 import tree_sitter
 from tree_sitter_language_pack import get_language, get_parser
@@ -13,6 +13,14 @@ from unoplat_code_confluence_commons.base_models import DataModelPosition
 from src.code_confluence_flow_bridge.engine.detector.data_model_detector_strategy import (
     DataModelDetectorStrategy,
 )
+from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+    PythonSourceContext,
+)
+
+if TYPE_CHECKING:
+    from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
+        TypeScriptSourceContext,
+    )
 
 
 class PythonDataModelDetectorStrategy(DataModelDetectorStrategy):
@@ -25,8 +33,7 @@ class PythonDataModelDetectorStrategy(DataModelDetectorStrategy):
 
     def detect(
         self,
-        source_code: str,
-        imports: Optional[List[str]] = None,
+        source_context: "PythonSourceContext | TypeScriptSourceContext",
         structural_signature: Optional[object] = None,
     ) -> Tuple[bool, DataModelPosition]:
         """
@@ -35,8 +42,8 @@ class PythonDataModelDetectorStrategy(DataModelDetectorStrategy):
         Returns detections based on a dedicated Tree-sitter query.
 
         Args:
-            source_code: The Python source code to analyze
-            imports: Optional list of import statements (unused)
+            source_context: Pre-parsed Python context. The existing tree is reused
+                so the source is not re-parsed.
             structural_signature: Optional structural signature (unused)
 
         Returns:
@@ -44,29 +51,28 @@ class PythonDataModelDetectorStrategy(DataModelDetectorStrategy):
                 - bool: True if dataclasses are detected
                 - DataModelPosition: Positions keyed by dataclass name
         """
-        _ = imports, structural_signature  # unused in current detection path
-        positions = self._detect_dataclasses_with_tree_sitter(source_code)
+        _ = structural_signature  # unused in current detection path
+
+        if not isinstance(source_context, PythonSourceContext):
+            return False, DataModelPosition()
+
+        positions = self._detect_dataclasses_from_root(
+            source_context.root_node, source_context.source_bytes
+        )
 
         has_data_model = bool(positions)
         return has_data_model, DataModelPosition(positions=positions)
 
-    def _detect_dataclasses_with_tree_sitter(
-        self, source_code: str
+    def _detect_dataclasses_from_root(
+        self, root_node: tree_sitter.Node, source_bytes: bytes
     ) -> Dict[str, Tuple[int, int]]:
-        """Use Tree-sitter query to locate dataclass definitions."""
-        if not source_code.strip():
-            return {}
-
+        """Run the dataclass query against an existing parsed root node."""
         try:
-            parser, query = _get_python_parser_and_query(
+            _, query = _get_python_parser_and_query(
                 self._DATACLASS_QUERY_PATH, self._LANGUAGE_NAME
             )
         except Exception:
             return {}
-
-        source_bytes = source_code.encode("utf-8", errors="ignore")
-        tree = parser.parse(source_bytes)
-        root_node = tree.root_node
 
         cursor = tree_sitter.QueryCursor(query)
         matches = cursor.matches(root_node)

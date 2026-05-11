@@ -6,14 +6,14 @@ from loguru import logger
 from temporalio import activity
 
 from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_repository import (
-    db_get_all_framework_features_for_codebase,
     db_get_low_confidence_call_expression_candidates,
+    db_stream_all_framework_features_for_codebase,
 )
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     Interfaces,
 )
 from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
-    build_interfaces_from_features,
+    build_interfaces_from_feature_rows,
 )
 from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler import (
     get_completion_namespaces,
@@ -46,21 +46,12 @@ class AppInterfacesActivity:
             codebase_path,
         )
 
-        # Fetch all framework features from PostgreSQL
-        features = await db_get_all_framework_features_for_codebase(
-            codebase_path=codebase_path,
-            programming_language=programming_language,
-        )
-
-        logger.info(
-            "[app_interfaces_activity] Found {} framework features for codebase: {}",
-            len(features),
-            codebase_path,
-        )
-
-        # Build interfaces using mapper
-        interfaces = build_interfaces_from_features(
-            features=features,
+        # Stream framework features from PostgreSQL directly into the mapper.
+        interfaces = await build_interfaces_from_feature_rows(
+            feature_rows=db_stream_all_framework_features_for_codebase(
+                codebase_path=codebase_path,
+                programming_language=programming_language,
+            ),
             codebase_path=codebase_path,
         )
 

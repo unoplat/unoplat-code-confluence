@@ -15,6 +15,7 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
         AgentDependencies,
+        build_agent_run_metadata,
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
@@ -41,6 +42,7 @@ async def run_call_expression_validation(
     codebase_metadata: CodebaseMetadata,
     repository_qualified_name: str,
     repository_workflow_run_id: str,
+    codebase_workflow_run_id: str,
     candidate_payloads: list[dict[str, object]],
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
@@ -77,6 +79,7 @@ async def run_call_expression_validation(
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
             repository_workflow_run_id=repository_workflow_run_id,
+            codebase_workflow_run_id=codebase_workflow_run_id,
             agent_name="call_expression_validator",
         )
         validator_prompt = build_call_expression_validator_prompt(
@@ -89,6 +92,7 @@ async def run_call_expression_validation(
                 validator_prompt,
                 deps=validator_deps,
                 usage_limits=get_cached_usage_limits(),
+                metadata=build_agent_run_metadata(validator_deps),
             )
             agent_stats.append(extract_usage_statistics(validator_result.usage()))
         except Exception as validator_error:

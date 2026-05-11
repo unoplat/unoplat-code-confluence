@@ -38,6 +38,7 @@ def _make_run_context(codebase_path: str) -> MagicMock:
         repository_qualified_name="owner/repo",
         codebase_metadata=metadata,
         repository_workflow_run_id="workflow-run-001",
+        codebase_workflow_run_id="codebase-workflow-run-001",
         agent_name="call_expression_validator",
     )
     ctx = MagicMock()

@@ -95,7 +95,10 @@ def test_development_workflow_instructions_describe_direct_agents_md_section_own
     instructions = build_development_workflow_instructions()
 
     assert "Local repository inspection tools available in this run: ls, read_file, glob, grep." in instructions
-    assert "Local command verification tool available in this run: execute." in instructions
+    assert (
+        "CLI help/version discovery tool available in this run: execute. Use it only for commands containing --help, -h, --version, -v, or an explicit help subcommand/token; never use it to run install, build, test, lint, type_check, dev, server, watch, or reload commands."
+        in instructions
+    )
     assert "Markdown editing tools available in this run: write_file and edit_file for Markdown files only." in instructions
     assert "AGENTS.md / ## Engineering Workflow" in instructions
     assert "dependencies_overview.md, business_domain_references.md, app_interfaces.md" in instructions

@@ -1,8 +1,9 @@
 # Standard Library
 from abc import ABC, abstractmethod
 import asyncio
+from collections.abc import Iterable
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional, Set
+from typing import AsyncGenerator, Optional, Set
 
 # Third Party
 from loguru import logger
@@ -81,23 +82,23 @@ class LanguageCodebaseProcessor(ABC):
         return False
 
     async def iter_files(
-        self, file_paths: List[str]
+        self, file_paths: Iterable[str]
     ) -> AsyncGenerator[UnoplatFile, None]:
         """Yield processed files using configured concurrency."""
-        if not file_paths:
-            return
-
         logger.info(
-            "Processing source files | codebase={} | file_count={}",
+            "Processing source files | codebase={}",
             self.context.codebase_name,
-            len(file_paths),
         )
 
-        file_iter = iter(file_paths)
         concurrency_limit = self.context.concurrency_limit
+        if concurrency_limit <= 0:
+            raise ValueError(
+                f"Invalid concurrency_limit={concurrency_limit}; expected >= 1."
+            )
 
-        active_tasks = set()
-        for _ in range(min(concurrency_limit, len(file_paths))):
+        file_iter = iter(file_paths)
+        active_tasks: set[asyncio.Task[Optional[UnoplatFile]]] = set()
+        for _ in range(concurrency_limit):
             try:
                 file_path = next(file_iter)
             except StopIteration:

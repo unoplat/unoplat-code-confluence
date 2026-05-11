@@ -10,7 +10,9 @@ with workflow.unsafe.imports_passed_through():
 
     from loguru import logger
 
-    from unoplat_code_confluence_query_engine.models.output.git_ref_info import GitRefInfo
+    from unoplat_code_confluence_query_engine.models.output.git_ref_info import (
+        GitRefInfo,
+    )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
     )
@@ -66,7 +68,6 @@ async def start_codebase_child_workflows(
 async def collect_codebase_child_results(
     repository_qualified_name: str,
     child_handles: list[tuple[str, Any]],
-    results: dict[str, Any],
     codebase_statistics_map: dict[str, UsageStatistics],
 ) -> list[dict[str, str]]:
     """Collect child workflow results, recording partial failures and statistics."""
@@ -95,16 +96,12 @@ async def collect_codebase_child_results(
             codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
         else:
             logger.debug("[workflow] Child workflow completed for {}", codebase_name)
-            results["codebases"][codebase_name] = result
-
-            if "statistics" in result and result["statistics"]:
+            if result:
                 codebase_statistics_map[codebase_name] = UsageStatistics.model_validate(
-                    result["statistics"]
+                    result
                 )
             else:
-                codebase_statistics_map[codebase_name] = (
-                    create_zero_usage_statistics()
-                )
+                codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
 
     logger.info(
         "[workflow] RepositoryAgentWorkflow processed {} codebases for {}",

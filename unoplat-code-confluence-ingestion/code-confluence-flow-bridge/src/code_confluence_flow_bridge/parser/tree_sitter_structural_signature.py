@@ -64,9 +64,19 @@ class TreeSitterPythonStructuralSignatureExtractor(TreeSitterExtractorBase):
         """Extract structural signature from byte content."""
         # Parse the source code (tree-sitter expects bytes)
         tree: tree_sitter.Tree = self.parser.parse(source_bytes)
-        root_node: tree_sitter.Node = tree.root_node
+        return self.extract_structural_signature_from_root(
+            tree.root_node, source_bytes
+        )
 
-        # Extract components
+    def extract_structural_signature_from_root(
+        self, root_node: tree_sitter.Node, source_bytes: bytes
+    ) -> PythonStructuralSignature:
+        """Extract structural signature from an already-parsed root node.
+
+        Use this overload when a caller has previously parsed the same source
+        bytes (e.g. via ``PythonSourceContext.from_bytes``) so the tree is not
+        reparsed.
+        """
         module_docstring: Optional[str] = self._extract_module_docstring(
             root_node, source_bytes
         )

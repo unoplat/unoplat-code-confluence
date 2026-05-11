@@ -8,6 +8,9 @@ import pytest
 from src.code_confluence_flow_bridge.engine.programming_language.python.python_data_model_detector_strategy import (
     PythonDataModelDetectorStrategy,
 )
+from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+    PythonSourceContext,
+)
 
 
 @pytest.fixture
@@ -33,7 +36,10 @@ class UserProfile:
     bio: str
 """
 
-    has_data_model, data_model_positions = detector_strategy.detect(source_code)
+    source_context = PythonSourceContext.from_bytes(
+        source_code.encode("utf-8", errors="ignore")
+    )
+    has_data_model, data_model_positions = detector_strategy.detect(source_context)
 
     # Verify detection works
     assert has_data_model is True

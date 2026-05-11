@@ -60,7 +60,7 @@ import { createStore } from "zustand/vanilla"
 const store = createStore(() => ({}))
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = _build_call_spec(
         feature_key="store_definition",
@@ -92,7 +92,7 @@ export async function GET(_request: NextRequest): Promise<Response> {
 }
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     query_builder = TypeScriptFrameworkQueryBuilder()
     spec = _build_function_definition_spec()
 
@@ -128,7 +128,7 @@ const api = {
 const store = api.createStore(() => ({}))
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
 
     detections = detector.detect(
@@ -151,7 +151,7 @@ import zustand from "zustand"
 const store = zustand.create(() => ({}))
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
 
     detections = detector.detect(
@@ -176,7 +176,7 @@ import useSWR from "swr"
 const result = useSWR("/api/search", fetcher)
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         capability_key="data",
@@ -209,7 +209,7 @@ import { LitElement } from "lit"
 class SearchWidget extends LitElement {}
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         capability_key="web",
@@ -237,7 +237,7 @@ import { LitElement } from "lit"
 class SearchWidget extends foo.LitElement {}
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         capability_key="web",
@@ -262,7 +262,7 @@ import { LitElement as BaseElement } from "lit"
 class SearchWidget extends BaseElement {}
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         capability_key="web",
@@ -293,7 +293,7 @@ class SearchWidget {
 }
 """
 
-    context = TypeScriptSourceContext.from_source(source_code)
+    context = TypeScriptSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
     detector = TypeScriptTreeSitterFrameworkDetector()
     spec = FeatureSpec(
         capability_key="reactive",

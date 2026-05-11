@@ -31,6 +31,7 @@ class AgentDependencies:
     repository_qualified_name: str
     codebase_metadata: CodebaseMetadata
     repository_workflow_run_id: str
+    codebase_workflow_run_id: str
     agent_name: str
 
     @cached_property
@@ -55,3 +56,15 @@ class AgentDependencies:
             workflow_run_id=self.repository_workflow_run_id,
         )
         self.__dict__.pop("backend", None)
+
+
+def build_agent_run_metadata(deps: AgentDependencies) -> dict[str, str]:
+    """Build the stable Pydantic AI run metadata attached to Logfire spans."""
+
+    return {
+        "repository_qualified_name": deps.repository_qualified_name,
+        "repository_workflow_run_id": deps.repository_workflow_run_id,
+        "codebase_workflow_run_id": deps.codebase_workflow_run_id,
+        "codebase_name": deps.codebase_metadata.codebase_name,
+        "agent_name": deps.agent_name,
+    }

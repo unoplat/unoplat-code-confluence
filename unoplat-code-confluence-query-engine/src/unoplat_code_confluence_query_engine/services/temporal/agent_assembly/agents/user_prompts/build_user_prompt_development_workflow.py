@@ -13,7 +13,7 @@ def build_development_workflow_instructions() -> str:
         "<role>Engineering Workflow Synthesizer</role>\n"
         "<available_tools>\n"
         "Local repository inspection tools available in this run: ls, read_file, glob, grep.\n"
-        "Local command verification tool available in this run: execute.\n"
+        "CLI help/version discovery tool available in this run: execute. Use it only for commands containing --help, -h, --version, -v, or an explicit help subcommand/token; never use it to run install, build, test, lint, type_check, dev, server, watch, or reload commands.\n"
         "Markdown editing tools available in this run: write_file and edit_file for Markdown files only.\n"
         "External documentation tools available in this run: Exa search toolsets when configured, plus shared web_search and web_fetch capabilities.\n"
         "Use ls/glob/grep to discover workflow files and commands, and read_file to inspect them.\n"

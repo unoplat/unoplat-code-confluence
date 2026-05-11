@@ -318,8 +318,11 @@ async def test_begin_run_creates_snapshot_row(seeded_db, writer):
         assert snapshot["overall_progress"] == Decimal("0.00")
         assert snapshot["latest_event_at"] is None
 
-        # Check agent_md_output is empty dict
-        assert snapshot["agent_md_output"] == {}
+        # Check agent_md_output has the initialized repository snapshot shape
+        assert snapshot["agent_md_output"] == {
+            "repository": f"{TEST_OWNER}/{TEST_REPO}",
+            "codebases": {},
+        }
         assert snapshot["statistics"] is None
 
         progress_rows = list_codebase_progress_rows(
@@ -515,18 +518,16 @@ async def test_append_event_updates_progress_and_timestamp(seeded_db, writer):
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
-async def test_complete_run_updates_output_and_statistics(seeded_db, writer):
-    """Test that complete_run sets agent_md_output and statistics."""
-    # Setup: initialize snapshot
+async def test_patch_codebase_output_atomically_merges_sections(seeded_db, writer):
+    """Test that patch_codebase_output merges one codebase object without overwriting siblings."""
     await writer.begin_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
         repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
-        codebase_names=[TEST_CODEBASE_1],
+        codebase_names=[TEST_CODEBASE_1, TEST_CODEBASE_2],
     )
 
-    # Get initial modified_at
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
         initial_snapshot = get_snapshot_data(
             session,
@@ -537,14 +538,103 @@ async def test_complete_run_updates_output_and_statistics(seeded_db, writer):
         assert initial_snapshot is not None
         initial_modified_at = initial_snapshot["modified_at"]
 
-    # Complete the run with statistics
-    final_payload = {
-        "agents_md": {
-            "architecture": "Clean architecture pattern",
-            "security": "OAuth2 authentication",
+    await writer.patch_codebase_output(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
+        codebase_name=TEST_CODEBASE_1,
+        codebase_patch={
+            "codebase_name": TEST_CODEBASE_1,
+            "programming_language_metadata": {
+                "primary_language": "python",
+                "package_manager": "uv",
+            },
+            "engineering_workflow": None,
+            "dependency_guide": None,
         },
-        "summary": "Analysis completed",
-    }
+    )
+    await writer.patch_codebase_output(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
+        codebase_name=TEST_CODEBASE_1,
+        codebase_patch={
+            "engineering_workflow": {"commands": ["uv run pytest"]},
+        },
+    )
+    await writer.patch_codebase_output(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
+        codebase_name=TEST_CODEBASE_2,
+        codebase_patch={
+            "codebase_name": TEST_CODEBASE_2,
+            "dependency_guide": {"dependencies": []},
+        },
+    )
+
+    with get_sync_postgres_session(seeded_db["postgresql"]) as session:
+        snapshot = get_snapshot_data(
+            session,
+            TEST_OWNER,
+            TEST_REPO,
+            TEST_WORKFLOW_RUN_ID,
+        )
+        assert snapshot is not None
+        assert snapshot["modified_at"] > initial_modified_at
+
+        agent_md_output = snapshot["agent_md_output"]
+        assert agent_md_output["repository"] == f"{TEST_OWNER}/{TEST_REPO}"
+        codebases = agent_md_output["codebases"]
+        assert codebases[TEST_CODEBASE_1] == {
+            "codebase_name": TEST_CODEBASE_1,
+            "programming_language_metadata": {
+                "primary_language": "python",
+                "package_manager": "uv",
+            },
+            "engineering_workflow": {"commands": ["uv run pytest"]},
+            "dependency_guide": None,
+        }
+        assert codebases[TEST_CODEBASE_2] == {
+            "codebase_name": TEST_CODEBASE_2,
+            "dependency_guide": {"dependencies": []},
+        }
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio(loop_scope="session")
+async def test_complete_run_updates_statistics_without_overwriting_output(
+    seeded_db, writer
+):
+    """Test that complete_run persists statistics without replacing partial agent_md_output."""
+    await writer.begin_run(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+        repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
+        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
+        codebase_names=[TEST_CODEBASE_1],
+    )
+    await writer.patch_codebase_output(
+        owner_name=TEST_OWNER,
+        repo_name=TEST_REPO,
+        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
+        codebase_name=TEST_CODEBASE_1,
+        codebase_patch={
+            "codebase_name": TEST_CODEBASE_1,
+            "engineering_workflow": {"commands": ["uv run pytest"]},
+        },
+    )
+
+    with get_sync_postgres_session(seeded_db["postgresql"]) as session:
+        initial_snapshot = get_snapshot_data(
+            session,
+            TEST_OWNER,
+            TEST_REPO,
+            TEST_WORKFLOW_RUN_ID,
+        )
+        assert initial_snapshot is not None
+        initial_modified_at = initial_snapshot["modified_at"]
+        initial_agent_md_output = initial_snapshot["agent_md_output"]
 
     statistics_payload = {
         "total_requests": 5,
@@ -573,11 +663,9 @@ async def test_complete_run_updates_output_and_statistics(seeded_db, writer):
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
-        final_payload=final_payload,
         statistics_payload=statistics_payload,
     )
 
-    # Verify updates
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
         snapshot = get_snapshot_data(
             session,
@@ -586,11 +674,8 @@ async def test_complete_run_updates_output_and_statistics(seeded_db, writer):
             TEST_WORKFLOW_RUN_ID,
         )
         assert snapshot is not None
+        assert snapshot["agent_md_output"] == initial_agent_md_output
 
-        # Check agent_md_output updated
-        assert snapshot["agent_md_output"] == final_payload
-
-        # Check statistics updated
         assert snapshot["statistics"] is not None
         statistics = snapshot["statistics"]
         assert isinstance(statistics, dict)
@@ -603,5 +688,4 @@ async def test_complete_run_updates_output_and_statistics(seeded_db, writer):
         assert isinstance(by_codebase, dict)
         assert TEST_CODEBASE_1 in by_codebase
 
-        # Check timestamp updated
         assert snapshot["modified_at"] > initial_modified_at

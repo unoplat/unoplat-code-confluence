@@ -55,8 +55,95 @@ tasks:
       MCP_SERVERS_CONFIG_PATH: "../../mcp-servers.json"
       CODEX_OPENAI_CALLBACK_PORT: "1455"
       CODEX_OPENAI_REDIRECT_URI: "http://localhost:1455/auth/callback"
+      # Debug/profiling envs. Defaults keep normal dev behavior unchanged;
+      # override at invocation time, e.g.
+      # QUERY_ENGINE_TEMPORAL_DEBUG_MODE=1 task run-query-engine-backend-dev
+      QUERY_ENGINE_TEMPORAL_DEBUG_MODE: "{{.QUERY_ENGINE_TEMPORAL_DEBUG_MODE | default \"0\"}}"
+      QUERY_ENGINE_TEMPORAL_ACTIVITY_TIMEOUT_MULTIPLIER: "{{.QUERY_ENGINE_TEMPORAL_ACTIVITY_TIMEOUT_MULTIPLIER | default \"1\"}}"
+      QUERY_ENGINE_TEMPORAL_BASE_ACTIVITY_TIMEOUT_SECONDS: "{{.QUERY_ENGINE_TEMPORAL_BASE_ACTIVITY_TIMEOUT_SECONDS | default \"\"}}"
+      QUERY_ENGINE_TEMPORAL_MODEL_ACTIVITY_TIMEOUT_SECONDS: "{{.QUERY_ENGINE_TEMPORAL_MODEL_ACTIVITY_TIMEOUT_SECONDS | default \"\"}}"
+      QUERY_ENGINE_TEMPORAL_TOOLSET_ACTIVITY_TIMEOUT_SECONDS: "{{.QUERY_ENGINE_TEMPORAL_TOOLSET_ACTIVITY_TIMEOUT_SECONDS | default \"\"}}"
+      QUERY_ENGINE_TEMPORAL_TOOL_ACTIVITY_TIMEOUT_SECONDS: "{{.QUERY_ENGINE_TEMPORAL_TOOL_ACTIVITY_TIMEOUT_SECONDS | default \"\"}}"
+      QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS: "{{.QUERY_ENGINE_TEMPORAL_DB_ACTIVITY_TIMEOUT_SECONDS | default \"\"}}"
     cmds:
       - uv run fastapi dev --port 8001
+
+  run-query-engine-memray:
+    desc: Run query engine under memray live-remote profiler (terminal 1; pair with memray-tui-query-engine on port 12346). Runs from query-engine root with PYTHONPATH=src because memray bypasses fastapi dev's path-walking.
+    deps: [sync]
+    env:
+      PYTHONPATH: "src"
+      CODE_CONFLUENCE_BRIDGE_URL: "http://localhost:8000"
+      TOKEN_ENCRYPTION_KEY: "0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
+      MCP_SERVERS_CONFIG_PATH: "mcp-servers.json"
+      CODEX_OPENAI_CALLBACK_PORT: "1455"
+      CODEX_OPENAI_REDIRECT_URI: "http://localhost:1455/auth/callback"
+    cmds:
+      - uv run --group dev memray run --live-remote --live-port 12346 --native -m uvicorn unoplat_code_confluence_query_engine.main:app --host 0.0.0.0 --port 8001
+
+  memray-tui-query-engine:
+    desc: Attach memray live TUI to the profiled query engine on port 12346 (terminal 2).
+    cmds:
+      - uv run --group dev memray live 12346
+
+  run-query-engine-memray-capture:
+    desc: Run query engine and capture all allocations to /tmp/query-engine-memray/memray-query-engine.bin for offline peak/temporary allocation analysis. Runs from query-engine root with PYTHONPATH=src because memray bypasses fastapi dev's path-walking.
+    deps: [sync]
+    env:
+      PYTHONPATH: "src"
+      CODE_CONFLUENCE_BRIDGE_URL: "http://localhost:8000"
+      TOKEN_ENCRYPTION_KEY: "0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
+      MCP_SERVERS_CONFIG_PATH: "mcp-servers.json"
+      CODEX_OPENAI_CALLBACK_PORT: "1455"
+      CODEX_OPENAI_REDIRECT_URI: "http://localhost:1455/auth/callback"
+    cmds:
+      - mkdir -p /tmp/query-engine-memray
+      - uv run --group dev memray run --output /tmp/query-engine-memray/memray-query-engine.bin --force --native -m uvicorn unoplat_code_confluence_query_engine.main:app --host 0.0.0.0 --port 8001
+
+  run-query-engine-memray-capture-aggregate:
+    desc: Run query engine and capture aggregated allocations to /tmp/query-engine-memray/memray-query-engine-aggregate.bin for smaller long-run flamegraph/table analysis. Not suitable for stats or temporary-allocation reports.
+    deps: [sync]
+    env:
+      PYTHONPATH: "src"
+      CODE_CONFLUENCE_BRIDGE_URL: "http://localhost:8000"
+      TOKEN_ENCRYPTION_KEY: "0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
+      MCP_SERVERS_CONFIG_PATH: "mcp-servers.json"
+      CODEX_OPENAI_CALLBACK_PORT: "1455"
+      CODEX_OPENAI_REDIRECT_URI: "http://localhost:1455/auth/callback"
+    cmds:
+      - mkdir -p /tmp/query-engine-memray
+      - uv run --group dev memray run --output /tmp/query-engine-memray/memray-query-engine-aggregate.bin --force --native --aggregate -m uvicorn unoplat_code_confluence_query_engine.main:app --host 0.0.0.0 --port 8001
+
+  memray-summary-query-engine:
+    desc: Generate Memray summary from /tmp/query-engine-memray/memray-query-engine.bin.
+    cmds:
+      - uv run --group dev memray summary /tmp/query-engine-memray/memray-query-engine.bin
+
+  memray-summary-temporary-query-engine:
+    desc: Generate Memray temporary-allocation summary from /tmp/query-engine-memray/memray-query-engine.bin. Requires non-aggregate capture.
+    cmds:
+      - uv run --group dev memray summary --temporary-allocations /tmp/query-engine-memray/memray-query-engine.bin
+
+  memray-stats-query-engine:
+    desc: Generate Memray allocation statistics from /tmp/query-engine-memray/memray-query-engine.bin. Requires non-aggregate capture.
+    cmds:
+      - uv run --group dev memray stats /tmp/query-engine-memray/memray-query-engine.bin
+
+  memray-tree-query-engine:
+    desc: Generate Memray tree report from /tmp/query-engine-memray/memray-query-engine.bin.
+    cmds:
+      - uv run --group dev memray tree /tmp/query-engine-memray/memray-query-engine.bin
+
+  memray-flamegraph-query-engine:
+    desc: Generate interactive flamegraph from /tmp/query-engine-memray/memray-query-engine.bin.
+    cmds:
+      - uv run --group dev memray flamegraph --force /tmp/query-engine-memray/memray-query-engine.bin
+      - echo "Open the generated HTML in /tmp (usually /tmp/memray-flamegraph-query-engine.html)"
+
+  memray-table-query-engine:
+    desc: Generate an interactive allocator table from /tmp/query-engine-memray/memray-query-engine.bin.
+    cmds:
+      - uv run --group dev memray table /tmp/query-engine-memray/memray-query-engine.bin
 
   dev:
     desc: Start dependencies and run the query engine application
@@ -69,6 +156,17 @@ tasks:
     cmds:
       - task: start-dependencies-without-flow-bridge
       - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-core
+
+  run-memory-profile-ingestion-local:
+    desc: Start dependencies and launch flow-bridge (ingestion backend) under memray live-remote profiler (port 12345). In a second terminal run `task memray-tui-ingestion` to attach the heap TUI.
+    cmds:
+      - task: start-dependencies-without-flow-bridge
+      - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task run-dev-memray
+
+  memray-tui-ingestion:
+    desc: Attach memray live TUI to the profiled flow-bridge (ingestion) worker on port 12345 (delegates to flow-bridge venv where memray is installed).
+    cmds:
+      - cd ../unoplat-code-confluence-ingestion/code-confluence-flow-bridge && task memray-tui
 
   mock-sse:
     desc: Run mock SSE server (replays docs/sse-agent-results.txt) on port 8002

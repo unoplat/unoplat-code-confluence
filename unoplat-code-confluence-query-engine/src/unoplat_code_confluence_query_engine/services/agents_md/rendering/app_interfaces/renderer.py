@@ -69,18 +69,14 @@ def render_app_interfaces(interfaces: Interfaces) -> str:
     return rendered.rstrip() + "\n"
 
 
-def write_app_interfaces_if_changed(
+def write_app_interfaces(
     codebase_path: str | Path,
     interfaces: Interfaces,
-) -> bool:
-    """Overwrite app_interfaces.md with canonical content when it differs."""
+) -> None:
+    """Overwrite app_interfaces.md with canonical content."""
     target_path = Path(codebase_path) / _APP_INTERFACES_ARTIFACT
     rendered = render_app_interfaces(interfaces)
-    existing = target_path.read_text(encoding="utf-8") if target_path.exists() else None
-    if existing == rendered:
-        return False
     target_path.write_text(rendered, encoding="utf-8")
-    return True
 
 
 def _build_construct_rows(

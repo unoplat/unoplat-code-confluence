@@ -2,7 +2,7 @@
 import asyncio
 import hashlib
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, Optional, Set
 
 # Third Party
 from aiofile import async_open
@@ -12,8 +12,8 @@ from loguru import logger
 from src.code_confluence_flow_bridge.engine.detector.data_model_detector import (
     detect_data_model,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.python.import_alias_extractor import (
-    extract_imports_from_source,
+from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+    PythonSourceContext,
 )
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
     UnoplatFile,
@@ -150,34 +150,33 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
             logger.warning("Failed to calculate checksum | error={}", exc)
             return ""
 
-    @staticmethod
-    def _extract_imports(source_code: str) -> List[str]:
-        try:
-            return extract_imports_from_source(source_code, "python")
-        except Exception as exc:  # pylint: disable=broad-exception-caught
-            logger.error("Failed to extract imports | error={}", exc)
-            return []
-
     async def extract_file_data(self, file_path: str) -> Optional[UnoplatFile]:
         metadata = self.context.programming_language_metadata
         try:
             async with async_open(file_path, "rb") as afp:
                 content_bytes = await afp.read()
 
-            content = content_bytes.decode("utf-8")
             checksum = await asyncio.to_thread(
                 self._calculate_file_checksum, content_bytes
             )
+
+            # Parse once: build a single PythonSourceContext that downstream
+            # detection paths reuse instead of re-parsing the same bytes.
+            source_context = await asyncio.to_thread(
+                PythonSourceContext.from_bytes, content_bytes
+            )
+            imports = source_context.imports
+
             signature = None
             if self.context.env_config.extract_structural_signatures and self.extractor:
                 signature = await asyncio.to_thread(
-                    self.extractor.extract_structural_signature, content_bytes
+                    self.extractor.extract_structural_signature_from_root,
+                    source_context.root_node,
+                    source_context.source_bytes,
                 )
-            imports = await asyncio.to_thread(self._extract_imports, content)
 
             data_model_detected, data_model_positions = detect_data_model(
-                source_code=content,
-                imports=imports,
+                source_context=source_context,
                 language=metadata.language.value,
                 structural_signature=signature,
             )
@@ -187,8 +186,7 @@ class PythonLanguageProcessor(LanguageCodebaseProcessor):
             if framework_service:
                 try:
                     detections = await framework_service.detect_features(
-                        source_code=content,
-                        imports=imports,
+                        source_context=source_context,
                         structural_signature=signature,
                         programming_language=metadata.language.value,
                     )

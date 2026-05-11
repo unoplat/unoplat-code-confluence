@@ -75,15 +75,11 @@ def render_business_domain_references(domain: BusinessLogicDomain) -> str:
     return rendered.rstrip() + "\n"
 
 
-def write_business_domain_references_if_changed(
+def write_business_domain_references(
     codebase_path: str | Path,
     domain: BusinessLogicDomain,
-) -> bool:
-    """Overwrite business_domain_references.md with canonical content when it differs."""
+) -> None:
+    """Overwrite business_domain_references.md with canonical content."""
     target_path = Path(codebase_path) / "business_domain_references.md"
     rendered = render_business_domain_references(domain)
-    existing = target_path.read_text(encoding="utf-8") if target_path.exists() else None
-    if existing == rendered:
-        return False
     target_path.write_text(rendered, encoding="utf-8")
-    return True
