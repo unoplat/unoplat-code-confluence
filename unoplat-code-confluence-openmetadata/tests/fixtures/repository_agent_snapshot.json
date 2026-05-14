@@ -46,7 +46,7 @@
             }
           ]
         },
-        "business_logic_domain": {
+        "business_logic": {
           "description": "Coordinates repository analysis workflows, persists completed agent snapshots, and exposes query APIs for downstream consumers.",
           "data_models": [
             {
@@ -142,7 +142,7 @@
             }
           ]
         },
-        "business_logic_domain": {
+        "business_logic": {
           "description": "Provides shared data contracts used by ingestion, query engine, and workflow components.",
           "data_models": [
             {

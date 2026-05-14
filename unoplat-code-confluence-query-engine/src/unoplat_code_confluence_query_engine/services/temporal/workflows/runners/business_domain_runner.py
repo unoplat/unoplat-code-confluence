@@ -99,7 +99,7 @@ async def run_business_domain_agent(
             repository_qualified_name=repository_qualified_name,
             repository_workflow_run_id=repository_workflow_run_id,
             codebase_name=codebase_metadata.codebase_name,
-            codebase_patch={"business_logic_domain": business_logic_result},
+            codebase_patch={"business_logic": business_logic_result},
         )
         logger.info(
             "[workflow] business_domain_guide completed for {}",

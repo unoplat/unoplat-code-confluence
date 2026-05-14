@@ -58,7 +58,7 @@ def collection_extension(
     *,
     engineering_workflow: Any,
     dependency_guide: Any,
-    business_logic_domain: Any,
+    business_logic: Any,
     inbound_constructs: Any,
     outbound_constructs: Any,
     internal_constructs: Any,
@@ -68,7 +68,7 @@ def collection_extension(
     extension = {
         "codeConfluenceDevelopmentWorkflow": extension_value(compact_model_dump(engineering_workflow)),
         "codeConfluenceDependencies": extension_value(compact_model_dump(dependency_guide)),
-        "codeConfluenceBusinessLogic": extension_value(compact_model_dump(business_logic_domain)),
+        "codeConfluenceBusinessLogic": extension_value(compact_model_dump(business_logic)),
         "codeConfluenceInboundConstructs": extension_value(compact_model_dump(inbound_constructs)),
         "codeConfluenceOutboundConstructs": extension_value(compact_model_dump(outbound_constructs)),
         "codeConfluenceInternalConstructs": extension_value(compact_model_dump(internal_constructs)),

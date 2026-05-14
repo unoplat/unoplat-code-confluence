@@ -166,13 +166,13 @@ export function agentMdOutputToMarkdown(
 
   // Business Domain Guide
   entries.push({ h2: "Business Domain Guide" });
-  if (agent?.business_logic_domain?.description) {
-    entries.push({ p: agent.business_logic_domain.description });
+  if (agent?.business_logic?.description) {
+    entries.push({ p: agent.business_logic.description });
   }
-  if (agent?.business_logic_domain?.data_models?.length) {
+  if (agent?.business_logic?.data_models?.length) {
     entries.push({ h3: "Core Files" });
     entries.push({
-      ul: agent.business_logic_domain.data_models.map(
+      ul: agent.business_logic.data_models.map(
         (m) => `${m.path}${m.responsibility ? ` — ${m.responsibility}` : ""}`,
       ),
     });
@@ -249,13 +249,13 @@ export function codebasesToMarkdown(
 
     // Business Domain Guide
     entries.push({ h3: "Business Domain Guide" });
-    if (agent?.business_logic_domain?.description) {
-      entries.push({ p: agent.business_logic_domain.description });
+    if (agent?.business_logic?.description) {
+      entries.push({ p: agent.business_logic.description });
     }
-    if (agent?.business_logic_domain?.data_models?.length) {
+    if (agent?.business_logic?.data_models?.length) {
       entries.push({ h4: "Core Files" });
       entries.push({
-        ul: agent.business_logic_domain.data_models.map(
+        ul: agent.business_logic.data_models.map(
           (m) => `${m.path}${m.responsibility ? ` — ${m.responsibility}` : ""}`,
         ),
       });

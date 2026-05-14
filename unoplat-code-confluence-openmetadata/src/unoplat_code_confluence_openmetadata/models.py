@@ -113,7 +113,7 @@ class CodebaseSnapshot(BaseModel):
     programming_language_metadata: ProgrammingLanguageMetadata
     engineering_workflow: EngineeringWorkflow = Field(default_factory=EngineeringWorkflow)
     dependency_guide: DependencyGuide | None = None
-    business_logic_domain: BusinessLogicDomain
+    business_logic: BusinessLogicDomain
     app_interfaces: Interfaces | None = None
 
     model_config = ConfigDict(extra="ignore")
