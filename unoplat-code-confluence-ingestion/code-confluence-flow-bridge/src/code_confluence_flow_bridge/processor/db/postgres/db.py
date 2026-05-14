@@ -55,13 +55,14 @@ async def get_engine_for_loop() -> tuple[AsyncEngine, async_sessionmaker]:
     loop_id = id(loop)
 
     log_ctx = logger.bind(loop_id=loop_id)
-    log_ctx.debug("Attempting to retrieve AsyncEngine for loop {loop_id}")
+    log_ctx.debug("Attempting to retrieve AsyncEngine for loop {loop_id}", loop_id=loop_id)
 
     # Use lock to ensure thread-safe access to global registry
     async with _engine_lock:
         if loop_id not in _engine_per_loop:
             log_ctx.debug(
-                "No AsyncEngine found for loop {loop_id}, creating new instance"
+                "No AsyncEngine found for loop {loop_id}, creating new instance",
+                loop_id=loop_id,
             )
             # Create new engine for this loop
             engine = create_async_engine(
@@ -82,10 +83,14 @@ async def get_engine_for_loop() -> tuple[AsyncEngine, async_sessionmaker]:
             _engine_per_loop[loop_id] = (engine, session_factory)
 
             log_ctx.success(
-                "Created new AsyncEngine and session factory for loop {loop_id}"
+                "Created new AsyncEngine and session factory for loop {loop_id}",
+                loop_id=loop_id,
             )
         else:
-            log_ctx.debug("Reusing cached AsyncEngine for loop {loop_id}")
+            log_ctx.debug(
+                "Reusing cached AsyncEngine for loop {loop_id}",
+                loop_id=loop_id,
+            )
 
     return _engine_per_loop[loop_id]
 
@@ -112,7 +117,11 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     task_name = task.get_name() if task else "unknown"
     log_ctx = logger.bind(loop_id=loop_id, task=task_name)
 
-    log_ctx.debug("Creating new DB session (task={task}, loop_id={loop_id})")
+    log_ctx.debug(
+        "Creating new DB session (task={task}, loop_id={loop_id})",
+        task=task_name,
+        loop_id=loop_id,
+    )
 
     scoped_session: async_scoped_session | None = None
     try:
