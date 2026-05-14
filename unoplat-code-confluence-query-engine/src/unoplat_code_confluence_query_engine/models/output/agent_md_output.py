@@ -156,7 +156,10 @@ class DependencyGuideEntry(BaseModel):
     name: str = Field(..., description="Library name (exact match to input)")
     purpose: str = Field(
         ...,
-        description="1-2 lines from official docs describing what this library does",
+        description=(
+            "1-2 lines from official docs describing what this library does, "
+            "or 'internal_dependency' for unresolved/private dependencies"
+        ),
     )
 
     model_config = ConfigDict(extra="forbid")
@@ -277,7 +280,7 @@ class Interfaces(BaseModel):
 
 
 class AgentMdOutput(BaseModel):
-    """Complete codebase analysis output matching the JSON specification."""
+    """Complete analysis output for one codebase."""
 
     # TODO: remove optional when ready
     codebase_metadata: Optional[CodebaseMetadataOutput] = Field(
@@ -304,3 +307,54 @@ class AgentMdOutput(BaseModel):
     )
 
     model_config = ConfigDict(extra="forbid")
+
+
+class CodebaseAgentMdOutputSnapshot(BaseModel):
+    """Persisted snapshot payload for one codebase within a repository run.
+
+    Unlike ``AgentMdOutput``, this model represents the JSONB state stored in
+    ``repository_agent_md_snapshot.agent_md_output.codebases[*]`` while a run is
+    in progress, so section fields may be absent or ``None`` until their agents
+    finish and patch the snapshot.
+    """
+
+    codebase_name: Optional[str] = Field(default=None, description="Codebase name")
+    codebase_metadata: Optional[CodebaseMetadataOutput] = Field(
+        default=None, description="Codebase metadata"
+    )
+    programming_language_metadata: Optional[ProgrammingLanguageMetadataOutput] = Field(
+        default=None, description="Programming language metadata"
+    )
+    engineering_workflow: Optional[EngineeringWorkflow] = Field(
+        default=None,
+        description="Canonical engineering workflow with config and command inventory",
+    )
+    dependency_guide: Optional[DependencyGuide] = Field(
+        default=None,
+        description="Documentation entries for codebase dependencies with purpose",
+    )
+    business_logic: Optional[BusinessLogicDomain] = Field(
+        default=None, description="Critical business logic domains"
+    )
+    app_interfaces: Optional[Interfaces] = Field(
+        default=None,
+        description="Inbound or/and outboundInteraces used in the codebase",
+    )
+
+    model_config = ConfigDict(extra="allow")
+
+
+class RepositoryAgentMdOutputSnapshot(BaseModel):
+    """Top-level persisted ``agent_md_output`` JSONB payload for a repository run.
+
+    The database column contains a repository aggregate keyed by codebase name,
+    not a single ``AgentMdOutput`` object.
+    """
+
+    repository: str = Field(..., description="Repository qualified name, owner/repo")
+    codebases: Dict[str, CodebaseAgentMdOutputSnapshot] = Field(
+        default_factory=dict,
+        description="Per-codebase agent output snapshots keyed by codebase name",
+    )
+
+    model_config = ConfigDict(extra="allow")
