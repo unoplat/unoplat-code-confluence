@@ -129,7 +129,6 @@ def _build_grouped_target(
     return DependencyGuideTarget(
         name=rule.display_name,
         source_packages=sorted(source_packages, key=str.lower),
-        search_query=rule.search_query,
     )
 
 

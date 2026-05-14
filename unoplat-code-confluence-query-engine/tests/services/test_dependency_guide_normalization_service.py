@@ -30,7 +30,6 @@ def test_normalize_dependency_guide_targets_collapses_configured_radix_family() 
                 "@radix-ui/react-dialog",
                 "@radix-ui/react-tabs",
             ],
-            search_query="Radix UI React official documentation",
         ),
     ]
 
@@ -77,7 +76,6 @@ def test_normalize_dependency_guide_targets_collapses_configured_dnd_kit_family(
                 "@dnd-kit/modifiers",
                 "@dnd-kit/sortable",
             ],
-            search_query="dnd kit official documentation",
         )
     ]
 
@@ -128,9 +126,7 @@ def test_normalize_dependency_guide_targets_respects_language_scope() -> None:
     ]
 
 
-def test_build_dependency_guide_prompt_includes_search_query_and_source_packages() -> (
-    None
-):
+def test_build_dependency_guide_prompt_uses_only_canonical_name_and_language() -> None:
     prompt = build_dependency_guide_prompt(
         dependency_target=DependencyGuideTarget(
             name="Radix UI React Primitives",
@@ -138,11 +134,11 @@ def test_build_dependency_guide_prompt_includes_search_query_and_source_packages
                 "@radix-ui/react-dialog",
                 "@radix-ui/react-popover",
             ],
-            search_query="Radix UI React official documentation",
         ),
         programming_language="typescript",
     )
 
-    assert "Document the library 'Radix UI React Primitives'" in prompt
-    assert "Radix UI React official documentation" in prompt
-    assert "@radix-ui/react-dialog, @radix-ui/react-popover" in prompt
+    assert prompt == (
+        "Document the library 'Radix UI React Primitives' for programming language "
+        "typescript."
+    )
