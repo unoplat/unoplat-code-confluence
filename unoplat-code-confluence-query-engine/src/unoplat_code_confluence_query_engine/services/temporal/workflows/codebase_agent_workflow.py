@@ -98,7 +98,7 @@ class CodebaseAgentWorkflow:
                 "programming_language_metadata": programming_language_metadata,
                 "engineering_workflow": None,
                 "dependency_guide": None,
-                "business_logic_domain": None,
+                "business_logic": None,
                 "app_interfaces": None,
             },
         )

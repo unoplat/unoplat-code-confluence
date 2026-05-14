@@ -140,7 +140,7 @@ def create_api_collection(
     return CreateAPICollectionRequest(
         name=collection_name,
         displayName=codebase.codebase_name or codebase_key,
-        description=codebase.business_logic_domain.description,
+        description=codebase.business_logic.description,
         service=service_name,
         tags=collection_section_tags(),
         domains=domains,
@@ -148,7 +148,7 @@ def create_api_collection(
         extension=collection_extension(
             engineering_workflow=codebase.engineering_workflow,
             dependency_guide=codebase.dependency_guide,
-            business_logic_domain=codebase.business_logic_domain,
+            business_logic=codebase.business_logic,
             inbound_constructs=inbound,
             outbound_constructs=outbound,
             internal_constructs=internal,
