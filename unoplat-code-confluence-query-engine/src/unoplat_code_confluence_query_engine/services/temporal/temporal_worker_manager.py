@@ -52,6 +52,9 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_
 from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.engineering_workflow_completion_activity import (
     EngineeringWorkflowCompletionActivity,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.engineering_workflow_fetch_activity import (
+    EngineeringWorkflowFetchActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.managed_block_activity import (
     ManagedBlockActivity,
 )
@@ -301,6 +304,7 @@ class TemporalWorkerManager:
         engineering_workflow_completion_activity = (
             EngineeringWorkflowCompletionActivity()
         )
+        engineering_workflow_fetch_activity = EngineeringWorkflowFetchActivity()
         app_interfaces_activity = AppInterfacesActivity()
         git_ref_resolution_activity = GitRefResolutionActivity()
         managed_block_activity = ManagedBlockActivity()
@@ -355,6 +359,7 @@ class TemporalWorkerManager:
                 dependency_guide_completion_activity.write_dependency_overview,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
                 dependency_guide_fetch_activity.fetch_codebase_dependencies,
+                engineering_workflow_fetch_activity.fetch_previous_engineering_workflow,
                 engineering_workflow_completion_activity.emit_engineering_workflow_completion,
                 app_interfaces_activity.fetch_low_confidence_call_expression_candidates,
                 app_interfaces_activity.build_app_interfaces,

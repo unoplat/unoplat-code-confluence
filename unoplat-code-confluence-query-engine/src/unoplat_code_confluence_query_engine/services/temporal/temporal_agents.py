@@ -17,7 +17,7 @@ from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     DependencyGuideEntry,
 )
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
-    EngineeringWorkflow,
+    EngineeringWorkflowAgentOutput,
 )
 from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
     CallExpressionValidationAgentOutput,
@@ -45,7 +45,7 @@ class TemporalAgentRegistry(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     development_workflow_guide: (
-        TemporalAgent[AgentDependencies, EngineeringWorkflow] | None
+        TemporalAgent[AgentDependencies, EngineeringWorkflowAgentOutput] | None
     ) = None
     dependency_guide: TemporalAgent[AgentDependencies, DependencyGuideEntry] | None = (
         None

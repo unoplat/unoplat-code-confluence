@@ -7,7 +7,9 @@ from markdown_it.token import Token
 from pydantic_ai import ModelRetry, RunContext
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    ENGINEERING_WORKFLOW_NO_CHANGE,
     EngineeringWorkflow,
+    EngineeringWorkflowAgentOutput,
     EngineeringWorkflowStage,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
@@ -38,9 +40,9 @@ CANONICAL_STAGE_HEADINGS: dict[EngineeringWorkflowStage, str] = {
 
 
 def validate_engineering_development_workflow_output(
-    ctx_or_output: RunContext[AgentDependencies] | EngineeringWorkflow,
-    output: EngineeringWorkflow | None = None,
-) -> EngineeringWorkflow:
+    ctx_or_output: RunContext[AgentDependencies] | EngineeringWorkflowAgentOutput,
+    output: EngineeringWorkflowAgentOutput | None = None,
+) -> EngineeringWorkflowAgentOutput:
     """Validate structured command output and the agent-owned AGENTS.md section.
 
     The validator supports both pydantic-ai ctx-aware invocation and direct unit-test
@@ -53,25 +55,39 @@ def validate_engineering_development_workflow_output(
         ctx = ctx_or_output if isinstance(ctx_or_output, RunContext) else None
         workflow = output
 
+    if isinstance(workflow, str):
+        if workflow != ENGINEERING_WORKFLOW_NO_CHANGE:
+            raise ModelRetry(
+                f"String output must be exactly {ENGINEERING_WORKFLOW_NO_CHANGE}. "
+                "Return a full engineering_workflow JSON model if changes are needed."
+            )
+        if ctx is not None:
+            markdown_text = _read_agents_md_for_validation(ctx)
+            validate_engineering_workflow_section_markdown(markdown_text)
+        return workflow
+
     if not isinstance(workflow, EngineeringWorkflow):
-        raise TypeError("Expected EngineeringWorkflow output")
+        raise TypeError("Expected EngineeringWorkflow or no-change string output")
 
     _validate_engineering_workflow_model(workflow)
 
     if ctx is not None:
-        codebase_path = ctx.deps.codebase_metadata.codebase_path
-        agents_md_path = Path(codebase_path) / "AGENTS.md"
-        try:
-            markdown_text = agents_md_path.read_text(encoding="utf-8")
-        except FileNotFoundError as exc:
-            raise ModelRetry(
-                "AGENTS.md was not found. The managed block bootstrap must run before "
-                "development_workflow_guide, and the agent must update ## Engineering Workflow."
-            ) from exc
-
+        markdown_text = _read_agents_md_for_validation(ctx)
         validate_engineering_workflow_section_markdown(markdown_text, workflow)
 
     return workflow
+
+
+def _read_agents_md_for_validation(ctx: RunContext[AgentDependencies]) -> str:
+    codebase_path = ctx.deps.codebase_metadata.codebase_path
+    agents_md_path = Path(codebase_path) / "AGENTS.md"
+    try:
+        return agents_md_path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ModelRetry(
+            "AGENTS.md was not found. The managed block bootstrap must run before "
+            "development_workflow_guide, and the agent must update ## Engineering Workflow."
+        ) from exc
 
 
 def _validate_engineering_workflow_model(output: EngineeringWorkflow) -> None:
