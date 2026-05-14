@@ -2,6 +2,9 @@
 
 from pydantic_ai import RunContext
 
+from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    ENGINEERING_WORKFLOW_NO_CHANGE,
+)
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
@@ -68,8 +71,9 @@ async def per_language_development_workflow_prompt(
         f"You are the Development Workflow Guide for {lang} projects.\n"
         f"Package manager: {package_manager}\n"
         f"{package_manager_provenance_line}\n" + monorepo_context + "<task>\n"
-        "Analyze the codebase and return an  engineering_workflow JSON object only.\n"
-        "commands MUST NOT be empty.\n"
+        "Analyze the codebase and maintain AGENTS.md / ## Engineering Workflow.\n"
+        f"If the existing section is complete and still correct after verifying package-manager, lint, and type-check evidence, return exactly {ENGINEERING_WORKFLOW_NO_CHANGE}.\n"
+        "If the section is missing, incomplete, stale, or edited, return an engineering_workflow JSON object.\n"
         "</task>\n\n"
         "<file_path_requirements>\n"
         "When using file-related tools, pass ABSOLUTE filesystem paths only.\n"
@@ -79,14 +83,17 @@ async def per_language_development_workflow_prompt(
         "Never use codebase-relative '..' segments in config_file paths.\n"
         "</file_path_requirements>\n\n"
         "<output_contract>\n"
-        "Return ONLY JSON with this exact top-level shape:\n"
+        "Return ONLY one of these outputs:\n"
+        f"1. The exact string {ENGINEERING_WORKFLOW_NO_CHANGE} when no markdown update is required.\n"
+        "2. JSON with this exact top-level shape when an update is required:\n"
         '{"commands":[{"command":"<runnable command>","stage":"install|build|dev|test|lint|type_check",'
         '"config_file":"<repository-root-relative path or unknown>",'
         '"working_directory":"<repo-relative dir: omit/null=codebase root, .=repo root, path=workspace root>"}]}\n'
-        "Do not include markdown, prose, or extra keys.\n"
         "</output_contract>\n\n"
         "<rules>\n"
         "- Use console tools (`glob`, `grep`, `read_file`) to discover configuration files, scripts, and project structure before emitting commands.\n"
+        "- When ## Engineering Workflow already exists, first inspect current package-manager config/scripts plus lint and type-check config/script sources to decide whether the section needs changes.\n"
+        f"- Return {ENGINEERING_WORKFLOW_NO_CHANGE} only when the existing section is complete, still correct, and you made no AGENTS.md edit.\n"
         "- Follow the shared verification strategy when deciding whether a command is verified enough to include.\n"
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"
