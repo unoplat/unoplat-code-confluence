@@ -67,10 +67,10 @@ class DependencyGuideCompletionActivity:
 
         target_path.write_text(rendered, encoding="utf-8")
         logger.info(
-            "[dependency_guide] Wrote {} for {} with {} public dependencies",
+            "[dependency_guide] Wrote {} for {} with {} dependencies",
             DEPENDENCY_OVERVIEW_ARTIFACT,
             codebase_path,
-            len(_public_dependency_entries(guide)),
+            len(_dependency_entries_for_render(guide)),
         )
         return True
 
@@ -112,8 +112,6 @@ class DependencyGuideCompletionActivity:
         )
 
 
-INTERNAL_DEPENDENCY_SKIP = "INTERNAL_DEPENDENCY_SKIP"
-
 
 def _render_dependency_overview_markdown(
     *,
@@ -128,7 +126,7 @@ def _render_dependency_overview_markdown(
         f"Use `{normalized_package_manager}` as the package manager for this codebase."
     )
 
-    for entry in _public_dependency_entries(guide):
+    for entry in _dependency_entries_for_render(guide):
         lines.append(
             f"- **{_normalize_inline_text(entry.name)}**: "
             f"Purpose: {_normalize_inline_text(entry.purpose)}"
@@ -137,16 +135,9 @@ def _render_dependency_overview_markdown(
     return "\n".join(lines) + "\n"
 
 
-def _public_dependency_entries(guide: DependencyGuide) -> list[DependencyGuideEntry]:
-    """Return documented public dependencies in stable name order."""
-    return sorted(
-        [
-            entry
-            for entry in guide.dependencies
-            if entry.purpose.strip() != INTERNAL_DEPENDENCY_SKIP
-        ],
-        key=lambda entry: entry.name.casefold(),
-    )
+def _dependency_entries_for_render(guide: DependencyGuide) -> list[DependencyGuideEntry]:
+    """Return dependency entries in their combined generation/reuse order."""
+    return guide.dependencies
 
 
 def _normalize_inline_text(value: str) -> str:
