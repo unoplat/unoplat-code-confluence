@@ -126,6 +126,22 @@ async def run_dependency_guide_agent(
                     dependency_target.name,
                     dep_error,
                 )
+                logger.exception("[workflow] Full traceback:")
+                dependency_error_entry: dict[str, object] = {
+                    "agent": "dependency_guide",
+                    "codebase": codebase_metadata.codebase_name,
+                    "error": str(dep_error),
+                    "traceback": traceback.format_exc(),
+                    "dependency_name": dependency_target.name,
+                    "partial": True,
+                }
+                dependency_error_entry = enrich_agent_error_with_model_details(
+                    dependency_error_entry,
+                    dep_error,
+                    "dependency_guide",
+                    codebase_metadata.codebase_name,
+                )
+                agent_errors.append(dependency_error_entry)
                 dependency_agent_stats.append(create_zero_usage_statistics())
 
         dependency_guide_output = {"dependencies": dependency_entries}
