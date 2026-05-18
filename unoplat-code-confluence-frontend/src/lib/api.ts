@@ -578,12 +578,15 @@ export const getIngestedRepositories =
   };
 
 /**
- * Refresh an ingested repository
+ * Generate/update AGENTS.md for an ingested repository.
+ *
+ * This starts the unified backend flow: refresh repository first, then trigger
+ * AGENTS.md generation after refresh completes.
  *
  * @param repository - Repository object containing name and owner
  * @returns Promise with the refresh repository response
  */
-export const refreshRepository = async (
+export const updateAgentMd = async (
   repository: IngestedRepository,
 ): Promise<RefreshRepositoryResponse> => {
   try {
