@@ -71,9 +71,7 @@ async def per_language_development_workflow_prompt(
         f"You are the Development Workflow Guide for {lang} projects.\n"
         f"Package manager: {package_manager}\n"
         f"{package_manager_provenance_line}\n" + monorepo_context + "<task>\n"
-        "Analyze the codebase and maintain AGENTS.md / ## Engineering Workflow.\n"
-        f"If the existing section is complete and still correct after verifying package-manager, lint, and type-check evidence, return exactly {ENGINEERING_WORKFLOW_NO_CHANGE}.\n"
-        "If the section is missing, incomplete, stale, or edited, return an engineering_workflow JSON object.\n"
+        "Analyze the codebase and maintain AGENTS.md / ## Engineering Workflow according to the shared existing-section update policy.\n"
         "</task>\n\n"
         "<file_path_requirements>\n"
         "When using file-related tools, pass ABSOLUTE filesystem paths only.\n"
@@ -85,15 +83,14 @@ async def per_language_development_workflow_prompt(
         "<output_contract>\n"
         "Return ONLY one of these outputs:\n"
         f"1. The exact string {ENGINEERING_WORKFLOW_NO_CHANGE} when no markdown update is required.\n"
-        "2. JSON with this exact top-level shape when an update is required:\n"
+        "2. Structured EngineeringWorkflow output with this exact top-level shape when an update is required:\n"
         '{"commands":[{"command":"<runnable command>","stage":"install|build|dev|test|lint|type_check",'
         '"config_file":"<repository-root-relative path or unknown>",'
         '"working_directory":"<repo-relative dir: omit/null=codebase root, .=repo root, path=workspace root>"}]}\n'
         "</output_contract>\n\n"
         "<rules>\n"
         "- Use console tools (`glob`, `grep`, `read_file`) to discover configuration files, scripts, and project structure before emitting commands.\n"
-        "- When ## Engineering Workflow already exists, first inspect current package-manager config/scripts plus lint and type-check config/script sources to decide whether the section needs changes.\n"
-        f"- Return {ENGINEERING_WORKFLOW_NO_CHANGE} only when the existing section is complete, still correct, and you made no AGENTS.md edit.\n"
+        "- Follow the shared existing-section update policy before deciding whether AGENTS.md needs changes.\n"
         "- Follow the shared verification strategy when deciding whether a command is verified enough to include.\n"
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"

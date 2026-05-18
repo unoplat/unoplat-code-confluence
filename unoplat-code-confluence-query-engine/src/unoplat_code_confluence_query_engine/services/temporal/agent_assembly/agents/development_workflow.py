@@ -7,6 +7,7 @@ from pydantic_ai.toolsets.abstract import AbstractToolset
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
     EngineeringWorkflowAgentOutput,
+    EngineeringWorkflowNoChange,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
@@ -105,7 +106,7 @@ def build_development_workflow_agent(
         deps_type=AgentDependencies,
         toolsets=tuple(toolsets),
         capabilities=capabilities,
-        output_type=[EngineeringWorkflow, str],
+        output_type=[EngineeringWorkflow, EngineeringWorkflowNoChange],
         output_retries=2,
         model_settings=context.model_settings,
         event_stream_handler=event_stream_handler,

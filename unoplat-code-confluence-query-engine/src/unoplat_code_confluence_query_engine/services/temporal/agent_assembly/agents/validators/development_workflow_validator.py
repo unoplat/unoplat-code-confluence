@@ -59,7 +59,7 @@ def validate_engineering_development_workflow_output(
         if workflow != ENGINEERING_WORKFLOW_NO_CHANGE:
             raise ModelRetry(
                 f"String output must be exactly {ENGINEERING_WORKFLOW_NO_CHANGE}. "
-                "Return a full engineering_workflow JSON model if changes are needed."
+                "Return a full structured EngineeringWorkflow output if changes are needed."
             )
         if ctx is not None:
             markdown_text = _read_agents_md_for_validation(ctx)

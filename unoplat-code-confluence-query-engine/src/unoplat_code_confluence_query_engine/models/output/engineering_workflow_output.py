@@ -1,7 +1,7 @@
 """Canonical engineering workflow output models."""
 
 from enum import Enum
-from typing import List, Optional, TypeAlias
+from typing import List, Literal, Optional, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -51,5 +51,8 @@ class EngineeringWorkflow(BaseModel):
 ENGINEERING_WORKFLOW_NO_CHANGE = "NO_CHANGE_REQUIRED"
 """Exact string sentinel returned when the existing Engineering Workflow is still valid."""
 
-EngineeringWorkflowAgentOutput: TypeAlias = EngineeringWorkflow | str
+EngineeringWorkflowNoChange: TypeAlias = Literal["NO_CHANGE_REQUIRED"]
+"""Constrained no-change sentinel output for development workflow agent."""
+
+EngineeringWorkflowAgentOutput: TypeAlias = EngineeringWorkflow | EngineeringWorkflowNoChange
 """Development workflow agent output: full model or exact no-change sentinel."""

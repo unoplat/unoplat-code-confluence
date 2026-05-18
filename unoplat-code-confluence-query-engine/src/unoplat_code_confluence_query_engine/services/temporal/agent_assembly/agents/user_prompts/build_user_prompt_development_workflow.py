@@ -33,7 +33,7 @@ def build_development_workflow_instructions() -> str:
         "- any other AGENTS.md heading or section content\n"
         "- any non-markdown file\n"
         "- dependencies_overview.md, business_domain_references.md, app_interfaces.md, or any source/config file\n"
-        "If ## Engineering Workflow is already correct after the required verification pass, do not rewrite it.\n"
+        "If ## Engineering Workflow is already complete and correct before this run modifies anything, do not rewrite it.\n"
         "Use this exact section shape:\n"
         "## Engineering Workflow\n"
         "### Install\n"
@@ -45,10 +45,13 @@ def build_development_workflow_instructions() -> str:
         "Put runnable commands from your structured output under the matching stage as bullets, including working directory/config-file notes when known. Use an explicit 'Not detected' bullet for stages with no discovered command.\n"
         "</markdown_ownership>\n"
         "<existing_section_update_policy>\n"
-        "At the start of every run, read AGENTS.md and inspect only the existing ## Engineering Workflow section if it exists.\n"
-        "When ## Engineering Workflow already exists, first inspect current package-manager related config/scripts plus lint and type-check config/script sources.\n"
-        f"If the existing section is complete and still correct, do not edit AGENTS.md and return exactly {ENGINEERING_WORKFLOW_NO_CHANGE}.\n"
-        "If any section is missing, incomplete, stale, or edited, update only ## Engineering Workflow using provided guidance and return the full EngineeringWorkflow JSON model.\n"
+        "Follow this decision procedure in order:\n"
+        "1. Read AGENTS.md and inspect only the existing ## Engineering Workflow section if it exists.\n"
+        "2. Verify current package-manager related config/scripts plus lint and type-check config/script sources.\n"
+        "3. Decision point — before invoking any write tool: if the existing section already correctly reflects your verified evidence, do not call edit_file or write_file and return exactly "
+        f"{ENGINEERING_WORKFLOW_NO_CHANGE}.\n"
+        "4. Otherwise, update only ## Engineering Workflow using edit_file or write_file and return the full structured EngineeringWorkflow output.\n"
+        f"Once you invoke edit_file or write_file in this run, {ENGINEERING_WORKFLOW_NO_CHANGE} is no longer a valid output; return the full structured EngineeringWorkflow output describing the commands you wrote.\n"
         "</existing_section_update_policy>\n"
         f"{get_engineering_citation_instructions()}"
     )
@@ -63,8 +66,9 @@ def build_development_workflow_prompt(
         f"Analyze engineering workflow for {codebase_path} "
         f"using language {programming_language} "
         f"and package manager {package_manager}. "
-        "If the existing AGENTS.md ## Engineering Workflow section is already correct "
-        f"after verifying package-manager, lint, and type-check config evidence, return exactly {ENGINEERING_WORKFLOW_NO_CHANGE}."
+        "If — and only if — the existing AGENTS.md ## Engineering Workflow section is already correct "
+        "before you make any edits, return exactly "
+        f"{ENGINEERING_WORKFLOW_NO_CHANGE}. If you invoke edit_file or write_file in this run, return the full structured EngineeringWorkflow output instead."
     )
 
 

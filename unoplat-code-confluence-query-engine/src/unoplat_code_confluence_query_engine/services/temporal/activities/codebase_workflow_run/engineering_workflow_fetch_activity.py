@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from loguru import logger
-from src.unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
-    EngineeringWorkflow,
-)
 from temporalio import activity
 
+from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    EngineeringWorkflow,
+)
 from unoplat_code_confluence_query_engine.services.tracking.repository_agent_snapshot_service import (
     fetch_latest_completed_codebase_engineering_workflow,
 )

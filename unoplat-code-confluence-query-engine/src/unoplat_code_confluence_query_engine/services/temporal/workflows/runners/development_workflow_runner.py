@@ -129,7 +129,7 @@ async def run_development_workflow_agent(
                     + " Previous structured engineering_workflow data is unavailable "
                     "in the latest completed snapshot. Do not return "
                     "NO_CHANGE_REQUIRED; re-validate the repository evidence and "
-                    "return the full EngineeringWorkflow JSON model."
+                    "return the full structured EngineeringWorkflow output."
                 )
                 workflow_result = await development_workflow_agent.run(
                     full_output_prompt,
