@@ -5,7 +5,7 @@ description = "Bridge between Code Confluence User and Ingestion Workflow"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-"fastapi[standard]>=0.115.6",
+    "fastapi[standard]>=0.115.6",
     "pydantic-settings>=2.7.0",
     "pydantic>=2.10.4",
     "temporalio>=1.26.0",
@@ -34,6 +34,7 @@ dependencies = [
     "typing-extensions>=4.11",
     "sqlalchemy>=2.0.41",
     "aiofile>=3.9.0",
+    "httpx2>=2.2.0",
 ]
 
 [dependency-groups]
