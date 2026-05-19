@@ -44,6 +44,9 @@ from unoplat_code_confluence_query_engine.services.github.github_api_helpers imp
     is_http_not_found,
     resolve_github_host as _resolve_github_host_shared,
 )
+from unoplat_code_confluence_query_engine.services.repository.idempotency_service import (
+    get_active_agent_workflow_run,
+)
 from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
     fetch_repository_metadata,
 )
@@ -345,6 +348,23 @@ async def start_repository_agent_run(
 
     # Check provider/tool prerequisites first so errors are user-actionable.
     async with get_startup_session() as session:
+        active_run = await get_active_agent_workflow_run(
+            session=session,
+            repository_name=repo_name,
+            repository_owner_name=owner_name,
+        )
+        if active_run:
+            bound_logger.info(
+                "[codebase_agent_rules] Active agent workflow already exists for {}/{}: run_id={}",
+                owner_name,
+                repo_name,
+                active_run.repository_workflow_run_id,
+            )
+            return RepositoryWorkflowRunResponse(
+                repository_workflow_run_id=active_run.repository_workflow_run_id,
+                trace_id=trace_id,
+            )
+
         model_config = await session.get(AiModelConfig, 1)
         if not model_config:
             bound_logger.error("[codebase_agent_rules] AI model config not found")

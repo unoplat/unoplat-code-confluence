@@ -41,6 +41,9 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
 )
 from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
 from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+from src.code_confluence_flow_bridge.routers.repository.idempotency_service import (
+    get_active_repository_operation,
+)
 from src.code_confluence_flow_bridge.routers.repository.mappers import (
     build_programming_language_metadata,
     build_repository_status_hierarchy,
@@ -399,6 +402,22 @@ async def refresh_repository(
                 status_code=404,
                 detail="Repository not found in database: {}/{}".format(
                     repository_name, repository_owner_name
+                ),
+            )
+
+        active_run = await get_active_repository_operation(
+            session=session,
+            repository_name=repository_name,
+            repository_owner_name=repository_owner_name,
+        )
+        if active_run:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "A repository operation is already active for "
+                    f"{repository_owner_name}/{repository_name} "
+                    f"(operation={active_run.operation}, run_id={active_run.repository_workflow_run_id}). "
+                    "Please wait for it to finish before generating/updating Agents.md again."
                 ),
             )
 

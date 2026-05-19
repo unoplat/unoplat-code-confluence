@@ -11,9 +11,24 @@ class DependencyGuideTarget(BaseModel):
         default_factory=list,
         description="Raw package names represented by this documentation target",
     )
-    search_query: str | None = Field(
-        default=None,
-        description="Optional official-doc search query hint for the dependency agent",
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class DependencyGuideDelta(BaseModel):
+    """Dependency-guide cache diff for a codebase."""
+
+    reusable_entries: list[dict[str, str]] = Field(
+        default_factory=list,
+        description="Previously generated entries that still match current targets",
+    )
+    targets_to_generate: list[DependencyGuideTarget] = Field(
+        default_factory=list,
+        description="Current targets missing from the markdown cache",
+    )
+    removed_names: list[str] = Field(
+        default_factory=list,
+        description="Previously generated entry names no longer present in current targets",
     )
 
     model_config = ConfigDict(extra="forbid")
@@ -43,10 +58,6 @@ class UIDependencyFamilyRule(BaseModel):
         description="Optional package-manager filter for this family rule",
     )
     display_name: str = Field(..., description="Canonical name to document")
-    search_query: str | None = Field(
-        default=None,
-        description="Optional official-doc search query override",
-    )
     match: UIDependencyFamilyMatchRule = Field(
         ..., description="Rule used to match raw dependency package names"
     )

@@ -212,6 +212,20 @@ class EnvironmentSettings(BaseSettings):
         description="Default GitHub username or organization slug to register the app under when omitted in requests.",
     )
 
+    query_engine_base_url: str = Field(
+        default="http://localhost:8001",
+        alias="QUERY_ENGINE_BASE_URL",
+        description="Base URL for the query engine service used by post-refresh AGENTS.md update activities.",
+    )
+
+    query_engine_request_timeout_seconds: float = Field(
+        default=10.0,
+        alias="QUERY_ENGINE_REQUEST_TIMEOUT_SECONDS",
+        description="Bounded HTTP timeout for flow-bridge calls to query engine.",
+        ge=1.0,
+        le=120.0,
+    )
+
     github_app_manifest_state_ttl_minutes: int = Field(
         default=30,
         alias="GITHUB_APP_MANIFEST_STATE_TTL_MINUTES",

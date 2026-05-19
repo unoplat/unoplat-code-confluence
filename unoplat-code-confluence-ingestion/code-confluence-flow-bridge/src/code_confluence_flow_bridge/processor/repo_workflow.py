@@ -8,13 +8,19 @@ with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
 
     from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+        AgentMdUpdateActivityEnvelope,
         CodebaseChildWorkflowEnvelope,
         ConfluenceGitGraphEnvelope,
         GitActivityEnvelope,
         RepoWorkflowRunEnvelope,
     )
+    from temporalio.common import RetryPolicy
+
     from src.code_confluence_flow_bridge.processor.activity_retries_config import (
         ActivityRetriesConfig,
+    )
+    from src.code_confluence_flow_bridge.processor.agent_md_update_activity import (
+        AgentMdUpdateActivity,
     )
     from src.code_confluence_flow_bridge.processor.codebase_child_workflow import (
         CodebaseChildWorkflow,
@@ -166,6 +172,37 @@ class RepoWorkflow:
                     "One or more codebase child workflows failed for repository %s",
                     repo_request.repository_git_url,
                 )
+
+            if info.workflow_id.startswith("refresh-"):
+                try:
+                    workflow.logger.info(
+                        "Triggering post-refresh AGENTS.md update for %s/%s",
+                        repo_request.repository_owner_name,
+                        repo_request.repository_name,
+                    )
+                    agent_md_update_envelope = AgentMdUpdateActivityEnvelope(
+                        owner_name=repo_request.repository_owner_name,
+                        repo_name=repo_request.repository_name,
+                        trace_id=trace_id,
+                    )
+                    await workflow.execute_activity(
+                        activity=AgentMdUpdateActivity.trigger_agent_md_update,
+                        args=[agent_md_update_envelope],
+                        start_to_close_timeout=timedelta(seconds=30),
+                        retry_policy=RetryPolicy(
+                            maximum_attempts=8,
+                            initial_interval=timedelta(seconds=5),
+                            backoff_coefficient=2.0,
+                            maximum_interval=timedelta(minutes=2),
+                        ),
+                    )
+                except ActivityError as agent_trigger_error:
+                    workflow.logger.error(
+                        "Refresh succeeded but post-refresh AGENTS.md update trigger failed for %s/%s: %s",
+                        repo_request.repository_owner_name,
+                        repo_request.repository_name,
+                        agent_trigger_error,
+                    )
 
             workflow.logger.info(
                 "Repository workflow completed successfully for %s",

@@ -4,11 +4,6 @@ from pydantic import BaseModel, ConfigDict
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
-from unoplat_code_confluence_commons.workflow_envelopes import (
-    CodebaseWorkflowDbActivityEnvelope,
-    ParentWorkflowDbActivityEnvelope,
-)
-
 from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
     UnoplatGitRepository,
 )
@@ -18,19 +13,6 @@ from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unopl
 from src.code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRequestConfiguration,
 )
-
-# Re-export from commons for backwards compatibility
-__all__ = [
-    "CodebaseChildWorkflowEnvelope",
-    "CodebaseProcessingActivityEnvelope",
-    "CodebaseWorkflowDbActivityEnvelope",
-    "ConfluenceGitGraphEnvelope",
-    "GitActivityEnvelope",
-    "PackageManagerMetadataIngestionEnvelope",
-    "PackageMetadataActivityEnvelope",
-    "ParentWorkflowDbActivityEnvelope",
-    "RepoWorkflowRunEnvelope",
-]
 
 
 class RepoWorkflowRunEnvelope(BaseModel):
@@ -47,6 +29,17 @@ class RepoWorkflowRunEnvelope(BaseModel):
 class GitActivityEnvelope(BaseModel):
     repo_request: RepositoryRequestConfiguration
     github_token: str
+    trace_id: str
+    model_config = ConfigDict(extra="allow")
+
+    @property
+    def extras(self) -> dict[str, Any]:
+        return dict(self.model_extra or {})
+
+
+class AgentMdUpdateActivityEnvelope(BaseModel):
+    owner_name: str
+    repo_name: str
     trace_id: str
     model_config = ConfigDict(extra="allow")
 

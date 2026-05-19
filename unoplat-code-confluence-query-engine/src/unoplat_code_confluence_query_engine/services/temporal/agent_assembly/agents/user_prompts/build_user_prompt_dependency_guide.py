@@ -46,9 +46,9 @@ IMPORTANT: If official documentation cannot be verified with confidence > 0.70, 
 
 For unresolved/internal dependencies, return:
 - name: The exact library name provided
-- purpose: \"INTERNAL_DEPENDENCY_SKIP\"
+- purpose: \"internal_dependency\"
 
-This signals the system to skip this dependency in the final output.
+This signals the system to mark this dependency as internal while preserving it in the final output cache.
 </handling_internal_dependencies>
 
 <output_requirements>
@@ -57,7 +57,7 @@ For PUBLIC dependencies with documentation:
 - The 'purpose' field should be 1-2 lines (concise, from official docs)
 
 For INTERNAL/PRIVATE dependencies (no docs found or confidence <= 0.70):
-- Set 'purpose' to \"INTERNAL_DEPENDENCY_SKIP\"
+- Set 'purpose' to \"internal_dependency\"
 </output_requirements>
 """
 
@@ -66,18 +66,7 @@ def build_dependency_guide_prompt(
     dependency_target: DependencyGuideTarget,
     programming_language: str,
 ) -> str:
-    prompt = (
+    return (
         f"Document the library '{dependency_target.name}' for programming language "
         f"{programming_language}."
     )
-    if dependency_target.search_query:
-        prompt += (
-            " When searching for official documentation, use this exact primary "
-            f"query hint: '{dependency_target.search_query}'."
-        )
-    if len(dependency_target.source_packages) > 1:
-        prompt += (
-            " This configured UI component library family represents the following "
-            f"packages: {', '.join(dependency_target.source_packages)}."
-        )
-    return prompt

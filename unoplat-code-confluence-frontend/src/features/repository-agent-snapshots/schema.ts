@@ -130,7 +130,7 @@ export const agentMdCodebaseOutputSchema = z.object({
     agentMdProgrammingLanguageMetadataSchema.nullish(),
   engineering_workflow: agentMdEngineeringWorkflowSchema.nullish(),
   dependency_guide: agentMdDependencyGuideSchema.nullish(),
-  business_logic_domain: agentMdBusinessLogicSchema.nullish(),
+  business_logic: agentMdBusinessLogicSchema.nullish(),
   app_interfaces: agentMdAppInterfacesSchema.nullish(),
 });
 

@@ -101,6 +101,7 @@ services:
       - REPOSITORIES_BASE_PATH=/opt/unoplat/repositories
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
       - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
+      - QUERY_ENGINE_BASE_URL=http://unoplat-code-confluence-query-engine:8000
     depends_on:
       temporal:
         condition: service_healthy
