@@ -157,7 +157,7 @@ async def fetch_latest_completed_codebase_engineering_workflow(
                 snapshot.repository_workflow_run_id,
                 validation_error,
             )
-            raise validation_error
+            raise
 
     return None
 
