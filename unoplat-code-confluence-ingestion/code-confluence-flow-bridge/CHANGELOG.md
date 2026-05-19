@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.79.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.78.1...code-confluence-flow-bridge-v0.79.0) (2026-05-19)
+
+
+### Features
+
+* **flow-bridge:** add post-refresh AGENTS.md update trigger with idempotency guard ([e3ab9ea](https://github.com/unoplat/unoplat-code-confluence/commit/e3ab9ea37394d52de10eec944719f83b760d3430))
+
+
+### Bug Fixes
+
+* **flow-bridge:** pass loguru structured log kwargs explicitly ([ef36d86](https://github.com/unoplat/unoplat-code-confluence/commit/ef36d869074b5770aae7e54f0535d57ee39face4))
+* **flow-bridge:** pass typed envelope with trace context to AgentMdUpdateActivity ([2c86f1a](https://github.com/unoplat/unoplat-code-confluence/commit/2c86f1ab8c892dceb80562d61227f1eff0c8b0ea))
+
 ## [0.78.1](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.78.0...code-confluence-flow-bridge-v0.78.1) (2026-05-09)
 
 

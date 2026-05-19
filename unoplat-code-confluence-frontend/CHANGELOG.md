@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.55.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.54.0...unoplat-code-confluence-frontend-v1.55.0) (2026-05-19)
+
+
+### Features
+
+* **frontend:** replace separate refresh and generate actions with unified Generate/Update Agents.md ([8a54e24](https://github.com/unoplat/unoplat-code-confluence/commit/8a54e24df955e66df98363af487525aa0198f4dd))
+
+
+### Bug Fixes
+
+* rename business_logic_domain to business_logic across all packages ([5b17ba4](https://github.com/unoplat/unoplat-code-confluence/commit/5b17ba43a95e74bf106839d5a5dc0f67a20ea42f))
+
 ## [1.54.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.53.0...unoplat-code-confluence-frontend-v1.54.0) (2026-04-29)
 
 
