@@ -43,6 +43,9 @@ from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors
 from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
     ActivityStatusInterceptor,
 )
+from src.code_confluence_flow_bridge.processor.agent_md_update_activity import (
+    AgentMdUpdateActivity,
+)
 from src.code_confluence_flow_bridge.processor.codebase_child_workflow import (
     CodebaseChildWorkflow,
 )
@@ -299,6 +302,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     confluence_git_graph = ConfluenceGitGraph()
     codebase_package_ingestion = PackageManagerMetadataIngestion()
     generic_activity = GenericCodebaseProcessingActivity()
+    agent_md_update_activity = AgentMdUpdateActivity()
     activities: list[ActivityCallable] = [
         git_activity.process_git_activity,
         parent_workflow_db_activity.update_repository_workflow_status,
@@ -307,6 +311,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         confluence_git_graph.insert_git_repo_into_graph_db,
         codebase_package_ingestion.insert_package_manager_metadata,
         generic_activity.process_codebase_generic,
+        agent_md_update_activity.trigger_agent_md_update,
     ]
 
     # Create database tables during startup

@@ -17,7 +17,7 @@ with workflow.unsafe.imports_passed_through():
         build_agent_run_metadata,
     )
     from unoplat_code_confluence_query_engine.models.runtime.dependency_guide_target import (
-        DependencyGuideTarget,
+        DependencyGuideDelta,
     )
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
@@ -75,8 +75,8 @@ async def run_dependency_guide_agent(
         return
 
     try:
-        dependency_targets: list[DependencyGuideTarget] = await workflow.execute_activity(
-            DependencyGuideFetchActivity.fetch_codebase_dependencies,
+        dependency_delta: DependencyGuideDelta = await workflow.execute_activity(
+            DependencyGuideFetchActivity.fetch_dependency_guide_delta,
             args=[
                 codebase_metadata.codebase_path,
                 codebase_metadata.codebase_programming_language,
@@ -87,15 +87,19 @@ async def run_dependency_guide_agent(
         )
 
         logger.info(
-            "[workflow] Found {} dependency-guide targets for {}",
-            len(dependency_targets),
+            "[workflow] Dependency-guide delta for {}: reusable={} generate={} removed={}",
             codebase_metadata.codebase_name,
+            len(dependency_delta.reusable_entries),
+            len(dependency_delta.targets_to_generate),
+            len(dependency_delta.removed_names),
         )
 
-        dependency_entries: list[dict[str, Any]] = []
+        dependency_entries: list[dict[str, Any]] = list(
+            dependency_delta.reusable_entries
+        )
         dependency_agent_stats: list[UsageStatistics] = []
 
-        for dependency_target in dependency_targets:
+        for dependency_target in dependency_delta.targets_to_generate:
             deps = AgentDependencies(
                 repository_qualified_name=repository_qualified_name,
                 codebase_metadata=codebase_metadata,

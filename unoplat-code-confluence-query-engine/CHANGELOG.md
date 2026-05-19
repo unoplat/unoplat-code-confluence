@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.42.1...unoplat-code-confluence-query-engine-v0.43.0) (2026-05-19)
+
+
+### Features
+
+* **query-engine:** add dependency-guide delta fetch with incremental cache reuse ([ca00c49](https://github.com/unoplat/unoplat-code-confluence/commit/ca00c49eaf7be52ab9aa49544984689858639161))
+* **query-engine:** add engineering-workflow no-change sentinel and carry-forward ([7102014](https://github.com/unoplat/unoplat-code-confluence/commit/710201417b0b904ac12c82e8f0e079e39e71da98))
+* **query-engine:** add idempotency guard for agent run endpoint and register fetch-delta activity ([fb04e4d](https://github.com/unoplat/unoplat-code-confluence/commit/fb04e4de5a2860eb86f6446892dc08bece0e0422))
+* **query-engine:** update AgentMdOutput and add repository snapshot models ([90415e5](https://github.com/unoplat/unoplat-code-confluence/commit/90415e5767cb5460a398b3f050179b744025131d))
+
+
+### Bug Fixes
+
+* **query-engine:** preserve validation traceback ([90f5848](https://github.com/unoplat/unoplat-code-confluence/commit/90f58482cb0af038c226cc7f056c9b455026370a))
+* **query-engine:** use Literal type for EngineeringWorkflowNoChange sentinel and clarify prompts ([e9834ee](https://github.com/unoplat/unoplat-code-confluence/commit/e9834eeaa568ca0a2a2e661b69a0f690acf09a10))
+* rename business_logic_domain to business_logic across all packages ([5b17ba4](https://github.com/unoplat/unoplat-code-confluence/commit/5b17ba43a95e74bf106839d5a5dc0f67a20ea42f))
+
 ## [0.42.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.42.0...unoplat-code-confluence-query-engine-v0.42.1) (2026-05-09)
 
 

@@ -108,6 +108,7 @@ services:
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
       - LOG_DIR=/tmp/logs
       - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
+      - QUERY_ENGINE_BASE_URL=http://unoplat-code-confluence-query-engine:8000
       - GITHUB_APP_MANIFEST_TEMPLATE_PATH=/opt/unoplat/github-app-config/manifest-template.json
       - GITHUB_APP_NAME=Unoplat Code Confluence
       - GITHUB_APP_REDIRECT_PATH=/integrations/github/app-manifest/callback

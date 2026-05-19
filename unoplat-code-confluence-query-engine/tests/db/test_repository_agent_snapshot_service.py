@@ -551,6 +551,7 @@ async def test_patch_codebase_output_atomically_merges_sections(seeded_db, write
             },
             "engineering_workflow": None,
             "dependency_guide": None,
+            "business_logic": None,
         },
     )
     await writer.patch_codebase_output(
@@ -594,6 +595,7 @@ async def test_patch_codebase_output_atomically_merges_sections(seeded_db, write
             },
             "engineering_workflow": {"commands": ["uv run pytest"]},
             "dependency_guide": None,
+            "business_logic": None,
         }
         assert codebases[TEST_CODEBASE_2] == {
             "codebase_name": TEST_CODEBASE_2,

@@ -8,7 +8,6 @@
       "languages": ["typescript", "javascript"],
       "package_managers": ["npm", "pnpm", "yarn", "bun"],
       "display_name": "Radix UI React Primitives",
-      "search_query": "Radix UI React official documentation",
       "match": {
         "type": "prefix",
         "value": "@radix-ui/react-"
@@ -21,7 +20,6 @@
       "languages": ["typescript", "javascript"],
       "package_managers": ["npm", "pnpm", "yarn", "bun"],
       "display_name": "dnd kit",
-      "search_query": "dnd kit official documentation",
       "match": {
         "type": "prefix",
         "value": "@dnd-kit/"

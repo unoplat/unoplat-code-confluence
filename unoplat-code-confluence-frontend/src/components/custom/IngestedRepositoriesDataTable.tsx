@@ -13,7 +13,6 @@ import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { useDataTable } from "@/hooks/use-data-table";
 import { getIngestedRepositoriesColumns } from "./ingested-repositories-data-table-columns";
-import { RefreshRepositoryDialog } from "./RefreshRepositoryDialog";
 import { DeleteRepositoryDialog } from "./DeleteRepositoryDialog";
 import { toast } from "sonner";
 import { useModelConfig } from "@/hooks/useModelConfig";
@@ -21,15 +20,14 @@ import { useModelConfig } from "@/hooks/useModelConfig";
 import type { IngestedRepository } from "../../types";
 import {
   getIngestedRepositories,
-  refreshRepository,
+  updateAgentMd,
   deleteRepository,
   getModelConfig,
-  startRepositoryAgentRun,
 } from "@/lib/api";
 
 interface RowAction {
   row: import("@tanstack/react-table").Row<IngestedRepository>;
-  variant: "refresh" | "delete";
+  variant: "delete";
 }
 
 export function IngestedRepositoriesDataTable(): React.ReactElement {
@@ -58,19 +56,6 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
 
   const repositories = repositoriesData?.repositories ?? [];
 
-  // Refresh mutation
-  const refreshMutation = useMutation({
-    mutationFn: (repository: IngestedRepository) =>
-      refreshRepository(repository),
-    onSuccess: () => {
-      toast.success("Repository has been successfully submitted for refresh");
-      queryClient.invalidateQueries({ queryKey: ["ingestedRepositories"] });
-    },
-    onError: () => {
-      toast.error("Unable to refresh the repository. Please try again.");
-    },
-  });
-
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: (repository: IngestedRepository) =>
@@ -84,30 +69,24 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
     },
   });
 
-  // Agent generation mutation - starts workflow and shows toast
-  const agentGenerationMutation = useMutation({
-    mutationFn: (repository: IngestedRepository) =>
-      startRepositoryAgentRun(
-        repository.repository_owner_name,
-        repository.repository_name,
-      ),
+  // Agent MD update mutation - starts unified refresh-then-generate flow
+  const agentMdUpdateMutation = useMutation({
+    mutationFn: (repository: IngestedRepository) => updateAgentMd(repository),
     onSuccess: (_data, repository) => {
       toast.success(
-        `Agent MD generation started for ${repository.repository_owner_name}/${repository.repository_name}. View progress in Operations.`,
+        `Generate/Update Agents.md submitted for ${repository.repository_owner_name}/${repository.repository_name}. View progress in Operations.`,
       );
-      // Invalidate parent workflow jobs so the new job appears in SubmittedJobsDataTable
+      queryClient.invalidateQueries({ queryKey: ["ingestedRepositories"] });
       queryClient.invalidateQueries({ queryKey: ["parentWorkflowJobs"] });
     },
     onError: (error, repository) => {
-      // Use backend error message if available, otherwise show generic message
-      // Note: error can be an ApiError object (plain object with message) or an Error instance
       const errorMessage =
         error &&
         typeof error === "object" &&
         "message" in error &&
         typeof error.message === "string"
           ? error.message
-          : `Failed to start Agent MD generation for ${repository.repository_owner_name}/${repository.repository_name}. Please try again.`;
+          : `Failed to submit Generate/Update Agents.md for ${repository.repository_owner_name}/${repository.repository_name}. Please try again.`;
 
       toast.error(errorMessage);
     },
@@ -131,15 +110,14 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
           return;
         }
 
-        // Directly start the generation - toast will confirm
-        agentGenerationMutation.mutate(repository);
+        agentMdUpdateMutation.mutate(repository);
       } catch {
         toast.error(
           "Unable to verify model provider configuration. Please try again.",
         );
       }
     },
-    [modelConfigQuery.data, agentGenerationMutation, queryClient],
+    [modelConfigQuery.data, agentMdUpdateMutation, queryClient],
   );
 
   const columns = useMemo(() => {
@@ -163,13 +141,6 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
     getRowId: (row: IngestedRepository) =>
       `${row.repository_owner_name}/${row.repository_name}`,
   });
-
-  const handleRefreshConfirm = () => {
-    if (rowAction?.row.original) {
-      refreshMutation.mutate(rowAction.row.original);
-    }
-    setRowAction(null);
-  };
 
   const handleDeleteConfirm = () => {
     if (rowAction?.row.original) {
@@ -207,13 +178,6 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
           <DataTableToolbar table={table} />
         </DataTable>
       )}
-
-      <RefreshRepositoryDialog
-        open={rowAction?.variant === "refresh"}
-        onOpenChange={handleDialogClose}
-        onConfirm={handleRefreshConfirm}
-        repository={rowAction?.row.original || null}
-      />
 
       <DeleteRepositoryDialog
         open={rowAction?.variant === "delete"}

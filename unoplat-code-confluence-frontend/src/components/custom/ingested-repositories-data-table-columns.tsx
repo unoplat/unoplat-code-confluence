@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   MoreHorizontal,
-  RefreshCw,
   Trash2,
   ExternalLink,
   GitBranch,
@@ -24,7 +23,7 @@ interface ColumnOptions {
   setRowAction: React.Dispatch<
     React.SetStateAction<{
       row: import("@tanstack/react-table").Row<IngestedRepository>;
-      variant: "refresh" | "delete";
+      variant: "delete";
     } | null>
   >;
   onGenerateAgents: (repository: IngestedRepository) => void | Promise<void>;
@@ -152,15 +151,7 @@ export function getIngestedRepositoriesColumns({
                 className="gap-2"
               >
                 <FileText className="h-4 w-4" />
-                Generate Agents.md
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => setRowAction({ row, variant: "refresh" })}
-                className="gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Refresh
+                Generate/Update Agents.md
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
