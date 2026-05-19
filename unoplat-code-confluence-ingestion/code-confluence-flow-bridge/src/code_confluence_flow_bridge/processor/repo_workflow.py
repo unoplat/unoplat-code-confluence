@@ -8,6 +8,7 @@ with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
 
     from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+        AgentMdUpdateActivityEnvelope,
         CodebaseChildWorkflowEnvelope,
         ConfluenceGitGraphEnvelope,
         GitActivityEnvelope,
@@ -179,12 +180,14 @@ class RepoWorkflow:
                         repo_request.repository_owner_name,
                         repo_request.repository_name,
                     )
+                    agent_md_update_envelope = AgentMdUpdateActivityEnvelope(
+                        owner_name=repo_request.repository_owner_name,
+                        repo_name=repo_request.repository_name,
+                        trace_id=trace_id,
+                    )
                     await workflow.execute_activity(
                         activity=AgentMdUpdateActivity.trigger_agent_md_update,
-                        args=[
-                            repo_request.repository_owner_name,
-                            repo_request.repository_name,
-                        ],
+                        args=[agent_md_update_envelope],
                         start_to_close_timeout=timedelta(seconds=30),
                         retry_policy=RetryPolicy(
                             maximum_attempts=8,
