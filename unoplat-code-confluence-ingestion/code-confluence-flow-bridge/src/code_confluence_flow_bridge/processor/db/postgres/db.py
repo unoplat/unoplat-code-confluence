@@ -18,6 +18,14 @@ from sqlalchemy.ext.asyncio import (
 )
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 
+from src.code_confluence_flow_bridge.logging.trace_utils import (
+    activity_id_var,
+    activity_name_var,
+    trace_id_var,
+    workflow_id_var,
+    workflow_run_id_var,
+)
+
 # PostgreSQL connection settings - read from environment variables
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
@@ -110,12 +118,22 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
     Note: Returns async_scoped_session which is compatible with AsyncSession interface.
     """
-    # Build a bound logger containing contextual information useful for
-    # troubleshooting concurrent executions.
+    # Build a bound logger with trace context (from ContextVars) plus local fields.
     loop_id = id(asyncio.get_running_loop())
     task = current_task()
     task_name = task.get_name() if task else "unknown"
-    log_ctx = logger.bind(loop_id=loop_id, task=task_name)
+    _session_log_ctx: dict[str, object] = {"loop_id": loop_id, "task": task_name}
+    if (tid := trace_id_var.get()) is not None:
+        _session_log_ctx["app_trace_id"] = tid
+    if (wid := workflow_id_var.get()) is not None:
+        _session_log_ctx["workflow_id"] = wid
+    if (wrid := workflow_run_id_var.get()) is not None:
+        _session_log_ctx["workflow_run_id"] = wrid
+    if (aid := activity_id_var.get()) is not None:
+        _session_log_ctx["activity_id"] = aid
+    if (aname := activity_name_var.get()) is not None:
+        _session_log_ctx["activity_name"] = aname
+    log_ctx = logger.bind(**_session_log_ctx)
 
     log_ctx.debug(
         "Creating new DB session (task={task}, loop_id={loop_id})",
