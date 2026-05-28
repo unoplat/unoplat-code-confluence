@@ -11,7 +11,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { buildEventDisplayItems, groupEventsByAgent } from "@/lib/agent-events-utils";
+import {
+  buildEventDisplayItems,
+  groupEventsByAgent,
+} from "@/lib/agent-events-utils";
 import type { RepositoryAgentEvent } from "@/features/repository-agent-snapshots/schema";
 import type {
   AgentEventDisplayItem,
@@ -72,7 +75,9 @@ function findAnchorIndex(
   items: AgentEventDisplayItem[],
   anchor: OlderHistoryAnchor,
 ): number {
-  const exactKeyIndex = items.findIndex((item) => item.key === anchor.anchorKey);
+  const exactKeyIndex = items.findIndex(
+    (item) => item.key === anchor.anchorKey,
+  );
   if (exactKeyIndex !== -1) {
     return exactKeyIndex;
   }
@@ -292,7 +297,9 @@ export const AgentEventsAccordion = React.forwardRef<
     () => groupEventsByAgent(events, completedNamespaces),
     [events, completedNamespaces],
   );
-  const [detailItem, setDetailItem] = React.useState<ToolDetailItem | null>(null);
+  const [detailItem, setDetailItem] = React.useState<ToolDetailItem | null>(
+    null,
+  );
   const [expandedGroups, setExpandedGroups] = React.useState<string[]>([]);
 
   const validGroupIds = React.useMemo(
@@ -384,7 +391,7 @@ export const AgentEventsAccordion = React.forwardRef<
               <AccordionTrigger className="px-4 py-2.5 hover:no-underline">
                 <AgentGroupHeader group={group} />
               </AccordionTrigger>
-              <AccordionContent className="px-4 pb-3 pt-1">
+              <AccordionContent className="px-4 pt-1 pb-3">
                 <VirtualizedAgentGroupEvents
                   groupId={group.agentId}
                   events={group.events}
