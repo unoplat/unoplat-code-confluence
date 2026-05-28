@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.80.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.79.0...code-confluence-flow-bridge-v0.80.0) (2026-05-28)
+
+
+### Features
+
+* **ingestion:** replace structural-signature extraction with BaseSourceContext detection primitives ([c27ee87](https://github.com/unoplat/unoplat-code-confluence/commit/c27ee87649ac5d5ca196028c1615063eabca3db5))
+
+
+### Bug Fixes
+
+* **log:** logging fix ([376d919](https://github.com/unoplat/unoplat-code-confluence/commit/376d9192f7d49af58467197d08eb3be5baabcac2))
+
 ## [0.79.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.78.1...code-confluence-flow-bridge-v0.79.0) (2026-05-19)
 
 
