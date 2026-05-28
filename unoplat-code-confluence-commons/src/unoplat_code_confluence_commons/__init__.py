@@ -28,38 +28,13 @@ from unoplat_code_confluence_commons.base_models import (
     PackageManagerType,
     ProgrammingLanguage,
     ProgrammingLanguageMetadata,
-    # Python structural signature models
-    PythonClassInfo,
-    PythonFunctionInfo,
-    PythonStructuralSignature,
-    PythonVariableInfo,
     # Repository and Programming Language models
     Repository,
     RepositorySettings,
-    # Structural signature utilities
-    StructuralSignatureUnion,
     # Engine Pydantic models
     TargetLevel,
-    # TypeScript structural signature models
-    TypeScriptClassInfo,
-    TypeScriptEnumInfo,
-    TypeScriptEnumMemberInfo,
-    TypeScriptExportInfo,
-    TypeScriptFunctionInfo,
-    TypeScriptImportInfo,
-    TypeScriptInterfaceInfo,
-    TypeScriptInterfaceMethodInfo,
-    TypeScriptInterfacePropertyInfo,
-    TypeScriptMethodInfo,
-    TypeScriptNamespaceInfo,
-    TypeScriptParameterInfo,
-    TypeScriptStructuralSignature,
-    TypeScriptTypeAliasInfo,
-    TypeScriptVariableInfo,
     ValidationStatus,
     WorkspaceOrchestratorType,
-    deserialize_structural_signature,
-    get_signature_type_for_language,
 )
 from unoplat_code_confluence_commons.credential_enums import (
     CredentialNamespace,
@@ -94,31 +69,6 @@ from unoplat_code_confluence_commons.workflow_models import (
 )
 
 __all__ = [
-    # Python structural signature models
-    "PythonVariableInfo",
-    "PythonFunctionInfo",
-    "PythonClassInfo",
-    "PythonStructuralSignature",
-    # TypeScript structural signature models
-    "TypeScriptVariableInfo",
-    "TypeScriptParameterInfo",
-    "TypeScriptFunctionInfo",
-    "TypeScriptMethodInfo",
-    "TypeScriptInterfacePropertyInfo",
-    "TypeScriptInterfaceMethodInfo",
-    "TypeScriptInterfaceInfo",
-    "TypeScriptTypeAliasInfo",
-    "TypeScriptClassInfo",
-    "TypeScriptEnumMemberInfo",
-    "TypeScriptEnumInfo",
-    "TypeScriptNamespaceInfo",
-    "TypeScriptExportInfo",
-    "TypeScriptImportInfo",
-    "TypeScriptStructuralSignature",
-    # Structural signature utilities
-    "StructuralSignatureUnion",
-    "deserialize_structural_signature",
-    "get_signature_type_for_language",
     # Engine Pydantic models
     "TargetLevel",
     "LocatorStrategy",

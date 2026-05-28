@@ -7,37 +7,37 @@ with workflow.unsafe.imports_passed_through():
     import asyncio
     from datetime import timedelta
 
-    from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+    from temporalio.common import RetryPolicy
+
+    from code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
         AgentMdUpdateActivityEnvelope,
         CodebaseChildWorkflowEnvelope,
         ConfluenceGitGraphEnvelope,
         GitActivityEnvelope,
         RepoWorkflowRunEnvelope,
     )
-    from temporalio.common import RetryPolicy
-
-    from src.code_confluence_flow_bridge.processor.activity_retries_config import (
+    from code_confluence_flow_bridge.processor.activity_retries_config import (
         ActivityRetriesConfig,
     )
-    from src.code_confluence_flow_bridge.processor.agent_md_update_activity import (
+    from code_confluence_flow_bridge.processor.agent_md_update_activity import (
         AgentMdUpdateActivity,
     )
-    from src.code_confluence_flow_bridge.processor.codebase_child_workflow import (
+    from code_confluence_flow_bridge.processor.codebase_child_workflow import (
         CodebaseChildWorkflow,
     )
-    from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import (
+    from code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import (
         GitActivity,
     )
-    from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import (
+    from code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import (
         ConfluenceGitGraph,
     )
 
 
 with workflow.unsafe.imports_passed_through():
-    from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+    from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
         UnoplatGitRepository,
     )
-    from src.code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import (
+    from code_confluence_flow_bridge.models.workflow.parent_child_clone_metadata import (
         ParentChildCloneMetadata,
     )
 

@@ -1,13 +1,11 @@
 """File model for representing individual source code files."""
 
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 from unoplat_code_confluence_commons.base_models import (
     DataModelPosition,
     Detection,
-    PythonStructuralSignature,
-    TypeScriptStructuralSignature,
 )
 
 
@@ -17,12 +15,6 @@ class UnoplatFile(BaseModel):
     file_path: str = Field(description="Absolute file path")
     checksum: Optional[str] = Field(
         default=None, description="Optional content checksum for change tracking"
-    )
-    structural_signature: Optional[
-        Union[PythonStructuralSignature, TypeScriptStructuralSignature]
-    ] = Field(
-        default=None,
-        description="Language-specific structural signature capturing the high-level outline of the file",
     )
     imports: Optional[List[str]] = Field(
         default_factory=list, description="List of imports in the file"

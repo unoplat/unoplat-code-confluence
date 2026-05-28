@@ -24,11 +24,11 @@ from unoplat_code_confluence_commons.relational_models import (
 )
 from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
 
-from src.code_confluence_flow_bridge.logging.trace_utils import trace_id_var
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+from code_confluence_flow_bridge.logging.trace_utils import trace_id_var
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
     UnoplatGitRepository,
 )
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseMetadataListResponse,
     CodebaseMetadataResponse,
     GitHubRepoResponseConfiguration,
@@ -39,31 +39,31 @@ from src.code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRefreshRequest,
     RepositoryRequestConfiguration,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
-from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
-from src.code_confluence_flow_bridge.routers.repository.idempotency_service import (
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session
+from code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+from code_confluence_flow_bridge.routers.repository.idempotency_service import (
     get_active_repository_operation,
 )
-from src.code_confluence_flow_bridge.routers.repository.mappers import (
+from code_confluence_flow_bridge.routers.repository.mappers import (
     build_programming_language_metadata,
     build_repository_status_hierarchy,
 )
-from src.code_confluence_flow_bridge.utility.deps import trace_dependency
-from src.code_confluence_flow_bridge.utility.detection import (
+from code_confluence_flow_bridge.utility.deps import trace_dependency
+from code_confluence_flow_bridge.utility.detection import (
     CodebaseDetector,
     detect_codebases_multi_language,
 )
-from src.code_confluence_flow_bridge.utility.provider_urls import (
+from code_confluence_flow_bridge.utility.provider_urls import (
     build_repository_git_url,
 )
-from src.code_confluence_flow_bridge.utility.runtime_deps import (
+from code_confluence_flow_bridge.utility.runtime_deps import (
     get_codebase_detectors,
     get_temporal_client_dep,
 )
-from src.code_confluence_flow_bridge.utility.token_utils import (
+from code_confluence_flow_bridge.utility.token_utils import (
     fetch_repository_provider_token,
 )
-from src.code_confluence_flow_bridge.utility.workflow_helpers import (
+from code_confluence_flow_bridge.utility.workflow_helpers import (
     monitor_workflow,
     start_workflow,
 )

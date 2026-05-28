@@ -1,3 +1,27 @@
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Local working notes and AI agent planning dirs (not source)
+**/backlog/
+**/docs/
+**/product-features/
+**/backups/
+**/.zed/
+**/WARP.md
+**/*.dot
+**/*_report.json
+
+# Local agent/tooling directories (keep out of git)
+skills/
+skills-lock.json
+.agents/
+.agent/
+
+# Dev-only GitHub App local config (contains smee.io webhook URLs)
+**/config/github-app/
+
 .claude
 .opencode
 .cosine
@@ -350,6 +374,8 @@ unoplat-code-confluence-ingestion/code-confluence-flow-bridge/experiments
 experiments/
 
 # Local agent/tooling directories (keep out of git)
+skills/
+skills-lock.json
 .agents/skills/
 .agent/skills/
 .claude/skills/

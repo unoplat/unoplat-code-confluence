@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic_ai import Agent, Tool
-from pydantic_ai.capabilities import AbstractCapability
+from pydantic_ai.capabilities import AbstractCapability, HistoryProcessor
 from pydantic_ai.toolsets.abstract import AbstractToolset
 
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
@@ -12,6 +12,9 @@ from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies impo
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_dependency_guide import (
     build_dependency_guide_instructions,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.history_compaction import (
+    compact_temporal_agent_history,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
     build_readonly_console_capability,
@@ -70,7 +73,10 @@ def build_dependency_guide_agent(
         toolsets.append(exa_toolset)
         toolset_ids.append(DEPENDENCY_GUIDE_EXA_TOOLSET_ID)
 
-    capabilities: list[AbstractCapability[AgentDependencies]] = [console_capability]
+    capabilities: list[AbstractCapability[AgentDependencies]] = [
+        console_capability,
+        HistoryProcessor(compact_temporal_agent_history),
+    ]
     if search_capability is not None:
         capabilities.append(search_capability)
 

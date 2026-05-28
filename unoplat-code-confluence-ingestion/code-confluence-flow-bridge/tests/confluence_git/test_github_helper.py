@@ -8,11 +8,11 @@ from dotenv import load_dotenv
 
 # Third Party
 import pytest
-from src.code_confluence_flow_bridge.confluence_git.github_helper import (
+from code_confluence_flow_bridge.confluence_git.github_helper import (
     GithubHelper,
     _build_authenticated_url,
 )
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRequestConfiguration,
 )
 

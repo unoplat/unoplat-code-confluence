@@ -3,6 +3,7 @@
 from pydantic_ai import RunContext
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    ENGINEERING_WORKFLOW_FULL_OUTPUT,
     ENGINEERING_WORKFLOW_NO_CHANGE,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
@@ -18,7 +19,7 @@ def get_engineering_citation_instructions() -> str:
         "Prefer `glob`, `grep`, and `read_file` for discovering configuration files and scripts.\n\n"
         "Execute policy (CLI help/version discovery only):\n"
         "- Use `execute` only for CLI help/version discovery: allowed commands must contain `--help`, `-h`, `--version`, `-v`, or an explicit `help` subcommand/token (for example `uv help run`, `npm help run`, `npm run --help`, `python -m fastapi --help`, `npx vite --help`).\n"
-        "- Do NOT execute install, build, test, lint, type_check, dev, server, watch, reload, or package-install/sync commands. Examples of prohibited commands include `uv sync`, `npm install`, `pnpm install`, `bun install`, `pytest`, `ruff check`, `mypy`, `basedpyright`, `tsc`, `npm run build`, `npm test`, `npm run lint`, `npm run dev`, `vite`, `next dev`, `fastapi dev`, `uvicorn --reload`, and any watch/reload/server command.\n"
+        "- Do NOT execute install, build, test, lint, type_check, dev, server, watch, reload, or package-install/sync commands. Examples of prohibited commands include `uv sync`, `npm install`, `pnpm install`, `bun install`, `pytest`, `ruff check`, `mypy`, `basedpyright`, `pyrefly`, `tsc`, `npm run build`, `npm test`, `npm run lint`, `npm run dev`, `vite`, `next dev`, `fastapi dev`, `uvicorn --reload`, and any watch/reload/server command.\n"
         "- Any command without `--help`, `-h`, `--version`, `-v`, or an explicit `help` token is a wrong command for `execute`.\n\n"
         "Evidence sources (in priority order):\n"
         "- Prefer codebase package/config files (e.g. `package.json`, `pyproject.toml`, Makefiles, framework configs) and CLI command/subcommand help output as primary evidence.\n"
@@ -81,12 +82,13 @@ async def per_language_development_workflow_prompt(
         "Never use codebase-relative '..' segments in config_file paths.\n"
         "</file_path_requirements>\n\n"
         "<output_contract>\n"
-        "Return ONLY one of these outputs:\n"
-        f"1. The exact string {ENGINEERING_WORKFLOW_NO_CHANGE} when no markdown update is required.\n"
-        "2. Structured EngineeringWorkflow output with this exact top-level shape when an update is required:\n"
-        '{"commands":[{"command":"<runnable command>","stage":"install|build|dev|test|lint|type_check",'
+        "Return ONLY one bare JSON object matching the single EngineeringWorkflowAgentResponse model. Do not wrap it in result/kind/data.\n"
+        "1. When full structured output is required or you updated AGENTS.md, return this exact top-level shape with non-empty commands:\n"
+        f'{{"status":"{ENGINEERING_WORKFLOW_FULL_OUTPUT}","commands":[{{"command":"<runnable command>","stage":"install|build|dev|test|lint|type_check",'
         '"config_file":"<repository-root-relative path or unknown>",'
-        '"working_directory":"<repo-relative dir: omit/null=codebase root, .=repo root, path=workspace root>"}]}\n'
+        '"working_directory":"<repo-relative dir: omit/null=codebase root, .=repo root, path=workspace root>"}]}}\n'
+        "2. When no-change output is explicitly allowed for this run and no markdown update is required, return exactly this shape with no commands field:\n"
+        f'{{"status":"{ENGINEERING_WORKFLOW_NO_CHANGE}"}}\n'
         "</output_contract>\n\n"
         "<rules>\n"
         "- Use console tools (`glob`, `grep`, `read_file`) to discover configuration files, scripts, and project structure before emitting commands.\n"
@@ -94,6 +96,8 @@ async def per_language_development_workflow_prompt(
         "- Follow the shared verification strategy when deciding whether a command is verified enough to include.\n"
         "- Include install commands whenever install/bootstrap/setup evidence exists.\n"
         "- stage must be one of: install, build, dev, test, lint, type_check.\n"
+        f"- For status={ENGINEERING_WORKFLOW_FULL_OUTPUT}, commands is required and must be non-empty.\n"
+        f"- For status={ENGINEERING_WORKFLOW_NO_CHANGE}, omit commands entirely.\n"
         "- Emit only the keys defined in output_contract and nothing else.\n"
         "- config_file is the single most relevant configuration file for this command (repository-root-relative path or 'unknown').\n"
         "- working_directory: omit or null to run from codebase root, '.' to run from repo root, or a repo-relative path for a specific workspace root.\n"

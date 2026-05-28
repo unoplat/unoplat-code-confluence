@@ -5,7 +5,7 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
     WorkspaceOrchestratorType,
 )
 
-from src.code_confluence_flow_bridge.models.detection.shared.inventory import FileNode
+from code_confluence_flow_bridge.models.detection.shared.inventory import FileNode
 
 
 class WorkspaceOrchestratorMetadata(BaseModel):

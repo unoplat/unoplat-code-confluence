@@ -414,9 +414,9 @@ export const getRepositoryConfig = async (
  * GitHub user type response
  */
 export interface GitHubUser {
-  login: string;
-  name: string | null;
-  avatar_url: string;
+  login?: string | null;
+  name?: string | null;
+  avatar_url?: string | null;
   /** User email address (nullable) */
   email?: string | null;
 }

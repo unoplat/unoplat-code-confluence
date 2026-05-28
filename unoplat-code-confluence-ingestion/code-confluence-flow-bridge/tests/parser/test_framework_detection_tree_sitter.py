@@ -5,19 +5,19 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, cast
 
-from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+from code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
     PythonSourceContext,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.python.python_tree_sitter_framework_detector import (
+from code_confluence_flow_bridge.engine.programming_language.python.python_tree_sitter_framework_detector import (
     PythonTreeSitterFrameworkDetector,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
+from code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
+from code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
     _build_feature_spec,
     _resolve_base_confidence,
 )

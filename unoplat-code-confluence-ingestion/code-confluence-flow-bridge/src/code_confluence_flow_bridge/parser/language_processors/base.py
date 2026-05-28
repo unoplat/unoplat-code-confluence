@@ -9,10 +9,10 @@ from typing import AsyncGenerator, Optional, Set
 from loguru import logger
 
 # First Party
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
     UnoplatFile,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
+from code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
     LanguageProcessorContext,
 )
 

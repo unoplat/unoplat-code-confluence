@@ -5,12 +5,12 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from unoplat_code_confluence_commons.credential_enums import ProviderKey
 
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     PaginatedResponse,
     RepositoryProvidersResponse,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
-from src.code_confluence_flow_bridge.routers.providers.service import (
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session
+from code_confluence_flow_bridge.routers.providers.service import (
     fetch_authenticated_user_details,
     fetch_paginated_repositories,
     list_repository_providers,
@@ -65,5 +65,5 @@ async def get_user_details(
     provider_key: ProviderKey = Query(..., description="Repository provider key"),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str | None]:
-    """Fetch authenticated GitHub user's name, avatar URL, and email."""
+    """Fetch authenticated GitHub user's login, name, avatar URL, and email."""
     return await fetch_authenticated_user_details(session, provider_key)

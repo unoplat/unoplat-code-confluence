@@ -19,12 +19,12 @@ from pydantic import AnyHttpUrl
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio.scoping import async_scoped_session
 
-from src.code_confluence_flow_bridge.github_app.models import (
+from code_confluence_flow_bridge.github_app.models import (
     ManifestConversionResponse,
     ManifestGenerationRequest,
     ManifestGenerationResponse,
 )
-from src.code_confluence_flow_bridge.github_app.service import (
+from code_confluence_flow_bridge.github_app.service import (
     build_absolute_url,
     build_registration_url,
     cleanup_expired_manifest_requests,
@@ -37,13 +37,13 @@ from src.code_confluence_flow_bridge.github_app.service import (
     prepare_manifest,
     store_credential,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
 
 # Local
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
-from src.code_confluence_flow_bridge.utility.runtime_deps import get_env_settings
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session
+from code_confluence_flow_bridge.utility.runtime_deps import get_env_settings
 
 router = APIRouter(prefix="/integrations/github", tags=["GitHub App"])
 

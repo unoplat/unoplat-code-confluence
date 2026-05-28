@@ -5,16 +5,16 @@ from temporalio.client import Client, WorkflowHandle
 from unoplat_code_confluence_commons.base_models import RepositoryWorkflowOperation
 from unoplat_code_confluence_commons.workflow_models import JobStatus
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
     UnoplatGitRepository,
 )
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRequestConfiguration,
 )
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+from code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     RepoWorkflowRunEnvelope,
 )
-from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+from code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 
 CANCELLABLE_PARENT_WORKFLOW_OPERATIONS: set[RepositoryWorkflowOperation] = {
     RepositoryWorkflowOperation.AGENTS_GENERATION,

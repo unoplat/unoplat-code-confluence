@@ -9,7 +9,7 @@ from loguru import logger
 import requirements
 from requirements.requirement import Requirement
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatProjectDependency,
     UnoplatVersion,
 )

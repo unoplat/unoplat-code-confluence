@@ -19,7 +19,7 @@ from unoplat_code_confluence_commons.credentials import Credentials
 from unoplat_code_confluence_commons.security import decrypt_token, encrypt_token
 
 # Local
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
 

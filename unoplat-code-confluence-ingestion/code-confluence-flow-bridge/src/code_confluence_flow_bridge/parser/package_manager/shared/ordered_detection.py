@@ -14,15 +14,15 @@ import fnmatch
 
 from loguru import logger
 
-from src.code_confluence_flow_bridge.models.detection.shared.evidence import (
+from code_confluence_flow_bridge.models.detection.shared.evidence import (
     ManagerDetectionResult,
 )
-from src.code_confluence_flow_bridge.models.detection.shared.rules import (
+from code_confluence_flow_bridge.models.detection.shared.rules import (
     LanguageRules,
     ManagerRule,
     Signature,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
+from code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
     search_absence_in_file,
     search_in_file,
 )

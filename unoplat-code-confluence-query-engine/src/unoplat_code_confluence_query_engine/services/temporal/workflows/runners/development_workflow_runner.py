@@ -9,6 +9,7 @@ with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
     from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+        ENGINEERING_WORKFLOW_FULL_OUTPUT,
         ENGINEERING_WORKFLOW_NO_CHANGE,
         EngineeringWorkflow,
     )
@@ -73,14 +74,31 @@ async def run_development_workflow_agent(
         agent_stats.append(create_zero_usage_statistics())
         return
 
-    engineering_workflow_deps = AgentDependencies(
-        repository_qualified_name=repository_qualified_name,
-        codebase_metadata=codebase_metadata,
-        repository_workflow_run_id=repository_workflow_run_id,
-        codebase_workflow_run_id=codebase_workflow_run_id,
-        agent_name="development_workflow_guide",
-    )
+    engineering_workflow_deps: AgentDependencies | None = None
     try:
+        previous_engineering_workflow = await workflow.execute_activity(
+            EngineeringWorkflowFetchActivity.fetch_previous_engineering_workflow,
+            args=[
+                repository_qualified_name,
+                repository_workflow_run_id,
+                codebase_metadata.codebase_name,
+            ],
+            start_to_close_timeout=timedelta(seconds=30),
+            retry_policy=DB_ACTIVITY_RETRY_POLICY,
+        )
+        if previous_engineering_workflow is not None:
+            previous_engineering_workflow = EngineeringWorkflow.model_validate(
+                previous_engineering_workflow
+            )
+        allow_no_change_output = previous_engineering_workflow is not None
+        engineering_workflow_deps = AgentDependencies(
+            repository_qualified_name=repository_qualified_name,
+            codebase_metadata=codebase_metadata,
+            repository_workflow_run_id=repository_workflow_run_id,
+            codebase_workflow_run_id=codebase_workflow_run_id,
+            agent_name="development_workflow_guide",
+            allow_no_change_output=allow_no_change_output,
+        )
         logger.info(
             "[workflow] Running development_workflow_guide for {}",
             codebase_metadata.codebase_name,
@@ -91,6 +109,7 @@ async def run_development_workflow_agent(
                 codebase_path=codebase_metadata.codebase_path,
                 programming_language=codebase_metadata.codebase_programming_language,
                 package_manager=codebase_metadata.codebase_package_manager,
+                allow_no_change_output=allow_no_change_output,
             ),
             deps=engineering_workflow_deps,
             usage_limits=get_cached_usage_limits(),
@@ -100,63 +119,29 @@ async def run_development_workflow_agent(
 
         development_workflow_stats = [extract_usage_statistics(workflow_result.usage())]
         agent_output = workflow_result.output
-        if isinstance(agent_output, EngineeringWorkflow):
-            engineering_workflow_output = agent_output.model_dump()
-        elif agent_output == ENGINEERING_WORKFLOW_NO_CHANGE:
-            previous_engineering_workflow = await workflow.execute_activity(
-                EngineeringWorkflowFetchActivity.fetch_previous_engineering_workflow,
-                args=[
-                    repository_qualified_name,
-                    repository_workflow_run_id,
-                    codebase_metadata.codebase_name,
-                ],
-                start_to_close_timeout=timedelta(seconds=30),
-                retry_policy=DB_ACTIVITY_RETRY_POLICY,
-            )
+        if agent_output.status == ENGINEERING_WORKFLOW_FULL_OUTPUT:
+            if not agent_output.commands:
+                raise TypeError(
+                    "development_workflow_guide returned full_output without commands"
+                )
+            engineering_workflow_output = EngineeringWorkflow(
+                commands=agent_output.commands
+            ).model_dump()
+        elif agent_output.status == ENGINEERING_WORKFLOW_NO_CHANGE:
             if previous_engineering_workflow is None:
-                logger.info(
-                    "[workflow] development_workflow_guide reported no change for {}, "
-                    "but the latest previous snapshot has no engineering_workflow "
-                    "to carry forward; rerunning for full output",
-                    codebase_metadata.codebase_name,
+                raise TypeError(
+                    "development_workflow_guide returned no_change when previous "
+                    "structured engineering_workflow data was unavailable"
                 )
-                full_output_prompt = (
-                    build_development_workflow_prompt(
-                        codebase_path=codebase_metadata.codebase_path,
-                        programming_language=codebase_metadata.codebase_programming_language,
-                        package_manager=codebase_metadata.codebase_package_manager,
-                    )
-                    + " Previous structured engineering_workflow data is unavailable "
-                    "in the latest completed snapshot. Do not return "
-                    "NO_CHANGE_REQUIRED; re-validate the repository evidence and "
-                    "return the full structured EngineeringWorkflow output."
-                )
-                workflow_result = await development_workflow_agent.run(
-                    full_output_prompt,
-                    deps=engineering_workflow_deps,
-                    usage_limits=get_cached_usage_limits(),
-                    metadata=build_agent_run_metadata(engineering_workflow_deps),
-                )
-                development_workflow_stats.append(
-                    extract_usage_statistics(workflow_result.usage())
-                )
-                agent_output = workflow_result.output
-                if not isinstance(agent_output, EngineeringWorkflow):
-                    raise TypeError(
-                        "development_workflow_guide returned NO_CHANGE_REQUIRED "
-                        "or an unsupported output after full-output rerun"
-                    )
-                engineering_workflow_output = agent_output.model_dump()
-            else:
-                engineering_workflow_output = previous_engineering_workflow
-                logger.info(
-                    "[workflow] development_workflow_guide reported no change for {}; "
-                    "carried forward previous engineering_workflow",
-                    codebase_metadata.codebase_name,
-                )
+            engineering_workflow_output = previous_engineering_workflow.model_dump()
+            logger.info(
+                "[workflow] development_workflow_guide reported no change for {}; "
+                "carried forward previous engineering_workflow",
+                codebase_metadata.codebase_name,
+            )
         else:
             raise TypeError(
-                "development_workflow_guide returned unsupported output type/value"
+                "development_workflow_guide returned unsupported output status"
             )
 
         await persist_codebase_snapshot_patch(
@@ -207,4 +192,5 @@ async def run_development_workflow_agent(
         agent_errors.append(engineering_error)
         agent_stats.append(create_zero_usage_statistics())
     finally:
-        engineering_workflow_deps.release_backend()
+        if engineering_workflow_deps is not None:
+            engineering_workflow_deps.release_backend()

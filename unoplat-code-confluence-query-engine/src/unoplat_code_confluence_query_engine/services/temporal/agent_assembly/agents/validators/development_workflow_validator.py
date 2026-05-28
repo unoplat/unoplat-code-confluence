@@ -7,9 +7,11 @@ from markdown_it.token import Token
 from pydantic_ai import ModelRetry, RunContext
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    ENGINEERING_WORKFLOW_FULL_OUTPUT,
     ENGINEERING_WORKFLOW_NO_CHANGE,
     EngineeringWorkflow,
     EngineeringWorkflowAgentOutput,
+    EngineeringWorkflowAgentResponse,
     EngineeringWorkflowStage,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
@@ -55,25 +57,42 @@ def validate_engineering_development_workflow_output(
         ctx = ctx_or_output if isinstance(ctx_or_output, RunContext) else None
         workflow = output
 
-    if isinstance(workflow, str):
-        if workflow != ENGINEERING_WORKFLOW_NO_CHANGE:
+    if not isinstance(workflow, EngineeringWorkflowAgentResponse):
+        raise TypeError("Expected EngineeringWorkflowAgentResponse output")
+
+    if workflow.status == ENGINEERING_WORKFLOW_NO_CHANGE:
+        if workflow.commands is not None:
             raise ModelRetry(
-                f"String output must be exactly {ENGINEERING_WORKFLOW_NO_CHANGE}. "
-                "Return a full structured EngineeringWorkflow output if changes are needed."
+                f"For status={ENGINEERING_WORKFLOW_NO_CHANGE}, omit the commands field. "
+                "Do not return commands for no-change output."
             )
         if ctx is not None:
             markdown_text = _read_agents_md_for_validation(ctx)
             validate_engineering_workflow_section_markdown(markdown_text)
+            if not ctx.deps.allow_no_change_output:
+                raise ModelRetry(
+                    f"status={ENGINEERING_WORKFLOW_NO_CHANGE} is not valid for this run because "
+                    "previous structured engineering_workflow data is unavailable. Do not "
+                    "rewrite an already-correct AGENTS.md section; return "
+                    f"status={ENGINEERING_WORKFLOW_FULL_OUTPUT} with commands from verified "
+                    "repository evidence instead."
+                )
         return workflow
 
-    if not isinstance(workflow, EngineeringWorkflow):
-        raise TypeError("Expected EngineeringWorkflow or no-change string output")
+    if workflow.status != ENGINEERING_WORKFLOW_FULL_OUTPUT:
+        raise TypeError("Unsupported EngineeringWorkflowAgentResponse status")
 
-    _validate_engineering_workflow_model(workflow)
+    if not workflow.commands:
+        raise ModelRetry(
+            f"For status={ENGINEERING_WORKFLOW_FULL_OUTPUT}, commands is required and must be non-empty."
+        )
+
+    engineering_workflow = EngineeringWorkflow(commands=workflow.commands)
+    _validate_engineering_workflow_model(engineering_workflow)
 
     if ctx is not None:
         markdown_text = _read_agents_md_for_validation(ctx)
-        validate_engineering_workflow_section_markdown(markdown_text, workflow)
+        validate_engineering_workflow_section_markdown(markdown_text, engineering_workflow)
 
     return workflow
 
@@ -179,12 +198,16 @@ def _extract_owned_section(markdown_text: str, heading: str) -> str:
         index for index, line in enumerate(lines) if line.strip() == MANAGED_BLOCK_END
     ]
     if len(begin_positions) != 1 or len(end_positions) != 1:
-        raise ModelRetry("AGENTS.md must contain exactly one managed block marker pair.")
+        raise ModelRetry(
+            "AGENTS.md must contain exactly one managed block marker pair."
+        )
 
     begin_line = begin_positions[0]
     end_line = end_positions[0]
     if begin_line >= end_line:
-        raise ModelRetry("AGENTS.md managed block begin marker must precede end marker.")
+        raise ModelRetry(
+            "AGENTS.md managed block begin marker must precede end marker."
+        )
 
     heading_positions = [
         index

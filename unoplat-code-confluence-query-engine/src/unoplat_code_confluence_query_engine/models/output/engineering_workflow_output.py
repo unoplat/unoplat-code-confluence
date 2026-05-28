@@ -48,11 +48,36 @@ class EngineeringWorkflow(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-ENGINEERING_WORKFLOW_NO_CHANGE = "NO_CHANGE_REQUIRED"
-"""Exact string sentinel returned when the existing Engineering Workflow is still valid."""
+ENGINEERING_WORKFLOW_FULL_OUTPUT = "full_output"
+"""Agent response status indicating commands are present and should be persisted."""
 
-EngineeringWorkflowNoChange: TypeAlias = Literal["NO_CHANGE_REQUIRED"]
-"""Constrained no-change sentinel output for development workflow agent."""
+ENGINEERING_WORKFLOW_NO_CHANGE = "no_change"
+"""Agent response status indicating previous structured workflow should be carried forward."""
 
-EngineeringWorkflowAgentOutput: TypeAlias = EngineeringWorkflow | EngineeringWorkflowNoChange
-"""Development workflow agent output: full model or exact no-change sentinel."""
+EngineeringWorkflowAgentStatus: TypeAlias = Literal["full_output", "no_change"]
+"""Allowed development workflow agent response statuses."""
+
+
+class EngineeringWorkflowAgentResponse(BaseModel):
+    """Single-model response contract for development_workflow_guide."""
+
+    status: EngineeringWorkflowAgentStatus = Field(
+        ...,
+        description=(
+            "full_output when commands are included for persistence; "
+            "no_change only when prior structured workflow may be carried forward"
+        ),
+    )
+    commands: Optional[List[EngineeringWorkflowCommand]] = Field(
+        default=None,
+        description=(
+            "Required and non-empty for status=full_output. Must be omitted/null "
+            "for status=no_change."
+        ),
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+
+EngineeringWorkflowAgentOutput: TypeAlias = EngineeringWorkflowAgentResponse
+"""Development workflow agent output: single explicit response model."""

@@ -27,50 +27,50 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 )
 import yaml
 
-from src.code_confluence_flow_bridge.models.detection.shared.evidence import (
+from code_confluence_flow_bridge.models.detection.shared.evidence import (
     ManagerDetectionResult,
 )
-from src.code_confluence_flow_bridge.models.detection.shared.inventory import (
+from code_confluence_flow_bridge.models.detection.shared.inventory import (
     FileNode,
 )
-from src.code_confluence_flow_bridge.models.detection.shared.results import (
+from code_confluence_flow_bridge.models.detection.shared.results import (
     DetectedCodebase,
 )
-from src.code_confluence_flow_bridge.models.detection.shared.rules import (
+from code_confluence_flow_bridge.models.detection.shared.rules import (
     LanguageRules,
 )
-from src.code_confluence_flow_bridge.models.detection.typescript.discovery import (
+from code_confluence_flow_bridge.models.detection.typescript.discovery import (
     TypeScriptRepositoryScan,
     WorkspaceDiscoveryContext,
     WorkspaceOrchestratorMetadata,
 )
-from src.code_confluence_flow_bridge.models.detection.typescript.rules import (
+from code_confluence_flow_bridge.models.detection.typescript.rules import (
     PnpmWorkspaceConfig,
     WorkspacePackagesConfig,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.git_utils import (
+from code_confluence_flow_bridge.parser.package_manager.shared.git_utils import (
     clone_repo_if_missing,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
+from code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
     OrderedDetector,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
+from code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
     find_files,
     find_files_with_content,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.monorepo_detection_adapter import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.monorepo_detection_adapter import (
     TypeScriptMonorepoDetectionAdapter,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.ripgrep_utils import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.ripgrep_utils import (
     parse_package_json_dependencies,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.rules_loader import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.rules_loader import (
     load_typescript_language_rules,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.standalone_detection_adapter import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.standalone_detection_adapter import (
     TypeScriptStandaloneDetectionAdapter,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.workspace_utils import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.workspace_utils import (
     expand_workspace_globs_with_exclusions,
     group_files_by_directory,
     rebase_workspace_glob,

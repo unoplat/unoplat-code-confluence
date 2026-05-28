@@ -12,10 +12,10 @@ from typing import Any, Dict, Optional
 from fastapi.testclient import TestClient
 from loguru import logger
 import pytest
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     IngestedRepositoryResponse,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import (
+from code_confluence_flow_bridge.processor.db.postgres.db import (
     dispose_current_engine,
 )
 from temporalio.client import Client, WorkflowExecutionStatus, WorkflowHandle

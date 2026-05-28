@@ -64,4 +64,4 @@ COPY --from=builder --chown=${APP_USER}:${APP_USER} /app /app
 USER ${APP_USER}
 
 EXPOSE 8000
-CMD ["uvicorn", "src.code_confluence_flow_bridge.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "code_confluence_flow_bridge.main:app", "--host", "0.0.0.0", "--port", "8000"]

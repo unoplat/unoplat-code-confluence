@@ -3,10 +3,10 @@
 from fastapi import Request
 from temporalio.client import Client
 
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.utility.detection import CodebaseDetector
+from code_confluence_flow_bridge.utility.detection import CodebaseDetector
 
 
 def get_env_settings(request: Request) -> EnvironmentSettings:

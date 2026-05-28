@@ -16,31 +16,31 @@ from unoplat_code_confluence_commons.base_models import (
     ValidationStatus,
 )
 
-from src.code_confluence_flow_bridge.engine.framework_detection_service import (
+from code_confluence_flow_bridge.engine.framework_detection_service import (
     FrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
+from code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_framework_detection_service import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_framework_detection_service import (
     TypeScriptFrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.base import (
+from code_confluence_flow_bridge.parser.language_processors.base import (
     LanguageCodebaseProcessor,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
+from code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
     LanguageProcessorContext,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
+from code_confluence_flow_bridge.parser.language_processors.python_processor import (
     PythonLanguageProcessor,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.typescript_processor import (
+from code_confluence_flow_bridge.parser.language_processors.typescript_processor import (
     TypeScriptLanguageProcessor,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.code_confluence_relational_ingestion import (
+from code_confluence_flow_bridge.processor.db.postgres.code_confluence_relational_ingestion import (
     CodeConfluenceRelationalIngestion,
 )
 

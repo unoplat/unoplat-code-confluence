@@ -28,7 +28,7 @@
 - **Test single**: `uv run --group test pytest tests/path/to/test_file.py::test_function_name -v`
 - **Lint**: `task lint` (check) or `task lint-fix` (auto-fix)
 - **Format**: `task format` (ruff formatter)
-- **Type check**: `task typecheck` (basedpyright strict mode)
+- **Type check**: `task typecheck` (pyrefly strict preset)
 - **Dev server**: `task run-query-engine-backend-dev` (port 8001)
 
 ## Code Style
@@ -88,7 +88,7 @@ You MUST read the overview resource to understand the complete workflow. The inf
 ### Lint
 - `uv run --group dev ruff check src/` (repo root; `pyproject.toml`)
 ### Type Check
-- `uv run --group dev basedpyright src/` (repo root; `pyproject.toml`)
+- `uv run --group dev pyrefly check src/` (repo root; `pyproject.toml`)
 
 ## Dependency Guide
 See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.

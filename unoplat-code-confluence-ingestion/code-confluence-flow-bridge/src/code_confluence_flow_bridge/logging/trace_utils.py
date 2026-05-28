@@ -7,7 +7,7 @@ import uuid
 
 from loguru import logger
 
-from src.code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
+from code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
 
 trace_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "trace_id", default=None

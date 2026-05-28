@@ -21,23 +21,23 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
 
-from src.code_confluence_flow_bridge.models.detection.shared.inventory import FileNode
-from src.code_confluence_flow_bridge.models.detection.shared.rules import (
+from code_confluence_flow_bridge.models.detection.shared.inventory import FileNode
+from code_confluence_flow_bridge.models.detection.shared.rules import (
     LanguageRules,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.detectors.ripgrep_utils import (
+from code_confluence_flow_bridge.parser.package_manager.python.detectors.ripgrep_utils import (
     find_python_mains,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.detectors.rules_loader import (
+from code_confluence_flow_bridge.parser.package_manager.python.detectors.rules_loader import (
     load_python_language_rules,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.git_utils import (
+from code_confluence_flow_bridge.parser.package_manager.shared.git_utils import (
     clone_repo_if_missing,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
+from code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
     OrderedDetector,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
+from code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
     find_files,
 )
 

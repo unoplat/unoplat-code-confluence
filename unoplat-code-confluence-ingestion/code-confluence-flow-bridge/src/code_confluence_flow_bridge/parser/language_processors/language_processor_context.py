@@ -7,10 +7,10 @@ from pydantic import BaseModel, ConfigDict
 from unoplat_code_confluence_commons.base_models import ProgrammingLanguageMetadata
 
 # First Party
-from src.code_confluence_flow_bridge.engine.framework_detection_service import (
+from code_confluence_flow_bridge.engine.framework_detection_service import (
     FrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
 
