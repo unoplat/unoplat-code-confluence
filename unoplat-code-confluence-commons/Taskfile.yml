@@ -17,9 +17,20 @@ tasks:
     deps: [install]
     cmds:
       - uv run pytest -v -f tests/
-  
+
+  typecheck:
+    desc: Run pyrefly type checker on the codebase
+    cmds:
+      - uv run --group dev pyrefly check src/
+
+  typecheck-file:
+    desc: Run pyrefly type checker on a specific file (usage - task typecheck-file FILE=path/to/file.py)
+    cmds:
+      - uv run --group dev pyrefly check src/{{.FILE}}
+
   all:
-    desc: Run all checks (install, test)
+    desc: Run all checks (install, typecheck, test)
     cmds:
       - task: install
+      - task: typecheck
       - task: test

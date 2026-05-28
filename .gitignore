@@ -1,3 +1,7 @@
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
 .claude
 .opencode
 .cosine

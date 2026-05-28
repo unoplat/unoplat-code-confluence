@@ -203,8 +203,12 @@ class FrameworkFeaturePayload(BaseModel):
         default=False,
         description="Feature is a starting point",
     )
-    notes: Optional[str] = Field(default=None, description="Contributor notes, caveats, disambiguation guidance")
-    docs_url: Optional[str] = Field(default=None, description="Operation-specific documentation URL")
+    notes: Optional[str] = Field(
+        default=None, description="Contributor notes, caveats, disambiguation guidance"
+    )
+    docs_url: Optional[str] = Field(
+        default=None, description="Operation-specific documentation URL"
+    )
 
     model_config = ConfigDict(extra="forbid", use_enum_values=True)
 
