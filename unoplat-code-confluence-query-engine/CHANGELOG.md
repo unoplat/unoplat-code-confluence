@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.43.0...unoplat-code-confluence-query-engine-v0.44.0) (2026-05-28)
+
+
+### Features
+
+* **query-engine:** pre-fetch previous workflow and use status-based output dispatch ([dad7dc7](https://github.com/unoplat/unoplat-code-confluence/commit/dad7dc713f503ea454677ccf8d74031bcdb2a3a7))
+
 ## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.42.1...unoplat-code-confluence-query-engine-v0.43.0) (2026-05-19)
 
 

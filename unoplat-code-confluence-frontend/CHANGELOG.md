@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.55.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.55.0...unoplat-code-confluence-frontend-v1.55.1) (2026-05-28)
+
+
+### Bug Fixes
+
+* **frontend:** make GitHubUser fields optional and handle null display values ([772ec07](https://github.com/unoplat/unoplat-code-confluence/commit/772ec07b0a066af02676021e97bc04e7bd6eb6eb))
+
 ## [1.55.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.54.0...unoplat-code-confluence-frontend-v1.55.0) (2026-05-19)
 
 
