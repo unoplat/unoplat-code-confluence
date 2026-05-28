@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.37.0...unoplat-code-confluence-v0.38.0) (2026-05-28)
+
+
+### Features
+
+* **ingestion:** replace structural-signature extraction with BaseSourceContext detection primitives ([c27ee87](https://github.com/unoplat/unoplat-code-confluence/commit/c27ee87649ac5d5ca196028c1615063eabca3db5))
+* **query-engine:** pre-fetch previous workflow and use status-based output dispatch ([dad7dc7](https://github.com/unoplat/unoplat-code-confluence/commit/dad7dc713f503ea454677ccf8d74031bcdb2a3a7))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([82524e2](https://github.com/unoplat/unoplat-code-confluence/commit/82524e293409a35ab3e103e764950830cfce4f7a))
+* **frontend:** make GitHubUser fields optional and handle null display values ([772ec07](https://github.com/unoplat/unoplat-code-confluence/commit/772ec07b0a066af02676021e97bc04e7bd6eb6eb))
+* **log:** logging fix ([376d919](https://github.com/unoplat/unoplat-code-confluence/commit/376d9192f7d49af58467197d08eb3be5baabcac2))
+
 ## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.36.1...unoplat-code-confluence-v0.37.0) (2026-05-19)
 
 
