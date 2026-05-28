@@ -1,9 +1,9 @@
 """Unit tests for Next.js extraction in the TypeScript detector pipeline."""
 
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
     TypeScriptSourceContext,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_tree_sitter_framework_detector import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_tree_sitter_framework_detector import (
     TypeScriptTreeSitterFrameworkDetector,
 )
 from unoplat_code_confluence_commons.base_models import (

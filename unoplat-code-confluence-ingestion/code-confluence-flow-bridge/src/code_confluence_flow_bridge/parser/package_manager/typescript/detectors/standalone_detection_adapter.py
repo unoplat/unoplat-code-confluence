@@ -7,16 +7,16 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
     PackageManagerProvenance,
 )
 
-from src.code_confluence_flow_bridge.models.detection.shared.results import (
+from code_confluence_flow_bridge.models.detection.shared.results import (
     DetectedCodebase,
 )
-from src.code_confluence_flow_bridge.models.detection.typescript.discovery import (
+from code_confluence_flow_bridge.models.detection.typescript.discovery import (
     TypeScriptRepositoryScan,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
+from code_confluence_flow_bridge.parser.package_manager.shared.ordered_detection import (
     OrderedDetector,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.workspace_utils import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.workspace_utils import (
     find_nearest_workspace_owner,
     is_child_of_detected_codebase,
 )

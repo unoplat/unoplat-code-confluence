@@ -15,19 +15,19 @@ from unoplat_code_confluence_commons.credential_enums import (
     ProviderKey,
 )
 
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     GithubIssueSubmissionRequest,
     IssueStatus,
     IssueTracking,
     IssueType,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
-from src.code_confluence_flow_bridge.routers.github_issues.models import (
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session
+from code_confluence_flow_bridge.routers.github_issues.models import (
     AgentFeedbackSubmissionRequest,
     FeedbackCategory,
     SentimentRating,
 )
-from src.code_confluence_flow_bridge.utility.token_utils import (
+from code_confluence_flow_bridge.utility.token_utils import (
     fetch_repository_provider_token,
 )
 

@@ -10,10 +10,10 @@ import tempfile
 
 from fastapi.testclient import TestClient
 import pytest
-from src.code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
+from code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+from code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
     PythonSourceContext,
 )
 
@@ -59,7 +59,6 @@ class TestFrameworkDetectionWithPostgres:
                 source_context=PythonSourceContext.from_bytes(
                     source_code.encode("utf-8", errors="ignore")
                 ),
-                structural_signature=None,
                 programming_language="python",
             )
             fastapi_detections = [
@@ -130,7 +129,6 @@ class MyApp:
                 source_context=PythonSourceContext.from_bytes(
                     test_source.encode("utf-8", errors="ignore")
                 ),
-                structural_signature=None,
                 programming_language="python",
             )
 
@@ -199,7 +197,6 @@ class Product(BaseModel):
                 source_context=PythonSourceContext.from_bytes(
                     test_source.encode("utf-8", errors="ignore")
                 ),
-                structural_signature=None,
                 programming_language="python",
             )
 
@@ -269,7 +266,6 @@ async def create_user(user: UserModel, db=Depends(get_db)):
                 source_context=PythonSourceContext.from_bytes(
                     test_source.encode("utf-8", errors="ignore")
                 ),
-                structural_signature=None,
                 programming_language="python",
             )
 

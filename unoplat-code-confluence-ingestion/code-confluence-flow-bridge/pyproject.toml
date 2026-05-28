@@ -57,9 +57,9 @@ dev = [
     "check-jsonschema>=0.33.0",
     # Optional: stubs for popular libraries
     # "types-requests>=2.31.0",
-    "basedpyright>=1.32.1",
     "types-pyyaml>=6.0.12.20250915",
     "memray>=1.19.3",
+    "pyrefly>=1.0.0",
 ]
 
 [tool.uv.sources]
@@ -67,16 +67,12 @@ dev = [
 #unoplat-code-confluence-commons = { path = "../../unoplat-code-confluence-commons" }
 unoplat-code-confluence-commons = { git = "https://github.com/unoplat/unoplat-code-confluence.git", subdirectory = "unoplat-code-confluence-commons", rev = "unoplat-code-confluence-commons-v0.47.0" }
 
-[tool.basedpyright]
-typeCheckingMode = "strict"
-include = ["src"]
-exclude = ["**/__pycache__", ".venv", "dist", "build", "**/__init__.py"]
-ignore = ["**/__pycache__"]
-useLibraryCodeForTypes = true
-reportMissingImports = "error"
-reportMissingTypeStubs = false
-reportUnusedImport = "warning"
-reportUnusedVariable = "warning"
+[tool.pyrefly]
+preset = "strict"
+project-includes = ["src"]
+project-excludes = ["**/__pycache__", ".venv", "dist", "build", "**/__init__.py"]
+permissive-ignores = true
+python-version = "3.13"
 
 
 [tool.uv]

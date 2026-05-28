@@ -16,14 +16,14 @@ from pydantic import ValidationError
 import pytest
 from sqlalchemy import func, select, text
 from sqlmodel import delete
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
+from code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
     get_framework_features_for_imports,
 )
 from unoplat_code_confluence_commons.base_models import (

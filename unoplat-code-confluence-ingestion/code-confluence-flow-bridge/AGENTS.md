@@ -6,7 +6,7 @@
 - Dev: `uv run fastapi dev` (source: pyproject.toml, confidence: 0.85)
 - Test: `uv run --python 3.13 --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v` (source: pyproject.toml, confidence: 0.8)
 - Lint: `uv run ruff check src/` (source: ruff.toml, confidence: 0.9)
-- Type check: `uv run --group dev basedpyright src/` (source: pyproject.toml, confidence: 0.85)
+- Type check: `uv run --group dev pyrefly check src/` (source: pyproject.toml, confidence: 0.85)
 
 ## Dependency Guide
 
@@ -69,7 +69,7 @@ uv run --group test pytest tests/path/to/test_file.py::test_function_name  # Sin
 # Code Quality
 task lint                         # Run ruff linter
 task lint-fix                     # Auto-fix lint issues
-task typecheck                    # Run basedpyright type checker
+task typecheck                    # Run pyrefly type checker
 task format                       # Format code with ruff
 task code-quality                 # Run all checks (lint + typecheck + schema validation)
 ```
@@ -80,7 +80,7 @@ task code-quality                 # Run all checks (lint + typecheck + schema va
 
 **Formatting**: Line length 88. Use `uv run ruff format` - never fix import order manually. Python >=3.13 required.
 
-**Types**: Always define precise types. No `Any` types. Use basedpyright strict mode. For Pydantic JSON: use `model_dump_json()` not manual serialization.
+**Types**: Always define precise types. No `Any` types. Use pyrefly strict preset. For Pydantic JSON: use `model_dump_json()` not manual serialization.
 
 **Naming**: Follow Python PEP 8. Use descriptive names. Avoid nested functions (not preferred in this codebase).
 
@@ -119,7 +119,7 @@ task code-quality                 # Run all checks (lint + typecheck + schema va
 ### Lint
 - `uv run ruff check src/` (Taskfile.yml, `.`)
 ### Type Check
-- `uv run --group dev basedpyright src/` (Taskfile.yml, `.`)
+- `uv run --group dev pyrefly check src/` (Taskfile.yml, `.`)
 
 ## Dependency Guide
 See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.

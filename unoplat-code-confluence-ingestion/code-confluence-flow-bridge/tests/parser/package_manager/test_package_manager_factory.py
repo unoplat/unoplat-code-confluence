@@ -5,20 +5,20 @@ combinations to their appropriate strategy implementations.
 """
 
 import pytest
-from src.code_confluence_flow_bridge.parser.package_manager.python.managers.pip_strategy import (
+from code_confluence_flow_bridge.parser.package_manager.python.managers.pip_strategy import (
     PipStrategy,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.managers.poetry_strategy import (
+from code_confluence_flow_bridge.parser.package_manager.python.managers.poetry_strategy import (
     PythonPoetryStrategy,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.managers.uv_strategy import (
+from code_confluence_flow_bridge.parser.package_manager.python.managers.uv_strategy import (
     UvStrategy,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.registry import (
+from code_confluence_flow_bridge.parser.package_manager.shared.registry import (
     PackageManagerStrategyFactory,
     UnsupportedPackageManagerError,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.managers.package_json_strategy import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.managers.package_json_strategy import (
     TypeScriptPackageJsonStrategy,
 )
 from unoplat_code_confluence_commons.programming_language_metadata import (

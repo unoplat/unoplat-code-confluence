@@ -4,13 +4,14 @@ from pydantic import BaseModel, ConfigDict
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguageMetadata,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
     UnoplatGitRepository,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
     UnoplatPackageManagerMetadata,
 )
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRequestConfiguration,
 )
 

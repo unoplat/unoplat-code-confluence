@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 
-from src.code_confluence_flow_bridge.logging.trace_utils import (
+from code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
     activity_name_var,
     trace_id_var,

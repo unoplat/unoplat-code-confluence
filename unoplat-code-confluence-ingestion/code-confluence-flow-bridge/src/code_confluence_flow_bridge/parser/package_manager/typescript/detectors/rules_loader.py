@@ -6,12 +6,12 @@ from aiofile import async_open
 from pydantic import ValidationError
 import yaml
 
-from src.code_confluence_flow_bridge.models.detection.shared.rules import (
+from code_confluence_flow_bridge.models.detection.shared.rules import (
     LanguageRules,
     ManagerRule,
     Signature,
 )
-from src.code_confluence_flow_bridge.models.detection.typescript.rules import (
+from code_confluence_flow_bridge.models.detection.typescript.rules import (
     RuleManagerConfig,
     RulesFileConfig,
     RuleSignatureConfig,

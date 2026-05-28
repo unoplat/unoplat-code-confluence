@@ -89,11 +89,11 @@ def test_import_query() -> None:
     """Test to analyze Tree-sitter query results for Python imports."""
     code: str = """
 # First Party (internal imports) - single line
-from src.code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode as Node, Program as pm
-from src.code_confluence_flow_bridge.models.code import Function, Class as cs
-from src.code_confluence_flow_bridge.models.utils import get_all_utils
+from code_confluence_flow_bridge.models.chapi.chapi_node import ChapiNode as Node, Program as pm
+from code_confluence_flow_bridge.models.code import Function, Class as cs
+from code_confluence_flow_bridge.models.utils import get_all_utils
 # First Party (internal imports) - multi-line using parentheses
-from src.code_confluence_flow_bridge.models.chapi_forge.unoplat_import import (
+from code_confluence_flow_bridge.models.chapi_forge.unoplat_import import (
     ImportedName,
     UnoplatImport as Import
 )

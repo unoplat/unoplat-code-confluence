@@ -10,15 +10,15 @@ from unoplat_code_confluence_commons.base_models import (
     ProgrammingLanguageMetadata,
 )
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatPackageManagerMetadata,
     UnoplatProjectDependency,
     UnoplatVersion,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.manifests.setup_parser import (
+from code_confluence_flow_bridge.parser.package_manager.python.manifests.setup_parser import (
     SetupParser,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.strategy import (
+from code_confluence_flow_bridge.parser.package_manager.shared.strategy import (
     PackageManagerStrategy,
 )
 

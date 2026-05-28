@@ -15,10 +15,10 @@ from unoplat_code_confluence_commons.base_models import (
     FeatureSpec,
 )
 
-from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
+from code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
     PythonSourceContext,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.python.python_tree_sitter_framework_detector import (
+from code_confluence_flow_bridge.engine.programming_language.python.python_tree_sitter_framework_detector import (
     PythonTreeSitterFrameworkDetector,
 )
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from typing import List
 
-from src.code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
+from code_confluence_flow_bridge.parser.package_manager.shared.ripgrep import (
     find_files,
 )
 

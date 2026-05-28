@@ -10,14 +10,14 @@ from unoplat_code_confluence_commons.base_models import (
 )
 from unoplat_code_confluence_commons.workflow_models import JobStatus
 
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     IngestedRepositoriesListResponse,
     IngestedRepositoryResponse,
     ParentWorkflowJobListResponse,
     ParentWorkflowJobResponse,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
-from src.code_confluence_flow_bridge.utility.workflow_helpers import (
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session
+from code_confluence_flow_bridge.utility.workflow_helpers import (
     is_parent_workflow_cancellable,
 )
 

@@ -24,7 +24,7 @@ import requests
 
 # from tests.utils.db_cleanup import cleanup_postgresql_data
 # Local
-from src.code_confluence_flow_bridge.main import app
+from code_confluence_flow_bridge.main import app
 from testcontainers.compose import DockerCompose
 
 # Get the project root directory

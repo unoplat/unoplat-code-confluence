@@ -8,13 +8,13 @@ import httpx2
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
-from src.code_confluence_flow_bridge.logging.trace_utils import (
+from code_confluence_flow_bridge.logging.trace_utils import (
     seed_and_bind_logger_from_trace_id,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+from code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
     AgentMdUpdateActivityEnvelope,
 )
 

@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_project_dependency import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_project_dependency import (
     UnoplatProjectDependency,
 )
 

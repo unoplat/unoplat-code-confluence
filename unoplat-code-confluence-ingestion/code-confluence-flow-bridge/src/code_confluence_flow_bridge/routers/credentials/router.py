@@ -9,8 +9,8 @@ from unoplat_code_confluence_commons.credential_enums import (
     SecretKind,
 )
 
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
-from src.code_confluence_flow_bridge.routers.credentials.service import (
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session
+from code_confluence_flow_bridge.routers.credentials.service import (
     create_credential,
     delete_credential,
     extract_bearer_token,

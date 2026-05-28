@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.code_confluence_flow_bridge.parser.code_confluence_codebase_parser import (
+from code_confluence_flow_bridge.parser.code_confluence_codebase_parser import (
     _resolve_match_confidence,
     _resolve_validation_status,
 )

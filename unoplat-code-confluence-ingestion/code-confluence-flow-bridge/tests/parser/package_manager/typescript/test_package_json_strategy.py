@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 # First Party
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.managers.package_json_strategy import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.managers.package_json_strategy import (
     TypeScriptPackageJsonStrategy,
 )
 from unoplat_code_confluence_commons.programming_language_metadata import (

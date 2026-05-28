@@ -2,10 +2,10 @@
 
 from pathlib import Path
 
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
+from code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
 )
 from unoplat_code_confluence_commons.base_models import Concept
