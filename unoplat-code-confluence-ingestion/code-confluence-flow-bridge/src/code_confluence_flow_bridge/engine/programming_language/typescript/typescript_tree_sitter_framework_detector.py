@@ -16,10 +16,10 @@ from unoplat_code_confluence_commons.base_models import (
     InheritanceInfo,
 )
 
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_framework_query_builder import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_framework_query_builder import (
     TypeScriptFrameworkQueryBuilder,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
     TypeScriptSourceContext,
 )
 

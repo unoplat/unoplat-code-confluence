@@ -8,41 +8,33 @@ define data models such as dataclasses, entities, DTOs, schemas, etc.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import Tuple
 
 from unoplat_code_confluence_commons.base_models import DataModelPosition
 from unoplat_code_confluence_commons.programming_language_metadata import (
     ProgrammingLanguage,
 )
 
-from src.code_confluence_flow_bridge.engine.detector.data_model_detector_factory import (
+from code_confluence_flow_bridge.engine.detector.data_model_detector_factory import (
     DataModelDetectorFactory,
     UnsupportedLanguageForDataModelDetectionError,
 )
-
-if TYPE_CHECKING:
-    from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
-        PythonSourceContext,
-    )
-    from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
-        TypeScriptSourceContext,
-    )
+from code_confluence_flow_bridge.engine.programming_language.common.source_context import (
+    BaseSourceContext,
+)
 
 
 def detect_data_model(
-    source_context: "PythonSourceContext | TypeScriptSourceContext",
+    source_context: BaseSourceContext,
     language: str = "",
-    structural_signature: Optional[object] = None,
 ) -> Tuple[bool, DataModelPosition]:
     """
     Detect if a file contains data model definitions for any supported language.
 
     Args:
-        source_context: Pre-parsed language-specific source context containing
+        source_context: Pre-parsed source context containing
             source bytes, imports, import aliases, and the tree-sitter root.
         language: Programming language (e.g., "python", "typescript")
-        structural_signature: Optional structural signature (for future use)
-
     Returns:
         Tuple containing:
             - bool: True if data models exist, False otherwise
@@ -63,10 +55,7 @@ def detect_data_model(
         strategy = DataModelDetectorFactory.get_strategy(programming_language)
 
         # Delegate detection to language-specific strategy
-        return strategy.detect(
-            source_context=source_context,
-            structural_signature=structural_signature,
-        )
+        return strategy.detect(source_context=source_context)
     except UnsupportedLanguageForDataModelDetectionError:
         # Language not supported for data model detection
         return (False, DataModelPosition())

@@ -17,10 +17,10 @@ from unoplat_code_confluence_commons.workflow_models import (
     JobStatus,
 )
 
-from src.code_confluence_flow_bridge.logging.trace_utils import (
+from code_confluence_flow_bridge.logging.trace_utils import (
     seed_and_bind_logger_from_trace_id,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
 
 
 class ParentWorkflowDbActivity:

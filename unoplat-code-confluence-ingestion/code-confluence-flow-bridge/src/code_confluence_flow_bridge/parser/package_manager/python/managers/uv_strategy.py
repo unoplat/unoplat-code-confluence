@@ -11,15 +11,15 @@ from unoplat_code_confluence_commons.base_models import (
     ProgrammingLanguageMetadata,
 )
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatPackageManagerMetadata,
     UnoplatProjectDependency,
     UnoplatVersion,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.strategy import (
+from code_confluence_flow_bridge.parser.package_manager.shared.strategy import (
     PackageManagerStrategy,
 )
-from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
+from code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 
 class UvStrategy(PackageManagerStrategy):

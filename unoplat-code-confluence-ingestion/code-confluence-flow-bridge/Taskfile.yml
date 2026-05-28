@@ -197,16 +197,16 @@ tasks:
       - uv run ruff check src/ --fix
 
   typecheck:
-    desc: Run basedpyright type checker on the codebase
+    desc: Run pyrefly type checker on the codebase
     dir: .
     cmds:
-      - uv run --group dev basedpyright src/
+      - uv run --group dev pyrefly check src/
 
   typecheck-file:
-    desc: Run basedpyright type checker on a specific file task typecheck-file FILE=path/to/your/file.py
+    desc: Run pyrefly type checker on a specific file task typecheck-file FILE=path/to/your/file.py
     dir: .
     cmds:
-      - uv run --group dev basedpyright src/{{.FILE}}
+      - uv run --group dev pyrefly check src/{{.FILE}}
 
   format:
     desc: Format code using ruff
@@ -250,7 +250,7 @@ tasks:
       - uv run --group test pytest --collect-only tests
 
   run-dev-memray:
-    desc: Run app under memray live-remote profiler (terminal 1; pair with memray-tui). Runs from flow-bridge root so absolute imports `from src.code_confluence_flow_bridge.*` resolve correctly under raw uvicorn (fastapi dev's path-walking is bypassed by memray's runpy invocation).
+    desc: Run app under memray live-remote profiler (terminal 1; pair with memray-tui). Runs from flow-bridge root so absolute imports `from code_confluence_flow_bridge.*` resolve correctly under raw uvicorn (fastapi dev's path-walking is bypassed by memray's runpy invocation).
     deps: [sync]
     env:
       DB_HOST: "localhost"
@@ -268,7 +268,7 @@ tasks:
       REPOSITORIES_BASE_PATH: "/opt/unoplat/repositories"
       TOKEN_ENCRYPTION_KEY: "0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
     cmds:
-      - uv run --group dev memray run --live-remote --live-port 12345 --native -m uvicorn src.code_confluence_flow_bridge.main:app --host 0.0.0.0 --port 8000
+      - uv run --group dev memray run --live-remote --live-port 12345 --native -m uvicorn code_confluence_flow_bridge.main:app --host 0.0.0.0 --port 8000
 
   memray-tui:
     desc: Attach memray live TUI to port 12345 (terminal 2)
@@ -294,7 +294,7 @@ tasks:
       REPOSITORIES_BASE_PATH: "/opt/unoplat/repositories"
       TOKEN_ENCRYPTION_KEY: "0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ="
     cmds:
-      - uv run --group dev memray run --output /tmp/memray-bridge.bin --force --native --aggregate -m uvicorn src.code_confluence_flow_bridge.main:app --host 0.0.0.0 --port 8000
+      - uv run --group dev memray run --output /tmp/memray-bridge.bin --force --native --aggregate -m uvicorn code_confluence_flow_bridge.main:app --host 0.0.0.0 --port 8000
 
   memray-flamegraph:
     desc: Generate interactive flamegraph from /tmp/memray-bridge.bin

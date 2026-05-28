@@ -17,103 +17,103 @@ from unoplat_code_confluence_commons.base_models import (
 )
 from unoplat_code_confluence_commons.credential_enums import CredentialNamespace
 
-from src.code_confluence_flow_bridge.github_app.router import (
+from code_confluence_flow_bridge.github_app.router import (
     router as github_app_router,
 )
-from src.code_confluence_flow_bridge.logging.log_config import setup_logging
-from src.code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
-from src.code_confluence_flow_bridge.logging.trace_utils import (
+from code_confluence_flow_bridge.logging.log_config import setup_logging
+from code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
+from code_confluence_flow_bridge.logging.trace_utils import (
     trace_id_var,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
     UnoplatGitRepository,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRequestConfiguration,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.detectors.ripgrep_detector import (
+from code_confluence_flow_bridge.parser.package_manager.python.detectors.ripgrep_detector import (
     PythonRipgrepDetector,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.ripgrep_detector import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.ripgrep_detector import (
     TypeScriptRipgrepDetector,
 )
-from src.code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
+from code_confluence_flow_bridge.processor.activity_inbound_interceptor import (
     ActivityStatusInterceptor,
 )
-from src.code_confluence_flow_bridge.processor.agent_md_update_activity import (
+from code_confluence_flow_bridge.processor.agent_md_update_activity import (
     AgentMdUpdateActivity,
 )
-from src.code_confluence_flow_bridge.processor.codebase_child_workflow import (
+from code_confluence_flow_bridge.processor.codebase_child_workflow import (
     CodebaseChildWorkflow,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
+from code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
     ChildWorkflowDbActivity,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import (
+from code_confluence_flow_bridge.processor.db.postgres.db import (
     create_db_and_tables,
     dispose_current_engine,
     get_session,
     get_session_cm,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
+from code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
+from code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
     ParentWorkflowDbActivity,
 )
-from src.code_confluence_flow_bridge.processor.generic_codebase_processing_activity import (
+from code_confluence_flow_bridge.processor.generic_codebase_processing_activity import (
     GenericCodebaseProcessingActivity,
 )
-from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import (
+from code_confluence_flow_bridge.processor.git_activity.confluence_git_activity import (
     GitActivity,
 )
-from src.code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import (
+from code_confluence_flow_bridge.processor.git_activity.confluence_git_graph import (
     ConfluenceGitGraph,
 )
-from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import (
+from code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_activity import (
     PackageMetadataActivity,
 )
-from src.code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import (
+from code_confluence_flow_bridge.processor.package_metadata_activity.package_manager_metadata_ingestion import (
     PackageManagerMetadataIngestion,
 )
-from src.code_confluence_flow_bridge.processor.parent_workflow_interceptor import (
+from code_confluence_flow_bridge.processor.parent_workflow_interceptor import (
     ParentWorkflowStatusInterceptor,
 )
-from src.code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
-from src.code_confluence_flow_bridge.routers.credentials.router import (
+from code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
+from code_confluence_flow_bridge.routers.credentials.router import (
     router as credentials_router,
 )
-from src.code_confluence_flow_bridge.routers.flags.router import (
+from code_confluence_flow_bridge.routers.flags.router import (
     router as flags_router,
 )
-from src.code_confluence_flow_bridge.routers.github_issues.router import (
+from code_confluence_flow_bridge.routers.github_issues.router import (
     router as github_issues_router,
 )
-from src.code_confluence_flow_bridge.routers.operations.router import (
+from code_confluence_flow_bridge.routers.operations.router import (
     router as operations_router,
 )
-from src.code_confluence_flow_bridge.routers.providers.router import (
+from code_confluence_flow_bridge.routers.providers.router import (
     router as providers_router,
 )
-from src.code_confluence_flow_bridge.routers.repository.router import (
+from code_confluence_flow_bridge.routers.repository.router import (
     router as repository_router,
 )
-from src.code_confluence_flow_bridge.utility.deps import trace_dependency
-from src.code_confluence_flow_bridge.utility.detection import (
+from code_confluence_flow_bridge.utility.deps import trace_dependency
+from code_confluence_flow_bridge.utility.detection import (
     CodebaseDetector,
     detect_codebases_multi_language,
 )
-from src.code_confluence_flow_bridge.utility.runtime_deps import (
+from code_confluence_flow_bridge.utility.runtime_deps import (
     get_codebase_detectors,
     get_temporal_client_dep,
 )
-from src.code_confluence_flow_bridge.utility.token_utils import (
+from code_confluence_flow_bridge.utility.token_utils import (
     fetch_repository_provider_token,
 )
-from src.code_confluence_flow_bridge.utility.workflow_helpers import (
+from code_confluence_flow_bridge.utility.workflow_helpers import (
     monitor_workflow,
     start_workflow,
 )

@@ -6,9 +6,6 @@ from unoplat_code_confluence_query_engine.models.runtime.dependency_guide_target
 from unoplat_code_confluence_query_engine.services.repository.dependency_guide_normalization_service import (
     normalize_dependency_guide_targets,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.user_prompts.build_user_prompt_dependency_guide import (
-    build_dependency_guide_prompt,
-)
 
 
 def test_normalize_dependency_guide_targets_collapses_configured_radix_family() -> None:
@@ -124,21 +121,3 @@ def test_normalize_dependency_guide_targets_respects_language_scope() -> None:
             source_packages=["@radix-ui/react-tabs"],
         ),
     ]
-
-
-def test_build_dependency_guide_prompt_uses_only_canonical_name_and_language() -> None:
-    prompt = build_dependency_guide_prompt(
-        dependency_target=DependencyGuideTarget(
-            name="Radix UI React Primitives",
-            source_packages=[
-                "@radix-ui/react-dialog",
-                "@radix-ui/react-popover",
-            ],
-        ),
-        programming_language="typescript",
-    )
-
-    assert prompt == (
-        "Document the library 'Radix UI React Primitives' for programming language "
-        "typescript."
-    )

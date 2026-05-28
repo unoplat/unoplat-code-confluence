@@ -33,6 +33,7 @@ class AgentDependencies:
     repository_workflow_run_id: str
     codebase_workflow_run_id: str
     agent_name: str
+    allow_no_change_output: bool = True
 
     @cached_property
     def backend(self) -> BackendProtocol:

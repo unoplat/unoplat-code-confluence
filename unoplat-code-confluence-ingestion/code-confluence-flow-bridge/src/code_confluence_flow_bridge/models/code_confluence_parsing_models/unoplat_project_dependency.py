@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_version import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_version import (
     UnoplatVersion,
 )
 

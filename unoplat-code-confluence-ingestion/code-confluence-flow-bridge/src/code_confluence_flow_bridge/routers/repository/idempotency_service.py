@@ -10,7 +10,6 @@ from unoplat_code_confluence_commons.base_models import (
 )
 from unoplat_code_confluence_commons.workflow_models import JobStatus
 
-
 ACTIVE_REPOSITORY_OPERATION_STATUSES: tuple[str, ...] = (
     JobStatus.SUBMITTED.value,
     JobStatus.RUNNING.value,

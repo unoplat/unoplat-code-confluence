@@ -5,7 +5,7 @@ from typing import Protocol, runtime_checkable
 from fastapi import HTTPException
 from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
 
-from src.code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
+from code_confluence_flow_bridge.logging.logger_protocol import StructuredLogger
 
 
 @runtime_checkable

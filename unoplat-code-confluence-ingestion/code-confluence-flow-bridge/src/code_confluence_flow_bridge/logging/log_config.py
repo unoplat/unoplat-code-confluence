@@ -10,8 +10,8 @@ from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 
-from src.code_confluence_flow_bridge.logging.loguru_oltp_handler import OTLPHandler
-from src.code_confluence_flow_bridge.logging.trace_utils import (
+from code_confluence_flow_bridge.logging.loguru_oltp_handler import OTLPHandler
+from code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
     activity_name_var,
     trace_id_var,

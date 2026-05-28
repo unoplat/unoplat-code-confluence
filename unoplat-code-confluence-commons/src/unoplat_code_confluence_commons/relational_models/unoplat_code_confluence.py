@@ -127,9 +127,6 @@ class UnoplatCodeConfluenceFile(SQLBase):
     file_path: Mapped[str] = mapped_column(primary_key=True)
     codebase_qualified_name: Mapped[str] = mapped_column(nullable=False)
     checksum: Mapped[Optional[str]] = mapped_column(default=None)
-    structural_signature: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB, default=None
-    )
     imports: Mapped[List[str]] = mapped_column(JSONB, default=list)
     has_data_model: Mapped[bool] = mapped_column(default=False)
     data_model_positions: Mapped[Dict[str, Any]] = mapped_column(JSONB, default=dict)

@@ -95,7 +95,7 @@ class AppFeedbackService:
             gh_host=_GITHUB_HOST,
         )
         logger.info("Creating GitHub issue: {}", title)
-        # ghapi dynamically generates API methods at runtime; basedpyright
+        # ghapi dynamically generates API methods at runtime; pyrefly
         # cannot resolve them statically.  Suppress the resulting false-positive
         # type errors (upstream library limitation).
         result: Mapping[str, object] = api.issues.create(  # pyright: ignore[reportUnknownVariableType,reportUnknownMemberType,reportAttributeAccessIssue]

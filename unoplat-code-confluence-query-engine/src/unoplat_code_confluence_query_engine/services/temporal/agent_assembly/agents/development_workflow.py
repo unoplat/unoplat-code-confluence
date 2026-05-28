@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from pydantic_ai import Agent
-from pydantic_ai.capabilities import AbstractCapability
+from pydantic_ai.capabilities import AbstractCapability, HistoryProcessor
 from pydantic_ai.toolsets.abstract import AbstractToolset
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
-    EngineeringWorkflow,
     EngineeringWorkflowAgentOutput,
-    EngineeringWorkflowNoChange,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
@@ -18,6 +16,9 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agent
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.validators.development_workflow_validator import (
     validate_engineering_development_workflow_output,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.history_compaction import (
+    compact_temporal_agent_history,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
     build_markdown_execute_console_capability,
@@ -84,7 +85,10 @@ def build_development_workflow_agent(
         local_web_search_toolset_id=DEVELOPMENT_WORKFLOW_LOCAL_WEB_SEARCH_TOOLSET_ID,
         local_web_fetch_toolset_id=DEVELOPMENT_WORKFLOW_LOCAL_WEB_FETCH_TOOLSET_ID,
     )
-    capabilities: list[AbstractCapability[AgentDependencies]] = [console_capability]
+    capabilities: list[AbstractCapability[AgentDependencies]] = [
+        console_capability,
+        HistoryProcessor(compact_temporal_agent_history),
+    ]
     if search_capability is not None:
         capabilities.append(search_capability)
     toolsets: list[AbstractToolset[AgentDependencies]] = []
@@ -106,7 +110,7 @@ def build_development_workflow_agent(
         deps_type=AgentDependencies,
         toolsets=tuple(toolsets),
         capabilities=capabilities,
-        output_type=[EngineeringWorkflow, EngineeringWorkflowNoChange],
+        output_type=EngineeringWorkflowAgentOutput,
         output_retries=2,
         model_settings=context.model_settings,
         event_stream_handler=event_stream_handler,

@@ -15,16 +15,16 @@ from unoplat_code_confluence_commons.credential_enums import (
     SecretKind,
 )
 
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     GitHubRepoSummary,
     PaginatedResponse,
     RepositoryProvidersResponse,
 )
-from src.code_confluence_flow_bridge.utility.provider_urls import (
+from code_confluence_flow_bridge.utility.provider_urls import (
     get_github_graphql_url,
     get_github_rest_api_base_url,
 )
-from src.code_confluence_flow_bridge.utility.token_utils import (
+from code_confluence_flow_bridge.utility.token_utils import (
     fetch_repository_provider_token,
 )
 
@@ -125,6 +125,7 @@ class ViewerRepositoriesPayload(TypedDict):
 
 
 class GitHubUserPayload(TypedDict, total=False):
+    login: str | None
     name: str | None
     avatar_url: str | None
     email: str | None
@@ -287,6 +288,7 @@ async def fetch_authenticated_user_details(
                 email = select_primary_verified_email(email_payload)
 
     return {
+        "login": user_data.get("login"),
         "name": user_data.get("name"),
         "avatar_url": user_data.get("avatar_url"),
         "email": email,

@@ -308,7 +308,7 @@ Distributed tracing with Loguru and OpenTelemetry:
 
 ```python
 # ContextVar-based trace propagation
-from src.code_confluence_flow_bridge.logging.trace_utils import (
+from code_confluence_flow_bridge.logging.trace_utils import (
     trace_id_var,
     workflow_id_var,
     activity_name_var,
@@ -456,7 +456,7 @@ task run-client
 ### Type Safety
 
 - Use `type: ignore` for dynamic models from commons (Credentials, Repository, etc.)
-- Enable strict type checking: `basedpyright typeCheckingMode = "strict"`
+- Enable strict type checking: `pyrefly` with `preset = "strict"`
 - Always define return types for activities (required by Temporal)
 
 ### Neo4j Transactions

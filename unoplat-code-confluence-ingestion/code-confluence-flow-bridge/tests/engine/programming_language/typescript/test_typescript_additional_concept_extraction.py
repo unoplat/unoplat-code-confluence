@@ -2,13 +2,13 @@
 
 from typing import cast
 
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_framework_query_builder import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_framework_query_builder import (
     TypeScriptFrameworkQueryBuilder,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
     TypeScriptSourceContext,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_tree_sitter_framework_detector import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_tree_sitter_framework_detector import (
     TypeScriptTreeSitterFrameworkDetector,
 )
 import tree_sitter

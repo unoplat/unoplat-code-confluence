@@ -5,14 +5,14 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 import pytest
 from sqlalchemy import delete
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres import (
+from code_confluence_flow_bridge.processor.db.postgres import (
     framework_query_service,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from src.code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
 )
 from unoplat_code_confluence_commons.base_models import (

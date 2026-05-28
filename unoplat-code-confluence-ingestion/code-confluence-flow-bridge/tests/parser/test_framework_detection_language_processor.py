@@ -22,16 +22,16 @@ from fastapi.testclient import TestClient
 import pytest
 
 # First Party
-from src.code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
+from code_confluence_flow_bridge.engine.programming_language.python.python_framework_detection_service import (
     PythonFrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
+from code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
     LanguageProcessorContext,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.python_processor import (
+from code_confluence_flow_bridge.parser.language_processors.python_processor import (
     PythonLanguageProcessor,
 )
 from unoplat_code_confluence_commons.programming_language_metadata import (
@@ -65,7 +65,7 @@ def language_processor_context(
     - FRAMEWORK_DEFINITIONS_PATH is set
     - Framework definitions are loaded into PostgreSQL
     """
-    env_config = EnvironmentSettings(EXTRACT_STRUCTURAL_SIGNATURES=False)
+    env_config = EnvironmentSettings()
 
     return LanguageProcessorContext(
         codebase_name="test-codebase",

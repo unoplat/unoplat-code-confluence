@@ -196,16 +196,16 @@ tasks:
       - uv run --group dev ruff check src/ --fix
 
   typecheck:
-    desc: Run basedpyright type checker on the codebase
+    desc: Run pyrefly type checker on the codebase
     dir: .
     cmds:
-      - uv run --group dev basedpyright src/
+      - uv run --group dev pyrefly check src/
 
   typecheck-file:
-    desc: Run basedpyright type checker on a specific file task typecheck-file FILE=path/to/your/file.py
+    desc: Run pyrefly type checker on a specific file task typecheck-file FILE=path/to/your/file.py
     dir: .
     cmds:
-      - uv run --group dev basedpyright src/{{.FILE}}
+      - uv run --group dev pyrefly check src/{{.FILE}}
 
   format:
     desc: Format code using ruff

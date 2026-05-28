@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.ripgrep_detector import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.ripgrep_detector import (
     TypeScriptRipgrepDetector,
 )
 from unoplat_code_confluence_commons.programming_language_metadata import (

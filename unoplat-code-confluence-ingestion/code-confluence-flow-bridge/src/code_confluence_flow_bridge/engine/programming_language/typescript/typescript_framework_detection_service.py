@@ -2,34 +2,24 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import List
 
 from loguru import logger
-from unoplat_code_confluence_commons.base_models import (
-    Detection,
-    PythonStructuralSignature,
-    TypeScriptStructuralSignature,
-)
+from unoplat_code_confluence_commons.base_models import Detection
 
-from src.code_confluence_flow_bridge.engine.framework_detection_service import (
+from code_confluence_flow_bridge.engine.framework_detection_service import (
     FrameworkDetectionService,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_source_context import (
-    TypeScriptSourceContext,
+from code_confluence_flow_bridge.engine.programming_language.common.source_context import (
+    BaseSourceContext,
 )
-from src.code_confluence_flow_bridge.engine.programming_language.typescript.typescript_tree_sitter_framework_detector import (
+from code_confluence_flow_bridge.engine.programming_language.typescript.typescript_tree_sitter_framework_detector import (
     TypeScriptTreeSitterFrameworkDetector,
 )
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
-from src.code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from code_confluence_flow_bridge.processor.db.postgres.framework_query_service import (
     get_framework_features_for_imports,
 )
-
-if TYPE_CHECKING:
-    from src.code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
-        PythonSourceContext,
-    )
-
 
 def _expand_import_paths(import_paths: List[str]) -> List[str]:
     """Expand dotted import paths into all ancestor prefixes for DB lookup.
@@ -61,8 +51,7 @@ class TypeScriptFrameworkDetectionService(FrameworkDetectionService):
 
     async def detect_features(
         self,
-        source_context: PythonSourceContext | TypeScriptSourceContext,
-        structural_signature: PythonStructuralSignature | TypeScriptStructuralSignature | None,
+        source_context: BaseSourceContext,
         programming_language: str,
     ) -> List[Detection]:
         """
@@ -75,10 +64,6 @@ class TypeScriptFrameworkDetectionService(FrameworkDetectionService):
                 "TypeScriptFrameworkDetectionService called with language: {}",
                 programming_language,
             )
-            return []
-
-        if not isinstance(source_context, TypeScriptSourceContext):
-            logger.debug("TypeScript source context required for framework detection")
             return []
 
         context = source_context

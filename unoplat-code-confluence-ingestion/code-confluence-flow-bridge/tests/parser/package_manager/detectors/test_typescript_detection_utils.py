@@ -1,6 +1,6 @@
 from pathlib import PurePosixPath
 
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.detectors.workspace_utils import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.detectors.workspace_utils import (
     expand_workspace_globs,
     segment_match,
 )

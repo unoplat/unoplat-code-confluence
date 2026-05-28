@@ -23,22 +23,22 @@ with workflow.unsafe.imports_passed_through():
         JobStatus,
     )
 
-    from src.code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
+    from code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
         CodebaseChildWorkflowEnvelope,
         RepoWorkflowRunEnvelope,
     )
-    from src.code_confluence_flow_bridge.processor.activity_retries_config import (
+    from code_confluence_flow_bridge.processor.activity_retries_config import (
         ActivityRetriesConfig,
     )
-    from src.code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
+    from code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activity import (
         ChildWorkflowDbActivity,
     )
-    from src.code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
+    from code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activity import (
         ParentWorkflowDbActivity,
     )
 
     # Bring in the outbound interceptor and shared headers ContextVar
-    from src.code_confluence_flow_bridge.processor.workflow_outbound_interceptor import (
+    from code_confluence_flow_bridge.processor.workflow_outbound_interceptor import (
         ParentWorkflowOutboundInterceptor,
         workflow_headers_var,
     )

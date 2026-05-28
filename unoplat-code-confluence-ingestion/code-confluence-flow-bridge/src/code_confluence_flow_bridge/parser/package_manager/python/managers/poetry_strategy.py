@@ -12,21 +12,21 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 from validate_pyproject import api as validator_api
 from validate_pyproject.errors import ValidationError
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatPackageManagerMetadata,
     UnoplatProjectDependency,
     UnoplatVersion,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.manifests.requirements_loader import (
+from code_confluence_flow_bridge.parser.package_manager.python.manifests.requirements_loader import (
     RequirementsUtils,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.manifests.setup_parser import (
+from code_confluence_flow_bridge.parser.package_manager.python.manifests.setup_parser import (
     SetupParser,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.strategy import (
+from code_confluence_flow_bridge.parser.package_manager.shared.strategy import (
     PackageManagerStrategy,
 )
-from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
+from code_confluence_flow_bridge.utility.author_utils import normalize_authors
 
 
 class PythonPoetryStrategy(PackageManagerStrategy):

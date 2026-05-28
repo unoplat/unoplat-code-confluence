@@ -10,15 +10,15 @@ from loguru import logger
 from unoplat_code_confluence_commons.base_models import ProgrammingLanguageMetadata
 
 # First Party
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatPackageManagerMetadata,
     UnoplatProjectDependency,
     UnoplatVersion,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.shared.strategy import (
+from code_confluence_flow_bridge.parser.package_manager.shared.strategy import (
     PackageManagerStrategy,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.typescript.manifests.package_json_loader import (
+from code_confluence_flow_bridge.parser.package_manager.typescript.manifests.package_json_loader import (
     PackageJsonManifest,
     load_package_json,
 )

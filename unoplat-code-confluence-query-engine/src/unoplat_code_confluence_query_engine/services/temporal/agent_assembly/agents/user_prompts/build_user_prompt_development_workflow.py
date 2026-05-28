@@ -7,6 +7,7 @@ from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
     per_language_development_workflow_prompt,
 )
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
+    ENGINEERING_WORKFLOW_FULL_OUTPUT,
     ENGINEERING_WORKFLOW_NO_CHANGE,
 )
 
@@ -33,7 +34,7 @@ def build_development_workflow_instructions() -> str:
         "- any other AGENTS.md heading or section content\n"
         "- any non-markdown file\n"
         "- dependencies_overview.md, business_domain_references.md, app_interfaces.md, or any source/config file\n"
-        "If ## Engineering Workflow is already complete and correct before this run modifies anything, do not rewrite it.\n"
+        "If ## Engineering Workflow is already complete and correct before this run modifies anything, do not rewrite it. Whether you may return status=no_change will be conveyed by the user for this run.\n"
         "Use this exact section shape:\n"
         "## Engineering Workflow\n"
         "### Install\n"
@@ -48,10 +49,13 @@ def build_development_workflow_instructions() -> str:
         "Follow this decision procedure in order:\n"
         "1. Read AGENTS.md and inspect only the existing ## Engineering Workflow section if it exists.\n"
         "2. Verify current package-manager related config/scripts plus lint and type-check config/script sources.\n"
-        "3. Decision point — before invoking any write tool: if the existing section already correctly reflects your verified evidence, do not call edit_file or write_file and return exactly "
-        f"{ENGINEERING_WORKFLOW_NO_CHANGE}.\n"
-        "4. Otherwise, update only ## Engineering Workflow using edit_file or write_file and return the full structured EngineeringWorkflow output.\n"
-        f"Once you invoke edit_file or write_file in this run, {ENGINEERING_WORKFLOW_NO_CHANGE} is no longer a valid output; return the full structured EngineeringWorkflow output describing the commands you wrote.\n"
+        "3. Decision point — before invoking any write tool: if the existing section already correctly reflects your verified evidence, do not call edit_file or write_file. If and only if the user says no-change output is allowed for this run, return {\"status\":\""
+        f"{ENGINEERING_WORKFLOW_NO_CHANGE}"
+        "\"} with no commands field. If the user says full structured output is required, return {\"status\":\""
+        f"{ENGINEERING_WORKFLOW_FULL_OUTPUT}"
+        "\",\"commands\":[...]} instead without rewriting the already-correct section.\n"
+        "4. Otherwise, update only ## Engineering Workflow using edit_file or write_file and return full_output with commands.\n"
+        f"Once you invoke edit_file or write_file in this run, status={ENGINEERING_WORKFLOW_NO_CHANGE} is no longer valid; return status={ENGINEERING_WORKFLOW_FULL_OUTPUT} with the commands you wrote.\n"
         "</existing_section_update_policy>\n"
         f"{get_engineering_citation_instructions()}"
     )
@@ -61,14 +65,29 @@ def build_development_workflow_prompt(
     codebase_path: str,
     programming_language: str,
     package_manager: str,
+    *,
+    allow_no_change_output: bool = True,
 ) -> str:
-    return (
+    base_prompt = (
         f"Analyze engineering workflow for {codebase_path} "
         f"using language {programming_language} "
         f"and package manager {package_manager}. "
-        "If — and only if — the existing AGENTS.md ## Engineering Workflow section is already correct "
-        "before you make any edits, return exactly "
-        f"{ENGINEERING_WORKFLOW_NO_CHANGE}. If you invoke edit_file or write_file in this run, return the full structured EngineeringWorkflow output instead."
+    )
+    if allow_no_change_output:
+        return (
+            base_prompt
+            + "No-change output is allowed for this run because previous structured engineering_workflow data is available to carry forward. "
+            "If — and only if — the existing AGENTS.md ## Engineering Workflow section is already correct "
+            "before you make any edits, return exactly "
+            f"{{\"status\":\"{ENGINEERING_WORKFLOW_NO_CHANGE}\"}} with no commands field. If you invoke edit_file or write_file in this run, return "
+            f"{{\"status\":\"{ENGINEERING_WORKFLOW_FULL_OUTPUT}\",\"commands\":[...]}} instead."
+        )
+
+    return (
+        base_prompt
+        + "Full structured output is required for this run because previous structured engineering_workflow data is unavailable. "
+        "If the existing AGENTS.md ## Engineering Workflow section is already correct before you make any edits, do not rewrite it, but return full_output with commands inferred from verified repository evidence and the existing section. "
+        f"Do not return status={ENGINEERING_WORKFLOW_NO_CHANGE}. Return {{\"status\":\"{ENGINEERING_WORKFLOW_FULL_OUTPUT}\",\"commands\":[...]}}. If you invoke edit_file or write_file in this run, return full_output with the commands you wrote."
     )
 
 

@@ -9,7 +9,7 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 )
 from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
 
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     CodebaseStatus,
     CodebaseStatusList,
     IssueTracking,

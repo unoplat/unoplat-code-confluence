@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 from typing import Union
 
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
 

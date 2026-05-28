@@ -5,13 +5,13 @@ from pathlib import Path
 import pytest
 
 # First Party
-from src.code_confluence_flow_bridge.models.configuration.settings import (
+from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
+from code_confluence_flow_bridge.parser.language_processors.language_processor_context import (
     LanguageProcessorContext,
 )
-from src.code_confluence_flow_bridge.parser.language_processors.typescript_processor import (
+from code_confluence_flow_bridge.parser.language_processors.typescript_processor import (
     TypeScriptLanguageProcessor,
 )
 from unoplat_code_confluence_commons.programming_language_metadata import (

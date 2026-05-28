@@ -21,6 +21,7 @@ from pydantic_ai_backends.permissions.presets import (
 from pydantic_ai_backends.toolsets.console import (
     EDIT_FILE_DESCRIPTION,
     GLOB_DESCRIPTION,
+    GREP_DESCRIPTION,
     WRITE_FILE_DESCRIPTION,
     create_console_toolset,
 )
@@ -159,6 +160,8 @@ COMMAND_DISCOVERY_ALLOW_PATTERNS: list[str] = [
     "** help **",
 ]
 
+CONSOLE_TOOL_MAX_RETRIES: int = 3
+
 
 def _allow_rules(patterns: list[str], description: str) -> list[PermissionRule]:
     return [
@@ -290,9 +293,19 @@ GLOB_RELATIVE_DESCRIPTION = (
     'and keep the `pattern` relative (e.g., `path="/app/src"`, `pattern="**/*.py"`).'
 )
 
+GREP_CONTRACT_DESCRIPTION = (
+    f"{GREP_DESCRIPTION}\n\n"
+    "IMPORTANT: The required regex argument is named exactly `pattern` — never `.pattern`, "
+    "`query`, or any other key. The `path` argument is only a file or directory to search "
+    "inside; do not put filename glob wildcards in `path`. To restrict searched files by "
+    'glob, use `glob_pattern` separately (e.g., `path="/repo"`, '
+    '`glob_pattern=".github/workflows/*.yml"`, `pattern="ruff|mypy"`).'
+)
+
 
 COMMON_TOOL_DESCRIPTIONS: dict[str, str] = {
     "glob": GLOB_RELATIVE_DESCRIPTION,
+    "grep": GREP_CONTRACT_DESCRIPTION,
 }
 
 
@@ -330,6 +343,7 @@ class LocalConsoleCapability(ConsoleCapability):
             edit_format=self.edit_format,
             descriptions=self.descriptions,
             permissions=self.permissions,
+            max_retries=CONSOLE_TOOL_MAX_RETRIES,
         )
         self._checker = PermissionChecker(
             ruleset=self.permissions,

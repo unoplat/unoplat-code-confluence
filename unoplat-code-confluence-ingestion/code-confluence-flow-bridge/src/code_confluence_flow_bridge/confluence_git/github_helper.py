@@ -13,25 +13,25 @@ from unoplat_code_confluence_commons.base_models import (
     ProgrammingLanguageMetadata,
 )
 
-from src.code_confluence_flow_bridge.logging.trace_utils import (
+from code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
     activity_name_var,
     workflow_id_var,
     workflow_run_id_var,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
     UnoplatCodebase,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
     UnoplatGitRepository,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
     UnoplatPackageManagerMetadata,
 )
-from src.code_confluence_flow_bridge.models.github.github_repo import (
+from code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRequestConfiguration,
 )
-from src.code_confluence_flow_bridge.utility.environment_utils import (
+from code_confluence_flow_bridge.utility.environment_utils import (
     ensure_local_repository_base_path,
 )
 

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from unoplat_code_confluence_commons.base_models import Flag
 
-from src.code_confluence_flow_bridge.processor.db.postgres.db import get_session
+from code_confluence_flow_bridge.processor.db.postgres.db import get_session
 
 router = APIRouter(prefix="", tags=["Flags"])
 

@@ -2,13 +2,13 @@ from pathlib import Path
 from typing import Dict
 
 import pytest
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models import (
     UnoplatProjectDependency,
 )
-from src.code_confluence_flow_bridge.parser.package_manager.python.managers.poetry_strategy import (
+from code_confluence_flow_bridge.parser.package_manager.python.managers.poetry_strategy import (
     PythonPoetryStrategy,
 )
-from src.code_confluence_flow_bridge.utility.author_utils import normalize_authors
+from code_confluence_flow_bridge.utility.author_utils import normalize_authors
 import tomlkit
 from unoplat_code_confluence_commons.programming_language_metadata import (
     PackageManagerType,

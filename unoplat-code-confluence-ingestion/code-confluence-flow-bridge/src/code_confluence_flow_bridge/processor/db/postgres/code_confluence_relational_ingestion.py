@@ -20,16 +20,16 @@ from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluencePackageManagerMetadata,
 )
 
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_codebase import (
     UnoplatCodebase,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_file import (
     UnoplatFile,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_git_repository import (
     UnoplatGitRepository,
 )
-from src.code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
+from code_confluence_flow_bridge.models.code_confluence_parsing_models.unoplat_package_manager_metadata import (
     UnoplatPackageManagerMetadata,
 )
 
@@ -173,7 +173,6 @@ class CodeConfluenceRelationalIngestion:
                 "file_path": file_item.file_path,
                 "codebase_qualified_name": codebase_qualified_name,
                 "checksum": file_item.checksum,
-                "structural_signature": _dump_model(file_item.structural_signature),
                 "imports": file_item.imports or [],
                 "has_data_model": file_item.has_data_model,
                 "data_model_positions": _dump_model(file_item.data_model_positions),
