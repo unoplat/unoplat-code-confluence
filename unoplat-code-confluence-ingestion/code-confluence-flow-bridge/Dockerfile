@@ -42,6 +42,7 @@ RUN useradd --uid ${APP_UID} --create-home --shell /usr/sbin/nologin ${APP_USER}
 ENV UNOPLAT_DATA_DIR=/opt/unoplat/repositories \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
     PATH="/app/.venv/bin:$PATH"
 
 # Prepare data dir and set permissions so the non-root user can write to it
