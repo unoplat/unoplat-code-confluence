@@ -25,3 +25,9 @@ project-includes = ["src"]
 project-excludes = ["**/__pycache__", ".venv", "dist", "build", "**/__init__.py"]
 permissive-ignores = true
 python-version = "3.13"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.1.0",
+    "pyrefly>=1.0.0",
+]
