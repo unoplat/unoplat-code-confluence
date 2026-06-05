@@ -2,6 +2,7 @@ import React from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { AgentEventItem } from "@/components/custom/agent-events/AgentEventItem";
+
 import { AgentGroupHeader } from "@/components/custom/agent-events/AgentGroupHeader";
 import { ToolDetailModal } from "@/components/custom/agent-events/ToolDetailModal";
 import {

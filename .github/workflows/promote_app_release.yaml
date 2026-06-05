@@ -47,3 +47,68 @@ jobs:
           include-component-in-tag: true
           target-branch: main
           skip-github-pull-request: true
+
+      - name: Install js-yaml
+        if: ${{ steps.release_app_publish.outputs.release_created == 'true' }}
+        run: npm install js-yaml@4
+
+      - name: Generate app release manifest
+        if: ${{ steps.release_app_publish.outputs.release_created == 'true' }}
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        env:
+          APP_VERSION: ${{ steps.release_app_publish.outputs.version }}
+          APP_TAG: ${{ steps.release_app_publish.outputs.tag_name }}
+        with:
+          script: |
+            const fs = require('fs');
+            const yaml = require('js-yaml');
+
+            const version = process.env.APP_VERSION;
+            const tag = process.env.APP_TAG;
+            const expectedTag = `unoplat-code-confluence-v${version}`;
+            if (!tag.startsWith('unoplat-code-confluence-v')) {
+              throw new Error(`Unexpected app tag: ${tag}`);
+            }
+            if (tag !== expectedTag) {
+              throw new Error(`Tag ${tag} != expected ${expectedTag}`);
+            }
+
+            const compose = yaml.load(fs.readFileSync('prod-docker-compose.yml', 'utf8'));
+            const SERVICES = {
+              flow_bridge:  'code-confluence-flow-bridge',
+              query_engine: 'unoplat-code-confluence-query-engine',
+              frontend:     'unoplat-code-confluence-frontend',
+            };
+            const semver = /^\d+\.\d+\.\d+$/;
+            const components = {};
+            for (const [key, svc] of Object.entries(SERVICES)) {
+              const image = compose?.services?.[svc]?.image;
+              if (!image) { core.setFailed(`Missing image for service ${svc}`); continue; }
+              const i = image.lastIndexOf(':');                 // last colon → handles registry ports safely
+              const repo = i === -1 ? image : image.slice(0, i);
+              const imgTag = i === -1 ? '' : image.slice(i + 1);
+              if (imgTag === 'latest' || !semver.test(imgTag)) {
+                throw new Error(`Service ${svc} must pin an explicit semver tag, got "${imgTag}"`);
+              }
+              components[key] = { image: repo, tag: imgTag };
+            }
+
+            const manifest = {
+              schema_version: 1,
+              app: { name: 'unoplat-code-confluence', version, tag },
+              compose: { asset: 'prod-docker-compose.yml' },
+              components,
+            };
+            fs.writeFileSync('unoplat-code-confluence-release.json', JSON.stringify(manifest, null, 2) + '\n');
+            core.info(`Wrote manifest for ${tag}`);
+
+      - name: Upload app release assets
+        if: ${{ steps.release_app_publish.outputs.release_created == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release_app_publish.outputs.tag_name }}
+        run: |
+          gh release upload "$TAG" \
+            prod-docker-compose.yml \
+            unoplat-code-confluence-release.json \
+            --clobber
