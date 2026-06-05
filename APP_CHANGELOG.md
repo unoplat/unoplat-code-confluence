@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.38.0...unoplat-code-confluence-v0.39.0) (2026-06-05)
+
+
+### Features
+
+* **ci:** publish release manifest and compose asset on app release ([1037ab4](https://github.com/unoplat/unoplat-code-confluence/commit/1037ab4c115b43d61e3f15b64715435b726ea159))
+
+
+### Bug Fixes
+
+* **error-handling-cd:** fail fast on release validation errors ([17f1e96](https://github.com/unoplat/unoplat-code-confluence/commit/17f1e9651e17e541453c674d11500552e5afbb85))
+* **security-hardening:** pin release action and use GitHub token ([44e4db5](https://github.com/unoplat/unoplat-code-confluence/commit/44e4db5de404e5ad53c0354e98230eee4609865f))
+
 ## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.37.0...unoplat-code-confluence-v0.38.0) (2026-05-28)
 
 
