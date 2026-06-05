@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import re
 import shutil
@@ -8,12 +7,12 @@ import subprocess
 import sys
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Sequence, cast
+from typing import Literal, Sequence
 
 import httpx2
+from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
 from unoplat_code_confluence_cli.config import CliSettings
 
@@ -26,32 +25,74 @@ class AppRuntimeError(RuntimeError):
     """Raised when the local Code Confluence app runtime cannot be prepared."""
 
 
-@dataclass(frozen=True)
-class CommandResult:
+class CommandResult(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     command: tuple[str, ...]
     returncode: int
     stdout: str
     stderr: str
 
 
-@dataclass(frozen=True)
-class AppRelease:
+class AppRelease(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     version: str
     tag: str
     semver: tuple[int, int, int]
 
 
-@dataclass(frozen=True)
-class ReleaseState:
-    schema_version: int
+class ReleaseManifestApp(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    name: Literal["unoplat-code-confluence"]
+    version: str
+    tag: str
+
+
+class ReleaseManifestCompose(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    asset: Literal["prod-docker-compose.yml"]
+
+
+class ReleaseManifestComponent(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    image: str
+    tag: str
+
+
+class ReleaseManifestComponents(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    flow_bridge: ReleaseManifestComponent
+    query_engine: ReleaseManifestComponent
+    frontend: ReleaseManifestComponent
+
+
+class ReleaseManifest(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    schema_version: Literal[1]
+    app: ReleaseManifestApp
+    compose: ReleaseManifestCompose
+    components: ReleaseManifestComponents
+
+
+class ReleaseState(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    schema_version: Literal[1]
     installed_version: str
     installed_tag: str
     fetched_at: str
-    manifest: dict[str, Any]
+    manifest: ReleaseManifest
 
 
-@dataclass(frozen=True)
-class AppRunResult:
+class AppRunResult(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     compose_file: Path
     release_state_file: Path
     installed_version: str | None
@@ -66,8 +107,9 @@ class AppRunResult:
     warnings: tuple[str, ...]
 
 
-@dataclass(frozen=True)
-class AppUpdateResult:
+class AppUpdateResult(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     compose_file: Path
     release_state_file: Path
     previous_version: str
@@ -79,6 +121,12 @@ class AppUpdateResult:
     updated: bool
     pulled_images: bool
     warnings: tuple[str, ...]
+
+
+class GitHubRelease(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    tag_name: str | None = None
 
 
 def is_flow_bridge_reachable(settings: CliSettings) -> bool:
@@ -244,8 +292,8 @@ def resolve_latest_app_release(settings: CliSettings) -> AppRelease:
     releases = list_github_releases(settings)
     app_releases: list[AppRelease] = []
     for release in releases:
-        tag = release.get("tag_name")
-        if not isinstance(tag, str):
+        tag = release.tag_name
+        if tag is None:
             continue
         match = APP_TAG_RE.fullmatch(tag)
         if match is None:
@@ -267,8 +315,8 @@ def resolve_latest_app_release(settings: CliSettings) -> AppRelease:
     return max(app_releases, key=lambda release: release.semver)
 
 
-def list_github_releases(settings: CliSettings) -> list[dict[str, Any]]:
-    releases: list[dict[str, Any]] = []
+def list_github_releases(settings: CliSettings) -> list[GitHubRelease]:
+    releases: list[GitHubRelease] = []
     page = 1
     while True:
         url = (
@@ -285,10 +333,11 @@ def list_github_releases(settings: CliSettings) -> list[dict[str, Any]]:
         except httpx2.HTTPError as exc:
             raise AppRuntimeError(f"Unable to list GitHub releases: {exc}") from exc
 
-        page_items = response.json()
-        if not isinstance(page_items, list):
-            raise AppRuntimeError("GitHub releases API returned an unexpected payload.")
-        releases.extend(item for item in page_items if isinstance(item, dict))
+        try:
+            page_items = TypeAdapter(list[GitHubRelease]).validate_json(response.text)
+        except ValidationError as exc:
+            raise AppRuntimeError("GitHub releases API returned an unexpected payload.") from exc
+        releases.extend(page_items)
         if len(page_items) < 100:
             break
         page += 1
@@ -298,15 +347,12 @@ def list_github_releases(settings: CliSettings) -> list[dict[str, Any]]:
 def install_release(settings: CliSettings, release: AppRelease) -> ReleaseState:
     manifest = download_release_manifest(settings, release)
     validate_manifest(manifest, release)
-    compose_asset = manifest["compose"]["asset"]
-    if not isinstance(compose_asset, str) or compose_asset == "":
-        raise AppRuntimeError("Release manifest compose.asset must be a non-empty string.")
-
+    compose_asset = manifest.compose.asset
     compose_content = download_release_asset(settings, release.tag, compose_asset).text
     state = ReleaseState(
         schema_version=1,
-        installed_version=str(manifest["app"]["version"]),
-        installed_tag=str(manifest["app"]["tag"]),
+        installed_version=manifest.app.version,
+        installed_tag=manifest.app.tag,
         fetched_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         manifest=manifest,
     )
@@ -317,12 +363,12 @@ def install_release(settings: CliSettings, release: AppRelease) -> ReleaseState:
     return state
 
 
-def download_release_manifest(settings: CliSettings, release: AppRelease) -> dict[str, Any]:
+def download_release_manifest(settings: CliSettings, release: AppRelease) -> ReleaseManifest:
     response = download_release_asset(settings, release.tag, RELEASE_MANIFEST_ASSET)
-    manifest = response.json()
-    if not isinstance(manifest, dict):
-        raise AppRuntimeError("Release manifest payload must be a JSON object.")
-    return manifest
+    try:
+        return ReleaseManifest.model_validate_json(response.text)
+    except ValidationError as exc:
+        raise AppRuntimeError("Release manifest payload does not match schema_version 1.") from exc
 
 
 def download_release_asset(settings: CliSettings, tag: str, asset_name: str) -> httpx2.Response:
@@ -338,26 +384,11 @@ def download_release_asset(settings: CliSettings, tag: str, asset_name: str) -> 
     return response
 
 
-def validate_manifest(manifest: dict[str, Any], release: AppRelease) -> None:
-    schema_version = manifest.get("schema_version")
-    if schema_version != 1:
-        raise AppRuntimeError(
-            "Unsupported release manifest schema_version. Upgrade the CLI before using this release."
-        )
-
-    app = manifest.get("app")
-    compose = manifest.get("compose")
-    if not isinstance(app, dict) or not isinstance(compose, dict):
-        raise AppRuntimeError("Release manifest must contain object fields: app and compose.")
-
-    if app.get("version") != release.version or app.get("tag") != release.tag:
+def validate_manifest(manifest: ReleaseManifest, release: AppRelease) -> None:
+    if manifest.app.version != release.version or manifest.app.tag != release.tag:
         raise AppRuntimeError(
             "Release manifest app.version/app.tag do not match the selected GitHub release."
         )
-
-    compose_asset = compose.get("asset")
-    if compose_asset != "prod-docker-compose.yml":
-        raise AppRuntimeError("Release manifest must point to prod-docker-compose.yml as compose.asset.")
 
 
 def read_release_state(settings: CliSettings) -> ReleaseState | None:
@@ -365,48 +396,17 @@ def read_release_state(settings: CliSettings) -> ReleaseState | None:
     if not path.exists():
         return None
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError) as exc:
+        return ReleaseState.model_validate_json(path.read_text(encoding="utf-8"))
+    except OSError as exc:
         raise AppRuntimeError(f"Unable to read local release state at {path}: {exc}") from exc
-
-    if not isinstance(raw, dict):
-        raise AppRuntimeError(f"Local release state at {path} must be a JSON object.")
-    if raw.get("schema_version") != 1:
-        raise AppRuntimeError("Unsupported local release-state.json schema_version.")
-
-    installed_version = raw.get("installed_version")
-    installed_tag = raw.get("installed_tag")
-    fetched_at = raw.get("fetched_at")
-    manifest = raw.get("manifest")
-    if not isinstance(installed_version, str):
-        raise AppRuntimeError("Local release-state.json is missing installed_version.")
-    if not isinstance(installed_tag, str):
-        raise AppRuntimeError("Local release-state.json is missing installed_tag.")
-    if not isinstance(fetched_at, str):
-        raise AppRuntimeError("Local release-state.json is missing fetched_at.")
-    if not isinstance(manifest, dict):
-        raise AppRuntimeError("Local release-state.json is missing the manifest object.")
-
-    return ReleaseState(
-        schema_version=1,
-        installed_version=installed_version,
-        installed_tag=installed_tag,
-        fetched_at=fetched_at,
-        manifest=cast(dict[str, Any], manifest),
-    )
+    except ValidationError as exc:
+        raise AppRuntimeError(f"Local release state at {path} does not match schema_version 1.") from exc
 
 
 def write_release_state(settings: CliSettings, state: ReleaseState) -> None:
-    payload = {
-        "schema_version": state.schema_version,
-        "installed_version": state.installed_version,
-        "installed_tag": state.installed_tag,
-        "fetched_at": state.fetched_at,
-        "manifest": state.manifest,
-    }
     atomic_write_text(
         settings.release_state_path,
-        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        state.model_dump_json(indent=2) + "\n",
     )
 
 

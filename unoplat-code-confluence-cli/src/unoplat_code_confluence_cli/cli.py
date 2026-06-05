@@ -1,10 +1,5 @@
 from __future__ import annotations
 
-import json
-from dataclasses import asdict
-from pathlib import Path
-from typing import Any
-
 import click
 
 from unoplat_code_confluence_cli.app_runtime import AppRuntimeError, run_app, update_app
@@ -28,7 +23,7 @@ def run() -> None:
         result = run_app(settings, progress=progress)
     except AppRuntimeError as exc:
         raise click.ClickException(str(exc)) from exc
-    click.echo(json.dumps(to_jsonable(asdict(result)), indent=2, sort_keys=True))
+    click.echo(result.model_dump_json(indent=2))
 
 
 @main.command(name="update")
@@ -39,16 +34,4 @@ def update() -> None:
         result = update_app(settings, progress=progress)
     except AppRuntimeError as exc:
         raise click.ClickException(str(exc)) from exc
-    click.echo(json.dumps(to_jsonable(asdict(result)), indent=2, sort_keys=True))
-
-
-def to_jsonable(value: Any) -> Any:
-    if isinstance(value, Path):
-        return str(value)
-    if isinstance(value, tuple):
-        return [to_jsonable(item) for item in value]
-    if isinstance(value, list):
-        return [to_jsonable(item) for item in value]
-    if isinstance(value, dict):
-        return {str(key): to_jsonable(item) for key, item in value.items()}
-    return value
+    click.echo(result.model_dump_json(indent=2))

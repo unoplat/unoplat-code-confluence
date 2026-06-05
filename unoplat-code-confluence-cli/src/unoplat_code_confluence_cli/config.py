@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from platformdirs import user_data_dir
-from pydantic import Field, computed_field
+from pydantic import AnyHttpUrl, Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,11 +16,11 @@ class CliSettings(BaseSettings):
         extra="ignore",
     )
 
-    flow_bridge_url: str = Field(default="http://localhost:8000")
-    query_engine_url: str = Field(default="http://localhost:8001")
-    frontend_url: str = Field(default="http://localhost:3000")
+    flow_bridge_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://localhost:8000"))
+    query_engine_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://localhost:8001"))
+    frontend_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://localhost:3000"))
     github_repository: str = "unoplat/unoplat-code-confluence"
-    github_api_base_url: str = Field(default="https://api.github.com")
+    github_api_base_url: AnyHttpUrl = Field(default=AnyHttpUrl("https://api.github.com"))
     compose_project_name: str = "unoplat-code-confluence"
     default_provider: str = "github_open"
     request_timeout_seconds: float = 30.0
