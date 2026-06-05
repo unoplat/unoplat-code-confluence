@@ -66,8 +66,12 @@ jobs:
             const version = process.env.APP_VERSION;
             const tag = process.env.APP_TAG;
             const expectedTag = `unoplat-code-confluence-v${version}`;
-            if (!tag.startsWith('unoplat-code-confluence-v')) core.setFailed(`Unexpected app tag: ${tag}`);
-            if (tag !== expectedTag) core.setFailed(`Tag ${tag} != expected ${expectedTag}`);
+            if (!tag.startsWith('unoplat-code-confluence-v')) {
+              throw new Error(`Unexpected app tag: ${tag}`);
+            }
+            if (tag !== expectedTag) {
+              throw new Error(`Tag ${tag} != expected ${expectedTag}`);
+            }
 
             const compose = yaml.load(fs.readFileSync('prod-docker-compose.yml', 'utf8'));
             const SERVICES = {
@@ -83,8 +87,9 @@ jobs:
               const i = image.lastIndexOf(':');                 // last colon → handles registry ports safely
               const repo = i === -1 ? image : image.slice(0, i);
               const imgTag = i === -1 ? '' : image.slice(i + 1);
-              if (imgTag === 'latest' || !semver.test(imgTag))
-                core.setFailed(`Service ${svc} must pin an explicit semver tag, got "${imgTag}"`);
+              if (imgTag === 'latest' || !semver.test(imgTag)) {
+                throw new Error(`Service ${svc} must pin an explicit semver tag, got "${imgTag}"`);
+              }
               components[key] = { image: repo, tag: imgTag };
             }
 
