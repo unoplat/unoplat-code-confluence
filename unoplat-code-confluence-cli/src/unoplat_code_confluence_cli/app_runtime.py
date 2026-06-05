@@ -1,0 +1,504 @@
+from __future__ import annotations
+
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any, Sequence, cast
+
+import httpx2
+
+from unoplat_code_confluence_cli.config import CliSettings
+
+
+APP_TAG_RE = re.compile(r"^unoplat-code-confluence-v(\d+)\.(\d+)\.(\d+)$")
+RELEASE_MANIFEST_ASSET = "unoplat-code-confluence-release.json"
+
+
+class AppRuntimeError(RuntimeError):
+    """Raised when the local Code Confluence app runtime cannot be prepared."""
+
+
+@dataclass(frozen=True)
+class CommandResult:
+    command: tuple[str, ...]
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+@dataclass(frozen=True)
+class AppRelease:
+    version: str
+    tag: str
+    semver: tuple[int, int, int]
+
+
+@dataclass(frozen=True)
+class ReleaseState:
+    schema_version: int
+    installed_version: str
+    installed_tag: str
+    fetched_at: str
+    manifest: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class AppRunResult:
+    compose_file: Path
+    release_state_file: Path
+    installed_version: str | None
+    installed_tag: str | None
+    available_version: str | None
+    available_tag: str | None
+    update_available: bool
+    installed_release: bool
+    pulled_images: bool
+    started_stack: bool
+    already_reachable: bool
+    warnings: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class AppUpdateResult:
+    compose_file: Path
+    release_state_file: Path
+    previous_version: str
+    previous_tag: str
+    installed_version: str
+    installed_tag: str
+    available_version: str
+    available_tag: str
+    updated: bool
+    pulled_images: bool
+    warnings: tuple[str, ...]
+
+
+def is_flow_bridge_reachable(settings: CliSettings) -> bool:
+    """Return whether Flow Bridge is accepting HTTP requests."""
+    try:
+        response = httpx2.get(
+            f"{settings.flow_bridge_base_url}/docs",
+            timeout=settings.request_timeout_seconds,
+        )
+        return response.status_code < 500
+    except httpx2.HTTPError:
+        return False
+
+
+def run_app(
+    settings: CliSettings,
+    *,
+    progress: Callable[[str], None] | None = None,
+) -> AppRunResult:
+    """Install-on-first-run and start the pinned app release.
+
+    Later runs never mutate the pinned assets just because a newer app release is
+    available. A newer release is reported in the result only.
+    """
+    emit_progress(progress, "Checking local app runtime and release state...")
+    already_reachable = is_flow_bridge_reachable(settings)
+    state = read_release_state(settings)
+    warnings: list[str] = []
+    emit_progress(progress, "Resolving latest Unoplat Code Confluence app release...")
+    latest_release = resolve_latest_app_release_or_warn(settings, warnings)
+    installed_release = False
+    pulled_images = False
+    started_stack = False
+
+    if state is None:
+        if latest_release is None:
+            raise AppRuntimeError(
+                "No local app release is installed and the latest app release could not be resolved. "
+                "Check network access to GitHub releases and retry."
+            )
+        emit_progress(progress, f"Installing app release {latest_release.tag}...")
+        state = install_release(settings, latest_release)
+        installed_release = True
+    elif not settings.compose_file_path.exists():
+        release = AppRelease(
+            version=state.installed_version,
+            tag=state.installed_tag,
+            semver=semver_tuple(state.installed_version),
+        )
+        emit_progress(progress, f"Repairing cached app assets for {release.tag}...")
+        state = install_release(settings, release)
+        installed_release = True
+
+    available_version = latest_release.version if latest_release is not None else None
+    available_tag = latest_release.tag if latest_release is not None else None
+    has_update = (
+        latest_release is not None
+        and semver_tuple(latest_release.version) > semver_tuple(state.installed_version)
+    )
+
+    ensure_docker_compose_available()
+    if not already_reachable:
+        emit_progress(progress, "Pulling Docker images for the pinned app release...")
+        run_docker_compose(settings, ("pull",), stream_output=True)
+        pulled_images = True
+        emit_progress(progress, "Starting Docker Compose stack...")
+        run_docker_compose(settings, ("up", "-d"), stream_output=True)
+        started_stack = True
+        emit_progress(progress, "Waiting for Flow Bridge to become reachable...")
+        wait_for_flow_bridge(settings)
+    else:
+        emit_progress(progress, "Flow Bridge is already reachable; not restarting the stack.")
+
+    return AppRunResult(
+        compose_file=settings.compose_file_path,
+        release_state_file=settings.release_state_path,
+        installed_version=state.installed_version,
+        installed_tag=state.installed_tag,
+        available_version=available_version,
+        available_tag=available_tag,
+        update_available=has_update,
+        installed_release=installed_release,
+        pulled_images=pulled_images,
+        started_stack=started_stack,
+        already_reachable=already_reachable,
+        warnings=tuple(warnings),
+    )
+
+
+def update_app(
+    settings: CliSettings,
+    *,
+    progress: Callable[[str], None] | None = None,
+) -> AppUpdateResult:
+    """Upgrade the pinned local release to the latest app release with explicit consent."""
+    emit_progress(progress, "Reading local release state...")
+    state = read_release_state(settings)
+    if state is None:
+        raise AppRuntimeError(
+            "Nothing is installed yet, so there is no pinned version to update. "
+            "Run `unoplat run` first to fetch and start the latest release."
+        )
+
+    warnings: list[str] = []
+    emit_progress(progress, "Resolving latest Unoplat Code Confluence app release...")
+    latest_release = resolve_latest_app_release_or_warn(settings, warnings)
+    if latest_release is None:
+        raise AppRuntimeError(
+            "Unable to resolve the latest app release from GitHub, so the installed "
+            f"version {state.installed_version} was not changed."
+        )
+
+    updated = semver_tuple(latest_release.version) > semver_tuple(state.installed_version)
+    previous_version = state.installed_version
+    previous_tag = state.installed_tag
+
+    if updated:
+        emit_progress(progress, f"Installing app release {latest_release.tag}...")
+        state = install_release(settings, latest_release)
+    else:
+        emit_progress(progress, "Installed app release is already up to date.")
+
+    ensure_docker_compose_available()
+    emit_progress(progress, "Pulling Docker images for the pinned app release...")
+    run_docker_compose(settings, ("pull",), stream_output=True)
+
+    return AppUpdateResult(
+        compose_file=settings.compose_file_path,
+        release_state_file=settings.release_state_path,
+        previous_version=previous_version,
+        previous_tag=previous_tag,
+        installed_version=state.installed_version,
+        installed_tag=state.installed_tag,
+        available_version=latest_release.version,
+        available_tag=latest_release.tag,
+        updated=updated,
+        pulled_images=True,
+        warnings=tuple(warnings),
+    )
+
+
+# Compatibility alias for future runtime-dependent commands.
+def ensure_app_running(settings: CliSettings) -> AppRunResult:
+    return run_app(settings)
+
+
+def emit_progress(progress: Callable[[str], None] | None, message: str) -> None:
+    if progress is not None:
+        progress(message)
+
+
+def resolve_latest_app_release_or_warn(
+    settings: CliSettings, warnings: list[str]
+) -> AppRelease | None:
+    try:
+        return resolve_latest_app_release(settings)
+    except AppRuntimeError as exc:
+        warnings.append(str(exc))
+        return None
+
+
+def resolve_latest_app_release(settings: CliSettings) -> AppRelease:
+    releases = list_github_releases(settings)
+    app_releases: list[AppRelease] = []
+    for release in releases:
+        tag = release.get("tag_name")
+        if not isinstance(tag, str):
+            continue
+        match = APP_TAG_RE.fullmatch(tag)
+        if match is None:
+            continue
+        major, minor, patch = (int(part) for part in match.groups())
+        app_releases.append(
+            AppRelease(
+                version=f"{major}.{minor}.{patch}",
+                tag=tag,
+                semver=(major, minor, patch),
+            )
+        )
+
+    if not app_releases:
+        raise AppRuntimeError(
+            "No consumable app release was found. Expected tags matching "
+            "unoplat-code-confluence-vMAJOR.MINOR.PATCH; component releases are ignored."
+        )
+    return max(app_releases, key=lambda release: release.semver)
+
+
+def list_github_releases(settings: CliSettings) -> list[dict[str, Any]]:
+    releases: list[dict[str, Any]] = []
+    page = 1
+    while True:
+        url = (
+            f"{settings.github_api_base}/repos/{settings.github_repository}/releases"
+            f"?per_page=100&page={page}"
+        )
+        try:
+            response = httpx2.get(
+                url,
+                headers={"Accept": "application/vnd.github+json"},
+                timeout=settings.request_timeout_seconds,
+            )
+            response.raise_for_status()
+        except httpx2.HTTPError as exc:
+            raise AppRuntimeError(f"Unable to list GitHub releases: {exc}") from exc
+
+        page_items = response.json()
+        if not isinstance(page_items, list):
+            raise AppRuntimeError("GitHub releases API returned an unexpected payload.")
+        releases.extend(item for item in page_items if isinstance(item, dict))
+        if len(page_items) < 100:
+            break
+        page += 1
+    return releases
+
+
+def install_release(settings: CliSettings, release: AppRelease) -> ReleaseState:
+    manifest = download_release_manifest(settings, release)
+    validate_manifest(manifest, release)
+    compose_asset = manifest["compose"]["asset"]
+    if not isinstance(compose_asset, str) or compose_asset == "":
+        raise AppRuntimeError("Release manifest compose.asset must be a non-empty string.")
+
+    compose_content = download_release_asset(settings, release.tag, compose_asset).text
+    state = ReleaseState(
+        schema_version=1,
+        installed_version=str(manifest["app"]["version"]),
+        installed_tag=str(manifest["app"]["tag"]),
+        fetched_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        manifest=manifest,
+    )
+
+    settings.resolved_data_dir.mkdir(parents=True, exist_ok=True)
+    atomic_write_text(settings.compose_file_path, compose_content)
+    write_release_state(settings, state)
+    return state
+
+
+def download_release_manifest(settings: CliSettings, release: AppRelease) -> dict[str, Any]:
+    response = download_release_asset(settings, release.tag, RELEASE_MANIFEST_ASSET)
+    manifest = response.json()
+    if not isinstance(manifest, dict):
+        raise AppRuntimeError("Release manifest payload must be a JSON object.")
+    return manifest
+
+
+def download_release_asset(settings: CliSettings, tag: str, asset_name: str) -> httpx2.Response:
+    url = (
+        f"https://github.com/{settings.github_repository}/releases/download/"
+        f"{tag}/{asset_name}"
+    )
+    try:
+        response = httpx2.get(url, follow_redirects=True, timeout=settings.request_timeout_seconds)
+        response.raise_for_status()
+    except httpx2.HTTPError as exc:
+        raise AppRuntimeError(f"Unable to download release asset {asset_name} from {tag}: {exc}") from exc
+    return response
+
+
+def validate_manifest(manifest: dict[str, Any], release: AppRelease) -> None:
+    schema_version = manifest.get("schema_version")
+    if schema_version != 1:
+        raise AppRuntimeError(
+            "Unsupported release manifest schema_version. Upgrade the CLI before using this release."
+        )
+
+    app = manifest.get("app")
+    compose = manifest.get("compose")
+    if not isinstance(app, dict) or not isinstance(compose, dict):
+        raise AppRuntimeError("Release manifest must contain object fields: app and compose.")
+
+    if app.get("version") != release.version or app.get("tag") != release.tag:
+        raise AppRuntimeError(
+            "Release manifest app.version/app.tag do not match the selected GitHub release."
+        )
+
+    compose_asset = compose.get("asset")
+    if compose_asset != "prod-docker-compose.yml":
+        raise AppRuntimeError("Release manifest must point to prod-docker-compose.yml as compose.asset.")
+
+
+def read_release_state(settings: CliSettings) -> ReleaseState | None:
+    path = settings.release_state_path
+    if not path.exists():
+        return None
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        raise AppRuntimeError(f"Unable to read local release state at {path}: {exc}") from exc
+
+    if not isinstance(raw, dict):
+        raise AppRuntimeError(f"Local release state at {path} must be a JSON object.")
+    if raw.get("schema_version") != 1:
+        raise AppRuntimeError("Unsupported local release-state.json schema_version.")
+
+    installed_version = raw.get("installed_version")
+    installed_tag = raw.get("installed_tag")
+    fetched_at = raw.get("fetched_at")
+    manifest = raw.get("manifest")
+    if not isinstance(installed_version, str):
+        raise AppRuntimeError("Local release-state.json is missing installed_version.")
+    if not isinstance(installed_tag, str):
+        raise AppRuntimeError("Local release-state.json is missing installed_tag.")
+    if not isinstance(fetched_at, str):
+        raise AppRuntimeError("Local release-state.json is missing fetched_at.")
+    if not isinstance(manifest, dict):
+        raise AppRuntimeError("Local release-state.json is missing the manifest object.")
+
+    return ReleaseState(
+        schema_version=1,
+        installed_version=installed_version,
+        installed_tag=installed_tag,
+        fetched_at=fetched_at,
+        manifest=cast(dict[str, Any], manifest),
+    )
+
+
+def write_release_state(settings: CliSettings, state: ReleaseState) -> None:
+    payload = {
+        "schema_version": state.schema_version,
+        "installed_version": state.installed_version,
+        "installed_tag": state.installed_tag,
+        "fetched_at": state.fetched_at,
+        "manifest": state.manifest,
+    }
+    atomic_write_text(
+        settings.release_state_path,
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+    )
+
+
+def atomic_write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(f".{path.name}.tmp")
+    temp_path.write_text(content, encoding="utf-8")
+    os.replace(temp_path, path)
+
+
+def semver_tuple(version: str) -> tuple[int, int, int]:
+    parts = version.split(".")
+    if len(parts) != 3:
+        raise AppRuntimeError(f"Invalid semantic version: {version}")
+    try:
+        return (int(parts[0]), int(parts[1]), int(parts[2]))
+    except ValueError as exc:
+        raise AppRuntimeError(f"Invalid semantic version: {version}") from exc
+
+
+def ensure_docker_compose_available() -> None:
+    if shutil.which("docker") is None:
+        raise AppRuntimeError(
+            "Docker is required to auto-start Unoplat Code Confluence, but the "
+            "docker executable was not found. Install Docker Desktop or Docker Engine "
+            "with the Compose plugin, then retry."
+        )
+
+    result = run_command(("docker", "compose", "version"), check=False)
+    if result.returncode != 0:
+        raise AppRuntimeError(
+            "Docker Compose is required to auto-start Unoplat Code Confluence. "
+            "Install/enable the Docker Compose plugin and ensure `docker compose version` works."
+        )
+
+
+def run_docker_compose(
+    settings: CliSettings,
+    args: Sequence[str],
+    *,
+    stream_output: bool = False,
+) -> CommandResult:
+    return run_command(
+        (
+            "docker",
+            "compose",
+            "-f",
+            str(settings.compose_file_path),
+            "-p",
+            settings.compose_project_name,
+            *args,
+        ),
+        stream_output=stream_output,
+    )
+
+
+def run_command(
+    command: Sequence[str],
+    *,
+    check: bool = True,
+    stream_output: bool = False,
+) -> CommandResult:
+    completed = subprocess.run(
+        tuple(command),
+        check=False,
+        text=True,
+        stdout=sys.stderr if stream_output else subprocess.PIPE,
+        stderr=sys.stderr if stream_output else subprocess.PIPE,
+    )
+    result = CommandResult(
+        command=tuple(command),
+        returncode=completed.returncode,
+        stdout=completed.stdout or "",
+        stderr=completed.stderr or "",
+    )
+    if check and completed.returncode != 0:
+        rendered_command = " ".join(command)
+        raise AppRuntimeError(
+            f"Command failed: {rendered_command}\n{completed.stderr or completed.stdout}"
+        )
+    return result
+
+
+def wait_for_flow_bridge(settings: CliSettings) -> None:
+    deadline = time.monotonic() + settings.startup_timeout_seconds
+    while time.monotonic() < deadline:
+        if is_flow_bridge_reachable(settings):
+            return
+        time.sleep(2)
+
+    raise AppRuntimeError(
+        "Docker Compose stack was started, but Flow Bridge did not become reachable at "
+        f"{settings.flow_bridge_base_url} within {settings.startup_timeout_seconds:.0f}s. "
+        "Check Docker container logs and retry."
+    )

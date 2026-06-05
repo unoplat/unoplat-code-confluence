@@ -1,0 +1,63 @@
+version: '3'
+
+tasks:
+  cli:
+    desc: Run the CLI with forwarded args, e.g. task cli -- --help
+    dir: .
+    cmds:
+      - uv run unoplat {{.CLI_ARGS}}
+
+  run:
+    desc: Install/start the pinned Unoplat Code Confluence app release
+    dir: .
+    cmds:
+      - uv run unoplat run {{.CLI_ARGS}}
+
+  update:
+    desc: Upgrade the pinned app release to the latest app release
+    dir: .
+    cmds:
+      - uv run unoplat update {{.CLI_ARGS}}
+
+  help:
+    desc: Show CLI help
+    dir: .
+    cmds:
+      - uv run unoplat --help
+
+  lint:
+    desc: Run ruff linter on the codebase
+    dir: .
+    cmds:
+      - uv run --group dev ruff check src/
+
+  lint-fix:
+    desc: Run ruff linter and auto-fix issues
+    dir: .
+    cmds:
+      - uv run --group dev ruff check src/ --fix
+
+  format:
+    desc: Format code using ruff
+    dir: .
+    cmds:
+      - uv run --group dev ruff format src/
+
+  typecheck:
+    desc: Run pyrefly type checker on the codebase
+    dir: .
+    cmds:
+      - uv run --group dev pyrefly check src/
+
+  typecheck-file:
+    desc: Run pyrefly type checker on a specific file - task typecheck-file FILE=path/to/file.py
+    dir: .
+    cmds:
+      - uv run --group dev pyrefly check src/{{.FILE}}
+
+  code-quality:
+    desc: Run all code quality checks (lint + typecheck)
+    dir: .
+    cmds:
+      - task: lint
+      - task: typecheck
