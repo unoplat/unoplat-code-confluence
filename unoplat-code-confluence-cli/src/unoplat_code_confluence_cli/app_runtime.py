@@ -16,7 +16,6 @@ from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
 from unoplat_code_confluence_cli.config import CliSettings
 
-
 APP_TAG_RE = re.compile(r"^unoplat-code-confluence-v(\d+)\.(\d+)\.(\d+)$")
 RELEASE_MANIFEST_ASSET = "unoplat-code-confluence-release.json"
 
@@ -182,12 +181,10 @@ def run_app(
 
     available_version = latest_release.version if latest_release is not None else None
     available_tag = latest_release.tag if latest_release is not None else None
-    has_update = (
-        latest_release is not None
-        and semver_tuple(latest_release.version) > semver_tuple(state.installed_version)
-    )
+    has_update = latest_release is not None and semver_tuple(
+        latest_release.version
+    ) > semver_tuple(state.installed_version)
 
-    ensure_docker_compose_available()
     if not already_reachable:
         emit_progress(progress, "Pulling Docker images for the pinned app release...")
         run_docker_compose(settings, ("pull",), stream_output=True)
@@ -198,7 +195,9 @@ def run_app(
         emit_progress(progress, "Waiting for Flow Bridge to become reachable...")
         wait_for_flow_bridge(settings)
     else:
-        emit_progress(progress, "Flow Bridge is already reachable; not restarting the stack.")
+        emit_progress(
+            progress, "Flow Bridge is already reachable; not restarting the stack."
+        )
 
     return AppRunResult(
         compose_file=settings.compose_file_path,
@@ -239,7 +238,9 @@ def update_app(
             f"version {state.installed_version} was not changed."
         )
 
-    updated = semver_tuple(latest_release.version) > semver_tuple(state.installed_version)
+    updated = semver_tuple(latest_release.version) > semver_tuple(
+        state.installed_version
+    )
     previous_version = state.installed_version
     previous_tag = state.installed_tag
 
@@ -336,7 +337,9 @@ def list_github_releases(settings: CliSettings) -> list[GitHubRelease]:
         try:
             page_items = TypeAdapter(list[GitHubRelease]).validate_json(response.text)
         except ValidationError as exc:
-            raise AppRuntimeError("GitHub releases API returned an unexpected payload.") from exc
+            raise AppRuntimeError(
+                "GitHub releases API returned an unexpected payload."
+            ) from exc
         releases.extend(page_items)
         if len(page_items) < 100:
             break
@@ -363,24 +366,34 @@ def install_release(settings: CliSettings, release: AppRelease) -> ReleaseState:
     return state
 
 
-def download_release_manifest(settings: CliSettings, release: AppRelease) -> ReleaseManifest:
+def download_release_manifest(
+    settings: CliSettings, release: AppRelease
+) -> ReleaseManifest:
     response = download_release_asset(settings, release.tag, RELEASE_MANIFEST_ASSET)
     try:
         return ReleaseManifest.model_validate_json(response.text)
     except ValidationError as exc:
-        raise AppRuntimeError("Release manifest payload does not match schema_version 1.") from exc
+        raise AppRuntimeError(
+            "Release manifest payload does not match schema_version 1."
+        ) from exc
 
 
-def download_release_asset(settings: CliSettings, tag: str, asset_name: str) -> httpx2.Response:
+def download_release_asset(
+    settings: CliSettings, tag: str, asset_name: str
+) -> httpx2.Response:
     url = (
         f"https://github.com/{settings.github_repository}/releases/download/"
         f"{tag}/{asset_name}"
     )
     try:
-        response = httpx2.get(url, follow_redirects=True, timeout=settings.request_timeout_seconds)
+        response = httpx2.get(
+            url, follow_redirects=True, timeout=settings.request_timeout_seconds
+        )
         response.raise_for_status()
     except httpx2.HTTPError as exc:
-        raise AppRuntimeError(f"Unable to download release asset {asset_name} from {tag}: {exc}") from exc
+        raise AppRuntimeError(
+            f"Unable to download release asset {asset_name} from {tag}: {exc}"
+        ) from exc
     return response
 
 
@@ -398,9 +411,13 @@ def read_release_state(settings: CliSettings) -> ReleaseState | None:
     try:
         return ReleaseState.model_validate_json(path.read_text(encoding="utf-8"))
     except OSError as exc:
-        raise AppRuntimeError(f"Unable to read local release state at {path}: {exc}") from exc
+        raise AppRuntimeError(
+            f"Unable to read local release state at {path}: {exc}"
+        ) from exc
     except ValidationError as exc:
-        raise AppRuntimeError(f"Local release state at {path} does not match schema_version 1.") from exc
+        raise AppRuntimeError(
+            f"Local release state at {path} does not match schema_version 1."
+        ) from exc
 
 
 def write_release_state(settings: CliSettings, state: ReleaseState) -> None:

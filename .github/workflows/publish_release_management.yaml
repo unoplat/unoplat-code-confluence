@@ -178,7 +178,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: ${{ needs.dev-pr-merge.outputs.cli_release_tag }}
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
