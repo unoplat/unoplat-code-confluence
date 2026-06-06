@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import os
 import re
-import shutil
-import subprocess
-import sys
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal, Sequence
+from typing import Literal
 
 import httpx2
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
+from python_on_whales import DockerClient
+from python_on_whales.client_config import ClientNotFoundError
+from python_on_whales.exceptions import DockerException
 
 from unoplat_code_confluence_cli.config import CliSettings
 
@@ -22,15 +22,6 @@ RELEASE_MANIFEST_ASSET = "unoplat-code-confluence-release.json"
 
 class AppRuntimeError(RuntimeError):
     """Raised when the local Code Confluence app runtime cannot be prepared."""
-
-
-class CommandResult(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    command: tuple[str, ...]
-    returncode: int
-    stdout: str
-    stderr: str
 
 
 class AppRelease(BaseModel):
@@ -119,6 +110,7 @@ class AppUpdateResult(BaseModel):
     available_tag: str
     updated: bool
     pulled_images: bool
+    started_stack: bool
     warnings: tuple[str, ...]
 
 
@@ -186,11 +178,13 @@ def run_app(
     ) > semver_tuple(state.installed_version)
 
     if not already_reachable:
+        docker = build_docker_client(settings)
+        ensure_docker_compose_available(docker)
         emit_progress(progress, "Pulling Docker images for the pinned app release...")
-        run_docker_compose(settings, ("pull",), stream_output=True)
+        pull_compose_images(docker)
         pulled_images = True
         emit_progress(progress, "Starting Docker Compose stack...")
-        run_docker_compose(settings, ("up", "-d"), stream_output=True)
+        start_compose_stack(docker)
         started_stack = True
         emit_progress(progress, "Waiting for Flow Bridge to become reachable...")
         wait_for_flow_bridge(settings)
@@ -250,9 +244,12 @@ def update_app(
     else:
         emit_progress(progress, "Installed app release is already up to date.")
 
-    ensure_docker_compose_available()
+    docker = build_docker_client(settings)
+    ensure_docker_compose_available(docker)
     emit_progress(progress, "Pulling Docker images for the pinned app release...")
-    run_docker_compose(settings, ("pull",), stream_output=True)
+    pull_compose_images(docker)
+    emit_progress(progress, "Applying Docker image updates with Docker Compose...")
+    start_compose_stack(docker)
 
     return AppUpdateResult(
         compose_file=settings.compose_file_path,
@@ -265,6 +262,7 @@ def update_app(
         available_tag=latest_release.tag,
         updated=updated,
         pulled_images=True,
+        started_stack=True,
         warnings=tuple(warnings),
     )
 
@@ -444,67 +442,59 @@ def semver_tuple(version: str) -> tuple[int, int, int]:
         raise AppRuntimeError(f"Invalid semantic version: {version}") from exc
 
 
-def ensure_docker_compose_available() -> None:
-    if shutil.which("docker") is None:
+def build_docker_client(settings: CliSettings) -> DockerClient:
+    return DockerClient(
+        compose_files=[settings.compose_file_path],
+        compose_project_name=settings.compose_project_name,
+    )
+
+
+def ensure_docker_compose_available(docker: DockerClient) -> None:
+    try:
+        if not docker.compose.is_installed():
+            raise AppRuntimeError(
+                "Docker Compose is required to auto-start Unoplat Code Confluence. "
+                "Install/enable the Docker Compose plugin and ensure `docker compose version` works."
+            )
+    except ClientNotFoundError as exc:
         raise AppRuntimeError(
             "Docker is required to auto-start Unoplat Code Confluence, but the "
             "docker executable was not found. Install Docker Desktop or Docker Engine "
             "with the Compose plugin, then retry."
-        )
-
-    result = run_command(("docker", "compose", "version"), check=False)
-    if result.returncode != 0:
+        ) from exc
+    except DockerException as exc:
         raise AppRuntimeError(
             "Docker Compose is required to auto-start Unoplat Code Confluence. "
             "Install/enable the Docker Compose plugin and ensure `docker compose version` works."
-        )
+        ) from exc
 
 
-def run_docker_compose(
-    settings: CliSettings,
-    args: Sequence[str],
-    *,
-    stream_output: bool = False,
-) -> CommandResult:
-    return run_command(
-        (
-            "docker",
-            "compose",
-            "-f",
-            str(settings.compose_file_path),
-            "-p",
-            settings.compose_project_name,
-            *args,
-        ),
-        stream_output=stream_output,
-    )
+def pull_compose_images(docker: DockerClient) -> None:
+    try:
+        docker.compose.pull()
+    except (ClientNotFoundError, DockerException) as exc:
+        raise_docker_runtime_error("Docker Compose pull failed", exc)
 
 
-def run_command(
-    command: Sequence[str],
-    *,
-    check: bool = True,
-    stream_output: bool = False,
-) -> CommandResult:
-    completed = subprocess.run(
-        tuple(command),
-        check=False,
-        text=True,
-        stdout=sys.stderr if stream_output else subprocess.PIPE,
-        stderr=sys.stderr if stream_output else subprocess.PIPE,
-    )
-    result = CommandResult(
-        command=tuple(command),
-        returncode=completed.returncode,
-        stdout=completed.stdout or "",
-        stderr=completed.stderr or "",
-    )
-    if check and completed.returncode != 0:
-        rendered_command = " ".join(command)
+def start_compose_stack(docker: DockerClient) -> None:
+    try:
+        docker.compose.up(detach=True)
+    except (ClientNotFoundError, DockerException) as exc:
+        raise_docker_runtime_error("Docker Compose up failed", exc)
+
+
+def raise_docker_runtime_error(
+    message: str, exc: ClientNotFoundError | DockerException
+) -> None:
+    if isinstance(exc, ClientNotFoundError):
         raise AppRuntimeError(
-            f"Command failed: {rendered_command}\n{completed.stderr or completed.stdout}"
-        )
-    return result
+            "Docker is required to auto-start Unoplat Code Confluence, but the "
+            "docker executable was not found. Install Docker Desktop or Docker Engine "
+            "with the Compose plugin, then retry."
+        ) from exc
+
+    details = exc.stderr or exc.stdout or str(exc)
+    raise AppRuntimeError(f"{message}: {details}") from exc
 
 
 def wait_for_flow_bridge(settings: CliSettings) -> None:

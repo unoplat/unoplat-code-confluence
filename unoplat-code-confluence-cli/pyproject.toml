@@ -8,6 +8,7 @@ dependencies = [
     "click>=8.4.1",
     "httpx2>=2.2.0",
     "platformdirs>=4.3.6",
+    "python-on-whales==0.81.0",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.14.1",
 ]
