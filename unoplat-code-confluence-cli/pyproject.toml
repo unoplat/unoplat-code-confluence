@@ -1,0 +1,34 @@
+[project]
+name = "unoplat-code-confluence-cli"
+version = "0.1.0"
+description = "CLI for Unoplat Code Confluence"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "click>=8.4.1",
+    "httpx2>=2.2.0",
+    "platformdirs>=4.3.6",
+    "python-on-whales==0.81.0",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.1",
+]
+
+[project.scripts]
+unoplat = "unoplat_code_confluence_cli.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.8.4,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.pyrefly]
+preset = "strict"
+project-includes = ["src"]
+project-excludes = ["**/__pycache__", ".venv", "dist", "build", "**/__init__.py"]
+permissive-ignores = true
+python-version = "3.13"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.1.0",
+    "pyrefly>=1.0.0",
+]

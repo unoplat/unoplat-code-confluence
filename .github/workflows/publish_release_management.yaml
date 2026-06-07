@@ -17,6 +17,9 @@ jobs:
       release_pr_branch: ${{ steps.extract-release-pr.outputs.branch }}
       refresh_flow_bridge_lock: ${{ steps.create-matrix.outputs.refresh_flow_bridge_lock }}
       refresh_query_engine_lock: ${{ steps.create-matrix.outputs.refresh_query_engine_lock }}
+      refresh_cli_lock: ${{ steps.create-matrix.outputs.refresh_cli_lock }}
+      release_cli_package: ${{ steps.create-matrix.outputs.release_cli_package }}
+      cli_release_tag: ${{ steps.create-matrix.outputs.cli_release_tag }}
       matrix: ${{ steps.create-matrix.outputs.matrix }}   # noqa: unknown-context
       has_docker_images: ${{ steps.create-matrix.outputs.has_docker_images }}
     steps:
@@ -65,6 +68,7 @@ jobs:
           const pathsReleased = JSON.parse('${{ steps.release_action_plan.outputs.paths_released }}');
           const flowBridgePath = 'unoplat-code-confluence-ingestion/code-confluence-flow-bridge';
           const queryEnginePath = 'unoplat-code-confluence-query-engine';
+          const cliPath = 'unoplat-code-confluence-cli';
           
           console.log("Processing paths:", pathsReleased);
           
@@ -92,9 +96,13 @@ jobs:
 
           console.log("Final Docker Matrix:", matrixObj.include);
           core.setOutput('matrix', JSON.stringify(matrixObj));
+          const releaseCliPackage = pathsReleased.includes(cliPath);
           core.setOutput('has_docker_images', hasDockerImages.toString());
           core.setOutput('refresh_flow_bridge_lock', pathsReleased.includes(flowBridgePath).toString());
           core.setOutput('refresh_query_engine_lock', pathsReleased.includes(queryEnginePath).toString());
+          core.setOutput('refresh_cli_lock', releaseCliPackage.toString());
+          core.setOutput('release_cli_package', releaseCliPackage.toString());
+          core.setOutput('cli_release_tag', releaseCliPackage ? (allOutputs[`${cliPath}--tag_name`] || '') : '');
 
   refresh-release-pr-lockfiles:
     name: Refresh Release PR Lockfiles
@@ -102,7 +110,7 @@ jobs:
     needs: dev-pr-merge
     permissions:
       contents: write
-    if: needs.dev-pr-merge.outputs.release_pr_created == 'true' && (needs.dev-pr-merge.outputs.refresh_flow_bridge_lock == 'true' || needs.dev-pr-merge.outputs.refresh_query_engine_lock == 'true')
+    if: needs.dev-pr-merge.outputs.release_pr_created == 'true' && (needs.dev-pr-merge.outputs.refresh_flow_bridge_lock == 'true' || needs.dev-pr-merge.outputs.refresh_query_engine_lock == 'true' || needs.dev-pr-merge.outputs.refresh_cli_lock == 'true')
     steps:
       - name: Checkout Release PR Branch
         uses: actions/checkout@v4
@@ -134,12 +142,20 @@ jobs:
           GITHUB_PAT_TOKEN: ${{ secrets.PAT }}
         run: uv lock
 
+      - name: Refresh CLI lockfile
+        if: needs.dev-pr-merge.outputs.refresh_cli_lock == 'true'
+        working-directory: unoplat-code-confluence-cli
+        env:
+          GITHUB_PAT_TOKEN: ${{ secrets.PAT }}
+        run: uv lock
+
       - name: Commit refreshed lockfiles
         shell: bash
         run: |
           git add -- \
             unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock \
-            unoplat-code-confluence-query-engine/uv.lock
+            unoplat-code-confluence-query-engine/uv.lock \
+            unoplat-code-confluence-cli/uv.lock
 
           if git diff --cached --quiet; then
             echo "No lockfile changes to commit."
@@ -150,6 +166,52 @@ jobs:
             commit -m "chore(release): refresh uv lockfiles"
 
           git push origin "HEAD:${{ needs.dev-pr-merge.outputs.release_pr_branch }}"
+
+  release-cli-package:
+    name: Build and Upload CLI Package
+    runs-on: ubuntu-latest
+    needs: dev-pr-merge
+    permissions:
+      contents: write
+    if: needs.dev-pr-merge.outputs.release_created == 'true' && needs.dev-pr-merge.outputs.release_cli_package == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.dev-pr-merge.outputs.cli_release_tag }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Check lockfile freshness
+        working-directory: unoplat-code-confluence-cli
+        run: uv lock --check
+
+      - name: Install dependencies
+        working-directory: unoplat-code-confluence-cli
+        run: uv sync --group dev
+
+      - name: Type check
+        working-directory: unoplat-code-confluence-cli
+        run: uv run pyrefly check
+
+      - name: Build CLI package
+        working-directory: unoplat-code-confluence-cli
+        run: uv build
+
+      - name: Upload CLI package assets to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.dev-pr-merge.outputs.cli_release_tag }}
+        run: |
+          test -n "$TAG"
+          gh release upload "$TAG" unoplat-code-confluence-cli/dist/* --clobber
 
   release-docker-image:
     name: Build and Push Docker Image
