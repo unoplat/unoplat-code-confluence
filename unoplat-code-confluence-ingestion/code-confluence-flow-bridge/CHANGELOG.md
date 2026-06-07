@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.81.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.80.0...code-confluence-flow-bridge-v0.81.0) (2026-06-07)
+
+
+### Features
+
+* **cli:** migrate runtime models from dataclasses to pydantic ([52df2c9](https://github.com/unoplat/unoplat-code-confluence/commit/52df2c94dfe9021fa6043779bd67a8182de24cac))
+
 ## [0.80.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.79.0...code-confluence-flow-bridge-v0.80.0) (2026-05-28)
 
 
