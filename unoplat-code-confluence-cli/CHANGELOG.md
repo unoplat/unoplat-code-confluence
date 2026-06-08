@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.2.0...unoplat-code-confluence-cli-v0.3.0) (2026-06-08)
+
+
+### Features
+
+* **add-setup-commands:** add setup commands ([946fb01](https://github.com/unoplat/unoplat-code-confluence/commit/946fb014c8ee2bde5ed0b61d34e2f39ceff11da4))
+* **add-setup-commands:** add setup commands ([77f9bb6](https://github.com/unoplat/unoplat-code-confluence/commit/77f9bb61c2afa4d8a1cad9da80886f6208a8f16f))
+
 ## [0.2.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.1.0...unoplat-code-confluence-cli-v0.2.0) (2026-06-07)
 
 
