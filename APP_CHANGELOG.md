@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.40.0...unoplat-code-confluence-v0.41.0) (2026-06-08)
+
+
+### Features
+
+* **add-setup-commands:** add setup commands ([946fb01](https://github.com/unoplat/unoplat-code-confluence/commit/946fb014c8ee2bde5ed0b61d34e2f39ceff11da4))
+* **add-setup-commands:** add setup commands ([77f9bb6](https://github.com/unoplat/unoplat-code-confluence/commit/77f9bb61c2afa4d8a1cad9da80886f6208a8f16f))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([dc9acb6](https://github.com/unoplat/unoplat-code-confluence/commit/dc9acb6241cd9a32f674f35f1ead1b1eb1d08443))
+
 ## [0.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.39.0...unoplat-code-confluence-v0.40.0) (2026-06-08)
 
 
