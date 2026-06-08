@@ -11,6 +11,7 @@ on:
       - 'unoplat-code-confluence-commons/**'
       - 'unoplat-code-confluence-ingestion/**'
       - 'unoplat-code-confluence-query-engine/**'
+      - 'unoplat-code-confluence-cli/**'
 
 concurrency:
   group: develop-branch-action-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.event.pull_request.head.ref || github.ref }}
@@ -25,6 +26,7 @@ jobs:
       commons: ${{ steps.filter.outputs.commons }}
       flow-bridge: ${{ steps.filter.outputs.flow-bridge }}
       query-engine: ${{ steps.filter.outputs.query-engine }}
+      cli: ${{ steps.filter.outputs.cli }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,10 +44,12 @@ jobs:
               - 'unoplat-code-confluence-ingestion/code-confluence-flow-bridge/**'
             query-engine:
               - 'unoplat-code-confluence-query-engine/**'
+            cli:
+              - 'unoplat-code-confluence-cli/**'
 
   refresh-release-pr-lockfiles:
     needs: detect-changes
-    if: ${{ (needs.detect-changes.outputs.flow-bridge == 'true' || needs.detect-changes.outputs.query-engine == 'true') && github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ (needs.detect-changes.outputs.flow-bridge == 'true' || needs.detect-changes.outputs.query-engine == 'true' || needs.detect-changes.outputs.cli == 'true') && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -80,12 +84,20 @@ jobs:
           GITHUB_PAT_TOKEN: ${{ secrets.PAT }}
         run: uv lock
 
+      - name: Refresh CLI lockfile
+        if: needs.detect-changes.outputs.cli == 'true'
+        working-directory: unoplat-code-confluence-cli
+        env:
+          GITHUB_PAT_TOKEN: ${{ secrets.PAT }}
+        run: uv lock
+
       - name: Commit refreshed lockfiles
         shell: bash
         run: |
           git add -- \
             unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock \
-            unoplat-code-confluence-query-engine/uv.lock
+            unoplat-code-confluence-query-engine/uv.lock \
+            unoplat-code-confluence-cli/uv.lock
 
           if git diff --cached --quiet; then
             echo "No lockfile changes to commit."
@@ -123,6 +135,44 @@ jobs:
 
       - name: Build package
         working-directory: unoplat-code-confluence-commons
+        run: uv build
+
+  build-cli:
+    needs:
+      - detect-changes
+      - refresh-release-pr-lockfiles
+    if: ${{ needs.detect-changes.outputs.cli == 'true' && (needs.refresh-release-pr-lockfiles.result == 'success' || needs.refresh-release-pr-lockfiles.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Check lockfile freshness
+        working-directory: unoplat-code-confluence-cli
+        run: uv lock --check
+
+      - name: Install dependencies
+        working-directory: unoplat-code-confluence-cli
+        run: uv sync --group dev
+
+      - name: Type check
+        working-directory: unoplat-code-confluence-cli
+        run: uv run pyrefly check
+
+      - name: Build package
+        working-directory: unoplat-code-confluence-cli
         run: uv build
         
   test-flow-bridge:

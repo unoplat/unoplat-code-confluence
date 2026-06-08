@@ -23,6 +23,10 @@
 - **Internal interfaces:** None documented.
 - **References:** See `app_interfaces.md` for the tracked interface inventory.
 
+## Backlog Workflow
+
+This project uses Backlog.md MCP for all task and project management. Before creating tasks or tracking work, read [`backlog_instructions.md`](./backlog_instructions.md) for the complete workflow guidance.
+
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
