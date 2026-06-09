@@ -55,29 +55,30 @@ This project uses Backlog.md MCP for all task and project management. Before cre
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `3bbc2c8ae5f6fc7e94628c3b07a936ca5bdbcd02` (2026-06-09). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
 ## Engineering Workflow
 ### Install
-- `uv sync` (repo root; `pyproject.toml`)
+- `task sync` (repo root; `Taskfile.yml` -> `uv sync`)
 ### Build
 - Not detected
 ### Dev
-- `uv run fastapi dev --port 8001` (from `src/unoplat_code_confluence_query_engine`; `Taskfile.yml` defines the env vars used by the dev task)
+- `task run-query-engine-backend-dev` (repo root; `Taskfile.yml` -> `uv run fastapi dev --port 8001` in `src/unoplat_code_confluence_query_engine`)
 ### Test
-- `uv run --group test pytest tests/services tests/test_app_interfaces_mapper.py tests/tools -v` (repo root; `pyproject.toml`)
+- `task test` (repo root; `Taskfile.yml` -> starts dependencies, runs `uv sync --group test`, then `uv run --python 3.13 --group test pytest --cov=src/unoplat_code_confluence_query_engine --cov-report=html:coverage_reports tests/ -v`)
 ### Lint
-- `uv run --group dev ruff check src/` (repo root; `pyproject.toml`)
+- `task lint` (repo root; `Taskfile.yml` -> `uv run --group dev ruff check src/`)
 ### Type Check
-- `uv run --group dev pyrefly check src/` (repo root; `pyproject.toml`)
+- `task typecheck` (repo root; `Taskfile.yml` -> `uv run --group dev pyrefly check src/`)
 
 ## Dependency Guide
 See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
 
 ## Business Domain
 ### Description
+
 This service is an AI-assisted codebase analysis and repository automation engine. It manages model/provider and tool credentials, launches Temporal workflows that inspect repositories, generate engineering and dependency guidance, validate framework usage, and produce/update AGENTS.md artifacts and pull requests. It also supports Codex OAuth, feedback submission, and feature flags for operating the agent runtime.
 
 ### References
