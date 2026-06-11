@@ -11,13 +11,25 @@ tasks:
     desc: Install/start the pinned Unoplat Code Confluence app release
     dir: .
     cmds:
-      - uv run unoplat run {{.CLI_ARGS}}
+      - uv run unoplat service run {{.CLI_ARGS}}
 
   update:
     desc: Upgrade the pinned app release to the latest app release
     dir: .
     cmds:
-      - uv run unoplat update {{.CLI_ARGS}}
+      - uv run unoplat service update {{.CLI_ARGS}}
+
+  stop:
+    desc: Stop the local app Docker Compose stack without deleting volumes
+    dir: .
+    cmds:
+      - uv run unoplat service stop {{.CLI_ARGS}}
+
+  destroy:
+    desc: Stop the local app Docker Compose stack and delete volumes
+    dir: .
+    cmds:
+      - uv run unoplat service destroy {{.CLI_ARGS}}
 
   help:
     desc: Show CLI help
