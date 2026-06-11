@@ -51,8 +51,6 @@ test = [
 ]
 
 dev = [
-    # Type checking and linting tools used only during development
-    "mypy>=1.16.0",
     # JSON schema validation for framework definitions
     "check-jsonschema>=0.33.0",
     # Optional: stubs for popular libraries

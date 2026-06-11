@@ -57,6 +57,11 @@ class CliSettings(BaseSettings):
     def release_state_path(self) -> Path:
         return self.resolved_data_dir / "release-state.json"
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def setup_metadata_path(self) -> Path:
+        return self.resolved_data_dir / "setup-metadata.json"
+
     @property
     def github_api_base(self) -> str:
         return str(self.github_api_base_url).rstrip("/")

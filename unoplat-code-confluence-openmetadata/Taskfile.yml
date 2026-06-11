@@ -1,0 +1,51 @@
+version: "3"
+
+tasks:
+  sync:
+    desc: Setup project with dependencies
+    dir: .
+    cmds:
+      - uv sync --group dev --group test
+
+  test:
+    desc: Run tests
+    dir: .
+    cmds:
+      - uv run --group test pytest -v tests/
+
+  lint:
+    desc: Run ruff linter on the codebase
+    dir: .
+    cmds:
+      - uv run --group dev ruff check src/
+
+  lint-fix:
+    desc: Run ruff linter and auto-fix issues
+    dir: .
+    cmds:
+      - uv run --group dev ruff check src/ --fix
+
+  format:
+    desc: Format code using ruff
+    dir: .
+    cmds:
+      - uv run --group dev ruff format src/
+
+  typecheck:
+    desc: Run pyrefly type checker on the codebase
+    dir: .
+    cmds:
+      - uv run --group dev pyrefly check src/
+
+  typecheck-file:
+    desc: Run pyrefly type checker on a specific file (usage - task typecheck-file FILE=path/to/file.py)
+    dir: .
+    cmds:
+      - uv run --group dev pyrefly check src/{{.FILE}}
+
+  code-quality:
+    desc: Run all code quality checks (lint + typecheck)
+    dir: .
+    cmds:
+      - task: lint
+      - task: typecheck
