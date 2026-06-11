@@ -30,7 +30,7 @@ This project uses Backlog.md MCP for all task and project management. Before cre
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `a6db7131de30314e9053e74a395ac31be9cb767a` (2026-04-25). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `3bbc2c8ae5f6fc7e94628c3b07a936ca5bdbcd02` (2026-06-09). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -46,7 +46,7 @@ This project uses Backlog.md MCP for all task and project management. Before cre
 ### Lint
 - Not detected
 ### Type Check
-- Not detected
+- `uv run --group dev pyrefly check src/` (config: `pyproject.toml`, `Taskfile.yml`)
 
 ## Dependency Guide
 See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.

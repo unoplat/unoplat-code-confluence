@@ -9,7 +9,7 @@ Format: `path: L<line>: <match_text>` where path is codebase-relative.
 - `src/code_confluence_flow_bridge/github_app/router.py`: L144: @router.get( "/app-manifest/callback", response_model=ManifestConversionResponse, status_code=status.HTTP_200_OK, )
 - `src/code_confluence_flow_bridge/github_app/router.py`: L245: @router.post( "/webhook", status_code=status.HTTP_202_ACCEPTED, )
 - `src/code_confluence_flow_bridge/github_app/router.py`: L55: @router.post( "/app-manifest", response_model=ManifestGenerationResponse, status_code=status.HTTP_201_CREATED, )
-- `src/code_confluence_flow_bridge/main.py`: L410: @app.post("/start-ingestion", status_code=201)
+- `src/code_confluence_flow_bridge/main.py`: L415: @app.post("/start-ingestion", status_code=201)
 - `src/code_confluence_flow_bridge/routers/credentials/router.py`: L23: @router.post("/ingest-token", status_code=201)
 - `src/code_confluence_flow_bridge/routers/credentials/router.py`: L55: @router.put("/update-token", status_code=200)
 - `src/code_confluence_flow_bridge/routers/credentials/router.py`: L87: @router.delete("/delete-token", status_code=200)
@@ -23,11 +23,11 @@ Format: `path: L<line>: <match_text>` where path is codebase-relative.
 - `src/code_confluence_flow_bridge/routers/providers/router.py`: L22: @router.get("/repository-providers", response_model=RepositoryProvidersResponse)
 - `src/code_confluence_flow_bridge/routers/providers/router.py`: L36: @router.get("/repos", response_model=PaginatedResponse)
 - `src/code_confluence_flow_bridge/routers/providers/router.py`: L63: @router.get("/user-details", status_code=200)
-- `src/code_confluence_flow_bridge/routers/repository/router.py`: L151: @router.get( "/repository-data", response_model=GitHubRepoResponseConfiguration, )
-- `src/code_confluence_flow_bridge/routers/repository/router.py`: L209: @router.get( "/codebase-metadata", response_model=CodebaseMetadataListResponse, )
-- `src/code_confluence_flow_bridge/routers/repository/router.py`: L273: @router.delete("/delete-repository", status_code=200)
-- `src/code_confluence_flow_bridge/routers/repository/router.py`: L363: @router.post( "/refresh-repository", response_model=RefreshRepositoryResponse, status_code=201 )
-- `src/code_confluence_flow_bridge/routers/repository/router.py`: L76: @router.get( "/repository-status", response_model=GithubRepoStatus, )
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L154: @router.get( "/repository-data", response_model=GitHubRepoResponseConfiguration, )
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L212: @router.get( "/codebase-metadata", response_model=CodebaseMetadataListResponse, )
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L276: @router.delete("/delete-repository", status_code=200)
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L366: @router.post( "/refresh-repository", response_model=RefreshRepositoryResponse, status_code=201 )
+- `src/code_confluence_flow_bridge/routers/repository/router.py`: L79: @router.get( "/repository-status", response_model=GithubRepoStatus, )
 
 ## Outbound Constructs
 
