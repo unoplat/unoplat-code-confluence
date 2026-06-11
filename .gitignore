@@ -373,11 +373,7 @@ node_modules/
 unoplat-code-confluence-ingestion/code-confluence-flow-bridge/experiments
 experiments/
 
-# Local agent/tooling directories (keep out of git)
-skills/
-skills-lock.json
-.agents/skills/
-.agent/skills/
+# Per-agent skills directories (skills/, .agents/, .agent/ already ignored above)
 .claude/skills/
 .codex/skills/
 .gemini/skills/
