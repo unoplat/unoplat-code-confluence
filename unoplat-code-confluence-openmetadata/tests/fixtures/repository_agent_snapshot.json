@@ -23,7 +23,7 @@
               "working_directory": "unoplat-code-confluence-query-engine"
             },
             {
-              "command": "uv run basedpyright",
+              "command": "uv run pyrefly check",
               "stage": "type_check",
               "config_file": "unoplat-code-confluence-query-engine/pyproject.toml",
               "working_directory": "unoplat-code-confluence-query-engine"
