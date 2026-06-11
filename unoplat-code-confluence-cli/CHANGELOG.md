@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.3.0...unoplat-code-confluence-cli-v0.4.0) (2026-06-11)
+
+
+### Features
+
+* **cli-and-docs:** add setup commands and fix documentation and migr… ([8ff8006](https://github.com/unoplat/unoplat-code-confluence/commit/8ff8006d277050ef00f419d2a387092cb79f70df))
+* **cli-and-docs:** add setup commands and fix documentation and migrate to vite+ ([f3c4feb](https://github.com/unoplat/unoplat-code-confluence/commit/f3c4febd3aee1d321053f245be58180f99b2c062))
+* **cli:** group service related commands under service like run , destroy, stop, update ([d822b31](https://github.com/unoplat/unoplat-code-confluence/commit/d822b31f7b5d643df660a5d7b59985b251c54481))
+
+
+### Bug Fixes
+
+* **check-urls:** urls need to be added for probing flow bridge ([442b9b2](https://github.com/unoplat/unoplat-code-confluence/commit/442b9b21f82e326cb72fc982a3b3e33ab9c2d718))
+
 ## [0.3.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.2.0...unoplat-code-confluence-cli-v0.3.0) (2026-06-08)
 
 
