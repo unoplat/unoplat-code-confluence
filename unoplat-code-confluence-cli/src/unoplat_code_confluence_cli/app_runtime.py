@@ -161,6 +161,8 @@ def flow_bridge_probe_base_urls(settings: CliSettings) -> tuple[str, ...]:
 
     hosts = ("localhost", "127.0.0.1")
     urls: list[str] = []
+    if base_url not in urls:
+        urls.append(base_url)
     for host in hosts:
         candidate = replace_url_host(parsed, host)
         if candidate not in urls:
