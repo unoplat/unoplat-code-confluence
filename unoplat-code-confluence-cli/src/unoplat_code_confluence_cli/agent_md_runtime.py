@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 from urllib.parse import urlsplit
 
 import httpx2
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from unoplat_code_confluence_cli.app_runtime import AppRuntimeError
 from unoplat_code_confluence_cli.config import CliSettings
@@ -28,34 +28,6 @@ class AgentMdGenerateUpdateResult(BaseModel):
 
     repository_workflow_run_id: str
     trace_id: str
-
-
-class AgentMdSnapshotResult(BaseModel):
-    """Subset of latest AGENTS.md snapshot response needed by the CLI."""
-
-    model_config = ConfigDict(frozen=True)
-
-    repository_workflow_run_id: str
-    agent_md_output: dict[str, Any] = Field(default_factory=dict)
-
-
-class AgentMdPrResult(BaseModel):
-    """Response returned after publishing AGENTS.md artifacts to a PR."""
-
-    model_config = ConfigDict(frozen=True)
-
-    status: Literal["modified", "no_changes"]
-    pr_url: str | None = None
-    pr_number: int | None = None
-    branch_name: str | None = None
-    changed_files: list[str] = Field(default_factory=list)
-    message: str
-
-
-class AgentMdLatestPrResult(AgentMdPrResult):
-    """PR response annotated with the latest completed AGENTS.md run ID."""
-
-    repository_workflow_run_id: str
 
 
 def parse_repository_git_url(repository_git_url: str) -> RepositoryGitUrlParts:
@@ -137,61 +109,6 @@ def start_agent_md_generate_update(
         ) from exc
 
 
-def create_agent_md_pr_for_latest(
-    settings: CliSettings,
-    *,
-    repository_git_url: str,
-) -> AgentMdLatestPrResult:
-    """Create a PR for the latest completed AGENTS.md operation for a repository."""
-    parsed = parse_repository_git_url(repository_git_url)
-    latest_snapshot = _get_latest_agent_md_snapshot(settings, parsed)
-
-    response = _query_engine_post(
-        settings,
-        "/v1/repository-agent-md-pr",
-        json={
-            "owner_name": parsed.repository_owner_name,
-            "repo_name": parsed.repository_name,
-            "repository_workflow_run_id": latest_snapshot.repository_workflow_run_id,
-        },
-        action="create AGENTS.md PR",
-    )
-
-    try:
-        pr_result = AgentMdPrResult.model_validate_json(response.text)
-    except ValidationError as exc:
-        raise AppRuntimeError(
-            "Query Engine returned an unexpected AGENTS.md PR response payload."
-        ) from exc
-
-    return AgentMdLatestPrResult(
-        repository_workflow_run_id=latest_snapshot.repository_workflow_run_id,
-        **pr_result.model_dump(),
-    )
-
-
-def _get_latest_agent_md_snapshot(
-    settings: CliSettings,
-    parsed: RepositoryGitUrlParts,
-) -> AgentMdSnapshotResult:
-    response = _query_engine_get(
-        settings,
-        "/v1/repository-agent-snapshot",
-        params={
-            "owner_name": parsed.repository_owner_name,
-            "repo_name": parsed.repository_name,
-        },
-        action="retrieve latest completed AGENTS.md run",
-    )
-
-    try:
-        return AgentMdSnapshotResult.model_validate_json(response.text)
-    except ValidationError as exc:
-        raise AppRuntimeError(
-            "Query Engine returned an unexpected latest AGENTS.md snapshot response payload."
-        ) from exc
-
-
 def _query_engine_get(
     settings: CliSettings,
     path: str,
@@ -203,26 +120,6 @@ def _query_engine_get(
         response = httpx2.get(
             f"{settings.query_engine_base_url}{path}",
             params=params,
-            timeout=settings.request_timeout_seconds,
-        )
-    except httpx2.HTTPError as exc:
-        raise AppRuntimeError(f"Unable to reach Query Engine to {action}: {exc}") from exc
-
-    _raise_for_query_engine_status(response, action=action)
-    return response
-
-
-def _query_engine_post(
-    settings: CliSettings,
-    path: str,
-    *,
-    json: dict[str, str],
-    action: str,
-) -> httpx2.Response:
-    try:
-        response = httpx2.post(
-            f"{settings.query_engine_base_url}{path}",
-            json=json,
             timeout=settings.request_timeout_seconds,
         )
     except httpx2.HTTPError as exc:

@@ -55,16 +55,10 @@ The CLI sends only the git remote URL to Flow Bridge's `/start-ingestion` endpoi
 Generate or update AGENTS.md artifacts for an ingested repository with the repository git remote URL:
 
 ```bash
-unoplat agent-md generate-update https://github.com/unoplat/unoplat-code-confluence.git
+unoplat agent-md https://github.com/unoplat/unoplat-code-confluence.git
 ```
 
-After an AGENTS.md operation completes, create a pull request for the latest completed run:
-
-```bash
-unoplat agent-md pr https://github.com/unoplat/unoplat-code-confluence.git
-```
-
-Both commands also accept SSH remotes such as `git@github.com:unoplat/unoplat-code-confluence.git`. The `pr` command always targets the most recent completed AGENTS.md run for the repository.
+The command also accepts SSH remotes such as `git@github.com:unoplat/unoplat-code-confluence.git`. A pull request with the generated artifacts is published automatically when the run completes.
 
 ## Setup commands
 

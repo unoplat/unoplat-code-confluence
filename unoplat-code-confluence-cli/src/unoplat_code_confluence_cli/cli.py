@@ -3,7 +3,6 @@ from __future__ import annotations
 import click
 
 from unoplat_code_confluence_cli.agent_md_runtime import (
-    create_agent_md_pr_for_latest,
     parse_repository_git_url,
     start_agent_md_generate_update,
 )
@@ -99,15 +98,13 @@ def ingest(repository_git_url: str) -> None:
     click.echo(result.model_dump_json(indent=2))
 
 
-@main.group(name="agent-md")
-def agent_md() -> None:
-    """Generate AGENTS.md artifacts and publish them to pull requests."""
-
-
-@agent_md.command(name="generate-update")
+@main.command(name="agent-md")
 @click.argument("repository_git_url")
-def agent_md_generate_update(repository_git_url: str) -> None:
-    """Start AGENTS.md generation/update for a repository git remote URL."""
+def agent_md(repository_git_url: str) -> None:
+    """Generate or update AGENTS.md artifacts for a repository git remote URL.
+
+    The pull request is published automatically when generation completes.
+    """
     settings = CliSettings()
     try:
         normalized_git_url = parse_repository_git_url(
@@ -116,26 +113,6 @@ def agent_md_generate_update(repository_git_url: str) -> None:
         if settings.auto_start:
             ensure_app_running(settings)
         result = start_agent_md_generate_update(
-            settings,
-            repository_git_url=normalized_git_url,
-        )
-    except AppRuntimeError as exc:
-        raise click.ClickException(str(exc)) from exc
-    click.echo(result.model_dump_json(indent=2))
-
-
-@agent_md.command(name="pr")
-@click.argument("repository_git_url")
-def agent_md_pr(repository_git_url: str) -> None:
-    """Create a PR for the latest completed AGENTS.md operation."""
-    settings = CliSettings()
-    try:
-        normalized_git_url = parse_repository_git_url(
-            repository_git_url
-        ).repository_git_url
-        if settings.auto_start:
-            ensure_app_running(settings)
-        result = create_agent_md_pr_for_latest(
             settings,
             repository_git_url=normalized_git_url,
         )
