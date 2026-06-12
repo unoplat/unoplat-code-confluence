@@ -6,7 +6,7 @@ providing distributed tracing and workflow state tracking via interceptors.
 
 from __future__ import annotations
 
-from base64 import b64decode, b64encode
+import asyncio
 from collections.abc import Mapping
 from pathlib import Path
 import subprocess
@@ -36,12 +36,11 @@ from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_sess
 from unoplat_code_confluence_query_engine.services.config.credentials_service import (
     CredentialsService,
 )
-from unoplat_code_confluence_query_engine.services.github.git_ref_resolver import (
-    resolve_repository_git_ref,
+from unoplat_code_confluence_query_engine.services.github.agent_md_pr_publisher import (
+    publish_agent_md_artifacts,
 )
 from unoplat_code_confluence_query_engine.services.github.github_api_helpers import (
     extract_http_error_status,
-    is_http_not_found,
     resolve_github_host as _resolve_github_host_shared,
 )
 from unoplat_code_confluence_query_engine.services.repository.idempotency_service import (
@@ -261,15 +260,6 @@ def _parse_changed_artifacts_from_porcelain(
         if artifact_name in expected_artifacts:
             changed.add(artifact_name)
     return changed
-
-
-def _decode_remote_content(encoded_content: str) -> str | None:
-    normalized = encoded_content.replace("\n", "")
-    try:
-        decoded = b64decode(normalized)
-        return decoded.decode("utf-8")
-    except (ValueError, UnicodeDecodeError):
-        return None
 
 
 async def _persist_pr_metadata(
@@ -853,167 +843,24 @@ async def create_repository_agent_md_pr(
     branch_name = f"agents-md/{repository_workflow_run_id[:12]}"
 
     try:
-        # Resolve default branch + head SHA via shared resolver
-        try:
-            git_ref = resolve_repository_git_ref(api, owner_name, repo_name)
-        except ValueError as ref_error:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Failed to resolve repository git ref: {ref_error}",
-            ) from ref_error
-        default_branch = git_ref.default_branch
-        base_sha = git_ref.head_commit_sha
-
-        # Get or create feature branch
-        try:
-            api.git.get_ref(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
-                owner=owner_name,
-                repo=repo_name,
-                ref=f"heads/{branch_name}",
-            )
-        except Exception as get_ref_error:
-            if is_http_not_found(get_ref_error):
-                api.git.create_ref(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
-                    owner=owner_name,
-                    repo=repo_name,
-                    ref=f"refs/heads/{branch_name}",
-                    sha=base_sha,
-                )
-            else:
-                raise
-
-        # Check for existing open PR BEFORE pushing files (zero mutations if PR exists)
-        pulls = api.pulls.list(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
-            owner=owner_name,
-            repo=repo_name,
-            state="open",
-            head=f"{owner_name}:{branch_name}",
-            base=default_branch,
-            per_page=1,
-            page=1,
-        )
-        pulls_list: list[object] = list(pulls) if isinstance(pulls, list) else []  # pyright: ignore[reportUnknownArgumentType]
-        if pulls_list:
-            first_pull = pulls_list[0]
-            existing_pr_url: str | None = getattr(first_pull, "html_url", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-            existing_pr_number: int | None = getattr(first_pull, "number", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-
-            if isinstance(existing_pr_url, str) and existing_pr_url:
-                existing_pr_meta = PrMetadata(
-                    status="no_changes",
-                    pr_url=existing_pr_url,
-                    pr_number=existing_pr_number if isinstance(existing_pr_number, int) else None,
-                    branch_name=branch_name,
-                    message="PR already exists for this branch",
-                )
-                persisted, already_existed = await _persist_pr_metadata(
-                    owner_name,
-                    repo_name,
-                    repository_workflow_run_id,
-                    existing_pr_meta,
-                )
-                return _build_pr_response(persisted, already_existed)
-
-        # Push files (compare with remote, skip unchanged)
-        changed_files: list[str] = []
-        for rel_path, local_content in files_to_publish:
-            existing_sha: str | None = None
-            existing_content: str | None = None
-            try:
-                remote_content_response = api.repos.get_content(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
-                    owner=owner_name,
-                    repo=repo_name,
-                    path=rel_path,
-                    ref=branch_name,
-                )
-                remote_encoded: str = getattr(remote_content_response, "content", "") or ""  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-                remote_encoding: str = getattr(remote_content_response, "encoding", "") or ""  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-                existing_sha = getattr(remote_content_response, "sha", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-                if not isinstance(existing_sha, str):
-                    existing_sha = None
-                if remote_encoding == "base64" and remote_encoded:
-                    existing_content = _decode_remote_content(remote_encoded)
-            except Exception as get_content_error:
-                if is_http_not_found(get_content_error):
-                    existing_sha = None
-                    existing_content = None
-                else:
-                    raise
-
-            if existing_content == local_content:
-                continue
-
-            content_b64 = b64encode(local_content.encode("utf-8")).decode("ascii")
-            update_kwargs: dict[str, object] = {
-                "owner": owner_name,
-                "repo": repo_name,
-                "path": rel_path,
-                "message": f"Update {rel_path} from run {repository_workflow_run_id}",
-                "content": content_b64,
-                "branch": branch_name,
-            }
-            if existing_sha is not None:
-                update_kwargs["sha"] = existing_sha
-
-            api.repos.create_or_update_file_contents(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
-                **update_kwargs,
-            )
-            changed_files.append(rel_path)
-
-        if not changed_files:
-            no_diff_meta = PrMetadata(
-                status="no_changes",
-                branch_name=branch_name,
-                message="No artifact changes detected against target branch",
-            )
-            persisted, already_existed = await _persist_pr_metadata(
-                owner_name, repo_name, repository_workflow_run_id, no_diff_meta
-            )
-            return _build_pr_response(persisted, already_existed)
-
-        # Create new PR
-        pr_title = f"Update codebase artifacts (run {repository_workflow_run_id[:8]})"
-        pr_body_lines = [
-            "## Summary",
-            f"- Codebase artifact update for run `{repository_workflow_run_id}`",
-            f"- Updated files: {len(changed_files)}",
-            "",
-            "## Changed Files",
-            *[f"- `{path}`" for path in changed_files],
-        ]
-        created_pr = api.pulls.create(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
-            owner=owner_name,
-            repo=repo_name,
-            title=pr_title,
-            head=branch_name,
-            base=default_branch,
-            body="\n".join(pr_body_lines),
-        )
-        created_pr_url: str | None = getattr(created_pr, "html_url", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-        if not isinstance(created_pr_url, str) or not created_pr_url:
-            raise HTTPException(
-                status_code=502,
-                detail="GitHub API response missing 'html_url' in pulls.create",
-            )
-        created_pr_number: int | None = getattr(created_pr, "number", None)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
-        if not isinstance(created_pr_number, int):
-            created_pr_number = None
-
-        # Persist modified result
-        modified_meta = PrMetadata(
-            status="modified",
-            pr_url=created_pr_url,
-            pr_number=created_pr_number,
+        publish_result = await asyncio.to_thread(
+            publish_agent_md_artifacts,
+            api,
+            owner_name=owner_name,
+            repo_name=repo_name,
             branch_name=branch_name,
-            changed_files=changed_files,
-            message="Created pull request for codebase artifact changes",
+            files_to_publish=files_to_publish,
+            repository_workflow_run_id=repository_workflow_run_id,
         )
         persisted, already_existed = await _persist_pr_metadata(
-            owner_name, repo_name, repository_workflow_run_id, modified_meta
+            owner_name, repo_name, repository_workflow_run_id, publish_result
         )
         return _build_pr_response(persisted, already_existed)
-    except HTTPException:
-        raise
+    except ValueError as github_response_error:
+        raise HTTPException(
+            status_code=502,
+            detail=f"GitHub API error while creating PR: {github_response_error}",
+        ) from github_response_error
     except Exception as github_error:
         gh_status_code = extract_http_error_status(github_error)
         if gh_status_code in {401, 403}:
