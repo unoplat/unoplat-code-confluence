@@ -76,3 +76,16 @@ class AgentSnapshotCompleteEnvelope(BaseModel):
     def extras(self) -> dict[str, Any]:
         """Return any extra fields passed to the model (required for Temporal)."""
         return dict(self.model_extra or {})
+
+
+class AgentMdPrPublishEnvelope(BaseModel):
+    """Envelope for publishing the AGENTS.md PR after successful generation.
+
+    The workflow run ID is intentionally absent: the activity derives it from
+    ``activity.info().workflow_run_id`` since the snapshot it targets always
+    belongs to the scheduling workflow run.
+    """
+
+    owner_name: str = Field(..., description="Repository owner name")
+    repo_name: str = Field(..., description="Repository name")
+    model_config = ConfigDict(extra="allow")

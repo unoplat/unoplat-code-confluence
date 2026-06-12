@@ -24,6 +24,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.repository_git_ref_runner import (
         resolve_repository_git_ref,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.repository_pr_publish_runner import (
+        publish_repository_agent_md_pr,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.repository_snapshot_completion_runner import (
         persist_repository_snapshot_completion,
     )
@@ -87,6 +90,14 @@ class RepositoryAgentWorkflow:
                 child_errors,
                 type="CodebaseWorkflowError",
                 non_retryable=True,
+            )
+
+        pr_metadata = await publish_repository_agent_md_pr(
+            repository_qualified_name=repository_qualified_name,
+        )
+        if pr_metadata is not None:
+            workflow_statistics_payload["pr_publish"] = pr_metadata.model_dump(
+                mode="json"
             )
 
         logger.debug("[workflow] RepositoryAgentWorkflow.run END")

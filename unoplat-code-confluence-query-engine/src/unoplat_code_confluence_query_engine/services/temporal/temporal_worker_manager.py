@@ -58,6 +58,9 @@ from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_
 from unoplat_code_confluence_query_engine.services.temporal.activities.codebase_workflow_run.managed_block_activity import (
     ManagedBlockActivity,
 )
+from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.agent_md_pr_publish_activity import (
+    AgentMdPrPublishActivity,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activities.repository_workflow_run.git_ref_resolution_activity import (
     GitRefResolutionActivity,
 )
@@ -308,6 +311,7 @@ class TemporalWorkerManager:
         app_interfaces_activity = AppInterfacesActivity()
         git_ref_resolution_activity = GitRefResolutionActivity()
         managed_block_activity = ManagedBlockActivity()
+        agent_md_pr_publish_activity = AgentMdPrPublishActivity()
 
         # Build interceptor list - always include status interceptor
         all_interceptors: list[Interceptor] = [AgentWorkflowStatusInterceptor()]
@@ -368,6 +372,7 @@ class TemporalWorkerManager:
                 app_interfaces_activity.emit_app_interfaces_completion,
                 git_ref_resolution_activity.resolve_git_ref,
                 managed_block_activity.bootstrap,
+                agent_md_pr_publish_activity.publish_pr,
             ],
             plugins=agent_plugins,
             interceptors=all_interceptors,
