@@ -6,22 +6,15 @@ providing distributed tracing and workflow state tracking via interceptors.
 
 from __future__ import annotations
 
-import asyncio
-from collections.abc import Mapping
-from pathlib import Path
-import subprocess
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from ghapi.core import GhApi
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import and_, select
 from temporalio.service import RPCError, RPCStatusCode
-from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.pr_metadata_model import PrMetadata
 from unoplat_code_confluence_commons.repo_models import (
-    Repository,
     RepositoryAgentMdSnapshot,
     RepositoryWorkflowOperation,
     RepositoryWorkflowRun,
@@ -33,26 +26,19 @@ from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
-from unoplat_code_confluence_query_engine.services.config.credentials_service import (
-    CredentialsService,
-)
-from unoplat_code_confluence_query_engine.services.github.agent_md_pr_publisher import (
-    publish_agent_md_artifacts,
-)
-from unoplat_code_confluence_query_engine.services.github.github_api_helpers import (
-    extract_http_error_status,
-    resolve_github_host as _resolve_github_host_shared,
+from unoplat_code_confluence_query_engine.services.github.agent_md_pr_service import (
+    AgentMdPrAuthError,
+    AgentMdPrConfigurationError,
+    AgentMdPrGithubError,
+    AgentMdPrInternalError,
+    AgentMdPrNotFoundError,
+    publish_agent_md_pr,
 )
 from unoplat_code_confluence_query_engine.services.repository.idempotency_service import (
     get_active_agent_workflow_run,
 )
 from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
     fetch_repository_metadata,
-)
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
-    APP_INTERFACES_ARTIFACT,
-    BUSINESS_DOMAIN_REFERENCES_ARTIFACT,
-    DEPENDENCY_OVERVIEW_ARTIFACT,
 )
 from unoplat_code_confluence_query_engine.services.temporal.temporal_worker_manager import (
     get_worker_manager,
@@ -124,14 +110,6 @@ CANCELLABLE_REPOSITORY_WORKFLOW_OPERATIONS: set[RepositoryWorkflowOperation] = {
     RepositoryWorkflowOperation.AGENT_MD_UPDATE,
 }
 
-MANAGED_MARKDOWN_ARTIFACTS: tuple[str, ...] = (
-    "AGENTS.md",
-    DEPENDENCY_OVERVIEW_ARTIFACT,
-    BUSINESS_DOMAIN_REFERENCES_ARTIFACT,
-    APP_INTERFACES_ARTIFACT,
-)
-
-
 def _is_terminal_repository_workflow_status(status: str) -> bool:
     return status in TERMINAL_REPOSITORY_WORKFLOW_STATUSES
 
@@ -145,165 +123,6 @@ async def _cancel_temporal_workflow(
         workflow_id
     )
     await workflow_handle.cancel()
-
-
-def _get_mapping_field(
-    payload: Mapping[str, object],
-    key: str,
-) -> Mapping[str, object] | None:
-    value = payload.get(key)
-    if isinstance(value, Mapping):
-        return cast(Mapping[str, object], value)
-    return None
-
-
-def _resolve_github_host(
-    provider_key: ProviderKey,
-    metadata: Mapping[str, object] | None,
-) -> str:
-    """Resolve GitHub API host, wrapping ValueError from shared helper as HTTPException."""
-    try:
-        return _resolve_github_host_shared(provider_key, metadata)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-
-
-def _get_codebase_file_rel_path(codebase_name: str, file_relative: str) -> str:
-    """Compute repository-relative path for any file in a codebase."""
-    clean = codebase_name.strip().strip("/")
-    if clean in {"", "."}:
-        return file_relative
-    return f"{clean}/{file_relative}"
-
-
-def _collect_changed_managed_markdown_files(codebase_root: Path) -> list[Path]:
-    """Return existing managed markdown artifacts changed in the git working tree.
-
-    The workflow now has direct artifact owners instead of section-updater run
-    records. Publishing therefore discovers files from the fixed managed target
-    set and lets git working-tree status decide which ones are candidates.
-    """
-    existing_targets = [
-        artifact
-        for artifact in MANAGED_MARKDOWN_ARTIFACTS
-        if (codebase_root / artifact).is_file()
-    ]
-    if not existing_targets:
-        return []
-
-    try:
-        status_result = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(codebase_root),
-                "status",
-                "--porcelain",
-                "--",
-                *existing_targets,
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-    except (OSError, subprocess.SubprocessError) as status_error:
-        logger.warning(
-            "Unable to inspect git status for managed markdown in '{}': {}. "
-            "Falling back to existing managed artifacts.",
-            codebase_root,
-            status_error,
-        )
-        return [codebase_root / artifact for artifact in existing_targets]
-
-    if status_result.returncode != 0:
-        logger.warning(
-            "git status failed for managed markdown in '{}': {}. "
-            "Falling back to existing managed artifacts.",
-            codebase_root,
-            status_result.stderr.strip(),
-        )
-        return [codebase_root / artifact for artifact in existing_targets]
-
-    changed_artifacts = _parse_changed_artifacts_from_porcelain(
-        status_result.stdout,
-        set(existing_targets),
-    )
-    return [
-        codebase_root / artifact
-        for artifact in existing_targets
-        if artifact in changed_artifacts
-    ]
-
-
-def _parse_changed_artifacts_from_porcelain(
-    porcelain_output: str,
-    expected_artifacts: set[str],
-) -> set[str]:
-    """Parse `git status --porcelain` output for known managed artifacts.
-
-    Git porcelain output reports paths relative to the repository root, even when
-    the status command is executed with ``git -C`` from a codebase subdirectory.
-    Managed artifacts are direct children of the codebase root, so normalize each
-    porcelain path to its filename before comparing against the expected artifact
-    names and return those bare artifact names.
-    """
-    changed: set[str] = set()
-    for raw_line in porcelain_output.splitlines():
-        if len(raw_line) < 4:
-            continue
-        path_part = raw_line[3:].strip()
-        if " -> " in path_part:
-            path_part = path_part.rsplit(" -> ", 1)[1].strip()
-        path_part = path_part.strip('"')
-        artifact_name = Path(path_part).name
-        if artifact_name in expected_artifacts:
-            changed.add(artifact_name)
-    return changed
-
-
-async def _persist_pr_metadata(
-    owner_name: str,
-    repo_name: str,
-    repository_workflow_run_id: str,
-    pr_metadata: PrMetadata,
-) -> tuple[PrMetadata, bool]:
-    """Persist PR metadata with row-level lock. Returns (metadata, already_existed).
-
-    Uses SELECT ... FOR UPDATE to guard against concurrent publish requests.
-    If pr_metadata is already non-null (another request won the race), returns
-    the existing metadata with already_existed=True.
-    """
-    # Session 2 (short write transaction): acquire row lock only for the final
-    # persistence step so we do not hold DB locks while performing network-bound
-    # GitHub API calls.
-    async with get_startup_session() as session:
-        stmt = (
-            select(RepositoryAgentMdSnapshot)
-            .where(
-                RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-                RepositoryAgentMdSnapshot.repository_name == repo_name,
-                RepositoryAgentMdSnapshot.repository_workflow_run_id
-                == repository_workflow_run_id,
-            )
-            .with_for_update()
-        )
-        result = await session.execute(stmt)
-        snapshot = result.scalar_one_or_none()
-        if snapshot is None:
-            # Defensive fallback: under normal workflow invariants the snapshot row
-            # exists for this run and is not deleted during publish. If it is gone
-            # (e.g. concurrent maintenance/deletion), treat as already handled to
-            # preserve one-shot no-op behavior.
-            return pr_metadata, True
-
-        if snapshot.pr_metadata is not None:
-            # Another request already persisted — return existing data
-            existing = PrMetadata.model_validate(snapshot.pr_metadata)
-            return existing, True
-
-        snapshot.pr_metadata = pr_metadata.model_dump(mode="json")
-        return pr_metadata, False
 
 
 @router.get("/codebase-agent-rules")
@@ -687,191 +506,32 @@ async def create_repository_agent_md_pr(
 
     One-shot semantics: first successful publish for a run returns ``modified``.
     ALL subsequent calls for the same run return ``no_changes``.
+
+    Manual fallback/retry path for the automatic in-workflow publish.
     """
-    owner_name = payload.owner_name
-    repo_name = payload.repo_name
-    repository_workflow_run_id = payload.repository_workflow_run_id
-
-    # ── Session 1: read snapshot + repository + PAT credentials ──────────
-    # Keep this read transaction separate from Session 2 persistence:
-    # GitHub operations below are network-bound and can take time; we avoid
-    # holding DB transaction/locks across those remote calls.
-    async with get_startup_session() as session:
-        repository = await session.get(Repository, (repo_name, owner_name))
-        if repository is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Repository not found: {owner_name}/{repo_name}",
-            )
-
-        snapshot_stmt = select(RepositoryAgentMdSnapshot).where(
-            RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-            RepositoryAgentMdSnapshot.repository_name == repo_name,
-            RepositoryAgentMdSnapshot.repository_workflow_run_id
-            == repository_workflow_run_id,
-        )
-        snapshot_result = await session.execute(snapshot_stmt)
-        snapshot = snapshot_result.scalar_one_or_none()
-        if snapshot is None:
-            raise HTTPException(
-                status_code=404,
-                detail=(
-                    f"No snapshot found for {owner_name}/{repo_name} "
-                    f"run_id={repository_workflow_run_id}"
-                ),
-            )
-
-        # ONE-SHOT GUARD: if pr_metadata already persisted → return immediately
-        if snapshot.pr_metadata is not None:
-            existing = PrMetadata.model_validate(snapshot.pr_metadata)
-            return RepositoryAgentMdPrResponse(
-                status="no_changes",
-                pr_url=existing.pr_url,
-                pr_number=existing.pr_number,
-                branch_name=existing.branch_name,
-                changed_files=[],
-                message="PR already published for this run",
-            )
-
-        provider_key = repository.repository_provider
-        try:
-            repository_pat = await CredentialsService.get_repository_pat(
-                session, provider_key
-            )
-        except ValueError as decrypt_error:
-            raise HTTPException(
-                status_code=400,
-                detail=str(decrypt_error),
-            ) from decrypt_error
-        if not repository_pat:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"Repository PAT not configured for provider '{provider_key.value}'. "
-                    "Please configure repository credentials first."
-                ),
-            )
-
-        credential_metadata = (
-            await CredentialsService.get_repository_credential_metadata(
-                session,
-                provider_key,
-            )
-        )
-
-    # ── Collect files to publish ─────────────────────────────────────────
-    snapshot_payload = cast(Mapping[str, object], snapshot.agent_md_output)
-
-    codebases_payload = _get_mapping_field(snapshot_payload, "codebases")
-    if not codebases_payload:
-        no_codebases_meta = PrMetadata(
-            status="no_changes",
-            message="No codebase outputs found in snapshot",
-        )
-        persisted, already_existed = await _persist_pr_metadata(
-            owner_name, repo_name, repository_workflow_run_id, no_codebases_meta
-        )
-        return _build_pr_response(persisted, already_existed)
-
-    ruleset_metadata = await fetch_repository_metadata(owner_name, repo_name)
-    codebase_path_map = {
-        metadata.codebase_name: metadata.codebase_path
-        for metadata in ruleset_metadata.codebase_metadata
-    }
-
-    files_to_publish: list[tuple[str, str]] = []
-    seen_rel_paths: set[str] = set()
-
-    for codebase_name in codebases_payload.keys():
-        codebase_root = codebase_path_map.get(codebase_name)
-        if not codebase_root:
-            logger.warning(
-                "Skipping codebase '{}' for PR: path not found", codebase_name
-            )
-            continue
-
-        codebase_root_path = Path(codebase_root)
-        changed_managed_files = _collect_changed_managed_markdown_files(
-            codebase_root_path
-        )
-        if not changed_managed_files:
-            logger.info(
-                "Skipping codebase '{}': no managed markdown files changed",
-                codebase_name,
-            )
-            continue
-
-        for local_path in changed_managed_files:
-            file_relative = str(local_path.relative_to(codebase_root_path))
-
-            try:
-                local_content = local_path.read_text(encoding="utf-8")
-            except OSError as read_error:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Failed to read managed artifact at {local_path}: {read_error}",
-                ) from read_error
-
-            rel_path = _get_codebase_file_rel_path(codebase_name, file_relative)
-
-            # Deduplicate defensively across codebase payload entries.
-            if rel_path in seen_rel_paths:
-                continue
-            seen_rel_paths.add(rel_path)
-
-            files_to_publish.append((rel_path, local_content))
-
-    if not files_to_publish:
-        no_files_meta = PrMetadata(
-            status="no_changes",
-            message="No managed artifact files available to publish",
-        )
-        persisted, already_existed = await _persist_pr_metadata(
-            owner_name, repo_name, repository_workflow_run_id, no_files_meta
-        )
-        return _build_pr_response(persisted, already_existed)
-
-    # ── GitHub operations ────────────────────────────────────────────────
-    github_host = _resolve_github_host(provider_key, credential_metadata)
-    api = GhApi(
-        owner=owner_name,
-        repo=repo_name,
-        token=repository_pat,
-        gh_host=github_host,
-    )
-
-    branch_name = f"agents-md/{repository_workflow_run_id[:12]}"
-
     try:
-        publish_result = await asyncio.to_thread(
-            publish_agent_md_artifacts,
-            api,
-            owner_name=owner_name,
-            repo_name=repo_name,
-            branch_name=branch_name,
-            files_to_publish=files_to_publish,
-            repository_workflow_run_id=repository_workflow_run_id,
+        persisted, already_existed = await publish_agent_md_pr(
+            owner_name=payload.owner_name,
+            repo_name=payload.repo_name,
+            repository_workflow_run_id=payload.repository_workflow_run_id,
         )
-        persisted, already_existed = await _persist_pr_metadata(
-            owner_name, repo_name, repository_workflow_run_id, publish_result
-        )
-        return _build_pr_response(persisted, already_existed)
-    except ValueError as github_response_error:
+    except AgentMdPrNotFoundError as not_found_error:
         raise HTTPException(
-            status_code=502,
-            detail=f"GitHub API error while creating PR: {github_response_error}",
-        ) from github_response_error
-    except Exception as github_error:
-        gh_status_code = extract_http_error_status(github_error)
-        if gh_status_code in {401, 403}:
-            raise HTTPException(
-                status_code=gh_status_code,
-                detail=f"GitHub permission/auth error: {github_error}",
-            ) from github_error
+            status_code=404, detail=str(not_found_error)
+        ) from not_found_error
+    except AgentMdPrConfigurationError as config_error:
+        raise HTTPException(status_code=400, detail=str(config_error)) from config_error
+    except AgentMdPrAuthError as auth_error:
         raise HTTPException(
-            status_code=502,
-            detail=f"GitHub API error while creating PR: {github_error}",
-        ) from github_error
+            status_code=auth_error.status_code, detail=str(auth_error)
+        ) from auth_error
+    except AgentMdPrInternalError as internal_error:
+        raise HTTPException(
+            status_code=500, detail=str(internal_error)
+        ) from internal_error
+    except AgentMdPrGithubError as github_error:
+        raise HTTPException(status_code=502, detail=str(github_error)) from github_error
+    return _build_pr_response(persisted, already_existed)
 
 
 def _build_pr_response(
