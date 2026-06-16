@@ -55,7 +55,14 @@ def parse_repository_git_url(repository_git_url: str) -> RepositoryGitUrlParts:
             raise AppRuntimeError(
                 "Repository git URL must be a valid HTTPS or SSH GitHub remote URL."
             )
-        host = parsed.hostname or ""
+        try:
+            port = parsed.port
+        except ValueError as exc:
+            raise AppRuntimeError(
+                "Repository git URL must be a valid HTTPS or SSH GitHub remote URL."
+            ) from exc
+        hostname = parsed.hostname or ""
+        host = f"{hostname}:{port}" if port is not None else hostname
         path = parsed.path
 
     normalized_host = host.lower().strip()
