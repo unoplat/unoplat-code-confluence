@@ -498,6 +498,18 @@ async def get_repository_agent_snapshot(
         raise HTTPException(status_code=500, detail="Internal server error") from error
 
 
+# TODO(not urgent): concurrent-publish race. This manual endpoint and the
+# in-workflow auto-publish activity both call publish_agent_md_pr with the same
+# repository_workflow_run_id. The one-shot guard (pr_metadata IS NULL check) and
+# the _persist_pr_metadata arbitration both sit AFTER the GitHub side effect, so
+# two callers can pass the guard, both run publish_agent_md_artifacts on the same
+# agents-md/<run_id> branch, and the loser surfaces a false 502 from pulls.create
+# (422 "PR already exists") even though a valid PR was created. The frontend
+# "Publish PR" button gates on an eventually-consistent GET status (30s stale),
+# so it does not close the window. Fix server-side: serialize the publish per
+# run_id (e.g. pg advisory lock on the run_id, or row lock before the GitHub
+# call), not in the UI. Low severity: GitHub head->base uniqueness prevents a
+# duplicate PR; only harm is a misleading error on the losing caller.
 @router.post("/repository-agent-md-pr")
 async def create_repository_agent_md_pr(
     payload: RepositoryAgentMdPrRequest,
