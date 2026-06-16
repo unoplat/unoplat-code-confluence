@@ -34,11 +34,8 @@ export function RepositoryDataTable({ providerKey }: RepositoryDataTableProps) {
   const ingestMutation = useMutation({
     mutationFn: (repo: GitHubRepoSummary) =>
       submitRepositoryConfig({
-        repository_name: repo.name,
         repository_git_url: repo.git_url,
-        repository_owner_name: repo.owner_name,
         repository_metadata: null,
-        provider_key: providerKey,
       }),
     onSuccess: (_, repo) => {
       toast.success(

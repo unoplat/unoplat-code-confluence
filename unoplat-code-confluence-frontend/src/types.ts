@@ -94,11 +94,8 @@ export interface CodebaseMetadataResponse {
 
 // Backend-compatible repository configuration request
 export interface RepositoryRequestConfiguration {
-  repository_name: string;
   repository_git_url: string;
-  repository_owner_name: string;
   repository_metadata?: CodebaseConfig[] | null; // Optional - backend auto-detects if empty/null
-  provider_key: ProviderKey;
 }
 
 // @deprecated Use RepositoryRequestConfiguration instead

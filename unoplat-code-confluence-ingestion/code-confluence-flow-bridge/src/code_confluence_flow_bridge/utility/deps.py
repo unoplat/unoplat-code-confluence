@@ -6,6 +6,9 @@ from code_confluence_flow_bridge.logging.trace_utils import (
     build_trace_id,
     trace_id_var,
 )
+from code_confluence_flow_bridge.models.github.repository_git_url import (
+    parse_repository_git_url,
+)
 
 
 async def trace_dependency(request: Request) -> StructuredLogger:
@@ -19,7 +22,14 @@ async def trace_dependency(request: Request) -> StructuredLogger:
     repo = body.get("repository_name")
     owner = body.get("repository_owner_name")
     if not (repo and owner):
-        raise HTTPException(400, "repository_name / repository_owner_name are required")
+        repository_git_url = body.get("repository_git_url")
+        if not isinstance(repository_git_url, str):
+            raise HTTPException(
+                400, "repository_git_url is required to derive repository identity"
+            )
+        parsed = parse_repository_git_url(repository_git_url)
+        repo = repo or parsed.repository_name
+        owner = owner or parsed.repository_owner_name
 
     trace_id = build_trace_id(repo, owner)
     trace_id_var.set(trace_id)  # <-- key line
