@@ -37,12 +37,12 @@ async def publish_repository_agent_md_pr(
     in that case pr_metadata stays unset and the manual `agent-md pr` fallback
     remains available.
     """
-    owner_name, repo_name = repository_qualified_name.split("/", maxsplit=1)
-    envelope = AgentMdPrPublishEnvelope(
-        owner_name=owner_name,
-        repo_name=repo_name,
-    )
     try:
+        owner_name, repo_name = repository_qualified_name.split("/", maxsplit=1)
+        envelope = AgentMdPrPublishEnvelope(
+            owner_name=owner_name,
+            repo_name=repo_name,
+        )
         return await workflow.execute_activity(
             AgentMdPrPublishActivity.publish_pr,
             args=[envelope],
