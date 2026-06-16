@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.4.0...unoplat-code-confluence-cli-v0.4.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **port-preservation:** preserve hostname:port in HTTPS git URL parsers ([4ff6aaa](https://github.com/unoplat/unoplat-code-confluence/commit/4ff6aaa756de5102bf13d961df44fb37f6a818c4))
+
 ## [0.4.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.3.0...unoplat-code-confluence-cli-v0.4.0) (2026-06-11)
 
 
