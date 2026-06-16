@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.44.0...unoplat-code-confluence-query-engine-v0.45.0) (2026-06-16)
+
+
+### Features
+
+* **query-engine:** batch artifact files into single git tree commit ([ca460dc](https://github.com/unoplat/unoplat-code-confluence/commit/ca460dc2be42334e9934ee387e9ae8aeaf29fe13))
+* **query-engine:** wire automatic AGENTS.md PR publish into repository workflow ([7c4c351](https://github.com/unoplat/unoplat-code-confluence/commit/7c4c35134e69e8bbf059bc9c22e01bc556ca4544))
+
+
+### Bug Fixes
+
+* **exception-handling:** guard qualified-name parse inside PR publish try ([16754f5](https://github.com/unoplat/unoplat-code-confluence/commit/16754f5d028c1f738a72f31c1ea4ba9e2d220b9c))
+* **query-engine:** pin agent prompt to explicit AGENTS.md path ([87eb0fd](https://github.com/unoplat/unoplat-code-confluence/commit/87eb0fd488503678061b586ae11fa093d4bf0509))
+
 ## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.43.0...unoplat-code-confluence-query-engine-v0.44.0) (2026-05-28)
 
 

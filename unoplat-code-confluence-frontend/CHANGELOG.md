@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.56.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.55.1...unoplat-code-confluence-frontend-v1.56.0) (2026-06-16)
+
+
+### Features
+
+* **frontend:** send only git URL for repository ingest requests ([10d1e63](https://github.com/unoplat/unoplat-code-confluence/commit/10d1e63ac966015fc38f8501192e3f903e124fa3))
+
 ## [1.55.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.55.0...unoplat-code-confluence-frontend-v1.55.1) (2026-05-28)
 
 
