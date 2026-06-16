@@ -305,9 +305,7 @@ async def publish_agent_md_pr(
         )
 
     # ── Collect files to publish ─────────────────────────────────────────
-    snapshot_payload = cast(Mapping[str, object], snapshot.agent_md_output)
-
-    codebases_payload = _get_mapping_field(snapshot_payload, "codebases")
+    codebases_payload = _get_mapping_field(snapshot.agent_md_output, "codebases")
     if not codebases_payload:
         no_codebases_meta = PrMetadata(
             status="no_changes",
