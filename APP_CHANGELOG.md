@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.41.0...unoplat-code-confluence-v0.42.0) (2026-06-18)
+
+
+### Features
+
+* **cli-and-docs:** add setup commands and fix documentation and migr… ([8ff8006](https://github.com/unoplat/unoplat-code-confluence/commit/8ff8006d277050ef00f419d2a387092cb79f70df))
+* **cli-and-docs:** add setup commands and fix documentation and migrate to vite+ ([f3c4feb](https://github.com/unoplat/unoplat-code-confluence/commit/f3c4febd3aee1d321053f245be58180f99b2c062))
+* **cli:** group service related commands under service like run , destroy, stop, update ([d822b31](https://github.com/unoplat/unoplat-code-confluence/commit/d822b31f7b5d643df660a5d7b59985b251c54481))
+* **frontend:** send only git URL for repository ingest requests ([10d1e63](https://github.com/unoplat/unoplat-code-confluence/commit/10d1e63ac966015fc38f8501192e3f903e124fa3))
+* **ingestion:** auto-derive repository identity from git URL ([a2b400f](https://github.com/unoplat/unoplat-code-confluence/commit/a2b400f8c45d6ea7e5f6f6e251909b8cc3811712))
+* **query-engine:** batch artifact files into single git tree commit ([ca460dc](https://github.com/unoplat/unoplat-code-confluence/commit/ca460dc2be42334e9934ee387e9ae8aeaf29fe13))
+* **query-engine:** wire automatic AGENTS.md PR publish into repository workflow ([7c4c351](https://github.com/unoplat/unoplat-code-confluence/commit/7c4c35134e69e8bbf059bc9c22e01bc556ca4544))
+
+
+### Bug Fixes
+
+* **check-urls:** urls need to be added for probing flow bridge ([442b9b2](https://github.com/unoplat/unoplat-code-confluence/commit/442b9b21f82e326cb72fc982a3b3e33ab9c2d718))
+* **ci:** refresh package uv lockfiles before python lock checks run ([6d1d6cb](https://github.com/unoplat/unoplat-code-confluence/commit/6d1d6cb2cd2f706866eda5a860f480a5340e4e6f))
+* **ci:** refresh package uv lockfiles before python lock checks run ([c371ac2](https://github.com/unoplat/unoplat-code-confluence/commit/c371ac24cd9347c421e857f47e800029b3f0a70f))
+* **exception-handling:** guard qualified-name parse inside PR publish try ([16754f5](https://github.com/unoplat/unoplat-code-confluence/commit/16754f5d028c1f738a72f31c1ea4ba9e2d220b9c))
+* **package-version:** do not use latest version ([ebaedec](https://github.com/unoplat/unoplat-code-confluence/commit/ebaedec0a9a8f8ca4dbdbe4052edce1dcbbc5c59))
+* **port-preservation:** preserve hostname:port in HTTPS git URL parsers ([4ff6aaa](https://github.com/unoplat/unoplat-code-confluence/commit/4ff6aaa756de5102bf13d961df44fb37f6a818c4))
+* **query-engine:** pin agent prompt to explicit AGENTS.md path ([87eb0fd](https://github.com/unoplat/unoplat-code-confluence/commit/87eb0fd488503678061b586ae11fa093d4bf0509))
+
 ## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.40.0...unoplat-code-confluence-v0.41.0) (2026-06-08)
 
 
