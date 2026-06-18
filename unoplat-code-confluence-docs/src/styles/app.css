@@ -1,7 +1,9 @@
-@import "tailwindcss" source("../../");
+@import "tailwindcss/index.css";
 @import "fumadocs-ui/css/vitepress.css";
 @import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
+
+@source "../../";
 
 @custom-variant dark (&:is(.dark *));
 

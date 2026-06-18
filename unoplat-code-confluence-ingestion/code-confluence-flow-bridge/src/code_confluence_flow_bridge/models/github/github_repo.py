@@ -1,8 +1,8 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from unoplat_code_confluence_commons.configuration_models import CodebaseConfig
 from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.programming_language_metadata import (
@@ -10,6 +10,10 @@ from unoplat_code_confluence_commons.programming_language_metadata import (
 )
 from unoplat_code_confluence_commons.repo_models import RepositoryWorkflowOperation
 from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
+
+from code_confluence_flow_bridge.models.github.repository_git_url import (
+    parse_repository_git_url,
+)
 
 
 class GitHubOwner(BaseModel):
@@ -181,8 +185,38 @@ class RepositoryRequestConfiguration(BaseModel):
         description="List of codebase configurations for the repository (auto-detected if not provided)",
     )
     provider_key: ProviderKey = Field(
-        ..., description="Provider key for credential and repository provider lookup"
+        description="Provider key for credential and repository provider lookup"
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def derive_repository_identity(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        repository_git_url = data.get("repository_git_url")
+        if not isinstance(repository_git_url, str):
+            return data
+
+        if all(
+            data.get(field)
+            for field in (
+                "repository_name",
+                "repository_owner_name",
+                "provider_key",
+            )
+        ):
+            return data
+
+        parsed = parse_repository_git_url(repository_git_url)
+        return {
+            **data,
+            "repository_name": data.get("repository_name") or parsed.repository_name,
+            "repository_owner_name": data.get("repository_owner_name")
+            or parsed.repository_owner_name,
+            "repository_git_url": parsed.repository_git_url,
+            "provider_key": data.get("provider_key") or parsed.provider_key,
+        }
 
 
 class RepositoryRefreshRequest(BaseModel):

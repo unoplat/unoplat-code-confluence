@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.43.1...unoplat-code-confluence-docs-v0.44.0) (2026-06-11)
+
+
+### Features
+
+* **cli-and-docs:** add setup commands and fix documentation and migr… ([8ff8006](https://github.com/unoplat/unoplat-code-confluence/commit/8ff8006d277050ef00f419d2a387092cb79f70df))
+* **cli-and-docs:** add setup commands and fix documentation and migrate to vite+ ([f3c4feb](https://github.com/unoplat/unoplat-code-confluence/commit/f3c4febd3aee1d321053f245be58180f99b2c062))
+
+
+### Bug Fixes
+
+* **package-version:** do not use latest version ([ebaedec](https://github.com/unoplat/unoplat-code-confluence/commit/ebaedec0a9a8f8ca4dbdbe4052edce1dcbbc5c59))
+
 ## [0.43.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.43.0...unoplat-code-confluence-docs-v0.43.1) (2026-04-25)
 
 

@@ -23,7 +23,7 @@ class CliSettings(BaseSettings):
     github_api_base_url: AnyHttpUrl = Field(default=AnyHttpUrl("https://api.github.com"))
     compose_project_name: str = "unoplat-code-confluence"
     default_provider: str = "github_open"
-    request_timeout_seconds: float = 30.0
+    request_timeout_seconds: float = 120.0
     startup_timeout_seconds: float = 180.0
     auto_start: bool = True
     data_dir: Path | None = None

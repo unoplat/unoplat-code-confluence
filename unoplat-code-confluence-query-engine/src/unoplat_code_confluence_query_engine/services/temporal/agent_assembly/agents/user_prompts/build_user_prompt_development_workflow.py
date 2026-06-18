@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from pathlib import PurePosixPath
 
 from unoplat_code_confluence_query_engine.agents.code_confluence_agents import (
     get_engineering_citation_instructions,
@@ -25,11 +26,12 @@ def build_development_workflow_instructions() -> str:
         "For discovery tools, use arguments that match the tool contract.\n"
         "</available_tools>\n"
         "<markdown_ownership>\n"
-        "You directly own exactly one markdown location: AGENTS.md / ## Engineering Workflow.\n"
-        "Before returning your final structured EngineeringWorkflow output, create or update only that section inside the existing managed block.\n"
-        "Assume AGENTS.md already contains the managed block skeleton from bootstrap; preserve the begin/end markers, CRITICAL_INSTRUCTION block, and all other H2 sections exactly as they are.\n"
+        "You directly own exactly one markdown location: the exact AGENTS.md path supplied in the user prompt, under ## Engineering Workflow only.\n"
+        "Before returning your final structured EngineeringWorkflow output, create or update only that section inside the existing managed block at the supplied path.\n"
+        "Assume the supplied AGENTS.md already contains the managed block skeleton from bootstrap; preserve the begin/end markers, CRITICAL_INSTRUCTION block, and all other H2 sections exactly as they are.\n"
+        "Do not use glob or repository-root discovery to find AGENTS.md; use the exact managed AGENTS.md path from the user prompt.\n"
         "Allowed edits:\n"
-        "- AGENTS.md content under ## Engineering Workflow only.\n"
+        "- the supplied AGENTS.md path content under ## Engineering Workflow only.\n"
         "Forbidden edits:\n"
         "- any other AGENTS.md heading or section content\n"
         "- any non-markdown file\n"
@@ -47,8 +49,7 @@ def build_development_workflow_instructions() -> str:
         "</markdown_ownership>\n"
         "<existing_section_update_policy>\n"
         "Follow this decision procedure in order:\n"
-        "1. Read AGENTS.md and inspect only the existing ## Engineering Workflow section if it exists.\n"
-        "2. Verify current package-manager related config/scripts plus lint and type-check config/script sources.\n"
+        "1. Read the exact AGENTS.md path supplied in the user prompt and inspect only the existing ## Engineering Workflow section if it exists.\n"        "2. Verify current package-manager related config/scripts plus lint and type-check config/script sources.\n"
         "3. Decision point — before invoking any write tool: if the existing section already correctly reflects your verified evidence, do not call edit_file or write_file. If and only if the user says no-change output is allowed for this run, return {\"status\":\""
         f"{ENGINEERING_WORKFLOW_NO_CHANGE}"
         "\"} with no commands field. If the user says full structured output is required, return {\"status\":\""
@@ -68,9 +69,13 @@ def build_development_workflow_prompt(
     *,
     allow_no_change_output: bool = True,
 ) -> str:
+    agents_md_path = str(PurePosixPath(codebase_path) / "AGENTS.md")
     base_prompt = (
-        f"Analyze engineering workflow for {codebase_path} "
-        f"using language {programming_language} "
+        f"Analyze engineering workflow for codebase_path={codebase_path}. "
+        f"The only AGENTS.md file you may read or edit for this task is {agents_md_path}; "
+        "do not discover AGENTS.md with glob and do not edit any AGENTS.md outside this exact path. "
+        "Update only ## Engineering Workflow inside that exact file. "
+        f"Use language {programming_language} "
         f"and package manager {package_manager}. "
     )
     if allow_no_change_output:

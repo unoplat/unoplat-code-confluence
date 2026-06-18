@@ -7,6 +7,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
+from urllib.parse import SplitResult, urlsplit, urlunsplit
 
 import httpx2
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
@@ -114,6 +115,15 @@ class AppUpdateResult(BaseModel):
     warnings: tuple[str, ...]
 
 
+class AppDownResult(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    compose_file: Path
+    release_state_file: Path
+    removed_volumes: bool
+    stopped_stack: bool
+
+
 class GitHubRelease(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -121,15 +131,57 @@ class GitHubRelease(BaseModel):
 
 
 def is_flow_bridge_reachable(settings: CliSettings) -> bool:
-    """Return whether Flow Bridge is accepting HTTP requests."""
-    try:
-        response = httpx2.get(
-            f"{settings.flow_bridge_base_url}/docs",
-            timeout=settings.request_timeout_seconds,
+    """Return whether Flow Bridge is accepting HTTP requests.
+
+    Docker Desktop can publish the service on IPv4 while `localhost` resolves to
+    IPv6 first on the host. Probe the configured URL and, for local loopback
+    hosts, the equivalent IPv4/localhost variants before treating the service as
+    unreachable.
+    """
+    for base_url in flow_bridge_probe_base_urls(settings):
+        try:
+            response = httpx2.get(
+                f"{base_url}/docs",
+                timeout=settings.request_timeout_seconds,
+            )
+            if response.status_code < 500:
+                return True
+        except httpx2.HTTPError:
+            continue
+    return False
+
+
+def flow_bridge_probe_base_urls(settings: CliSettings) -> tuple[str, ...]:
+    """Return Flow Bridge base URLs to probe for local loopback aliases."""
+    base_url = settings.flow_bridge_base_url
+    parsed = urlsplit(base_url)
+    hostname = parsed.hostname
+    if hostname not in {"localhost", "127.0.0.1", "::1"}:
+        return (base_url,)
+
+    hosts = ("localhost", "127.0.0.1")
+    urls: list[str] = []
+    if base_url not in urls:
+        urls.append(base_url)
+    for host in hosts:
+        candidate = replace_url_host(parsed, host)
+        if candidate not in urls:
+            urls.append(candidate)
+    return tuple(urls)
+
+
+def replace_url_host(parsed_url: SplitResult, host: str) -> str:
+    port = f":{parsed_url.port}" if parsed_url.port is not None else ""
+    netloc = f"{host}{port}"
+    return urlunsplit(
+        (
+            parsed_url.scheme,
+            netloc,
+            parsed_url.path.rstrip("/"),
+            parsed_url.query,
+            parsed_url.fragment,
         )
-        return response.status_code < 500
-    except httpx2.HTTPError:
-        return False
+    )
 
 
 def run_app(
@@ -220,7 +272,7 @@ def update_app(
     if state is None:
         raise AppRuntimeError(
             "Nothing is installed yet, so there is no pinned version to update. "
-            "Run `unoplat run` first to fetch and start the latest release."
+            "Run `unoplat service run` first to fetch and start the latest release."
         )
 
     warnings: list[str] = []
@@ -264,6 +316,55 @@ def update_app(
         pulled_images=True,
         started_stack=True,
         warnings=tuple(warnings),
+    )
+
+
+def stop_app(
+    settings: CliSettings,
+    *,
+    progress: Callable[[str], None] | None = None,
+) -> AppDownResult:
+    """Stop and remove the local Docker Compose stack without deleting volumes."""
+    return down_app(settings, progress=progress, volumes=False)
+
+
+def destroy_app(
+    settings: CliSettings,
+    *,
+    progress: Callable[[str], None] | None = None,
+) -> AppDownResult:
+    """Stop and remove the local Docker Compose stack, including volumes."""
+    return down_app(settings, progress=progress, volumes=True)
+
+
+def down_app(
+    settings: CliSettings,
+    *,
+    progress: Callable[[str], None] | None,
+    volumes: bool,
+) -> AppDownResult:
+    if not settings.compose_file_path.exists():
+        raise AppRuntimeError(
+            "No cached Docker Compose file was found. Run `unoplat service run` first to "
+            "fetch the pinned app release before stopping or destroying it."
+        )
+
+    docker = build_docker_client(settings)
+    ensure_docker_compose_available(docker)
+    if volumes:
+        emit_progress(
+            progress,
+            "Stopping Docker Compose stack and deleting volumes...",
+        )
+    else:
+        emit_progress(progress, "Stopping Docker Compose stack...")
+    down_compose_stack(docker, volumes=volumes)
+
+    return AppDownResult(
+        compose_file=settings.compose_file_path,
+        release_state_file=settings.release_state_path,
+        removed_volumes=volumes,
+        stopped_stack=True,
     )
 
 
@@ -481,6 +582,13 @@ def start_compose_stack(docker: DockerClient) -> None:
         docker.compose.up(detach=True)
     except (ClientNotFoundError, DockerException) as exc:
         raise_docker_runtime_error("Docker Compose up failed", exc)
+
+
+def down_compose_stack(docker: DockerClient, *, volumes: bool) -> None:
+    try:
+        docker.compose.down(volumes=volumes)
+    except (ClientNotFoundError, DockerException) as exc:
+        raise_docker_runtime_error("Docker Compose down failed", exc)
 
 
 def raise_docker_runtime_error(
