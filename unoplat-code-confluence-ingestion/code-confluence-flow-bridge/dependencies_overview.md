@@ -8,6 +8,7 @@
 - **gql**: Purpose: GraphQL client for Python that plays nicely with other GraphQL implementations compatible with the spec. Supports multiple transports for communicating with the backend, with sync and async usage patterns.
 - **greenlet**: Purpose: Greenlet provides lightweight coroutines for in-process sequential concurrent programming. It can be used on its own or with frameworks like gevent to build cooperative control flow and asynchronous I/O.
 - **grpcio**: Purpose: Python package for gRPC. It provides the runtime APIs used to build gRPC clients and servers, with protocol-buffer-generated code split into _pb2.py and _pb2_grpc.py files.
+- **httpx2**: Purpose: HTTPX2 is a fully featured HTTP client library for Python 3 with both synchronous and asynchronous APIs, plus support for HTTP/1.1, HTTP/2, and an integrated command-line client.
 - **loguru**: Purpose: A Python logging library that provides a pre-instanced logger for easy use and aims to make logging less painful by simplifying configuration. It adds useful logging functionality while keeping usage as simple as from loguru import logger.
 - **opentelemetry-api**: Purpose: Provides the OpenTelemetry API for Python: abstract classes and no-op implementations that follow the OpenTelemetry specification. Libraries should depend on this API and let applications choose the SDK implementation.
 - **opentelemetry-exporter-otlp**: Purpose: Convenience package for OpenTelemetry Collector exporters in Python. It installs the OTLP exporters for gRPC and HTTP/protobuf so telemetry can be sent to an OpenTelemetry Collector or other OTLP endpoint.
@@ -28,6 +29,5 @@
 - **tomlkit**: Purpose: Style-preserving TOML library for Python. Parses, edits, and writes TOML 1.0.0 documents while preserving comments, whitespace, indentation, and ordering.
 - **tree-sitter-language-pack**: Purpose: Python bindings for tree-sitter-language-pack, providing access to 305 pre-compiled tree-sitter parsers with on-demand downloads. Also exposes helpers to get languages/parsers and run structured source-code analysis via process().
 - **typing-extensions**: Purpose: Backports and experimental type hints for Python. It complements the standard typing module by adding runtime support for newer typing features on older Python versions and for experimental PEP-based features.
-- **validate-pyproject**: Purpose: Command-line tool and Python library for validating pyproject.toml files with JSON Schema. Includes checks for PEP 517, PEP 518, PEP 621, PEP 639, and PEP 735.
-- **httpx2**: Purpose: HTTPX2 is a fully featured HTTP client library for Python 3 with both synchronous and asynchronous APIs, plus support for HTTP/1.1, HTTP/2, and an integrated command-line client.
 - **unoplat-code-confluence-commons**: Purpose: internal_dependency
+- **validate-pyproject**: Purpose: Command-line tool and Python library for validating pyproject.toml files with JSON Schema. Includes checks for PEP 517, PEP 518, PEP 621, PEP 639, and PEP 735.

@@ -30,7 +30,7 @@ This project uses Backlog.md MCP for all task and project management. Before cre
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `3bbc2c8ae5f6fc7e94628c3b07a936ca5bdbcd02` (2026-06-09). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `d9ab7533d1fedb930cd2344898a111e091ac4d8b` (2026-06-19). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 

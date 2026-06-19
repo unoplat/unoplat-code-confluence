@@ -1,7 +1,7 @@
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `3bbc2c8ae5f6fc7e94628c3b07a936ca5bdbcd02` (2026-06-09). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `d9ab7533d1fedb930cd2344898a111e091ac4d8b` (2026-06-19). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -29,6 +29,7 @@ See [`dependencies_overview.md`](./dependencies_overview.md) for the full depend
 
 ## Business Domain
 ### Description
+
 Unoplat Code Confluence CLI manages the local Code Confluence Docker Compose stack: it fetches and pins GitHub releases, installs or repairs release assets, starts the Flow Bridge/query engine/frontend services, and opens browser setup pages for repository token and model-provider configuration.
 
 ### References

@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This codebase supports Code Confluence, a repository ingestion and code-intelligence platform. It centers on persisting Git repositories, codebases, workflow runs, and agent execution state while cataloging framework features, language/package-manager metadata, and detected source-code spans. It also includes supporting operational models for credentials, feature flags, and AGENTS.md PR/publication tracking.
+This package serves Code Confluence, a repository ingestion and code-intelligence platform focused on organizing repositories into codebases, tracking their files, and attaching language and package-manager metadata. Its core models revolve around detecting framework features and structural source-code spans, then recording workflow runs, agent events, progress, and final snapshots for repository and codebase processing. Supporting models for credentials, feature flags, and AGENTS.md PR metadata reinforce an automated code-analysis and publishing workflow.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/data_model_position.py`
