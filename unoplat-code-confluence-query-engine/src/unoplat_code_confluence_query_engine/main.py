@@ -16,6 +16,7 @@ from unoplat_code_confluence_query_engine.api.v1.endpoints import (
     app_feedback,
     codebase_agent_rules,
     flags,
+    health,
     tool_config,
 )
 from unoplat_code_confluence_query_engine.config.logging_config import setup_logging
@@ -290,3 +291,4 @@ app.include_router(ai_model_config.callback_router)
 app.include_router(flags.router)
 app.include_router(tool_config.router)
 app.include_router(app_feedback.router)
+app.include_router(health.router)

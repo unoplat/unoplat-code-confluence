@@ -92,6 +92,9 @@ from code_confluence_flow_bridge.routers.flags.router import (
 from code_confluence_flow_bridge.routers.github_issues.router import (
     router as github_issues_router,
 )
+from code_confluence_flow_bridge.routers.health.router import (
+    router as health_router,
+)
 from code_confluence_flow_bridge.routers.operations.router import (
     router as operations_router,
 )
@@ -410,6 +413,7 @@ app.include_router(flags_router)
 app.include_router(providers_router)
 app.include_router(repository_router)
 app.include_router(operations_router)
+app.include_router(health_router)
 
 
 @app.post("/start-ingestion", status_code=201)
