@@ -60,6 +60,7 @@
     <li><a href="#-the-solution">The Solution</a></li>
     <li><a href="#-core-principles">Core Principles</a></li>
     <li><a href="#-getting-started">Getting Started</a></li>
+    <li><a href="#-agent-skill">Agent Skill</a></li>
     <li><a href="#-project-status">Project Status</a></li>
     <li><a href="#maintainers">Maintainers</a></li>
     <li><a href="#-product-feedback--alpha-disclaimer">Product Feedback</a></li>
@@ -141,6 +142,20 @@ Auto-generates machine-readable `AGENTS.md` files per repo to give coding agents
 Ready to enhance your development workflow?
 
 Check out our [Quick Start Guide](https://docs.unoplat.io/docs/quickstart/how-to-run).
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## 🧠 Agent Skill
+
+This repository includes a portable agent skill for the Unoplat Code Confluence CLI at [`skills/unoplat-code-confluence-cli/SKILL.md`](skills/unoplat-code-confluence-cli/SKILL.md).
+
+Install it with the skills CLI:
+
+```bash
+npx skills add https://github.com/unoplat/unoplat-code-confluence --skill unoplat-code-confluence-cli
+```
+
+The skill teaches compatible coding agents how to use `ucc`, fall back to `uvx --from unoplat-code-confluence-cli ucc` when the CLI is not on PATH, ingest repositories, and run the single-command `ucc agent-md <repository_git_url>` flow.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
