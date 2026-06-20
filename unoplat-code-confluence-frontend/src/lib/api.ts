@@ -4,7 +4,8 @@ import {
   FlagResponse,
   GitHubRepoSummary,
   PaginatedResponse,
-  RepositoryRequestConfiguration,
+  RepositoryAddRequest,
+  RepositoryAddResponse,
   GitHubRepoResponseConfiguration,
   IngestedRepository,
   IngestedRepositoriesResponse,
@@ -26,6 +27,7 @@ export type {
   FlagResponse,
   GitHubRepoSummary,
   PaginatedResponse,
+  RepositoryAddResponse,
   IngestedRepository,
   IngestedRepositoriesResponse,
   RefreshRepositoryResponse,
@@ -221,18 +223,18 @@ export const fetchGitHubRepositories = async ({
 };
 
 /**
- * Submit selected repositories for ingestion
+ * Add a repository to the tracked repository list without ingestion.
  *
- * @param repositoryConfig - Repository configuration payload
- * @returns Promise with the response data
+ * @param repository - Repository git URL and optional provider key
+ * @returns Promise with the add result. Duplicate adds are idempotent.
  */
-export const submitRepositoryConfig = async (
-  repositoryConfig: RepositoryRequestConfiguration,
-): Promise<ApiResponse> => {
+export const addRepository = async (
+  repository: RepositoryAddRequest,
+): Promise<RepositoryAddResponse> => {
   try {
-    const response: AxiosResponse<ApiResponse> = await apiClient.post(
-      "/start-ingestion",
-      repositoryConfig,
+    const response: AxiosResponse<RepositoryAddResponse> = await apiClient.post(
+      "/repositories",
+      repository,
     );
     return response.data;
   } catch (error: unknown) {
@@ -562,9 +564,9 @@ export async function getCodebaseMetadata(
 }
 
 /**
- * Fetch ingested repositories from the backend
+ * Fetch tracked repositories from the backend
  *
- * @returns Promise with ingested repositories data
+ * @returns Promise with tracked repositories data
  */
 export const getIngestedRepositories =
   async (): Promise<IngestedRepositoriesResponse> => {

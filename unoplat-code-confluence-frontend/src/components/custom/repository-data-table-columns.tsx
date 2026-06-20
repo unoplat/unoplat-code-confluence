@@ -13,9 +13,9 @@ import {
 import { Ellipsis } from "lucide-react";
 
 export function getRepositoryDataTableColumns({
-  onIngest,
+  onAddRepository,
 }: {
-  onIngest: (repo: GitHubRepoSummary) => void;
+  onAddRepository: (repo: GitHubRepoSummary) => void;
 }): ColumnDef<GitHubRepoSummary>[] {
   return [
     {
@@ -106,9 +106,9 @@ export function getRepositoryDataTableColumns({
           >
             <DropdownMenuItem
               className="capitalize"
-              onSelect={() => onIngest(row.original)}
+              onSelect={() => onAddRepository(row.original)}
             >
-              Ingest Repo
+              Add repository
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

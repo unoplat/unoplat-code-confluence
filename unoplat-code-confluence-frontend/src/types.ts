@@ -98,6 +98,20 @@ export interface RepositoryRequestConfiguration {
   repository_metadata?: CodebaseConfig[] | null; // Optional - backend auto-detects if empty/null
 }
 
+export interface RepositoryAddRequest {
+  repository_git_url: string;
+  provider_key?: ProviderKey;
+}
+
+export interface RepositoryAddResponse {
+  repository_name: string;
+  repository_owner_name: string;
+  repository_git_url: string;
+  provider_key: ProviderKey;
+  already_added: boolean;
+  message: string;
+}
+
 // @deprecated Use RepositoryRequestConfiguration instead
 export type GitHubRepoRequestConfiguration = RepositoryRequestConfiguration;
 
@@ -291,7 +305,7 @@ export const LANGUAGE_PACKAGE_MANAGERS: Record<string, string[]> = {
 };
 
 // ===================================
-// INGESTED REPOSITORY TYPES
+// TRACKED REPOSITORY TYPES
 // ===================================
 
 export interface IngestedRepository {
