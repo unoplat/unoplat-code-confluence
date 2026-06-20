@@ -14,6 +14,7 @@ import {
   ParentWorkflowJobListResponse,
   GithubRepoStatus,
   RepositoryWorkflowOperation,
+  RepositoryRequestConfiguration,
 } from "@/types";
 import { CredentialParams, ProviderKey } from "@/types/credential-enums";
 import { providerCatalogSchema } from "@/features/model-config/provider-schema";
