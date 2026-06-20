@@ -16,8 +16,13 @@ from unoplat_code_confluence_cli.app_runtime import (
 )
 from unoplat_code_confluence_cli.config import CliSettings
 from unoplat_code_confluence_cli.ingestion_runtime import (
-    start_repository_ingestion,
+    add_repository,
     validate_repository_git_url,
+)
+from unoplat_code_confluence_cli.setup_checks import (
+    check_model_provider_config,
+    check_repository_provider_token,
+    get_setup_status,
 )
 from unoplat_code_confluence_cli.setup_runtime import open_setup_url
 
@@ -80,22 +85,41 @@ def service_destroy() -> None:
     click.echo(result.model_dump_json(indent=2))
 
 
-@main.command(name="ingest")
-@click.argument("repository_git_url")
-def ingest(repository_git_url: str) -> None:
-    """Start ingestion for a repository git remote URL."""
+@main.group(name="repo")
+def repo() -> None:
+    """Manage tracked repositories."""
+
+
+def _add_repository_command(repository_git_url: str) -> None:
     settings = CliSettings()
     try:
-        normalized_git_url = validate_repository_git_url(repository_git_url)
+        parsed = parse_repository_git_url(repository_git_url)
+        normalized_git_url = validate_repository_git_url(parsed.repository_git_url)
         if settings.auto_start:
-            ensure_app_running(settings)
-        result = start_repository_ingestion(
+            ensure_app_running(settings, progress=progress)
+        check_repository_provider_token(settings, provider_key=parsed.provider_key)
+        result = add_repository(
             settings,
             repository_git_url=normalized_git_url,
+            provider_key=parsed.provider_key,
         )
     except AppRuntimeError as exc:
         raise click.ClickException(str(exc)) from exc
     click.echo(result.model_dump_json(indent=2))
+
+
+@repo.command(name="add")
+@click.argument("repository_git_url")
+def repo_add(repository_git_url: str) -> None:
+    """Add a repository without running ingestion."""
+    _add_repository_command(repository_git_url)
+
+
+@main.command(name="add-repository")
+@click.argument("repository_git_url")
+def add_repository_command(repository_git_url: str) -> None:
+    """Add a repository without running ingestion."""
+    _add_repository_command(repository_git_url)
 
 
 @main.command(name="agent-md")
@@ -107,11 +131,12 @@ def agent_md(repository_git_url: str) -> None:
     """
     settings = CliSettings()
     try:
-        normalized_git_url = parse_repository_git_url(
-            repository_git_url
-        ).repository_git_url
+        parsed = parse_repository_git_url(repository_git_url)
+        normalized_git_url = parsed.repository_git_url
         if settings.auto_start:
-            ensure_app_running(settings)
+            ensure_app_running(settings, progress=progress)
+        check_repository_provider_token(settings, provider_key=parsed.provider_key)
+        check_model_provider_config(settings)
         result = start_agent_md_generate_update(
             settings,
             repository_git_url=normalized_git_url,
@@ -126,12 +151,33 @@ def setup() -> None:
     """Open setup pages in the Unoplat Code Confluence app."""
 
 
+@setup.command(name="status")
+@click.option(
+    "--repository-provider-key",
+    default=None,
+    help="Repository provider key to verify. Defaults to configured default provider.",
+)
+def setup_status(repository_provider_key: str | None) -> None:
+    """Verify repository-provider and model-provider setup state."""
+    settings = CliSettings()
+    try:
+        if settings.auto_start:
+            ensure_app_running(settings, progress=progress)
+        result = get_setup_status(
+            settings,
+            repository_provider_key=repository_provider_key,
+        )
+    except AppRuntimeError as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(result.model_dump_json(indent=2))
+
+
 @setup.command(name="token-repo-provider")
 def setup_token_repo_provider() -> None:
     """Open the GitHub repository-provider setup page."""
     settings = CliSettings()
     try:
-        ensure_app_running(settings)
+        ensure_app_running(settings, progress=progress)
         result = open_setup_url(
             settings,
             setup_target="token-repo-provider",
@@ -147,7 +193,7 @@ def setup_model_provider() -> None:
     """Open the model-provider setup page."""
     settings = CliSettings()
     try:
-        ensure_app_running(settings)
+        ensure_app_running(settings, progress=progress)
         result = open_setup_url(
             settings,
             setup_target="model-provider",

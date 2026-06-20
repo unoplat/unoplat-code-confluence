@@ -153,7 +153,16 @@ def is_flow_bridge_reachable(settings: CliSettings) -> bool:
 
 def flow_bridge_probe_base_urls(settings: CliSettings) -> tuple[str, ...]:
     """Return Flow Bridge base URLs to probe for local loopback aliases."""
-    base_url = settings.flow_bridge_base_url
+    return probe_base_urls(settings.flow_bridge_base_url)
+
+
+def probe_base_urls(base_url: str) -> tuple[str, ...]:
+    """Return base URLs to probe, expanding local loopback aliases.
+
+    Docker Desktop can publish a service on IPv4 while `localhost` resolves to
+    IPv6 first on the host, so probe both `localhost` and `127.0.0.1` for local
+    loopback hosts before treating the service as unreachable.
+    """
     parsed = urlsplit(base_url)
     hostname = parsed.hostname
     if hostname not in {"localhost", "127.0.0.1", "::1"}:
@@ -238,8 +247,6 @@ def run_app(
         emit_progress(progress, "Starting Docker Compose stack...")
         start_compose_stack(docker)
         started_stack = True
-        emit_progress(progress, "Waiting for Flow Bridge to become reachable...")
-        wait_for_flow_bridge(settings)
     else:
         emit_progress(
             progress, "Flow Bridge is already reachable; not restarting the stack."
@@ -368,9 +375,20 @@ def down_app(
     )
 
 
-# Compatibility alias for future runtime-dependent commands.
-def ensure_app_running(settings: CliSettings) -> AppRunResult:
-    return run_app(settings)
+def ensure_app_running(
+    settings: CliSettings,
+    *,
+    progress: Callable[[str], None] | None = None,
+) -> AppRunResult:
+    """Start the pinned app release and wait until both services report ready.
+
+    `service run` calls `run_app` directly so it returns as soon as the stack is
+    launched. Commands that immediately talk to the services go through here so
+    they only proceed once Flow Bridge and Query Engine are ready to serve.
+    """
+    result = run_app(settings, progress=progress)
+    wait_for_services_ready(settings, progress=progress)
+    return result
 
 
 def emit_progress(progress: Callable[[str], None] | None, message: str) -> None:
@@ -605,15 +623,62 @@ def raise_docker_runtime_error(
     raise AppRuntimeError(f"{message}: {details}") from exc
 
 
-def wait_for_flow_bridge(settings: CliSettings) -> None:
+def is_service_ready(base_url: str, settings: CliSettings) -> bool:
+    """Return whether the service reports readiness at its `/ready` endpoint.
+
+    Readiness (not liveness) is the correct gate before launching an operation:
+    a 200 from `/ready` confirms the process finished its lifespan startup and
+    its PostgreSQL dependency round-trips successfully.
+    """
+    for probe_url in probe_base_urls(base_url):
+        try:
+            response = httpx2.get(
+                f"{probe_url}/ready",
+                timeout=settings.request_timeout_seconds,
+            )
+            if response.status_code == 200:
+                return True
+        except httpx2.HTTPError:
+            continue
+    return False
+
+
+def wait_for_service_ready(
+    base_url: str,
+    settings: CliSettings,
+    *,
+    service_name: str,
+    progress: Callable[[str], None] | None = None,
+) -> None:
+    """Poll a service's `/ready` endpoint until it reports ready or times out."""
+    emit_progress(progress, f"Waiting for {service_name} to become ready...")
     deadline = time.monotonic() + settings.startup_timeout_seconds
     while time.monotonic() < deadline:
-        if is_flow_bridge_reachable(settings):
+        if is_service_ready(base_url, settings):
             return
         time.sleep(2)
 
     raise AppRuntimeError(
-        "Docker Compose stack was started, but Flow Bridge did not become reachable at "
-        f"{settings.flow_bridge_base_url} within {settings.startup_timeout_seconds:.0f}s. "
-        "Check Docker container logs and retry."
+        f"{service_name} did not become ready at {base_url} within "
+        f"{settings.startup_timeout_seconds:.0f}s. Check Docker container logs and retry."
+    )
+
+
+def wait_for_services_ready(
+    settings: CliSettings,
+    *,
+    progress: Callable[[str], None] | None = None,
+) -> None:
+    """Wait for Flow Bridge and Query Engine readiness, one after another."""
+    wait_for_service_ready(
+        settings.flow_bridge_base_url,
+        settings,
+        service_name="Flow Bridge",
+        progress=progress,
+    )
+    wait_for_service_ready(
+        settings.query_engine_base_url,
+        settings,
+        service_name="Query Engine",
+        progress=progress,
     )

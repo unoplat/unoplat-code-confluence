@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-from typing import Any
 from urllib.parse import urlsplit
 
-import httpx2
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict
 
 from unoplat_code_confluence_cli.app_runtime import AppRuntimeError
 from unoplat_code_confluence_cli.config import CliSettings
+from unoplat_code_confluence_cli.ingestion_runtime import (
+    RepositoryRefreshResult,
+    add_repository,
+    refresh_repository,
+)
 
 
 class RepositoryGitUrlParts(BaseModel):
@@ -19,23 +22,21 @@ class RepositoryGitUrlParts(BaseModel):
     repository_name: str
     repository_git_url: str
     host: str
-
-
-class AgentMdGenerateUpdateResult(BaseModel):
-    """Response returned by Query Engine after starting an AGENTS.md run."""
-
-    model_config = ConfigDict(frozen=True)
-
-    repository_workflow_run_id: str
-    trace_id: str
+    provider_key: str
 
 
 def parse_repository_git_url(repository_git_url: str) -> RepositoryGitUrlParts:
     """Parse HTTPS or SSH GitHub remote URL into repository identity.
 
     This mirrors Flow Bridge's accepted CLI input shape:
+    - https://github.com/owner/repo
     - https://github.com/owner/repo.git
+    - git@github.com:owner/repo
     - git@github.com:owner/repo.git
+
+    Provider handling is host-based for the repository providers currently
+    implemented by Flow Bridge: github.com maps to github_open, and any other
+    GitHub-compatible host maps to github_enterprise.
     """
     raw_url = repository_git_url.strip()
     if not raw_url:
@@ -74,9 +75,6 @@ def parse_repository_git_url(repository_git_url: str) -> RepositoryGitUrlParts:
 
     owner = path_parts[0].strip()
     repo_segment = path_parts[1].strip()
-    if not repo_segment.endswith(".git"):
-        raise AppRuntimeError("Repository git URL must end with .git.")
-
     repo = repo_segment.removesuffix(".git").strip()
     if not owner or not repo:
         raise AppRuntimeError(
@@ -88,6 +86,7 @@ def parse_repository_git_url(repository_git_url: str) -> RepositoryGitUrlParts:
         repository_name=repo,
         repository_git_url=f"https://{normalized_host}/{owner}/{repo}.git",
         host=normalized_host,
+        provider_key="github_open" if normalized_host == "github.com" else "github_enterprise",
     )
 
 
@@ -95,78 +94,22 @@ def start_agent_md_generate_update(
     settings: CliSettings,
     *,
     repository_git_url: str,
-) -> AgentMdGenerateUpdateResult:
-    """Start an AGENTS.md generate/update workflow through Query Engine."""
+) -> RepositoryRefreshResult:
+    """Refresh latest code through Flow Bridge, then trigger AGENTS.md generation.
+
+    The lightweight add call is idempotent, so ``ucc agent-md`` works both for
+    repositories that were already added and for a repository URL passed directly.
+    """
     parsed = parse_repository_git_url(repository_git_url)
-    response = _query_engine_get(
+    add_result = add_repository(
         settings,
-        "/v1/codebase-agent-rules",
-        params={
-            "owner_name": parsed.repository_owner_name,
-            "repo_name": parsed.repository_name,
-        },
-        action="start AGENTS.md generate/update",
+        repository_git_url=parsed.repository_git_url,
+        provider_key=parsed.provider_key,
     )
-
-    try:
-        return AgentMdGenerateUpdateResult.model_validate_json(response.text)
-    except ValidationError as exc:
-        raise AppRuntimeError(
-            "Query Engine returned an unexpected AGENTS.md generate/update response payload."
-        ) from exc
-
-
-def _query_engine_get(
-    settings: CliSettings,
-    path: str,
-    *,
-    params: dict[str, str],
-    action: str,
-) -> httpx2.Response:
-    try:
-        response = httpx2.get(
-            f"{settings.query_engine_base_url}{path}",
-            params=params,
-            timeout=settings.request_timeout_seconds,
-        )
-    except httpx2.HTTPError as exc:
-        raise AppRuntimeError(f"Unable to reach Query Engine to {action}: {exc}") from exc
-
-    _raise_for_query_engine_status(response, action=action)
-    return response
-
-
-def _raise_for_query_engine_status(response: httpx2.Response, *, action: str) -> None:
-    if 200 <= response.status_code < 300:
-        return
-
-    detail = _extract_error_detail(response)
-    if response.status_code == 404 and detail:
-        raise AppRuntimeError(detail)
-    if response.status_code in {400, 409, 422, 503} and detail:
-        raise AppRuntimeError(detail)
-
-    try:
-        response.raise_for_status()
-    except httpx2.HTTPError as exc:
-        message = detail or f"Unable to {action}: {exc}"
-        raise AppRuntimeError(message) from exc
-
-
-def _extract_error_detail(response: httpx2.Response) -> str | None:
-    try:
-        payload: Any = response.json()
-    except ValueError:
-        return None
-
-    if not isinstance(payload, dict):
-        return None
-
-    detail = payload.get("detail")
-    if isinstance(detail, str):
-        return detail
-    if isinstance(detail, list):
-        return "; ".join(str(item) for item in detail)
-    if isinstance(detail, dict):
-        return str(detail)
-    return None
+    return refresh_repository(
+        settings,
+        repository_name=add_result.repository_name,
+        repository_owner_name=add_result.repository_owner_name,
+        provider_key=add_result.provider_key,
+        repository_git_url=add_result.repository_git_url,
+    )
