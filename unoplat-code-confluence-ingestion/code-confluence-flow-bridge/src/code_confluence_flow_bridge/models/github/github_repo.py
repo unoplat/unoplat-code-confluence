@@ -219,6 +219,29 @@ class RepositoryRequestConfiguration(BaseModel):
         }
 
 
+class RepositoryAddRequest(BaseModel):
+    """Minimal payload accepted by the lightweight add repository endpoint."""
+
+    repository_git_url: str = Field(description="The git URL of the repository")
+    provider_key: Optional[ProviderKey] = Field(
+        default=None,
+        description="Optional provider key override. If omitted, the backend derives it from the git URL host.",
+    )
+
+
+class RepositoryAddResponse(BaseModel):
+    """Response returned after adding or re-adding a tracked repository."""
+
+    repository_name: str = Field(description="The name of the repository")
+    repository_owner_name: str = Field(description="The name of the repository owner")
+    repository_git_url: str = Field(description="Normalized git URL of the repository")
+    provider_key: ProviderKey = Field(description="Provider key used for this repository")
+    already_added: bool = Field(
+        description="True when the repository was already tracked before this request"
+    )
+    message: str = Field(description="User-friendly add result message")
+
+
 class RepositoryRefreshRequest(BaseModel):
     """Minimal payload accepted by the refresh endpoint."""
 

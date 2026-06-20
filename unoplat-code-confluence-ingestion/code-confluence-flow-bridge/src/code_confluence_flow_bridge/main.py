@@ -425,6 +425,13 @@ async def ingestion(
     detectors: dict[str, CodebaseDetector] = Depends(get_codebase_detectors),
 ) -> dict[str, str]:
     """
+    Legacy/internal ingestion entry point.
+
+    User-facing frontend and CLI flows should use lightweight ``POST /repositories``
+    to add a repository, then ``POST /refresh-repository`` to refresh latest code
+    before AGENTS.md generation. This endpoint is retained temporarily for
+    backend compatibility and should not be referenced by frontend or CLI code.
+
     Start the ingestion workflow for the entire repository using the repository provider token from the database.
     Submits the whole repo_request at once to the Temporal workflow.
     Returns the workflow_id and run_id.
