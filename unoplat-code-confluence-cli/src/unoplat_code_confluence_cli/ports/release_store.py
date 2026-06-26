@@ -1,0 +1,19 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Protocol
+
+from unoplat_code_confluence_cli.domain.release import ReleaseState
+
+
+class ReleaseStore(Protocol):
+    @property
+    def compose_file_path(self) -> Path: ...
+
+    @property
+    def release_state_path(self) -> Path: ...
+
+    def read_release_state(self) -> ReleaseState | None: ...
+    def write_release_state(self, state: ReleaseState) -> None: ...
+    def write_compose_file(self, content: str) -> None: ...
+    def compose_file_exists(self) -> bool: ...
