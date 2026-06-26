@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import and_, select
+from sqlalchemy import select
 from temporalio.service import RPCError, RPCStatusCode
 from unoplat_code_confluence_commons.pr_metadata_model import PrMetadata
 from unoplat_code_confluence_commons.repo_models import (
@@ -36,6 +36,8 @@ from unoplat_code_confluence_query_engine.services.github.agent_md_pr_service im
 )
 from unoplat_code_confluence_query_engine.services.repository.idempotency_service import (
     get_active_agent_workflow_run,
+    get_latest_completed_agent_snapshot,
+    resolve_agent_workflow_operation,
 )
 from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
     fetch_repository_metadata,
@@ -185,6 +187,18 @@ async def start_repository_agent_run(
                 ),
             )
 
+        operation = await resolve_agent_workflow_operation(
+            session=session,
+            repository_name=repo_name,
+            repository_owner_name=owner_name,
+        )
+        bound_logger.info(
+            "[codebase_agent_rules] Resolved repository agent operation for {}/{}: {}",
+            owner_name,
+            repo_name,
+            operation.value,
+        )
+
     # Check if Temporal worker is running after validating prerequisites.
     if not worker_manager.is_running:
         bound_logger.error("[codebase_agent_rules] Temporal worker not running")
@@ -226,6 +240,7 @@ async def start_repository_agent_run(
         repository_workflow_run_id = await workflow_service.start_workflow(
             ruleset_metadata=ruleset_metadata,
             trace_id=trace_id,
+            operation=operation,
         )
     except Exception as start_error:
         bound_logger.error(
@@ -431,39 +446,11 @@ async def get_repository_agent_snapshot(
                         ),
                     )
             else:
-                stmt = (
-                    select(RepositoryAgentMdSnapshot)
-                    .join(
-                        RepositoryWorkflowRun,
-                        and_(
-                            RepositoryWorkflowRun.repository_owner_name
-                            == RepositoryAgentMdSnapshot.repository_owner_name,
-                            RepositoryWorkflowRun.repository_name
-                            == RepositoryAgentMdSnapshot.repository_name,
-                            RepositoryWorkflowRun.repository_workflow_run_id
-                            == RepositoryAgentMdSnapshot.repository_workflow_run_id,
-                        ),
-                    )
-                    .where(
-                        RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-                        RepositoryAgentMdSnapshot.repository_name == repo_name,
-                        RepositoryWorkflowRun.status == JobStatus.COMPLETED.value,
-                        RepositoryWorkflowRun.operation.in_(
-                            (
-                                RepositoryWorkflowOperation.AGENTS_GENERATION,
-                                RepositoryWorkflowOperation.AGENT_MD_UPDATE,
-                            )
-                        ),
-                    )
-                    .order_by(
-                        RepositoryWorkflowRun.completed_at.desc().nulls_last(),
-                        RepositoryWorkflowRun.started_at.desc(),
-                        RepositoryWorkflowRun.repository_workflow_run_id.desc(),
-                    )
-                    .limit(1)
+                snapshot = await get_latest_completed_agent_snapshot(
+                    session=session,
+                    repository_name=repo_name,
+                    repository_owner_name=owner_name,
                 )
-                result = await session.execute(stmt)
-                snapshot = result.scalar_one_or_none()
 
                 if snapshot is None:
                     raise HTTPException(

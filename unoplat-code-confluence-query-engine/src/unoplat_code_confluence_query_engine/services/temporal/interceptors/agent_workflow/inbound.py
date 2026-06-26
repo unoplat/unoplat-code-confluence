@@ -100,10 +100,11 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
     async def _handle_repository_workflow(
         self, input: ExecuteWorkflowInput, info: Info
     ) -> Any:
-        # Args: repository_qualified_name, codebase_metadata_list, trace_id
+        # Args: repository_qualified_name, codebase_metadata_list, trace_id, operation
         repository_qualified_name: str = input.args[0]
         codebase_metadata_list: list[dict[str, Any]] = input.args[1]
         trace_id: str = input.args[2] if len(input.args) > 2 else ""
+        operation = RepositoryWorkflowOperation(input.args[3])
 
         workflow_id = info.workflow_id
         repository_workflow_run_id = info.run_id
@@ -132,11 +133,12 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         )
         bound_logger.info(
             "[agent_workflow_interceptor] Starting RepositoryAgentWorkflow: "
-            "trace_id={}, workflow_id={}, run_id={}, repository={}",
+            "trace_id={}, workflow_id={}, run_id={}, repository={}, operation={}",
             trace_id,
             workflow_id,
             repository_workflow_run_id,
             repository_qualified_name,
+            operation.value,
         )
 
         running_envelope = ParentWorkflowDbActivityEnvelope(
@@ -145,7 +147,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             workflow_id=workflow_id,
             workflow_run_id=repository_workflow_run_id,
             status=JobStatus.RUNNING.value,
-            operation=RepositoryWorkflowOperation.AGENTS_GENERATION,
+            operation=operation,
             trace_id=trace_id,
         )
         await workflow.execute_activity(
@@ -208,7 +210,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 workflow_id=workflow_id,
                 workflow_run_id=repository_workflow_run_id,
                 status=status,
-                operation=RepositoryWorkflowOperation.AGENTS_GENERATION,
+                operation=operation,
                 error_report=error_report,
                 trace_id=trace_id,
             )

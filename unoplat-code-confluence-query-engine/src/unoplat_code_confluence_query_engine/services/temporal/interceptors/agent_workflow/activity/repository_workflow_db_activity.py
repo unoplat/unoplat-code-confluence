@@ -5,7 +5,10 @@ from datetime import datetime, timezone
 from loguru import logger
 from sqlalchemy import select
 from temporalio import activity
-from unoplat_code_confluence_commons.repo_models import Repository, RepositoryWorkflowRun
+from unoplat_code_confluence_commons.repo_models import (
+    Repository,
+    RepositoryWorkflowRun,
+)
 from unoplat_code_confluence_commons.workflow_envelopes import (
     ParentWorkflowDbActivityEnvelope,
 )
