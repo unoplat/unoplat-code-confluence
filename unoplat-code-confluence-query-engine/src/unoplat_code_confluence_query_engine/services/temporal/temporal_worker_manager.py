@@ -372,6 +372,7 @@ class TemporalWorkerManager:
                 app_interfaces_activity.emit_app_interfaces_completion,
                 git_ref_resolution_activity.resolve_git_ref,
                 managed_block_activity.bootstrap,
+                managed_block_activity.section_has_content,
                 agent_md_pr_publish_activity.publish_pr,
             ],
             plugins=agent_plugins,
