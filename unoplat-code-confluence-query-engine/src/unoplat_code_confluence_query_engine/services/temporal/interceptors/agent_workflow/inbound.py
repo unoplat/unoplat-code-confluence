@@ -103,7 +103,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         # Args: repository_qualified_name, codebase_metadata_list, trace_id, operation
         repository_qualified_name: str = input.args[0]
         codebase_metadata_list: list[dict[str, Any]] = input.args[1]
-        trace_id: str = input.args[2] if len(input.args) > 2 else ""
+        trace_id: str = input.args[2]
         operation = RepositoryWorkflowOperation(input.args[3])
 
         workflow_id = info.workflow_id
@@ -237,7 +237,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         repository_qualified_name: str = input.args[0]
         codebase_metadata_dict: dict[str, Any] = input.args[1]
         repository_workflow_run_id: str = input.args[2]
-        trace_id: str = input.args[3] if len(input.args) > 3 else ""
+        trace_id: str = input.args[3]
 
         workflow_id = info.workflow_id
         codebase_workflow_run_id = info.run_id
