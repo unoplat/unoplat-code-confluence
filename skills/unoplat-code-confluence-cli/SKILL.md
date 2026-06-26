@@ -105,7 +105,7 @@ Use when the user asks to start Code Confluence or before setup/repository opera
 ucc service run
 ```
 
-This starts the pinned local app release and installs it on first run. It may fetch GitHub release metadata and pull Docker images.
+This starts the pinned local app release and installs the latest Unoplat Code Confluence app release on first run. The CLI resolves app releases from GitHub tags matching `unoplat-code-confluence-vMAJOR.MINOR.PATCH`; component releases and arbitrary version selection are not part of the CLI workflow. It may fetch GitHub release metadata and pull Docker images.
 
 Prerequisites:
 
@@ -113,17 +113,17 @@ Prerequisites:
 - Docker Compose support is available.
 - Network access is available for first install/update and image pulls.
 
-Summarize the JSON result, especially `installed_version`, `available_version`, `update_available`, `started_stack`, `already_reachable`, and `warnings`.
+Summarize the JSON result, especially `installed_tag`, `available_tag`, `update_available`, `installed_release`, and `warnings`.
 
 ### Update the Local App
 
-Ask for confirmation before updating unless the user explicitly requested an update.
+Ask for confirmation before updating unless the user explicitly requested an update. Updates always target the latest GitHub app release whose tag matches `unoplat-code-confluence-vMAJOR.MINOR.PATCH`; do not ask the user to choose a historical version.
 
 ```bash
 ucc service update
 ```
 
-Summarize previous and installed versions, whether an update occurred, and warnings.
+Summarize the `previous_tag`, `installed_tag`, `available_tag`, and warnings.
 
 ### Stop the Local App
 
@@ -148,7 +148,7 @@ Warn the user that local app volumes/data will be removed.
 Use this to verify repository-provider and model-provider setup without exposing secrets:
 
 ```bash
-ucc setup status
+ucc service status
 ```
 
 The CLI verifies the repository-provider token through Flow Bridge's `/user-details` endpoint for the configured provider, and verifies model-provider configuration through Query Engine's `/v1/model-config` endpoint. It reports only setup status, provider/model identifiers, and whether a model credential exists.
@@ -166,7 +166,7 @@ This ensures the local app is running and opens the setup page in the user's bro
 Default frontend URL:
 
 ```text
-http://localhost:3000/onboarding
+http://127.0.0.1:3000/onboarding/github
 ```
 
 ### Configure Model Provider
@@ -182,14 +182,14 @@ This ensures the local app is running and opens the model-provider settings page
 Default frontend URL:
 
 ```text
-http://localhost:3000/settings/model-providers
+http://127.0.0.1:3000/settings/model-providers
 ```
 
 ### Add a Repository
 
 Before adding a repository, ensure repository-provider setup is complete:
 
-1. Run `ucc setup status` or otherwise confirm repository-provider token setup has been completed.
+1. Run `ucc service status` or otherwise confirm repository-provider token setup has been completed.
 2. Obtain the repository git remote URL.
 3. Confirm the URL ends with `.git`.
 
@@ -234,12 +234,12 @@ Important:
 
 Before running:
 
-1. Run `ucc setup status` or otherwise ensure repository-provider and model-provider setup are complete.
+1. Run `ucc service status` or otherwise ensure repository-provider and model-provider setup are complete.
 2. Confirm the repository git URL.
 
 `ucc agent-md` idempotently adds the repository if needed, calls Flow Bridge `/refresh-repository` to refresh/ingest latest code, and the backend triggers AGENTS.md generation after refresh completes.
 
-Summarize the JSON result, especially `workflow_id` and `run_id` when present. Tell the user that the backend workflow will publish the PR automatically after generation completes.
+Summarize the JSON result, especially `workflow_id`, `run_id`, and `message` when present. Tell the user that the backend workflow will raise/publish the PR automatically after generation completes.
 
 ## Environment Overrides
 
@@ -249,9 +249,9 @@ Common overrides:
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
-| `UNOPLAT_CODE_CONFLUENCE_FLOW_BRIDGE_URL` | Flow Bridge API base URL | `http://localhost:8000` |
-| `UNOPLAT_CODE_CONFLUENCE_QUERY_ENGINE_URL` | Query Engine API base URL | `http://localhost:8001` |
-| `UNOPLAT_CODE_CONFLUENCE_FRONTEND_URL` | Frontend base URL for setup pages | `http://localhost:3000` |
+| `UNOPLAT_CODE_CONFLUENCE_FLOW_BRIDGE_URL` | Flow Bridge API base URL | `http://127.0.0.1:8000` |
+| `UNOPLAT_CODE_CONFLUENCE_QUERY_ENGINE_URL` | Query Engine API base URL | `http://127.0.0.1:8001` |
+| `UNOPLAT_CODE_CONFLUENCE_FRONTEND_URL` | Frontend base URL for setup pages | `http://127.0.0.1:3000` |
 | `UNOPLAT_CODE_CONFLUENCE_AUTO_START` | Auto-start app for repo add / agent-md | `true` |
 | `UNOPLAT_CODE_CONFLUENCE_REQUEST_TIMEOUT_SECONDS` | HTTP request timeout | `120` |
 | `UNOPLAT_CODE_CONFLUENCE_STARTUP_TIMEOUT_SECONDS` | Service startup timeout | `180` |
@@ -292,9 +292,9 @@ ucc service run
 
 The CLI defaults to local services:
 
-- Flow Bridge: `http://localhost:8000`
-- Query Engine: `http://localhost:8001`
-- Frontend: `http://localhost:3000`
+- Flow Bridge: `http://127.0.0.1:8000`
+- Query Engine: `http://127.0.0.1:8001`
+- Frontend: `http://127.0.0.1:3000`
 
 Run:
 
