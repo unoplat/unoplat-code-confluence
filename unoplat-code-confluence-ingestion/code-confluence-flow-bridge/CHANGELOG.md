@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.85.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.84.0...code-confluence-flow-bridge-v0.85.0) (2026-06-27)
+
+
+### Features
+
+* **health:** add liveness and readiness probes to flow-bridge and query-engine ([c95d849](https://github.com/unoplat/unoplat-code-confluence/commit/c95d849544982e6e5be76257fc4963e1c0661c24))
+* **repository:** add lightweight add-repository endpoint and models ([1bc9d6d](https://github.com/unoplat/unoplat-code-confluence/commit/1bc9d6df6e1890fe6aec2162af88dda76643ec07))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([d133163](https://github.com/unoplat/unoplat-code-confluence/commit/d13316355530d39828be6fc99554431df306b4c4))
+* **flow-bridge:** handle concurrent add-repository race via savepoint ([e8a7c04](https://github.com/unoplat/unoplat-code-confluence/commit/e8a7c04bd4d4693ec0edbfb22cba8edcd43e57ca))
+* **git-url:** accept provider browser URLs without .git suffix ([8a154f9](https://github.com/unoplat/unoplat-code-confluence/commit/8a154f904a26749b022512c5e6a1a79cb8a0d286))
+
 ## [0.84.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.83.0...code-confluence-flow-bridge-v0.84.0) (2026-06-16)
 
 
