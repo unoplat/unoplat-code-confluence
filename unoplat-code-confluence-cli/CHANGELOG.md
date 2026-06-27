@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.4.1...unoplat-code-confluence-cli-v0.5.0) (2026-06-27)
+
+
+### Features
+
+* **cli:** add repository, refresh, setup status, and readiness gating ([8805058](https://github.com/unoplat/unoplat-code-confluence/commit/880505846fef925879a716b2822c4236b5d89a13))
+* **cli:** rename entry point to ucc ([c63fc09](https://github.com/unoplat/unoplat-code-confluence/commit/c63fc098b30d98238a05135c6fd4ab655c4e9578))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([d133163](https://github.com/unoplat/unoplat-code-confluence/commit/d13316355530d39828be6fc99554431df306b4c4))
+* **cli:** replace localhost with 127.0.0.1 in default service URLs ([6c16c89](https://github.com/unoplat/unoplat-code-confluence/commit/6c16c894b93c44c370806cca2e80f6b06eb21c7b))
+
 ## [0.4.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.4.0...unoplat-code-confluence-cli-v0.4.1) (2026-06-16)
 
 

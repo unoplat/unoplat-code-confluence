@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.57.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.56.0...unoplat-code-confluence-frontend-v1.57.0) (2026-06-27)
+
+
+### Features
+
+* **frontend:** replace ingestion with add-repository flow ([e7efe56](https://github.com/unoplat/unoplat-code-confluence/commit/e7efe56e5101722d7bf60f09f0bd466757af059c))
+
+
+### Bug Fixes
+
+* **frontend:** restore RepositoryRequestConfiguration import in api.ts ([ff5e288](https://github.com/unoplat/unoplat-code-confluence/commit/ff5e288f63dc24c3daa9f4315da01a167ab7126d))
+
 ## [1.56.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.55.1...unoplat-code-confluence-frontend-v1.56.0) (2026-06-16)
 
 
