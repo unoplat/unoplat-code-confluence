@@ -14,10 +14,17 @@
 **/*_report.json
 
 # Local agent/tooling directories (keep out of git)
-skills/
+skills/*
+!skills/unoplat-code-confluence-cli/
+!skills/unoplat-code-confluence-cli/SKILL.md
 skills-lock.json
 .agents/
 .agent/
+.pi/
+
+# Local planning scratch (not source)
+PLAN.md
+plans/
 
 # Dev-only GitHub App local config (contains smee.io webhook URLs)
 **/config/github-app/

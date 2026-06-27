@@ -16,9 +16,9 @@ class CliSettings(BaseSettings):
         extra="ignore",
     )
 
-    flow_bridge_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://localhost:8000"))
-    query_engine_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://localhost:8001"))
-    frontend_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://localhost:3000"))
+    flow_bridge_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://127.0.0.1:8000"))
+    query_engine_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://127.0.0.1:8001"))
+    frontend_url: AnyHttpUrl = Field(default=AnyHttpUrl("http://127.0.0.1:3000"))
     github_repository: str = "unoplat/unoplat-code-confluence"
     github_api_base_url: AnyHttpUrl = Field(default=AnyHttpUrl("https://api.github.com"))
     compose_project_name: str = "unoplat-code-confluence"

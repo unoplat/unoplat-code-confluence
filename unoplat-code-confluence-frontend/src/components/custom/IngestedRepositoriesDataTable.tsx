@@ -36,7 +36,7 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
   const queryClient = useQueryClient();
   const modelConfigQuery = useModelConfig();
 
-  // Fetch ingested repositories
+  // Fetch tracked repositories
   const {
     data: repositoriesData,
     isPending,
@@ -165,6 +165,14 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4">
+      <div className="mb-4">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Tracked repositories
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Repositories you have added. Generate/Update Agents.md refreshes the latest code before generation.
+        </p>
+      </div>
       {isPending ? (
         <DataTableSkeleton
           columnCount={4}

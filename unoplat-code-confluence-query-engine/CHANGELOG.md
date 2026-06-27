@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.45.0...unoplat-code-confluence-query-engine-v0.46.0) (2026-06-27)
+
+
+### Features
+
+* **health:** add liveness and readiness probes to flow-bridge and query-engine ([c95d849](https://github.com/unoplat/unoplat-code-confluence/commit/c95d849544982e6e5be76257fc4963e1c0661c24))
+* **query-engine:** add managed section content extraction and Temporal activity ([3665272](https://github.com/unoplat/unoplat-code-confluence/commit/3665272a7435d3e5e331debf3fe98dfc0094bae1))
+* **query-engine:** resolve and propagate workflow operation through Temporal ([a12e790](https://github.com/unoplat/unoplat-code-confluence/commit/a12e790d16981885fe155fabe58e0d1e09a4a1be))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([d133163](https://github.com/unoplat/unoplat-code-confluence/commit/d13316355530d39828be6fc99554431df306b4c4))
+* **query-engine:** remove defensive len guards on trace_id args in workflow interceptor ([d158e54](https://github.com/unoplat/unoplat-code-confluence/commit/d158e5486cf8c977a80fb0594129396dca7da3f7))
+
 ## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.44.0...unoplat-code-confluence-query-engine-v0.45.0) (2026-06-16)
 
 

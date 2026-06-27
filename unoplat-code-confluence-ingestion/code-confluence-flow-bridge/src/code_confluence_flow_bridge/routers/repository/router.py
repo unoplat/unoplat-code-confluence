@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import QueryableAttribute, selectinload
 from sqlmodel import select
@@ -36,8 +37,13 @@ from code_confluence_flow_bridge.models.github.github_repo import (
     IngestedRepositoryResponse,
     IssueTracking,
     RefreshRepositoryResponse,
+    RepositoryAddRequest,
+    RepositoryAddResponse,
     RepositoryRefreshRequest,
     RepositoryRequestConfiguration,
+)
+from code_confluence_flow_bridge.models.github.repository_git_url import (
+    parse_repository_git_url,
 )
 from code_confluence_flow_bridge.processor.db.postgres.db import get_session
 from code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
@@ -356,6 +362,101 @@ async def delete_repository(
         raise HTTPException(
             status_code=500, detail="Error deleting repository: {}".format(str(e))
         )
+
+
+# ---------------------------------------------------------------------------
+# POST /repositories
+# ---------------------------------------------------------------------------
+
+
+@router.post("/repositories", response_model=RepositoryAddResponse, status_code=201)
+async def add_repository(
+    add_request: RepositoryAddRequest,
+    session: AsyncSession = Depends(get_session),
+    request_logger: "Logger" = Depends(trace_dependency),  # type: ignore
+) -> RepositoryAddResponse:
+    """Add a repository to the tracked repository list without ingestion.
+
+    This endpoint intentionally creates only the lightweight ``Repository`` row.
+    It does not detect codebases, start Temporal workflows, monitor workflows, or
+    write ``CodebaseConfig`` rows. ``/refresh-repository`` remains responsible for
+    refreshing/ingesting latest code before AGENTS.md generation.
+    """
+    parsed = parse_repository_git_url(add_request.repository_git_url)
+    provider_key = add_request.provider_key or parsed.provider_key
+
+    # Validate provider credentials exist up front so users get actionable setup
+    # feedback when adding private/provider-backed repositories.
+    await fetch_repository_provider_token(
+        session, CredentialNamespace.REPOSITORY, provider_key
+    )
+
+    existing_repo: Repository | None = await session.get(
+        Repository, (parsed.repository_name, parsed.repository_owner_name)
+    )
+    if existing_repo is not None:
+        if existing_repo.repository_provider != provider_key:
+            request_logger.warning(
+                "Repository {}/{} is already tracked with provider {}; ignoring add request provider {}",
+                parsed.repository_owner_name,
+                parsed.repository_name,
+                existing_repo.repository_provider,
+                provider_key,
+            )
+        return RepositoryAddResponse(
+            repository_name=parsed.repository_name,
+            repository_owner_name=parsed.repository_owner_name,
+            repository_git_url=parsed.repository_git_url,
+            provider_key=existing_repo.repository_provider,
+            already_added=True,
+            message=(
+                f"Repository {parsed.repository_owner_name}/{parsed.repository_name} "
+                "is already added."
+            ),
+        )
+
+    repository = Repository(
+        repository_name=parsed.repository_name,
+        repository_owner_name=parsed.repository_owner_name,
+        repository_provider=provider_key,
+    )
+    try:
+        async with session.begin_nested():
+            session.add(repository)
+    except IntegrityError:
+        existing_on_conflict: Repository | None = await session.get(
+            Repository, (parsed.repository_name, parsed.repository_owner_name)
+        )
+        if existing_on_conflict is None:
+            raise
+        return RepositoryAddResponse(
+            repository_name=parsed.repository_name,
+            repository_owner_name=parsed.repository_owner_name,
+            repository_git_url=parsed.repository_git_url,
+            provider_key=existing_on_conflict.repository_provider,
+            already_added=True,
+            message=(
+                f"Repository {parsed.repository_owner_name}/{parsed.repository_name} "
+                "is already added."
+            ),
+        )
+
+    request_logger.info(
+        "Added lightweight repository row for {}/{} with provider {}",
+        parsed.repository_owner_name,
+        parsed.repository_name,
+        provider_key,
+    )
+    return RepositoryAddResponse(
+        repository_name=parsed.repository_name,
+        repository_owner_name=parsed.repository_owner_name,
+        repository_git_url=parsed.repository_git_url,
+        provider_key=provider_key,
+        already_added=False,
+        message=(
+            f"Repository {parsed.repository_owner_name}/{parsed.repository_name} added."
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
