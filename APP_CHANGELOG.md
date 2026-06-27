@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.42.0...unoplat-code-confluence-v0.43.0) (2026-06-27)
+
+
+### Features
+
+* **cli:** add repository, refresh, setup status, and readiness gating ([8805058](https://github.com/unoplat/unoplat-code-confluence/commit/880505846fef925879a716b2822c4236b5d89a13))
+* **cli:** rename entry point to ucc ([c63fc09](https://github.com/unoplat/unoplat-code-confluence/commit/c63fc098b30d98238a05135c6fd4ab655c4e9578))
+* **frontend:** replace ingestion with add-repository flow ([e7efe56](https://github.com/unoplat/unoplat-code-confluence/commit/e7efe56e5101722d7bf60f09f0bd466757af059c))
+* **health:** add liveness and readiness probes to flow-bridge and query-engine ([c95d849](https://github.com/unoplat/unoplat-code-confluence/commit/c95d849544982e6e5be76257fc4963e1c0661c24))
+* **query-engine:** add managed section content extraction and Temporal activity ([3665272](https://github.com/unoplat/unoplat-code-confluence/commit/3665272a7435d3e5e331debf3fe98dfc0094bae1))
+* **query-engine:** resolve and propagate workflow operation through Temporal ([a12e790](https://github.com/unoplat/unoplat-code-confluence/commit/a12e790d16981885fe155fabe58e0d1e09a4a1be))
+* **repository:** add lightweight add-repository endpoint and models ([1bc9d6d](https://github.com/unoplat/unoplat-code-confluence/commit/1bc9d6df6e1890fe6aec2162af88dda76643ec07))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([5992123](https://github.com/unoplat/unoplat-code-confluence/commit/5992123abbf2448d77814d81976fb1129b71ae2c))
+* **ci:** refresh package uv lockfiles before python lock checks run ([d133163](https://github.com/unoplat/unoplat-code-confluence/commit/d13316355530d39828be6fc99554431df306b4c4))
+* **cli:** replace localhost with 127.0.0.1 in default service URLs ([6c16c89](https://github.com/unoplat/unoplat-code-confluence/commit/6c16c894b93c44c370806cca2e80f6b06eb21c7b))
+* **flow-bridge:** handle concurrent add-repository race via savepoint ([e8a7c04](https://github.com/unoplat/unoplat-code-confluence/commit/e8a7c04bd4d4693ec0edbfb22cba8edcd43e57ca))
+* **frontend:** restore RepositoryRequestConfiguration import in api.ts ([ff5e288](https://github.com/unoplat/unoplat-code-confluence/commit/ff5e288f63dc24c3daa9f4315da01a167ab7126d))
+* **git-url:** accept provider browser URLs without .git suffix ([8a154f9](https://github.com/unoplat/unoplat-code-confluence/commit/8a154f904a26749b022512c5e6a1a79cb8a0d286))
+* **query-engine:** remove defensive len guards on trace_id args in workflow interceptor ([d158e54](https://github.com/unoplat/unoplat-code-confluence/commit/d158e5486cf8c977a80fb0594129396dca7da3f7))
+* **skill:** update commands, URLs, and response field names in SKILL.md ([d3a7d1d](https://github.com/unoplat/unoplat-code-confluence/commit/d3a7d1db94a0bd0f27ba4b704f2f42180743bcbf))
+
 ## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.41.0...unoplat-code-confluence-v0.42.0) (2026-06-18)
 
 
