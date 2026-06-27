@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import QueryableAttribute, selectinload
 from sqlmodel import select
@@ -41,6 +42,9 @@ from code_confluence_flow_bridge.models.github.github_repo import (
     RepositoryRefreshRequest,
     RepositoryRequestConfiguration,
 )
+from code_confluence_flow_bridge.models.github.repository_git_url import (
+    parse_repository_git_url,
+)
 from code_confluence_flow_bridge.processor.db.postgres.db import get_session
 from code_confluence_flow_bridge.processor.repo_workflow import RepoWorkflow
 from code_confluence_flow_bridge.routers.repository.idempotency_service import (
@@ -54,9 +58,6 @@ from code_confluence_flow_bridge.utility.deps import trace_dependency
 from code_confluence_flow_bridge.utility.detection import (
     CodebaseDetector,
     detect_codebases_multi_language,
-)
-from code_confluence_flow_bridge.models.github.repository_git_url import (
-    parse_repository_git_url,
 )
 from code_confluence_flow_bridge.utility.provider_urls import (
     build_repository_git_url,
@@ -419,8 +420,26 @@ async def add_repository(
         repository_owner_name=parsed.repository_owner_name,
         repository_provider=provider_key,
     )
-    session.add(repository)
-    await session.commit()
+    try:
+        async with session.begin_nested():
+            session.add(repository)
+    except IntegrityError:
+        existing_on_conflict: Repository | None = await session.get(
+            Repository, (parsed.repository_name, parsed.repository_owner_name)
+        )
+        if existing_on_conflict is None:
+            raise
+        return RepositoryAddResponse(
+            repository_name=parsed.repository_name,
+            repository_owner_name=parsed.repository_owner_name,
+            repository_git_url=parsed.repository_git_url,
+            provider_key=existing_on_conflict.repository_provider,
+            already_added=True,
+            message=(
+                f"Repository {parsed.repository_owner_name}/{parsed.repository_name} "
+                "is already added."
+            ),
+        )
 
     request_logger.info(
         "Added lightweight repository row for {}/{} with provider {}",
