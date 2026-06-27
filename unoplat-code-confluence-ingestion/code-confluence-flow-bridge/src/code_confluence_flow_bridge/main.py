@@ -92,6 +92,9 @@ from code_confluence_flow_bridge.routers.flags.router import (
 from code_confluence_flow_bridge.routers.github_issues.router import (
     router as github_issues_router,
 )
+from code_confluence_flow_bridge.routers.health.router import (
+    router as health_router,
+)
 from code_confluence_flow_bridge.routers.operations.router import (
     router as operations_router,
 )
@@ -410,6 +413,7 @@ app.include_router(flags_router)
 app.include_router(providers_router)
 app.include_router(repository_router)
 app.include_router(operations_router)
+app.include_router(health_router)
 
 
 @app.post("/start-ingestion", status_code=201)
@@ -421,6 +425,13 @@ async def ingestion(
     detectors: dict[str, CodebaseDetector] = Depends(get_codebase_detectors),
 ) -> dict[str, str]:
     """
+    Legacy/internal ingestion entry point.
+
+    User-facing frontend and CLI flows should use lightweight ``POST /repositories``
+    to add a repository, then ``POST /refresh-repository`` to refresh latest code
+    before AGENTS.md generation. This endpoint is retained temporarily for
+    backend compatibility and should not be referenced by frontend or CLI code.
+
     Start the ingestion workflow for the entire repository using the repository provider token from the database.
     Submits the whole repo_request at once to the Temporal workflow.
     Returns the workflow_id and run_id.

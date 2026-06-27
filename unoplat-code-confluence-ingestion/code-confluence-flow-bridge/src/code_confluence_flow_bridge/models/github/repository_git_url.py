@@ -62,11 +62,10 @@ def parse_repository_git_url(repository_git_url: str) -> RepositoryGitUrlParts:
 
     owner = path_parts[0].strip()
     repo_segment = path_parts[1].strip()
-    if not repo_segment.endswith(".git"):
-        raise HTTPException(
-            status_code=400, detail="Repository git URL must end with .git"
-        )
-
+    # Provider repository lists return the browser/HTML URL (for example
+    # https://github.com/owner/repo) rather than the clone URL. Accept both
+    # forms here and normalize to the HTTPS clone URL used by downstream clone
+    # and refresh paths.
     repo = repo_segment.removesuffix(".git").strip()
     if not owner or not repo:
         raise HTTPException(

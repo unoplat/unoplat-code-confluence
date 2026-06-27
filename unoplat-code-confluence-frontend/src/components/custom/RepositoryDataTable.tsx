@@ -17,7 +17,7 @@ import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { useDataTable } from "@/hooks/use-data-table";
 import type { ApiError } from "@/lib/api";
-import { fetchGitHubRepositories, submitRepositoryConfig } from "@/lib/api";
+import { addRepository, fetchGitHubRepositories } from "@/lib/api";
 import type { GitHubRepoSummary, PaginatedResponse } from "@/types";
 import { ProviderKey } from "@/types/credential-enums";
 
@@ -31,52 +31,54 @@ export function RepositoryDataTable({ providerKey }: RepositoryDataTableProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const ingestMutation = useMutation({
+  const addRepositoryMutation = useMutation({
     mutationFn: (repo: GitHubRepoSummary) =>
-      submitRepositoryConfig({
+      addRepository({
         repository_git_url: repo.git_url,
-        repository_metadata: null,
+        provider_key: providerKey,
       }),
-    onSuccess: (_, repo) => {
-      toast.success(
-        `Successfully submitted repository ${repo.name} to code confluence graph engine`,
-      );
-      queryClient.invalidateQueries({ queryKey: ["repository-config"] });
+    onSuccess: (result, repo) => {
+      if (result.already_added) {
+        toast.info(`${repo.owner_name}/${repo.name} is already added.`, {
+          description: "Manage this repository in Repository Operations.",
+          action: {
+            label: "Go to Repository Operations",
+            onClick: () => {
+              void navigate({ to: "/repositoryOperations" });
+            },
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.success(`Added repository ${repo.owner_name}/${repo.name}.`, {
+          description: "You can generate or update Agents.md from Repository Operations.",
+          action: {
+            label: "Go to Repository Operations",
+            onClick: () => {
+              void navigate({ to: "/repositoryOperations" });
+            },
+          },
+          duration: 8000,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["ingestedRepositories"] });
     },
     onError: (error: ApiError, repo) => {
-      if (error.statusCode === 409) {
-        toast.error(
-          `${repo.owner_name}/${repo.name} has already been ingested.`,
-          {
-            description: "Manage this repository in Repository Operations.",
-            action: {
-              label: "Go to Repository Operations",
-              onClick: () => {
-                void navigate({ to: "/repositoryOperations" });
-              },
-            },
-            duration: 8000,
-          },
-        );
-      } else {
-        toast.error(
-          `Failed to submit repository ${repo.name}: ${error.message}`,
-        );
-      }
+      toast.error(`Failed to add repository ${repo.name}: ${error.message}`);
     },
   });
 
-  const handleIngest = useCallback(
-    (repo: GitHubRepoSummary) => ingestMutation.mutate(repo),
-    [ingestMutation],
+  const handleAddRepository = useCallback(
+    (repo: GitHubRepoSummary) => addRepositoryMutation.mutate(repo),
+    [addRepositoryMutation],
   );
 
   const columns = useMemo(
     () =>
       getRepositoryDataTableColumns({
-        onIngest: handleIngest,
+        onAddRepository: handleAddRepository,
       }),
-    [handleIngest],
+    [handleAddRepository],
   );
 
   const [pageValue] = useQueryState("page", parseAsInteger.withDefault(1));

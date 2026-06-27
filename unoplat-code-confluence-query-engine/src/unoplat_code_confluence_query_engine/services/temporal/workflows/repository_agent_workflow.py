@@ -7,6 +7,9 @@ from temporalio.exceptions import ApplicationError
 
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
+    from unoplat_code_confluence_commons.repo_models import (
+        RepositoryWorkflowOperation,
+    )
 
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
@@ -41,9 +44,11 @@ class RepositoryAgentWorkflow:
         self,
         repository_qualified_name: str,
         codebase_metadata_list: list[dict[str, Any]],
-        trace_id: str = "",
+        trace_id: str,
+        operation: RepositoryWorkflowOperation,
     ) -> dict[str, Any]:
         """Execute agents for all codebases in a repository."""
+        _ = operation
         repository_workflow_run_id = workflow.info().run_id
         logger.debug("[workflow] RepositoryAgentWorkflow.run START")
         logger.info(

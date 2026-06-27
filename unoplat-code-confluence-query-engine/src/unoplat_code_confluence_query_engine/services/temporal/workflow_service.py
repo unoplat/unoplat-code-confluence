@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import uuid
 
 from loguru import logger
+from unoplat_code_confluence_commons.repo_models import RepositoryWorkflowOperation
 
 from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
     RepositoryRulesetMetadata,
@@ -38,6 +39,7 @@ class TemporalWorkflowService:
         *,
         ruleset_metadata: RepositoryRulesetMetadata,
         trace_id: str,
+        operation: RepositoryWorkflowOperation,
     ) -> str:
         """Start a RepositoryAgentWorkflow and return Temporal's repository run ID."""
         bound_logger = logger.bind(app_trace_id=trace_id)
@@ -58,12 +60,13 @@ class TemporalWorkflowService:
 
         bound_logger.info(
             "[workflow_service] Starting RepositoryAgentWorkflow with id={}, "
-            "repository={}/{}, codebases={}, trace_id={}",
+            "repository={}/{}, codebases={}, trace_id={}, operation={}",
             workflow_id,
             owner_name,
             repo_name,
             len(codebase_metadata_list),
             trace_id,
+            operation.value,
         )
 
         workflow_handle = await self._client.start_workflow(
@@ -72,6 +75,7 @@ class TemporalWorkflowService:
                 repository_qualified_name,
                 codebase_metadata_list,
                 trace_id,
+                operation.value,
             ],
             id=workflow_id,
             task_queue=TASK_QUEUE,

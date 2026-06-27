@@ -10,6 +10,7 @@ import aiofiles
 MANAGED_BLOCK_BEGIN = "<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->"
 MANAGED_BLOCK_END = "<!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->"
 
+ENGINEERING_WORKFLOW_SECTION = "## Engineering Workflow"
 BUSINESS_DOMAIN_SECTION = "## Business Domain"
 BUSINESS_DOMAIN_DESCRIPTION_HEADING = "### Description"
 BUSINESS_DOMAIN_REFERENCES_HEADING = "### References"
@@ -19,7 +20,7 @@ BUSINESS_DOMAIN_REFERENCES_TEXT = (
 )
 
 SECTION_HEADINGS: list[str] = [
-    "## Engineering Workflow",
+    ENGINEERING_WORKFLOW_SECTION,
     "## Dependency Guide",
     BUSINESS_DOMAIN_SECTION,
     "## App Interfaces",
@@ -138,6 +139,48 @@ def _extract_managed_block_range(content: str) -> tuple[int, int] | None:
         return None
     end_idx = end_marker_idx + len(MANAGED_BLOCK_END)
     return (begin_idx, end_idx)
+
+
+def extract_managed_section_content(content: str, heading: str) -> str | None:
+    """Return the content under a managed-block H2 heading, if present."""
+    if heading not in SECTION_HEADINGS:
+        raise ValueError(f"Unsupported managed AGENTS.md heading: {heading}")
+
+    block_range = _extract_managed_block_range(content)
+    if block_range is None:
+        return None
+
+    begin_offset, end_offset = block_range
+    block_lines = content[begin_offset:end_offset].splitlines()
+    heading_line = next(
+        (index for index, line in enumerate(block_lines) if line.strip() == heading),
+        None,
+    )
+    if heading_line is None:
+        return None
+
+    next_h2_line = next(
+        (
+            index
+            for index in range(heading_line + 1, len(block_lines))
+            if block_lines[index].startswith("## ")
+        ),
+        len(block_lines),
+    )
+    return "\n".join(block_lines[heading_line + 1 : next_h2_line]).strip()
+
+
+async def managed_section_has_content(codebase_path: str, heading: str) -> bool:
+    """Return whether a managed AGENTS.md H2 section has non-empty content."""
+    agents_md_path = Path(codebase_path) / "AGENTS.md"
+    if not agents_md_path.exists():
+        return False
+
+    async with aiofiles.open(agents_md_path, mode="r", encoding="utf-8") as f:
+        content = await f.read()
+
+    section_content = extract_managed_section_content(content, heading)
+    return bool(section_content)
 
 
 def _rebuild_block_internals(

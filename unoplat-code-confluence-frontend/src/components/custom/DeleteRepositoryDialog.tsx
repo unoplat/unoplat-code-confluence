@@ -40,7 +40,7 @@ export function DeleteRepositoryDialog({
           <AlertDialogDescription asChild>
             <div>
               This action cannot be undone. This will permanently delete the
-              ingested repository data from our system.
+              tracked repository and any associated generated or ingested data from our system.
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>

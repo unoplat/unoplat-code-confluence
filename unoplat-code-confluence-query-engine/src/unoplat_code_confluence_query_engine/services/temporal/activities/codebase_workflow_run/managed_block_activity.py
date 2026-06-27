@@ -6,6 +6,7 @@ from temporalio import activity
 
 from unoplat_code_confluence_query_engine.services.agents_md.managed_block import (
     bootstrap_managed_block,
+    managed_section_has_content,
 )
 
 
@@ -32,3 +33,8 @@ class ManagedBlockActivity:
         return await bootstrap_managed_block(
             codebase_path, default_branch, head_commit_sha
         )
+
+    @activity.defn(name="managed-section-has-content")
+    async def section_has_content(self, codebase_path: str, heading: str) -> bool:
+        """Return whether a managed AGENTS.md H2 section has non-empty content."""
+        return await managed_section_has_content(codebase_path, heading)
