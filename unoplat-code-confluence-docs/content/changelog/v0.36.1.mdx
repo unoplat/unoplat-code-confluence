@@ -1,0 +1,33 @@
+---
+title: "Release v0.36.1"
+description: "Memory and reliability patch: streaming Postgres reads, a single-parse detection pipeline, and configurable Temporal debug timeouts"
+version: "0.36.1"
+releaseDate: "2026-05-11"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.36.1"
+---
+
+## Highlights
+
+This patch release focuses on peak-memory reduction and runtime reliability, streaming database reads and file discovery instead of materializing them, eliminating redundant source parses in the detection pipeline, and stabilizing Temporal workflow timeouts.
+
+## Bug Fixes
+
+### Memory and Streaming
+
+- Streamed SQLAlchemy result rows and used `set[str]` for library names in the backend
+- Streamed framework features from PostgreSQL to reduce peak memory in the engine
+- Streamed file discovery as an iterator in the parser to reduce peak memory
+- Threaded pre-parsed source context through the detection pipeline to eliminate redundant parses
+
+### Runtime and Temporal
+
+- Stabilized workflow timeouts and source decoding
+- Added an env-var-overridable `debug_timeout` to all activity configs and the missing `debug_timeouts` module imported by the worker manager
+- Restricted dev-workflow execute to help probes and used direct pydantic envelopes in Temporal runners
+- Always overwrote markdown artifacts in the renderer, removing the stale-check read
+
+### Engine and Parser
+
+- Used the pydantic-ai model API to render tool results in the event stream
+- Extracted `_iter_logical_lines` to simplify pip requirements parsing
+- Migrated framework feature repository tests to the streaming API and updated tests to the new source context API

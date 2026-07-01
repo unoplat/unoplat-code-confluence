@@ -31,7 +31,7 @@ Use this skill when the user asks to:
 
 ## Command Availability
 
-Prefer an existing trusted `ucc` executable. If it is not available, use `uvx` as the non-mutating fallback.
+Always use a trusted `ucc` executable installed on the user's `PATH`. If `ucc` is not available, help the user install it on `PATH` with `uv tool install`.
 
 ### 1. Check for `ucc`
 
@@ -45,33 +45,34 @@ If available, run commands as:
 ucc <command>
 ```
 
-### 2. If `ucc` is not available, check for `uvx`
+### 2. If `ucc` is not available, check for `uv`
 
 ```bash
-uvx --version >/dev/null 2>&1 && echo "UVX_AVAILABLE" || echo "UVX_NOT_FOUND"
+uv --version >/dev/null 2>&1 && echo "UV_AVAILABLE" || echo "UV_NOT_FOUND"
 ```
 
-If `uvx` is available, run commands through the published Python package:
+If `uv` is available, ask for user approval and then install the CLI on `PATH`:
 
 ```bash
-uvx --from unoplat-code-confluence-cli ucc --help
-uvx --from unoplat-code-confluence-cli ucc <command>
+uv tool install "git+https://github.com/unoplat/unoplat-code-confluence.git#subdirectory=unoplat-code-confluence-cli"
+ucc --help
 ```
 
-The package requires Python `>=3.13`; let `uvx` resolve the tool environment.
+After installation, run all commands as `ucc <command>`. The package requires Python `>=3.13`; let `uv` resolve the tool environment.
 
-### 3. If neither `ucc` nor `uvx` is available
+### 3. If neither `ucc` nor `uv` is available
 
 Stop and ask the user to install a prerequisite. Do **not** install `uv`, run remote installer scripts, or mutate the user's Python environment automatically.
 
 Tell the user:
 
 ```text
-The Unoplat CLI is not available, and uvx is not installed.
-Please install uv/uvx from the official documentation and retry:
+The Unoplat CLI is not available, and uv is not installed.
+Please install uv from the official documentation and retry:
 https://docs.astral.sh/uv/getting-started/installation/
 
-Alternatively, install the unoplat-code-confluence-cli package in your preferred Python environment and make the `ucc` command available on PATH.
+Then install the CLI on PATH:
+uv tool install "git+https://github.com/unoplat/unoplat-code-confluence.git#subdirectory=unoplat-code-confluence-cli"
 ```
 
 ## Repository URL Requirements
@@ -91,11 +92,7 @@ Rules:
 
 ## Workflows
 
-In the examples below, use `ucc` if available. If not, replace `ucc` with:
-
-```bash
-uvx --from unoplat-code-confluence-cli ucc
-```
+In the examples below, `ucc` is expected to be installed on `PATH`. If it is not, follow the Command Availability instructions above to install it with `uv tool install`.
 
 ### Start or Prepare the Local App
 
@@ -166,7 +163,7 @@ This ensures the local app is running and opens the setup page in the user's bro
 Default frontend URL:
 
 ```text
-http://127.0.0.1:3000/onboarding/github
+http://127.0.0.1:3000/onboarding
 ```
 
 ### Configure Model Provider
@@ -266,19 +263,20 @@ Use overrides only when the user asks or when the environment clearly requires a
 - The CLI sends repository git remote URLs to the local Code Confluence service. AGENTS.md refresh may cause the local service/backend to access the repository through configured provider credentials.
 - Setup commands open local browser pages; the user should enter credentials directly in the browser, not in chat.
 - Do not run `service destroy` without explicit confirmation because it removes volumes.
-- Do not install tools automatically. Prefer existing `ucc`; otherwise use `uvx`; if `uvx` is unavailable, stop and ask the user to install prerequisites.
+- Do not install tools automatically without explicit user approval. Prefer existing `ucc` on `PATH`; if it is missing, help the user install it with `uv tool install`.
 
 ## Troubleshooting
 
 ### `ucc` not found
 
-Use the `uvx` fallback:
+Install the CLI on `PATH`:
 
 ```bash
-uvx --from unoplat-code-confluence-cli ucc --help
+uv tool install "git+https://github.com/unoplat/unoplat-code-confluence.git#subdirectory=unoplat-code-confluence-cli"
+ucc --help
 ```
 
-If `uvx` is unavailable, stop and ask the user to install `uv`/`uvx` from the official documentation.
+If `uv` is unavailable, stop and ask the user to install `uv` from the official documentation.
 
 ### Docker or Compose errors
 

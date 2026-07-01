@@ -1,0 +1,33 @@
+---
+title: "Release v0.37.0"
+description: "Unified Generate/Update Agents.md flow with idempotency guards and incremental dependency-guide delta fetching"
+version: "0.37.0"
+releaseDate: "2026-05-19"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.37.0"
+---
+
+## Highlights
+
+This release unifies the AGENTS.md generation and refresh experience into a single Generate/Update action, backed by idempotency guards so repeated triggers stay safe. The query engine gains incremental dependency-guide delta fetching and a no-change carry-forward path so unchanged repositories skip redundant work.
+
+## What's New
+
+### Unified Agents.md Generation
+
+- Replaced separate refresh and generate actions with a single Generate/Update Agents.md action in the frontend
+- Added a post-refresh AGENTS.md update trigger with an idempotency guard in the flow bridge
+
+### Incremental Query Engine
+
+- Added dependency-guide delta fetching with incremental cache reuse
+- Added an engineering-workflow no-change sentinel and carry-forward to skip unchanged work
+- Added an idempotency guard for the agent run endpoint and registered the fetch-delta activity
+- Updated `AgentMdOutput` and added repository snapshot models
+
+## Bug Fixes
+
+- Passed loguru structured log kwargs explicitly in the flow bridge
+- Passed a typed envelope with trace context to `AgentMdUpdateActivity`
+- Preserved the validation traceback in the query engine
+- Used a `Literal` type for the `EngineeringWorkflowNoChange` sentinel and clarified prompts
+- Renamed `business_logic_domain` to `business_logic` across all packages

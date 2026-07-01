@@ -1,0 +1,25 @@
+---
+title: "Release v0.40.0"
+description: "Introduces the unoplat-code-confluence CLI with a python-on-whales compose runtime, pydantic runtime models, and release pipeline integration"
+version: "0.40.0"
+releaseDate: "2026-06-08"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.40.0"
+---
+
+## Highlights
+
+This release scaffolds the new `unoplat-code-confluence-cli`, giving the project a first-class command-line entry point for running the stack. The CLI uses python-on-whales for its Compose runtime, models its runtime state with pydantic, and is wired into the build and release pipelines.
+
+## What's New
+
+### Command-Line Interface
+
+- Scaffolded the initial `unoplat-code-confluence-cli`
+- Used python-on-whales for the Compose runtime
+- Migrated CLI runtime models from dataclasses to pydantic
+- Added a dev dependency group with ruff and pyrefly
+- Added the CLI package to the build and release pipelines
+
+## Bug Fixes
+
+- Removed an unnecessary docker compose check and made the CLI release step reliable

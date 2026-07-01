@@ -155,7 +155,7 @@ Install it with the skills CLI:
 npx skills add https://github.com/unoplat/unoplat-code-confluence --skill unoplat-code-confluence-cli
 ```
 
-The skill teaches compatible coding agents how to use `ucc`, fall back to `uvx --from unoplat-code-confluence-cli ucc` when the CLI is not on PATH, ingest repositories, and run the single-command `ucc agent-md <repository_git_url>` flow.
+The skill teaches compatible coding agents how to use `ucc` from `PATH`, help users install it with `uv tool install "git+https://github.com/unoplat/unoplat-code-confluence.git#subdirectory=unoplat-code-confluence-cli"` when needed, ingest repositories, and run the single-command `ucc agent-md <repository_git_url>` flow.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
