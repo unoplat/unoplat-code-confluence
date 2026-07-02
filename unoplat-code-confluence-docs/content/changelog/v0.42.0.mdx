@@ -1,0 +1,36 @@
+---
+title: "Release v0.42.0"
+description: "Automatic AGENTS.md pull-request publishing, git-URL-only repository ingestion, grouped CLI service commands, and a Vite+ docs migration"
+version: "0.42.0"
+releaseDate: "2026-06-18"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.42.0"
+---
+
+## Highlights
+
+This release closes the loop on AGENTS.md by automatically opening a pull request with generated artifacts as part of the repository workflow. Repository ingestion is simplified to a single git URL, the CLI groups service lifecycle commands under one namespace, and the documentation site migrates to Vite+.
+
+## What's New
+
+### Automatic AGENTS.md Publishing
+
+- Wired automatic AGENTS.md pull-request publishing into the repository workflow
+- Batched artifact files into a single git tree commit
+
+### Simplified Repository Ingestion
+
+- Sent only the git URL for repository ingest requests from the frontend
+- Auto-derived repository identity from the git URL during ingestion
+
+### CLI and Docs
+
+- Grouped service-related commands under `service` (run, destroy, stop, update) and added setup commands
+- Fixed documentation and migrated the docs site to Vite+
+
+## Bug Fixes
+
+- Preserved `hostname:port` in HTTPS git URL parsers
+- Guarded the qualified-name parse inside the PR publish try block
+- Pinned the agent prompt to the explicit AGENTS.md path
+- Added the URLs required for probing the flow bridge
+- Pinned the package version instead of using latest

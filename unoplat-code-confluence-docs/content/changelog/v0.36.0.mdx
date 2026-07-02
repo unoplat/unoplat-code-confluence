@@ -1,0 +1,27 @@
+---
+title: "Release v0.36.0"
+description: "Workflow search moves from OpenSearch to PostgreSQL for a ~700–900 MB memory reduction, plus agent event scroll restoration"
+version: "0.36.0"
+releaseDate: "2026-04-29"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.36.0"
+---
+
+## Highlights
+
+This release significantly trims the stack's memory footprint by moving basic workflow search operations off OpenSearch and onto PostgreSQL, and improves the agent events experience with reliable scroll restoration through long histories.
+
+## What's New
+
+### Leaner Workflow Search
+
+- Moved basic workflow search operations from OpenSearch to PostgreSQL, reducing the memory footprint by roughly 700–900 MB
+
+### Agent Events
+
+- Added anchor-based scroll restoration for older history via an imperative handle
+
+## Bug Fixes
+
+- Always skip `tool.result` events when building display items
+- Used `Any` for workflow interceptor return types to satisfy the type checker
+- Used `useLayoutEffect` for scroll snap reset on codebase change

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.48.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.47.0...unoplat-code-confluence-commons-v0.48.0) (2026-07-11)
+
+
+### Features
+
+* **commons:** add call expression match policy ([0940a71](https://github.com/unoplat/unoplat-code-confluence/commit/0940a711e3e4f58b2ba5bb5b44bdc017c70e4d60))
+* **commons:** add call expression match policy ([6365b4f](https://github.com/unoplat/unoplat-code-confluence/commit/6365b4f1ce5192c612129320766a21c8bea2213b))
+
 ## [0.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.46.0...unoplat-code-confluence-commons-v0.47.0) (2026-04-12)
 
 
