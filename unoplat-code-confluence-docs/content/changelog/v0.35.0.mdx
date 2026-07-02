@@ -1,0 +1,45 @@
+---
+title: "Release v0.35.0"
+description: "Agent assembly overhaul with audited console tooling, pydantic-ai Capabilities migration, sandbox-verified dev workflow, an OpenMetadata connector, and local dev tooling"
+version: "0.35.0"
+releaseDate: "2026-04-28"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.35.0"
+---
+
+## Highlights
+
+This release reworks how agents are assembled and run, replacing bespoke file-reading tools with an audited console capability and swapping confidence scoring for real sandbox verification. The query engine migrates to the pydantic-ai Capabilities API with local backend rulesets, a new OpenMetadata connector lands, and first-class local dev tooling makes the stack easier to run.
+
+## What's New
+
+### Agent Assembly and Tooling
+
+- Replaced custom repo-inspection and `read_file_content` tools with an audited console capability across the business-domain and assembly agents
+- Dropped the DuckDuckGo tool in favor of a builtin web-fetch capability and extended provider support
+- Extracted Docker lifecycle, path helpers, and resolver logic into a dedicated agent backend, integrated via `AgentBackendLifecycle` in the worker and workflows
+
+### Sandbox-Verified Development Workflow
+
+- Replaced confidence scoring in the development workflow with sandbox verification of changes
+- Added a unified thinking-level parameter with a `high` default across all model providers
+
+### Query Engine
+
+- Migrated to the pydantic-ai Capabilities API with local backend rulesets and upgraded pydantic-ai to v1.83
+- Added a markdown validation and rendering pipeline plus dependency-guide and app-interfaces write activities
+- Extended framework feature validation models and repository support
+- Removed the `agents_md_updater` agent and the section-updater pattern
+
+### Connectors and Local Dev
+
+- Added a Code Confluence → OpenMetadata connector package with optional snapshot lookup
+- Added a Tiltfile, docker-compose, and dev Dockerfiles for a smoother local setup
+- Virtualized agent group events with sticky auto-scroll and updated frontend schema/utils for the new agent output structure
+
+## Bug Fixes
+
+- Added authenticated git clone support for private GitHub repositories
+- Fixed Node.js symlink dereferencing in the query-engine Docker image
+- Updated query-engine agent prompts, runners, config, and Dockerfile
+- Removed stale `command_discovery_requirements` and examples from the workflow prompt
+- Removed the obsolete litellm TypeScript framework definition

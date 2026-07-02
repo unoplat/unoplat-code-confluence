@@ -2,5 +2,5 @@
   "title": "Quickstart",
   "icon": "Rocket",
   "defaultOpen": true,
-  "pages": ["how-to-run"]
+  "pages": ["how-to-run", "frontend"]
 }

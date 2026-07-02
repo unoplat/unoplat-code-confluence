@@ -1,0 +1,26 @@
+---
+title: "Release v0.38.0"
+description: "Detection moves to BaseSourceContext primitives and the query engine adopts status-based output dispatch"
+version: "0.38.0"
+releaseDate: "2026-05-28"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.38.0"
+---
+
+## Highlights
+
+This release replaces structural-signature extraction with `BaseSourceContext` detection primitives in the ingestion pipeline and routes query-engine output by workflow status, prefetching the prior run to decide how results are dispatched.
+
+## What's New
+
+### Detection Primitives
+
+- Replaced structural-signature extraction with `BaseSourceContext` detection primitives in ingestion
+
+### Status-Based Output Dispatch
+
+- Pre-fetched the previous workflow and used status-based output dispatch in the query engine
+
+## Bug Fixes
+
+- Made `GitHubUser` fields optional and handled null display values in the frontend
+- Fixed a logging issue

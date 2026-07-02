@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.44.0...unoplat-code-confluence-docs-v0.45.0) (2026-07-01)
+
+
+### Features
+
+* **docs:** split quickstart into CLI and Web UI guides ([5db0438](https://github.com/unoplat/unoplat-code-confluence/commit/5db04383420e3e813cf65d17ee24b3702a05e9f4))
+
+
+### Bug Fixes
+
+* **docs:** correct frontend quickstart prerequisites ([ce3cd9c](https://github.com/unoplat/unoplat-code-confluence/commit/ce3cd9cb812d0e67af01681c49a9ea5f65d4ec8a))
+
 ## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.43.1...unoplat-code-confluence-docs-v0.44.0) (2026-06-11)
 
 
