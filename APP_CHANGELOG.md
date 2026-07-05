@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.43.0...unoplat-code-confluence-v0.44.0) (2026-07-02)
+
+
+### Features
+
+* **docs:** split quickstart into CLI and Web UI guides ([5db0438](https://github.com/unoplat/unoplat-code-confluence/commit/5db04383420e3e813cf65d17ee24b3702a05e9f4))
+
+
+### Bug Fixes
+
+* **docs:** correct frontend quickstart prerequisites ([ce3cd9c](https://github.com/unoplat/unoplat-code-confluence/commit/ce3cd9cb812d0e67af01681c49a9ea5f65d4ec8a))
+* **skill:** require ucc on PATH via uv tool install ([c603b49](https://github.com/unoplat/unoplat-code-confluence/commit/c603b4950c47a1bebcfa042e918aced2ac4893da))
+
 ## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.42.0...unoplat-code-confluence-v0.43.0) (2026-06-27)
 
 
