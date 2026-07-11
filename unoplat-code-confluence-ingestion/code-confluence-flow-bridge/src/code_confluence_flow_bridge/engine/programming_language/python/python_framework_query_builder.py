@@ -134,11 +134,24 @@ class PythonFrameworkQueryBuilder:
         callee_regex = construct_query.callee_regex
         superclass_regex = construct_query.superclass_regex
 
-        annotation_call_block = self._build_annotation_call_block(method_regex)
-        annotation_name_block = self._build_annotation_name_block(annotation_regex)
+        definition_node = (
+            "class_definition"
+            if feature_spec.target_level == TargetLevel.CLASS
+            else "function_definition"
+        )
+        annotation_call_block = self._build_annotation_call_block(
+            method_regex, definition_node
+        )
+        annotation_attribute_block = self._build_annotation_attribute_block(
+            method_regex, definition_node
+        )
+        annotation_name_block = self._build_annotation_name_block(
+            annotation_regex, definition_node
+        )
 
         replacements = {
             "ANNOTATION_CALL_BLOCK": annotation_call_block,
+            "ANNOTATION_ATTRIBUTE_BLOCK": annotation_attribute_block,
             "ANNOTATION_NAME_BLOCK": annotation_name_block,
             "CALLEE_PREDICATE": _render_predicate("@callee", callee_regex),
             "SUPERCLASS_PREDICATE": _render_predicate("@superclass", superclass_regex),
@@ -155,12 +168,15 @@ class PythonFrameworkQueryBuilder:
             return construct_query
         return ConstructQueryConfig.model_validate({})
 
-    def _build_annotation_call_block(self, method_regex: Optional[str]) -> str:
+    def _build_annotation_call_block(
+        self, method_regex: Optional[str], definition_node: str
+    ) -> str:
         """Build the S-expression block matching decorator call patterns.
 
         Args:
             method_regex: Optional regex to constrain the decorator method name.
                 When ``None``, the block matches any decorator call.
+            definition_node: Tree-sitter node type allowed for the decorated target.
 
         Returns:
             A multi-line S-expression string for the ``decorated_definition``
@@ -180,18 +196,51 @@ class PythonFrameworkQueryBuilder:
         arguments: (argument_list)? @decorator_args
       ) @decorator_call
     ) @decorator
-    definition: (_) @definition
+    definition: ({definition_node}) @definition
   ) @decorated_definition{predicate_line}
 )
 """
 
-    def _build_annotation_name_block(self, annotation_regex: Optional[str]) -> str:
+    def _build_annotation_attribute_block(
+        self, method_regex: Optional[str], definition_node: str
+    ) -> str:
+        """Build the S-expression block matching bare attribute decorators.
+
+        This covers decorators such as ``@activity.defn`` where the attribute
+        is not wrapped in a call expression. The captures intentionally match
+        the called-attribute branch so annotation detection can extract the
+        same bound object and method metadata for both forms.
+
+        Args:
+            method_regex: Optional regex to constrain the decorator method name.
+            definition_node: Tree-sitter node type allowed for the decorated target.
+        """
+        predicate = _render_predicate("@decorator_method", method_regex)
+        predicate_line = f"\n  {predicate}" if predicate else ""
+        return f"""
+(
+  (decorated_definition
+    (decorator
+      (attribute
+        object: (_) @decorator_object
+        attribute: (identifier) @decorator_method
+      )
+    ) @decorator
+    definition: ({definition_node}) @definition
+  ) @decorated_definition{predicate_line}
+)
+"""
+
+    def _build_annotation_name_block(
+        self, annotation_regex: Optional[str], definition_node: str
+    ) -> str:
         """Build the S-expression block matching simple (non-call) decorator names.
 
         Args:
             annotation_regex: Regex the decorator identifier must match.
                 Returns an empty string when ``None``, effectively disabling
                 this match branch.
+            definition_node: Tree-sitter node type allowed for the decorated target.
 
         Returns:
             A multi-line S-expression string, or an empty string if no regex
@@ -207,7 +256,7 @@ class PythonFrameworkQueryBuilder:
     (decorator
       (identifier) @decorator_name
     ) @decorator
-    definition: (_) @definition
+    definition: ({definition_node}) @definition
   ) @decorated_definition{predicate_line}
 )
 """

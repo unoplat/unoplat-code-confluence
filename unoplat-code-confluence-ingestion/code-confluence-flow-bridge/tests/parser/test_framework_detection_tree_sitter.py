@@ -158,6 +158,70 @@ async def create_user() -> dict[str, bool]:
     )
 
 
+def test_temporal_tree_sitter_detection_decorator_forms_and_target_levels() -> None:
+    source_code = """
+from temporalio import activity, workflow
+from temporalio.activity import defn
+
+
+@activity.defn
+async def bare_activity() -> None:
+    pass
+
+
+@activity.defn(name="named-activity")
+async def named_activity() -> None:
+    pass
+
+
+@defn
+async def imported_activity() -> None:
+    pass
+
+
+@activity.unrelated
+async def unrelated_activity() -> None:
+    pass
+
+
+@workflow.defn(name="example-workflow")
+class ExampleWorkflow:
+    pass
+"""
+
+    feature_specs = _load_python_feature_specs()
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, feature_specs)
+    temporal_detections = [
+        detection for detection in detections if detection.library == "temporalio"
+    ]
+    matches_by_feature = {
+        feature_key: {
+            detection.match_text.splitlines()[0]
+            for detection in temporal_detections
+            if detection.feature_key == feature_key
+        }
+        for feature_key in {
+            "background_worker.task_definition",
+            "scheduler.task_definition",
+        }
+    }
+
+    assert matches_by_feature["background_worker.task_definition"] == {
+        "@activity.defn",
+        '@activity.defn(name="named-activity")',
+        "@defn",
+    }
+    assert matches_by_feature["scheduler.task_definition"] == {
+        '@workflow.defn(name="example-workflow")'
+    }
+    assert not any(
+        "unrelated" in detection.match_text for detection in temporal_detections
+    )
+
+
 def test_gql_tree_sitter_detection_client_alias_and_local_collision() -> None:
     source_code = """
 from gql import Client as GQLClient
