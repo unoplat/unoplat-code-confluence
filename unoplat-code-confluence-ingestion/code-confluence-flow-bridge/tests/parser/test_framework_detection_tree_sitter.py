@@ -158,6 +158,37 @@ async def create_user() -> dict[str, bool]:
     )
 
 
+def test_gql_tree_sitter_detection_client_alias_and_local_collision() -> None:
+    source_code = """
+from gql import Client as GQLClient
+
+
+class Client:
+    pass
+
+
+def build_clients() -> None:
+    GQLClient(fetch_schema_from_transport=False)
+    Client()
+"""
+
+    feature_specs = _load_python_feature_specs()
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, feature_specs)
+    gql_detections = [
+        detection for detection in detections if detection.library == "gql"
+    ]
+
+    assert len(gql_detections) == 1
+    call_detection = cast(CallExpressionInfo, gql_detections[0])
+    assert call_detection.feature_key == "graphql_client.graphql_client"
+    assert call_detection.callee == "GQLClient"
+    assert call_detection.metadata["call_match_kind"] == "import_alias_exact"
+    assert call_detection.metadata["matched_absolute_path"] == "gql.Client"
+
+
 def test_pydantic_tree_sitter_detection_model_file() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     model_path = (
