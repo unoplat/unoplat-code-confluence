@@ -43,6 +43,13 @@ class ValidationStatus(str, Enum):
     NEEDS_REVIEW = "needs_review"
 
 
+class CallExpressionMatchPolicy(str, Enum):
+    """Post-query matching policy for CallExpression framework features."""
+
+    MATCH_CALLEE = "match_callee"
+    IMPORT_GUARDED_REGEX = "import_guarded_regex"
+
+
 # ──────────────────────────────────────────────
 # 🔄 Typed models for construct_query structure
 # ──────────────────────────────────────────────
@@ -51,6 +58,10 @@ class ValidationStatus(str, Enum):
 class ConstructQueryConfig(BaseModel):
     """Typed construct query configuration matching JSON schema structure."""
 
+    match_policy: CallExpressionMatchPolicy = Field(
+        default=CallExpressionMatchPolicy.MATCH_CALLEE,
+        description="Post-query matching policy for CallExpression features",
+    )
     method_regex: Optional[str] = Field(
         None, description="Regex for method names (AnnotationLike)"
     )
@@ -75,6 +86,18 @@ class ConstructQueryConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    @model_validator(mode="after")
+    def validate_import_guarded_regex(self) -> Self:
+        """Require an explicit callee regex for regex-only call matching."""
+        if (
+            self.match_policy == CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX
+            and (self.callee_regex is None or not self.callee_regex.strip())
+        ):
+            raise ValueError(
+                "import_guarded_regex match_policy requires a non-empty callee_regex"
+            )
+        return self
+
 
 def _validate_base_confidence_scope(
     concept: Concept,
@@ -89,6 +112,19 @@ def _validate_base_confidence_scope(
         raise ValueError(
             "base_confidence is supported only for CallExpression features"
         )
+
+
+def _validate_match_policy_scope(
+    concept: Concept,
+    construct_query: Dict[str, Any] | None,
+) -> None:
+    if construct_query is None or "match_policy" not in construct_query:
+        return
+    if concept != Concept.CALL_EXPRESSION:
+        raise ValueError(
+            "construct_query.match_policy is supported only for CallExpression features"
+        )
+    ConstructQueryConfig.model_validate(construct_query)
 
 
 def _compose_feature_key(capability_key: str, operation_key: str) -> str:
@@ -164,8 +200,9 @@ class FeatureSpec(BaseModel):
         return _compose_feature_key(self.capability_key, self.operation_key)
 
     @model_validator(mode="after")
-    def validate_base_confidence_scope(self) -> Self:
+    def validate_call_expression_fields(self) -> Self:
         _validate_base_confidence_scope(self.concept, self.base_confidence)
+        _validate_match_policy_scope(self.concept, self.construct_query)
         return self
 
 
@@ -213,8 +250,9 @@ class FrameworkFeaturePayload(BaseModel):
     model_config = ConfigDict(extra="forbid", use_enum_values=True)
 
     @model_validator(mode="after")
-    def validate_base_confidence_scope(self) -> Self:
+    def validate_call_expression_fields(self) -> Self:
         _validate_base_confidence_scope(self.concept, self.base_confidence)
+        _validate_match_policy_scope(self.concept, self.construct_query)
         return self
 
 

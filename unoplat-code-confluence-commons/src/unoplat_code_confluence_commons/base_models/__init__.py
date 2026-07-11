@@ -9,6 +9,7 @@ from unoplat_code_confluence_commons.base_models.data_model_position import (
 from unoplat_code_confluence_commons.base_models.engine_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
+    CallExpressionMatchPolicy,
     Concept,
     ConstructQueryConfig,
     Detection,
@@ -28,11 +29,11 @@ from unoplat_code_confluence_commons.base_models.framework_models import (
     Framework,
     FrameworkFeature,
 )
+
 # SQL Base class
 from unoplat_code_confluence_commons.base_models.sql_base import (
     SQLBase,
 )
-
 from unoplat_code_confluence_commons.configuration_models import (
     CodebaseConfig,
     RepositorySettings,
@@ -71,6 +72,7 @@ __all__ = [
     "TargetLevel",
     "LocatorStrategy",
     "Concept",
+    "CallExpressionMatchPolicy",
     "ConstructQueryConfig",
     "FeatureSpec",
     "FrameworkFeaturePayload",

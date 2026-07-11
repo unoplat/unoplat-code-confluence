@@ -6,6 +6,7 @@ Contains models and utilities for code analysis and representation.
 from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
+    CallExpressionMatchPolicy,
     CodebaseConfig,
     CodebaseConfigSQLModel,
     Concept,
@@ -73,6 +74,7 @@ __all__ = [
     "TargetLevel",
     "LocatorStrategy",
     "Concept",
+    "CallExpressionMatchPolicy",
     "ConstructQueryConfig",
     "FeatureSpec",
     "FeatureUsagePayload",
