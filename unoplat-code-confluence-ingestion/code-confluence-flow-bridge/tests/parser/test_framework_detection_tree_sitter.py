@@ -7,6 +7,7 @@ from typing import List, cast
 
 from code_confluence_flow_bridge.engine.programming_language.python.python_source_context import (
     PythonSourceContext,
+    build_import_aliases,
 )
 from code_confluence_flow_bridge.engine.programming_language.python.python_tree_sitter_framework_detector import (
     PythonTreeSitterFrameworkDetector,
@@ -251,6 +252,109 @@ def build_clients() -> None:
     assert call_detection.callee == "GQLClient"
     assert call_detection.metadata["call_match_kind"] == "import_alias_exact"
     assert call_detection.metadata["matched_absolute_path"] == "gql.Client"
+
+
+def test_gql_tree_sitter_detection_module_qualified_import() -> None:
+    source_code = """
+import gql.client
+
+
+def build_client() -> None:
+    gql.client.Client(fetch_schema_from_transport=False)
+"""
+
+    feature_specs = _load_python_feature_specs()
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, feature_specs)
+    gql_detections = [
+        detection for detection in detections if detection.library == "gql"
+    ]
+
+    assert len(gql_detections) == 1
+    call_detection = cast(CallExpressionInfo, gql_detections[0])
+    assert call_detection.feature_key == "graphql_client.graphql_client"
+    assert call_detection.callee == "gql.client.Client"
+    assert call_detection.metadata["call_match_kind"] == "module_member_exact"
+    assert call_detection.metadata["matched_absolute_path"] == "gql.client.Client"
+
+
+def test_gql_tree_sitter_detection_root_package_qualified_call() -> None:
+    source_code = """
+import gql
+
+
+def build_client() -> None:
+    gql.client.Client(fetch_schema_from_transport=False)
+"""
+
+    feature_specs = _load_python_feature_specs()
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, feature_specs)
+    gql_detections = [
+        detection for detection in detections if detection.library == "gql"
+    ]
+
+    assert len(gql_detections) == 1
+    call_detection = cast(CallExpressionInfo, gql_detections[0])
+    assert call_detection.callee == "gql.client.Client"
+    assert call_detection.metadata["call_match_kind"] == "root_module_member_exact"
+    assert call_detection.metadata["matched_absolute_path"] == "gql.client.Client"
+
+
+def test_gql_tree_sitter_detection_aliased_module_import() -> None:
+    source_code = """
+import gql.client as gc
+
+
+def build_client() -> None:
+    gc.Client(fetch_schema_from_transport=False)
+"""
+
+    feature_specs = _load_python_feature_specs()
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, feature_specs)
+    gql_detections = [
+        detection for detection in detections if detection.library == "gql"
+    ]
+
+    assert len(gql_detections) == 1
+    call_detection = cast(CallExpressionInfo, gql_detections[0])
+    assert call_detection.callee == "gc.Client"
+    assert call_detection.metadata["call_match_kind"] == "module_member_exact"
+    assert call_detection.metadata["matched_absolute_path"] == "gql.client.Client"
+
+
+def test_gql_tree_sitter_detection_rejects_unbound_module_name() -> None:
+    source_code = """
+import gql.client
+
+
+def build_client() -> None:
+    client.Client(fetch_schema_from_transport=False)
+"""
+
+    feature_specs = _load_python_feature_specs()
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8", errors="ignore"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, feature_specs)
+    gql_detections = [
+        detection for detection in detections if detection.library == "gql"
+    ]
+
+    assert len(gql_detections) == 0
+
+
+def test_python_import_aliases_plain_dotted_import() -> None:
+    assert build_import_aliases(["import gql.client"]) == {"gql.client": "gql.client"}
+    assert build_import_aliases(["import gql.client as gc"]) == {"gql.client": "gc"}
+    assert build_import_aliases(["import gql"]) == {"gql": "gql"}
 
 
 def test_pydantic_tree_sitter_detection_model_file() -> None:

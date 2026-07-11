@@ -140,8 +140,9 @@ def _matches_callee(
        imported directly (e.g. ``from flask import Flask`` → callee ``Flask``).
     2. **module_member_exact** – the parent module was imported and the callee
        uses attribute access (e.g. ``import flask.app`` → ``flask.app.Flask``).
-    3. **root_module_member_exact** – only the root package was imported
-       (e.g. ``import flask`` → ``flask.Flask``).
+    3. **root_module_member_exact** – only the root package was imported and
+       the callee spells out the full remaining path suffix
+       (e.g. ``import gql`` → ``gql.client.Client``).
 
     Args:
         callee_text: The raw text of the callee node extracted from the AST.
@@ -182,11 +183,12 @@ def _matches_callee(
                     matched_alias=module_alias,
                 )
 
-        # Strategy 3: root package import (e.g. `import flask` → `flask.Flask`)
+        # Strategy 3: root package import with full path suffix (e.g. `import gql` → `gql.client.Client`)
         root_module = path_parts[0]
         if root_module in import_aliases:
             root_module_alias = import_aliases[root_module]
-            if callee_text == f"{root_module_alias}.{short_name}":
+            expected_callee = ".".join([root_module_alias, *path_parts[1:]])
+            if callee_text == expected_callee:
                 return CallMatchEvidence(
                     matched=True,
                     match_kind="root_module_member_exact",

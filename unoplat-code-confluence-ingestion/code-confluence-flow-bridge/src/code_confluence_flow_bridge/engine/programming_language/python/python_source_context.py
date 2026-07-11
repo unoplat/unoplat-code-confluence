@@ -35,6 +35,7 @@ class PythonImportAliasStrategy(ImportAliasStrategy):
         --------
             import fastapi as fp              → {"fastapi": "fp"}
             import fastapi                    → {"fastapi": "fastapi"}
+            import gql.client                 → {"gql.client": "gql.client"}
             from fastapi import FastAPI       → {"fastapi.FastAPI": "FastAPI"}
             from fastapi import FastAPI as fp → {"fastapi.FastAPI": "fp"}
         """
@@ -64,9 +65,10 @@ class PythonImportAliasStrategy(ImportAliasStrategy):
     ) -> None:
         for child in node.named_children:
             if child.type == "dotted_name":
+                # `import a.b` binds only the top-level name `a`; the usable
+                # expression for the module is the full dotted path itself.
                 module = src_bytes[child.start_byte : child.end_byte].decode()
-                alias = module.split(".")[-1]
-                _record_import_alias(mapping, module, alias)
+                _record_import_alias(mapping, module, module)
             elif child.type == "aliased_import":
                 module_node = None
                 alias_node = None
