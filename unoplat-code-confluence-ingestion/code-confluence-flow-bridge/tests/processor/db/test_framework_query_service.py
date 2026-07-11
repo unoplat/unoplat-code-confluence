@@ -1,10 +1,8 @@
 """Focused database tests for framework query service reconstruction."""
 
+import json
 from pathlib import Path
 
-from fastapi.testclient import TestClient
-import pytest
-from sqlalchemy import delete
 from code_confluence_flow_bridge.models.configuration.settings import (
     EnvironmentSettings,
 )
@@ -15,6 +13,9 @@ from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
 from code_confluence_flow_bridge.processor.db.postgres.framework_loader import (
     FrameworkDefinitionLoader,
 )
+from fastapi.testclient import TestClient
+import pytest
+from sqlalchemy import delete
 from unoplat_code_confluence_commons.base_models import (
     FeatureAbsolutePath,
     Framework,
@@ -117,3 +118,48 @@ async def test_query_service_rebuilds_operation_level_feature_specs(
     assert all_feature_specs[0].operation_key == "get"
     assert all_feature_specs[0].construct_query == {"function_name_regex": "^get$"}
     assert all_feature_specs[0].base_confidence == 0.73
+
+
+@pytest.mark.asyncio(loop_scope="session")
+@pytest.mark.parametrize(
+    "source_import",
+    [
+        "sqlalchemy.ext.asyncio.AsyncSession",
+        "sqlalchemy.orm.Session",
+        "sqlalchemy.insert",
+        "sqlalchemy.sql.expression.insert",
+        "sqlalchemy.dialects.postgresql.insert",
+    ],
+)
+async def test_query_service_loads_sqlalchemy_db_sql_for_supported_imports(
+    test_client: TestClient,
+    service_ports: dict[str, int],
+    source_import: str,
+) -> None:
+    del test_client
+    definitions_path = Path(__file__).resolve().parents[3] / "framework-definitions"
+    sqlalchemy_data = json.loads(
+        (definitions_path / "python" / "sqlalchemy.json").read_text(encoding="utf-8")
+    )
+    _seed_framework_data(service_ports, sqlalchemy_data)
+
+    async with get_session_cm() as session:
+        feature_specs = (
+            await framework_query_service.get_framework_features_for_imports(
+                session,
+                "python",
+                [source_import],
+            )
+        )
+
+    db_sql_specs = [
+        spec
+        for spec in feature_specs
+        if spec.library == "sqlalchemy"
+        and spec.feature_key == "relational_database.db_sql"
+    ]
+    assert len(db_sql_specs) == 1
+    spec = db_sql_specs[0]
+    assert spec.construct_query_typed is not None
+    assert spec.construct_query_typed.match_policy.value == "import_guarded_regex"
+    assert spec.base_confidence is not None and spec.base_confidence < 0.70

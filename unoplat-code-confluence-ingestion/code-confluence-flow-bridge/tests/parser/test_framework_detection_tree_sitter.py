@@ -94,6 +94,37 @@ def _build_litellm_completion_spec() -> FeatureSpec:
     )
 
 
+def _build_receiver_execute_spec(*, match_policy: str | None = None) -> FeatureSpec:
+    construct_query: dict[str, str] = {
+        "callee_regex": r"^(?:[A-Za-z_][A-Za-z0-9_]*\.)+execute$"
+    }
+    if match_policy is not None:
+        construct_query["match_policy"] = match_policy
+    return FeatureSpec(
+        capability_key="relational_database",
+        operation_key="db_sql",
+        library="exampledb",
+        absolute_paths=["exampledb.Session"],
+        target_level=TargetLevel.FUNCTION,
+        concept=Concept.CALL_EXPRESSION,
+        locator_strategy=LocatorStrategy.DIRECT,
+        construct_query=construct_query,
+        description="Example receiver execution",
+        base_confidence=0.5,
+    )
+
+
+def _sqlalchemy_db_sql_spec() -> FeatureSpec:
+    specs = [
+        spec
+        for spec in _load_python_feature_specs()
+        if spec.library == "sqlalchemy"
+        and spec.feature_key == "relational_database.db_sql"
+    ]
+    assert len(specs) == 1
+    return specs[0]
+
+
 def test_fastapi_tree_sitter_detection_main_py() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     main_py_path = repo_root / "src" / "code_confluence_flow_bridge" / "main.py"
@@ -415,6 +446,122 @@ def build():
     )
 
 
+def test_sqlalchemy_db_sql_detects_insert_and_session_write_surfaces() -> None:
+    source_code = """
+from sqlalchemy import insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
+def build_statements(session: AsyncSession, self) -> None:
+    insert(User)
+    pg_insert(User)
+    session.add(User())
+    session.add_all([User()])
+    session.execute(insert(User))
+    self.session.execute(pg_insert(User))
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _sqlalchemy_db_sql_spec()
+
+    detections = detector.detect(context, [spec])
+    call_detections = [cast(CallExpressionInfo, detection) for detection in detections]
+
+    assert {detection.callee for detection in call_detections} == {
+        "insert",
+        "pg_insert",
+        "session.add",
+        "session.add_all",
+        "session.execute",
+        "self.session.execute",
+    }
+    assert spec.base_confidence is not None and spec.base_confidence < 0.70
+    assert all(
+        detection.metadata["match_confidence"] == spec.base_confidence
+        for detection in call_detections
+    )
+    assert all(
+        detection.metadata["call_match_kind"] == "import_guarded_regex"
+        for detection in call_detections
+    )
+    assert all(
+        detection.metadata["call_match_policy_version"]
+        == "v2_import_guarded_regex"
+        for detection in call_detections
+    )
+
+
+def test_sqlalchemy_db_sql_detects_module_qualified_insert_calls() -> None:
+    cases = [
+        (
+            """
+import sqlalchemy as sa
+
+
+def build_statement() -> None:
+    sa.insert(User)
+""",
+            "sa.insert",
+        ),
+        (
+            """
+import sqlalchemy
+
+
+def build_statement() -> None:
+    sqlalchemy.insert(User)
+""",
+            "sqlalchemy.insert",
+        ),
+    ]
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _sqlalchemy_db_sql_spec()
+
+    for source_code, expected_callee in cases:
+        context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+
+        detections = detector.detect(context, [spec])
+
+        assert len(detections) == 1
+        call_detection = cast(CallExpressionInfo, detections[0])
+        assert call_detection.callee == expected_callee
+        assert call_detection.metadata["call_match_kind"] == "import_guarded_regex"
+        assert (
+            call_detection.metadata["call_match_policy_version"]
+            == "v2_import_guarded_regex"
+        )
+
+
+def test_sqlalchemy_db_sql_rejects_generic_methods_without_sqlalchemy_import() -> None:
+    source_code = """
+class Session:
+    def add(self, value) -> None:
+        pass
+
+    def add_all(self, values) -> None:
+        pass
+
+    def execute(self, statement) -> None:
+        pass
+
+
+def run(session: Session, self) -> None:
+    session.add(object())
+    session.add_all([])
+    session.execute("statement")
+    self.session.execute("statement")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, [_sqlalchemy_db_sql_spec()])
+
+    assert detections == []
+
+
 def test_python_call_expression_accepts_import_bound_module_alias_call() -> None:
     source_code = """
 import litellm as llm
@@ -440,6 +587,70 @@ def run() -> None:
     assert call_detection.metadata["matched_absolute_path"] == "litellm.completion"
     assert call_detection.metadata["matched_alias"] == "llm"
     assert call_detection.metadata["call_match_policy_version"] == "v1_import_bound"
+
+
+def test_python_call_expression_default_policy_rejects_imported_receiver_call() -> None:
+    source_code = """
+from exampledb import Session
+
+
+def run(session: Session) -> None:
+    session.execute("statement")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(context, [_build_receiver_execute_spec()])
+
+    assert detections == []
+
+
+def test_python_call_expression_import_guarded_regex_accepts_receiver_call() -> None:
+    source_code = """
+from exampledb import Session
+
+
+def run(session: Session) -> None:
+    session.execute("statement")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _build_receiver_execute_spec(match_policy="import_guarded_regex")
+
+    detections = detector.detect(context, [spec])
+
+    assert len(detections) == 1
+    call_detection = cast(CallExpressionInfo, detections[0])
+    assert call_detection.callee == "session.execute"
+    assert call_detection.metadata["match_confidence"] == spec.base_confidence
+    assert call_detection.metadata["call_match_kind"] == "import_guarded_regex"
+    assert call_detection.metadata["matched_absolute_path"] == ""
+    assert (
+        call_detection.metadata["call_match_policy_version"]
+        == "v2_import_guarded_regex"
+    )
+
+
+def test_python_call_expression_import_guarded_regex_requires_framework_import() -> None:
+    source_code = """
+class Session:
+    def execute(self, statement: str) -> None:
+        pass
+
+
+def run(session: Session) -> None:
+    session.execute("statement")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _build_receiver_execute_spec(match_policy="import_guarded_regex")
+
+    detections = detector.detect(context, [spec])
+
+    assert detections == []
 
 
 def test_python_call_expression_rejects_unbound_member_collision() -> None:

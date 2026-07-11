@@ -26,14 +26,18 @@ from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_
     db_stream_all_framework_features_for_codebase,
     db_upsert_framework_feature_validation_evidence,
 )
-from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
-    AppInterfaceFeatureRow,
+from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
+    OutboundKind,
 )
 from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
     FrameworkFeatureUsageIdentity,
     FrameworkFeatureValidationDecision,
     FrameworkFeatureValidationEvidenceUpsertRequest,
     FrameworkFeatureValidationStatusTransitionRequest,
+)
+from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
+    AppInterfaceFeatureRow,
+    build_interfaces_from_features,
 )
 
 TEST_REPOSITORY_QUALIFIED_NAME = "validator-owner/validator-repo"
@@ -42,9 +46,9 @@ TEST_CODEBASE_PATH = "/tmp/validator-codebase"
 TEST_FILE_PATH = "/tmp/validator-codebase/app/main.py"
 TEST_FEATURE_LANGUAGE = "python"
 TEST_FEATURE_LIBRARY = "validatorlib"
-TEST_SOURCE_CAPABILITY_KEY = "database"
+TEST_SOURCE_CAPABILITY_KEY = "relational_database"
 TEST_SOURCE_OPERATION_KEY = "db_sql"
-TEST_SOURCE_FEATURE_KEY = "database.db_sql"
+TEST_SOURCE_FEATURE_KEY = "relational_database.db_sql"
 TEST_CORRECTED_CAPABILITY_KEY = "http_client"
 TEST_CORRECTED_OPERATION_KEY = "send_request"
 TEST_CORRECTED_FEATURE_KEY = "http_client.send_request"
@@ -94,6 +98,11 @@ def _build_feature_definition(concept: str) -> dict[str, Any]:
         "locator_strategy": "VariableBound",
         "startpoint": False,
         "base_confidence": 0.5,
+        "notes": "Trace the receiver to a SQLAlchemy Session and reject read-only execute calls.",
+        "construct_query": {
+            "match_policy": "import_guarded_regex",
+            "callee_regex": r"^(?:[A-Za-z_][A-Za-z0-9_]*\.)+(?:execute|add|add_all)$",
+        },
     }
 
 
@@ -232,7 +241,14 @@ def seeded_framework_usage(service_ports, test_database_tables, db_connections):
                 match_text="db.execute(query)",
                 match_confidence=0.55,
                 validation_status="pending",
-                evidence_json={"callee": "db.execute", "args_text": "(query)"},
+                evidence_json={
+                    "concept": "CallExpression",
+                    "source": "tree_sitter",
+                    "callee": "db.execute",
+                    "args_text": "(query)",
+                    "call_match_kind": "import_guarded_regex",
+                    "call_match_policy_version": "v2_import_guarded_regex",
+                },
             )
         )
 
@@ -745,7 +761,22 @@ async def test_low_confidence_candidate_query_returns_pending_call_expression_on
     assert candidate.identity.feature_operation_key == TEST_SOURCE_OPERATION_KEY
     assert candidate.match_confidence == pytest.approx(0.55)
     assert candidate.validation_status == ValidationStatus.PENDING
+    assert candidate.notes == (
+        "Trace the receiver to a SQLAlchemy Session and reject read-only execute calls."
+    )
+    assert candidate.construct_query == {
+        "match_policy": "import_guarded_regex",
+        "callee_regex": r"^(?:[A-Za-z_][A-Za-z0-9_]*\.)+(?:execute|add|add_all)$",
+    }
     assert candidate.absolute_paths == ["validatorlib.Client"]
+    assert candidate.evidence_json == {
+        "concept": "CallExpression",
+        "source": "tree_sitter",
+        "callee": "db.execute",
+        "args_text": "(query)",
+        "call_match_kind": "import_guarded_regex",
+        "call_match_policy_version": "v2_import_guarded_regex",
+    }
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -813,6 +844,15 @@ async def test_app_interface_fetch_excludes_low_confidence_call_expression_until
         f"{updated_rows[0].feature_capability_key}.{updated_rows[0].feature_operation_key}"
         == TEST_SOURCE_FEATURE_KEY
     )
+
+    interfaces = build_interfaces_from_features(
+        [updated_rows[0].model_dump(mode="python")],
+        seeded_framework_usage["codebase_path"],
+    )
+    assert len(interfaces.outbound_constructs) == 1
+    outbound = interfaces.outbound_constructs[0]
+    assert outbound.kind == OutboundKind.DB_SQL
+    assert outbound.library == TEST_FEATURE_LIBRARY
 
 
 @pytest.mark.asyncio(loop_scope="session")

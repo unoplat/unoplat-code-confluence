@@ -10,6 +10,7 @@ import tree_sitter
 from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
+    CallExpressionMatchPolicy,
     Concept,
     Detection,
     FeatureSpec,
@@ -65,6 +66,7 @@ CallMatchKind = Literal[
     "import_alias_exact",
     "module_member_exact",
     "root_module_member_exact",
+    "import_guarded_regex",
 ]
 
 
@@ -94,6 +96,7 @@ NO_CALL_MATCH_EVIDENCE = CallMatchEvidence(
 )
 
 CALL_EXPRESSION_MATCH_POLICY_VERSION = "v1_import_bound"
+IMPORT_GUARDED_REGEX_POLICY_VERSION = "v2_import_guarded_regex"
 
 
 def _resolve_call_expression_confidence(spec: FeatureSpec) -> float:
@@ -105,6 +108,7 @@ def _build_call_expression_metadata(
     *,
     spec: FeatureSpec,
     call_match_evidence: CallMatchEvidence,
+    policy_version: str = CALL_EXPRESSION_MATCH_POLICY_VERSION,
 ) -> dict[str, object]:
     """Build the metadata dict attached to every CallExpressionInfo detection.
 
@@ -122,7 +126,7 @@ def _build_call_expression_metadata(
         "match_confidence": _resolve_call_expression_confidence(spec),
         "call_match_kind": call_match_evidence.match_kind,
         "matched_absolute_path": call_match_evidence.matched_absolute_path,
-        "call_match_policy_version": CALL_EXPRESSION_MATCH_POLICY_VERSION,
+        "call_match_policy_version": policy_version,
     }
     if call_match_evidence.matched_alias is not None:
         metadata["matched_alias"] = call_match_evidence.matched_alias
@@ -387,11 +391,18 @@ class PythonTreeSitterFrameworkDetector:
     ) -> List[Detection]:
         """Process tree-sitter matches for function/constructor call expressions.
 
-        Each match is validated against the file's import aliases via
-        ``_matches_callee`` to confirm the callee actually refers to the
-        expected framework symbol (not just a name collision).
+        By default each match is validated against the file's import aliases via
+        ``_matches_callee``. Features that explicitly opt into
+        ``import_guarded_regex`` rely on the detector's existing feature import
+        guard and the Tree-sitter callee regex instead of receiver provenance.
         """
         detections: List[Detection] = []
+        construct_query = spec.construct_query_typed
+        match_policy = (
+            construct_query.match_policy
+            if construct_query is not None
+            else CallExpressionMatchPolicy.MATCH_CALLEE
+        )
 
         for _pattern_index, captures in matches:
             call_expression = self._first_capture(captures, "call_expression")
@@ -402,11 +413,21 @@ class PythonTreeSitterFrameworkDetector:
                 continue
 
             callee_text = _extract_node_text(context.source_bytes, callee)
-            call_match_evidence = _matches_callee(
-                callee_text, spec.absolute_paths, context.import_aliases
-            )
-            if not call_match_evidence.matched:
-                continue
+            if match_policy == CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX:
+                call_match_evidence = CallMatchEvidence(
+                    matched=True,
+                    match_kind="import_guarded_regex",
+                    matched_absolute_path="",
+                    matched_alias=None,
+                )
+                policy_version = IMPORT_GUARDED_REGEX_POLICY_VERSION
+            else:
+                call_match_evidence = _matches_callee(
+                    callee_text, spec.absolute_paths, context.import_aliases
+                )
+                if not call_match_evidence.matched:
+                    continue
+                policy_version = CALL_EXPRESSION_MATCH_POLICY_VERSION
 
             match_text = _extract_node_text(context.source_bytes, call_expression)
             args_text = (
@@ -428,6 +449,7 @@ class PythonTreeSitterFrameworkDetector:
                     metadata=_build_call_expression_metadata(
                         spec=spec,
                         call_match_evidence=call_match_evidence,
+                        policy_version=policy_version,
                     ),
                 )
             )

@@ -69,15 +69,18 @@ Detection is **import-gated** and **regex-based**:
 - `construct_query` refines tree-sitter regex patterns for decorators, calls, inheritance, and exported function handlers
 - `base_confidence` is a contributor-authored confidence field used only for `CallExpression` definitions
 - `Inheritance` matching is import-bound (symbol alias or module alias + symbol) and does not use suffix fallback
-- `CallExpression` matching is import-bound (symbol alias, module alias + symbol, or default-import alias) and does not use suffix/member fallback matching
-- `CallExpression` detections emit deterministic metadata for downstream validation: `match_confidence`, `call_match_kind`, `matched_absolute_path`, optional `matched_alias`, and `call_match_policy_version`
+- `CallExpression` definitions default to `construct_query.match_policy: match_callee`, which requires an exact import-bound symbol, module member, or root-module member match after the framework import gate succeeds
+- Ambiguous receiver APIs may explicitly opt into `construct_query.match_policy: import_guarded_regex`; this policy still requires a matching `absolute_paths` import and a non-empty `callee_regex`, but deliberately leaves receiver/object provenance to downstream validation
+- `CallExpression` detections emit deterministic metadata for downstream validation: `match_confidence`, `call_match_kind`, `matched_absolute_path`, optional `matched_alias`, and `call_match_policy_version`; import-guarded regex detections are identified by their distinct match kind and policy version
 - `FunctionDefinition` is used for exported handler declarations (for example Next.js route handlers such as `export async function GET(...)`)
 
 Under current query-engine gating, only `CallExpression` rows with `base_confidence < 0.70` are routed to the validator agent. When a `CallExpression` definition uses a value below `0.70`, include disambiguation guidance in feature `notes` so downstream validation can apply framework-specific checks consistently.
 
 For `CallExpression` contributors:
 - Set explicit `base_confidence`; schema validation requires it for `CallExpression` and rejects it for other concepts.
-- For low-confidence features (`< 0.70`), include concrete `notes` describing import/object provenance checks the validator should confirm.
+- Omit `match_policy` for the safe `match_callee` default. Use `import_guarded_regex` only when exact callee matching cannot represent an instance receiver and ensure `callee_regex` is narrowly scoped.
+- Treat `import_guarded_regex` as candidate generation rather than provenance proof: use `base_confidence < 0.70` and concrete `notes` telling the validator how to trace the receiver/import and reject generic-name collisions.
+- For all low-confidence features (`< 0.70`), include concrete `notes` describing import/object provenance checks the validator should confirm.
 - Prefer specific API symbol paths in `absolute_paths` over generic verb-like entries to reduce ambiguous matches.
 
 ## Import Style For Detection Accuracy

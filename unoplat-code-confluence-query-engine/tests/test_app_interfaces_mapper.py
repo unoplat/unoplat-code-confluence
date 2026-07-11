@@ -76,6 +76,28 @@ def test_build_interfaces_maps_structured_inbound_and_outbound_features() -> Non
     assert ("httpx", OutboundKind.HTTP) in outbound_pairs
 
 
+def test_build_interfaces_maps_completed_relational_db_sql_to_outbound() -> None:
+    features = [
+        {
+            "library": "sqlalchemy",
+            "feature_capability_key": "relational_database",
+            "feature_operation_key": "db_sql",
+            "file_path": "/repo/db/writes.py",
+            "start_line": 14,
+            "end_line": 14,
+            "match_text": "await session.execute(statement)",
+            "validation_status": "completed",
+        }
+    ]
+
+    interfaces = build_interfaces_from_features(features, "/repo")
+
+    assert len(interfaces.outbound_constructs) == 1
+    outbound = interfaces.outbound_constructs[0]
+    assert outbound.library == "sqlalchemy"
+    assert outbound.kind == OutboundKind.DB_SQL
+
+
 def test_build_interfaces_drops_data_model_families() -> None:
     features = [
         {
