@@ -56,6 +56,15 @@ def test_build_interfaces_maps_structured_inbound_and_outbound_features() -> Non
             "end_line": 31,
             "match_text": "await client.get('/api')",
         },
+        {
+            "library": "temporalio",
+            "feature_capability_key": "job_queue",
+            "feature_operation_key": "task_queue_enqueue",
+            "file_path": "/repo/workflows/main.py",
+            "start_line": 42,
+            "end_line": 45,
+            "match_text": "await workflow.execute_activity(run_activity)",
+        },
     ]
 
     interfaces = build_interfaces_from_features(features, "/repo")
@@ -74,6 +83,7 @@ def test_build_interfaces_maps_structured_inbound_and_outbound_features() -> Non
     assert ("fastmcp", OutboundKind.MCP_CLIENT) in outbound_pairs
     assert ("litellm", OutboundKind.LLM_INFERENCE) in outbound_pairs
     assert ("httpx", OutboundKind.HTTP) in outbound_pairs
+    assert ("temporalio", OutboundKind.QUEUE_TASK) in outbound_pairs
 
 
 def test_build_interfaces_maps_completed_relational_db_sql_to_outbound() -> None:
