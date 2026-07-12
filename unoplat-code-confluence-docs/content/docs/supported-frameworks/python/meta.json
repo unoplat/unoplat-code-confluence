@@ -4,9 +4,11 @@
     "celery",
     "fastapi",
     "fastmcp",
+    "gql",
     "litellm",
     "pydantic",
     "sqlalchemy",
-    "sqlmodel"
+    "sqlmodel",
+    "temporalio"
   ]
 }

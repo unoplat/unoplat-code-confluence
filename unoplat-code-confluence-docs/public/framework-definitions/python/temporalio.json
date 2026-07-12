@@ -1,0 +1,49 @@
+{
+  "python": {
+    "temporalio": {
+      "docs_url": "https://python.temporal.io/",
+      "description": "Temporal Python SDK workflow and activity entry-point definitions.",
+      "version": "1.26.0",
+      "capabilities": {
+        "scheduler": {
+          "description": "Temporal workflow definitions that receive scheduled or background workflow execution.",
+          "operations": {
+            "task_definition": {
+              "description": "A class registered as a Temporal workflow definition.",
+              "docs_url": "https://python.temporal.io/temporalio.workflow.html#defn",
+              "absolute_paths": [
+                "temporalio.workflow.defn"
+              ],
+              "target_level": "class",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^defn$",
+                "annotation_name_regex": "^defn$"
+              },
+              "startpoint": true
+            }
+          }
+        },
+        "background_worker": {
+          "description": "Temporal activity definitions that receive workflow-dispatched background work.",
+          "operations": {
+            "task_definition": {
+              "description": "A function registered as a Temporal activity definition.",
+              "docs_url": "https://python.temporal.io/temporalio.activity.html#defn",
+              "absolute_paths": [
+                "temporalio.activity.defn"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^defn$",
+                "annotation_name_regex": "^defn$"
+              },
+              "startpoint": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
