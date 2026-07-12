@@ -114,15 +114,18 @@ def _build_receiver_execute_spec(*, match_policy: str | None = None) -> FeatureS
     )
 
 
-def _sqlalchemy_db_sql_spec() -> FeatureSpec:
+def _feature_spec(library: str, feature_key: str) -> FeatureSpec:
     specs = [
         spec
         for spec in _load_python_feature_specs()
-        if spec.library == "sqlalchemy"
-        and spec.feature_key == "relational_database.db_sql"
+        if spec.library == library and spec.feature_key == feature_key
     ]
     assert len(specs) == 1
     return specs[0]
+
+
+def _sqlalchemy_db_sql_spec() -> FeatureSpec:
+    return _feature_spec("sqlalchemy", "relational_database.db_sql")
 
 
 def test_fastapi_tree_sitter_detection_main_py() -> None:
@@ -252,6 +255,290 @@ class ExampleWorkflow:
     assert not any(
         "unrelated" in detection.match_text for detection in temporal_detections
     )
+
+
+def test_temporal_detects_outbound_activity_and_workflow_dispatch() -> None:
+    source_code = """
+from temporalio import workflow as temporal_workflow
+from temporalio.client import Client
+
+
+async def dispatch(client: Client, self) -> None:
+    await temporal_workflow.execute_activity(run_activity, arg="value")
+    await temporal_workflow.start_child_workflow(ChildWorkflow.run)
+    await client.start_workflow(MainWorkflow.run, id="workflow-id", task_queue="main")
+    await self.client.start_workflow(MainWorkflow.run, id="other", task_queue="main")
+    await self.next.execute_workflow("interceptor")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _feature_spec("temporalio", "job_queue.task_queue_enqueue")
+
+    detections = detector.detect(context, [spec])
+    calls = [cast(CallExpressionInfo, detection) for detection in detections]
+
+    assert {detection.callee for detection in calls} == {
+        "temporal_workflow.execute_activity",
+        "temporal_workflow.start_child_workflow",
+        "client.start_workflow",
+        "self.client.start_workflow",
+    }
+    assert all(
+        detection.metadata["call_match_kind"] == "import_guarded_regex"
+        for detection in calls
+    )
+    assert not any("execute_workflow" in detection.callee for detection in calls)
+
+
+def test_temporal_detects_direct_imported_dispatch_helpers_and_aliases() -> None:
+    source_code = """
+from temporalio.workflow import execute_activity
+from temporalio.workflow import start_child_workflow as launch_child
+
+
+async def dispatch() -> None:
+    await execute_activity(run_activity, arg="value")
+    await launch_child(ChildWorkflow.run)
+
+
+def local_execute_activity() -> None:
+    pass
+
+
+def local_start_workflow() -> None:
+    pass
+
+
+local_execute_activity()
+local_start_workflow()
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _feature_spec("temporalio", "job_queue.task_queue_enqueue")
+
+    calls = [
+        cast(CallExpressionInfo, detection)
+        for detection in detector.detect(context, [spec])
+    ]
+
+    assert [detection.callee for detection in calls] == [
+        "execute_activity",
+        "launch_child",
+    ]
+    assert {detection.metadata["call_match_kind"] for detection in calls} == {
+        "symbol_exact",
+        "import_alias_exact",
+    }
+
+
+def test_temporal_dispatch_requires_temporal_import() -> None:
+    source_code = """
+class Client:
+    async def start_workflow(self) -> None:
+        pass
+
+
+async def dispatch(client: Client) -> None:
+    await client.start_workflow()
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(
+        context, [_feature_spec("temporalio", "job_queue.task_queue_enqueue")]
+    )
+
+    assert detections == []
+
+
+def test_pydantic_ai_detects_agent_constructors_with_provenance() -> None:
+    source_code = """
+from pydantic_ai import Agent as PydanticAgent
+import pydantic_ai.agent as agent_module
+from pydantic_ai.durable_exec.temporal import TemporalAgent as DurableAgent
+
+
+class Agent:
+    pass
+
+
+class TemporalAgent:
+    pass
+
+
+def build_agents() -> None:
+    PydanticAgent("openai:gpt-4o")
+    agent_module.Agent("openai:gpt-4o")
+    DurableAgent(PydanticAgent("openai:gpt-4o"))
+    Agent()
+    TemporalAgent()
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _feature_spec("pydantic_ai", "llm_inference.llm_completion")
+
+    detections = detector.detect(context, [spec])
+    calls = [cast(CallExpressionInfo, detection) for detection in detections]
+
+    assert [detection.callee for detection in calls] == [
+        "PydanticAgent",
+        "agent_module.Agent",
+        "DurableAgent",
+        "PydanticAgent",
+    ]
+    assert {detection.metadata["call_match_kind"] for detection in calls} == {
+        "import_alias_exact",
+        "module_member_exact",
+    }
+    assert not any(detection.callee in {"Agent", "TemporalAgent"} for detection in calls)
+
+
+def test_httpx_detects_clients_helpers_and_receiver_requests() -> None:
+    source_code = """
+import httpx as hx
+from httpx import AsyncClient as HTTPClient, post as http_post
+
+
+class Client:
+    pass
+
+
+async def send(client: HTTPClient, self) -> None:
+    HTTPClient()
+    hx.Client()
+    Client()
+    hx.get("https://example.com")
+    http_post("https://example.com")
+    with hx.stream("GET", "https://example.com"):
+        pass
+    await client.post("https://example.com")
+    self.client.stream("GET", "https://example.com")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    specs = [
+        _feature_spec("httpx", "http_client.http_client"),
+        _feature_spec("httpx", "http_client.http_request"),
+        _feature_spec("httpx", "http_client.client_request"),
+    ]
+
+    detections = detector.detect(context, specs)
+    calls_by_feature = {
+        feature_key: [
+            cast(CallExpressionInfo, detection).callee
+            for detection in detections
+            if detection.feature_key == feature_key
+        ]
+        for feature_key in {
+            "http_client.http_client",
+            "http_client.http_request",
+            "http_client.client_request",
+        }
+    }
+
+    assert calls_by_feature["http_client.http_client"] == ["HTTPClient", "hx.Client"]
+    assert calls_by_feature["http_client.http_request"] == [
+        "hx.get",
+        "http_post",
+        "hx.stream",
+    ]
+    expected_receiver_calls = {"client.post", "self.client.stream"}
+    assert set(calls_by_feature["http_client.client_request"]) == expected_receiver_calls
+    receiver_only_detections = detector.detect(context, [specs[2]])
+    assert {
+        cast(CallExpressionInfo, detection).callee
+        for detection in receiver_only_detections
+    } == expected_receiver_calls
+    assert "Client" not in calls_by_feature["http_client.http_client"]
+
+
+def test_httpx_receiver_requests_require_httpx_import() -> None:
+    source_code = """
+class Client:
+    def post(self, url: str) -> None:
+        pass
+
+
+def send(client: Client) -> None:
+    client.post("https://example.com")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(
+        context, [_feature_spec("httpx", "http_client.client_request")]
+    )
+
+    assert detections == []
+
+
+def test_ghapi_detects_constructor_and_dynamic_endpoint_families() -> None:
+    source_code = """
+from ghapi.core import GhApi as GitHubApi
+
+
+class GhApi:
+    pass
+
+
+def publish(api: GitHubApi, self) -> None:
+    GitHubApi()
+    GhApi()
+    api.issues.create(title="Issue")
+    api.repos.get(owner="owner", repo="repo")
+    self.api.git.create_tree(tree=[])
+    api.pulls.create(title="PR")
+    api.actions.list()
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    specs = [
+        _feature_spec("ghapi", "http_client.http_client"),
+        _feature_spec("ghapi", "http_client.github_api_request"),
+    ]
+
+    detections = detector.detect(context, specs)
+    constructor_calls = [
+        cast(CallExpressionInfo, detection).callee
+        for detection in detections
+        if detection.feature_key == "http_client.http_client"
+    ]
+    endpoint_calls = {
+        cast(CallExpressionInfo, detection).callee
+        for detection in detections
+        if detection.feature_key == "http_client.github_api_request"
+    }
+
+    assert constructor_calls == ["GitHubApi"]
+    assert endpoint_calls == {
+        "api.issues.create",
+        "api.repos.get",
+        "self.api.git.create_tree",
+        "api.pulls.create",
+    }
+
+
+def test_ghapi_dynamic_endpoints_require_ghapi_import() -> None:
+    source_code = """
+def publish(api) -> None:
+    api.issues.create(title="Issue")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(
+        context, [_feature_spec("ghapi", "http_client.github_api_request")]
+    )
+
+    assert detections == []
 
 
 def test_gql_tree_sitter_detection_client_alias_and_local_collision() -> None:
@@ -446,9 +733,9 @@ def build():
     )
 
 
-def test_sqlalchemy_db_sql_detects_insert_and_session_write_surfaces() -> None:
+def test_sqlalchemy_db_sql_detects_insert_update_delete_and_session_writes() -> None:
     source_code = """
-from sqlalchemy import insert
+from sqlalchemy import delete, insert, update as sa_update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -456,10 +743,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 def build_statements(session: AsyncSession, self) -> None:
     insert(User)
     pg_insert(User)
+    sa_update(User)
+    delete(User)
     session.add(User())
     session.add_all([User()])
+    session.delete(User())
     session.execute(insert(User))
     self.session.execute(pg_insert(User))
+    self.session.delete(User())
 """
 
     context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
@@ -472,10 +763,14 @@ def build_statements(session: AsyncSession, self) -> None:
     assert {detection.callee for detection in call_detections} == {
         "insert",
         "pg_insert",
+        "sa_update",
+        "delete",
         "session.add",
         "session.add_all",
+        "session.delete",
         "session.execute",
         "self.session.execute",
+        "self.session.delete",
     }
     assert spec.base_confidence is not None and spec.base_confidence < 0.70
     assert all(
@@ -493,7 +788,7 @@ def build_statements(session: AsyncSession, self) -> None:
     )
 
 
-def test_sqlalchemy_db_sql_detects_module_qualified_insert_calls() -> None:
+def test_sqlalchemy_db_sql_detects_module_qualified_write_calls() -> None:
     cases = [
         (
             """
@@ -514,6 +809,26 @@ def build_statement() -> None:
     sqlalchemy.insert(User)
 """,
             "sqlalchemy.insert",
+        ),
+        (
+            """
+import sqlalchemy as sa
+
+
+def build_statement() -> None:
+    sa.update(User)
+""",
+            "sa.update",
+        ),
+        (
+            """
+import sqlalchemy
+
+
+def build_statement() -> None:
+    sqlalchemy.delete(User)
+""",
+            "sqlalchemy.delete",
         ),
     ]
     detector = PythonTreeSitterFrameworkDetector()
@@ -546,12 +861,17 @@ class Session:
     def execute(self, statement) -> None:
         pass
 
+    def delete(self, value) -> None:
+        pass
+
 
 def run(session: Session, self) -> None:
     session.add(object())
     session.add_all([])
     session.execute("statement")
+    session.delete(object())
     self.session.execute("statement")
+    self.session.delete(object())
 """
 
     context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
