@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Dict, List, Literal, Optional
 
 from loguru import logger
@@ -203,6 +204,16 @@ def _matches_callee(
     return NO_CALL_MATCH_EVIDENCE
 
 
+def _has_import_bound_callee_prefix(
+    callee_text: str, import_aliases: Dict[str, str]
+) -> bool:
+    """Return whether a dotted callee starts with an imported local binding."""
+    return any(
+        callee_text.startswith(f"{local_binding}.")
+        for local_binding in import_aliases.values()
+    )
+
+
 def _matches_superclass(
     superclass_text: str, absolute_paths: List[str], import_aliases: Dict[str, str]
 ) -> bool:
@@ -393,8 +404,10 @@ class PythonTreeSitterFrameworkDetector:
 
         By default each match is validated against the file's import aliases via
         ``_matches_callee``. Features that explicitly opt into
-        ``import_guarded_regex`` rely on the detector's existing feature import
-        guard and the Tree-sitter callee regex instead of receiver provenance.
+        ``import_guarded_regex`` accept regex-selected calls after the feature
+        import guard. They also accept exact imported aliases when the resolved
+        absolute path satisfies the regex, allowing bare direct-import aliases
+        without weakening receiver-call matching.
         """
         detections: List[Detection] = []
         construct_query = spec.construct_query_typed
@@ -414,13 +427,44 @@ class PythonTreeSitterFrameworkDetector:
 
             callee_text = _extract_node_text(context.source_bytes, callee)
             if match_policy == CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX:
-                call_match_evidence = CallMatchEvidence(
-                    matched=True,
-                    match_kind="import_guarded_regex",
-                    matched_absolute_path="",
-                    matched_alias=None,
+                callee_regex = (
+                    construct_query.callee_regex
+                    if construct_query is not None
+                    else None
                 )
-                policy_version = IMPORT_GUARDED_REGEX_POLICY_VERSION
+                if callee_regex is None:
+                    continue
+                if re.search(callee_regex, callee_text) is not None:
+                    exact_evidence = _matches_callee(
+                        callee_text, spec.absolute_paths, context.import_aliases
+                    )
+                    if (
+                        not exact_evidence.matched
+                        and _has_import_bound_callee_prefix(
+                            callee_text, context.import_aliases
+                        )
+                    ):
+                        continue
+                    call_match_evidence = CallMatchEvidence(
+                        matched=True,
+                        match_kind="import_guarded_regex",
+                        matched_absolute_path="",
+                        matched_alias=None,
+                    )
+                    policy_version = IMPORT_GUARDED_REGEX_POLICY_VERSION
+                else:
+                    call_match_evidence = _matches_callee(
+                        callee_text, spec.absolute_paths, context.import_aliases
+                    )
+                    if (
+                        not call_match_evidence.matched
+                        or re.search(
+                            callee_regex, call_match_evidence.matched_absolute_path
+                        )
+                        is None
+                    ):
+                        continue
+                    policy_version = CALL_EXPRESSION_MATCH_POLICY_VERSION
             else:
                 call_match_evidence = _matches_callee(
                     callee_text, spec.absolute_paths, context.import_aliases

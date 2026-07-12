@@ -10,6 +10,7 @@ from typing import Dict, Optional
 import tree_sitter
 from tree_sitter_language_pack import get_language
 from unoplat_code_confluence_commons.base_models import (
+    CallExpressionMatchPolicy,
     Concept,
     ConstructQueryConfig,
     FeatureSpec,
@@ -132,6 +133,15 @@ class PythonFrameworkQueryBuilder:
         method_regex = construct_query.method_regex or construct_query.attribute_regex
         annotation_regex = construct_query.annotation_name_regex
         callee_regex = construct_query.callee_regex
+        # Import-guarded call matching must also inspect exact imported symbols,
+        # including arbitrary aliases that cannot be represented in a static query.
+        # The detector applies this regex after resolving import provenance.
+        if (
+            feature_spec.concept == Concept.CALL_EXPRESSION
+            and construct_query.match_policy
+            == CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX
+        ):
+            callee_regex = None
         superclass_regex = construct_query.superclass_regex
 
         definition_node = (
