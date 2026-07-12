@@ -35,8 +35,11 @@ const CANONICAL_DEFINITIONS_BLOB_BASE_URL =
 
 const DISPLAY_NAME_OVERRIDES = {
   fastapi: "FastAPI",
+  ghapi: "GhApi",
   gql: "gql",
+  httpx: "HTTPX",
   pydantic: "Pydantic",
+  pydantic_ai: "PydanticAI",
   sqlalchemy: "SQLAlchemy",
   sqlmodel: "SQLModel",
   temporalio: "Temporal",
