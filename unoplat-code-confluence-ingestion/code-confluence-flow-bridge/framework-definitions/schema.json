@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v4.json",
-  "title": "Code-Confluence Multi-Language Library Feature Schema v4",
-  "description": "Framework / library feature signatures grouped by programming language using capability-operation hierarchy.",
+  "$id": "https://docs.unoplat.io/schemas/custom-framework-lib-schema-v4.1.json",
+  "title": "Code-Confluence Multi-Language Library Feature Schema v4.1",
+  "description": "Framework / library feature signatures grouped by programming language using capability-operation hierarchy, including CallExpression match_policy support.",
   "type": "object",
   "propertyNames": {
     "$ref": "#/$defs/languageEnum"
