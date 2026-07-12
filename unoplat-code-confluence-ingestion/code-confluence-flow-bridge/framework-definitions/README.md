@@ -11,9 +11,12 @@ framework-definitions/
 │   ├── celery.json
 │   ├── fastapi.json
 │   ├── fastmcp.json
+│   ├── ghapi.json
 │   ├── gql.json
+│   ├── httpx.json
 │   ├── litellm.json
 │   ├── pydantic.json
+│   ├── pydantic_ai.json
 │   ├── sqlalchemy.json
 │   ├── sqlmodel.json
 │   └── temporalio.json

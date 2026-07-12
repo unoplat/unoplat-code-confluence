@@ -18,11 +18,15 @@
               "concept": "Inheritance"
             },
             "db_sql": {
-              "description": "SQLAlchemy insert construction and Session persistence calls.",
+              "description": "SQLAlchemy insert, update, and delete construction plus Session persistence calls.",
               "absolute_paths": [
                 "sqlalchemy.insert",
                 "sqlalchemy.sql.expression.insert",
                 "sqlalchemy.dialects.postgresql.insert",
+                "sqlalchemy.update",
+                "sqlalchemy.sql.expression.update",
+                "sqlalchemy.delete",
+                "sqlalchemy.sql.expression.delete",
                 "sqlalchemy.orm.Session",
                 "sqlalchemy.ext.asyncio.AsyncSession"
               ],
@@ -30,10 +34,10 @@
               "concept": "CallExpression",
               "construct_query": {
                 "match_policy": "import_guarded_regex",
-                "callee_regex": "^(?:insert[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*insert[A-Za-z0-9_]*|(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:execute|add|add_all|insert))$"
+                "callee_regex": "^(?:(?:insert|update|delete)[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*(?:insert|update|delete)[A-Za-z0-9_]*|(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:execute|add|add_all|insert|update|delete))$"
               },
               "base_confidence": 0.49,
-              "notes": "Validator must establish local SQLAlchemy provenance before confirming this low-confidence candidate. For receiver calls, trace the receiver (including attributes such as self.session) to sqlalchemy.orm.Session or sqlalchemy.ext.asyncio.AsyncSession and reject unrelated objects exposing generic execute, add, or add_all methods. For execute calls, inspect the statement and surrounding flow to confirm a relational database write; reject read-only select/query execution and non-SQLAlchemy calls. For bare calls whose name contains insert, confirm the imported or aliased symbol resolves to a supported SQLAlchemy insert path."
+              "notes": "Validator must establish local SQLAlchemy provenance before confirming this low-confidence candidate. For receiver calls, trace the receiver (including attributes such as self.session) to sqlalchemy.orm.Session or sqlalchemy.ext.asyncio.AsyncSession and reject unrelated objects exposing generic execute, add, add_all, or delete methods. For execute calls, inspect the statement and surrounding flow to confirm a relational database write; reject read-only select/query execution and non-SQLAlchemy calls. For bare or module-qualified insert, update, and delete calls, confirm the imported or aliased symbol resolves to a supported SQLAlchemy construction path. Session.update is not an ORM persistence API and must be rejected unless the receiver/API provenance proves a supported SQLAlchemy write surface."
             }
           }
         }

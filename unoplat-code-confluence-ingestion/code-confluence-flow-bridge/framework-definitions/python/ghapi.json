@@ -1,0 +1,41 @@
+{
+  "python": {
+    "ghapi": {
+      "docs_url": "https://ghapi.fast.ai/",
+      "description": "GhApi client construction and dynamically generated GitHub REST endpoint calls.",
+      "capabilities": {
+        "http_client": {
+          "description": "Outbound GitHub REST API access through GhApi.",
+          "operations": {
+            "http_client": {
+              "description": "Construct a GhApi GitHub REST client.",
+              "docs_url": "https://ghapi.fast.ai/core.html#ghapi",
+              "absolute_paths": [
+                "ghapi.core.GhApi"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "notes": "Constructor calls require direct-import, alias, or module-qualified provenance resolving to ghapi.core.GhApi; unrelated local GhApi classes are rejected."
+            },
+            "github_api_request": {
+              "description": "Invoke a dynamically generated issues, repositories, Git data, or pull-request endpoint on a GhApi receiver.",
+              "docs_url": "https://ghapi.fast.ai/fullapi.html",
+              "absolute_paths": [
+                "ghapi.core.GhApi"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "construct_query": {
+                "match_policy": "import_guarded_regex",
+                "callee_regex": "^(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:issues|repos|git|pulls)\\.[A-Za-z_][A-Za-z0-9_]*$"
+              },
+              "base_confidence": 0.39,
+              "notes": "GhApi creates endpoint methods dynamically. Validator must trace the receiver before the issues, repos, git, or pulls family to a ghapi.core.GhApi constructor or GhApi-annotated parameter. Reject unrelated local API objects even when this file imports GhApi."
+            }
+          }
+        }
+      }
+    }
+  }
+}
