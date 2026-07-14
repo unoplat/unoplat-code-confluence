@@ -57,6 +57,33 @@ def test_build_interfaces_maps_structured_inbound_and_outbound_features() -> Non
             "match_text": "await client.get('/api')",
         },
         {
+            "library": "click",
+            "feature_capability_key": "cli_command",
+            "feature_operation_key": "command",
+            "file_path": "/repo/cli.py",
+            "start_line": 8,
+            "end_line": 11,
+            "match_text": "@click.command()",
+        },
+        {
+            "library": "httpx2",
+            "feature_capability_key": "http_client",
+            "feature_operation_key": "http_request",
+            "file_path": "/repo/clients/httpx2_client.py",
+            "start_line": 20,
+            "end_line": 20,
+            "match_text": "httpx2.get('/api')",
+        },
+        {
+            "library": "httpx2",
+            "feature_capability_key": "websocket_client",
+            "feature_operation_key": "websocket",
+            "file_path": "/repo/clients/httpx2_client.py",
+            "start_line": 25,
+            "end_line": 25,
+            "match_text": "httpx2.websocket('/events')",
+        },
+        {
             "library": "temporalio",
             "feature_capability_key": "job_queue",
             "feature_operation_key": "task_queue_enqueue",
@@ -80,9 +107,12 @@ def test_build_interfaces_maps_structured_inbound_and_outbound_features() -> Non
 
     assert ("fastapi", InboundKind.HTTP) in inbound_pairs
     assert ("fastmcp", InboundKind.MCP_SERVER) in inbound_pairs
+    assert ("click", InboundKind.CLI) in inbound_pairs
     assert ("fastmcp", OutboundKind.MCP_CLIENT) in outbound_pairs
     assert ("litellm", OutboundKind.LLM_INFERENCE) in outbound_pairs
     assert ("httpx", OutboundKind.HTTP) in outbound_pairs
+    assert ("httpx2", OutboundKind.HTTP) in outbound_pairs
+    assert ("httpx2", OutboundKind.WEBSOCKET_CLIENT) in outbound_pairs
     assert ("temporalio", OutboundKind.QUEUE_TASK) in outbound_pairs
 
 
