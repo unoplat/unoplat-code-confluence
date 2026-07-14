@@ -34,10 +34,12 @@ const CANONICAL_DEFINITIONS_BLOB_BASE_URL =
   "https://github.com/unoplat/unoplat-code-confluence/blob/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions";
 
 const DISPLAY_NAME_OVERRIDES = {
+  click: "Click",
   fastapi: "FastAPI",
   ghapi: "GhApi",
   gql: "gql",
   httpx: "HTTPX",
+  httpx2: "HTTPX2",
   pydantic: "Pydantic",
   pydantic_ai: "PydanticAI",
   sqlalchemy: "SQLAlchemy",
