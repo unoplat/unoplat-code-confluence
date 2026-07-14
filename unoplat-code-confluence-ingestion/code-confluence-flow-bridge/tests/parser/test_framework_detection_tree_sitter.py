@@ -397,6 +397,270 @@ def build_agents() -> None:
     assert not any(detection.callee in {"Agent", "TemporalAgent"} for detection in calls)
 
 
+def test_click_detects_leaf_commands_without_emitting_groups_or_hierarchy() -> None:
+    source_code = """
+import click as ck
+
+
+@ck.group()
+def root() -> None:
+    pass
+
+
+@ck.command(name="direct")
+@ck.option("--verbose", is_flag=True)
+def direct_command(verbose: bool) -> None:
+    pass
+
+
+@root.command(name="grouped")
+@ck.argument("value")
+@ck.pass_obj
+def grouped_command(obj: object, value: str) -> None:
+    pass
+
+
+@root.group(name="nested")
+def nested_group() -> None:
+    pass
+
+
+@ck.option("--ignored", is_flag=True)
+def helper_only(ignored: bool) -> None:
+    pass
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(
+        context, [_feature_spec("click", "cli_command.command")]
+    )
+
+    assert len(detections) == 2
+    assert {detection.match_text for detection in detections} == {
+        '@ck.command(name="direct")',
+        '@root.command(name="grouped")',
+    }
+    assert {detection.bound_object for detection in detections} == {"ck", "root"}
+    assert {detection.annotation_name for detection in detections} == {"command"}
+    assert all(detection.feature_key == "cli_command.command" for detection in detections)
+    hierarchy_keys = {"group", "parent_group", "command_path", "hierarchy"}
+    assert all(
+        hierarchy_keys.isdisjoint(detection.metadata) for detection in detections
+    )
+
+
+def test_click_command_detection_requires_click_import() -> None:
+    source_code = """
+class Registry:
+    def command(self, function):
+        return function
+
+
+registry = Registry()
+
+
+@registry.command
+def unrelated_command() -> None:
+    pass
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+
+    detections = detector.detect(
+        context, [_feature_spec("click", "cli_command.command")]
+    )
+
+    assert detections == []
+
+
+def test_httpx2_detects_all_module_alias_helpers_by_capability() -> None:
+    source_code = """
+import httpx2 as hx2
+
+
+def send() -> None:
+    hx2.request("GET", "https://example.com")
+    hx2.get("https://example.com")
+    hx2.options("https://example.com")
+    hx2.head("https://example.com")
+    hx2.post("https://example.com")
+    hx2.put("https://example.com")
+    hx2.patch("https://example.com")
+    hx2.delete("https://example.com")
+    with hx2.stream("GET", "https://example.com"):
+        pass
+    with hx2.websocket("wss://example.com/socket"):
+        pass
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    specs = [
+        _feature_spec("httpx2", "http_client.http_request"),
+        _feature_spec("httpx2", "websocket_client.websocket"),
+    ]
+
+    detections = detector.detect(context, specs)
+    calls_by_feature = {
+        feature_key: {
+            cast(CallExpressionInfo, detection).callee
+            for detection in detections
+            if detection.feature_key == feature_key
+        }
+        for feature_key in {
+            "http_client.http_request",
+            "websocket_client.websocket",
+        }
+    }
+
+    assert calls_by_feature["http_client.http_request"] == {
+        "hx2.request",
+        "hx2.get",
+        "hx2.options",
+        "hx2.head",
+        "hx2.post",
+        "hx2.put",
+        "hx2.patch",
+        "hx2.delete",
+        "hx2.stream",
+    }
+    assert calls_by_feature["websocket_client.websocket"] == {"hx2.websocket"}
+    assert len(detections) == 10
+
+
+def test_httpx2_detects_all_direct_import_alias_helpers_by_capability() -> None:
+    source_code = """
+from httpx2 import delete as delete_call, get as get_call
+from httpx2 import head as head_call, options as options_call
+from httpx2 import patch as patch_call, post as post_call
+from httpx2 import put as put_call, request as request_call
+from httpx2 import stream as stream_call, websocket as websocket_call
+
+
+def send() -> None:
+    request_call("GET", "https://example.com")
+    get_call("https://example.com")
+    options_call("https://example.com")
+    head_call("https://example.com")
+    post_call("https://example.com")
+    put_call("https://example.com")
+    patch_call("https://example.com")
+    delete_call("https://example.com")
+    with stream_call("GET", "https://example.com"):
+        pass
+    with websocket_call("wss://example.com/socket"):
+        pass
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    specs = [
+        _feature_spec("httpx2", "http_client.http_request"),
+        _feature_spec("httpx2", "websocket_client.websocket"),
+    ]
+
+    detections = detector.detect(context, specs)
+    calls_by_feature = {
+        feature_key: {
+            cast(CallExpressionInfo, detection).callee
+            for detection in detections
+            if detection.feature_key == feature_key
+        }
+        for feature_key in {
+            "http_client.http_request",
+            "websocket_client.websocket",
+        }
+    }
+
+    assert calls_by_feature["http_client.http_request"] == {
+        "request_call",
+        "get_call",
+        "options_call",
+        "head_call",
+        "post_call",
+        "put_call",
+        "patch_call",
+        "delete_call",
+        "stream_call",
+    }
+    assert calls_by_feature["websocket_client.websocket"] == {"websocket_call"}
+    assert len(detections) == 10
+    assert {detection.metadata["call_match_kind"] for detection in detections} == {
+        "import_alias_exact"
+    }
+
+
+def test_httpx2_rejects_local_helper_name_collisions() -> None:
+    source_code = """
+import httpx2
+
+
+def request(*args):
+    pass
+
+
+def get(*args):
+    pass
+
+
+def options(*args):
+    pass
+
+
+def head(*args):
+    pass
+
+
+def post(*args):
+    pass
+
+
+def put(*args):
+    pass
+
+
+def patch(*args):
+    pass
+
+
+def delete(*args):
+    pass
+
+
+def stream(*args):
+    pass
+
+
+def websocket(*args):
+    pass
+
+
+def send() -> None:
+    request("GET", "https://example.com")
+    get("https://example.com")
+    options("https://example.com")
+    head("https://example.com")
+    post("https://example.com")
+    put("https://example.com")
+    patch("https://example.com")
+    delete("https://example.com")
+    stream("GET", "https://example.com")
+    websocket("wss://example.com/socket")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    specs = [
+        _feature_spec("httpx2", "http_client.http_request"),
+        _feature_spec("httpx2", "websocket_client.websocket"),
+    ]
+
+    assert detector.detect(context, specs) == []
+
+
 def test_httpx_detects_clients_helpers_and_receiver_requests() -> None:
     source_code = """
 import httpx as hx
