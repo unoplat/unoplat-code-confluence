@@ -9,11 +9,13 @@ framework-definitions/
 ├── schema.json (JSON Schema v4.1 for validation)
 ├── python/
 │   ├── celery.json
+│   ├── click.json
 │   ├── fastapi.json
 │   ├── fastmcp.json
 │   ├── ghapi.json
 │   ├── gql.json
 │   ├── httpx.json
+│   ├── httpx2.json
 │   ├── litellm.json
 │   ├── pydantic.json
 │   ├── pydantic_ai.json
