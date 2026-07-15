@@ -94,6 +94,7 @@
         "graphql_client",
         "rpc_client",
         "websocket_client",
+        "realtime_sync",
         "email_service",
         "message_broker",
         "job_queue",

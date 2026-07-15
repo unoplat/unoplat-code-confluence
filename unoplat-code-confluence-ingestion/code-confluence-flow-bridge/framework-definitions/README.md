@@ -23,10 +23,12 @@ framework-definitions/
 │   ├── sqlmodel.json
 │   └── temporalio.json
 ├── typescript/
+│   ├── axios.json
 │   ├── firebase.json
 │   ├── lit.json
 │   ├── nextjs.json
 │   ├── swr.json
+│   ├── tanstack-react-db.json
 │   └── zustand.json
 └── README.md
 ```

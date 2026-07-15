@@ -52,16 +52,17 @@
               "absolute_paths": [
                 "temporalio.workflow.execute_activity",
                 "temporalio.workflow.start_child_workflow",
+                "temporalio.client.Client.connect",
                 "temporalio.client.Client.start_workflow"
               ],
               "target_level": "function",
               "concept": "CallExpression",
               "construct_query": {
                 "match_policy": "import_guarded_regex",
-                "callee_regex": "^(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:execute_activity|start_child_workflow|start_workflow)$"
+                "callee_regex": "^(?:(?:[A-Za-z_][A-Za-z0-9_]*\\.)+Client\\.connect|(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:execute_activity|start_child_workflow|start_workflow))$"
               },
               "base_confidence": 0.59,
-              "notes": "Validator must confirm execute_activity and start_child_workflow are called on temporalio.workflow (including an imported alias), or that start_workflow is called on a temporalio.client.Client receiver. Reject interceptor delegation such as next/self.next start_child_workflow or execute_workflow calls, custom workflow-service wrappers, and unrelated receivers with similarly named methods. Worker/bootstrap construction, policies, exceptions, and interceptor APIs are intentionally excluded."
+              "notes": "Treat temporalio.client.Client.connect calls as low-confidence discovery seeds for client-started workflows, not as task-queue enqueue operations themselves. Trace the connected Client through exports, imports, assignments, dependency injection, or annotations before accepting start_workflow calls, and reject the connect seed after discovery. Confirm execute_activity and start_child_workflow are called on temporalio.workflow (including an imported alias). Reject interceptor delegation such as next/self.next start_child_workflow or execute_workflow calls, custom workflow-service wrappers, and unrelated receivers with similarly named methods. Other worker/bootstrap construction, policies, exceptions, and interceptor APIs are intentionally excluded."
             }
           }
         }

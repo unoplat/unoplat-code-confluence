@@ -28,10 +28,10 @@
               "concept": "CallExpression",
               "construct_query": {
                 "match_policy": "import_guarded_regex",
-                "callee_regex": "^(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:issues|repos|git|pulls)\\.[A-Za-z_][A-Za-z0-9_]*$"
+                "callee_regex": "^(?:(?:[A-Za-z_][A-Za-z0-9_]*\\.)+GhApi|(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:issues|repos|git|pulls)\\.[A-Za-z_][A-Za-z0-9_]*)$"
               },
               "base_confidence": 0.39,
-              "notes": "GhApi creates endpoint methods dynamically. Validator must trace the receiver before the issues, repos, git, or pulls family to a ghapi.core.GhApi constructor or GhApi-annotated parameter. Reject unrelated local API objects even when this file imports GhApi."
+              "notes": "Treat ghapi.core.GhApi constructor calls as low-confidence discovery seeds for dynamic endpoint requests, not as request operations themselves. Trace the created receiver through exports, imports, assignments, attributes, or GhApi annotations before accepting issues, repos, git, or pulls calls. Reject the constructor seed after discovery and reject unrelated local API objects even when this file imports GhApi."
             }
           }
         }

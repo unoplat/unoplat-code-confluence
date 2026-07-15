@@ -333,6 +333,29 @@ local_start_workflow()
     }
 
 
+def test_temporal_client_connect_is_low_confidence_dispatch_seed() -> None:
+    source_code = """
+from temporalio.client import Client as TemporalClient
+
+
+async def connect_client() -> None:
+    await TemporalClient.connect("localhost:7233")
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _feature_spec("temporalio", "job_queue.task_queue_enqueue")
+
+    calls = [
+        cast(CallExpressionInfo, detection)
+        for detection in detector.detect(context, [spec])
+    ]
+
+    assert spec.base_confidence is not None and spec.base_confidence < 0.70
+    assert [call.callee for call in calls] == ["TemporalClient.connect"]
+    assert calls[0].metadata["match_confidence"] == spec.base_confidence
+
+
 def test_temporal_dispatch_requires_temporal_import() -> None:
     source_code = """
 class Client:
@@ -711,14 +734,49 @@ async def send(client: HTTPClient, self) -> None:
         "http_post",
         "hx.stream",
     ]
-    expected_receiver_calls = {"client.post", "self.client.stream"}
-    assert set(calls_by_feature["http_client.client_request"]) == expected_receiver_calls
+    expected_client_request_candidates = {
+        "HTTPClient",
+        "hx.Client",
+        "client.post",
+        "self.client.stream",
+    }
+    assert (
+        set(calls_by_feature["http_client.client_request"])
+        == expected_client_request_candidates
+    )
     receiver_only_detections = detector.detect(context, [specs[2]])
     assert {
         cast(CallExpressionInfo, detection).callee
         for detection in receiver_only_detections
-    } == expected_receiver_calls
+    } == expected_client_request_candidates
     assert "Client" not in calls_by_feature["http_client.http_client"]
+
+
+def test_httpx_client_constructors_are_low_confidence_request_seeds() -> None:
+    source_code = """
+import httpx as hx
+from httpx import AsyncClient as APIClient
+
+
+def build_clients() -> None:
+    hx.Client()
+    APIClient()
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _feature_spec("httpx", "http_client.client_request")
+
+    calls = [
+        cast(CallExpressionInfo, detection)
+        for detection in detector.detect(context, [spec])
+    ]
+
+    assert spec.base_confidence is not None and spec.base_confidence < 0.70
+    assert {call.callee for call in calls} == {"hx.Client", "APIClient"}
+    assert all(
+        call.metadata["match_confidence"] == spec.base_confidence for call in calls
+    )
 
 
 def test_httpx_receiver_requests_require_httpx_import() -> None:
@@ -782,11 +840,35 @@ def publish(api: GitHubApi, self) -> None:
 
     assert constructor_calls == ["GitHubApi"]
     assert endpoint_calls == {
+        "GitHubApi",
         "api.issues.create",
         "api.repos.get",
         "self.api.git.create_tree",
         "api.pulls.create",
     }
+
+
+def test_ghapi_constructor_is_low_confidence_request_seed() -> None:
+    source_code = """
+from ghapi.core import GhApi as API
+
+
+def build_api() -> None:
+    API()
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _feature_spec("ghapi", "http_client.github_api_request")
+
+    calls = [
+        cast(CallExpressionInfo, detection)
+        for detection in detector.detect(context, [spec])
+    ]
+
+    assert spec.base_confidence is not None and spec.base_confidence < 0.70
+    assert [call.callee for call in calls] == ["API"]
+    assert calls[0].metadata["match_confidence"] == spec.base_confidence
 
 
 def test_ghapi_dynamic_endpoints_require_ghapi_import() -> None:
@@ -1049,6 +1131,33 @@ def build_statements(session: AsyncSession, self) -> None:
         detection.metadata["call_match_policy_version"]
         == "v2_import_guarded_regex"
         for detection in call_detections
+    )
+
+
+def test_sqlalchemy_session_constructors_are_low_confidence_db_sql_seeds() -> None:
+    source_code = """
+import sqlalchemy.orm as orm
+from sqlalchemy.ext.asyncio import AsyncSession as DatabaseSession
+
+
+def build_sessions(bind) -> None:
+    orm.Session(bind=bind)
+    DatabaseSession(bind=bind)
+"""
+
+    context = PythonSourceContext.from_bytes(source_code.encode("utf-8"))
+    detector = PythonTreeSitterFrameworkDetector()
+    spec = _sqlalchemy_db_sql_spec()
+
+    calls = [
+        cast(CallExpressionInfo, detection)
+        for detection in detector.detect(context, [spec])
+    ]
+
+    assert spec.base_confidence is not None and spec.base_confidence < 0.70
+    assert {call.callee for call in calls} == {"orm.Session", "DatabaseSession"}
+    assert all(
+        call.metadata["match_confidence"] == spec.base_confidence for call in calls
     )
 
 
