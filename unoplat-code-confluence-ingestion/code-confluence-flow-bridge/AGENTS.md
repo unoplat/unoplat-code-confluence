@@ -103,7 +103,7 @@ task code-quality                 # Run all checks (lint + typecheck + schema va
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `3bbc2c8ae5f6fc7e94628c3b07a936ca5bdbcd02` (2026-06-09). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `05234b1efe5762f633f9b3367f217c3b0fe2659b` (2026-07-15). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -113,13 +113,13 @@ task code-quality                 # Run all checks (lint + typecheck + schema va
 ### Build
 - Not detected
 ### Dev
-- `DB_HOST=localhost DB_PORT=5432 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=code_confluence NEO4J_HOST=localhost NEO4J_PORT=7687 NEO4J_USERNAME=neo4j NEO4J_PASSWORD=password TEMPORAL_SERVER_ADDRESS=localhost:7233 OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4317 OTEL_EXPORTER_OTLP_PROTOCOL=grpc OTEL_SERVICE_NAME=code-confluence-flow-bridge OTEL_PROPAGATORS='tracecontext,baggage' FRAMEWORK_DEFINITIONS_PATH='../../framework-definitions' TEMPORAL_MAX_CONCURRENT_ACTIVITIES=3 REPOSITORIES_BASE_PATH=/opt/unoplat/repositories TOKEN_ENCRYPTION_KEY='0PiVvlu6HExNWkYjukuG0CAV930B4OsqXNPItAvsxhQ=' GITHUB_APP_OWNER_TYPE=organisation GITHUB_APP_OWNER=unoplat uv run fastapi dev` (Taskfile.yml, `src/code_confluence_flow_bridge`)
+- `task dev` (Taskfile.yml, `.`)
 ### Test
-- `uv sync --group test && uv run --python 3.13 --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v` (Taskfile.yml, `.`)
+- `task test` (Taskfile.yml, `.`)
 ### Lint
-- `uv run ruff check src/` (Taskfile.yml, `.`)
+- `task lint` (Taskfile.yml, `.`)
 ### Type Check
-- `uv run --group dev pyrefly check src/` (Taskfile.yml, `.`)
+- `task typecheck` (Taskfile.yml, `.`)
 
 ## Dependency Guide
 See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.

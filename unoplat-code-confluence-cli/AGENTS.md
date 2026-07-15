@@ -1,7 +1,7 @@
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `3bbc2c8ae5f6fc7e94628c3b07a936ca5bdbcd02` (2026-06-09). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `05234b1efe5762f633f9b3367f217c3b0fe2659b` (2026-07-15). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -13,7 +13,7 @@
 - `uv build` — `pyproject.toml`
 
 ### Dev
-- `uv run unoplat` — `pyproject.toml` (project script entry point)
+- `uv run ucc` — `pyproject.toml` (project script entry point)
 
 ### Test
 - Not detected
@@ -29,7 +29,8 @@ See [`dependencies_overview.md`](./dependencies_overview.md) for the full depend
 
 ## Business Domain
 ### Description
-Unoplat Code Confluence CLI manages the local Code Confluence Docker Compose stack: it fetches and pins GitHub releases, installs or repairs release assets, starts the Flow Bridge/query engine/frontend services, and opens browser setup pages for repository token and model-provider configuration.
+
+Unoplat Code Confluence CLI manages a local, release-pinned Code Confluence Docker Compose deployment, including its Flow Bridge, query engine, and frontend services. It also connects Git repositories through provider credentials, triggers repository refresh and AGENTS.md-generation workflows that raise pull requests, and verifies model-provider configuration for AI-assisted code knowledge workflows.
 
 ### References
 
