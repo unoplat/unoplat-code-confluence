@@ -7,8 +7,8 @@ from typing import Any
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.business_domain import (
     build_business_domain_agent,
 )
-from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.call_expression_validator import (
-    build_call_expression_validator_agent,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.call_expression_discoverer import (
+    build_call_expression_discoverer_agent,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.dependency_guide import (
     build_dependency_guide_agent,
@@ -17,7 +17,6 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agent
     build_development_workflow_agent,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
-    CALL_EXPRESSION_VALIDATOR_EXA_TOOLSET_ID,
     DEPENDENCY_GUIDE_EXA_TOOLSET_ID,
     DEVELOPMENT_WORKFLOW_EXA_TOOLSET_ID,
 )
@@ -31,7 +30,7 @@ class AgentType(str, Enum):
     DEVELOPMENT_WORKFLOW = "development_workflow_guide"
     DEPENDENCY = "dependency_guide"
     BUSINESS_DOMAIN = "business_domain_guide"
-    CALL_EXPRESSION_VALIDATOR = "call_expression_validator"
+    CALL_EXPRESSION_DISCOVERER = "call_expression_discoverer"
 
 
 DEFAULT_ENABLED_AGENT_TYPES = frozenset(
@@ -39,14 +38,13 @@ DEFAULT_ENABLED_AGENT_TYPES = frozenset(
         AgentType.DEVELOPMENT_WORKFLOW,
         AgentType.DEPENDENCY,
         AgentType.BUSINESS_DOMAIN,
-        AgentType.CALL_EXPRESSION_VALIDATOR,
+        AgentType.CALL_EXPRESSION_DISCOVERER,
     }
 )
 
 EXA_TOOLSET_IDS: dict[AgentType, str] = {
     AgentType.DEVELOPMENT_WORKFLOW: DEVELOPMENT_WORKFLOW_EXA_TOOLSET_ID,
     AgentType.DEPENDENCY: DEPENDENCY_GUIDE_EXA_TOOLSET_ID,
-    AgentType.CALL_EXPRESSION_VALIDATOR: CALL_EXPRESSION_VALIDATOR_EXA_TOOLSET_ID,
 }
 
 
@@ -56,7 +54,7 @@ AGENT_BUILDERS: dict[
     AgentType.DEVELOPMENT_WORKFLOW: build_development_workflow_agent,
     AgentType.DEPENDENCY: build_dependency_guide_agent,
     AgentType.BUSINESS_DOMAIN: build_business_domain_agent,
-    AgentType.CALL_EXPRESSION_VALIDATOR: build_call_expression_validator_agent,
+    AgentType.CALL_EXPRESSION_DISCOVERER: build_call_expression_discoverer_agent,
 }
 
 

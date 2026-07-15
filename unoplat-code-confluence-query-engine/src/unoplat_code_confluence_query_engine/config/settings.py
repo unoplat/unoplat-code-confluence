@@ -172,7 +172,7 @@ class EnvironmentSettings(BaseSettings):
         description=(
             "Comma-separated list of agent types to enable. "
             "Valid values: development_workflow_guide, dependency_guide, "
-            "business_domain_guide, call_expression_validator. "
+            "business_domain_guide, call_expression_discoverer. "
             "Empty string means all agents are enabled."
         ),
     )

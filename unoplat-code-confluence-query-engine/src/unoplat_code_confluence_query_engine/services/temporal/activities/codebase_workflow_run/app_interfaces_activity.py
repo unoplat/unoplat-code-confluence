@@ -6,11 +6,14 @@ from loguru import logger
 from temporalio import activity
 
 from unoplat_code_confluence_query_engine.db.postgres.code_confluence_framework_repository import (
-    db_get_low_confidence_call_expression_candidates,
+    db_get_call_expression_discovery_targets,
     db_stream_all_framework_features_for_codebase,
 )
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
     Interfaces,
+)
+from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
+    CallExpressionDiscoveryTarget,
 )
 from unoplat_code_confluence_query_engine.services.agents_md.rendering.app_interfaces.renderer import (
     write_app_interfaces as write_app_interfaces_artifact,
@@ -95,31 +98,22 @@ class AppInterfacesActivity:
         )
 
     @activity.defn
-    async def fetch_low_confidence_call_expression_candidates(
+    async def fetch_call_expression_discovery_targets(
         self,
         codebase_path: str,
         programming_language: str,
-    ) -> list[dict[str, object]]:
-        """Fetch low-confidence CallExpression candidates for validator processing.
-
-        Args:
-            codebase_path: Path to the codebase for PostgreSQL lookup.
-            programming_language: Programming language of the codebase.
-
-        Returns:
-            Serialized candidate payloads for validator-agent execution.
-        """
-        candidates = await db_get_low_confidence_call_expression_candidates(
+    ) -> list[CallExpressionDiscoveryTarget]:
+        """Fetch typed, capability-grouped CallExpression discovery targets."""
+        targets = await db_get_call_expression_discovery_targets(
             codebase_path=codebase_path,
             programming_language=programming_language,
         )
         logger.info(
-            "[app_interfaces_activity] Found {} low-confidence CallExpression candidates for codebase: {}",
-            len(candidates),
+            "[app_interfaces_activity] Found {} CallExpression discovery capabilities for codebase: {}",
+            len(targets),
             codebase_path,
         )
-        serialized_candidates = [candidate.model_dump(mode="json") for candidate in candidates]
-        return serialized_candidates
+        return targets
 
     @activity.defn
     async def emit_app_interfaces_completion(
