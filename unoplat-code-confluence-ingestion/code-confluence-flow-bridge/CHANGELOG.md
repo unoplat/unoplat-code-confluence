@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.86.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.85.0...code-confluence-flow-bridge-v0.86.0) (2026-07-15)
+
+
+### Features
+
+* **framework-definitions:** add Axios and realtime sync coverage ([8e4c1f4](https://github.com/unoplat/unoplat-code-confluence/commit/8e4c1f4fa55a5e2abee9929eb052a19e0c5322a6))
+* **framework-definitions:** add Click and HTTPX2 definitions ([4e05946](https://github.com/unoplat/unoplat-code-confluence/commit/4e059463407b24ad77daaefda20d2f32de93d5ac))
+* **framework-definitions:** add SQLAlchemy import-guarded db_sql detection ([66e39c6](https://github.com/unoplat/unoplat-code-confluence/commit/66e39c622fa7bc54867044769dd65513ac9ec075))
+* **framework-definitions:** add Temporal and gql Python framework definitions ([7640365](https://github.com/unoplat/unoplat-code-confluence/commit/764036501a5b7c5c3e0c10b8096fbcd53cc93fb5))
+* **framework-definitions:** add temporalio, httpx, ghapi, pydantic_ai coverage ([e1cc3a8](https://github.com/unoplat/unoplat-code-confluence/commit/e1cc3a82a6427c8194c211f1b9cf9905a6480a73))
+* **python-parser:** detect bare attribute decorators with target-level enforcement ([a5f3966](https://github.com/unoplat/unoplat-code-confluence/commit/a5f3966e49ff217401762b7b379e24d870ad8a0e))
+* **schema:** promote framework definition schema to v4.1 ([a1546f7](https://github.com/unoplat/unoplat-code-confluence/commit/a1546f7f56f26fc15856201d1095263c94d04b22))
+
+
+### Bug Fixes
+
+* **ingestion:** generalize TypeScript import-guarded matching ([cc2705b](https://github.com/unoplat/unoplat-code-confluence/commit/cc2705bac5b617435c4bc30188bf4c917609ffca))
+* **ingestion:** match descendant framework imports ([01b433a](https://github.com/unoplat/unoplat-code-confluence/commit/01b433a3de8717336d0007b916387ccabfda8d66))
+* **python-parser:** resolve import aliases under import_guarded_regex ([73bcd5b](https://github.com/unoplat/unoplat-code-confluence/commit/73bcd5b0f74c454973793f9b361e98e0d63c57e5))
+* **python-parser:** resolve qualified gql import provenance ([3eb13ec](https://github.com/unoplat/unoplat-code-confluence/commit/3eb13ece97086a914a4ef9226601c788163394fa))
+
 ## [0.85.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.84.0...code-confluence-flow-bridge-v0.85.0) (2026-06-27)
 
 

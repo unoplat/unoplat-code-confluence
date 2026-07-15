@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.45.0...unoplat-code-confluence-docs-v0.46.0) (2026-07-15)
+
+
+### Features
+
+* **docs:** publish gql, temporalio, and SQLAlchemy definitions ([e006ce2](https://github.com/unoplat/unoplat-code-confluence/commit/e006ce2979e919ed5840b676119df5a7e3e4daec))
+* **schema:** promote framework definition schema to v4.1 ([a1546f7](https://github.com/unoplat/unoplat-code-confluence/commit/a1546f7f56f26fc15856201d1095263c94d04b22))
+
 ## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.44.0...unoplat-code-confluence-docs-v0.45.0) (2026-07-01)
 
 
