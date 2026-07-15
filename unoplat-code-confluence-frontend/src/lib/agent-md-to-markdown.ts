@@ -1,4 +1,4 @@
-import json2md from "json2md";
+import json2md, { type Json2MdInput } from "json2md";
 import type {
   AgentMdAppInterfaces,
   AgentMdCodebaseOutput,
@@ -76,6 +76,17 @@ function pushInterfacesSectionEntries(
     );
   } else {
     entries.push({ p: "No outbound constructs detected." });
+  }
+
+  entries.push({ [subHeadingLevel]: "Bidirectional Constructs" });
+  if (appInterfaces.bidirectional_constructs.length) {
+    pushInterfaceConstructEntries(
+      entries,
+      appInterfaces.bidirectional_constructs,
+      subHeadingLevel,
+    );
+  } else {
+    entries.push({ p: "No bidirectional constructs detected." });
   }
 
   entries.push({ [subHeadingLevel]: "Internal Constructs" });
@@ -180,7 +191,7 @@ export function agentMdOutputToMarkdown(
 
   pushInterfacesSectionEntries(entries, agent?.app_interfaces, "h2", "h3");
 
-  return json2md(entries as any);
+  return json2md(entries as Json2MdInput[]);
 }
 
 export function codebasesToMarkdown(
@@ -270,5 +281,5 @@ export function codebasesToMarkdown(
     }
   }
 
-  return json2md(entries as any);
+  return json2md(entries as Json2MdInput[]);
 }
