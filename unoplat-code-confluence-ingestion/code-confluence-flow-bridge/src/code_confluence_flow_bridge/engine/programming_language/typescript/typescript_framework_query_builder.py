@@ -10,6 +10,7 @@ from typing import Dict, Optional
 import tree_sitter
 from tree_sitter_language_pack import get_language
 from unoplat_code_confluence_commons.base_models import (
+    CallExpressionMatchPolicy,
     Concept,
     ConstructQueryConfig,
     FeatureSpec,
@@ -129,7 +130,17 @@ class TypeScriptFrameworkQueryBuilder:
         function_name_predicate = _render_predicate(
             "@function_name", construct_query.function_name_regex
         )
-        callee_predicate = _render_predicate("@callee", construct_query.callee_regex)
+        callee_regex = construct_query.callee_regex
+        # Import-guarded matching is evaluated after import/provenance analysis in
+        # the detector. Omitting the static predicate also preserves arbitrary
+        # direct-import aliases that cannot be encoded in a definition regex.
+        if (
+            feature_spec.concept == Concept.CALL_EXPRESSION
+            and construct_query.match_policy
+            == CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX
+        ):
+            callee_regex = None
+        callee_predicate = _render_predicate("@callee", callee_regex)
         superclass_predicate = _render_predicate(
             "@superclass", construct_query.superclass_regex
         )

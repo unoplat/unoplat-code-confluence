@@ -9,6 +9,8 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
+    BidirectionalConstruct,
+    BidirectionalKind,
     InboundConstruct,
     InboundKind,
     Interfaces,
@@ -25,6 +27,9 @@ _DATA_MODEL_CAPABILITY_KEYS: frozenset[str] = frozenset(
     }
 )
 _DATA_MODEL_OPERATION_KEYS: frozenset[str] = frozenset({"data_model", "db_data_model"})
+_REALTIME_SYNC_OPERATION_KEYS: frozenset[str] = frozenset(
+    {"live_query", "live_infinite_query"}
+)
 
 # Mapping from structured capability/operation values to InboundKind
 INBOUND_FEATURE_MAPPING: dict[str, InboundKind] = {
@@ -89,6 +94,7 @@ class AppInterfaceFeatureRow(BaseModel):
 InboundGroups = dict[tuple[str, InboundKind], dict[str, set[str]]]
 OutboundGroups = dict[tuple[str, OutboundKind], dict[str, set[str]]]
 InternalGroups = dict[tuple[str, str], dict[str, set[str]]]
+RealtimeSyncGroups = dict[str, dict[str, set[str]]]
 
 
 def _compose_feature_key(capability_key: str, operation_key: str) -> str:
@@ -167,6 +173,10 @@ def _new_internal_groups() -> InternalGroups:
     return defaultdict(lambda: defaultdict(set))
 
 
+def _new_realtime_sync_groups() -> RealtimeSyncGroups:
+    return defaultdict(lambda: defaultdict(set))
+
+
 def _add_feature_row_to_groups(
     *,
     row: AppInterfaceFeatureRow,
@@ -174,6 +184,7 @@ def _add_feature_row_to_groups(
     inbound_groups: InboundGroups,
     outbound_groups: OutboundGroups,
     internal_groups: InternalGroups,
+    realtime_sync_groups: RealtimeSyncGroups,
 ) -> None:
     capability_key = row.feature_capability_key.strip()
     operation_key = row.feature_operation_key.strip()
@@ -188,6 +199,21 @@ def _add_feature_row_to_groups(
         row.start_line,
         row.end_line,
     )
+
+    if capability_key == "realtime_sync":
+        # Keep only valid live-query evidence. Unknown or malformed
+        # synchronization evidence is omitted rather than degraded to an
+        # unrelated internal feature.
+        if (
+            operation_key not in _REALTIME_SYNC_OPERATION_KEYS
+            or not row.library
+            or not relative_path
+            or row.start_line <= 0
+            or row.end_line < row.start_line
+        ):
+            return
+        realtime_sync_groups[row.library][relative_path].add(match_identifier)
+        return
 
     inbound_kind = _resolve_inbound_kind(capability_key, operation_key)
     if inbound_kind is not None:
@@ -211,6 +237,7 @@ def _build_interfaces_from_groups(
     inbound_groups: InboundGroups,
     outbound_groups: OutboundGroups,
     internal_groups: InternalGroups,
+    realtime_sync_groups: RealtimeSyncGroups,
 ) -> Interfaces:
     inbound_constructs: list[InboundConstruct] = []
     for (library, kind), file_matches in inbound_groups.items():
@@ -238,6 +265,19 @@ def _build_interfaces_from_groups(
             )
         )
 
+    bidirectional_constructs: list[BidirectionalConstruct] = []
+    for library, file_matches in sorted(realtime_sync_groups.items()):
+        match_pattern = {
+            path: sorted(matches) for path, matches in sorted(file_matches.items())
+        }
+        bidirectional_constructs.append(
+            BidirectionalConstruct(
+                kind=BidirectionalKind.REALTIME_SYNC,
+                library=library if library else None,
+                match_pattern=match_pattern,
+            )
+        )
+
     internal_constructs: list[InternalConstruct] = []
     for (library, feature_key), file_matches in internal_groups.items():
         match_pattern = {
@@ -254,6 +294,7 @@ def _build_interfaces_from_groups(
     return Interfaces(
         inbound_constructs=inbound_constructs,
         outbound_constructs=outbound_constructs,
+        bidirectional_constructs=bidirectional_constructs,
         internal_constructs=internal_constructs,
     )
 
@@ -266,6 +307,7 @@ async def build_interfaces_from_feature_rows(
     inbound_groups = _new_inbound_groups()
     outbound_groups = _new_outbound_groups()
     internal_groups = _new_internal_groups()
+    realtime_sync_groups = _new_realtime_sync_groups()
 
     async for row in feature_rows:
         _add_feature_row_to_groups(
@@ -274,12 +316,14 @@ async def build_interfaces_from_feature_rows(
             inbound_groups=inbound_groups,
             outbound_groups=outbound_groups,
             internal_groups=internal_groups,
+            realtime_sync_groups=realtime_sync_groups,
         )
 
     return _build_interfaces_from_groups(
         inbound_groups=inbound_groups,
         outbound_groups=outbound_groups,
         internal_groups=internal_groups,
+        realtime_sync_groups=realtime_sync_groups,
     )
 
 
@@ -291,6 +335,7 @@ def build_interfaces_from_features(
     inbound_groups = _new_inbound_groups()
     outbound_groups = _new_outbound_groups()
     internal_groups = _new_internal_groups()
+    realtime_sync_groups = _new_realtime_sync_groups()
 
     for feature in features:
         match_text_raw = feature.get("match_text")
@@ -299,9 +344,7 @@ def build_interfaces_from_features(
                 library=(
                     str(feature.get("library")) if feature.get("library") else None
                 ),
-                feature_capability_key=str(
-                    feature.get("feature_capability_key", "")
-                ),
+                feature_capability_key=str(feature.get("feature_capability_key", "")),
                 feature_operation_key=str(feature.get("feature_operation_key", "")),
                 file_path=str(feature.get("file_path", "")),
                 start_line=int(feature.get("start_line", 0)),  # type: ignore[arg-type]
@@ -312,10 +355,12 @@ def build_interfaces_from_features(
             inbound_groups=inbound_groups,
             outbound_groups=outbound_groups,
             internal_groups=internal_groups,
+            realtime_sync_groups=realtime_sync_groups,
         )
 
     return _build_interfaces_from_groups(
         inbound_groups=inbound_groups,
         outbound_groups=outbound_groups,
         internal_groups=internal_groups,
+        realtime_sync_groups=realtime_sync_groups,
     )

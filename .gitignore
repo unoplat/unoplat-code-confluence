@@ -390,3 +390,8 @@ experiments/
 .dmux/
 .dmux-hooks/
 .coverage*
+
+
+# subagents
+.pi-subagents/
+goals/

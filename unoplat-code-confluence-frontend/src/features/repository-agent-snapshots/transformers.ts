@@ -1,4 +1,5 @@
 import {
+  agentMdCodebaseOutputSchema,
   repositoryAgentSnapshotRowSchema,
   type AgentMdCodebaseOutput,
   type AgentMdOutputRecord,
@@ -60,25 +61,29 @@ export function parseAgentMdOutputs(
     : [];
 
   for (const [codebaseName, codebaseData] of codebasesEntries) {
-    // Electric SQL auto-parses JSONB columns, so data is already an object
-    if (isAgentMdCodebaseOutput(codebaseData)) {
-      markdownByCodebase[codebaseName] = codebaseData;
-      continue;
-    }
+    let parsedData: unknown = codebaseData;
 
     // Fallback for legacy stringified data (e.g., from SSE events)
     if (typeof codebaseData === "string") {
       try {
-        const parsed = JSON.parse(codebaseData) as unknown;
-        if (isAgentMdCodebaseOutput(parsed)) {
-          markdownByCodebase[codebaseName] = parsed;
-        }
+        parsedData = JSON.parse(codebaseData) as unknown;
       } catch (error) {
         console.error(
           `Failed to parse AgentMdCodebaseOutput for ${codebaseName}`,
           error,
         );
+        continue;
       }
+    }
+
+    const result = agentMdCodebaseOutputSchema.safeParse(parsedData);
+    if (result.success) {
+      markdownByCodebase[codebaseName] = result.data;
+    } else {
+      console.error(
+        `Invalid AgentMdCodebaseOutput for ${codebaseName}`,
+        result.error,
+      );
     }
   }
 
@@ -86,11 +91,6 @@ export function parseAgentMdOutputs(
     markdownByCodebase,
     repositoryMarkdown: agentMdOutput?.repository ?? undefined,
   };
-}
-
-// Type guard to check if data conforms to AgentMdCodebaseOutput structure
-function isAgentMdCodebaseOutput(data: unknown): data is AgentMdCodebaseOutput {
-  return typeof data === "object" && data !== null && "codebase_name" in data;
 }
 
 export function parseAgentMdOutputsFromSnapshot(
@@ -120,11 +120,15 @@ export function parseCodebaseProgressRows(
   rows: RepositoryAgentCodebaseProgressRow[],
 ): RepositoryAgentCodebaseState[] {
   return [...rows]
-    .sort((left, right) => left.codebase_name.localeCompare(right.codebase_name))
+    .sort((left, right) =>
+      left.codebase_name.localeCompare(right.codebase_name),
+    )
     .map((row) => ({
       codebaseName: row.codebase_name,
       progress:
-        typeof row.progress === "number" ? normalizeProgress(row.progress) : null,
+        typeof row.progress === "number"
+          ? normalizeProgress(row.progress)
+          : null,
     }));
 }
 

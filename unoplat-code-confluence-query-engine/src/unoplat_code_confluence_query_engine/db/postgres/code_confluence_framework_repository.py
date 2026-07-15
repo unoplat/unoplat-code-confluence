@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import os
 from collections import defaultdict
-from datetime import datetime, timezone
-from typing import AsyncIterator, Dict, List, Mapping, Set, cast
+from pathlib import Path
+from typing import AsyncIterator, Dict, List, Set, cast
 
 from loguru import logger
-from sqlalchemy import and_, not_, select
+from sqlalchemy import Float, and_, cast as sql_cast, not_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from unoplat_code_confluence_commons.base_models import (
@@ -17,26 +18,26 @@ from unoplat_code_confluence_commons.base_models import (
 )
 from unoplat_code_confluence_commons.relational_models import (
     UnoplatCodeConfluenceCodebase,
+    UnoplatCodeConfluenceCodebaseFramework,
     UnoplatCodeConfluenceFile,
     UnoplatCodeConfluenceFileFrameworkFeature,
 )
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
+    CallExpressionDiscoveryExistingSpan,
+    CallExpressionDiscoveryOperation,
+    CallExpressionDiscoveryTarget,
+    DiscoveredFrameworkFeatureUsagesUpsertRequest,
+    DiscoveredFrameworkFeatureUsagesUpsertResult,
+    FrameworkFeatureIdentity,
     FrameworkFeatureUsageIdentity,
-    FrameworkFeatureValidationCandidate,
-    FrameworkFeatureValidationDecision,
-    FrameworkFeatureValidationEvidenceUpsertRequest,
-    FrameworkFeatureValidationEvidenceUpsertResult,
-    FrameworkFeatureValidationStatusTransitionRequest,
-    FrameworkFeatureValidationStatusTransitionResult,
 )
 from unoplat_code_confluence_query_engine.services.repository.app_interfaces_mapper import (
     AppInterfaceFeatureRow,
 )
 
-LOW_CONFIDENCE_VALIDATION_THRESHOLD = 0.70
-VALIDATOR_ACCEPT_DECISIONS: frozenset[str] = frozenset({"confirm", "correct"})
+LOW_CONFIDENCE_DISCOVERY_THRESHOLD = 0.70
 _DATA_MODEL_CAPABILITY_KEYS: tuple[str, ...] = (
     "data_model",
     "relational_database",
@@ -62,67 +63,6 @@ def _data_model_family_predicate(
     )
 
 
-def _copy_mapping(payload: Mapping[str, object]) -> dict[str, object]:
-    return {key: value for key, value in payload.items()}
-
-
-def _build_validator_payload(
-    *,
-    decision: FrameworkFeatureValidationDecision,
-    final_confidence: float,
-    evidence_json: Mapping[str, object],
-    corrected_file_path: str | None = None,
-    corrected_start_line: int | None = None,
-    corrected_end_line: int | None = None,
-    corrected_match_text: str | None = None,
-) -> dict[str, object]:
-    payload = _copy_mapping(evidence_json)
-    payload["decision"] = decision.value
-    payload["final_confidence"] = float(final_confidence)
-    payload["recorded_at_utc"] = datetime.now(timezone.utc).isoformat()
-    if corrected_file_path is not None:
-        payload["corrected_file_path"] = corrected_file_path
-    if corrected_start_line is not None:
-        payload["corrected_start_line"] = corrected_start_line
-    if corrected_end_line is not None:
-        payload["corrected_end_line"] = corrected_end_line
-    if corrected_match_text is not None:
-        payload["corrected_match_text"] = corrected_match_text
-    return payload
-
-
-def _merge_evidence_json(
-    existing_evidence: object,
-    validator_payload: Mapping[str, object],
-) -> dict[str, object]:
-    merged: dict[str, object] = {}
-    if isinstance(existing_evidence, dict):
-        existing_map = cast(dict[str, object], existing_evidence)
-        for key, value in existing_map.items():
-            merged[key] = value
-    merged["validator"] = _copy_mapping(validator_payload)
-    return merged
-
-
-def _extract_validator_decision(evidence_json: object) -> str | None:
-    if not isinstance(evidence_json, dict):
-        return None
-
-    evidence_map = cast(dict[str, object], evidence_json)
-    validator_payload = evidence_map.get("validator")
-    if isinstance(validator_payload, dict):
-        validator_map = cast(dict[str, object], validator_payload)
-        decision = validator_map.get("decision")
-        if isinstance(decision, str):
-            return decision
-
-    root_decision = evidence_map.get("decision")
-    if isinstance(root_decision, str):
-        return root_decision
-
-    return None
-
-
 def _coerce_validation_status_or_pending(value: object) -> ValidationStatus:
     if isinstance(value, str):
         try:
@@ -132,30 +72,16 @@ def _coerce_validation_status_or_pending(value: object) -> ValidationStatus:
     return ValidationStatus.PENDING
 
 
-def _require_call_expression_base_confidence(feature: FrameworkFeature) -> float:
-    return float(feature.base_confidence)
-
-
 def _should_include_in_app_interface_mapping(
     *,
     concept: str,
-    match_confidence: float,
     validation_status: ValidationStatus,
-    evidence_json: object,
 ) -> bool:
-    if concept != Concept.CALL_EXPRESSION.value:
-        return True
-
-    decision = _extract_validator_decision(evidence_json)
-    if decision is not None:
-        if validation_status != ValidationStatus.COMPLETED:
-            return False
-        return decision in VALIDATOR_ACCEPT_DECISIONS
-
-    if match_confidence >= LOW_CONFIDENCE_VALIDATION_THRESHOLD:
-        return True
-
-    return False
+    """CallExpression rows are accepted only after discovery completes."""
+    return (
+        concept != Concept.CALL_EXPRESSION.value
+        or validation_status == ValidationStatus.COMPLETED
+    )
 
 
 def _coerce_validation_status(value: str) -> ValidationStatus:
@@ -405,7 +331,6 @@ async def db_stream_all_framework_features_for_codebase(
                 UnoplatCodeConfluenceFileFrameworkFeature.match_text,
                 UnoplatCodeConfluenceFileFrameworkFeature.match_confidence,
                 UnoplatCodeConfluenceFileFrameworkFeature.validation_status,
-                UnoplatCodeConfluenceFileFrameworkFeature.evidence_json,
             )
             .join(
                 UnoplatCodeConfluenceFileFrameworkFeature,
@@ -464,7 +389,6 @@ async def db_stream_all_framework_features_for_codebase(
                 match_text,
                 match_confidence,
                 validation_status,
-                evidence_json,
             ) in result:
                 streamed_rows += 1
                 feature_capability_key = str(capability_key)
@@ -485,11 +409,9 @@ async def db_stream_all_framework_features_for_codebase(
 
                 if not _should_include_in_app_interface_mapping(
                     concept=str(concept),
-                    match_confidence=float(match_confidence),
                     validation_status=_coerce_validation_status_or_pending(
                         validation_status
                     ),
-                    evidence_json=evidence_json,
                 ):
                     continue
 
@@ -523,43 +445,61 @@ async def db_stream_all_framework_features_for_codebase(
         )
 
 
-async def db_get_low_confidence_call_expression_candidates(
+async def db_get_call_expression_discovery_targets(
     *,
     codebase_path: str,
     programming_language: str = "python",
-    confidence_threshold: float = LOW_CONFIDENCE_VALIDATION_THRESHOLD,
-) -> list[FrameworkFeatureValidationCandidate]:
-    """Fetch low-confidence CallExpression rows that require validator execution."""
+) -> list[CallExpressionDiscoveryTarget]:
+    """Return eligible catalog operations grouped under their capabilities.
+
+    Catalog selection is deliberately independent of usage rows so an operation
+    with no static spans is still examined once by the discoverer.
+    """
     if not codebase_path:
         return []
 
     async with get_startup_session() as session:
-        stmt = (
-            select(
-                FrameworkFeature,
-                UnoplatCodeConfluenceFileFrameworkFeature,
-            )
+        feature_stmt = (
+            select(FrameworkFeature)
             .join(
-                UnoplatCodeConfluenceFileFrameworkFeature,
+                UnoplatCodeConfluenceCodebaseFramework,
                 (
-                    (
-                        FrameworkFeature.language
-                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_language
-                    )
-                    & (
-                        FrameworkFeature.library
-                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_library
-                    )
-                    & (
-                        FrameworkFeature.capability_key
-                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key
-                    )
-                    & (
-                        FrameworkFeature.operation_key
-                        == UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key
-                    )
+                    FrameworkFeature.language
+                    == UnoplatCodeConfluenceCodebaseFramework.framework_language
+                )
+                & (
+                    FrameworkFeature.library
+                    == UnoplatCodeConfluenceCodebaseFramework.framework_library
                 ),
             )
+            .join(
+                UnoplatCodeConfluenceCodebase,
+                UnoplatCodeConfluenceCodebase.qualified_name
+                == UnoplatCodeConfluenceCodebaseFramework.codebase_qualified_name,
+            )
+            .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
+            .where(FrameworkFeature.language == programming_language)
+            .where(
+                FrameworkFeature.concept_sql_expression()
+                == Concept.CALL_EXPRESSION.value
+            )
+            .where(
+                sql_cast(
+                    FrameworkFeature.feature_definition["base_confidence"].astext, Float
+                )
+                < LOW_CONFIDENCE_DISCOVERY_THRESHOLD
+            )
+            .options(selectinload(FrameworkFeature.absolute_paths))
+            .order_by(
+                FrameworkFeature.library,
+                FrameworkFeature.capability_key,
+                FrameworkFeature.operation_key,
+            )
+        )
+        features = list((await session.execute(feature_stmt)).scalars().unique())
+
+        usage_stmt = (
+            select(UnoplatCodeConfluenceFileFrameworkFeature)
             .join(
                 UnoplatCodeConfluenceFile,
                 UnoplatCodeConfluenceFile.file_path
@@ -571,204 +511,231 @@ async def db_get_low_confidence_call_expression_candidates(
                 == UnoplatCodeConfluenceFile.codebase_qualified_name,
             )
             .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
-            .where(FrameworkFeature.language == programming_language)
             .where(
-                FrameworkFeature.concept_sql_expression()
-                == Concept.CALL_EXPRESSION.value
+                UnoplatCodeConfluenceFileFrameworkFeature.feature_language
+                == programming_language
             )
-            .where(
-                UnoplatCodeConfluenceFileFrameworkFeature.match_confidence
-                < confidence_threshold
+            .order_by(
+                UnoplatCodeConfluenceFileFrameworkFeature.feature_library,
+                UnoplatCodeConfluenceFileFrameworkFeature.feature_capability_key,
+                UnoplatCodeConfluenceFileFrameworkFeature.feature_operation_key,
+                UnoplatCodeConfluenceFileFrameworkFeature.file_path,
+                UnoplatCodeConfluenceFileFrameworkFeature.start_line,
+                UnoplatCodeConfluenceFileFrameworkFeature.end_line,
             )
-            .where(
-                UnoplatCodeConfluenceFileFrameworkFeature.validation_status.in_(
-                    [
-                        ValidationStatus.PENDING.value,
-                        ValidationStatus.NEEDS_REVIEW.value,
-                    ]
-                )
-            )
-            .options(selectinload(FrameworkFeature.absolute_paths))
         )
-
-        result = await session.execute(stmt)
-
-        candidates: list[FrameworkFeatureValidationCandidate] = []
-        for feature, usage in result:
-            feature_definition = (
-                cast(dict[str, object], feature.feature_definition)
-                if isinstance(feature.feature_definition, dict)
-                else {}
+        spans_by_operation: dict[
+            tuple[str, str, str, str], list[CallExpressionDiscoveryExistingSpan]
+        ] = defaultdict(list)
+        for usage in (await session.execute(usage_stmt)).scalars():
+            identity = (
+                usage.feature_language,
+                usage.feature_library,
+                usage.feature_capability_key,
+                usage.feature_operation_key,
             )
-
-            notes_raw = feature_definition.get("notes")
-            notes = notes_raw if isinstance(notes_raw, str) else None
-
-            construct_query_raw = feature_definition.get("construct_query")
-            construct_query = (
-                cast(dict[str, object], construct_query_raw)
-                if isinstance(construct_query_raw, dict)
-                else None
-            )
-
-            evidence_json = (
-                cast(dict[str, object], usage.evidence_json)
-                if isinstance(usage.evidence_json, dict)
-                else None
-            )
-
-            absolute_paths = [
-                absolute_path.absolute_path
-                for absolute_path in feature.absolute_paths
-                if isinstance(absolute_path.absolute_path, str)
-            ]
-
-            candidates.append(
-                FrameworkFeatureValidationCandidate(
-                    identity=FrameworkFeatureUsageIdentity(
-                        file_path=usage.file_path,
-                        feature_language=usage.feature_language,
-                        feature_library=usage.feature_library,
-                        feature_capability_key=usage.feature_capability_key,
-                        feature_operation_key=usage.feature_operation_key,
-                        start_line=usage.start_line,
-                        end_line=usage.end_line,
-                    ),
-                    concept=feature.concept,
-                    match_confidence=usage.match_confidence,
-                    validation_status=_coerce_validation_status_or_pending(
-                        usage.validation_status
-                    ),
-                    match_text=usage.match_text,
-                    evidence_json=evidence_json,
-                    base_confidence=_require_call_expression_base_confidence(feature),
-                    notes=notes,
-                    construct_query=construct_query,
-                    absolute_paths=absolute_paths,
+            spans_by_operation[identity].append(
+                CallExpressionDiscoveryExistingSpan.model_validate(
+                    usage, from_attributes=True
                 )
             )
 
+    grouped: dict[tuple[str, str, str], list[CallExpressionDiscoveryOperation]] = (
+        defaultdict(list)
+    )
+    for feature in features:
+        identity = (
+            feature.language,
+            feature.library,
+            feature.capability_key,
+            feature.operation_key,
+        )
+        grouped[identity[:3]].append(
+            CallExpressionDiscoveryOperation(
+                feature_operation_key=feature.operation_key,
+                definition=feature.feature_definition,
+                absolute_paths=[
+                    path.absolute_path
+                    for path in feature.absolute_paths
+                    if isinstance(path.absolute_path, str)
+                ],
+                existing_spans=spans_by_operation[identity],
+            )
+        )
+    targets = [
+        CallExpressionDiscoveryTarget(
+            feature_language=language,
+            feature_library=library,
+            feature_capability_key=capability,
+            operations=operations,
+        )
+        for (language, library, capability), operations in grouped.items()
+    ]
     logger.info(
-        "Fetched {} low-confidence CallExpression candidates for codebase_path={} language={}",
-        len(candidates),
+        "Fetched {} CallExpression discovery capabilities for codebase_path={} language={}",
+        len(targets),
         codebase_path,
         programming_language,
     )
-    return candidates
+    return targets
 
 
-async def db_upsert_framework_feature_validation_evidence(
+def _resolve_discovered_file_path(codebase_path: str, file_path: str) -> str:
+    """Normalize a discovered path and require it to remain inside the codebase."""
+    codebase_root = Path(os.path.abspath(codebase_path))
+    candidate_path = Path(file_path)
+    if not candidate_path.is_absolute():
+        candidate_path = codebase_root / candidate_path
+    normalized_path = Path(os.path.abspath(candidate_path))
+
+    resolved_root = codebase_root.resolve(strict=False)
+    resolved_path = normalized_path.resolve(strict=False)
+    try:
+        resolved_path.relative_to(resolved_root)
+    except ValueError as exc:
+        raise ValueError(
+            f"Discovered usage path is outside the codebase: {file_path!r}"
+        ) from exc
+    return str(normalized_path)
+
+
+async def _require_discovery_target_feature(
+    session: AsyncSession,
+    codebase_path: str,
+    target: FrameworkFeatureIdentity,
+) -> None:
+    """Require a catalog feature whose library is evidenced for the codebase."""
+    stmt = (
+        select(FrameworkFeature.language)
+        .join(
+            UnoplatCodeConfluenceCodebaseFramework,
+            (
+                FrameworkFeature.language
+                == UnoplatCodeConfluenceCodebaseFramework.framework_language
+            )
+            & (
+                FrameworkFeature.library
+                == UnoplatCodeConfluenceCodebaseFramework.framework_library
+            ),
+        )
+        .join(
+            UnoplatCodeConfluenceCodebase,
+            UnoplatCodeConfluenceCodebase.qualified_name
+            == UnoplatCodeConfluenceCodebaseFramework.codebase_qualified_name,
+        )
+        .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
+        .where(FrameworkFeature.language == target.feature_language)
+        .where(FrameworkFeature.library == target.feature_library)
+        .where(FrameworkFeature.capability_key == target.feature_capability_key)
+        .where(FrameworkFeature.operation_key == target.feature_operation_key)
+        .where(
+            FrameworkFeature.feature_definition["concept"].astext
+            == Concept.CALL_EXPRESSION.value
+        )
+        .where(
+            sql_cast(
+                FrameworkFeature.feature_definition["base_confidence"].astext,
+                Float,
+            )
+            < LOW_CONFIDENCE_DISCOVERY_THRESHOLD
+        )
+    )
+    if (await session.scalar(stmt)) is None:
+        raise ValueError(
+            "Discovery target feature is not cataloged for an evidenced codebase "
+            f"framework: {target.feature_language}:{target.feature_library}:"
+            f"{target.feature_key}"
+        )
+
+
+async def _require_codebase_file(
+    session: AsyncSession,
+    codebase_path: str,
+    file_path: str,
+) -> None:
+    stmt = (
+        select(UnoplatCodeConfluenceFile.file_path)
+        .join(
+            UnoplatCodeConfluenceCodebase,
+            UnoplatCodeConfluenceCodebase.qualified_name
+            == UnoplatCodeConfluenceFile.codebase_qualified_name,
+        )
+        .where(UnoplatCodeConfluenceCodebase.codebase_path == codebase_path)
+        .where(UnoplatCodeConfluenceFile.file_path == file_path)
+    )
+    if (await session.scalar(stmt)) is None:
+        raise ValueError(
+            "Discovered usage file is not registered in the provided codebase: "
+            f"{file_path}"
+        )
+
+
+async def db_upsert_discovered_framework_feature_usages(
     *,
     codebase_path: str,
-    request: FrameworkFeatureValidationEvidenceUpsertRequest,
-) -> FrameworkFeatureValidationEvidenceUpsertResult:
-    """Persist validator evidence/confidence and apply in-place location corrections."""
+    request: DiscoveredFrameworkFeatureUsagesUpsertRequest,
+) -> DiscoveredFrameworkFeatureUsagesUpsertResult:
+    """Persist confirmed discovered spans for an authorized framework feature."""
     async with get_startup_session() as session:
-        source_row = await _get_framework_usage_row(
-            session,
-            codebase_path,
-            request.identity,
-        )
-        if source_row is None:
-            raise ValueError(
-                "Framework usage row not found for provided identity/codebase context"
-            )
+        target = request.target_feature_identity
+        await _require_discovery_target_feature(session, codebase_path, target)
 
-        current_identity = request.identity
-        if request.decision == FrameworkFeatureValidationDecision.CORRECT:
-            current_identity = request.build_updated_identity()
-            if current_identity != request.identity:
-                conflicting_row = await _get_framework_usage_row(
-                    session,
-                    codebase_path,
-                    current_identity,
+        created_count = 0
+        updated_count = 0
+        resolved_span_keys: set[tuple[str, int, int]] = set()
+
+        for usage in request.usages:
+            resolved_file_path = _resolve_discovered_file_path(
+                codebase_path,
+                usage.file_path,
+            )
+            resolved_span_key = (
+                resolved_file_path,
+                usage.start_line,
+                usage.end_line,
+            )
+            if resolved_span_key in resolved_span_keys:
+                raise ValueError(
+                    "discovered usage spans must be unique after path resolution"
                 )
-                if conflicting_row is not None:
-                    raise ValueError(
-                        "Corrected location already exists on a different framework usage row"
-                    )
-
-        validator_payload = _build_validator_payload(
-            decision=request.decision,
-            final_confidence=request.final_confidence,
-            evidence_json=request.evidence_json,
-            corrected_file_path=request.corrected_file_path,
-            corrected_start_line=request.corrected_start_line,
-            corrected_end_line=request.corrected_end_line,
-            corrected_match_text=request.corrected_match_text,
-        )
-        if request.decision == FrameworkFeatureValidationDecision.CORRECT:
-            validator_payload["corrected_from"] = {
-                "file_path": request.identity.file_path,
-                "start_line": request.identity.start_line,
-                "end_line": request.identity.end_line,
-                "match_text": source_row.match_text,
-            }
-
-        source_row.match_confidence = request.final_confidence
-        source_row.evidence_json = _merge_evidence_json(
-            source_row.evidence_json,
-            validator_payload,
-        )
-
-        if request.decision == FrameworkFeatureValidationDecision.CORRECT:
-            source_row.file_path = current_identity.file_path
-            source_row.start_line = current_identity.start_line
-            source_row.end_line = current_identity.end_line
-            if request.corrected_match_text is not None:
-                source_row.match_text = request.corrected_match_text
-
-        return FrameworkFeatureValidationEvidenceUpsertResult(
-            source_row_updated=True,
-            current_identity=current_identity,
-        )
-
-
-async def db_set_framework_feature_validation_status(
-    *,
-    codebase_path: str,
-    request: FrameworkFeatureValidationStatusTransitionRequest,
-) -> FrameworkFeatureValidationStatusTransitionResult:
-    """Set framework usage validation status with transition guards."""
-    async with get_startup_session() as session:
-        usage_row = await _get_framework_usage_row(
-            session,
-            codebase_path,
-            request.identity,
-        )
-        if usage_row is None:
-            raise ValueError(
-                "Framework usage row not found for provided identity/codebase context"
+            resolved_span_keys.add(resolved_span_key)
+            await _require_codebase_file(session, codebase_path, resolved_file_path)
+            identity = FrameworkFeatureUsageIdentity(
+                file_path=resolved_file_path,
+                feature_language=target.feature_language,
+                feature_library=target.feature_library,
+                feature_capability_key=target.feature_capability_key,
+                feature_operation_key=target.feature_operation_key,
+                start_line=usage.start_line,
+                end_line=usage.end_line,
             )
-
-        current_status = _coerce_validation_status(usage_row.validation_status)
-
-        if (
-            request.expected_current_status is not None
-            and current_status != request.expected_current_status
-        ):
-            raise ValueError(
-                "Current status mismatch: "
-                f"expected={request.expected_current_status.value}, "
-                f"actual={current_status.value}"
+            usage_row = await _get_framework_usage_row(
+                session,
+                codebase_path,
+                identity,
             )
-
-        if not _is_transition_allowed(current_status, request.target_status):
-            raise ValueError(
-                "Invalid validation_status transition: "
-                f"{current_status.value} -> {request.target_status.value}"
-            )
-
-        if current_status == request.target_status:
-            return FrameworkFeatureValidationStatusTransitionResult(
-                status="no_op",
-                previous_status=current_status,
-                current_status=current_status,
-            )
-
-        usage_row.validation_status = request.target_status.value
-        return FrameworkFeatureValidationStatusTransitionResult(
-            status="updated",
-            previous_status=current_status,
-            current_status=request.target_status,
+            if usage_row is None:
+                usage_row = UnoplatCodeConfluenceFileFrameworkFeature(
+                    file_path=identity.file_path,
+                    feature_language=identity.feature_language,
+                    feature_library=identity.feature_library,
+                    feature_capability_key=identity.feature_capability_key,
+                    feature_operation_key=identity.feature_operation_key,
+                    start_line=identity.start_line,
+                    end_line=identity.end_line,
+                    match_text=usage.match_text,
+                    match_confidence=usage.final_confidence,
+                    validation_status=ValidationStatus.COMPLETED.value,
+                    evidence_json=None,
+                )
+                session.add(usage_row)
+                created_count += 1
+            else:
+                usage_row.match_text = usage.match_text
+                usage_row.match_confidence = usage.final_confidence
+                usage_row.validation_status = ValidationStatus.COMPLETED.value
+                updated_count += 1
+        return DiscoveredFrameworkFeatureUsagesUpsertResult(
+            created_count=created_count,
+            updated_count=updated_count,
         )

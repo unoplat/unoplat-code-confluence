@@ -1,0 +1,31 @@
+{
+  "python": {
+    "gql": {
+      "docs_url": "https://gql.readthedocs.io/en/stable/",
+      "description": "gql GraphQL client construction used to establish outbound GraphQL access.",
+      "version": "3.5.3",
+      "capabilities": {
+        "graphql_client": {
+          "description": "Construction of gql clients used for outbound GraphQL operations.",
+          "operations": {
+            "graphql_client": {
+              "description": "Construct a gql Client through its public package export or canonical client module.",
+              "docs_url": "https://gql.readthedocs.io/en/stable/modules/client.html#gql.client.Client",
+              "absolute_paths": [
+                "gql.Client",
+                "gql.client.Client"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "construct_query": {
+                "callee_regex": "^(Client|([A-Za-z_][A-Za-z0-9_]*\\.)+Client|[A-Za-z_][A-Za-z0-9_]*)$"
+              },
+              "base_confidence": 0.95,
+              "notes": "High confidence requires the detector's direct import/alias provenance check to resolve the constructor to gql.Client or gql.client.Client; local Client calls are rejected. Query parsing via gql(...), transport setup, and execute instance methods are intentionally excluded."
+            }
+          }
+        }
+      }
+    }
+  }
+}

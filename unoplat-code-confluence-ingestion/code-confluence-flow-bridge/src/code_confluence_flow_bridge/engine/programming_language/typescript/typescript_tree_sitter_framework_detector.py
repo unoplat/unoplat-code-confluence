@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Dict, List, Literal, Optional, Set, Tuple
 
 from loguru import logger
@@ -10,6 +11,7 @@ import tree_sitter
 from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
+    CallExpressionMatchPolicy,
     Concept,
     Detection,
     FeatureSpec,
@@ -39,7 +41,7 @@ def _is_feature_imported(
         if absolute_path in import_aliases:
             return True
         # Check progressively longer prefixes (e.g. "react" then "react.useState")
-        # so namespace-level imports like `import * as React from 'react'` still match.
+        # so module/default imports still match feature member paths.
         parts = absolute_path.split(".")
         for idx in range(1, len(parts)):
             prefix = ".".join(parts[:idx])
@@ -65,6 +67,7 @@ CallMatchKind = Literal[
     "module_member_exact",
     "default_import_exact",
     "root_module_member_exact",
+    "import_guarded_regex",
 ]
 
 
@@ -93,6 +96,7 @@ NO_CALL_MATCH_EVIDENCE = CallMatchEvidence(
 )
 
 CALL_EXPRESSION_MATCH_POLICY_VERSION = "v1_import_bound"
+IMPORT_GUARDED_REGEX_POLICY_VERSION = "v2_import_guarded_regex"
 
 
 def _resolve_call_expression_confidence(spec: FeatureSpec) -> float:
@@ -104,6 +108,7 @@ def _build_call_expression_metadata(
     *,
     spec: FeatureSpec,
     call_match_evidence: CallMatchEvidence,
+    policy_version: str = CALL_EXPRESSION_MATCH_POLICY_VERSION,
 ) -> dict[str, object]:
     """Build the metadata dict attached to a CallExpression detection.
 
@@ -121,7 +126,7 @@ def _build_call_expression_metadata(
         "match_confidence": _resolve_call_expression_confidence(spec),
         "call_match_kind": call_match_evidence.match_kind,
         "matched_absolute_path": call_match_evidence.matched_absolute_path,
-        "call_match_policy_version": CALL_EXPRESSION_MATCH_POLICY_VERSION,
+        "call_match_policy_version": policy_version,
     }
     if call_match_evidence.matched_alias is not None:
         metadata["matched_alias"] = call_match_evidence.matched_alias
@@ -204,6 +209,16 @@ def _matches_callee(
                 )
 
     return NO_CALL_MATCH_EVIDENCE
+
+
+def _has_import_bound_callee_prefix(
+    callee_text: str, import_aliases: Dict[str, str]
+) -> bool:
+    """Return whether a dotted callee starts with an imported local binding."""
+    return any(
+        callee_text.startswith(f"{local_binding}.")
+        for local_binding in import_aliases.values()
+    )
 
 
 def _matches_superclass(
@@ -422,6 +437,12 @@ class TypeScriptTreeSitterFrameworkDetector:
         detections: List[Detection] = []
         seen: Set[Tuple[str, str, str, int, int]] = set()
         source_bytes = context.source_bytes
+        construct_query = spec.construct_query_typed
+        match_policy = (
+            construct_query.match_policy
+            if construct_query is not None
+            else CallExpressionMatchPolicy.MATCH_CALLEE
+        )
 
         for _pattern_index, captures in matches:
             call_expression_node = _first_capture(captures, "call_expression")
@@ -432,11 +453,53 @@ class TypeScriptTreeSitterFrameworkDetector:
                 continue
 
             callee_text = _extract_node_text(source_bytes, callee_node)
-            call_match_evidence = _matches_callee(
-                callee_text, spec.absolute_paths, context.import_aliases
-            )
-            if not call_match_evidence.matched:
-                continue
+            if match_policy == CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX:
+                callee_regex = (
+                    construct_query.callee_regex
+                    if construct_query is not None
+                    else None
+                )
+                if callee_regex is None:
+                    continue
+
+                if re.search(callee_regex, callee_text) is not None:
+                    exact_evidence = _matches_callee(
+                        callee_text, spec.absolute_paths, context.import_aliases
+                    )
+                    if (
+                        not exact_evidence.matched
+                        and _has_import_bound_callee_prefix(
+                            callee_text, context.import_aliases
+                        )
+                    ):
+                        continue
+                    call_match_evidence = CallMatchEvidence(
+                        matched=True,
+                        match_kind="import_guarded_regex",
+                        matched_absolute_path="",
+                        matched_alias=None,
+                    )
+                    policy_version = IMPORT_GUARDED_REGEX_POLICY_VERSION
+                else:
+                    call_match_evidence = _matches_callee(
+                        callee_text, spec.absolute_paths, context.import_aliases
+                    )
+                    if (
+                        not call_match_evidence.matched
+                        or re.search(
+                            callee_regex, call_match_evidence.matched_absolute_path
+                        )
+                        is None
+                    ):
+                        continue
+                    policy_version = CALL_EXPRESSION_MATCH_POLICY_VERSION
+            else:
+                call_match_evidence = _matches_callee(
+                    callee_text, spec.absolute_paths, context.import_aliases
+                )
+                if not call_match_evidence.matched:
+                    continue
+                policy_version = CALL_EXPRESSION_MATCH_POLICY_VERSION
 
             start_line = call_expression_node.start_point[0] + 1
             end_line = call_expression_node.end_point[0] + 1
@@ -468,6 +531,7 @@ class TypeScriptTreeSitterFrameworkDetector:
                     metadata=_build_call_expression_metadata(
                         spec=spec,
                         call_match_evidence=call_match_evidence,
+                        policy_version=policy_version,
                     ),
                 )
             )

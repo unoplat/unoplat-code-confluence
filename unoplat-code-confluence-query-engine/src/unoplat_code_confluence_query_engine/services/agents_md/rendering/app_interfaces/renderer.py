@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Iterable, Mapping
 
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
+    BidirectionalConstruct,
     InboundConstruct,
     Interfaces,
     InternalConstruct,
@@ -40,7 +41,9 @@ _TEMPLATE_NAME = "app_interfaces.md.j2"
 _DEFAULT_LIBRARY = "unknown"
 _APP_INTERFACES_ARTIFACT = "app_interfaces.md"
 
-_InterfaceConstruct = InboundConstruct | OutboundConstruct | InternalConstruct
+_InterfaceConstruct = (
+    InboundConstruct | OutboundConstruct | BidirectionalConstruct | InternalConstruct
+)
 
 
 def render_app_interfaces(interfaces: Interfaces) -> str:
@@ -58,6 +61,11 @@ def render_app_interfaces(interfaces: Interfaces) -> str:
                 title="Outbound Constructs",
                 empty_message="No outbound constructs detected.",
                 constructs=_build_construct_rows(interfaces.outbound_constructs),
+            ),
+            InterfaceSection(
+                title="Bidirectional Constructs",
+                empty_message="No bidirectional constructs detected.",
+                constructs=_build_construct_rows(interfaces.bidirectional_constructs),
             ),
             InterfaceSection(
                 title="Internal Constructs",

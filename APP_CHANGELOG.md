@@ -1,5 +1,266 @@
 # Changelog
 
+## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.43.0...unoplat-code-confluence-v0.44.0) (2026-07-02)
+
+
+### Features
+
+* **docs:** split quickstart into CLI and Web UI guides ([5db0438](https://github.com/unoplat/unoplat-code-confluence/commit/5db04383420e3e813cf65d17ee24b3702a05e9f4))
+
+
+### Bug Fixes
+
+* **docs:** correct frontend quickstart prerequisites ([ce3cd9c](https://github.com/unoplat/unoplat-code-confluence/commit/ce3cd9cb812d0e67af01681c49a9ea5f65d4ec8a))
+* **skill:** require ucc on PATH via uv tool install ([c603b49](https://github.com/unoplat/unoplat-code-confluence/commit/c603b4950c47a1bebcfa042e918aced2ac4893da))
+
+## [0.43.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.42.0...unoplat-code-confluence-v0.43.0) (2026-06-27)
+
+
+### Features
+
+* **cli:** add repository, refresh, setup status, and readiness gating ([8805058](https://github.com/unoplat/unoplat-code-confluence/commit/880505846fef925879a716b2822c4236b5d89a13))
+* **cli:** rename entry point to ucc ([c63fc09](https://github.com/unoplat/unoplat-code-confluence/commit/c63fc098b30d98238a05135c6fd4ab655c4e9578))
+* **frontend:** replace ingestion with add-repository flow ([e7efe56](https://github.com/unoplat/unoplat-code-confluence/commit/e7efe56e5101722d7bf60f09f0bd466757af059c))
+* **health:** add liveness and readiness probes to flow-bridge and query-engine ([c95d849](https://github.com/unoplat/unoplat-code-confluence/commit/c95d849544982e6e5be76257fc4963e1c0661c24))
+* **query-engine:** add managed section content extraction and Temporal activity ([3665272](https://github.com/unoplat/unoplat-code-confluence/commit/3665272a7435d3e5e331debf3fe98dfc0094bae1))
+* **query-engine:** resolve and propagate workflow operation through Temporal ([a12e790](https://github.com/unoplat/unoplat-code-confluence/commit/a12e790d16981885fe155fabe58e0d1e09a4a1be))
+* **repository:** add lightweight add-repository endpoint and models ([1bc9d6d](https://github.com/unoplat/unoplat-code-confluence/commit/1bc9d6df6e1890fe6aec2162af88dda76643ec07))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([5992123](https://github.com/unoplat/unoplat-code-confluence/commit/5992123abbf2448d77814d81976fb1129b71ae2c))
+* **ci:** refresh package uv lockfiles before python lock checks run ([d133163](https://github.com/unoplat/unoplat-code-confluence/commit/d13316355530d39828be6fc99554431df306b4c4))
+* **cli:** replace localhost with 127.0.0.1 in default service URLs ([6c16c89](https://github.com/unoplat/unoplat-code-confluence/commit/6c16c894b93c44c370806cca2e80f6b06eb21c7b))
+* **flow-bridge:** handle concurrent add-repository race via savepoint ([e8a7c04](https://github.com/unoplat/unoplat-code-confluence/commit/e8a7c04bd4d4693ec0edbfb22cba8edcd43e57ca))
+* **frontend:** restore RepositoryRequestConfiguration import in api.ts ([ff5e288](https://github.com/unoplat/unoplat-code-confluence/commit/ff5e288f63dc24c3daa9f4315da01a167ab7126d))
+* **git-url:** accept provider browser URLs without .git suffix ([8a154f9](https://github.com/unoplat/unoplat-code-confluence/commit/8a154f904a26749b022512c5e6a1a79cb8a0d286))
+* **query-engine:** remove defensive len guards on trace_id args in workflow interceptor ([d158e54](https://github.com/unoplat/unoplat-code-confluence/commit/d158e5486cf8c977a80fb0594129396dca7da3f7))
+* **skill:** update commands, URLs, and response field names in SKILL.md ([d3a7d1d](https://github.com/unoplat/unoplat-code-confluence/commit/d3a7d1db94a0bd0f27ba4b704f2f42180743bcbf))
+
+## [0.42.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.41.0...unoplat-code-confluence-v0.42.0) (2026-06-18)
+
+
+### Features
+
+* **cli-and-docs:** add setup commands and fix documentation and migr… ([8ff8006](https://github.com/unoplat/unoplat-code-confluence/commit/8ff8006d277050ef00f419d2a387092cb79f70df))
+* **cli-and-docs:** add setup commands and fix documentation and migrate to vite+ ([f3c4feb](https://github.com/unoplat/unoplat-code-confluence/commit/f3c4febd3aee1d321053f245be58180f99b2c062))
+* **cli:** group service related commands under service like run , destroy, stop, update ([d822b31](https://github.com/unoplat/unoplat-code-confluence/commit/d822b31f7b5d643df660a5d7b59985b251c54481))
+* **frontend:** send only git URL for repository ingest requests ([10d1e63](https://github.com/unoplat/unoplat-code-confluence/commit/10d1e63ac966015fc38f8501192e3f903e124fa3))
+* **ingestion:** auto-derive repository identity from git URL ([a2b400f](https://github.com/unoplat/unoplat-code-confluence/commit/a2b400f8c45d6ea7e5f6f6e251909b8cc3811712))
+* **query-engine:** batch artifact files into single git tree commit ([ca460dc](https://github.com/unoplat/unoplat-code-confluence/commit/ca460dc2be42334e9934ee387e9ae8aeaf29fe13))
+* **query-engine:** wire automatic AGENTS.md PR publish into repository workflow ([7c4c351](https://github.com/unoplat/unoplat-code-confluence/commit/7c4c35134e69e8bbf059bc9c22e01bc556ca4544))
+
+
+### Bug Fixes
+
+* **check-urls:** urls need to be added for probing flow bridge ([442b9b2](https://github.com/unoplat/unoplat-code-confluence/commit/442b9b21f82e326cb72fc982a3b3e33ab9c2d718))
+* **ci:** refresh package uv lockfiles before python lock checks run ([6d1d6cb](https://github.com/unoplat/unoplat-code-confluence/commit/6d1d6cb2cd2f706866eda5a860f480a5340e4e6f))
+* **ci:** refresh package uv lockfiles before python lock checks run ([c371ac2](https://github.com/unoplat/unoplat-code-confluence/commit/c371ac24cd9347c421e857f47e800029b3f0a70f))
+* **exception-handling:** guard qualified-name parse inside PR publish try ([16754f5](https://github.com/unoplat/unoplat-code-confluence/commit/16754f5d028c1f738a72f31c1ea4ba9e2d220b9c))
+* **package-version:** do not use latest version ([ebaedec](https://github.com/unoplat/unoplat-code-confluence/commit/ebaedec0a9a8f8ca4dbdbe4052edce1dcbbc5c59))
+* **port-preservation:** preserve hostname:port in HTTPS git URL parsers ([4ff6aaa](https://github.com/unoplat/unoplat-code-confluence/commit/4ff6aaa756de5102bf13d961df44fb37f6a818c4))
+* **query-engine:** pin agent prompt to explicit AGENTS.md path ([87eb0fd](https://github.com/unoplat/unoplat-code-confluence/commit/87eb0fd488503678061b586ae11fa093d4bf0509))
+
+## [0.41.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.40.0...unoplat-code-confluence-v0.41.0) (2026-06-08)
+
+
+### Features
+
+* **add-setup-commands:** add setup commands ([946fb01](https://github.com/unoplat/unoplat-code-confluence/commit/946fb014c8ee2bde5ed0b61d34e2f39ceff11da4))
+* **add-setup-commands:** add setup commands ([77f9bb6](https://github.com/unoplat/unoplat-code-confluence/commit/77f9bb61c2afa4d8a1cad9da80886f6208a8f16f))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([dc9acb6](https://github.com/unoplat/unoplat-code-confluence/commit/dc9acb6241cd9a32f674f35f1ead1b1eb1d08443))
+
+## [0.40.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.39.0...unoplat-code-confluence-v0.40.0) (2026-06-08)
+
+
+### Features
+
+* **ci:** add cli package to build and release pipelines ([cf0adf7](https://github.com/unoplat/unoplat-code-confluence/commit/cf0adf7aba0e2b4e21aba7b4738cc086a5e74a9d))
+* **cli:** add dev dependency group with ruff and pyrefly ([d4d4494](https://github.com/unoplat/unoplat-code-confluence/commit/d4d4494ae7eca2489ae53a1ec0edcb026a85305e))
+* **cli:** migrate runtime models from dataclasses to pydantic ([52df2c9](https://github.com/unoplat/unoplat-code-confluence/commit/52df2c94dfe9021fa6043779bd67a8182de24cac))
+* **cli:** use python-on-whales for compose runtime ([6641937](https://github.com/unoplat/unoplat-code-confluence/commit/6641937d045cbd0e828c71beb4b61329bb24de6d))
+* scaffold initial unoplat-code-confluence-cli ([31647d2](https://github.com/unoplat/unoplat-code-confluence/commit/31647d277b97e705f1e87d035e477b467dc5bc9a))
+
+
+### Bug Fixes
+
+* **bad-code:** fix unnecessary docker compose check and also make the cli release step reliable ([478e504](https://github.com/unoplat/unoplat-code-confluence/commit/478e50401866cd5acc7361ffb78c47fa5770a282))
+* **ci:** refresh package uv lockfiles before python lock checks run ([26bd80c](https://github.com/unoplat/unoplat-code-confluence/commit/26bd80cbb26d0da4f7bbd31c2826049d3b65d579))
+* **ci:** refresh package uv lockfiles before python lock checks run ([afcfbc2](https://github.com/unoplat/unoplat-code-confluence/commit/afcfbc2d5610a2c3948a2ab96b83720fb219f318))
+
+## [0.39.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.38.0...unoplat-code-confluence-v0.39.0) (2026-06-05)
+
+
+### Features
+
+* **ci:** publish release manifest and compose asset on app release ([1037ab4](https://github.com/unoplat/unoplat-code-confluence/commit/1037ab4c115b43d61e3f15b64715435b726ea159))
+
+
+### Bug Fixes
+
+* **error-handling-cd:** fail fast on release validation errors ([17f1e96](https://github.com/unoplat/unoplat-code-confluence/commit/17f1e9651e17e541453c674d11500552e5afbb85))
+* **security-hardening:** pin release action and use GitHub token ([44e4db5](https://github.com/unoplat/unoplat-code-confluence/commit/44e4db5de404e5ad53c0354e98230eee4609865f))
+
+## [0.38.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.37.0...unoplat-code-confluence-v0.38.0) (2026-05-28)
+
+
+### Features
+
+* **ingestion:** replace structural-signature extraction with BaseSourceContext detection primitives ([c27ee87](https://github.com/unoplat/unoplat-code-confluence/commit/c27ee87649ac5d5ca196028c1615063eabca3db5))
+* **query-engine:** pre-fetch previous workflow and use status-based output dispatch ([dad7dc7](https://github.com/unoplat/unoplat-code-confluence/commit/dad7dc713f503ea454677ccf8d74031bcdb2a3a7))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([82524e2](https://github.com/unoplat/unoplat-code-confluence/commit/82524e293409a35ab3e103e764950830cfce4f7a))
+* **frontend:** make GitHubUser fields optional and handle null display values ([772ec07](https://github.com/unoplat/unoplat-code-confluence/commit/772ec07b0a066af02676021e97bc04e7bd6eb6eb))
+* **log:** logging fix ([376d919](https://github.com/unoplat/unoplat-code-confluence/commit/376d9192f7d49af58467197d08eb3be5baabcac2))
+
+## [0.37.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.36.1...unoplat-code-confluence-v0.37.0) (2026-05-19)
+
+
+### Features
+
+* **flow-bridge:** add post-refresh AGENTS.md update trigger with idempotency guard ([e3ab9ea](https://github.com/unoplat/unoplat-code-confluence/commit/e3ab9ea37394d52de10eec944719f83b760d3430))
+* **frontend:** replace separate refresh and generate actions with unified Generate/Update Agents.md ([8a54e24](https://github.com/unoplat/unoplat-code-confluence/commit/8a54e24df955e66df98363af487525aa0198f4dd))
+* **query-engine:** add dependency-guide delta fetch with incremental cache reuse ([ca00c49](https://github.com/unoplat/unoplat-code-confluence/commit/ca00c49eaf7be52ab9aa49544984689858639161))
+* **query-engine:** add engineering-workflow no-change sentinel and carry-forward ([7102014](https://github.com/unoplat/unoplat-code-confluence/commit/710201417b0b904ac12c82e8f0e079e39e71da98))
+* **query-engine:** add idempotency guard for agent run endpoint and register fetch-delta activity ([fb04e4d](https://github.com/unoplat/unoplat-code-confluence/commit/fb04e4de5a2860eb86f6446892dc08bece0e0422))
+* **query-engine:** update AgentMdOutput and add repository snapshot models ([90415e5](https://github.com/unoplat/unoplat-code-confluence/commit/90415e5767cb5460a398b3f050179b744025131d))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([53a76d0](https://github.com/unoplat/unoplat-code-confluence/commit/53a76d00fdcd18bc10861ae405b8285b68a4cf1b))
+* **flow-bridge:** pass loguru structured log kwargs explicitly ([ef36d86](https://github.com/unoplat/unoplat-code-confluence/commit/ef36d869074b5770aae7e54f0535d57ee39face4))
+* **flow-bridge:** pass typed envelope with trace context to AgentMdUpdateActivity ([2c86f1a](https://github.com/unoplat/unoplat-code-confluence/commit/2c86f1ab8c892dceb80562d61227f1eff0c8b0ea))
+* **query-engine:** preserve validation traceback ([90f5848](https://github.com/unoplat/unoplat-code-confluence/commit/90f58482cb0af038c226cc7f056c9b455026370a))
+* **query-engine:** use Literal type for EngineeringWorkflowNoChange sentinel and clarify prompts ([e9834ee](https://github.com/unoplat/unoplat-code-confluence/commit/e9834eeaa568ca0a2a2e661b69a0f690acf09a10))
+* rename business_logic_domain to business_logic across all packages ([5b17ba4](https://github.com/unoplat/unoplat-code-confluence/commit/5b17ba43a95e74bf106839d5a5dc0f67a20ea42f))
+
+## [0.36.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.36.0...unoplat-code-confluence-v0.36.1) (2026-05-11)
+
+
+### Bug Fixes
+
+* **backend:** stream SQLAlchemy result rows and use set[str] for library names ([58dd684](https://github.com/unoplat/unoplat-code-confluence/commit/58dd684d468dab33c565168aa99d320c3fba2dd9))
+* **ci:** refresh package uv lockfiles before python lock checks run ([33b49e8](https://github.com/unoplat/unoplat-code-confluence/commit/33b49e849cced671eed8fff17c63ccf4faea3fb2))
+* **engine:** restrict dev-workflow execute to help probes and use direct pydantic envelopes in temporal runners ([a1d8e39](https://github.com/unoplat/unoplat-code-confluence/commit/a1d8e39780839d8b9f0878169bda39b0fdf238f1))
+* **engine:** stream framework features from postgres to reduce peak memory ([00ec264](https://github.com/unoplat/unoplat-code-confluence/commit/00ec264735ea687b2c297239de43080df207f35e))
+* **engine:** thread pre-parsed source context through detection pipeline to eliminate redundant parses ([01c01f5](https://github.com/unoplat/unoplat-code-confluence/commit/01c01f5ccb4665736c731341a40cf5acc1ef96df))
+* **engine:** use pydantic-ai model API to render tool results in event stream ([5d97cec](https://github.com/unoplat/unoplat-code-confluence/commit/5d97cec834d87cadd70931a3aeda472f56f34b20))
+* **parser:** extract _iter_logical_lines to simplify pip requirements parsing ([4a7b32b](https://github.com/unoplat/unoplat-code-confluence/commit/4a7b32bb6c316b45e100c5e2a1c9057af73a98dd))
+* **parser:** stream file discovery as iterator to reduce peak memory ([dc72b3a](https://github.com/unoplat/unoplat-code-confluence/commit/dc72b3a0efa923c091b189738f39bbcf0bc3aecf))
+* **renderer:** always overwrite md artifacts; remove stale-check read ([f1e2550](https://github.com/unoplat/unoplat-code-confluence/commit/f1e255081ad4f25fb7f98e837cfacb33692ff81b))
+* **runtime:** stabilize workflow timeouts and source decoding ([6dc41d3](https://github.com/unoplat/unoplat-code-confluence/commit/6dc41d39fc7f32601afd4f0e114459ff2e3ebf32))
+* **temporal:** add env-var-overridable debug_timeout to all activity configs ([973785c](https://github.com/unoplat/unoplat-code-confluence/commit/973785c032ad77ba2778eea3294956de43e0b79e))
+* **temporal:** add missing debug_timeouts module imported by worker manager ([9c5bb96](https://github.com/unoplat/unoplat-code-confluence/commit/9c5bb9615b27e6d3c0b87eb0fe2e531307cfcdec))
+* **tests:** align dev-workflow execute prompt assertion with restricted help-probe wording ([55a82dc](https://github.com/unoplat/unoplat-code-confluence/commit/55a82dc911909fb42aac4de8f36e6f22db957899))
+* **tests:** migrate framework feature repo tests to streaming API ([dd8e283](https://github.com/unoplat/unoplat-code-confluence/commit/dd8e2838fb167d321954ea4d3b8e68a345788eca))
+* **tests:** update tests to use new source context API ([b209174](https://github.com/unoplat/unoplat-code-confluence/commit/b209174deb9ae8ada076eb45b428458d691e1a36))
+
+## [0.36.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.35.0...unoplat-code-confluence-v0.36.0) (2026-04-29)
+
+
+### Features
+
+* **agent-events:** anchor-based scroll restoration for older history via imperative handle ([c59cdd5](https://github.com/unoplat/unoplat-code-confluence/commit/c59cdd5b909563c533977807dbac4c3eb122461f))
+* **search-backend-temporal:** move from opensearch to postgresql for basic workflow search operations to reduce memory footprint by ~700-900 mb ([9ea5d67](https://github.com/unoplat/unoplat-code-confluence/commit/9ea5d67a6e90ea0efbe53e900839ff3124b8d51a))
+
+
+### Bug Fixes
+
+* **agent-events-utils:** always skip tool.result events in display item building ([c1727cb](https://github.com/unoplat/unoplat-code-confluence/commit/c1727cb08dfe6e7a3a65fe1e6b774cb9384103f1))
+* **ci:** refresh package uv lockfiles before python lock checks run ([674276a](https://github.com/unoplat/unoplat-code-confluence/commit/674276a0ab52913df2f440479c177b11b4185824))
+* **flow-bridge:** use Any type for workflow interceptor return types ([eee7c97](https://github.com/unoplat/unoplat-code-confluence/commit/eee7c97861a4d18bc1a5dac27db04183c4e59abd))
+* **frontend:** use useLayoutEffect for scroll snap reset on codebase change ([5fb9b4a](https://github.com/unoplat/unoplat-code-confluence/commit/5fb9b4aba960d01f7b9f3a86d376699e420acfa5))
+
+## [0.35.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.34.0...unoplat-code-confluence-v0.35.0) (2026-04-28)
+
+
+### Features
+
+* **agent-assembly:** drop DuckDuckGo, add builtin web-fetch, extend provider support and empty __init__ ([77c81c2](https://github.com/unoplat/unoplat-code-confluence/commit/77c81c28fb38f90021a99cda4e38d2c28e9a32ad))
+* **agent-assembly:** replace custom repo-inspection tools with audited console capability ([a4d89b4](https://github.com/unoplat/unoplat-code-confluence/commit/a4d89b4775b693208490617ee3a86f3e53a1ffd3))
+* **agent-backend:** extract Docker lifecycle, path helpers, and resolver ([b0fd563](https://github.com/unoplat/unoplat-code-confluence/commit/b0fd563279905637d976a8f3d3331fd7cc2dad33))
+* **agent-events:** virtualize agent group events with sticky auto-scroll ([f71a5c9](https://github.com/unoplat/unoplat-code-confluence/commit/f71a5c9fc8eca9036167766e7b24879c94a09bfa))
+* **agent-events:** virtualize agent group events with sticky auto-scroll ([d558972](https://github.com/unoplat/unoplat-code-confluence/commit/d558972de48c6866e007b4c1b0aa193b8c00d8d2))
+* **business-domain-agent:** replace read_file_content tool with console capability ([8421333](https://github.com/unoplat/unoplat-code-confluence/commit/8421333864901f2c2404e4abdfae12c299509eb8))
+* **dev-workflow:** replace confidence scoring with sandbox verification ([b21598c](https://github.com/unoplat/unoplat-code-confluence/commit/b21598c893de3ce3d2dd16bf584a734a275e77d8))
+* **frontend:** update schema and utils for new agent output structure ([d4b5909](https://github.com/unoplat/unoplat-code-confluence/commit/d4b59094ede71eb54bec370f2a74e5f5e5932d77))
+* **model-config:** add unified thinking level param with high default for all providers ([14dd611](https://github.com/unoplat/unoplat-code-confluence/commit/14dd611ab76d0e5f5d5168f5ba3331aa5120f844))
+* **openmetadata:** add Code Confluence→OpenMetadata connector packag… ([96030e2](https://github.com/unoplat/unoplat-code-confluence/commit/96030e294aa29e175eedd57dc5b1d790169b77d8))
+* **openmetadata:** add Code Confluence→OpenMetadata connector package and optional snapshot lookup ([229ffd0](https://github.com/unoplat/unoplat-code-confluence/commit/229ffd034860dc38083b44ec99f959f53336add1))
+* **productivity:** add Tiltfile, docker-compose, and dev Dockerfiles for local setup ([c698032](https://github.com/unoplat/unoplat-code-confluence/commit/c6980322c457b05ce00cfe1501629657248a6647))
+* **query-engine:** add dependency-guide and app-interfaces write activities ([376223f](https://github.com/unoplat/unoplat-code-confluence/commit/376223f68a024730577a1e8938259ba97709112a))
+* **query-engine:** add markdown validation and rendering pipeline ([0d925a4](https://github.com/unoplat/unoplat-code-confluence/commit/0d925a420d98ea4058af8431ecd9fd5c897fb9a9))
+* **query-engine:** extend framework feature validation models and repository ([fff9460](https://github.com/unoplat/unoplat-code-confluence/commit/fff9460196b7b47860384d8bd49b709b0ccd821e))
+* **query-engine:** migrate to pydantic-ai Capabilities API and local backend rulesets ([4c035a0](https://github.com/unoplat/unoplat-code-confluence/commit/4c035a03e432935afd51d7ec8658f329b775148e))
+* **query-engine:** remove agents_md_updater agent and section-updater pattern ([8116b9a](https://github.com/unoplat/unoplat-code-confluence/commit/8116b9acb71c3232b0034a45fd4016c1e7318ab6))
+* **query-engine:** upgrade pydantic-ai to v1.83 and add markdown-it-py dep ([89d464a](https://github.com/unoplat/unoplat-code-confluence/commit/89d464a932a224589f2e47fd00b79566944aa2b2))
+* **temporal:** integrate AgentBackendLifecycle into worker and workflows ([8f54103](https://github.com/unoplat/unoplat-code-confluence/commit/8f54103a9125a3d987f23385d0d9f67c574789a6))
+* **update-changelog:** add changelogs for v0.32.0–v0.34.0 and update banner to v0.34.0 ([510c401](https://github.com/unoplat/unoplat-code-confluence/commit/510c4013b642ca4dc31f3e63a4c5fdfc411c2e73))
+* **update-changelog:** add changelogs for v0.32.0–v0.34.0 and update… ([c651b63](https://github.com/unoplat/unoplat-code-confluence/commit/c651b63448b59a9dd1a840d23643e8bae6944f83))
+
+
+### Bug Fixes
+
+* **agents:** remove stale command_discovery_requirements and examples from workflow prompt ([f7ffbac](https://github.com/unoplat/unoplat-code-confluence/commit/f7ffbac64ee554d05a9bdebce405b0d90fbb8a89))
+* **ci:** refresh package uv lockfiles before python lock checks run ([c1e2493](https://github.com/unoplat/unoplat-code-confluence/commit/c1e2493648873f64d48323ec8e3ca7ef56c9b58a))
+* **ci:** refresh package uv lockfiles before python lock checks run ([206c36c](https://github.com/unoplat/unoplat-code-confluence/commit/206c36c546dbc404e4ef4485034f65af3cd46d67))
+* **comments:** add build trigger ([1600174](https://github.com/unoplat/unoplat-code-confluence/commit/16001745cd8ed52bebb1418a07f4d5920a73c42c))
+* **ingestion:** add authenticated git clone for private GitHub repos ([4976bd5](https://github.com/unoplat/unoplat-code-confluence/commit/4976bd52985ebf4889e382ce9c1fbefee4a8e59d))
+* **query-engine:** fix Node.js symlink dereferencing in Docker ([db3667c](https://github.com/unoplat/unoplat-code-confluence/commit/db3667cca2fc756fcca2349b1d5f0f62c43f36af))
+* **query-engine:** update agent prompts, runners, config, and Dockerfile ([da5b82b](https://github.com/unoplat/unoplat-code-confluence/commit/da5b82b84921f5bf96e012900114aa5e7a5084bc))
+* **stale-framework-files:** remove litellm typescript framework definition ([37c2235](https://github.com/unoplat/unoplat-code-confluence/commit/37c2235cbd385a579344d1e50a5c2746bdc1704a))
+
+## [0.34.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.33.1...unoplat-code-confluence-v0.34.0) (2026-04-12)
+
+
+### Features
+
+* **add-fastmcp-client:** add mcp_client capability and FastMCP toolset_client definition ([231c64f](https://github.com/unoplat/unoplat-code-confluence/commit/231c64f705f7574247c16fc67c63a8afff211fdb))
+* **add-firebase:** add Firebase TypeScript framework definition ([9111f21](https://github.com/unoplat/unoplat-code-confluence/commit/9111f21312d2656aa0d849e79bb8b1eb0cb818f4))
+* **commons:** add capability_key and operation_key to FeatureSpec and FrameworkFeaturePayload ([5620b4d](https://github.com/unoplat/unoplat-code-confluence/commit/5620b4d069bd2a60290b7fe3e938dc871f780cd8))
+* **commons:** replace framework feature_key with structured capability_key + operation_key identity ([a2ef841](https://github.com/unoplat/unoplat-code-confluence/commit/a2ef841633ec492781d8252ac414b3842405285b))
+* **detection-schema:** introduce v4 schema with capability-operation-detector hierarchy ([9e85bd8](https://github.com/unoplat/unoplat-code-confluence/commit/9e85bd8dc173ccf44e6dc74d8a01c781f0af61cd))
+* **detection-schema:** migrate schema and definitions to v4 capability-operation hierarchy ([8941cfd](https://github.com/unoplat/unoplat-code-confluence/commit/8941cfd429cf9bf463343d29adc55440dbb58729))
+* **detection-schema:** rewrite contribution docs for v4 capability hierarchy ([62729c9](https://github.com/unoplat/unoplat-code-confluence/commit/62729c9505414d1e91cb2b17ebbe0df9120ab0ee))
+* **docs:** add hideDescription support and DIDS link rendering to docs route ([d1d09d0](https://github.com/unoplat/unoplat-code-confluence/commit/d1d09d032318886bedcc7e3c353dd8cabbadca45))
+* **docs:** update framework-feature-catalog component to render capability-operation hierarchy ([90b09d4](https://github.com/unoplat/unoplat-code-confluence/commit/90b09d4c7bd7e33d69b83c91100ad57ed2ae7e4b))
+* **flow-bridge:** flatten capability-operations into composite feature keys during ingestion ([3456139](https://github.com/unoplat/unoplat-code-confluence/commit/3456139daaa5b456d36a1d4027ef17617c033794))
+* **ingestion:** add commit SHA pinning for deterministic network test clones ([4195d1f](https://github.com/unoplat/unoplat-code-confluence/commit/4195d1fa2dcc542e86de3625f3c2c07da91bb2d5))
+* **ingestion:** adopt structured framework feature identity across detectors, loaders, and parsers ([228f9aa](https://github.com/unoplat/unoplat-code-confluence/commit/228f9aa0054b2b47ee63b26284503343c53a7c23))
+* **query-engine:** adopt structured framework feature identity and remove dead baseline service ([cdd43a1](https://github.com/unoplat/unoplat-code-confluence/commit/cdd43a119b2eb60369e494114b91e840bfe94eae))
+* **schema:** expand and rename capability family enum to canonical identifiers ([ba434f3](https://github.com/unoplat/unoplat-code-confluence/commit/ba434f3575f37d8c5d29451634f44de2654dbcf5))
+* **temporal:** add agent_assembly package with catalog, assembler, and agent definitions ([c4e0a66](https://github.com/unoplat/unoplat-code-confluence/commit/c4e0a66aecf20e2c6a4e80d192b19d5d6ac46e93))
+
+
+### Bug Fixes
+
+* **agents:** raise confidence threshold to 0.70 ([bed7dbd](https://github.com/unoplat/unoplat-code-confluence/commit/bed7dbd3a378e3c8bdfbc209625e80dfd4aa7d89))
+* **ci:** refresh package uv lockfiles before python lock checks run ([57c682b](https://github.com/unoplat/unoplat-code-confluence/commit/57c682bdfed10e9527ed88e0ca47ad4f6a47e98e))
+* **ci:** refresh package uv lockfiles before python lock checks run ([3316b2a](https://github.com/unoplat/unoplat-code-confluence/commit/3316b2a1d4339035f8370e4d8da46103388992b2))
+* **common-version-ingestion:** upgrade commons dependency to v0.47.0 ([6b722d9](https://github.com/unoplat/unoplat-code-confluence/commit/6b722d9d178b203ac5514079556773874df35549))
+* **common-version-query-engine:** upgrade commons dependency to v0.47.0 ([c7844d4](https://github.com/unoplat/unoplat-code-confluence/commit/c7844d451dca86836aa24dd7cf95714f666765cd))
+* **docs:** guard against null features in framework feature catalog ([7d9f2cd](https://github.com/unoplat/unoplat-code-confluence/commit/7d9f2cd0e43b0fc579e82fcc17075adbc0034201))
+* **docs:** resolve typecheck and build failures in docs project ([22a5ac8](https://github.com/unoplat/unoplat-code-confluence/commit/22a5ac8681b860bcef994df506b92fe5082e4676))
+* **docs:** split hash fragment into dedicated prop for TanStack Router links ([f989f91](https://github.com/unoplat/unoplat-code-confluence/commit/f989f91b24122daf8808bb8a3b21c555abcfced0))
+* **flow-bridge:** align detection and ingestion tests with v4 operation keys ([bedba7a](https://github.com/unoplat/unoplat-code-confluence/commit/bedba7a87394250f428dc9df4c94e0a2841eabce))
+* **framework-defs:** align ingestion definitions with canonical capability keys and rename litellm to lit ([86e4b8c](https://github.com/unoplat/unoplat-code-confluence/commit/86e4b8ce94fdc697d03c699cc09fe65f7f27022a))
+* **ingestion:** recover from merge conflicts during git pull in github_helper ([a484121](https://github.com/unoplat/unoplat-code-confluence/commit/a484121640bf9c6ab06d52c48226df29c5976f4d))
+* **query-engine:** add rest_api and scheduler to inbound feature mapping ([fef26e1](https://github.com/unoplat/unoplat-code-confluence/commit/fef26e1af4100ad90f4573b107c7163684af05a2))
+* **query-engine:** scope monorepo toolset to TypeScript and enforce repo-root-relative config_file paths ([18d7e95](https://github.com/unoplat/unoplat-code-confluence/commit/18d7e952720c7a1235494885029d7073f71a7916))
+* **refactor:** reorganize temporal into modular packages and update all imports ([98dd777](https://github.com/unoplat/unoplat-code-confluence/commit/98dd777e6afdada73c26d66c045d45a21de5eef3))
+* **schema:** rename grpc_server/client capability keys to rpc_server/client ([e10cb8b](https://github.com/unoplat/unoplat-code-confluence/commit/e10cb8bf344c8d0f31ffa84df7ac3a4b81b85da1))
+* **tests:** update test assertions for renamed capability keys ([83e2b31](https://github.com/unoplat/unoplat-code-confluence/commit/83e2b3121c790f01374b9c32322d0d3278af1133))
+* upgrade commons dependency to v0.47.0 (ingestion + query engine) ([3c390ef](https://github.com/unoplat/unoplat-code-confluence/commit/3c390efe5f6221da782d56d5d51600cb59360f65))
+
 ## [0.19.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.18.0...unoplat-code-confluence-v0.19.0) (2025-11-21)
 
 

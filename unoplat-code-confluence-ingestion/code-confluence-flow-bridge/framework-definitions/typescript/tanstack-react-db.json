@@ -1,0 +1,33 @@
+{
+  "typescript": {
+    "@tanstack/react-db": {
+      "docs_url": "https://tanstack.com/db/latest/docs/framework/react/overview",
+      "description": "React bindings for live queries over TanStack DB collections.",
+      "capabilities": {
+        "realtime_sync": {
+          "description": "React consumers of continuously synchronized collection state.",
+          "operations": {
+            "live_query": {
+              "description": "Consumes live collection changes with useLiveQuery.",
+              "absolute_paths": [
+                "@tanstack/react-db.useLiveQuery"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.98
+            },
+            "live_infinite_query": {
+              "description": "Consumes paginated live collection changes with useLiveInfiniteQuery.",
+              "absolute_paths": [
+                "@tanstack/react-db.useLiveInfiniteQuery"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.98
+            }
+          }
+        }
+      }
+    }
+  }
+}
