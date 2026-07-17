@@ -31,7 +31,7 @@ Reference details: see `business_logic_references.md`.
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `3bbc2c8ae5f6fc7e94628c3b07a936ca5bdbcd02` (2026-06-09). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `5ecdba39d57f50c5188a8e32b9dd4f52d01611fe` (2026-07-17). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -49,7 +49,7 @@ Reference details: see `business_logic_references.md`.
 - Not detected
 
 ### Lint
-- Not detected
+- `bunx --bun --no-install -p vite-plus vp check` (working directory: repo root; config: `vite.config.ts`)
 
 ### Type Check
 - `bun run types:check` (working directory: repo root; config: `package.json`)
@@ -68,6 +68,9 @@ See [`business_domain_references.md`](./business_domain_references.md) for the s
 
 ## App Interfaces
 See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+## Architecture
+See [`architecture.md`](./architecture.md) for the canonical system architecture diagram.
 
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->
 
