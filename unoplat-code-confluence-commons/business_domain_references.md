@@ -1,19 +1,19 @@
 # Business Domain References
 
 ## Domain Summary
-This codebase supports Code Confluence, a repository ingestion and code-intelligence platform. It centers on persisting Git repositories, codebases, workflow runs, and agent execution state while cataloging framework features, language/package-manager metadata, and detected source-code spans. It also includes supporting operational models for credentials, feature flags, and AGENTS.md PR/publication tracking.
+This package supports Code Confluence, a repository-ingestion and code-intelligence platform. It models Git repositories, codebases, source files, package metadata, framework feature definitions, and detected feature spans, alongside configurable source-query matching and confidence evidence. It also manages repository and codebase workflow runs, agent progress and events, output snapshots, credentials, feature flags, and AGENTS.md pull-request publication metadata.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/data_model_position.py`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/data_model_position.py#L8-L14`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L51-L76`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L99-L169`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L172-L218`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L221-L239`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L242-L268`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L271-L290`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L58-L99`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L135-L210`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L213-L260`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L263-L281`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L284-L310`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/engine_models.py#L313-L332`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/framework_models.py`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/framework_models.py#L32-L54`
