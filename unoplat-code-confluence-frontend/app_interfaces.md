@@ -15,7 +15,7 @@ No outbound constructs detected.
 ### key_value_store.store_definition (zustand)
 
 - `src/features/agent-feedback/store.ts`: L59: create<AgentFeedbackState>()
-- `src/features/app-feedback/store.ts`: L10: export const useAppFeedbackSheetStore = create<AppFeedbackSheetState>()( (set) => ({ isOpen: false, open: () => set({ isOpen: true }), close: () => set({ isOpen: false }), toggle: () => set((state) => ({ isOpen: !state.isOpen })), }), );
+- `src/features/app-feedback/store.ts`: L10: create<AppFeedbackSheetState>()
 - `src/stores/useAuthStore.ts`: L11: create<AuthState>()
 - `src/stores/useCommandPaletteStore.ts`: L10: create<CommandPaletteState>()
 - `src/stores/useDevModeStore.ts`: L9: create<DevModeState>()

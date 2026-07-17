@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This frontend is for an AI-powered code analysis and repository operations platform that onboards GitHub/GitLab repositories, ingests them into workflow runs, and presents generated Agent MD outputs such as engineering workflows, dependency guides, business logic summaries, and app interface scans. It also manages model-provider and tool configuration, OAuth and credential flows, and feedback capture that can turn run-specific comments into GitHub issues.
+This frontend supports a code-analysis and repository-operations platform that onboards source repositories, ingests their codebases, tracks workflow runs, and presents AI-agent outputs including engineering workflows, dependency guides, business-logic summaries, and interface scans. It also manages model and tool providers, OAuth credentials, repository-provider configuration, operational status and issue reporting, plus app and agent feedback that can be submitted as GitHub issues.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/agent-feedback/api.ts`
@@ -58,12 +58,12 @@ This frontend is for an AI-powered code analysis and repository operations platf
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L86-L88`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L94-L96`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L104-L106`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L121-L123`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L199-L201`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L124-L126`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L202-L204`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts#L10-L13`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts#L17-L26`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts#L11-L14`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts#L18-L27`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/tool-config/types.ts`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/tool-config/types.ts#L35-L37`
@@ -92,28 +92,28 @@ This frontend is for an AI-powered code analysis and repository operations platf
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-md-to-markdown.ts#L8-L10`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L52-L55`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L58-L60`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L66-L71`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L186-L191`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L416-L422`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L500-L510`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L515-L521`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L623-L625`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L627-L631`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L633-L637`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L639-L646`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L648-L651`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L728-L734`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L739-L743`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L785-L802`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L804-L807`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L809-L814`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L816-L818`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L820-L823`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L825-L830`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L832-L835`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L840-L845`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L55-L58`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L61-L63`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L69-L74`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L189-L194`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L419-L425`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L503-L513`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L518-L524`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L626-L628`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L630-L634`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L636-L640`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L642-L649`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L651-L654`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L731-L737`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L742-L746`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L788-L805`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L807-L810`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L812-L817`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L819-L821`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L823-L826`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L828-L833`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L835-L838`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api.ts#L843-L848`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api/repositories-api.ts`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/api/repositories-api.ts#L5-L10`
@@ -172,28 +172,30 @@ This frontend is for an AI-powered code analysis and repository operations platf
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L71-L78`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L80-L88`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L91-L93`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L96-L102`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L108-L117`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L119-L124`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L126-L128`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L135-L138`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L141-L145`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L151-L159`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L162-L165`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L168-L180`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L183-L185`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L190-L196`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L207-L211`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L216-L232`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L235-L242`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L245-L253`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L256-L259`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L262-L265`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L268-L270`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L273-L284`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L300-L304`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L306-L308`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L311-L316`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L96-L99`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L101-L104`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L106-L113`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L119-L128`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L130-L135`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L137-L139`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L141-L144`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L146-L149`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L152-L156`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L162-L170`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L173-L176`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L179-L191`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L194-L196`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L201-L207`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L218-L222`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L227-L243`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L246-L253`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L256-L264`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L273-L276`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L279-L281`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L284-L295`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L311-L315`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L317-L319`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L322-L327`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types/agent-events.ts`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types/agent-events.ts#L6-L12`

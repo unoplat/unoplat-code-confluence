@@ -1,20 +1,43 @@
 # Business Domain References
 
 ## Domain Summary
-This codebase is a CLI for running and maintaining the local Unoplat Code Confluence application. It manages GitHub release discovery, pins and repairs Docker Compose assets for the Flow Bridge, query engine, and frontend services, and opens browser-based setup pages for repository token and model-provider configuration.
+Unoplat Code Confluence CLI operates a locally deployed code-intelligence and documentation stack, managing versioned Docker Compose releases for the Flow Bridge, Query Engine, and frontend services. It connects Git repositories through provider credentials, refreshes workflows that generate or update AGENTS.md and raise pull requests, and verifies model-provider configuration for AI-powered analysis.
 
 ## Data Model References
-### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L27-L32`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L35-L40`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L43-L46`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L49-L53`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L56-L61`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L64-L70`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L73-L80`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L83-L97`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L100-L114`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/app_runtime.py#L117-L120`
+### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/backend/flow_bridge_client.py`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/backend/flow_bridge_client.py#L16-L20`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/backend/flow_bridge_client.py#L23-L29`
 
-### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/setup_runtime.py`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/setup_runtime.py#L11-L18`
+### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/cli_app/context.py`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/cli_app/context.py#L19-L23`
+
+### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L14-L19`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L22-L27`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L30-L33`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L36-L40`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L43-L48`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L51-L57`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L60-L67`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L70-L73`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/release.py#L76-L79`
+
+### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/repository.py`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/repository.py#L10-L72`
+
+### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L9-L18`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L21-L29`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L32-L38`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L41-L51`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L54-L66`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L69-L75`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L78-L86`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L89-L95`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/results.py#L98-L105`
+
+### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/setup.py`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/domain/setup.py#L6-L11`
+
+### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/ports/http_client.py`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/ports/http_client.py#L8-L15`
