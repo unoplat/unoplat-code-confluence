@@ -1,52 +1,55 @@
 ---
 title: Solution
-description: "Ship features atleast 2x faster with better quality by upgrading your AI coding workflow with complete, always-up-to-date app context."
+description: "Give developers and coding agents evidence-grounded workflow, dependency, business-domain, and architecture context."
 ---
 
+import { Cards, Card } from 'fumadocs-ui/components/card';
 import { Callout } from 'fumadocs-ui/components/callout';
-import { Settings, Brain, Plug, Package, GitBranch, Target, Layers, Shield, Zap } from 'lucide-react';
+import { Settings, Brain, Package, GitBranch, Target, Layers, Shield, Zap } from 'lucide-react';
 
 <Callout type="info" title="Our Mission">
-  Unoplat Code Confluence is the **context engine** for application development, organizing precise, up-to-date knowledge of your *data models*, *entry points*, *endpoints*, and more—so coding agents can deliver and maintain features **2–3x faster** with higher quality.
+  Unoplat Code Confluence is a **context engine** for application development. It turns repository evidence into concise, traceable guidance so developers and coding agents can spend less time rediscovering how an existing codebase works.
 </Callout>
 
 ## The Solution
 
-### Unoplat Code Confluence App Context
+### Four complementary outputs
 
-**`AGENTS.md`-first Context**: Auto-generates machine-readable `AGENTS.md` files *per repo* to give coding agents a **precise source of truth** which covers the following key areas:
+Unoplat Code Confluence generates `AGENTS.md` guidance and focused companion artifacts for four key areas:
 
 <Cards>
   <Card icon={<Settings />} title="Engineering Workflow">
-    Canonical **install/build/dev/test/lint/type_check** commands and key **config files** with clear purpose
+    Canonical **install**, **build**, **dev**, **test**, **lint**, and **type-check** commands grounded in repository configuration.
   </Card>
-  <Card icon={<Brain />} title="Business Logic">
-    Core application logic, **domain entities**, and **database entities**
+  <Card icon={<Package />} title="Dependency Guide">
+    A current dependency inventory with concise package-purpose context in `dependencies_overview.md`.
   </Card>
-  <Card icon={<Plug />} title="Entry Points & Interfaces">
-    Main *entry points*, **API endpoints**, and external interfaces
+  <Card icon={<Brain />} title="Business Domain">
+    A concise domain summary backed by detected data models and line-level references in `business_domain_references.md`.
   </Card>
-  <Card icon={<Package />} title="External Dependencies">
-    Roles and responsibilities of *external libraries*
+  <Card icon={<GitBranch />} title="Repository Architecture">
+    A validated repository-level diagram grounded in fresh, source-anchored application boundaries from `app_interfaces.md`.
   </Card>
 </Cards>
+
+Architecture evidence begins with framework and library operations classified by the [published DIDS capability enum](/docs/contribution/custom-framework-schema#published-capability-enum). Those detections are normalized into inbound, outbound, bidirectional, or internal constructs with source anchors in `app_interfaces.md`; architecture generation then works from the fresh interface evidence produced by the current run.
+
+See [How it works](/docs/introduction/how-it-works) for the complete evidence pipeline and the generated artifacts behind each output.
 
 ### Core Principles
 
 <Cards>
-  <Card icon={<Target />} title="Precision First">
-    **Extensible Language Support**: Modular **Tree-sitter** based grammar extraction delivers *consistent, accurate* code context across all programming languages.
-
-    [Extensible Framework-Aware Parsing](/docs/contribution/custom-framework-schema): Specialized grammar engines recognize *framework and library-specific patterns*.
+  <Card icon={<Target />} title="Structured Discovery">
+    Tree-sitter analysis and [framework-aware definitions](/docs/contribution/custom-framework-schema) identify supported language and library patterns before synthesis.
   </Card>
-  <Card icon={<Layers />} title="Context Engineering">
-    All important metadata about application—*dependencies*, *inbound/outbound interfaces*, *domain models*, and *data store models*—are identified and their relationships preserved.
+  <Card icon={<Layers />} title="Evidence-Linked Context">
+    Detected dependencies, application boundaries, and domain models retain source references where the generated artifact supports them.
   </Card>
-  <Card icon={<Shield />} title="Enterprise-Grade Scalability, Reliability and Auditability">
-    Scalable, auditable and reliable processing powered by *workflow orchestrator*.
+  <Card icon={<Shield />} title="Auditable Workflows">
+    Orchestrated generation provides granular progress and separates ownership of generated artifacts.
   </Card>
-  <Card icon={<Zap />} title="Performance as a First-Class Citizen">
-    Optimized algorithms across all aspects of *discovery*, *detection*, *ingestion* and *LLM-based insights*.
+  <Card icon={<Zap />} title="Focused Processing">
+    Targeted source spans, fresh interface anchors, incremental dependency reuse, and no-change checks reduce unnecessary repeated work.
   </Card>
 </Cards>
 
