@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This repository powers the documentation site for Unoplat Code Confluence, a code-context engine that helps AI agents understand Python and TypeScript codebases and generate AGENTS.md guidance. Its models support documentation delivery: framework and library catalog entries, searchable/filterable tables, release changelogs, site announcements, and page SEO metadata. The dominant domain is developer-product documentation and release communication for AI-assisted code understanding.
+This repository supports the documentation site for Unoplat Code Confluence, a developer tooling product for AI-assisted code understanding and AGENTS.md generation. Its models cover documentation-site operations: release changelogs, announcement banners, SEO metadata, framework catalog entries, routing, and reusable table filtering. The dominant domain is product documentation and release communication for a code-context engine serving Python and TypeScript projects.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-docs/src/components/data-table-filter/core/filters.ts`

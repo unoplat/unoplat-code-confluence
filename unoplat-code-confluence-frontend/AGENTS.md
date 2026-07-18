@@ -77,7 +77,7 @@ Before substantial work:
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `5ecdba39d57f50c5188a8e32b9dd4f52d01611fe` (2026-07-18). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `ab23412576ec6612cd5b7099ed42d497b8f4db7e` (2026-07-18). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 

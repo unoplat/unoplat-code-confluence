@@ -31,7 +31,7 @@ Reference details: see `business_logic_references.md`.
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `5ecdba39d57f50c5188a8e32b9dd4f52d01611fe` (2026-07-18). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `ab23412576ec6612cd5b7099ed42d497b8f4db7e` (2026-07-18). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -49,7 +49,7 @@ Reference details: see `business_logic_references.md`.
 - `vp test` (working directory: repo root; config: `vite.config.ts`; requires the Vite+ `vp` CLI)
 
 ### Lint
-- `vp check` (working directory: repo root; config: `vite.config.ts`; runs Vite+ validation including linting; requires the Vite+ `vp` CLI)
+- `vp check` (working directory: repo root; config: `vite.config.ts`; runs Vite+ formatting, linting, type checking, and tests; requires the Vite+ `vp` CLI)
 
 ### Type Check
 - `bun run types:check` (working directory: repo root; config: `package.json`)
