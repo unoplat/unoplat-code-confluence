@@ -62,6 +62,25 @@ def _compute_codebase_progress(
     )
 
 
+def _compute_overall_progress(
+    *,
+    codebase_progress_sum: Decimal,
+    codebase_count: int,
+    repository_activity_progress: Mapping[str, object],
+) -> Decimal:
+    """Average codebase pipelines and repository activities as top-level units."""
+    repository_values = [
+        Decimal(str(value)) for value in repository_activity_progress.values()
+    ]
+    unit_count = codebase_count + len(repository_values)
+    if unit_count == 0:
+        return ZERO_DECIMAL
+    return _quantize_percentage(
+        (codebase_progress_sum + sum(repository_values, ZERO_DECIMAL))
+        / Decimal(unit_count)
+    )
+
+
 def _normalize_completed_namespaces(completed_namespaces: Set[str]) -> list[str]:
     return sorted(completed_namespaces)
 
@@ -173,6 +192,7 @@ class RepositoryAgentSnapshotWriter:
         repository_qualified_name: str,
         repository_workflow_run_id: str,
         codebase_names: Sequence[str],
+        repository_activity_names: Sequence[str] = (),
     ) -> None:
         """Initialize snapshot and normalized progress rows for a run."""
         async with get_startup_session() as session:
@@ -185,6 +205,9 @@ class RepositoryAgentSnapshotWriter:
                 agent_md_output={
                     "repository": repository_qualified_name,
                     "codebases": {},
+                    "repository_activity_progress": {
+                        name: 0 for name in repository_activity_names
+                    },
                 },
             )
             snapshot_stmt = snapshot_stmt.on_conflict_do_nothing(
@@ -315,22 +338,6 @@ class RepositoryAgentSnapshotWriter:
 
             await session.flush()
 
-            overall_progress_stmt = select(
-                func.avg(RepositoryAgentCodebaseProgress.progress)
-            ).where(
-                RepositoryAgentCodebaseProgress.repository_owner_name == owner_name,
-                RepositoryAgentCodebaseProgress.repository_name == repo_name,
-                RepositoryAgentCodebaseProgress.repository_workflow_run_id
-                == repository_workflow_run_id,
-            )
-            overall_progress_result = await session.execute(overall_progress_stmt)
-            overall_progress_raw = overall_progress_result.scalar_one_or_none()
-            overall_progress = _quantize_percentage(
-                Decimal(overall_progress_raw)
-                if overall_progress_raw is not None
-                else ZERO_DECIMAL
-            )
-
             snapshot_stmt = (
                 select(RepositoryAgentMdSnapshot)
                 .where(
@@ -357,11 +364,94 @@ class RepositoryAgentSnapshotWriter:
                     f"run_id={repository_workflow_run_id}"
                 )
 
-            snapshot.overall_progress = overall_progress
+            activities = dict(
+                snapshot.agent_md_output.get("repository_activity_progress", {})
+            )
+            codebase_count_result = await session.execute(
+                select(func.count()).select_from(RepositoryAgentCodebaseProgress).where(
+                    RepositoryAgentCodebaseProgress.repository_owner_name == owner_name,
+                    RepositoryAgentCodebaseProgress.repository_name == repo_name,
+                    RepositoryAgentCodebaseProgress.repository_workflow_run_id
+                    == repository_workflow_run_id,
+                )
+            )
+            codebase_count = int(codebase_count_result.scalar_one())
+            codebase_sum_result = await session.execute(
+                select(func.sum(RepositoryAgentCodebaseProgress.progress)).where(
+                    RepositoryAgentCodebaseProgress.repository_owner_name == owner_name,
+                    RepositoryAgentCodebaseProgress.repository_name == repo_name,
+                    RepositoryAgentCodebaseProgress.repository_workflow_run_id
+                    == repository_workflow_run_id,
+                )
+            )
+            snapshot.overall_progress = _compute_overall_progress(
+                codebase_progress_sum=Decimal(
+                    codebase_sum_result.scalar_one_or_none() or 0
+                ),
+                codebase_count=codebase_count,
+                repository_activity_progress=activities,
+            )
             snapshot.latest_event_at = event_timestamp
             snapshot.modified_at = event_timestamp
 
             return allocated_event_id
+
+    async def complete_repository_activity(
+        self,
+        *,
+        owner_name: str,
+        repo_name: str,
+        repository_workflow_run_id: str,
+        activity_name: str,
+    ) -> None:
+        """Atomically complete a named repository progress unit and recalculate total."""
+        async with get_startup_session() as session:
+            snapshot_result = await session.execute(
+                select(RepositoryAgentMdSnapshot)
+                .where(
+                    RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
+                    RepositoryAgentMdSnapshot.repository_name == repo_name,
+                    RepositoryAgentMdSnapshot.repository_workflow_run_id
+                    == repository_workflow_run_id,
+                )
+                .with_for_update()
+            )
+            snapshot = snapshot_result.scalar_one()
+            output = dict(snapshot.agent_md_output)
+            activities = dict(output.get("repository_activity_progress", {}))
+            if activity_name not in activities:
+                raise ValueError(
+                    f"Repository activity was not initialized: {activity_name}"
+                )
+            activities[activity_name] = 100
+            output["repository_activity_progress"] = activities
+            snapshot.agent_md_output = output
+
+            codebase_sum_result = await session.execute(
+                select(func.sum(RepositoryAgentCodebaseProgress.progress)).where(
+                    RepositoryAgentCodebaseProgress.repository_owner_name == owner_name,
+                    RepositoryAgentCodebaseProgress.repository_name == repo_name,
+                    RepositoryAgentCodebaseProgress.repository_workflow_run_id
+                    == repository_workflow_run_id,
+                )
+            )
+            codebase_rows = await session.execute(
+                select(func.count()).select_from(RepositoryAgentCodebaseProgress).where(
+                    RepositoryAgentCodebaseProgress.repository_owner_name == owner_name,
+                    RepositoryAgentCodebaseProgress.repository_name == repo_name,
+                    RepositoryAgentCodebaseProgress.repository_workflow_run_id
+                    == repository_workflow_run_id,
+                )
+            )
+            count = int(codebase_rows.scalar_one())
+            snapshot.overall_progress = _compute_overall_progress(
+                codebase_progress_sum=Decimal(
+                    codebase_sum_result.scalar_one_or_none() or 0
+                ),
+                codebase_count=count,
+                repository_activity_progress=activities,
+            )
+            snapshot.modified_at = datetime.now(timezone.utc)
 
     async def patch_codebase_output(
         self,

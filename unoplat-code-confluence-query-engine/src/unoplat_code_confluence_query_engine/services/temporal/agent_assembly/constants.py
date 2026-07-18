@@ -39,6 +39,10 @@ CALL_EXPRESSION_VALIDATOR_EVIDENCE_FIELDS: tuple[str, ...] = (
 DEPENDENCY_OVERVIEW_ARTIFACT = "dependencies_overview.md"
 BUSINESS_DOMAIN_REFERENCES_ARTIFACT = "business_domain_references.md"
 APP_INTERFACES_ARTIFACT = "app_interfaces.md"
+ARCHITECTURE_ARTIFACT = "architecture.md"
+
+ARCHITECTURE_CONSOLE_TOOLSET_ID = "console__architecture"
+ARCHITECTURE_SKILL_TOOLSET_ID = "skills__architecture"
 
 BUSINESS_DOMAIN_CONSOLE_TOOLSET_ID = "console__business_domain_guide"
 DEPENDENCY_GUIDE_CONSOLE_TOOLSET_ID = "console__dependency_guide"

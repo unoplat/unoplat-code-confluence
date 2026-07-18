@@ -24,6 +24,7 @@ SECTION_HEADINGS: list[str] = [
     "## Dependency Guide",
     BUSINESS_DOMAIN_SECTION,
     "## App Interfaces",
+    "## Architecture",
 ]
 
 _SECTION_POINTER_TEMPLATES: dict[str, str] = {
@@ -34,6 +35,10 @@ _SECTION_POINTER_TEMPLATES: dict[str, str] = {
     "## App Interfaces": (
         "See [`app_interfaces.md`](./app_interfaces.md) "
         "for the canonical interface and endpoint reference."
+    ),
+    "## Architecture": (
+        "See [`architecture.md`](./architecture.md) "
+        "for the canonical system architecture diagram."
     ),
 }
 

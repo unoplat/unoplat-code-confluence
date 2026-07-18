@@ -27,6 +27,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app/src \
     MCP_SERVERS_CONFIG_PATH=/app/mcp-servers.json \
     BUN_INSTALL=/usr/local \
+    PUPPETEER_SKIP_DOWNLOAD=true \
     COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 RUN apt-get update && \
@@ -35,7 +36,10 @@ RUN apt-get update && \
         build-essential \
         ca-certificates \
         curl \
+        chromium \
         eza \
+        fonts-liberation \
+        fonts-noto-color-emoji \
         git \
         gnupg \
         ripgrep \
@@ -55,7 +59,9 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/* && \
-    corepack enable
+    corepack enable && \
+    npm install --global @mermaid-js/mermaid-cli@11.16.0 && \
+    mmdc --version
 
 # Bun via the upstream installer. BUN_INSTALL=/usr/local lands the binaries
 # at /usr/local/bin/bun and /usr/local/bin/bunx.

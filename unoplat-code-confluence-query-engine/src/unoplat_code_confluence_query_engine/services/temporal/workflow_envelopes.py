@@ -9,6 +9,31 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
+    CodebaseMetadata,
+)
+from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
+    UsageStatistics,
+)
+
+ARCHITECTURE_REPOSITORY_ACTIVITY = "architecture"
+REPOSITORY_ACTIVITY_NAMES: tuple[str, ...] = (ARCHITECTURE_REPOSITORY_ACTIVITY,)
+
+
+class ArchitectureEvidenceSummary(BaseModel):
+    """Fresh Architecture evidence produced by a successful codebase child."""
+
+    codebase_metadata: CodebaseMetadata
+    app_interfaces_generated: bool
+    has_external_boundary: bool
+
+
+class CodebaseAgentWorkflowResult(BaseModel):
+    """Successful codebase child result consumed by the repository parent."""
+
+    statistics: UsageStatistics
+    architecture_evidence: ArchitectureEvidenceSummary
+
 
 class AgentSnapshotCodebasePatchEnvelope(BaseModel):
     """Envelope for atomically patching one codebase in agent_md_output."""
@@ -43,12 +68,25 @@ class AgentSnapshotBeginRunEnvelope(BaseModel):
         default_factory=list,
         description="Codebase names to initialize progress tracking for",
     )
+    repository_activity_names: list[str] = Field(
+        default_factory=list,
+        description="Repository-level activity names to initialize",
+    )
     model_config = ConfigDict(extra="allow")
 
     @property
     def extras(self) -> dict[str, Any]:
         """Return any extra fields passed to the model (required for Temporal)."""
         return dict(self.model_extra or {})
+
+
+class RepositoryActivityCompletionEnvelope(BaseModel):
+    """Mark one initialized repository-level activity complete."""
+
+    owner_name: str
+    repo_name: str
+    repository_workflow_run_id: str
+    activity_name: str
 
 
 class AgentSnapshotCompleteEnvelope(BaseModel):

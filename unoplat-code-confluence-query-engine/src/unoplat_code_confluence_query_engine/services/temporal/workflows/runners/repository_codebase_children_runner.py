@@ -1,9 +1,15 @@
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
 
 from temporalio import workflow
-from temporalio.workflow import ParentClosePolicy
+from temporalio.workflow import ChildWorkflowHandle, ParentClosePolicy
+
+if TYPE_CHECKING:
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.codebase_agent_workflow import (
+        CodebaseAgentWorkflow,
+    )
 
 with workflow.unsafe.imports_passed_through():
     import asyncio
@@ -22,18 +28,34 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.utils import (
         raise_if_temporal_cancellation,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
+        ArchitectureEvidenceSummary,
+        CodebaseAgentWorkflowResult,
+    )
 
 
 async def start_codebase_child_workflows(
-    codebase_workflow_run: Any,
+    codebase_workflow_run: Callable[..., Awaitable[CodebaseAgentWorkflowResult]],
     repository_qualified_name: str,
     codebase_metadata_list: list[dict[str, Any]],
     repository_workflow_run_id: str,
     trace_id: str,
     git_ref_info: GitRefInfo | None,
-) -> list[tuple[str, Any]]:
-    """Start all codebase child workflows and return their handles."""
-    child_handles: list[tuple[str, Any]] = []
+) -> list[
+    tuple[
+        str,
+        ChildWorkflowHandle["CodebaseAgentWorkflow", CodebaseAgentWorkflowResult],
+    ]
+]:
+    """Start all codebase child workflows and return their typed handles."""
+    child_handles: list[
+        tuple[
+            str,
+            ChildWorkflowHandle[
+                "CodebaseAgentWorkflow", CodebaseAgentWorkflowResult
+            ],
+        ]
+    ] = []
 
     for idx, codebase_dict in enumerate(codebase_metadata_list):
         codebase_name = codebase_dict.get("codebase_name", "unknown")
@@ -67,16 +89,26 @@ async def start_codebase_child_workflows(
 
 async def collect_codebase_child_results(
     repository_qualified_name: str,
-    child_handles: list[tuple[str, Any]],
+    child_handles: list[
+        tuple[
+            str,
+            ChildWorkflowHandle[
+                "CodebaseAgentWorkflow", CodebaseAgentWorkflowResult
+            ],
+        ]
+    ],
     codebase_statistics_map: dict[str, UsageStatistics],
-) -> list[dict[str, str]]:
-    """Collect child workflow results, recording partial failures and statistics."""
-    results_list: list[dict[str, Any] | BaseException] = await asyncio.gather(
-        *[handle for _, handle in child_handles],
-        return_exceptions=True,
+) -> tuple[list[dict[str, str]], list[ArchitectureEvidenceSummary]]:
+    """Collect child results, including only successful current Architecture evidence."""
+    results_list: list[CodebaseAgentWorkflowResult | BaseException] = (
+        await asyncio.gather(
+            *[handle for _, handle in child_handles],
+            return_exceptions=True,
+        )
     )
 
     child_errors: list[dict[str, str]] = []
+    successful_evidence: list[ArchitectureEvidenceSummary] = []
 
     for (codebase_name, _), result in zip(child_handles, results_list):
         if isinstance(result, BaseException):
@@ -96,16 +128,12 @@ async def collect_codebase_child_results(
             codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
         else:
             logger.debug("[workflow] Child workflow completed for {}", codebase_name)
-            if result:
-                codebase_statistics_map[codebase_name] = UsageStatistics.model_validate(
-                    result
-                )
-            else:
-                codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
+            codebase_statistics_map[codebase_name] = result.statistics
+            successful_evidence.append(result.architecture_evidence)
 
     logger.info(
         "[workflow] RepositoryAgentWorkflow processed {} codebases for {}",
         len(child_handles),
         repository_qualified_name,
     )
-    return child_errors
+    return child_errors, successful_evidence

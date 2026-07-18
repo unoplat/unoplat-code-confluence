@@ -8,6 +8,9 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
+    from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
+        Interfaces,
+    )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
     )
@@ -47,8 +50,8 @@ async def run_app_interfaces_agent(
     programming_language_metadata: dict[str, object],
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
-) -> None:
-    """Build app interfaces and render the canonical reference file when supported."""
+) -> Interfaces | None:
+    """Build, render, and return app interfaces when the language is supported."""
     _ = programming_language_metadata
 
     if not is_app_interfaces_supported(codebase_metadata.codebase_programming_language):
@@ -130,6 +133,7 @@ async def run_app_interfaces_agent(
             "[workflow] app_interfaces_agent completed for {}",
             codebase_metadata.codebase_name,
         )
+        return app_interfaces_result
     except Exception as e:
         raise_if_temporal_cancellation(e)
         logger.error(
@@ -151,3 +155,4 @@ async def run_app_interfaces_agent(
             codebase_metadata.codebase_name,
         )
         agent_errors.append(app_interfaces_error)
+        return None

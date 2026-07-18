@@ -171,8 +171,8 @@ class EnvironmentSettings(BaseSettings):
         alias="ENABLED_AGENTS",
         description=(
             "Comma-separated list of agent types to enable. "
-            "Valid values: development_workflow_guide, dependency_guide, "
-            "business_domain_guide, call_expression_validator. "
+            "Valid values: architecture, development_workflow_guide, "
+            "dependency_guide, business_domain_guide, call_expression_validator. "
             "Empty string means all agents are enabled."
         ),
     )
