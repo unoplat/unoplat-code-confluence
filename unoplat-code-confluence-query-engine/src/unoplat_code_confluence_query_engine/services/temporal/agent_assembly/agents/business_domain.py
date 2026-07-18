@@ -39,7 +39,7 @@ def configure_business_domain_agent(
 
 def build_business_domain_agent(
     context: AgentAssemblyContext,
-) -> AgentBuildResult[str]:
+) -> AgentBuildResult[AgentDependencies, str]:
     function_tools: list[Tool[AgentDependencies]] = [
         build_get_data_model_files_tool(),
     ]
@@ -55,14 +55,15 @@ def build_business_domain_agent(
         tools=tuple(function_tools),
         capabilities=[console_capability],
         output_type=str,
-        output_retries=3,
+        retries={"output": 3},
+        end_strategy="early",
         model_settings=context.model_settings,
-        event_stream_handler=event_stream_handler,
     )
     configure_business_domain_agent(agent, context)
 
     return AgentBuildResult(
         agent=agent,
         function_tool_names=tuple(tool.name for tool in function_tools),
+        event_stream_handler=event_stream_handler,
         toolset_ids=(BUSINESS_DOMAIN_CONSOLE_TOOLSET_ID,),
     )

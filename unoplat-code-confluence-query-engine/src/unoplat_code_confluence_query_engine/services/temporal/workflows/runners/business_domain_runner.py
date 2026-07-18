@@ -105,7 +105,7 @@ async def run_business_domain_agent(
             "[workflow] business_domain_guide completed for {}",
             codebase_metadata.codebase_name,
         )
-        agent_stats.append(extract_usage_statistics(domain_result.usage()))
+        agent_stats.append(extract_usage_statistics(domain_result.usage))
 
         logger.debug(
             "[workflow] business_domain_guide directly owns AGENTS.md / ## Business Domain / ### Description; "

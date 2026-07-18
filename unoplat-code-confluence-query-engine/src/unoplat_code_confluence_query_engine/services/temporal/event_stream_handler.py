@@ -121,7 +121,7 @@ def _extract_tool_args(event: AgentStreamEvent) -> dict[str, Any] | None:
 
 def _render_tool_result_content(event: FunctionToolResultEvent) -> str:
     """Render a PydanticAI tool result using its model-facing API."""
-    result = event.result
+    result = event.part
     if isinstance(result, ToolReturnPart):
         return result.model_response_str()
     if isinstance(result, RetryPromptPart):

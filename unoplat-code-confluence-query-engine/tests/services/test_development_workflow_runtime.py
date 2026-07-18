@@ -171,7 +171,7 @@ def _build_development_workflow_test_agent(
         model,
         deps_type=AgentDependencies,
         output_type=EngineeringWorkflowAgentOutput,
-        output_retries=1,
+        retries={"output": 1},
     )
     agent.output_validator(validate_engineering_development_workflow_output)
     return agent
@@ -253,7 +253,7 @@ async def test_development_workflow_agent_accepts_bare_text_full_output_without_
         model,
         deps_type=AgentDependencies,
         output_type=PromptedOutput(EngineeringWorkflowAgentOutput),
-        output_retries=1,
+        retries={"output": 1},
     )
     agent.output_validator(validate_engineering_development_workflow_output)
 

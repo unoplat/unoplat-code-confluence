@@ -21,7 +21,7 @@ def compact_temporal_agent_history(messages: list[ModelMessage]) -> list[ModelMe
     activity input, creating O(n²) Temporal history growth.
 
     This processor is intentionally pure and deterministic because it runs in
-    Temporal workflow context via PydanticAI's HistoryProcessor capability.
+    Temporal workflow context via PydanticAI's ProcessHistory capability.
     """
     latest_request_index = _latest_message_index(messages, ModelRequest)
     latest_response_index = _latest_message_index(messages, ModelResponse)

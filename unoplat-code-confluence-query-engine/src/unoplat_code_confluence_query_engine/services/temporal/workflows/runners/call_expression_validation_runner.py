@@ -94,7 +94,7 @@ async def run_call_expression_validation(
                 usage_limits=get_cached_usage_limits(),
                 metadata=build_agent_run_metadata(validator_deps),
             )
-            agent_stats.append(extract_usage_statistics(validator_result.usage()))
+            agent_stats.append(extract_usage_statistics(validator_result.usage))
         except Exception as validator_error:
             raise_if_temporal_cancellation(validator_error)
             logger.error(

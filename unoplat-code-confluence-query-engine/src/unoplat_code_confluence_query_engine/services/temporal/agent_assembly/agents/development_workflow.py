@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic_ai import Agent
-from pydantic_ai.capabilities import AbstractCapability, HistoryProcessor
+from pydantic_ai.capabilities import AbstractCapability, ProcessHistory
 from pydantic_ai.toolsets.abstract import AbstractToolset
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
@@ -66,7 +66,7 @@ def configure_engineering_workflow_agent(
 
 def build_development_workflow_agent(
     context: AgentAssemblyContext,
-) -> AgentBuildResult[EngineeringWorkflowAgentOutput]:
+) -> AgentBuildResult[AgentDependencies, EngineeringWorkflowAgentOutput]:
     console_capability = build_markdown_execute_console_capability(
         DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID
     )
@@ -87,7 +87,7 @@ def build_development_workflow_agent(
     )
     capabilities: list[AbstractCapability[AgentDependencies]] = [
         console_capability,
-        HistoryProcessor(compact_temporal_agent_history),
+        ProcessHistory(compact_temporal_agent_history),
     ]
     if search_capability is not None:
         capabilities.append(search_capability)
@@ -111,15 +111,16 @@ def build_development_workflow_agent(
         toolsets=tuple(toolsets),
         capabilities=capabilities,
         output_type=EngineeringWorkflowAgentOutput,
-        output_retries=2,
+        retries={"output": 2},
+        end_strategy="early",
         model_settings=context.model_settings,
-        event_stream_handler=event_stream_handler,
     )
     configure_engineering_workflow_agent(agent, context)
 
     return AgentBuildResult(
         agent=agent,
         function_tool_names=(),
+        event_stream_handler=event_stream_handler,
         toolset_ids=(
             DEVELOPMENT_WORKFLOW_CONSOLE_TOOLSET_ID,
             DEVELOPMENT_WORKFLOW_LOCAL_WEB_SEARCH_TOOLSET_ID,
