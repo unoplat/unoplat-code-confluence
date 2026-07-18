@@ -35,6 +35,7 @@ def build_development_workflow_instructions() -> str:
         "Forbidden edits:\n"
         "- any other AGENTS.md heading or section content\n"
         "- any non-markdown file\n"
+        "- creating, editing, moving, or deleting repository-root `architecture.md`\n"
         "- dependencies_overview.md, business_domain_references.md, app_interfaces.md, or any source/config file\n"
         "If ## Engineering Workflow is already complete and correct before this run modifies anything, do not rewrite it. Whether you may return status=no_change will be conveyed by the user for this run.\n"
         "Use this exact section shape:\n"

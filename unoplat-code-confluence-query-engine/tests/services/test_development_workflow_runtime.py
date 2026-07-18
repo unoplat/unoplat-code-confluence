@@ -146,6 +146,9 @@ See [`business_domain_references.md`](./business_domain_references.md) for the s
 ## App Interfaces
 See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
 
+## Architecture
+See [`architecture.md`](./architecture.md) for the canonical system architecture diagram.
+
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->
 """
 
@@ -171,7 +174,7 @@ def _build_development_workflow_test_agent(
         model,
         deps_type=AgentDependencies,
         output_type=EngineeringWorkflowAgentOutput,
-        output_retries=1,
+        retries={"output": 1},
     )
     agent.output_validator(validate_engineering_development_workflow_output)
     return agent
@@ -253,7 +256,7 @@ async def test_development_workflow_agent_accepts_bare_text_full_output_without_
         model,
         deps_type=AgentDependencies,
         output_type=PromptedOutput(EngineeringWorkflowAgentOutput),
-        output_retries=1,
+        retries={"output": 1},
     )
     agent.output_validator(validate_engineering_development_workflow_output)
 
@@ -293,7 +296,9 @@ async def test_development_workflow_agent_retries_no_change_with_commands(
     agent = _build_development_workflow_test_agent(model)
 
     with capture_run_messages() as messages:
-        with pytest.raises(UnexpectedModelBehavior, match="Exceeded maximum retries"):
+        with pytest.raises(
+            UnexpectedModelBehavior, match=r"Exceeded maximum (output )?retries"
+        ):
             await agent.run(
                 build_development_workflow_prompt(
                     codebase_path=str(tmp_path),
@@ -323,7 +328,9 @@ async def test_development_workflow_agent_retries_no_change_without_previous_sna
     agent = _build_development_workflow_test_agent(model)
 
     with capture_run_messages() as messages:
-        with pytest.raises(UnexpectedModelBehavior, match="Exceeded maximum retries"):
+        with pytest.raises(
+            UnexpectedModelBehavior, match=r"Exceeded maximum (output )?retries"
+        ):
             await agent.run(
                 build_development_workflow_prompt(
                     codebase_path=str(tmp_path),

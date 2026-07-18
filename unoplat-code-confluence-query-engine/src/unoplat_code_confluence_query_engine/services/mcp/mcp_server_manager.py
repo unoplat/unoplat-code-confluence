@@ -1,7 +1,7 @@
 """
 MCP Server Manager Service
 
-Manages MCP servers using FastMCPToolset for local/remote transports.
+Manages MCP servers using MCPToolset for local/remote transports.
 """
 
 import json
@@ -9,9 +9,14 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
+from fastmcp.client.transports import (
+    SSETransport,
+    StdioTransport,
+    StreamableHttpTransport,
+)
 from loguru import logger
+from pydantic_ai.mcp import MCPToolset
 from pydantic_ai.toolsets.abstract import AbstractToolset
-from pydantic_ai.toolsets.fastmcp import FastMCPToolset
 
 from unoplat_code_confluence_query_engine.models.config.mcp_config import (
     LocalMCPServerConfig,
@@ -95,7 +100,7 @@ class MCPServerManager:
         *,
         id_override: str | None = None,
     ) -> AbstractToolset[Any]:
-        """Create a local MCP server toolset via FastMCPToolset."""
+        """Create a local MCP server toolset via a stdio MCP transport."""
         if not config.command:
             raise ValueError(f"Command is required for local server {name}")
 
@@ -109,20 +114,17 @@ class MCPServerManager:
         id_value = id_override or name
 
         try:
-            # Build a FastMCP-compatible MCP config.
-            stdio_config: dict[str, Any] = {
-                "command": config.command[0],
-                "args": config.command[1:] + config.args,
-                "transport": "stdio",
-                "timeout": config.timeout,
-            }
-            if config.environment:
-                stdio_config["env"] = config.environment
-            if config.cwd:
-                stdio_config["cwd"] = config.cwd
-
-            mcp_config = {"mcpServers": {name: stdio_config}}
-            toolset: AbstractToolset[Any] = FastMCPToolset(mcp_config, id=id_value)
+            transport = StdioTransport(
+                command=config.command[0],
+                args=[*config.command[1:], *config.args],
+                env=config.environment or None,
+                cwd=config.cwd,
+            )
+            toolset: AbstractToolset[Any] = MCPToolset(
+                transport,
+                id=id_value,
+                init_timeout=config.timeout,
+            )
 
             # Apply tool prefix only when explicitly configured.
             if tool_prefix:
@@ -155,7 +157,7 @@ class MCPServerManager:
         *,
         id_override: str | None = None,
     ) -> AbstractToolset[Any]:
-        """Create a remote MCP server toolset via FastMCPToolset."""
+        """Create a remote MCP server toolset via its configured transport."""
         logger.debug(
             "Creating remote MCP toolset '{}' with URL: {} (protocol: {})",
             name,
@@ -169,23 +171,16 @@ class MCPServerManager:
         id_value = id_override or name
 
         try:
-            # Map protocol to FastMCP transport naming.
             transport = (
-                "streamable-http"
+                StreamableHttpTransport(config.url, headers=config.headers)
                 if config.protocol == MCPServerProtocol.HTTP
-                else "sse"
+                else SSETransport(config.url, headers=config.headers)
             )
-
-            remote_config: dict[str, Any] = {
-                "url": config.url,
-                "transport": transport,
-                "timeout": config.timeout,
-            }
-            if config.headers:
-                remote_config["headers"] = config.headers
-
-            mcp_config = {"mcpServers": {name: remote_config}}
-            toolset: AbstractToolset[Any] = FastMCPToolset(mcp_config, id=id_value)
+            toolset: AbstractToolset[Any] = MCPToolset(
+                transport,
+                id=id_value,
+                init_timeout=config.timeout,
+            )
 
             # Apply tool prefix only when explicitly configured.
             if tool_prefix:

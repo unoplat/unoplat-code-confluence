@@ -19,7 +19,7 @@ def extract_usage_statistics(run_usage: RunUsage) -> UsageStatistics:
     """Extract UsageStatistics from pydantic-ai RunUsage object.
 
     Args:
-        run_usage: The RunUsage object from AgentRunResult.usage()
+        run_usage: The RunUsage object from the AgentRunResult.usage property
 
     Returns:
         UsageStatistics with all token counts and metrics extracted

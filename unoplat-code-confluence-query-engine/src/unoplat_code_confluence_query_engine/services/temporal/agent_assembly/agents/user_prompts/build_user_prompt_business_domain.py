@@ -32,6 +32,7 @@ Forbidden edits:
 - Do NOT edit any other AGENTS.md heading or content outside ## Business Domain / ### Description.
 - Do NOT change managed block markers, <CRITICAL_INSTRUCTION>, freshness metadata, or section heading order.
 - Do NOT edit or create business_domain_references.md; that file is rendered deterministically after your run.
+- Do NOT create, edit, move, or delete repository-root `architecture.md`.
 - Do NOT edit dependencies_overview.md, app_interfaces.md, source files, config files, or any non-markdown file.
 
 AGENTS.md subsection content requirements:

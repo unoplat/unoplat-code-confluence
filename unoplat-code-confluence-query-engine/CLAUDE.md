@@ -1,6 +1,6 @@
 ## Agent Context
 
-Also read `AGENTS.md` in this directory for engineering workflow, business logic domain map, and app interface inventory. Dependency details live in `dependencies_overview.md`, and companion files `business_logic_references.md` and `app_interfaces.md` provide detailed module and endpoint references.
+Also read `AGENTS.md` in this directory for engineering workflow, business logic domain map, app interface inventory, and architecture guidance. Dependency details live in `dependencies_overview.md`; `business_logic_references.md` and `app_interfaces.md` provide detailed module and endpoint references, and `architecture.md` contains the current validated Mermaid architecture diagram when external interfaces are detected.
 
 <CRITICAL_INSTRUCTION>
 

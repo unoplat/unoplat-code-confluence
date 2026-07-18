@@ -9,11 +9,18 @@ Supports local-console profiles for:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
+from pydantic_ai.exceptions import SkipToolExecution
+from pydantic_ai.messages import ToolCallPart
+from pydantic_ai.tools import RunContext, ToolDefinition
 from pydantic_ai_backends import OperationPermissions, PermissionRule, PermissionRuleset
 from pydantic_ai_backends.capability import ConsoleCapability
-from pydantic_ai_backends.permissions.checker import PermissionChecker
+from pydantic_ai_backends.permissions.checker import (
+    PermissionChecker,
+    PermissionDeniedError,
+)
 from pydantic_ai_backends.permissions.presets import (
     DANGEROUS_COMMANDS,
     SECRETS_PATTERNS,
@@ -160,6 +167,13 @@ COMMAND_DISCOVERY_ALLOW_PATTERNS: list[str] = [
     "** help **",
 ]
 
+ARCHITECTURE_ARTIFACT = "architecture.md"
+ARCHITECTURE_VALIDATION_COMMAND = (
+    "mmdc --input architecture.md "
+    "--output /tmp/unoplat-architecture-validation-$$.svg "
+    "--puppeteerConfigFile /app/puppeteer-config.json --quiet"
+)
+
 CONSOLE_TOOL_MAX_RETRIES: int = 3
 
 
@@ -284,6 +298,69 @@ MARKDOWN_READ_WRITE_EXECUTE_RULESET = PermissionRuleset(
 )
 
 
+def build_architecture_console_ruleset(
+    architecture_path: str = f"**/{ARCHITECTURE_ARTIFACT}",
+) -> PermissionRuleset:
+    """Build Architecture permissions scoped to one artifact and Mermaid CLI.
+
+    The console capability uses the default recursive artifact pattern because it
+    is assembled before codebase metadata is available. Backend resolution grants
+    access only within the resolved repository boundary.
+    """
+    # `create_console_toolset` hides write/edit/execute tools when the
+    # operation default is "deny". Using default="allow" keeps those tools
+    # registered without marking them requires_approval (which default="ask"
+    # does). Approval-required tools become DeferredToolRequests, and the
+    # Architecture agent only accepts str output, so "ask" aborts the run on
+    # the first write. Explicit allow rules plus a catch-all deny preserve
+    # deny-by-default safety with first-match-wins evaluation.
+    artifact_permissions = OperationPermissions(
+        default="allow",
+        rules=[
+            PermissionRule(
+                pattern=architecture_path,
+                action="allow",
+                description="Allow only the repository-root architecture artifact",
+            ),
+            PermissionRule(
+                pattern="**",
+                action="deny",
+                description="Deny all non-architecture artifact paths",
+            ),
+        ],
+    )
+    return PermissionRuleset(
+        default="allow",
+        read=_read_permissions(),
+        write=artifact_permissions,
+        edit=artifact_permissions,
+        # Allow rules must precede the catch-all deny because
+        # PermissionChecker uses first-match-wins semantics. The permission
+        # patterns use glob syntax: one rule covers the bare executable and the
+        # other covers any mmdc arguments.
+        execute=OperationPermissions(
+            default="allow",
+            rules=[
+                *_allow_rules(
+                    ["mmdc", "mmdc **"],
+                    "Allow Mermaid CLI help, version, and render commands",
+                ),
+                PermissionRule(
+                    pattern="**",
+                    action="deny",
+                    description="Deny all non-mmdc commands",
+                ),
+            ],
+        ),
+        glob=OperationPermissions(default="allow"),
+        grep=OperationPermissions(default="allow"),
+        ls=OperationPermissions(default="allow"),
+    )
+
+
+ARCHITECTURE_CONSOLE_RULESET = build_architecture_console_ruleset()
+
+
 GLOB_RELATIVE_DESCRIPTION = (
     f"{GLOB_DESCRIPTION}\n\n"
     "IMPORTANT: The `pattern` argument MUST be relative. Never start it with `/`. "
@@ -323,6 +400,23 @@ MARKDOWN_ONLY_TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
 }
 
+ARCHITECTURE_TOOL_DESCRIPTIONS: dict[str, str] = {
+    **COMMON_TOOL_DESCRIPTIONS,
+    "write_file": (
+        f"{WRITE_FILE_DESCRIPTION}\n\n"
+        "This agent may write only repository-root `architecture.md`. All other files are denied."
+    ),
+    "edit_file": (
+        f"{EDIT_FILE_DESCRIPTION}\n\n"
+        "This agent may edit only repository-root `architecture.md`. All other files are denied."
+    ),
+    "execute": (
+        "Execute Mermaid CLI from the repository root. Only the `mmdc` executable is "
+        "permitted, including help, version, and render invocations; unrelated "
+        "executables are denied."
+    ),
+}
+
 
 @dataclass
 class LocalConsoleCapability(ConsoleCapability):
@@ -330,6 +424,7 @@ class LocalConsoleCapability(ConsoleCapability):
 
     toolset_id: str = ""
     descriptions: dict[str, str] | None = None
+    visible_despite_wildcard_denial: frozenset[str] = field(default_factory=frozenset)
 
     def __post_init__(self) -> None:
         if not self.toolset_id:
@@ -340,6 +435,7 @@ class LocalConsoleCapability(ConsoleCapability):
         self._toolset = create_console_toolset(
             id=self.toolset_id,
             include_execute=self.include_execute,
+            include_background=False,
             edit_format=self.edit_format,
             descriptions=self.descriptions,
             permissions=self.permissions,
@@ -350,6 +446,54 @@ class LocalConsoleCapability(ConsoleCapability):
             ask_fallback="deny",
         )
 
+    async def before_tool_execute(
+        self,
+        ctx: RunContext[Any],
+        *,
+        call: ToolCallPart,
+        tool_def: ToolDefinition,
+        args: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Return a safe tool result when the permission policy blocks a call."""
+        try:
+            return await super().before_tool_execute(
+                ctx,
+                call=call,
+                tool_def=tool_def,
+                args=args,
+            )
+        except PermissionDeniedError as error:
+            raise SkipToolExecution(
+                "Access is blocked by safety policy: "
+                f"{error}. Do not retry this exact path or command; "
+                "continue using allowed evidence."
+            ) from error
+
+    async def prepare_tools(
+        self,
+        ctx: RunContext[Any],
+        tool_defs: list[ToolDefinition],
+    ) -> list[ToolDefinition]:
+        """Keep explicitly scoped tools visible despite wildcard preflight denial.
+
+        ``ConsoleCapability`` tests each operation against ``*`` before exposing
+        it. A scoped ruleset intentionally denies that wildcard through its final
+        catch-all rule even though it permits a concrete artifact path or command.
+        The actual call remains protected by ``before_tool_execute``, which checks
+        the supplied path/command and converts a denial to ``SkipToolExecution``.
+        """
+        prepared = await super().prepare_tools(ctx, tool_defs)
+        if not self.visible_despite_wildcard_denial:
+            return prepared
+
+        prepared_names = {tool.name for tool in prepared}
+        return [
+            tool
+            for tool in tool_defs
+            if tool.name in prepared_names
+            or tool.name in self.visible_despite_wildcard_denial
+        ]
+
 
 def build_local_console_capability(
     *,
@@ -357,6 +501,7 @@ def build_local_console_capability(
     include_execute: bool,
     permissions: PermissionRuleset,
     descriptions: dict[str, str] | None = None,
+    visible_despite_wildcard_denial: frozenset[str] = frozenset(),
 ) -> LocalConsoleCapability:
     """Create a local console capability with explicit permissions."""
     return LocalConsoleCapability(
@@ -364,6 +509,7 @@ def build_local_console_capability(
         include_execute=include_execute,
         permissions=permissions,
         descriptions=descriptions,
+        visible_despite_wildcard_denial=visible_despite_wildcard_denial,
     )
 
 
@@ -406,4 +552,17 @@ def build_markdown_execute_console_capability(
         include_execute=True,
         permissions=MARKDOWN_READ_WRITE_EXECUTE_RULESET,
         descriptions=MARKDOWN_ONLY_TOOL_DESCRIPTIONS,
+    )
+
+
+def build_architecture_console_capability(toolset_id: str) -> LocalConsoleCapability:
+    """Create the Architecture console with one artifact and Mermaid CLI access."""
+    return build_local_console_capability(
+        toolset_id=toolset_id,
+        include_execute=True,
+        permissions=ARCHITECTURE_CONSOLE_RULESET,
+        descriptions=ARCHITECTURE_TOOL_DESCRIPTIONS,
+        visible_despite_wildcard_denial=frozenset(
+            {"write_file", "edit_file", "execute"}
+        ),
     )

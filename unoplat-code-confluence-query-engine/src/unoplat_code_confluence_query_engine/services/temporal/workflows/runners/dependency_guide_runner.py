@@ -121,7 +121,7 @@ async def run_dependency_guide_agent(
                 entry_dict = result.output.model_dump()
                 dependency_entries.append(entry_dict)
                 dependency_agent_stats.append(
-                    extract_usage_statistics(result.usage())
+                    extract_usage_statistics(result.usage)
                 )
             except Exception as dep_error:
                 raise_if_temporal_cancellation(dep_error)

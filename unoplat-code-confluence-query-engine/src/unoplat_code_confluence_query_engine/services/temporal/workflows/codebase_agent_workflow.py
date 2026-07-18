@@ -23,6 +23,10 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
         get_temporal_agents,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
+        ArchitectureEvidenceSummary,
+        CodebaseAgentWorkflowResult,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
         persist_codebase_snapshot_patch,
     )
@@ -55,7 +59,7 @@ class CodebaseAgentWorkflow:
         repository_workflow_run_id: str,
         trace_id: str = "",
         git_ref_info: GitRefInfo | None = None,
-    ) -> dict[str, Any]:
+    ) -> CodebaseAgentWorkflowResult:
         """Execute all agents sequentially for a single codebase."""
         codebase_workflow_run_id = workflow.info().run_id
         logger.debug("[workflow] CodebaseAgentWorkflow.run START")
@@ -137,7 +141,7 @@ class CodebaseAgentWorkflow:
             agent_stats=agent_stats,
             agent_errors=agent_errors,
         )
-        await run_app_interfaces_agent(
+        app_interfaces = await run_app_interfaces_agent(
             temporal_agents=temporal_agents,
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
@@ -147,7 +151,6 @@ class CodebaseAgentWorkflow:
             agent_stats=agent_stats,
             agent_errors=agent_errors,
         )
-
         codebase_statistics = aggregate_usage_statistics(agent_stats)
 
         if agent_errors:
@@ -173,4 +176,18 @@ class CodebaseAgentWorkflow:
         )
         logger.debug("[workflow] CodebaseAgentWorkflow.run END")
 
-        return codebase_statistics.model_dump()
+        has_external_boundary = bool(
+            app_interfaces
+            and (
+                app_interfaces.inbound_constructs
+                or app_interfaces.outbound_constructs
+            )
+        )
+        return CodebaseAgentWorkflowResult(
+            statistics=codebase_statistics,
+            architecture_evidence=ArchitectureEvidenceSummary(
+                codebase_metadata=codebase_metadata,
+                app_interfaces_generated=app_interfaces is not None,
+                has_external_boundary=has_external_boundary,
+            ),
+        )

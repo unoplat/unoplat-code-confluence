@@ -117,7 +117,7 @@ async def run_development_workflow_agent(
         )
         logger.debug("[workflow] development_workflow_guide.run() returned")
 
-        development_workflow_stats = [extract_usage_statistics(workflow_result.usage())]
+        development_workflow_stats = [extract_usage_statistics(workflow_result.usage)]
         agent_output = workflow_result.output
         if agent_output.status == ENGINEERING_WORKFLOW_FULL_OUTPUT:
             if not agent_output.commands:

@@ -25,6 +25,9 @@ from unoplat_code_confluence_query_engine.models.repository.framework_feature_va
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
 )
+from unoplat_code_confluence_query_engine.models.runtime.architecture_agent_dependencies import (
+    ArchitectureAgentDependencies,
+)
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
 )
@@ -44,6 +47,7 @@ class TemporalAgentRegistry(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    architecture: TemporalAgent[ArchitectureAgentDependencies, str] | None = None
     development_workflow_guide: (
         TemporalAgent[AgentDependencies, EngineeringWorkflowAgentOutput] | None
     ) = None
@@ -59,7 +63,7 @@ class TemporalAgentRegistry(BaseModel):
         | None
     ) = None
 
-    def iter_agents(self) -> Iterator[TemporalAgent[AgentDependencies, Any]]:
+    def iter_agents(self) -> Iterator[TemporalAgent[Any, Any]]:
         """Yield all enabled temporal agents."""
         for field_name in type(self).model_fields:
             agent = getattr(self, field_name)

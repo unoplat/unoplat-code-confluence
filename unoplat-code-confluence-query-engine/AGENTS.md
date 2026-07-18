@@ -23,6 +23,9 @@
 - **Surface area**: Model configuration + provider/OAuth flows, feature flag CRUD, repository agent rules/snapshots/markdown PR endpoints, and tool configuration management.
 - **Reference map**: See `app_interfaces.md` for endpoint-to-module details.
 
+## Architecture
+See [`architecture.md`](./architecture.md) for the current validated Mermaid architecture diagram when external interfaces are detected.
+
 ## Commands
 - **Test all**: `task test` (starts deps, runs tests with coverage, stops deps)
 - **Test single**: `uv run --group test pytest tests/path/to/test_file.py::test_function_name -v`
@@ -87,5 +90,8 @@ See [`business_domain_references.md`](./business_domain_references.md) for the s
 
 ## App Interfaces
 See [`app_interfaces.md`](./app_interfaces.md) for the canonical interface and endpoint reference.
+
+## Architecture
+See [`architecture.md`](./architecture.md) for the canonical current-state architecture diagram.
 
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:END -->
