@@ -1,6 +1,6 @@
 # Current architecture
 
-The deployed web frontend calls the flow bridge and query engine APIs. The flow bridge receives GitHub App webhooks, calls the query engine after refresh, and both backend services use Temporal and PostgreSQL.
+The deployed web frontend calls the flow bridge and query engine APIs. The flow bridge receives GitHub App webhooks, calls the query engine after refresh, and both backend services use Temporal and PostgreSQL. The query engine also calls GitHub for feedback issues and agent-change pull requests.
 
 ```mermaid
 architecture-beta
@@ -26,6 +26,7 @@ architecture-beta
     flow_bridge:R --> L:postgresql
     query_engine:R --> L:temporal
     query_engine:R --> L:postgresql
+    query_engine:R --> L:github
     temporal:R --> L:postgresql
 
     align column flow_bridge query_engine
