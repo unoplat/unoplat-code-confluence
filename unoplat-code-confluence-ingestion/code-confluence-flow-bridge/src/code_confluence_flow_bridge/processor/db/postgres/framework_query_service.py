@@ -6,7 +6,7 @@ This module bridges the ingestion layer and the query/detection engine.
 from typing import cast
 
 from loguru import logger
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from unoplat_code_confluence_commons.base_models import (
@@ -59,27 +59,45 @@ async def get_framework_features_for_imports(
     """
     Query framework features that match the given imports for a specific language.
 
+    A feature matches when one of its absolute paths is either the imported path
+    itself or a dotted descendant of it. For example, importing ``click`` loads
+    the feature registered as ``click.command`` without matching ``clickhouse``.
+
     Args:
         session: Database session
         language: Programming language (e.g., "python")
-        imports: List of import statements from the file
+        imports: List of absolute import paths from the file
 
     Returns:
         List of FeatureSpec objects for matching framework features
     """
-    if not imports:
+    normalized_imports = sorted(
+        {import_path.strip() for import_path in imports if import_path.strip()}
+    )
+    if not normalized_imports:
         return []
 
     try:
-        # Query for framework features that have absolute paths matching any of the imports
-        # Use selectinload to eagerly load the absolute_paths relationship
+        path_predicates = [
+            or_(
+                FeatureAbsolutePath.absolute_path == import_path,
+                FeatureAbsolutePath.absolute_path.startswith(
+                    f"{import_path}.",
+                    autoescape=True,
+                ),
+            )
+            for import_path in normalized_imports
+        ]
+
+        # Query for exact paths or dotted descendants of imported modules.
+        # Use selectinload to eagerly load the absolute_paths relationship.
         query = (
             select(FrameworkFeature)
             .options(selectinload(FrameworkFeature.absolute_paths))
             .join(FeatureAbsolutePath)
             .where(
                 FrameworkFeature.language == language,
-                FeatureAbsolutePath.absolute_path.in_(imports),
+                or_(*path_predicates),
             )
             .distinct()
         )
@@ -115,7 +133,7 @@ async def get_framework_features_for_imports(
 
         logger.debug(
             f"Found {len(feature_specs)} framework features for language={language} "
-            f"with {len(imports)} imports"
+            f"with {len(normalized_imports)} imports"
         )
 
         return feature_specs

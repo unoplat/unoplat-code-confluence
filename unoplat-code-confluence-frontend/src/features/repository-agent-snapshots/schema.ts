@@ -108,6 +108,9 @@ export type AgentMdInterfaceConstruct = z.infer<
 export const agentMdAppInterfacesSchema = z.object({
   inbound_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
   outbound_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
+  bidirectional_constructs: z
+    .array(agentMdInterfaceConstructSchema)
+    .default([]),
   internal_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
 });
 

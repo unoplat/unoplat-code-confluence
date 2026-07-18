@@ -180,7 +180,11 @@ class FeatureSpec(BaseModel):
         if value is None:
             self.construct_query = None
         else:
-            self.construct_query = value.model_dump(exclude_none=True)
+            self.construct_query = value.model_dump(
+                mode="json",
+                exclude_none=True,
+                exclude_defaults=True,
+            )
 
     description: Optional[str] = Field(None, description="Human-readable description")
     base_confidence: Optional[float] = Field(

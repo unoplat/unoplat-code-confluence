@@ -367,7 +367,7 @@ class TemporalWorkerManager:
                 dependency_guide_fetch_activity.fetch_dependency_guide_delta,
                 engineering_workflow_fetch_activity.fetch_previous_engineering_workflow,
                 engineering_workflow_completion_activity.emit_engineering_workflow_completion,
-                app_interfaces_activity.fetch_low_confidence_call_expression_candidates,
+                app_interfaces_activity.fetch_call_expression_discovery_targets,
                 app_interfaces_activity.build_app_interfaces,
                 app_interfaces_activity.write_app_interfaces,
                 app_interfaces_activity.emit_app_interfaces_completion,

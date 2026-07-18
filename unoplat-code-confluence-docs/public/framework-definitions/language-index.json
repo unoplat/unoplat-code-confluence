@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-25T19:22:32+05:30",
+  "generated_at": "2026-07-11T19:15:12+05:30",
   "schema_version": "v4",
   "languages": [
     {
@@ -8,10 +8,12 @@
         "celery",
         "fastapi",
         "fastmcp",
+        "gql",
         "litellm",
         "pydantic",
         "sqlalchemy",
-        "sqlmodel"
+        "sqlmodel",
+        "temporalio"
       ]
     },
     {

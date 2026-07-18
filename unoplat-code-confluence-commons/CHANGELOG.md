@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.48.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.48.0...unoplat-code-confluence-commons-v0.48.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* **commons:** serialize construct_query_typed policy safely ([d41e361](https://github.com/unoplat/unoplat-code-confluence/commit/d41e361a0ef0f8cde849c69f2429c7a4b1eb8ea4))
+
 ## [0.48.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.47.0...unoplat-code-confluence-commons-v0.48.0) (2026-07-11)
 
 

@@ -1,0 +1,28 @@
+{
+  "python": {
+    "pydantic_ai": {
+      "docs_url": "https://ai.pydantic.dev/",
+      "description": "PydanticAI agent construction, including durable Temporal agent wrappers.",
+      "capabilities": {
+        "llm_inference": {
+          "description": "PydanticAI agents configured to perform language-model inference.",
+          "operations": {
+            "llm_completion": {
+              "description": "Construct a PydanticAI Agent or its durable TemporalAgent wrapper.",
+              "docs_url": "https://ai.pydantic.dev/api/agent/",
+              "absolute_paths": [
+                "pydantic_ai.Agent",
+                "pydantic_ai.agent.Agent",
+                "pydantic_ai.durable_exec.temporal.TemporalAgent"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "notes": "Constructor calls are accepted only when direct-import, alias, or module-qualified provenance resolves to a supported PydanticAI path. Unrelated local Agent and TemporalAgent classes are rejected. Agent.run instance calls are intentionally excluded because reliable receiver provenance is not available during deterministic parsing."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.46.0...unoplat-code-confluence-query-engine-v0.47.0) (2026-07-15)
+
+
+### Features
+
+* **app-interfaces:** render bidirectional sync boundaries ([7215735](https://github.com/unoplat/unoplat-code-confluence/commit/7215735b4d4a68aaddcc52519d4bab842f309aae))
+* **framework-definitions:** add SQLAlchemy import-guarded db_sql detection ([66e39c6](https://github.com/unoplat/unoplat-code-confluence/commit/66e39c622fa7bc54867044769dd65513ac9ec075))
+
+
+### Bug Fixes
+
+* **query-engine:** persist operation-scoped discovered usages ([707a808](https://github.com/unoplat/unoplat-code-confluence/commit/707a8087e76d99d6efa9455aaa815648a42f930c))
+* **query-engine:** replace call-expression validation with discovery ([0e4408a](https://github.com/unoplat/unoplat-code-confluence/commit/0e4408aee9b15b054dea1b80640877a6fdbe4c90))
+
 ## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.45.0...unoplat-code-confluence-query-engine-v0.46.0) (2026-06-27)
 
 

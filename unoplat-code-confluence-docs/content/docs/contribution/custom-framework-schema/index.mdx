@@ -9,7 +9,8 @@ import { Callout } from 'fumadocs-ui/components/callout';
 The **Deterministic Interface Discovery Schema (DIDS)** gives contributors a deterministic structured way to define how **Unoplat Code Confluence** should identify and analyze framework and library patterns in codebases across programming languages.
 
 <Callout type="info" title="Quick Reference">
-  - **Schema (v4)**: [custom-framework-lib-schema-v4.json](/schemas/custom-framework-lib-schema-v4.json) *(opens as JSON)*
+  - **Schema (v4.1)**: [custom-framework-lib-schema-v4.1.json](/schemas/custom-framework-lib-schema-v4.1.json) *(opens as JSON)*
+  - **Latest alias**: [custom-framework-lib-schema.json](/schemas/custom-framework-lib-schema.json) *(currently points to v4.1)*
   - **Specification**: [JSON Schema Draft 2020-12](https://json-schema.org/specification)
   - **Organization**: By *programming language* → *library* → *capability* → *operation*
 </Callout>
@@ -181,15 +182,15 @@ If you need a new capability family, do **not** introduce an ad-hoc key in a fra
 
 ### Published Capability Enum
 
-The following capability families are taken from [`custom-framework-lib-schema-v4.json`](/schemas/custom-framework-lib-schema-v4.json). Only these values are accepted as capability keys.
+The following capability families are taken from [`custom-framework-lib-schema-v4.1.json`](/schemas/custom-framework-lib-schema-v4.1.json). Only these values are accepted as capability keys.
 
 <Accordions>
   <Accordion title="View all capability enum values" id="published-capability-enum">
 
   | Category | Allowed values |
   |----------|---------------|
-  | **App interfaces / entrypoints** | `rest_api`, `graphql_api`, `grpc_server`, `websocket_server`, `sse_server`, `webhook_receiver`, `webhook_sender`, `cli_command`, `scheduler`, `background_worker`, `file_watcher`, `mqtt_server`, `tcp_server`, `udp_server` |
-  | **Clients / integrations** | `http_client`, `graphql_client`, `grpc_client`, `websocket_client`, `email_service`, `message_broker`, `job_queue`, `change_data_capture` |
+  | **App interfaces / entrypoints** | `rest_api`, `graphql_api`, `rpc_server`, `websocket_server`, `sse_server`, `webhook_receiver`, `webhook_sender`, `cli_command`, `scheduler`, `background_worker`, `file_watcher`, `mqtt_server`, `tcp_server`, `udp_server` |
+  | **Clients / integrations** | `http_client`, `graphql_client`, `rpc_client`, `websocket_client`, `email_service`, `message_broker`, `job_queue`, `change_data_capture` |
   | **Data / storage** | `relational_database`, `document_database`, `key_value_store`, `wide_column_store`, `graph_database`, `multi_model_database`, `vector_store`, `file_storage`, `object_storage` |
   | **Security / config / ops** | `authentication`, `authorization`, `configuration`, `secret_management`, `observability`, `telemetry`, `logging` |
   | **AI / platform / modeling** | `llm_inference`, `mcp_server`, `mcp_client`, `data_model`, `web_component` |
@@ -323,6 +324,10 @@ Detection is import-gated and regex-refined. `absolute_paths` must be present in
   Available properties depend on the operation's `concept` value. Use the appropriate regex for your operation type.
 </Callout>
 
+<Callout type="info" title="CallExpression Matching Policies">
+  Omit `match_policy` to use the provenance-aware `match_callee` default. Use `import_guarded_regex` only for ambiguous instance-receiver APIs that exact callee matching cannot represent. It is restricted to `CallExpression`, requires a non-empty `callee_regex`, and produces candidates only after an `absolute_paths` import gate succeeds. Because it does not prove receiver provenance, pair it with `base_confidence < 0.70` and concrete validation guidance in `notes`.
+</Callout>
+
 <TypeTable
   type={{
     method_regex: {
@@ -344,6 +349,11 @@ Detection is import-gated and regex-refined. `absolute_paths` must be present in
       description: 'Regular expression for function call names. Best used with CallExpression operations.',
       type: 'string (regex)',
       default: 'undefined',
+    },
+    match_policy: {
+      description: 'CallExpression matching policy. match_callee requires exact import-bound callee provenance. import_guarded_regex generates regex-selected candidates after the absolute-path import gate and leaves receiver provenance to downstream validation.',
+      type: 'enum: match_callee | import_guarded_regex',
+      default: 'match_callee',
     },
     superclass_regex: {
       description: 'Regular expression for superclass names. Best used with Inheritance operations.',
@@ -435,7 +445,7 @@ This example shows HTTP verb operations directly under the `rest_api` capability
 
 ### SQLAlchemy Example
 
-This example shows a Python relational database library with an Inheritance-based model operation.
+This example combines an inheritance-based model operation with low-confidence candidate generation for SQL writes performed through runtime `Session` instances.
 
 ```json
 {
@@ -445,7 +455,7 @@ This example shows a Python relational database library with an Inheritance-base
       "description": "Python ORM and SQL toolkit for relational database access",
       "capabilities": {
         "relational_database": {
-          "description": "SQLAlchemy ORM declarative model definitions.",
+          "description": "SQLAlchemy ORM declarative models and relational database operations.",
           "operations": {
             "db_data_model": {
               "description": "Base class for SQLAlchemy declarative models.",
@@ -455,6 +465,24 @@ This example shows a Python relational database library with an Inheritance-base
               ],
               "target_level": "class",
               "concept": "Inheritance"
+            },
+            "db_sql": {
+              "description": "SQLAlchemy insert construction and Session persistence calls.",
+              "absolute_paths": [
+                "sqlalchemy.insert",
+                "sqlalchemy.sql.expression.insert",
+                "sqlalchemy.dialects.postgresql.insert",
+                "sqlalchemy.orm.Session",
+                "sqlalchemy.ext.asyncio.AsyncSession"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "construct_query": {
+                "match_policy": "import_guarded_regex",
+                "callee_regex": "^(?:insert[A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*insert[A-Za-z0-9_]*|(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:execute|add|add_all|insert))$"
+              },
+              "base_confidence": 0.49,
+              "notes": "Trace the receiver to a SQLAlchemy Session, confirm a relational database write, and reject generic-name collisions or read-only execute calls."
             }
           }
         }
@@ -607,6 +635,8 @@ For the full maintained definition, see `framework-definitions/typescript/fireba
   - Every operation must define `description`, `absolute_paths`, `target_level`, and `concept`
   - **CallExpression** operations *must* use `target_level: "function"` and define `base_confidence`
   - Low-confidence **CallExpression** operations with `base_confidence < 0.70` *must* include non-empty `notes`
+  - `construct_query.match_policy` is supported only for **CallExpression** operations; omit it to use the `match_callee` default
+  - `match_policy: "import_guarded_regex"` requires a non-empty `callee_regex` and should be used only for import-gated candidate generation that downstream validation can disambiguate
   - **Inheritance** operations *must* use `target_level: "class"`
   - **FunctionDefinition** operations *must* use `target_level: "function"`
   - `base_confidence` is **only** allowed on `CallExpression` operations; the schema rejects it on other concepts

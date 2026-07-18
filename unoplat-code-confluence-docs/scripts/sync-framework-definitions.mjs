@@ -19,7 +19,7 @@ const SCHEMA_PATH = path.resolve(
   DOCS_ROOT,
   "public",
   "schemas",
-  "custom-framework-lib-schema-v4.json",
+  "custom-framework-lib-schema-v4.1.json",
 );
 const DIDS_CATALOG_ROOT = path.resolve(
   DOCS_ROOT,
@@ -34,10 +34,17 @@ const CANONICAL_DEFINITIONS_BLOB_BASE_URL =
   "https://github.com/unoplat/unoplat-code-confluence/blob/dev/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions";
 
 const DISPLAY_NAME_OVERRIDES = {
+  click: "Click",
   fastapi: "FastAPI",
+  ghapi: "GhApi",
+  gql: "gql",
+  httpx: "HTTPX",
+  httpx2: "HTTPX2",
   pydantic: "Pydantic",
+  pydantic_ai: "PydanticAI",
   sqlalchemy: "SQLAlchemy",
   sqlmodel: "SQLModel",
+  temporalio: "Temporal",
 };
 
 function getLibraryName(fileName) {
@@ -66,7 +73,7 @@ async function pathExists(filePath) {
 }
 
 function getSchemaVersionFromTitle(title) {
-  const matchedVersion = title.match(/v(\d+)\b/i);
+  const matchedVersion = title.match(/v(\d+(?:\.\d+)*)\b/i);
   if (!matchedVersion) {
     return "unknown";
   }

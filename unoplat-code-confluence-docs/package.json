@@ -1,6 +1,6 @@
 {
   "name": "unoplat-code-confluence-docs",
-  "version": "0.45.0",
+  "version": "0.46.0",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -11,7 +11,6 @@
     "preview": "vp preview",
     "start": "vp preview",
     "sync:framework-definitions": "node ./scripts/sync-framework-definitions.mjs",
-    "check:framework-definitions": "bun run sync:framework-definitions && [ -z \"$(git status --porcelain -- public/framework-definitions content/docs/contribution/custom-framework-schema/catalog)\" ]",
     "types:check": "bun run sync:framework-definitions && fumadocs-mdx && tsc --noEmit",
     "postinstall": "bun run sync:framework-definitions && fumadocs-mdx"
   },

@@ -149,12 +149,19 @@ class TestFrameworkDefinitionsIngestion:
 
         expected_frameworks = {
             "celery",
+            "click",
             "fastapi",
             "fastmcp",
+            "ghapi",
+            "gql",
+            "httpx",
+            "httpx2",
             "litellm",
             "pydantic",
+            "pydantic_ai",
             "sqlalchemy",
             "sqlmodel",
+            "temporalio",
         }
         actual_frameworks = set(python_frameworks.keys())
         assert actual_frameworks == expected_frameworks, (
@@ -194,14 +201,14 @@ class TestFrameworkDefinitionsIngestion:
             metrics = _seed(session)
 
             # Validate expected data counts for all framework definitions
-            assert metrics["frameworks_count"] == 12, (
-                f"Expected 12 frameworks, got {metrics['frameworks_count']}"
+            assert metrics["frameworks_count"] == 21, (
+                f"Expected 21 frameworks, got {metrics['frameworks_count']}"
             )
-            assert metrics["features_count"] == 59, (
-                f"Expected 59 features, got {metrics['features_count']}"
+            assert metrics["features_count"] == 76, (
+                f"Expected 76 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 129, (
-                f"Expected 129 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == 192, (
+                f"Expected 192 absolute paths, got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -213,9 +220,9 @@ class TestFrameworkDefinitionsIngestion:
                 select(func.count(FeatureAbsolutePath.language))
             )  # type: ignore
 
-            assert framework_count == 12
-            assert feature_count == 59
-            assert path_count == 129
+            assert framework_count == 21
+            assert feature_count == 76
+            assert path_count == 192
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -343,7 +350,7 @@ class TestFrameworkDefinitionsIngestion:
                 results.append(state)
 
             # All results should be identical for all framework definitions
-            expected_state = {"frameworks": 12, "features": 59, "paths": 129}
+            expected_state = {"frameworks": 21, "features": 76, "paths": 192}
             for result in results:
                 assert result == expected_state
 
@@ -365,10 +372,10 @@ class TestFrameworkDefinitionsIngestion:
         frameworks, features, absolute_paths = loader.parse_json_data(framework_data)
 
         # Validate parsing results match expected production data for all definitions
-        assert len(frameworks) == 12, f"Expected 12 frameworks, got {len(frameworks)}"
-        assert len(features) == 59, f"Expected 59 features, got {len(features)}"
-        assert len(absolute_paths) == 129, (
-            f"Expected 129 absolute paths, got {len(absolute_paths)}"
+        assert len(frameworks) == 21, f"Expected 21 frameworks, got {len(frameworks)}"
+        assert len(features) == 76, f"Expected 76 features, got {len(features)}"
+        assert len(absolute_paths) == 192, (
+            f"Expected 192 absolute paths, got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI
@@ -487,7 +494,7 @@ class TestFrameworkDefinitionsIngestion:
             assert ap.library is not None
             assert ap.feature_key is not None
             assert ap.absolute_path is not None
-            assert "." in ap.absolute_path  # Should be fully qualified
+            assert ap.absolute_path.strip()  # Should be a non-empty import path
 
     def test_unknown_keys_are_rejected_in_feature_definition(
         self, test_client: TestClient, service_ports

@@ -70,7 +70,7 @@ AgentBackendKind = Literal[
 
 _AGENT_BACKEND_KIND: dict[str, AgentBackendKind] = {
     "business_domain_guide": "markdown_local",
-    "call_expression_validator": "readonly_local",
+    "call_expression_discoverer": "readonly_local",
     "dependency_guide": "readonly_local",
     "dependency_guide_item": "readonly_local",
     "development_workflow_guide": "markdown_execute_local",

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.58.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.57.0...unoplat-code-confluence-frontend-v1.58.0) (2026-07-15)
+
+
+### Features
+
+* **app-interfaces:** render bidirectional sync boundaries ([7215735](https://github.com/unoplat/unoplat-code-confluence/commit/7215735b4d4a68aaddcc52519d4bab842f309aae))
+
+
+### Bug Fixes
+
+* **frontend:** validate agent snapshot codebases ([ec0c83a](https://github.com/unoplat/unoplat-code-confluence/commit/ec0c83a6b2157d3f9efefdb3de8cf5039cacb6d4))
+
 ## [1.57.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.56.0...unoplat-code-confluence-frontend-v1.57.0) (2026-06-27)
 
 

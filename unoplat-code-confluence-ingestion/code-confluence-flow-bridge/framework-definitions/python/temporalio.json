@@ -1,0 +1,72 @@
+{
+  "python": {
+    "temporalio": {
+      "docs_url": "https://python.temporal.io/",
+      "description": "Temporal Python SDK workflow and activity definitions plus outbound workflow and activity dispatch.",
+      "version": "1.26.0",
+      "capabilities": {
+        "scheduler": {
+          "description": "Temporal workflow definitions that receive scheduled or background workflow execution.",
+          "operations": {
+            "task_definition": {
+              "description": "A class registered as a Temporal workflow definition.",
+              "docs_url": "https://python.temporal.io/temporalio.workflow.html#defn",
+              "absolute_paths": [
+                "temporalio.workflow.defn"
+              ],
+              "target_level": "class",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^defn$",
+                "annotation_name_regex": "^defn$"
+              },
+              "startpoint": true
+            }
+          }
+        },
+        "background_worker": {
+          "description": "Temporal activity definitions that receive workflow-dispatched background work.",
+          "operations": {
+            "task_definition": {
+              "description": "A function registered as a Temporal activity definition.",
+              "docs_url": "https://python.temporal.io/temporalio.activity.html#defn",
+              "absolute_paths": [
+                "temporalio.activity.defn"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^defn$",
+                "annotation_name_regex": "^defn$"
+              },
+              "startpoint": true
+            }
+          }
+        },
+        "job_queue": {
+          "description": "Temporal workflow and activity work dispatched to a task queue.",
+          "operations": {
+            "task_queue_enqueue": {
+              "description": "Dispatch a Temporal activity, child workflow, or client-started workflow.",
+              "docs_url": "https://python.temporal.io/temporalio.workflow.html#execute_activity",
+              "absolute_paths": [
+                "temporalio.workflow.execute_activity",
+                "temporalio.workflow.start_child_workflow",
+                "temporalio.client.Client.connect",
+                "temporalio.client.Client.start_workflow"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "construct_query": {
+                "match_policy": "import_guarded_regex",
+                "callee_regex": "^(?:(?:[A-Za-z_][A-Za-z0-9_]*\\.)+Client\\.connect|(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:execute_activity|start_child_workflow|start_workflow))$"
+              },
+              "base_confidence": 0.59,
+              "notes": "Treat temporalio.client.Client.connect calls as low-confidence discovery seeds for client-started workflows, not as task-queue enqueue operations themselves. Trace the connected Client through exports, imports, assignments, dependency injection, or annotations before accepting start_workflow calls, and reject the connect seed after discovery. Confirm execute_activity and start_child_workflow are called on temporalio.workflow (including an imported alias). Reject interceptor delegation such as next/self.next start_child_workflow or execute_workflow calls, custom workflow-service wrappers, and unrelated receivers with similarly named methods. Other worker/bootstrap construction, policies, exceptions, and interceptor APIs are intentionally excluded."
+            }
+          }
+        }
+      }
+    }
+  }
+}
