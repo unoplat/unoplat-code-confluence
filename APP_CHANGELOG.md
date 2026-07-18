@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.44.0...unoplat-code-confluence-v0.45.0) (2026-07-18)
+
+
+### Features
+
+* **app-interfaces:** render bidirectional sync boundaries ([7215735](https://github.com/unoplat/unoplat-code-confluence/commit/7215735b4d4a68aaddcc52519d4bab842f309aae))
+* **commons:** add call expression match policy ([0940a71](https://github.com/unoplat/unoplat-code-confluence/commit/0940a711e3e4f58b2ba5bb5b44bdc017c70e4d60))
+* **commons:** add call expression match policy ([6365b4f](https://github.com/unoplat/unoplat-code-confluence/commit/6365b4f1ce5192c612129320766a21c8bea2213b))
+* **docs:** publish gql, temporalio, and SQLAlchemy definitions ([e006ce2](https://github.com/unoplat/unoplat-code-confluence/commit/e006ce2979e919ed5840b676119df5a7e3e4daec))
+* **framework-definitions:** add Axios and realtime sync coverage ([8e4c1f4](https://github.com/unoplat/unoplat-code-confluence/commit/8e4c1f4fa55a5e2abee9929eb052a19e0c5322a6))
+* **framework-definitions:** add Click and HTTPX2 definitions ([4e05946](https://github.com/unoplat/unoplat-code-confluence/commit/4e059463407b24ad77daaefda20d2f32de93d5ac))
+* **framework-definitions:** add SQLAlchemy import-guarded db_sql detection ([66e39c6](https://github.com/unoplat/unoplat-code-confluence/commit/66e39c622fa7bc54867044769dd65513ac9ec075))
+* **framework-definitions:** add Temporal and gql Python framework definitions ([7640365](https://github.com/unoplat/unoplat-code-confluence/commit/764036501a5b7c5c3e0c10b8096fbcd53cc93fb5))
+* **framework-definitions:** add temporalio, httpx, ghapi, pydantic_ai coverage ([e1cc3a8](https://github.com/unoplat/unoplat-code-confluence/commit/e1cc3a82a6427c8194c211f1b9cf9905a6480a73))
+* **frontend:** display repository activity progress ([d5df14c](https://github.com/unoplat/unoplat-code-confluence/commit/d5df14cf7631b50532f840eadd950315e22aa863))
+* **python-parser:** detect bare attribute decorators with target-level enforcement ([a5f3966](https://github.com/unoplat/unoplat-code-confluence/commit/a5f3966e49ff217401762b7b379e24d870ad8a0e))
+* **query-engine:** add repository architecture diagram agent ([632ea42](https://github.com/unoplat/unoplat-code-confluence/commit/632ea42f23fa9d15657a669af0f833790aa62497))
+* **schema:** promote framework definition schema to v4.1 ([a1546f7](https://github.com/unoplat/unoplat-code-confluence/commit/a1546f7f56f26fc15856201d1095263c94d04b22))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([31b1091](https://github.com/unoplat/unoplat-code-confluence/commit/31b10911516f88ab1484a2cd8a79cdefbca74e43))
+* **ci:** refresh package uv lockfiles before python lock checks run ([43f630a](https://github.com/unoplat/unoplat-code-confluence/commit/43f630a8eeaac871b190357e5f246aef0aaab550))
+* **commons:** serialize construct_query_typed policy safely ([d41e361](https://github.com/unoplat/unoplat-code-confluence/commit/d41e361a0ef0f8cde849c69f2429c7a4b1eb8ea4))
+* **frontend:** validate agent snapshot codebases ([ec0c83a](https://github.com/unoplat/unoplat-code-confluence/commit/ec0c83a6b2157d3f9efefdb3de8cf5039cacb6d4))
+* **ingestion:** generalize TypeScript import-guarded matching ([cc2705b](https://github.com/unoplat/unoplat-code-confluence/commit/cc2705bac5b617435c4bc30188bf4c917609ffca))
+* **ingestion:** match descendant framework imports ([01b433a](https://github.com/unoplat/unoplat-code-confluence/commit/01b433a3de8717336d0007b916387ccabfda8d66))
+* **python-parser:** resolve import aliases under import_guarded_regex ([73bcd5b](https://github.com/unoplat/unoplat-code-confluence/commit/73bcd5b0f74c454973793f9b361e98e0d63c57e5))
+* **python-parser:** resolve qualified gql import provenance ([3eb13ec](https://github.com/unoplat/unoplat-code-confluence/commit/3eb13ece97086a914a4ef9226601c788163394fa))
+* **query-engine:** persist operation-scoped discovered usages ([707a808](https://github.com/unoplat/unoplat-code-confluence/commit/707a8087e76d99d6efa9455aaa815648a42f930c))
+* **query-engine:** replace call-expression validation with discovery ([0e4408a](https://github.com/unoplat/unoplat-code-confluence/commit/0e4408aee9b15b054dea1b80640877a6fdbe4c90))
+* **tests:** regressions fix caused due to dependencies' upgrades ([3219d11](https://github.com/unoplat/unoplat-code-confluence/commit/3219d1184be280223a5f875880fad4d949e11026))
+
 ## [0.44.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.43.0...unoplat-code-confluence-v0.44.0) (2026-07-02)
 
 
