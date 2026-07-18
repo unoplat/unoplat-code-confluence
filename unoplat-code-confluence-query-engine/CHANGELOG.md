@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.48.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.48.0...unoplat-code-confluence-query-engine-v0.48.1) (2026-07-18)
+
+
+### Bug Fixes
+
+* **temporal:** migrate call discoverer retry configuration ([579847a](https://github.com/unoplat/unoplat-code-confluence/commit/579847a5f122cb457ef092080940df896cb493b0))
+* **temporal:** read usage from RunResult property ([78f0ff5](https://github.com/unoplat/unoplat-code-confluence/commit/78f0ff5303f375fbcfd794e10f9a6855100b2d28))
+
 ## [0.48.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.47.0...unoplat-code-confluence-query-engine-v0.48.0) (2026-07-18)
 
 
