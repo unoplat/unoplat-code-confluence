@@ -359,6 +359,7 @@ class TemporalWorkerManager:
                 snapshot_activity.persist_agent_snapshot_begin_run,
                 snapshot_activity.persist_agent_snapshot_complete,
                 snapshot_activity.persist_agent_snapshot_codebase_patch,
+                snapshot_activity.complete_repository_activity,
                 business_logic_post_process_activity.post_process_business_logic,
                 dependency_guide_completion_activity.write_dependency_overview,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,

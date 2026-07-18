@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.59.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.58.0...unoplat-code-confluence-frontend-v1.59.0) (2026-07-18)
+
+
+### Features
+
+* **frontend:** display repository activity progress ([d5df14c](https://github.com/unoplat/unoplat-code-confluence/commit/d5df14cf7631b50532f840eadd950315e22aa863))
+
 ## [1.58.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.57.0...unoplat-code-confluence-frontend-v1.58.0) (2026-07-15)
 
 

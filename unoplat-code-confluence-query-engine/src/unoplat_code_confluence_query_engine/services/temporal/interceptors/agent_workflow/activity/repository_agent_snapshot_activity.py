@@ -10,6 +10,7 @@ from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes i
     AgentSnapshotBeginRunEnvelope,
     AgentSnapshotCodebasePatchEnvelope,
     AgentSnapshotCompleteEnvelope,
+    RepositoryActivityCompletionEnvelope,
 )
 
 
@@ -40,6 +41,7 @@ class RepositoryAgentSnapshotActivity:
             repository_qualified_name=envelope.repository_qualified_name,
             repository_workflow_run_id=envelope.repository_workflow_run_id,
             codebase_names=envelope.codebase_names,
+            repository_activity_names=envelope.repository_activity_names,
         )
 
         logger.info(
@@ -47,6 +49,18 @@ class RepositoryAgentSnapshotActivity:
             envelope.owner_name,
             envelope.repo_name,
             envelope.repository_workflow_run_id,
+        )
+
+    @activity.defn(name="complete-repository-activity")
+    async def complete_repository_activity(
+        self, envelope: RepositoryActivityCompletionEnvelope
+    ) -> None:
+        """Mark a repository-level activity complete and refresh overall progress."""
+        await get_snapshot_writer().complete_repository_activity(
+            owner_name=envelope.owner_name,
+            repo_name=envelope.repo_name,
+            repository_workflow_run_id=envelope.repository_workflow_run_id,
+            activity_name=envelope.activity_name,
         )
 
     @activity.defn(name="persist-agent-snapshot-codebase-patch")

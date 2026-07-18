@@ -4,6 +4,9 @@ from collections.abc import Callable, Set as AbstractSet
 from enum import Enum
 from typing import Any
 
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.architecture import (
+    build_architecture_agent,
+)
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.business_domain import (
     build_business_domain_agent,
 )
@@ -27,6 +30,7 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.runti
 
 
 class AgentType(str, Enum):
+    ARCHITECTURE = "architecture"
     DEVELOPMENT_WORKFLOW = "development_workflow_guide"
     DEPENDENCY = "dependency_guide"
     BUSINESS_DOMAIN = "business_domain_guide"
@@ -35,6 +39,7 @@ class AgentType(str, Enum):
 
 DEFAULT_ENABLED_AGENT_TYPES = frozenset(
     {
+        AgentType.ARCHITECTURE,
         AgentType.DEVELOPMENT_WORKFLOW,
         AgentType.DEPENDENCY,
         AgentType.BUSINESS_DOMAIN,
@@ -49,8 +54,9 @@ EXA_TOOLSET_IDS: dict[AgentType, str] = {
 
 
 AGENT_BUILDERS: dict[
-    AgentType, Callable[[AgentAssemblyContext], AgentBuildResult[Any]]
+    AgentType, Callable[[AgentAssemblyContext], AgentBuildResult[Any, Any]]
 ] = {
+    AgentType.ARCHITECTURE: build_architecture_agent,
     AgentType.DEVELOPMENT_WORKFLOW: build_development_workflow_agent,
     AgentType.DEPENDENCY: build_dependency_guide_agent,
     AgentType.BUSINESS_DOMAIN: build_business_domain_agent,
@@ -60,7 +66,7 @@ AGENT_BUILDERS: dict[
 
 def build_enabled_agent_builders(
     enabled_agents: AbstractSet[AgentType] | None = None,
-) -> dict[AgentType, Callable[[AgentAssemblyContext], AgentBuildResult[Any]]]:
+) -> dict[AgentType, Callable[[AgentAssemblyContext], AgentBuildResult[Any, Any]]]:
     """Return the concrete builder mapping for each enabled agent type."""
 
     selected_agents = (
@@ -77,7 +83,7 @@ def build_enabled_agent_builders(
 
 def build_enabled_agent_specs(
     enabled_agents: AbstractSet[AgentType] | None = None,
-) -> dict[AgentType, Callable[[AgentAssemblyContext], AgentBuildResult[Any]]]:
+) -> dict[AgentType, Callable[[AgentAssemblyContext], AgentBuildResult[Any, Any]]]:
     """Compatibility wrapper for the legacy builder-mapping helper name."""
 
     return build_enabled_agent_builders(enabled_agents)

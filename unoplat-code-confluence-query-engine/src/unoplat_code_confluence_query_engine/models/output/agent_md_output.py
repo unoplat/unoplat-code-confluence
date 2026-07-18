@@ -394,5 +394,9 @@ class RepositoryAgentMdOutputSnapshot(BaseModel):
         default_factory=dict,
         description="Per-codebase agent output snapshots keyed by codebase name",
     )
+    repository_activity_progress: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Named repository-level activity completion percentages",
+    )
 
     model_config = ConfigDict(extra="allow")

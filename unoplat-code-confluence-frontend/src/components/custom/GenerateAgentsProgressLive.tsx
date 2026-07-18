@@ -50,18 +50,11 @@ function getCodebaseDisplayName(codebaseName: string): string {
   return codebaseName === "." ? "Root" : codebaseName;
 }
 
-function getAverageProgress(
-  progressRows: RepositoryAgentCodebaseProgressRow[],
-): number {
-  if (progressRows.length === 0) {
-    return 0;
-  }
-
-  const total = progressRows.reduce(
-    (sum, row) => sum + (typeof row.progress === "number" ? row.progress : 0),
-    0,
-  );
-  return total / progressRows.length;
+function getRepositoryActivityDisplayName(activityName: string): string {
+  return activityName
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function getLoadedEventBounds(eventIds: number[]): EventBounds {
@@ -206,8 +199,10 @@ export function GenerateAgentsProgressLive({
     loadOlderHistory,
   } = useRepositoryAgentEventHistory(scope, resolvedActiveCodebaseName);
   const progress = activeProgressRow?.progress ?? 0;
-  const overallProgress =
-    snapshot?.overallProgress ?? getAverageProgress(progressRows);
+  const overallProgress = snapshot?.overallProgress ?? 0;
+  const repositoryActivities = Object.entries(
+    snapshot?.repositoryActivityProgress ?? {},
+  );
   const loadedBounds = React.useMemo(
     () => getLoadedEventBounds(events.map((event) => event.event_id)),
     [events],
@@ -329,6 +324,24 @@ export function GenerateAgentsProgressLive({
             </div>
           </div>
           <Progress value={overallProgress} />
+          {repositoryActivities.length > 0 ? (
+            <div className="border-border space-y-2 border-t pt-3">
+              <div className="text-muted-foreground text-xs font-medium">
+                Repository activities
+              </div>
+              {repositoryActivities.map(([activityName, activityProgress]) => (
+                <div key={activityName} className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span>{getRepositoryActivityDisplayName(activityName)}</span>
+                    <span className="text-primary font-medium">
+                      {Math.round(activityProgress)}%
+                    </span>
+                  </div>
+                  <Progress value={activityProgress} className="h-1.5" />
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </Card>
 

@@ -322,6 +322,7 @@ async def test_begin_run_creates_snapshot_row(seeded_db, writer):
         assert snapshot["agent_md_output"] == {
             "repository": f"{TEST_OWNER}/{TEST_REPO}",
             "codebases": {},
+            "repository_activity_progress": {},
         }
         assert snapshot["statistics"] is None
 

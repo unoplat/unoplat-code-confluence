@@ -141,9 +141,14 @@ export type AgentMdCodebaseOutput = z.infer<typeof agentMdCodebaseOutputSchema>;
 
 // Agent MD output schema - codebases values are objects, not strings
 // Electric SQL auto-parses JSONB columns
+export const repositoryActivityProgressSchema = z
+  .record(z.string(), z.coerce.number())
+  .default({});
+
 export const agentMdOutputSchema = z.object({
   repository: z.string().optional(),
   codebases: z.record(z.string(), agentMdCodebaseOutputSchema).default({}),
+  repository_activity_progress: repositoryActivityProgressSchema,
 });
 
 export type AgentMdOutputRecord = z.infer<typeof agentMdOutputSchema>;
@@ -185,6 +190,7 @@ export const repositoryAgentSnapshotRowSchema = z.object({
 
   agent_md_output: agentMdOutputSchema.default({
     codebases: {},
+    repository_activity_progress: {},
   }),
 
   // Optional JSONB field

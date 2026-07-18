@@ -24,6 +24,7 @@ export interface ParsedRepositoryAgentSnapshot {
   createdAt: string;
   updatedAt: string;
   latestEventAt?: string;
+  repositoryActivityProgress: Record<string, number>;
 }
 
 export function parseSnapshotRow(
@@ -45,6 +46,7 @@ export function parseSnapshotRow(
     createdAt: parsed.created_at,
     updatedAt: parsed.modified_at,
     latestEventAt: parsed.latest_event_at ?? undefined,
+    repositoryActivityProgress: parsed.agent_md_output.repository_activity_progress,
   };
 }
 
@@ -113,6 +115,7 @@ export function parseAgentMdOutputsFromSnapshot(
   return parseAgentMdOutputs({
     repository: snapshot.repository,
     codebases: snapshot.codebases as AgentMdOutputRecord["codebases"],
+    repository_activity_progress: {},
   });
 }
 

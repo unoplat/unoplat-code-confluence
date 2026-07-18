@@ -17,8 +17,14 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.statistics_helpers import (
         build_workflow_statistics,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.temporal_agents import (
+        get_temporal_agents,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.codebase_agent_workflow import (
         CodebaseAgentWorkflow,
+    )
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.architecture_runner import (
+        run_architecture_agent,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.repository_codebase_children_runner import (
         collect_codebase_child_results,
@@ -68,11 +74,20 @@ class RepositoryAgentWorkflow:
             trace_id=trace_id,
             git_ref_info=git_ref_info,
         )
-        child_errors = await collect_codebase_child_results(
+        child_errors, successful_evidence = await collect_codebase_child_results(
             repository_qualified_name=repository_qualified_name,
             child_handles=child_handles,
             codebase_statistics_map=codebase_statistics_map,
         )
+        architecture_error = await run_architecture_agent(
+            temporal_agents=get_temporal_agents(),
+            repository_qualified_name=repository_qualified_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            successful_evidence=successful_evidence,
+        )
+        execution_errors: list[dict[str, object]] = [dict(error) for error in child_errors]
+        if architecture_error is not None:
+            execution_errors.append(architecture_error)
 
         workflow_statistics = build_workflow_statistics(codebase_statistics_map)
         workflow_statistics_payload = workflow_statistics.model_dump()
@@ -82,9 +97,9 @@ class RepositoryAgentWorkflow:
             statistics_payload=workflow_statistics_payload,
         )
 
-        if child_errors:
+        if execution_errors:
             error_summary = (
-                f"{len(child_errors)} codebase(s) failed during agent execution"
+                f"{len(execution_errors)} child or repository agent execution(s) failed"
             )
             logger.warning(
                 "[workflow] {} - raising ApplicationError to propagate to interceptor",
@@ -92,7 +107,7 @@ class RepositoryAgentWorkflow:
             )
             raise ApplicationError(
                 error_summary,
-                child_errors,
+                execution_errors,
                 type="CodebaseWorkflowError",
                 non_retryable=True,
             )

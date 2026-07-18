@@ -4,12 +4,10 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from pydantic_ai import Agent
+from pydantic_ai.agent import EventStreamHandler
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 
-from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
-    AgentDependencies,
-)
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.activity_policies import (
     TemporalActivityDefaults,
 )
@@ -17,6 +15,7 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.searc
     SearchRuntimePolicy,
 )
 
+DepsT = TypeVar("DepsT")
 OutputT = TypeVar("OutputT")
 
 
@@ -32,10 +31,11 @@ class AgentAssemblyContext:
 
 
 @dataclass(frozen=True, slots=True)
-class AgentBuildResult(Generic[OutputT]):
+class AgentBuildResult(Generic[DepsT, OutputT]):
     """Concrete agent plus the metadata Temporal wrapping still needs."""
 
-    agent: Agent[AgentDependencies, OutputT]
+    agent: Agent[DepsT, OutputT]
     function_tool_names: tuple[str, ...]
+    event_stream_handler: EventStreamHandler[DepsT] | None = None
     toolset_ids: tuple[str, ...] = ()
 
