@@ -55,7 +55,7 @@ This project uses Backlog.md MCP for all task and project management. Before cre
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `3bbc2c8ae5f6fc7e94628c3b07a936ca5bdbcd02` (2026-06-09). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `05234b1efe5762f633f9b3367f217c3b0fe2659b` (2026-07-15). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
@@ -63,7 +63,8 @@ This project uses Backlog.md MCP for all task and project management. Before cre
 ### Install
 - `task sync` (repo root; `Taskfile.yml` -> `uv sync`)
 ### Build
-- Not detected
+- `docker build -f Dockerfile .` (repo root; `Dockerfile`)
+- `docker build -f Dockerfile.dev .` (repo root; `Dockerfile.dev`)
 ### Dev
 - `task run-query-engine-backend-dev` (repo root; `Taskfile.yml` -> `uv run fastapi dev --port 8001` in `src/unoplat_code_confluence_query_engine`)
 ### Test

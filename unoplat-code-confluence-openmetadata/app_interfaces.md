@@ -8,7 +8,13 @@ No inbound constructs detected.
 
 ## Outbound Constructs
 
-No outbound constructs detected.
+### http_client (httpx)
+
+- `src/unoplat_code_confluence_openmetadata/client.py`: L47: self._client.get( SNAPSHOT_ENDPOINT_PATH, params=params, )
+
+## Bidirectional Constructs
+
+No bidirectional constructs detected.
 
 ## Internal Constructs
 

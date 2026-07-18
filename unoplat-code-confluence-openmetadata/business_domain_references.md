@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This repository is an OpenMetadata ingestion connector for Code Confluence, a repository-analysis system that turns query-engine snapshots into catalog assets. It publishes a developer-tooling domain and data product, then maps each codebase into API services, collections, and route-level endpoints enriched with engineering workflow, dependency, business-logic, and interface metadata. The core business focus is capturing deterministic source-code context and evidence so developers and AI agents can navigate repository behavior inside OpenMetadata.
+This project is an OpenMetadata ingestion connector for Code Confluence, a repository-analysis system that retrieves validated query-engine snapshots for repositories and codebases. Its data models capture business logic, source-file evidence, engineering workflows, dependencies, application interfaces, glossary terms, and programming-language metadata. These snapshots are transformed into developer-tooling catalog assets such as API services, codebase collections, and route-level endpoints for repository discovery and AI-assisted code understanding.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-openmetadata/src/unoplat_code_confluence_openmetadata/config.py`
